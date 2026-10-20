@@ -22,6 +22,9 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3208-001")]
+    [Requirement("SHARED-BODY-002")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyReturningLocalFunctionIsDetectedAndFixed()
     {
         const string testData = """
@@ -59,6 +62,8 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3208-001")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyVoidLocalFunctionIsFixedToExpressionStatement()
     {
         const string testData = """
@@ -96,6 +101,8 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3208-001")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyAsyncTaskLocalFunctionIsFixedToExpressionStatement()
     {
         const string testData = """
@@ -137,6 +144,8 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3208-001")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyAsyncGenericTaskLocalFunctionIsFixedToReturnStatement()
     {
         const string testData = """
@@ -178,6 +187,8 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3208-001")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyThrowExpressionBodiedLocalFunctionIsFixedToThrowStatement()
     {
         const string testData = """
@@ -215,6 +226,8 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3208-001")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyLocalFunctionInsideLambdaIsDetectedAndFixed()
     {
         const string testData = """
@@ -258,6 +271,8 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3208-001")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyLocalFunctionInTopLevelStatementsIsDetectedAndFixed()
     {
         const string testData = """
@@ -290,6 +305,7 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3208-001")]
     public async Task VerifyNestedLocalFunctionsAreBothFixed()
     {
         const string testData = """
@@ -359,6 +375,7 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3208-001")]
     public async Task VerifyBlockBodiedLocalFunctionIsNotReported()
     {
         const string testData = """
@@ -384,6 +401,7 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3208-001")]
     public async Task VerifyExternLocalFunctionWithoutBodyIsNotReported()
     {
         const string testData = """
@@ -408,6 +426,7 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BODY-001")]
     public async Task VerifyExpressionBodyWithDirectiveBeforeExpressionIsNotReported()
     {
         const string testData = """
@@ -434,6 +453,7 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BODY-001")]
     public async Task VerifyExpressionBodyWithConditionalGroupBeforeExpressionIsNotReported()
     {
         const string testData = """
@@ -462,6 +482,8 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BODY-001")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyExpressionBodyWithDirectiveAfterExpressionIsFixed()
     {
         const string testData = """
@@ -503,6 +525,8 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BODY-002")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyExpressionOnNextLineIsFixedToSingleSpacedReturn()
     {
         const string testData = """
@@ -542,6 +566,8 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3208-002")]
+    [Requirement("SHARED-AFTERBRACE-001")]
     public async Task VerifyStatementDirectlyAfterLocalFunctionIsSeparatedByBlankLine()
     {
         const string testData = """
@@ -584,6 +610,7 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3208-002")]
     public async Task VerifyStatementDirectlyAfterLocalFunctionInSwitchSectionIsSeparatedByBlankLine()
     {
         const string testData = """
@@ -635,6 +662,7 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3208-002")]
     public async Task VerifyTerminalSwitchSectionBreakAfterLocalFunctionStaysAttached()
     {
         const string testData = """
@@ -678,6 +706,7 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3208-002")]
     public async Task VerifyExistingBlankLineAfterLocalFunctionIsKept()
     {
         const string testData = """
@@ -715,6 +744,7 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3208-002")]
     public async Task VerifyLocalFunctionEndingItsBlockGetsNoTrailingBlankLine()
     {
         const string testData = """
@@ -796,6 +826,8 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3208-002")]
+    [Requirement("RH3208-003")]
     public async Task VerifyStatementDirectlyAfterLabeledLocalFunctionIsSeparatedByBlankLine()
     {
         const string testData = """
@@ -836,6 +868,8 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3208-002")]
+    [Requirement("RH3208-003")]
     public async Task VerifyStatementDirectlyAfterNestedLabeledLocalFunctionIsSeparatedByBlankLine()
     {
         const string testData = """
@@ -876,6 +910,8 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3208-002")]
+    [Requirement("SHARED-AFTERBRACE-001")]
     public async Task VerifyBlankLineIsInsertedAboveCommentLeadingNextStatement()
     {
         const string testData = """
@@ -918,6 +954,8 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3208-002")]
+    [Requirement("SHARED-AFTERBRACE-001")]
     public async Task VerifyBlankLineIsInsertedAfterDirectiveLeadingNextStatement()
     {
         const string testData = """
@@ -962,6 +1000,7 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3208-003")]
     public async Task VerifyLabeledLocalFunctionEndingItsBlockIsIndentedFromStatementColumn()
     {
         const string testData = """
@@ -997,6 +1036,8 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3208-002")]
+    [Requirement("RH3208-003")]
     public async Task VerifyLabeledLocalFunctionInSwitchSectionIsIndentedFromStatementColumn()
     {
         const string testData = """
@@ -1047,6 +1088,8 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3208-002")]
+    [Requirement("RH3208-003")]
     public async Task VerifyLocalFunctionBelowOutdentedLabelIsIndentedFromOwnColumn()
     {
         const string testData = """
@@ -1087,6 +1130,7 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3208-003")]
     public async Task VerifyLastLocalFunctionBelowOutdentedLabelIsIndentedFromOwnColumn()
     {
         const string testData = """
@@ -1124,6 +1168,8 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3208-002")]
+    [Requirement("RH3208-003")]
     public async Task VerifyLocalFunctionAfterInnerLabelBelowOutdentedLabelIsIndentedFromLineColumn()
     {
         const string testData = """
@@ -1164,6 +1210,7 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3208-003")]
     public async Task VerifyLastLocalFunctionAfterInnerLabelBelowOutdentedLabelIsIndentedFromLineColumn()
     {
         const string testData = """
@@ -1194,6 +1241,237 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
                                   """;
 
         await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies expression-bodied local functions in a lambda and <c>async</c> ones are reported, while block-bodied
+    /// and extern local functions are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3208-001")]
+    public async Task LocalFunctionsInLambdaAndAsyncAreReportedButBlockBodiedAndExternAreNot()
+    {
+        const string testData = """
+                                using System;
+                                using System.Threading.Tasks;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<int> f = () =>
+                                        {
+                                            int One() {|RH3208:=> 1|};
+
+                                            return One();
+                                        };
+
+                                        async Task RunAsync() {|RH3208:=> await Task.Delay(1)|};
+
+                                        int Fail()
+                                        {
+                                            throw new InvalidOperationException();
+                                        }
+
+                                        static extern int Native();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the fix separates the new block from a following statement, also behind a label, but not from a
+    /// terminal <c>break</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3208-002")]
+    public async Task FixSeparatesTheNewBlockFromTheNextStatementExceptATerminalBreak()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int M()
+                                    {
+                                        int Twice(int x) {|RH3208:=> x * 2|};
+                                        return Twice(1);
+                                    }
+
+                                    void O(int a)
+                                    {
+                                        switch (a)
+                                        {
+                                            case 1:
+                                                int Twice(int x) {|RH3208:=> x * 2|};
+                                                break;
+                                        }
+                                    }
+
+                                    int P()
+                                    {
+                                        L: int Local() {|RH3208:=> 1|};
+                                        return Local();
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      int M()
+                                      {
+                                          int Twice(int x)
+                                          {
+                                              return x * 2;
+                                          }
+
+                                          return Twice(1);
+                                      }
+
+                                      void O(int a)
+                                      {
+                                          switch (a)
+                                          {
+                                              case 1:
+                                                  int Twice(int x)
+                                                  {
+                                                      return x * 2;
+                                                  }
+                                                  break;
+                                          }
+                                      }
+
+                                      int P()
+                                      {
+                                          L: int Local()
+                                          {
+                                              return 1;
+                                          }
+
+                                          return Local();
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies the block of a local function behind a label on its line is laid out from the line's column, and
+    /// below a label on its own line from the function's column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3208-003")]
+    public async Task FixLaysOutTheBlockFromTheLineStartOrTheFunctionColumn()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        goto L;
+                                        L: int Local() {|RH3208:=> 1|};
+                                    }
+
+                                    int N()
+                                    {
+                                        goto L;
+                                    L:
+                                        int Local() {|RH3208:=> 1|};
+                                        return Local();
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          goto L;
+                                          L: int Local()
+                                          {
+                                              return 1;
+                                          }
+                                      }
+
+                                      int N()
+                                      {
+                                          goto L;
+                                      L:
+                                          int Local()
+                                          {
+                                              return 1;
+                                          }
+
+                                          return Local();
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies the blank line after the new block goes above a comment and behind a directive that lead the next
+    /// statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-AFTERBRACE-001")]
+    public async Task FixInsertsTheBlankLineAboveACommentAndBehindADirective()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int M()
+                                    {
+                                        int Twice(int x) {|RH3208:=> x * 2|};
+                                        // Use it.
+                                        return Twice(1);
+                                    }
+
+                                    int N()
+                                    {
+                                        int Twice(int x) {|RH3208:=> x * 2|};
+                                #pragma warning disable CS0168
+                                        return Twice(1);
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      int M()
+                                      {
+                                          int Twice(int x)
+                                          {
+                                              return x * 2;
+                                          }
+
+                                          // Use it.
+                                          return Twice(1);
+                                      }
+
+                                      int N()
+                                      {
+                                          int Twice(int x)
+                                          {
+                                              return x * 2;
+                                          }
+                                  #pragma warning disable CS0168
+
+                                          return Twice(1);
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
     }
 
     #endregion // Tests

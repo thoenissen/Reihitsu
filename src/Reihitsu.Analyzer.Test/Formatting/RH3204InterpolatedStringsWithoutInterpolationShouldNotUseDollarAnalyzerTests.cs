@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
@@ -21,6 +22,9 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3204-001")]
+    [Requirement("RH3204-002")]
+    [Requirement("RH3204-003")]
     public async Task VerifyStandardInterpolatedStringWithoutInterpolationIsDetectedAndFixed()
     {
         const string testData = """
@@ -50,6 +54,9 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3204-001")]
+    [Requirement("RH3204-002")]
+    [Requirement("RH3204-003")]
     public async Task VerifyVerbatimInterpolatedStringWithoutInterpolationIsDetectedAndFixed()
     {
         const string testData = """
@@ -79,6 +86,9 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3204-001")]
+    [Requirement("RH3204-002")]
+    [Requirement("RH3204-003")]
     public async Task VerifyReversedVerbatimInterpolatedStringWithoutInterpolationIsDetectedAndFixed()
     {
         const string testData = """
@@ -108,6 +118,9 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3204-001")]
+    [Requirement("RH3204-002")]
+    [Requirement("RH3204-003")]
     public async Task VerifyRawInterpolatedStringSingleDollarWithoutInterpolationIsDetectedAndFixed()
     {
         const string testData = """"
@@ -143,6 +156,7 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3204-003")]
     public async Task VerifyInterpolatedStringWithEscapedBracesIsFixedWithoutChangingValue()
     {
         const string testData = """
@@ -172,6 +186,7 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3204-003")]
     public async Task VerifyVerbatimInterpolatedStringWithEscapedBracesIsFixedWithoutChangingValue()
     {
         const string testData = """
@@ -201,6 +216,9 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3204-001")]
+    [Requirement("RH3204-002")]
+    [Requirement("RH3204-003")]
     public async Task VerifyInterpolatedStringAsMethodArgumentIsDetectedAndFixed()
     {
         const string testData = """
@@ -230,6 +248,7 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3204-001")]
     public async Task VerifyInterpolatedStringWithInterpolationIsNotFlagged()
     {
         const string testData = """
@@ -251,6 +270,8 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3204-001")]
+    [Requirement("RH3204-003")]
     public async Task VerifyStringTypedTargetWithoutInterpolationIsDetectedAndFixed()
     {
         const string testData = """
@@ -281,6 +302,7 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3204-001")]
     public async Task VerifyFormattableStringTargetIsNotFlagged()
     {
         const string testData = """
@@ -302,6 +324,7 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3204-001")]
     public async Task VerifyFormattableInterfaceTargetIsNotFlagged()
     {
         const string testData = """
@@ -323,6 +346,7 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3204-001")]
     public async Task VerifyFormattableStringArgumentIsNotFlagged()
     {
         const string testData = """
@@ -340,6 +364,103 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies regular, verbatim, and raw interpolated strings without interpolation are reported over the whole
+    /// string when converted to <c>string</c>, while strings with interpolation or converted to
+    /// <c>FormattableString</c>, <c>IFormattable</c>, or <c>object</c> are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3204-001")]
+    [Requirement("RH3204-002")]
+    public async Task InterpolatedStringsWithoutInterpolationAreReportedOnlyWhenConvertedToString()
+    {
+        const string testData = """"
+                                using System;
+
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        var a = $"text";
+                                        var b = $@"C:\a";
+                                        var c = $$"""a {b}""";
+                                        Console.WriteLine($"x");
+                                        var d = $"{x}";
+                                        FormattableString e = $"text";
+                                        IFormattable f = $"text";
+                                        object g = $"text";
+                                    }
+                                }
+                                """";
+
+        // The source holds no markup, because the markup parser reads "$$" as a position marker
+        await Verify(testData,
+                     static test => test.TestState.MarkupHandling = MarkupMode.None,
+                     Diagnostic(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId).WithSpan(7, 17, 7, 24),
+                     Diagnostic(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId).WithSpan(8, 17, 8, 25),
+                     Diagnostic(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId).WithSpan(9, 17, 9, 30),
+                     Diagnostic(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId).WithSpan(10, 27, 10, 31));
+    }
+
+    /// <summary>
+    /// Verifies the fix removes every <c>$</c>, keeps <c>@</c>, unescapes braces only outside raw strings, and keeps
+    /// the comments around the string
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3204-003")]
+    public async Task FixWritesTheLiteralWithTheSameValue()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = $"text";
+                                        var b = $@"C:\a";
+                                        var c = @$"C:\a";
+                                        var d = $"a {{b}}";
+                                        var e = $"""text""";
+                                        var f = $$"""a {b}""";
+                                        var g = /* x */ $"text" /* y */;
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = "text";
+                                          var b = @"C:\a";
+                                          var c = @"C:\a";
+                                          var d = "a {b}";
+                                          var e = """text""";
+                                          var f = """a {b}""";
+                                          var g = /* x */ "text" /* y */;
+                                      }
+                                  }
+                                  """";
+
+        // The source holds no markup, because the markup parser reads "$$" as a position marker
+        await Verify(testData,
+                     resultData,
+                     static test =>
+                            {
+                                test.TestState.MarkupHandling = MarkupMode.None;
+                                test.FixedState.MarkupHandling = MarkupMode.None;
+                            },
+                     Diagnostic(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId).WithSpan(5, 17, 5, 24),
+                     Diagnostic(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId).WithSpan(6, 17, 6, 25),
+                     Diagnostic(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId).WithSpan(7, 17, 7, 25),
+                     Diagnostic(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId).WithSpan(8, 17, 8, 27),
+                     Diagnostic(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId).WithSpan(9, 17, 9, 28),
+                     Diagnostic(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId).WithSpan(10, 17, 10, 30),
+                     Diagnostic(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId).WithSpan(11, 25, 11, 32));
     }
 
     #endregion // Tests

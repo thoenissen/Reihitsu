@@ -21,6 +21,9 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3205-001")]
+    [Requirement("SHARED-BODY-002")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyExpressionBodiedBinaryOperatorIsDetectedAndFixed()
     {
         const string testData = """
@@ -48,6 +51,9 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3205-001")]
+    [Requirement("SHARED-BODY-002")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyExpressionBodiedUnaryOperatorIsDetectedAndFixed()
     {
         const string testData = """
@@ -75,6 +81,8 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3205-001")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyThrowExpressionBodiedOperatorIsFixedToThrowStatement()
     {
         const string testData = """
@@ -102,6 +110,8 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3205-001")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyVoidCompoundAssignmentOperatorIsFixedToExpressionStatement()
     {
         const string testData = """
@@ -133,6 +143,8 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3205-001")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyVoidIncrementOperatorIsFixedToExpressionStatement()
     {
         const string testData = """
@@ -164,6 +176,8 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3205-001")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyStaticVirtualInterfaceOperatorIsDetectedAndFixed()
     {
         const string testData = """
@@ -193,6 +207,7 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3205-001")]
     public async Task VerifyOperatorWithoutBodyIsNotReported()
     {
         const string testData = """
@@ -211,6 +226,7 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3205-001")]
     public async Task VerifyBlockBodiedOperatorIsNotReported()
     {
         const string testData = """
@@ -232,6 +248,7 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BODY-001")]
     public async Task VerifyExpressionBodyWithDirectiveBeforeExpressionIsNotReported()
     {
         const string testData = """
@@ -253,6 +270,8 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BODY-001")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyExpressionBodyWithDirectiveAfterExpressionIsFixed()
     {
         const string testData = """
@@ -284,6 +303,8 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BODY-002")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyExpressionOnNextLineIsFixedToSingleSpacedReturn()
     {
         const string testData = """
@@ -340,6 +361,66 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzerTests : BatchC
                                   """;
 
         await Verify(testData, resultData, Diagnostics(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3205MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies expression-bodied unary, binary, compound-assignment, <c>true</c>, and static virtual interface
+    /// operators are reported, while a block-bodied operator and an abstract operator are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3205-001")]
+    public async Task EveryExpressionBodiedOperatorKindIsReported()
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    private int _value;
+
+                                    public static C operator +(C a, C b) {|RH3205:=> a|};
+
+                                    public static C operator -(C a) {|RH3205:=> throw new InvalidOperationException()|};
+
+                                    public void operator +=(int value) {|RH3205:=> _value += value|};
+
+                                    public static bool operator true(C c) {|RH3205:=> true|};
+
+                                    public static bool operator false(C c)
+                                    {
+                                        return false;
+                                    }
+                                }
+
+                                interface I<T> where T : I<T>
+                                {
+                                    static abstract T operator *(T a, T b);
+
+                                    static virtual T operator /(T a, T b) {|RH3205:=> a|};
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the diagnostic covers the arrow and an expression on the next line, without the semicolon
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-002")]
+    public async Task DiagnosticCoversTheArrowAndTheExpressionOnTheNextLine()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    public static C operator +(C a, C b) {|RH3205:=>
+                                        a|};
+                                }
+                                """;
+
+        await Verify(testData);
     }
 
     #endregion // Tests

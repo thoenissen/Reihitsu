@@ -21,6 +21,9 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3006-001")]
+    [Requirement("RH3006-002")]
+    [Requirement("RH3006-003")]
     public async Task MixedLogicalOperatorsWithAndOnRightAreReportedAndFixed()
     {
         const string testCode = """
@@ -51,6 +54,9 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3006-001")]
+    [Requirement("RH3006-002")]
+    [Requirement("RH3006-003")]
     public async Task MixedLogicalOperatorsWithAndOnLeftAreReportedAndFixed()
     {
         const string testCode = """
@@ -81,6 +87,9 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3006-001")]
+    [Requirement("RH3006-002")]
+    [Requirement("RH3006-003")]
     public async Task NestedMixedLogicalOperatorsAreReportedAndFixed()
     {
         const string testCode = """
@@ -111,6 +120,7 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3006-001")]
     public async Task AndOnlyExpressionIsNotReported()
     {
         const string testCode = """
@@ -131,6 +141,7 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3006-001")]
     public async Task OrOnlyExpressionIsNotReported()
     {
         const string testCode = """
@@ -151,6 +162,7 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3006-001")]
     public async Task ParenthesizedMixedExpressionIsNotReported()
     {
         const string testCode = """
@@ -171,6 +183,9 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3006-001")]
+    [Requirement("RH3006-002")]
+    [Requirement("RH3006-003")]
     public async Task MixedOrPatternWithAndOnRightIsReportedAndFixed()
     {
         const string testCode = """
@@ -201,6 +216,9 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3006-001")]
+    [Requirement("RH3006-002")]
+    [Requirement("RH3006-003")]
     public async Task MixedOrPatternWithAndOnLeftIsReportedAndFixed()
     {
         const string testCode = """
@@ -231,6 +249,9 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3006-001")]
+    [Requirement("RH3006-002")]
+    [Requirement("RH3006-003")]
     public async Task MixedOrPatternWithAndOnBothSidesIsReportedAndFixed()
     {
         const string testCode = """
@@ -261,6 +282,7 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3006-001")]
     public async Task AndPatternOnlyIsNotReported()
     {
         const string testCode = """
@@ -281,6 +303,7 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3006-001")]
     public async Task OrPatternOnlyIsNotReported()
     {
         const string testCode = """
@@ -294,6 +317,118 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : Ba
                                 """;
 
         await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies <c>&amp;&amp;</c> operands of <c>||</c> and <c>and</c> operands of <c>or</c> are reported over the
+    /// whole operand, while parenthesized operands and expressions with only one of the operators are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3006-001")]
+    [Requirement("RH3006-002")]
+    public async Task MixedOperandsAreReportedOverTheWholeOperand()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(bool a, bool b, bool c, bool d, int x)
+                                    {
+                                        var p = a || {|RH3006:b && c|};
+                                        var q = {|RH3006:a && b|} || {|RH3006:c && d|};
+                                        var r = x is {|RH3006:> 0 and < 10|} or 20;
+                                        var s = a || (b && c);
+                                        var t = a && b && c;
+                                        return a || b || c;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(bool a, bool b, bool c, bool d, int x)
+                                     {
+                                         var p = a || (b && c);
+                                         var q = (a && b) || (c && d);
+                                         var r = x is (> 0 and < 10) or 20;
+                                         var s = a || (b && c);
+                                         var t = a && b && c;
+                                         return a || b || c;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix puts the operand in parentheses and keeps a comment in front of it outside the parentheses
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3006-003")]
+    public async Task FixKeepsTheCommentInFrontOfTheOperandOutsideTheParentheses()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(bool a, bool b, bool c, bool d, int x)
+                                    {
+                                        var p = a || /* x */ {|RH3006:b && c|};
+                                        var q = {|RH3006:a && b|} || {|RH3006:c && d|};
+                                        return x is {|RH3006:> 0 and < 10|} or 20;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(bool a, bool b, bool c, bool d, int x)
+                                     {
+                                         var p = a || /* x */ (b && c);
+                                         var q = (a && b) || (c && d);
+                                         return x is (> 0 and < 10) or 20;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Characterizes the line endings the fix produces in a CRLF document when the operand starts on the line after
+    /// the operator, behind a comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixOfOperandOnTheNextLineInCarriageReturnLineFeedDocument()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(bool a, bool b, bool c)
+                                    {
+                                        return a ||
+                                            /* x */ b && c;
+                                    }
+                                }
+
+                                """;
+
+        const string expectedCode = "class C\r\n"
+                                    + "{\r\n"
+                                    + "    bool M(bool a, bool b, bool c)\r\n"
+                                    + "    {\r\n"
+                                    + "        return a ||\n"
+                                    + "            /* x */ (b && c);\r\n"
+                                    + "    }\r\n"
+                                    + "}\r\n";
+
+        var fixedCode = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testCode));
+
+        Assert.AreEqual(expectedCode, fixedCode);
     }
 
     #endregion // Tests

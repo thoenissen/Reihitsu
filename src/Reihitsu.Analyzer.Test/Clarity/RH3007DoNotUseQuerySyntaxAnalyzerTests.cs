@@ -20,6 +20,8 @@ public class RH3007DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH3007Do
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3007-001")]
+    [Requirement("RH3007-002")]
     public async Task QuerySyntaxWithWhereClauseIsReported()
     {
         const string testCode = """
@@ -44,6 +46,8 @@ public class RH3007DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH3007Do
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3007-001")]
+    [Requirement("RH3007-002")]
     public async Task QuerySyntaxWithOrderByIsReported()
     {
         const string testCode = """
@@ -69,6 +73,8 @@ public class RH3007DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH3007Do
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3007-001")]
+    [Requirement("RH3007-002")]
     public async Task QuerySyntaxWithProjectionIsReported()
     {
         const string testCode = """
@@ -93,6 +99,8 @@ public class RH3007DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH3007Do
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3007-001")]
+    [Requirement("RH3007-002")]
     public async Task QuerySyntaxWithJoinIsReported()
     {
         const string testCode = """
@@ -118,6 +126,8 @@ public class RH3007DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH3007Do
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3007-001")]
+    [Requirement("RH3007-002")]
     public async Task QuerySyntaxWithGroupByIsReported()
     {
         const string testCode = """
@@ -142,6 +152,8 @@ public class RH3007DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH3007Do
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3007-001")]
+    [Requirement("RH3007-002")]
     public async Task QuerySyntaxWithLetClauseIsReported()
     {
         const string testCode = """
@@ -167,6 +179,8 @@ public class RH3007DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH3007Do
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3007-001")]
+    [Requirement("RH3007-002")]
     public async Task QuerySyntaxWithMultipleFromClausesIsReported()
     {
         const string testCode = """
@@ -192,6 +206,8 @@ public class RH3007DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH3007Do
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3007-001")]
+    [Requirement("RH3007-002")]
     public async Task QuerySyntaxWithIntoContinuationIsReported()
     {
         const string testCode = """
@@ -217,6 +233,8 @@ public class RH3007DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH3007Do
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3007-001")]
+    [Requirement("RH3007-002")]
     public async Task QuerySyntaxWithDescendingOrderIsReported()
     {
         const string testCode = """
@@ -242,6 +260,7 @@ public class RH3007DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH3007Do
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3007-001")]
     public async Task MethodSyntaxIsNotReported()
     {
         const string testCode = """
@@ -265,6 +284,8 @@ public class RH3007DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH3007Do
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3007-001")]
+    [Requirement("RH3007-002")]
     public async Task NestedQuerySyntaxIsReported()
     {
         const string testCode = """
@@ -289,6 +310,8 @@ public class RH3007DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH3007Do
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3007-001")]
+    [Requirement("RH3007-002")]
     public async Task QuerySyntaxInVariableInitializerIsReported()
     {
         const string testCode = """
@@ -307,6 +330,39 @@ public class RH3007DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH3007Do
                                 """;
 
         await Verify(testCode, Diagnostics(RH3007DoNotUseQuerySyntaxAnalyzer.DiagnosticId, "Do not use query syntax."));
+    }
+
+    /// <summary>
+    /// Verifies every query expression is reported once on its first <c>from</c>: a query continued with
+    /// <c>into</c>, a query with a second <c>from</c> clause, and a query nested inside it, while method syntax is
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3007-001")]
+    [Requirement("RH3007-002")]
+    public async Task EveryQueryExpressionIsReportedOnceOnItsFirstFrom()
+    {
+        const string testCode = """
+                                using System.Linq;
+
+                                class C
+                                {
+                                    void M(int[] xs, int[] ys)
+                                    {
+                                        var a = {|RH3007:from|} x in xs where x > 0 select x;
+                                        var b = {|RH3007:from|} x in xs
+                                                group x by x % 2 into g
+                                                select g.Key;
+                                        var c = {|RH3007:from|} x in xs
+                                                from y in ({|RH3007:from|} z in ys select z)
+                                                select x + y;
+                                        var d = xs.Where(x => x > 0);
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
     }
 
     #endregion // Tests
