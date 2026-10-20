@@ -21,6 +21,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8309-002")]
     public async Task VerifyCanonicalOrderProducesNoDiagnostics()
     {
         const string testData = """
@@ -52,6 +53,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8309-002")]
     public async Task VerifySummaryOnlyProducesNoDiagnostics()
     {
         const string testData = """
@@ -74,6 +76,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8309-002")]
     public async Task VerifyParametersInDeclarationOrderProduceNoDiagnostics()
     {
         const string testData = """
@@ -98,6 +101,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8309-002")]
     public async Task VerifyCustomElementBeforeSummaryProducesNoDiagnostics()
     {
         const string testData = """
@@ -121,6 +125,9 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8309-001")]
+    [Requirement("RH8309-003")]
+    [Requirement("RH8309-004")]
     public async Task VerifyReturnsBeforeParametersIsReorderedAndFixed()
     {
         const string testData = """
@@ -162,6 +169,9 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8309-001")]
+    [Requirement("RH8309-003")]
+    [Requirement("RH8309-004")]
     public async Task VerifyReturnsBeforeSummaryIsReorderedAndFixed()
     {
         const string testData = """
@@ -203,6 +213,9 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8309-001")]
+    [Requirement("RH8309-003")]
+    [Requirement("RH8309-004")]
     public async Task VerifyRemarksBeforeReturnsIsReorderedAndFixed()
     {
         const string testData = """
@@ -246,6 +259,9 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8309-001")]
+    [Requirement("RH8309-003")]
+    [Requirement("RH8309-004")]
     public async Task VerifyTypeParameterAfterParameterIsReorderedAndFixed()
     {
         const string testData = """
@@ -285,6 +301,9 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8309-001")]
+    [Requirement("RH8309-003")]
+    [Requirement("RH8309-004")]
     public async Task VerifyExceptionBeforeReturnsIsReorderedAndFixed()
     {
         const string testData = """
@@ -324,6 +343,9 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8309-001")]
+    [Requirement("RH8309-003")]
+    [Requirement("RH8309-004")]
     public async Task VerifySeealsoRemainsLastWhenCanonicalElementsAreReordered()
     {
         const string testData = """
@@ -365,6 +387,9 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8309-001")]
+    [Requirement("RH8309-003")]
+    [Requirement("RH8309-004")]
     public async Task VerifyLeadingInheritdocRemainsFirstWhileCanonicalElementsAreReordered()
     {
         const string testData = """
@@ -404,6 +429,9 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8309-001")]
+    [Requirement("RH8309-003")]
+    [Requirement("RH8309-004")]
     public async Task VerifyCustomElementBetweenCanonicalElementsStaysPinnedWhileCanonicalElementsAreReordered()
     {
         const string testData = """
@@ -443,6 +471,9 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8309-001")]
+    [Requirement("RH8309-003")]
+    [Requirement("RH8309-004")]
     public async Task VerifyInheritdocAfterSummaryIsReorderedAndFixed()
     {
         const string testData = """
@@ -478,6 +509,9 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8309-001")]
+    [Requirement("RH8309-003")]
+    [Requirement("RH8309-004")]
     public async Task VerifyIncludeBeforeInheritdocIsReorderedAndFixed()
     {
         const string testData = """
@@ -509,6 +543,9 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8309-001")]
+    [Requirement("RH8309-003")]
+    [Requirement("RH8309-004")]
     public async Task VerifySeealsoBeforeSummaryIsReorderedAndFixed()
     {
         const string testData = """
@@ -544,6 +581,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8309-002")]
     public async Task VerifyDocumentationSourceAndSeealsoInCanonicalOrderProduceNoDiagnostics()
     {
         const string testData = """
@@ -571,6 +609,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8309-002")]
     public async Task VerifyPermissionAfterExceptionProducesNoDiagnostics()
     {
         const string testData = """
@@ -596,6 +635,9 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8309-001")]
+    [Requirement("RH8309-003")]
+    [Requirement("RH8309-004")]
     public async Task VerifyPermissionBeforeExceptionIsReorderedAndFixed()
     {
         const string testData = """
@@ -635,6 +677,8 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8309-001")]
+    [Requirement("SHARED-DOC-008")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string source = """
@@ -652,6 +696,137 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                               """;
 
         await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that an element standing after an element that comes later in the order is reported, whether it is
+    /// closed by an end tag or empty
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-001")]
+    [Requirement("RH8309-003")]
+    public async Task VerifyElementsOutOfThePrescribedOrderAreReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <returns>Sum</returns>
+                                    /// {|#0:<summary>
+                                    /// Adds
+                                    /// </summary>|}
+                                    /// <param name="a">First</param>
+                                    int Add(int a)
+                                    {
+                                        return a;
+                                    }
+
+                                    /// <summary>
+                                    /// Value
+                                    /// </summary>
+                                    /// <seealso cref="C"/>
+                                    /// {|#1:<inheritdoc/>|}
+                                    int A;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that elements of one kind in any order among themselves, a custom element, and a nested element are
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-002")]
+    public async Task VerifySameKindCustomAndNestedElementsDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>
+                                    /// Adds
+                                    /// </summary>
+                                    /// <param name="b">Second</param>
+                                    /// <param name="a">First</param>
+                                    /// <custom>Custom</custom>
+                                    /// <returns>Sum</returns>
+                                    /// <remarks><returns>Nested</returns></remarks>
+                                    int Add(int a, int b)
+                                    {
+                                        return a;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that only the first element out of order is reported, even when later elements are out of order too
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-003")]
+    public async Task VerifyOnlyTheFirstElementOutOfOrderIsReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <exception cref="System.Exception">Fails</exception>
+                                    /// {|#0:<returns>Value</returns>|}
+                                    /// <example>Example</example>
+                                    /// <value>Value</value>
+                                    int A => 0;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix sorts the elements into the prescribed order while a custom element keeps its position
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-004")]
+    public async Task VerifyFixSortsTheElementsAroundACustomElement()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>
+                                    /// Adds
+                                    /// </summary>
+                                    /// <remarks>Remarks</remarks>
+                                    /// <custom>Custom</custom>
+                                    /// {|#0:<param name="a">First</param>|}
+                                    /// <returns>Sum</returns>
+                                    int Add(int a)
+                                    {
+                                        return a;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>
+                                     /// Adds
+                                     /// </summary>
+                                     /// <param name="a">First</param>
+                                     /// <custom>Custom</custom>
+                                     /// <returns>Sum</returns>
+                                     /// <remarks>Remarks</remarks>
+                                     int Add(int a)
+                                     {
+                                         return a;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
     }
 
     #endregion // Tests

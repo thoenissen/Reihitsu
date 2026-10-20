@@ -1,5 +1,11 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
@@ -22,6 +28,9 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8401-001")]
+    [Requirement("RH8401-003")]
+    [Requirement("RH8401-004")]
     public async Task VerifyDiagnosticAndCodeFixForDocumentationStyleComment()
     {
         const string source = """
@@ -79,6 +88,9 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8401-001")]
+    [Requirement("RH8401-003")]
+    [Requirement("RH8401-004")]
     public async Task VerifyDiagnosticsAndCodeFixForMultiLineDocumentationStyleComment()
     {
         const string source = """
@@ -115,6 +127,7 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8401-004")]
     public async Task VerifyCodeFixConvertsEveryLineOfLineFeedSeparatedComment()
     {
         var source = BuildTwoLineCommentSource("\n");
@@ -130,6 +143,7 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8401-004")]
     public async Task VerifyCodeFixConvertsEveryLineOfCarriageReturnLineFeedSeparatedComment()
     {
         var source = BuildTwoLineCommentSource("\r\n");
@@ -148,6 +162,7 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8401-004")]
     public async Task VerifyCodeFixConvertsEveryLineOfLineSeparatorSeparatedComment()
     {
         var source = BuildTwoLineCommentSource("\u2028");
@@ -164,6 +179,7 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8401-004")]
     public async Task VerifyCodeFixConvertsEveryLineOfNextLineSeparatedComment()
     {
         var source = BuildTwoLineCommentSource("\u0085");
@@ -179,6 +195,7 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8401-004")]
     public async Task VerifyCodeFixConvertsEveryLineOfCarriageReturnSeparatedComment()
     {
         var source = BuildTwoLineCommentSource("\r");
@@ -195,6 +212,7 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8401-004")]
     public async Task VerifyCodeFixPreservesContentAfterTheExterior()
     {
         var source = string.Concat("namespace TestNamespace;\n",
@@ -211,6 +229,157 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
         var actual = await ApplyCodeFixAsync(source);
 
         Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that <c>///</c> comments without XML are reported on each line's slashes wherever they stand: in
+    /// front of a declaration, in a method body, behind code, with a character reference, and without any text
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8401-001")]
+    [Requirement("RH8401-003")]
+    public async Task VerifyCommentsWithoutXmlAreReportedWhereverTheyStand()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|#0:///|} Temporary workaround
+                                    {|#1:///|} for the old service
+                                    int A;
+
+                                    void M()
+                                    {
+                                        {|#2:///|} Call it again
+                                        M();
+                                        int b = 0; {|#3:///|} Behind code
+                                    }
+
+                                    {|#4:///|} Tom &amp; Jerry
+                                    int D;
+
+                                    {|#5:///|}
+                                    int E;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer.DiagnosticId, AnalyzerResources.RH8401MessageFormat, 6));
+    }
+
+    /// <summary>
+    /// Verifies that documentation comments holding an element, an inline element, or an XML comment, a delimited
+    /// comment, and a four-slash comment are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8401-002")]
+    public async Task VerifyCommentsWithXmlAndOtherCommentFormsDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>Runs</summary>
+                                    void M()
+                                    {
+                                    }
+
+                                    /// Stops <c>now</c>
+                                    void N()
+                                    {
+                                    }
+
+                                    /// <!-- Note -->
+                                    int A;
+
+                                    /** Plain text */
+                                    int B;
+
+                                    //// Four slashes
+                                    int D;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix replaces the slashes of every line and keeps a <c>///</c> further along a line as text
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8401-003")]
+    [Requirement("RH8401-004")]
+    public async Task VerifyFixTurnsTheWholeCommentIntoAnOrdinaryComment()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        {|#0:///|} Temporary workaround
+                                        {|#1:///|} see http://example.com///path
+                                        M();
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         // Temporary workaround
+                                         // see http://example.com///path
+                                         M();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer.DiagnosticId, AnalyzerResources.RH8401MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that the fix applied to the diagnostic of the comment's second line converts the first line as well
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8401-004")]
+    public async Task VerifyFixAppliedToTheSecondLineConvertsEveryLine()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        /// Temporary workaround
+                                        /// for the old service
+                                        M();
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         // Temporary workaround
+                                         // for the old service
+                                         M();
+                                     }
+                                 }
+                                 """;
+        var secondLineSlashes = testData.IndexOf("/// for", StringComparison.Ordinal);
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer.DiagnosticId,
+                                                   root => Location.Create(root.SyntaxTree, new TextSpan(secondLineSlashes, 3)));
+
+        Assert.HasCount(1, actions);
+
+        var operations = await actions[0].GetOperationsAsync(CancellationToken.None);
+        var changedSolution = operations.OfType<ApplyChangesOperation>().Single().ChangedSolution;
+        var changedText = await changedSolution.Projects.Single().Documents.Single().GetTextAsync(CancellationToken.None);
+
+        Assert.AreEqual(fixedData, changedText.ToString());
     }
 
     #endregion // Tests

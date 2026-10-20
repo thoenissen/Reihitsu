@@ -21,6 +21,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-001")]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
         const string testData = """
@@ -47,6 +48,9 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-001")]
+    [Requirement("RH8303-004")]
+    [Requirement("RH8303-005")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -87,6 +91,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-002")]
     public async Task VerifyDocumentationAtStartOfScopeDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -133,6 +138,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-003")]
     public async Task VerifyDocumentationHeaderAfterOrdinaryCommentDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -161,6 +167,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-003")]
     public async Task VerifyDocumentationHeaderAfterDirectiveDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -190,6 +197,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-003")]
     public async Task VerifyDocumentationHeaderAfterBlockCommentDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -219,6 +227,9 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-001")]
+    [Requirement("RH8303-004")]
+    [Requirement("RH8303-005")]
     public async Task VerifyDocumentationHeaderAfterStringContentResemblingDirectiveProducesDiagnostic()
     {
         const string testData = """"
@@ -258,6 +269,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-005")]
     public async Task VerifyInsertedBlankLineUsesDetectedCarriageReturnLineFeedEndOfLine()
     {
         const string testData = """
@@ -327,6 +339,8 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-001")]
+    [Requirement("SHARED-DOC-008")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string testData = """
@@ -350,6 +364,9 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-001")]
+    [Requirement("RH8303-004")]
+    [Requirement("RH8303-005")]
     public async Task VerifyDelimitedDocumentationHeaderIsDetectedAndFixed()
     {
         const string testData = """
@@ -386,6 +403,10 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-001")]
+    [Requirement("RH8303-003")]
+    [Requirement("RH8303-004")]
+    [Requirement("RH8303-005")]
     public async Task VerifyMixedDocumentationFormsProduceOneDiagnostic()
     {
         const string testData = """
@@ -424,6 +445,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-002")]
     public async Task VerifyDocumentationAfterOpeningBraceWithTrailingBlockCommentDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -444,6 +466,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-002")]
     public async Task VerifyDocumentationAfterOpeningBraceWithTrailingBlockCommentDoesNotProduceDiagnosticsWithCarriageReturnLineFeed()
     {
         const string testData = """
@@ -464,6 +487,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-002")]
     public async Task VerifyDocumentationAfterOpeningBraceWithTrailingLineCommentDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -484,6 +508,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-002")]
     public async Task VerifyDocumentationAfterOpeningBraceWithMultiLineTrailingBlockCommentDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -505,6 +530,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-002")]
     public async Task VerifyDocumentationAfterOpeningBraceWithMultiLineTrailingBlockCommentDoesNotProduceDiagnosticsWithCarriageReturnLineFeed()
     {
         const string testData = """
@@ -526,6 +552,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-002")]
     public async Task VerifyDocumentationAfterNamespaceOpeningBraceWithTrailingBlockCommentDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -548,6 +575,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-002")]
     public async Task VerifyDelimitedDocumentationAfterOpeningBraceWithTrailingBlockCommentDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -566,6 +594,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-002")]
     public async Task VerifyDelimitedDocumentationAfterOpeningBraceWithTrailingLineCommentDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -584,6 +613,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-002")]
     public async Task VerifyDelimitedDocumentationAfterOpeningBraceWithMultiLineTrailingBlockCommentDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -603,6 +633,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-002")]
     public async Task VerifyDelimitedDocumentationAfterOpeningBraceWithMultiLineTrailingBlockCommentDoesNotProduceDiagnosticsWithCarriageReturnLineFeed()
     {
         const string testData = """
@@ -623,6 +654,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-002")]
     public async Task VerifyDocumentationStartingBehindOpeningBraceDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -642,6 +674,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-002")]
     public async Task VerifyDocumentationAfterEnumOpeningBraceWithTrailingBlockCommentDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -662,6 +695,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-002")]
     public async Task VerifyDocumentationAfterOpeningBraceWithTrailingCommentEndingInBraceDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -683,6 +717,9 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-001")]
+    [Requirement("RH8303-004")]
+    [Requirement("RH8303-005")]
     public async Task VerifyDocumentationAfterMemberWithTrailingCommentEndingInBraceProducesDiagnostic()
     {
         const string testData = """
@@ -715,6 +752,9 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-001")]
+    [Requirement("RH8303-004")]
+    [Requirement("RH8303-005")]
     public async Task VerifyDelimitedDocumentationAfterMemberWithTrailingCommentEndingInBraceProducesDiagnostic()
     {
         const string testData = """
@@ -743,6 +783,9 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8303-001")]
+    [Requirement("RH8303-004")]
+    [Requirement("RH8303-005")]
     public async Task VerifyDocumentationAfterClosingBraceWithTrailingCommentEndingInBraceProducesDiagnostic()
     {
         const string testData = """
@@ -813,6 +856,181 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
                                  """;
 
         await Verify(testData, fixedData, Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that documentation comments directly below a line that is not blank are reported on their opening,
+    /// below a using directive, a member, a member with a comment behind it, and an enum member
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8303-001")]
+    [Requirement("RH8303-004")]
+    public async Task VerifyDocumentationCommentsBelowNonBlankLinesAreReported()
+    {
+        const string testData = """
+                                using System;
+                                {|#0:///|} <summary>
+                                /// Type
+                                /// </summary>
+                                class C
+                                {
+                                    /// <summary>First</summary>
+                                    int A;
+                                    {|#1:///|} <summary>Second</summary>
+                                    int B;
+                                    int D; // Note
+                                    {|#2:/**|} <summary>Third</summary> */
+                                    int E;
+
+                                    enum Kind
+                                    {
+                                        First,
+                                        {|#3:///|} <summary>Second</summary>
+                                        Second,
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat, 4));
+    }
+
+    /// <summary>
+    /// Verifies that the first documentation comment of a block, also after a comment behind the opening brace, and a
+    /// documentation comment on the first line of the file are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8303-002")]
+    public async Task VerifyFirstDocumentationCommentOfBlockOrFileDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                /// <summary>Type</summary>
+                                class C
+                                {
+                                    /// <summary>First</summary>
+                                    int A;
+                                }
+
+                                namespace N
+                                { // Note
+                                    /** <summary>Type</summary> */
+                                    class D
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment directly after an ordinary comment, a block comment, a region
+    /// directive, or another documentation comment is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8303-003")]
+    public async Task VerifyDocumentationCommentAfterCommentOrDirectiveDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int A;
+                                    // Ordinary comment
+                                    /// <summary>First</summary>
+                                    int B;
+                                    /* Block comment */
+                                    /// <summary>Second</summary>
+                                    int D;
+                                #region Values
+                                    /// <summary>Third</summary>
+                                    int E;
+                                #endregion
+                                    /** <summary>Fourth</summary> */
+                                    int F;
+
+                                    /** <summary>Fifth</summary> */
+                                    /// <remarks>Remarks</remarks>
+                                    int G;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix inserts one empty line above the reported line of both documentation comment forms
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8303-001")]
+    [Requirement("RH8303-004")]
+    [Requirement("RH8303-005")]
+    public async Task VerifyFixInsertsOneEmptyLineAboveTheComment()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int A;
+                                    {|#0:///|} <summary>
+                                    /// First
+                                    /// </summary>
+                                    int B;
+                                    int D; // Note
+                                    {|#1:/**|} <summary>Second</summary> */
+                                    int E;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int A;
+
+                                     /// <summary>
+                                     /// First
+                                     /// </summary>
+                                     int B;
+                                     int D; // Note
+
+                                     /** <summary>Second</summary> */
+                                     int E;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that the fix inserts a CRLF line break without indentation above a delimited documentation comment in
+    /// a CRLF document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8303-005")]
+    public async Task VerifyFixInsertsEmptyLineAboveDelimitedCommentWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int A;
+                                    /** <summary>Second</summary> */
+                                    int E;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int A;
+
+                                     /** <summary>Second</summary> */
+                                     int E;
+                                 }
+                                 """;
+
+        var actual = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), actual);
     }
 
     #endregion // Tests
