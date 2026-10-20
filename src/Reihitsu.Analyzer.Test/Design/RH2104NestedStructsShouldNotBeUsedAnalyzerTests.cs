@@ -20,6 +20,7 @@ public class RH2104NestedStructsShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH2104-001")]
     public async Task VerifyNestedStructsTriggerDiagnostics()
     {
         const string source = """
@@ -41,6 +42,7 @@ public class RH2104NestedStructsShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-NESTED-001")]
     public async Task VerifyTopLevelStructsDoNotTriggerDiagnostics()
     {
         const string source = """
@@ -59,6 +61,7 @@ public class RH2104NestedStructsShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH2104-001")]
     public async Task VerifyNestedClassesDoNotTriggerDiagnostics()
     {
         const string source = """
@@ -73,6 +76,64 @@ public class RH2104NestedStructsShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase
                               """;
 
         await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifying that structs nested in a class or an interface are reported and a nested record struct is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2104-001")]
+    [Requirement("SHARED-NESTED-001")]
+    public async Task VerifyStructsNestedInClassAndInterfaceAreReportedAndRecordStructIsNot()
+    {
+        const string source = """
+                              class Outer
+                              {
+                                  struct {|#0:Entry|}
+                                  {
+                                      struct {|#1:Deeper|}
+                                      {
+                                      }
+                                  }
+
+                                  record struct Point(int X);
+                              }
+
+                              interface I
+                              {
+                                  struct {|#2:Value|}
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH2104NestedStructsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2104MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifying that each part of a nested partial struct is reported on its own identifier
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2104-001")]
+    [Requirement("SHARED-NESTED-002")]
+    public async Task VerifyEachPartOfANestedPartialStructIsReported()
+    {
+        const string source = """
+                              class Outer
+                              {
+                                  partial struct {|#0:Part|}
+                                  {
+                                  }
+
+                                  partial struct {|#1:Part|}
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH2104NestedStructsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2104MessageFormat, 2));
     }
 
     #endregion // Tests

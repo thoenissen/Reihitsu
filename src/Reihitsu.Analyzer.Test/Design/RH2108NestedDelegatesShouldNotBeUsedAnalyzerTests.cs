@@ -20,6 +20,7 @@ public class RH2108NestedDelegatesShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH2108-001")]
     public async Task VerifyNestedDelegatesTriggerDiagnostics()
     {
         const string source = """
@@ -39,6 +40,7 @@ public class RH2108NestedDelegatesShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-NESTED-001")]
     public async Task VerifyTopLevelDelegatesDoNotTriggerDiagnostics()
     {
         const string source = """
@@ -55,6 +57,7 @@ public class RH2108NestedDelegatesShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH2108-001")]
     public async Task VerifyNestedClassesDoNotTriggerDiagnostics()
     {
         const string source = """
@@ -69,6 +72,36 @@ public class RH2108NestedDelegatesShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
                               """;
 
         await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifying that delegates nested in a class and in an interface are reported on their identifier
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2108-001")]
+    [Requirement("SHARED-NESTED-001")]
+    [Requirement("SHARED-NESTED-002")]
+    public async Task VerifyDelegatesNestedInClassAndInterfaceAreReported()
+    {
+        const string source = """
+                              class Outer
+                              {
+                                  delegate void {|#0:Callback|}(int value);
+                              }
+
+                              interface I
+                              {
+                                  delegate int {|#1:Selector|}();
+                              }
+
+                              record R
+                              {
+                                  delegate void {|#2:InRecord|}();
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH2108NestedDelegatesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2108MessageFormat, 3));
     }
 
     #endregion // Tests
