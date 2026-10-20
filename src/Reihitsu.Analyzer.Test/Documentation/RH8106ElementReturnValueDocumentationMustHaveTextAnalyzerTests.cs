@@ -20,6 +20,9 @@ public class RH8106ElementReturnValueDocumentationMustHaveTextAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8106-001")]
+    [Requirement("RH8106-002")]
+    [Requirement("SHARED-DOC-014")]
     public async Task VerifyDiagnosticForEmptyReturnsDocumentation()
     {
         const string source = """
@@ -44,6 +47,7 @@ public class RH8106ElementReturnValueDocumentationMustHaveTextAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8106-001")]
     public async Task VerifyNoDiagnosticForEmptyReturnsNestedInRemarks()
     {
         const string source = """
@@ -68,6 +72,8 @@ public class RH8106ElementReturnValueDocumentationMustHaveTextAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8106-001")]
+    [Requirement("RH8106-002")]
     public async Task VerifyDiagnosticForEmptyOperatorReturnsDocumentation()
     {
         const string source = """
@@ -91,6 +97,8 @@ public class RH8106ElementReturnValueDocumentationMustHaveTextAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8106-001")]
+    [Requirement("RH8106-002")]
     public async Task VerifyDiagnosticForEmptyConversionOperatorReturnsDocumentation()
     {
         const string source = """
@@ -115,6 +123,8 @@ public class RH8106ElementReturnValueDocumentationMustHaveTextAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8106-001")]
+    [Requirement("SHARED-DOC-008")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string source = """
@@ -132,6 +142,149 @@ public class RH8106ElementReturnValueDocumentationMustHaveTextAnalyzerTests : An
                               """;
 
         await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a top-level returns element without text is reported on the whole element, on a delegate, methods, an explicit implementation, and an operator, while a nested one is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8106-001")]
+    [Requirement("RH8106-002")]
+    public async Task VerifySpecificationExampleReportsReturnsElementsWithoutText()
+    {
+        const string source = """
+                              using System.Threading.Tasks;
+
+                              /// <summary>
+                              /// Factory
+                              /// </summary>
+                              /// {|#0:<returns></returns>|}
+                              public delegate int Factory();
+
+                              /// <summary>
+                              /// Contract
+                              /// </summary>
+                              public interface I
+                              {
+                                  /// <summary>
+                                  /// Gets
+                                  /// </summary>
+                                  /// <returns>Value</returns>
+                                  int Get();
+                              }
+
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public class C : I
+                              {
+                                  /// <summary>
+                                  /// Counts
+                                  /// </summary>
+                                  /// {|#1:<returns/>|}
+                                  public int Count() => 0;
+
+                                  /// <summary>
+                                  /// Loads
+                                  /// </summary>
+                                  /// {|#2:<returns>
+                                  /// </returns>|}
+                                  public Task LoadAsync() => Task.CompletedTask;
+
+                                  /// <summary>
+                                  /// Gets
+                                  /// </summary>
+                                  /// {|#3:<returns>&#32;</returns>|}
+                                  int I.Get() => 0;
+
+                                  /// <summary>
+                                  /// Finds
+                                  /// </summary>
+                                  /// <returns>Value</returns>
+                                  /// <remarks>
+                                  /// <returns></returns>
+                                  /// </remarks>
+                                  public int Find() => 0;
+
+                                  /// <summary>
+                                  /// Adds
+                                  /// </summary>
+                                  /// <param name="left">Left</param>
+                                  /// <param name="right">Right</param>
+                                  /// {|#4:<returns></returns>|}
+                                  public static C operator +(C left, C right) => left;
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8106ElementReturnValueDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH8106MessageFormat, 5));
+    }
+
+    /// <summary>
+    /// Verifies the shared specification example: a returns element with only a line break counts as without text, while one with text in a delimited comment does not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8106-001")]
+    [Requirement("RH8106-002")]
+    [Requirement("SHARED-DOC-014")]
+    public async Task VerifySpecificationExampleJudgesReturnsTextLikeSummaryText()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Container
+                              /// </summary>
+                              /// <typeparam name="T"></typeparam>
+                              public class C<T>
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  /// <param name="a"/>
+                                  /// <param name="b">&#32;</param>
+                                  /// <param name="c">Value</param>
+                                  /// {|#0:<returns>
+                                  /// </returns>|}
+                                  public int M(int a, int b, int c) => 0;
+
+                                  /**
+                                   * <summary>
+                                   * Runs
+                                   * </summary>
+                                   * <param name="a">
+                                   * </param>
+                                   * <returns>Value</returns>
+                                   */
+                                  public int N(int a) => 0;
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8106ElementReturnValueDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH8106MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a returns element of a delimited comment whose content is only the asterisks that start its lines counts as without text
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8106-001")]
+    [Requirement("RH8106-002")]
+    [Requirement("SHARED-DOC-014")]
+    public async Task VerifyDiagnosticForReturnsElementWithoutTextInDelimitedComment()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  /**
+                                   * <summary>Counts</summary>
+                                   * {|#0:<returns>
+                                   * </returns>|}
+                                   */
+                                  public int Count() => 0;
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8106ElementReturnValueDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH8106MessageFormat));
     }
 
     #endregion // Tests

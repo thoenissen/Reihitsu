@@ -20,6 +20,9 @@ public class RH8102ElementParameterDocumentationMustMatchElementParametersAnalyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8102-001")]
+    [Requirement("RH8102-002")]
+    [Requirement("SHARED-DOC-015")]
     public async Task VerifyDiagnosticForParameterDocumentationInWrongOrder()
     {
         const string source = """
@@ -44,6 +47,9 @@ public class RH8102ElementParameterDocumentationMustMatchElementParametersAnalyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8102-001")]
+    [Requirement("RH8102-002")]
+    [Requirement("SHARED-DOC-015")]
     public async Task VerifyDiagnosticForParameterDocumentationInPermutedOrder()
     {
         const string source = """
@@ -68,6 +74,8 @@ public class RH8102ElementParameterDocumentationMustMatchElementParametersAnalyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8102-001")]
+    [Requirement("SHARED-DOC-015")]
     public async Task VerifyNoDiagnosticForParameterDocumentationInDeclaredOrder()
     {
         const string source = """
@@ -92,6 +100,8 @@ public class RH8102ElementParameterDocumentationMustMatchElementParametersAnalyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8102-001")]
+    [Requirement("SHARED-DOC-015")]
     public async Task VerifyDiagnosticForConversionOperatorParameterDocumentationInWrongOrder()
     {
         const string source = """
@@ -118,6 +128,8 @@ public class RH8102ElementParameterDocumentationMustMatchElementParametersAnalyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8102-001")]
+    [Requirement("SHARED-DOC-015")]
     public async Task VerifyDiagnosticForPrimaryConstructorParameterDocumentationInPermutedOrder()
     {
         const string source = """
@@ -137,6 +149,8 @@ public class RH8102ElementParameterDocumentationMustMatchElementParametersAnalyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8102-001")]
+    [Requirement("SHARED-DOC-015")]
     public async Task VerifyNoDiagnosticForParameterDocumentationNestedInRemarks()
     {
         const string source = """
@@ -160,6 +174,8 @@ public class RH8102ElementParameterDocumentationMustMatchElementParametersAnalyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8102-001")]
+    [Requirement("SHARED-DOC-008")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string source = """
@@ -177,6 +193,213 @@ public class RH8102ElementParameterDocumentationMustMatchElementParametersAnalyz
                               """;
 
         await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a param element naming another parameter than the one in its position, on a primary constructor, an explicit implementation, or a method, is reported on the whole element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8102-001")]
+    [Requirement("RH8102-002")]
+    public async Task VerifySpecificationExampleReportsParameterElementsThatDoNotFollowTheParameters()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Point
+                              /// </summary>
+                              /// <param name="X">X</param>
+                              /// {|#0:<param name="Z">Z</param>|}
+                              public record Point(int X, int Y);
+
+                              /// <summary>
+                              /// Contract
+                              /// </summary>
+                              public interface I
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  /// <param name="value">Value</param>
+                                  void Run(int value);
+                              }
+
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public class C : I
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  /// {|#1:<param name="other">Other</param>|}
+                                  void I.Run(int value)
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Saves
+                                  /// </summary>
+                                  /// {|#2:<param name="overwrite">Overwrite</param>|}
+                                  /// {|#3:<param name="customer">Customer</param>|}
+                                  public void Save(int customer, bool overwrite)
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Saves
+                                  /// </summary>
+                                  /// <param name="customer">Customer</param>
+                                  /// <param name="overwrite">Overwrite</param>
+                                  public void Store(int customer, bool overwrite)
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer.DiagnosticId, AnalyzerResources.RH8102MessageFormat, 4));
+    }
+
+    /// <summary>
+    /// Verifies the shared specification example: param elements are paired with the parameters by position, an unnamed element keeps its position, nested elements and parameters without an element are not reported, and names are compared by the value of the identifier
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8102-001")]
+    [Requirement("RH8102-002")]
+    [Requirement("SHARED-DOC-015")]
+    public async Task VerifySpecificationExamplePairsParameterElementsByPosition()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Pair
+                              /// </summary>
+                              /// <typeparam name="TSecond">Second</typeparam>
+                              /// <typeparam name="TFirst">First</typeparam>
+                              public class Pair<TFirst, TSecond>
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  /// <param name="a">A</param>
+                                  /// {|#0:<param name="c">C</param>|}
+                                  public void M(int a, int b)
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  /// <param>Unnamed</param>
+                                  /// <param name="b">B</param>
+                                  /// {|#1:<param name="c">Extra</param>|}
+                                  public void N(int a, int b)
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  /// <param name="a">A</param>
+                                  /// <remarks>
+                                  /// <param name="z">Nested</param>
+                                  /// </remarks>
+                                  public void O(int a, int b)
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  /// <param name="class">Class</param>
+                                  /// {|#2:<param name="@event">Event</param>|}
+                                  public void P(int @class, int @event)
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer.DiagnosticId, AnalyzerResources.RH8102MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifies a param element with an empty or white-space name is not reported and still takes the position of its parameter, so the following element is paired with the next parameter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8102-001")]
+    [Requirement("SHARED-DOC-015")]
+    public async Task VerifyNoDiagnosticForEmptyOrWhiteSpaceNameKeepingItsPosition()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  /// <summary>Runs</summary>
+                                  /// <param name="">A</param>
+                                  /// <param name=" ">B</param>
+                                  /// <param name="c">C</param>
+                                  /// {|#0:<param name="c">Again</param>|}
+                                  public void M(int a, int b, int c)
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer.DiagnosticId, AnalyzerResources.RH8102MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a parameter without a param element is not reported when the elements written so far follow the parameters
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8102-001")]
+    [Requirement("SHARED-DOC-015")]
+    public async Task VerifyNoDiagnosticForParameterWithoutElement()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  /// <summary>Runs</summary>
+                                  /// <param name="a">A</param>
+                                  public void M(int a, int b, int c)
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies the param elements of constructor, delegate, and indexer declarations are checked against their parameters
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8102-001")]
+    [Requirement("RH8102-002")]
+    public async Task VerifyDiagnosticForConstructorDelegateAndIndexerParameterElements()
+    {
+        const string source = """
+                              /// <summary>Handler</summary>
+                              /// {|#0:<param name="other">Other</param>|}
+                              internal delegate void Handler(int value);
+
+                              internal class C
+                              {
+                                  /// <summary>Creates</summary>
+                                  /// {|#1:<param name="other">Other</param>|}
+                                  public C(int size)
+                                  {
+                                  }
+
+                                  /// <summary>Item</summary>
+                                  /// {|#2:<param name="other">Other</param>|}
+                                  public int this[int index] => 0;
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer.DiagnosticId, AnalyzerResources.RH8102MessageFormat, 3));
     }
 
     #endregion // Tests
