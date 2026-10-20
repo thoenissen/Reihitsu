@@ -10,7 +10,7 @@ How I checked:
 
 - I read `EqualityComparerArgumentUtilities` and `RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.HasExplicitEqualityComparerInitializer` at `ed95c81`. No file under `src/Reihitsu.Analyzer` or `src/Reihitsu.Core` has changed since 2026-10-17.
 - Scratch harness: `net10.0` / `LangVersion preview` projects in the scratchpad, outside the repository and deleted afterwards, with the head's Release `Reihitsu.Analyzer.dll` and `Reihitsu.Core.dll` as `<Analyzer>` items. I read the RH1001 and RH1002 lines from `dotnet build`. About 60 argument and initial-value forms, one per line, covering every item of every list in both requirements on both sides.
-- Real verifier: a temporary test file `src/Reihitsu.Analyzer.Test/Performance/ScratchBoundedListTests.cs`, deleted afterwards (`git status` shows only my two spec files). It ran every new input of this handover (the two tagged-test inputs and the three characterization inputs below, exactly as given) through `Verify(source)` with `{|RH100x:…|}` markup. Command: `scripts/test.sh --project analyzer --filter "FullyQualifiedName~ScratchBoundedList"`. Result: "Passed! - Failed: 0, Passed: 7". A mutation that removed the markup on `a` in the RH1001 Q1 addendum failed (1 of 7), so the markup is checked.
+- Real verifier: a temporary test file `src/Reihitsu.Analyzer.Test/Performance/ScratchBoundedListTests.cs`, deleted afterwards (`git status` shows only my two spec files). It ran every new input of this handover (the two tagged-test inputs and the Q6 characterization input below, exactly as given), plus two `switch`-without-arms inputs that were later dropped from the handover through `Verify(source)` with `{|RH100x:…|}` markup. Command: `scripts/test.sh --project analyzer --filter "FullyQualifiedName~ScratchBoundedList"`. Result: "Passed! - Failed: 0, Passed: 7". A mutation that removed one markup failed (1 of 7), so the markup is checked.
 - `scripts/test.sh --project architecture`: "Passed! - Failed: 0, Passed: 72, Skipped: 0, Total: 72".
 
 What I found, by auditor finding:
@@ -122,10 +122,8 @@ Tagged tests:
 Untagged characterization tests, each with the exact input of its issue text below and doc comments that say "Characterizes …":
 
 3. Struct-equality Q6: the same input in both classes. RH1002: `{|RH1002:Distinct|}` on the `default(TC)`, `default(TN)`, and `default(TR)` calls, 3 diagnostics. RH1001: `Dictionary<{|RH1001:S|}, int> map`, 1 diagnostic.
-4. Struct-equality Q4 addendum (`switch` without arms): the same input in both classes. 0 diagnostics in each. CS8509 is a warning, and the verifier checks only compiler errors, so the input needs no suppression (verified).
-5. RH1001 Q1 addendum (`switch` without arms in a declaration): RH1001 class, `Dictionary<{|RH1001:S|}, int> a`, 1 diagnostic.
 
-Items 4 and 5 go beyond the decision's wording, which files only `default` of a type parameter. I recorded the `switch` without arms in the existing Q4 and RH1001 Q1 texts rather than as a new question. `21-auditor.md` calls it the degenerate case of those two questions, and once the spec leaves it out, it would otherwise have no record. If the lead prefers not to record it, drop the two addenda and items 4 and 5 together; nothing else depends on them.
+The `switch` expression without arms gets no question and no test. As the lead decided after my first report, the maintainer's decision leaves it unspecified through the coverage sentences of SHARED-EQUAL-002 and RH1001-003 only.
 
 ## Not addressed
 
@@ -134,7 +132,7 @@ Items 4 and 5 go beyond the decision's wording, which files only `default` of a 
 
 ## Open questions to file
 
-None blocks this run. One issue per spec path, each a sub-issue of thoenissen/Reihitsu#912, titled exactly as the heading says. None exists yet. Every body starts with the preamble below, with `<spec path>` and `<prefix/rules>` filled in as given in each heading's first line. Compared with `15-spec-author.md`, only the struct-equality issue changed (Q4 gains the `switch`-without-arms addendum; Q5 from `19-spec-author.md` and the new Q6 are added) and RH1001 Q1 gains the `switch`-without-arms addendum. Every other entry is copied unchanged.
+None blocks this run. One issue per spec path, each a sub-issue of thoenissen/Reihitsu#912, titled exactly as the heading says. None exists yet. Every body starts with the preamble below, with `<spec path>` and `<prefix/rules>` filled in as given in each heading's first line. Compared with `15-spec-author.md`, only the struct-equality issue changed: Q5 from `19-spec-author.md` and the new Q6 are added to its checklist and questions. Every other entry, Q4 and all of RH1001 included, is copied unchanged.
 
 Preamble (verbatim, per issue):
 
@@ -261,28 +259,6 @@ Preamble with `sdd/specs/shared/struct-equality.md` (SHARED-EQUAL, used by RH100
 >
 > Why it looks wrong: in the first two calls, the only value the argument can produce is `null`. A `throw` produces no comparer. `null` falls back to `EqualityComparer<S>.Default`, exactly like the third call, which is reported. The rule treats a `throw` branch or arm as an unknown value and so counts the whole argument as a custom comparer. Two readings: a `throw` branch or arm produces no value and is ignored, so the first two calls are reported like the third, and so is RH1001's `map`; or a `throw` makes the argument custom, which is today's behavior. Touches SHARED-EQUAL-002 (its coverage sentence leaves this case out), RH1002-001, RH1001-003.
 >
-> The degenerate case belongs to the same decision: a `switch` expression without arms compiles, with warning CS8509, always throws, and can produce no comparer at all.
->
-> ```csharp
-> using System.Collections.Generic;
-> using System.Linq;
->
-> struct S
-> {
-> }
->
-> class C
-> {
->     void M(IEnumerable<S> items, int mode)
->     {
->         items.Distinct(mode switch { });
->         Dictionary<S, int> map = new(comparer: mode switch { });
->     }
-> }
-> ```
->
-> Output: RH1002 does not report the call, and RH1001 does not report `map`. Under the first reading, both would be reported like a `switch` whose only arms throw; under the second, today's behavior stays. SHARED-EQUAL-002's coverage sentence leaves a `switch` expression without arms out.
->
 > ### Q5 — An argument that can only produce `null` or the default comparer counts as a custom comparer when parentheses or `!` wrap the whole argument
 >
 > Input:
@@ -402,28 +378,6 @@ Preamble with `sdd/specs/analyzer/RH1001.md` (RH1001).
 > Output: RH1001 reports the `S` of the declared type of `a` and of `b`, but not of `c`.
 >
 > Why it looks wrong: every collection that `a` and `b` can hold is created with the custom comparer, and a `throw` produces no collection. The declaration is just as free of the key's equality members as `c`. The rule page says that for a conditional or `switch` expression "the exemption applies only if every one of those creations supplies a comparer", and here every creation does. The analyzer recognizes only creations in the branches and arms, so it treats a `throw` as a value without a comparer. Two readings: a `throw` branch or arm is ignored, so `a` and `b` are not reported; or a `throw` leaves the declared type reported, which is today's behavior. Touches RH1001-003 (its coverage sentence leaves this case out).
->
-> The degenerate case belongs to the same decision: a `switch` expression without arms always throws, so a declaration initialized with one can hold no collection at all.
->
-> ```csharp
-> using System.Collections.Generic;
->
-> struct S
-> {
-> }
->
-> class C
-> {
->     int _mode;
->
->     void M()
->     {
->         Dictionary<S, int> a = _mode switch { };
->     }
-> }
-> ```
->
-> Output: RH1001 reports the `S` of the declared type of `a`. Under the first reading, it would not be reported, like a `switch` whose arms all create the collection with the custom comparer or throw; under the second, today's behavior stays. RH1001-003's coverage sentence leaves a `switch` expression without arms out.
 >
 > ### Q2 — A collection expression that passes a custom comparer through `with(…)` is reported
 >
