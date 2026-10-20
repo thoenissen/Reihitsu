@@ -43,6 +43,9 @@ public class RH5403StatementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5403-001")]
+    [Requirement("RH5403-002")]
+    [Requirement("RH5403-003")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -98,6 +101,9 @@ public class RH5403StatementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BLOCK-001")]
+    [Requirement("RH5403-001")]
+    [Requirement("RH5403-002")]
     public async Task VerifyAdditionalStatementParentsAreDetected()
     {
         const string testData = """
@@ -126,6 +132,8 @@ public class RH5403StatementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BLOCK-001")]
+    [Requirement("RH5403-001")]
     public async Task VerifyEmptyCoveredBodyAndCatchAreExcluded()
     {
         const string testData = """
@@ -152,6 +160,7 @@ public class RH5403StatementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BLOCK-001")]
     public async Task VerifySingleLineBlockInsideLambdaBodyIsDetected()
     {
         const string testData = """
@@ -177,6 +186,7 @@ public class RH5403StatementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BLOCK-001")]
     public async Task VerifySingleLineBlockInsideLocalFunctionIsDetected()
     {
         const string testData = """
@@ -195,6 +205,165 @@ public class RH5403StatementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTes
                                 """;
 
         await Verify(testData, Diagnostics(RH5403StatementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5403MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a block of an if or else statement holding statements on one line is reported on its opening
+    /// brace, while an empty block on one line and a lambda body are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5403-001")]
+    [Requirement("RH5403-002")]
+    public async Task VerifyBlockWithStatementsOnOneLineIsReportedOnBrace()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a)
+                                    {
+                                        if (a) {|RH5403:{|} M(a); }
+                                        else {|RH5403:{|} M(a); M(a); }
+                                        while (a) { }
+                                        System.Action f = () => { M(a); };
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the blocks of while and for statements holding a statement on one line are reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BLOCK-001")]
+    [Requirement("RH5403-001")]
+    public async Task VerifyWhileAndForBlocksOnOneLineAreReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a)
+                                    {
+                                        while (a) {|RH5403:{|} M(a); }
+                                        for (var i = 0; i < 1; i++) {|RH5403:{|} M(a); }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a nested block, checked and unchecked blocks, a block in a switch section, and a method body on
+    /// one line are not checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BLOCK-001")]
+    public async Task VerifyBlocksOutsideControlFlowStatementsAreNotChecked()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        { M(a); }
+                                        checked { M(a); }
+                                        unchecked { M(a); }
+                                        switch (a)
+                                        {
+                                            case 1: { M(a); break; }
+                                        }
+                                    }
+
+                                    void N(int a) { M(a); }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix lays out the if statement that owns the reported block with each brace and each statement
+    /// on its own line, including the block of its else clause
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5403-003")]
+    public async Task VerifyFixLaysOutIfStatementWithItsElse()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a)
+                                    {
+                                        if (a) {|RH5403:{|} M(a); }
+                                        else {|RH5403:{|} M(a); M(a); }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a);
+                                         }
+                                         else
+                                         {
+                                             M(a);
+                                             M(a);
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix lays out the if statement that owns the reported block with each brace and each statement
+    /// on its own line, including the block of its else clause, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5403-003")]
+    public async Task VerifyFixLaysOutIfStatementWithItsElseWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a)
+                                    {
+                                        if (a) {|RH5403:{|} M(a); }
+                                        else {|RH5403:{|} M(a); M(a); }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a);
+                                         }
+                                         else
+                                         {
+                                             M(a);
+                                             M(a);
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
     }
 
     #endregion // Tests

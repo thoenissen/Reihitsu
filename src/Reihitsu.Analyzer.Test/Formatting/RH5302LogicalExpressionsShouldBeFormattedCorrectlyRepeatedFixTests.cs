@@ -23,6 +23,7 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyRepeatedFixTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5302-004")]
     public async Task VerifySingleFixApplicationConvergesTheWholeChain()
     {
         const string initialSource = """
