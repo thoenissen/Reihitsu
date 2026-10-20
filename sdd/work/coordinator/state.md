@@ -127,6 +127,33 @@ Remaining batches: #985 (after #984, now unblocked), #995 (after #994, now unblo
 
 Inventories DONE 2026-10-20 (5 files, 148 questions: LA/LC 46, O2 21+1, D3 18, B2 32, B1 29). Searches were rate-limited -> re-check duplicates before filing. Principle candidates (renumbered by coordinator, P14+): P14 fix layout scope (P10 = changed node + lines the fix edited, no blank line inserted before changed statement; P9 = neighbours untouched), P15 partial declaration = one declaration, P16 look-through (parentheses, !, throw), P17 regions belong to innermost type-like declaration (enums incl.), P18 ordering compares to previous same-group element, P19 end tag with other name = no end tag, P20 rule checks every element of its kind, P21 diagnostic always has a location, P22 conditional directive in reported construct = not reported, P23 report only what a correction can legally replace, P24 fix keeps document line ending; P3 ext to using aliases, P5 ext to Razor/HTML comments. Round 7a (principles) put to maintainer, plus #1160 reading.
 
+## Round 7a decided (maintainer 2026-10-20; all recommended unless noted)
+
+Numbering used with the maintainer (item numbers of the question message):
+1 (P14a) fix inserts NO blank line before the changed statement: #1209 Q3, #1220 Q2, #1169 Q1 bullet 5 (tests pinning it change). A.
+2 (P14b) #1170 Q1: member moves to own line, `int _x;` on next line (line the fix edits). A.
+3 (P14c) blank line left by a removed region/directive is cleaned by the fix: #1175 Q4, #1186 Q1. A.
+4 (P14d) fix formats only the replaced node, not the whole member: #1236/#1237 (RH3202/3203/3205-3208; two blank lines stay, RH3202-005 unchanged; SHARED-FIX-003/#1138 layout example adjusted). A.
+5 #1226 Q1 RH3004 fix keeps `static` (`static (int x) => x`); check `async`.
+6 (P15) partial declaration = one declaration; analyzer decides on the symbol, reports once (#1252 Q2, #1254 Q5, #1255 Q1); RH2004 fix on one part withheld (#1254 Q4).
+7 (P16) 7a parentheses/`!` always transparent, 7b `throw` arm = no value (#1247 Q4/Q5, #1248 Q1). MAINTAINER NOTE: this is to be read as an EXTENSION (behavior change widening the rule), not as a bug fix. #1247 Q6 (type-parameter default) not covered, stays open.
+8 (P17) regions belong to the innermost type-like declaration, enums included (#1185 Q2, #1187 Q2).
+9 #1183 Q1 innermost region judges the member (RH7308).
+10 (P18) ordering rules compare against previous same-group element whatever lies between (#1171-#1173 Q1).
+11 (P20) rule checks every element/declarator of its kind (#1196 Q2, #1200 Q1, #1195 Q1).
+12 (P19) end tag with a different name = no end tag, fix withheld (#1197 Q1, #1199 Q4, #1201 Q1/Q3; #1241 same bug).
+13 #1195 Q3: RH8107-001 case-insensitive matching retired under P8 (retirement ok'd).
+14 (P23) where a fix would break code: still report, offer no fix (#1229 Q3, #1231 Q1/Q2, #1233 Q2, #1234 Q1, #1245 Q2 constant patterns).
+15 (P24) fix keeps the document's own line ending (#1228, #1142).
+16 (P22) conditional directive/excluded code in the reported construct = not reported (SHARED-TRAIL-002); #region/#pragma stay reported without fix (#1169 Q3).
+17 (P21) diagnostic always has a location; RH5404 extension block reported at `extension` keyword and block formatted (#1221 Q1).
+18 #1184 Q1: alias to a non-name forms its own group at the end.
+19 #1187 Q1: mutually exclusive #if/#else branches are not compared.
+20 #1217 Q1: `?[ ]` not covered by RH5307.
+21 P3 ext: aliases resolved semantically (#1253 Q1); P5 ext: Razor/HTML comments and `@@` are content (#1256 Q2/Q3).
+22 #1160: B = fix result `M( /* c */ 1)` (the agent's reading is confirmed).
+Not covered by 7a, still individual questions (round 7b): see round7 plan file.
+
 ## Waiting for maintainer
 
 - 2026-10-19: round 6 squads running (#984, #991, #992, #994, #996, #997). Maintainer to confirm #1160 reading `M(/* c */ 1)` → `M( /* c */ 1)`. Earlier: verified on GitHub — #1068 (PR #1100), #1069 (PR #1099), #981, #983, #987, #990 merged; no open PRs. Coordinator runs inventory of the 24 new open-question issues, then question round 5, then next batch prompts.
