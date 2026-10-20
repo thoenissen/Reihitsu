@@ -249,6 +249,35 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
+    /// Characterizes code-block text inside a C# block comment, a C# string literal, and a C# raw string literal of a
+    /// <c>.razor</c> code block: each occurrence is reported like the real directive. The case is an open question
+    /// decided by principle, so this test pins today's behavior without stating it as intended
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeBlockTextInCSharpCommentAndStringLiteralsIsReported()
+    {
+        const string razorSource = """"
+                                   @code {
+                                       /*
+                                       @code {
+                                       */
+                                       private string s = "@code{";
+                                       private string t = """
+                                   @code {
+                                   """;
+                                   }
+                                   """";
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 1, 1),
+                     RazorCodeBlockSpan("Counter.razor", 3, 5),
+                     RazorCodeBlockSpan("Counter.razor", 5, 25),
+                     RazorCodeBlockSpan("Counter.razor", 7, 1));
+    }
+
+    /// <summary>
     /// Characterizes an escaped <c>@@code {</c> and email-like text <c>user@code{</c>: both are reported. These cases
     /// are an open question about intended behavior, so this test pins today's behavior without stating it as intended
     /// </summary>

@@ -641,6 +641,27 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
     }
 
     /// <summary>
+    /// Characterizes properties that use the <see langword="field"/> keyword without logic of their own, in an accessor
+    /// body and in an expression body: both are reported and no fix is offered. These cases are an open question about
+    /// intended behavior, so this test pins today's behavior without stating it as intended
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyPropertiesUsingFieldKeywordWithoutLogicAreReportedWithoutFix()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int {|RH2001:Other|} { get => field; }
+
+                                    private int {|RH2001:Plain|} => field;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
     /// Characterizes properties with a <c>field:</c>-targeted attribute or an accessor attribute: both are reported and
     /// no fix is offered. These cases are an open question about intended behavior, so this test pins today's behavior
     /// without stating it as intended
