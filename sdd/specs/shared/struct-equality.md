@@ -82,29 +82,34 @@ class C<T>
 
 ### SHARED-EQUAL-002 — A custom comparer argument replaces the equality members
 
-A rule MUST treat an operation as not using the compared type's equality members when one of its arguments, positional or named, is passed to a parameter of type `IEqualityComparer<T>` and can produce a value other than `null` and `EqualityComparer<T>.Default`. An argument MUST count as producing only those two values when it is:
+A rule MUST treat an operation as not using the compared type's equality members when one of its arguments, positional or named, is passed to a parameter of type `IEqualityComparer<T>` and is a custom comparer. An argument MUST count as not custom exactly when its expression has one of these forms, each of which can only produce `null` or `EqualityComparer<T>.Default`:
 
 - `null`, or `default` of a reference type or of a nullable value type;
 - `EqualityComparer<T>.Default`;
-- one of these values inside parentheses, behind the null-forgiving operator `!`, or converted by a cast that is not a user-defined conversion;
-- a `??` expression whose two operands count as such;
-- a conditional expression whose two branches count as such, or, when its condition is a constant, whose chosen branch counts as such;
-- a `switch` expression whose arms all count as such;
+- one of these forms inside parentheses, behind the null-forgiving operator `!`, or converted by a cast that is not a user-defined conversion;
+- a `??` expression whose two operands have one of these forms, or whose left operand has one of these forms and always produces `EqualityComparer<T>.Default`, so that its right operand is never used;
+- a conditional expression whose two branches have one of these forms, or, when its condition is a constant, whose chosen branch has one;
+- a `switch` expression whose arms all have one of these forms;
 - a null-conditional access whose receiver is `null`.
 
-`default` of a non-nullable value type that implements `IEqualityComparer<T>` is a comparer and MUST count as a custom one.
+Every other argument MUST count as custom. The rule decides by the form of the expression alone: a variable, a field, a property, or a method call counts as custom whatever value it has at run time, also a local variable initialized with `null`, and so does a cast with a user-defined conversion, whatever its operand. `default` of a non-nullable value type that implements `IEqualityComparer<T>` is a comparer and MUST count as a custom one.
 
-This requirement covers a parameter of type `IEqualityComparer<T>` only when `T` is the type the operation compares.
+This requirement covers a parameter of type `IEqualityComparer<T>` only when `T` is the type the operation compares. It covers a conditional expression with a `throw` branch, and a `switch` expression with a `throw` arm, only when another branch or arm counts as custom.
 
-Why: A comparer passed to the operation does the comparing and hashing itself, so the type's own members are never called. `null` and `EqualityComparer<T>.Default` both fall back to the type's own equality behavior, so passing them changes nothing, however the expression is written. A value-type comparer is boxed into a real instance and is used.
+Why: A comparer passed to the operation does the comparing and hashing itself, so the type's own members are never called. `null` and `EqualityComparer<T>.Default` both fall back to the type's own equality behavior, so passing them changes nothing, however the expression is written. The rule does not follow a variable or a call to the value it produces, and a conversion operator can return any comparer, so such an argument may be a real comparer. A value-type comparer is boxed into a real instance and is used.
 
 Example — RH1002:
 
 ```csharp
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 struct S
+{
+}
+
+class Token
 {
 }
 
@@ -113,6 +118,8 @@ class SComparer : IEqualityComparer<S>
     public bool Equals(S x, S y) => true;
 
     public int GetHashCode(S obj) => 0;
+
+    public static implicit operator SComparer(Token token) => new SComparer();
 }
 
 struct ValueComparer : IEqualityComparer<S>
@@ -129,13 +136,22 @@ class Holder
 
 class C
 {
-    void M(IEnumerable<S> items, IEqualityComparer<S> comparer, bool flag, int mode)
+    void M(IEnumerable<S> items, IEqualityComparer<S> comparer, Holder holder, bool flag, int mode)
     {
+        IEqualityComparer<S> none = null;
+
         items.Distinct(new SComparer());
         items.Distinct(comparer: comparer);
         Enumerable.Distinct(source: items, comparer);
+        items.Distinct((comparer));
+        items.Distinct(comparer!);
+        items.Distinct(comparer ?? null);
         items.Distinct(flag ? comparer : null);
+        items.Distinct(flag ? comparer : throw new InvalidOperationException());
         items.Distinct(mode switch { 0 => comparer, _ => null });
+        items.Distinct(holder?.Comparer);
+        items.Distinct((SComparer)(Token)null);
+        items.Distinct(none);
         items.Distinct(default(ValueComparer));
         items.{|RH1002:Distinct|}(null);
         items.{|RH1002:Distinct|}(default);
@@ -144,6 +160,7 @@ class C
         items.{|RH1002:Distinct|}(flag ? null : EqualityComparer<S>.Default);
         items.{|RH1002:Distinct|}(true ? null : comparer);
         items.{|RH1002:Distinct|}((IEqualityComparer<S>)null ?? EqualityComparer<S>.Default);
+        items.{|RH1002:Distinct|}(EqualityComparer<S>.Default ?? comparer);
         items.{|RH1002:Distinct|}(mode switch { 0 => null, _ => EqualityComparer<S>.Default });
         items.{|RH1002:Distinct|}(((Holder)null)?.Comparer);
         items.{|RH1002:Distinct|}(default(ValueComparer?));

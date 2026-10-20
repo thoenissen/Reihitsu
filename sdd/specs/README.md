@@ -49,7 +49,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH1001.md](analyzer/RH1001.md) | RH1001 | `RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer` |
 | [analyzer/RH1002.md](analyzer/RH1002.md) | RH1002 | `RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer` |
 | [analyzer/RH1003.md](analyzer/RH1003.md) | RH1003 | `RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzer` |
-| [analyzer/RH2001.md](analyzer/RH2001.md) | RH2001 | `RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer`, `RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider` |
+| [analyzer/RH2001.md](analyzer/RH2001.md) | RH2001 | `RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer`, `RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider`, `PropertySymbolExtensions` |
 | [analyzer/RH2002.md](analyzer/RH2002.md) | RH2002 | `RH2002AsyncVoidShouldNotBeUsedAnalyzer` |
 | [analyzer/RH2003.md](analyzer/RH2003.md) | RH2003 | `RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer` |
 | [analyzer/RH2004.md](analyzer/RH2004.md) | RH2004 | `RH2004AccessModifierMustBeDeclaredAnalyzer`, `RH2004AccessModifierMustBeDeclaredCodeFixProvider` |
