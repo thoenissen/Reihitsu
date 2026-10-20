@@ -645,6 +645,177 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Characterizes that the fix of a negation as the right operand of a user-defined <c>&gt;</c> in an argument
+    /// writes parentheses that, with the <c>&lt;</c> of the previous argument, read as a generic invocation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixOfNegationAfterGreaterThanInAnArgumentWritesAGenericReading()
+    {
+        const string testCode = """
+                                class T
+                                {
+                                    public static bool operator >(T a, bool b) => b;
+
+                                    public static bool operator <(T a, bool b) => b;
+                                }
+
+                                class C
+                                {
+                                    int G;
+                                    int A;
+                                    T B;
+
+                                    void M(bool x, bool y)
+                                    {
+                                    }
+
+                                    void Run(bool x)
+                                    {
+                                        M(G < A, B > !x);
+                                    }
+                                }
+                                """;
+
+        const string expectedCode = """
+                                    class T
+                                    {
+                                        public static bool operator >(T a, bool b) => b;
+
+                                        public static bool operator <(T a, bool b) => b;
+                                    }
+
+                                    class C
+                                    {
+                                        int G;
+                                        int A;
+                                        T B;
+
+                                        void M(bool x, bool y)
+                                        {
+                                        }
+
+                                        void Run(bool x)
+                                        {
+                                            M(G < A, B > (x == false));
+                                        }
+                                    }
+                                    """;
+
+        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+    }
+
+    /// <summary>
+    /// Characterizes that the fix of a negation as the right operand of a user-defined <c>&gt;</c> in a comparison
+    /// chain writes parentheses that, with the <c>&lt;</c> in front, read as a generic invocation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixOfNegationAfterGreaterThanInAComparisonChainWritesAGenericReading()
+    {
+        const string testCode = """
+                                class U
+                                {
+                                    public static bool operator >(U a, bool b) => b;
+
+                                    public static bool operator <(U a, bool b) => b;
+                                }
+
+                                class T
+                                {
+                                    public static U operator <(T a, int b) => null;
+
+                                    public static U operator >(T a, int b) => null;
+                                }
+
+                                class C
+                                {
+                                    T G;
+                                    int A;
+
+                                    bool Run(bool x)
+                                    {
+                                        return G < A > !x;
+                                    }
+                                }
+                                """;
+
+        const string expectedCode = """
+                                    class U
+                                    {
+                                        public static bool operator >(U a, bool b) => b;
+
+                                        public static bool operator <(U a, bool b) => b;
+                                    }
+
+                                    class T
+                                    {
+                                        public static U operator <(T a, int b) => null;
+
+                                        public static U operator >(T a, int b) => null;
+                                    }
+
+                                    class C
+                                    {
+                                        T G;
+                                        int A;
+
+                                        bool Run(bool x)
+                                        {
+                                            return G < A > (x == false);
+                                        }
+                                    }
+                                    """;
+
+        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+    }
+
+    /// <summary>
+    /// Characterizes that a negation that is the whole expression of an argument is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NegationAsAWholeArgumentIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool x)
+                                    {
+                                    }
+
+                                    void Run(bool x)
+                                    {
+                                        M({|RH3001:!|}x);
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Characterizes that a negation that is the whole expression of a tuple element is reported and no code fix is
+    /// offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NegationAsAWholeTupleElementIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void Run(bool x, bool y)
+                                    {
+                                        var t = ({|RH3001:!|}x, y);
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

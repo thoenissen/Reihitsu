@@ -745,8 +745,8 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
     }
 
     /// <summary>
-    /// Verifies unqualified, qualified, and alias-qualified <c>Nullable&lt;T&gt;</c> in every listed type position is
-    /// reported over the whole name and fixed to <c>T?</c>
+    /// Verifies unqualified <c>Nullable&lt;T&gt;</c>, and <c>Nullable&lt;T&gt;</c> qualified with dots (also behind
+    /// <c>global::</c>), in every listed type position is reported over the whole name and fixed to <c>T?</c>
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1009,6 +1009,44 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
                                     """;
 
         Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+    }
+
+    /// <summary>
+    /// Characterizes that a <c>Nullable&lt;T&gt;</c> qualified with dots as the argument of <c>nameof</c> is reported on
+    /// the generic name alone. Only the report is pinned; the offered fix is not applied
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DottedNullableGenericAsNameofArgumentIsReportedOnTheGenericName()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    string M() => nameof(System.{|RH3103:Nullable<int>|});
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Characterizes that a <c>Nullable&lt;T&gt;</c> qualified with dots behind <c>global::</c> as the argument of
+    /// <c>nameof</c> is reported on the generic name alone. Only the report is pinned; the offered fix is not applied
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task GlobalDottedNullableGenericAsNameofArgumentIsReportedOnTheGenericName()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string M() => nameof(global::System.{|RH3103:Nullable<int>|});
+                                }
+                                """;
+
+        await Verify(testCode);
     }
 
     #endregion // Tests

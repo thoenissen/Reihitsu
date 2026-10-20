@@ -884,6 +884,139 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
         Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
     }
 
+    /// <summary>
+    /// Characterizes that the fix of a constant-left comparison in an argument writes a new <c>&lt;</c> that, with the
+    /// <c>&gt;</c> of the next argument, reads as a generic invocation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixOfConstantLeftArgumentBeforeAGreaterThanArgumentWritesAGenericReading()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    const int Max = 1;
+                                    int G;
+                                    int B;
+
+                                    void M(bool x, bool y)
+                                    {
+                                    }
+
+                                    void Run()
+                                    {
+                                        M(Max > G, B > (7));
+                                    }
+                                }
+                                """;
+
+        const string expectedCode = """
+                                    class C
+                                    {
+                                        const int Max = 1;
+                                        int G;
+                                        int B;
+
+                                        void M(bool x, bool y)
+                                        {
+                                        }
+
+                                        void Run()
+                                        {
+                                            M(G < Max, B > (7));
+                                        }
+                                    }
+                                    """;
+
+        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+    }
+
+    /// <summary>
+    /// Characterizes that the fix of a comparison with a <c>static readonly</c> left operand in an array initializer
+    /// writes a new <c>&lt;</c> that, with the <c>&gt;</c> of the next element, reads as a generic invocation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixOfStaticReadonlyLeftElementBeforeAGreaterThanElementWritesAGenericReading()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    static readonly int Min = 1;
+                                    int G;
+                                    int B;
+
+                                    void Run()
+                                    {
+                                        var a = new[] { Min > G, B > (7) };
+                                    }
+                                }
+                                """;
+
+        const string expectedCode = """
+                                    class C
+                                    {
+                                        static readonly int Min = 1;
+                                        int G;
+                                        int B;
+
+                                        void Run()
+                                        {
+                                            var a = new[] { G < Min, B > (7) };
+                                        }
+                                    }
+                                    """;
+
+        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+    }
+
+    /// <summary>
+    /// Characterizes that the fix of a literal-left comparison in an argument writes a new <c>&gt;</c> that, with the
+    /// <c>&lt;</c> of the previous argument, reads as a generic invocation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixOfLiteralLeftArgumentAfterALessThanArgumentWritesAGenericReading()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int G;
+                                    int A;
+                                    int B;
+
+                                    void M(bool x, bool y)
+                                    {
+                                    }
+
+                                    void Run()
+                                    {
+                                        M(G < A, (7) < B);
+                                    }
+                                }
+                                """;
+
+        const string expectedCode = """
+                                    class C
+                                    {
+                                        int G;
+                                        int A;
+                                        int B;
+
+                                        void M(bool x, bool y)
+                                        {
+                                        }
+
+                                        void Run()
+                                        {
+                                            M(G < A, B > (7));
+                                        }
+                                    }
+                                    """;
+
+        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+    }
+
     #endregion // Tests
 
     #region Methods

@@ -7558,6 +7558,109 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
     }
 
     /// <summary>
+    /// Verifies parentheses around a whole argument of an object creation are reported over the pair and removed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-001")]
+    [Requirement("RH3002-007")]
+    public async Task ParenthesesAroundAnArgumentOfAnObjectCreationAreReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    C(int a)
+                                    {
+                                    }
+
+                                    static C M(int a)
+                                    {
+                                        return new C({|RH3002:(a)|});
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     C(int a)
+                                     {
+                                     }
+
+                                     static C M(int a)
+                                     {
+                                         return new C(a);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies parentheses around a whole argument of an element access are reported over the pair and removed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-001")]
+    [Requirement("RH3002-007")]
+    public async Task ParenthesesAroundAnArgumentOfAnElementAccessAreReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int[] x, int a)
+                                    {
+                                        return x[{|RH3002:(a)|}];
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M(int[] x, int a)
+                                     {
+                                         return x[a];
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies parentheses around the value after <c>=</c> in a field and in a property declaration are reported over
+    /// the pair and removed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-001")]
+    [Requirement("RH3002-007")]
+    public async Task ParenthesesAroundTheValueOfAMemberDeclarationAreReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int _f = {|RH3002:(1)|};
+
+                                    int P { get; } = {|RH3002:(2)|};
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int _f = 1;
+
+                                     int P { get; } = 2;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
     /// Verifies a conditional expression as the operand of a throw expression keeps its parentheses
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
