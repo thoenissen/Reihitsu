@@ -23,6 +23,9 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-001")]
+    [Requirement("RH5408-004")]
+    [Requirement("RH5408-005")]
     public async Task VerifyMultiLineGetOnlyAutoPropertyIsDetectedAndFixed()
     {
         const string testData = """
@@ -51,6 +54,9 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-001")]
+    [Requirement("RH5408-004")]
+    [Requirement("RH5408-005")]
     public async Task VerifyMultiLineGetSetAutoPropertyIsDetectedAndFixed()
     {
         const string testData = """
@@ -80,6 +86,8 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-001")]
+    [Requirement("RH5408-004")]
     public async Task VerifyMultipleMultiLineAutoPropertiesAreDetected()
     {
         const string testData = """
@@ -108,6 +116,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-001")]
     public async Task VerifySingleLineAutoPropertyIsNotFlagged()
     {
         const string testData = """
@@ -127,6 +136,9 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-001")]
+    [Requirement("RH5408-004")]
+    [Requirement("RH5408-005")]
     public async Task VerifyPropertyAttributedAutoPropertyIsDetectedAndFixed()
     {
         const string testData = """
@@ -168,6 +180,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-002")]
     public async Task VerifyAccessorAttributedAutoPropertyIsNotFlagged()
     {
         const string testData = """
@@ -197,6 +210,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-002")]
     public async Task VerifyPropertyAndAccessorAttributedAutoPropertyIsNotFlagged()
     {
         const string testData = """
@@ -227,6 +241,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-002")]
     public async Task VerifySingleAttributedAccessorAutoPropertyIsNotFlagged()
     {
         const string testData = """
@@ -289,6 +304,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-002")]
     public async Task VerifyWrappedSignatureAutoPropertyIsNotFlagged()
     {
         const string testData = """
@@ -330,6 +346,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-001")]
     public async Task VerifyPropertyWithAccessorBodyIsNotFlagged()
     {
         const string testData = """
@@ -359,6 +376,9 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-001")]
+    [Requirement("RH5408-004")]
+    [Requirement("RH5408-005")]
     public async Task VerifyMultiLineGetInitAutoPropertyIsDetectedAndFixed()
     {
         const string testData = """
@@ -388,6 +408,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-002")]
     public async Task VerifyAutoPropertyWithMultiLineInitializerIsNotFlagged()
     {
         const string testData = """
@@ -412,6 +433,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-003")]
     public async Task VerifyCommentedAccessorListAutoPropertyIsNotFlagged()
     {
         const string testData = """
@@ -433,6 +455,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-003")]
     public async Task VerifyCommentBetweenAccessorsAutoPropertyIsNotFlagged()
     {
         const string testData = """
@@ -456,6 +479,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-003")]
     public async Task VerifyCommentInSignatureGapAutoPropertyIsNotFlagged()
     {
         const string testData = """
@@ -478,6 +502,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-003")]
     public async Task VerifyDirectiveInSignatureGapAutoPropertyIsNotFlagged()
     {
         const string testData = """
@@ -531,6 +556,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-003")]
     public async Task VerifyNoDiagnosticForDocumentedAccessorList()
     {
         const string testData = """
@@ -588,6 +614,8 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-003")]
+    [Requirement("RH5408-005")]
     public async Task VerifyAutoPropertyWithTrailingCommentIsDetectedAndFixed()
     {
         const string testData = """
@@ -617,6 +645,8 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-003")]
+    [Requirement("RH5408-005")]
     public async Task VerifyGetOnlyAutoPropertyWithTrailingCommentIsDetectedAndFixed()
     {
         const string testData = """
@@ -645,6 +675,8 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-003")]
+    [Requirement("RH5408-005")]
     public async Task VerifyAutoPropertyWithTrailingBlockCommentIsDetectedAndFixed()
     {
         const string testData = """
@@ -675,6 +707,8 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-003")]
+    [Requirement("RH5408-005")]
     public async Task VerifyMultipleAutoPropertiesWithTrailingCommentsAreDetectedAndFixed()
     {
         const string testData = """
@@ -712,6 +746,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-003")]
     public async Task VerifyCommentInInitializerGapAutoPropertyIsNotFlagged()
     {
         const string testData = """
@@ -731,6 +766,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-003")]
     public async Task VerifyBlockCommentInInitializerGapAutoPropertyIsNotFlagged()
     {
         const string testData = """
@@ -750,6 +786,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-003")]
     public async Task VerifyDirectiveInInitializerGapAutoPropertyIsNotFlagged()
     {
         const string testData = """
@@ -771,6 +808,8 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-001")]
+    [Requirement("RH5408-005")]
     public async Task VerifyOwnLineInitializerAutoPropertyIsDetectedAndFixed()
     {
         const string testData = """
@@ -824,6 +863,8 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-003")]
+    [Requirement("RH5408-005")]
     public async Task VerifySameLineInitializerGapAutoPropertyIsDetectedAndFixed()
     {
         const string testData = """
@@ -854,6 +895,9 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-001")]
+    [Requirement("RH5408-003")]
+    [Requirement("RH5408-005")]
     public async Task VerifyAccessorModifierAutoPropertyWithTrailingCommentIsDetectedAndFixed()
     {
         const string testData = """
@@ -884,6 +928,8 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-001")]
+    [Requirement("RH5408-005")]
     public async Task VerifyOwnLineDeclarationSemicolonAutoPropertyIsDetectedAndFixed()
     {
         const string testData = """
@@ -911,6 +957,8 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-001")]
+    [Requirement("RH5408-005")]
     public async Task VerifyOwnLineDeclarationSemicolonInitAutoPropertyIsDetectedAndFixed()
     {
         const string testData = """
@@ -938,6 +986,8 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-001")]
+    [Requirement("RH5408-005")]
     public async Task VerifyMultiLineAccessorListWithOwnLineDeclarationSemicolonIsDetectedAndFixed()
     {
         const string testData = """
@@ -969,6 +1019,8 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-001")]
+    [Requirement("RH5408-005")]
     public async Task VerifyOwnLineInitializerAndDeclarationSemicolonIsDetectedAndFixed()
     {
         const string testData = """
@@ -997,6 +1049,8 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-001")]
+    [Requirement("RH5408-005")]
     public async Task VerifyMultipleOwnLineDeclarationSemicolonAutoPropertiesAreDetectedAndFixed()
     {
         const string testData = """
@@ -1029,6 +1083,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-003")]
     public async Task VerifyCommentInDeclarationSemicolonGapAutoPropertyIsNotFlagged()
     {
         const string testData = """
@@ -1049,6 +1104,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-003")]
     public async Task VerifyDirectiveInDeclarationSemicolonGapAutoPropertyIsNotFlagged()
     {
         const string testData = """
@@ -1070,6 +1126,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-003")]
     public async Task VerifyRegionAroundDeclarationSemicolonAutoPropertyIsNotFlagged()
     {
         const string testData = """
@@ -1091,6 +1148,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-003")]
     public async Task VerifyTrailingCommentBeforeDeclarationSemicolonAutoPropertyIsNotFlagged()
     {
         const string testData = """
@@ -1137,6 +1195,8 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-003")]
+    [Requirement("RH5408-005")]
     public async Task VerifyCommentBetweenInitializerValueAndSemicolonIsDetectedAndFixed()
     {
         const string testData = """
@@ -1235,6 +1295,8 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-003")]
+    [Requirement("RH5408-005")]
     public async Task VerifyInitPropertyWithTrailingInitializerCommentIsDetectedAndFixed()
     {
         const string testData = """
@@ -1265,6 +1327,8 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-003")]
+    [Requirement("RH5408-005")]
     public async Task VerifyAccessorModifierWithTrailingInitializerCommentIsDetectedAndFixed()
     {
         const string testData = """
@@ -1294,6 +1358,8 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-003")]
+    [Requirement("RH5408-005")]
     public async Task VerifyGenericInitializerWithTrailingCommentIsDetectedAndFixed()
     {
         const string testData = """
@@ -1328,6 +1394,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-003")]
     public async Task VerifyCommentBeforeInitializerEqualsIsNotReported()
     {
         const string testData = """
@@ -1351,6 +1418,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-003")]
     public async Task VerifyDirectiveBeforeInitializerEqualsIsNotReported()
     {
         const string testData = """
@@ -1376,6 +1444,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-003")]
     public async Task VerifyLineCommentBetweenInitializerValueAndSemicolonIsNotReported()
     {
         const string testData = """
@@ -1400,6 +1469,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-003")]
     public async Task VerifyBlockCommentBeforeSemicolonOnItsOwnLineIsNotReported()
     {
         const string testData = """
@@ -1424,6 +1494,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-003")]
     public async Task VerifyCommentBetweenEqualsAndInitializerValueIsNotReported()
     {
         const string testData = """
@@ -1445,6 +1516,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-002")]
     public async Task VerifyMultiLineInitializerValueWithTrailingCommentIsNotReported()
     {
         const string testData = """
@@ -1460,6 +1532,239 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a simple auto-property whose declaration spans several lines is reported, whether its accessor
+    /// list, its initializer, or its semicolon is wrapped, while one on one line is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5408-001")]
+    [Requirement("RH5408-004")]
+    public async Task VerifySimpleAutoPropertyOnSeveralLinesIsReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    {|RH5408:int A
+                                    {
+                                        get;
+                                        set;
+                                    }|}
+
+                                    {|RH5408:public int B { get;
+                                        private set; } = 5;|}
+
+                                    {|RH5408:int D { get; init; }
+                                        = 5;|}
+
+                                    {|RH5408:int E { get; set; } = 5
+                                        ;|}
+
+                                    int F { get; set; } = 5;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a property with an attributed accessor, a wrapped signature, or a wrapped initializer value is not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5408-002")]
+    public async Task VerifyPropertyThatIsNotSimpleOrCannotBeJoinedIsNotReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    int A
+                                    {
+                                        [Obsolete] get;
+                                    }
+
+                                    public
+                                        int B
+                                    {
+                                        get;
+                                    }
+
+                                    int D { get; set; } = N(1,
+                                                            2);
+
+                                    static int N(int a, int b) => a;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a comment inside the accessor list, between the signature and the accessor list, or in a wrapped
+    /// gap in front of the equals sign keeps the property from being reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5408-003")]
+    public async Task VerifyCommentThatBlocksTheJoinKeepsPropertyFromBeingReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int A
+                                    {
+                                        get; // note
+                                    }
+
+                                    int B // note
+                                    {
+                                        get;
+                                    }
+
+                                    int D { get; set; } // note
+                                        = 5;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind the declaration does not keep the property from being reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5408-003")]
+    public async Task VerifyCommentBehindDeclarationDoesNotKeepPropertyFromBeingReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    {|RH5408:int A
+                                    {
+                                        get;
+                                    }|} // note
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the diagnostic starts at the first modifier and leaves the attribute lists of the property out
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5408-004")]
+    public async Task VerifyDiagnosticExcludesPropertyAttributeLists()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    [Obsolete]
+                                    {|RH5408:public int A
+                                    {
+                                        get;
+                                    }|}
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix puts the signature, the accessor list, the initializer, and the semicolon on one line,
+    /// while a property-level attribute list stays on its own line above the declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5408-005")]
+    public async Task VerifyFixPutsDeclarationOnOneLine()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    [Obsolete]
+                                    {|RH5408:public int A
+                                    {
+                                        get;
+                                    }|}
+
+                                    {|RH5408:public int B { get;
+                                        private set; } = 5;|}
+
+                                    {|RH5408:int E { get; set; } = 5
+                                        ;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     [Obsolete]
+                                     public int A { get; }
+
+                                     public int B { get; private set; } = 5;
+
+                                     int E { get; set; } = 5;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix puts the signature, the accessor list, the initializer, and the semicolon on one line,
+    /// while a property-level attribute list stays on its own line above the declaration, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5408-005")]
+    public async Task VerifyFixPutsDeclarationOnOneLineWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    [Obsolete]
+                                    {|RH5408:public int A
+                                    {
+                                        get;
+                                    }|}
+
+                                    {|RH5408:public int B { get;
+                                        private set; } = 5;|}
+
+                                    {|RH5408:int E { get; set; } = 5
+                                        ;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     [Obsolete]
+                                     public int A { get; }
+
+                                     public int B { get; private set; } = 5;
+
+                                     int E { get; set; } = 5;
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
     }
 
     #endregion // Tests
