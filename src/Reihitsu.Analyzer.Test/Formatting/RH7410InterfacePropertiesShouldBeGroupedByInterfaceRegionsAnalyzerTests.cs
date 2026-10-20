@@ -20,6 +20,8 @@ public class RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7410-002")]
+    [Requirement("SHARED-REGGROUP-004")]
     public async Task VerifyNoDiagnosticsForOverridePropertyImplementingInterfaceInBaseTypeRegion()
     {
         const string testData = """
@@ -51,6 +53,7 @@ public class RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7410-001")]
     public async Task VerifyNoDiagnosticsForImplicitImplementationInMatchingRegion()
     {
         const string testData = """
@@ -77,6 +80,7 @@ public class RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7410-001")]
     public async Task VerifyDiagnosticForImplicitImplementationInGenericRegion()
     {
         const string testData = """
@@ -103,6 +107,7 @@ public class RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7410-001")]
     public async Task VerifyNoDiagnosticsForExplicitImplementationInMatchingRegion()
     {
         const string testData = """
@@ -129,6 +134,8 @@ public class RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7410-001")]
+    [Requirement("SHARED-REGGROUP-005")]
     public async Task VerifyDiagnosticForExplicitImplementationInGenericRegion()
     {
         const string testData = """
@@ -155,6 +162,7 @@ public class RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7410-001")]
     public async Task VerifyDiagnosticForImplementationOutsideRegion()
     {
         const string testData = """
@@ -177,6 +185,8 @@ public class RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7410-001")]
+    [Requirement("SHARED-REGGROUP-004")]
     public async Task VerifyNoDiagnosticsForInheritedInterfaceMemberInDeclaringInterfaceRegion()
     {
         const string testData = """
@@ -207,6 +217,8 @@ public class RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7410-001")]
+    [Requirement("SHARED-REGGROUP-004")]
     public async Task VerifyDiagnosticForInheritedInterfaceMemberUsesDeclaringInterface()
     {
         const string testData = """
@@ -237,6 +249,7 @@ public class RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7410-001")]
     public async Task VerifyDiagnosticsForMembersFromDifferentInterfaces()
     {
         const string testData = """
@@ -273,6 +286,7 @@ public class RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7410-002")]
     public async Task VerifyNoDiagnosticsForNonInterfaceMember()
     {
         const string testData = """
@@ -305,6 +319,7 @@ public class RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7410-002")]
     public async Task VerifyNoDiagnosticsForMemberOfOtherKind()
     {
         const string testData = """
@@ -326,6 +341,195 @@ public class RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzerT
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that implicit and explicit interface implementation properties in a region of another name or in no region
+    /// are reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7410-001")]
+    public async Task VerifyDiagnosticsForImplicitAndExplicitImplementationsOutsideTheirInterfaceRegion()
+    {
+        const string testData = """
+                                interface INamed
+                                {
+                                    string Name { get; }
+                                }
+
+                                interface ISized
+                                {
+                                    int Size { get; }
+                                }
+
+                                interface ICounted
+                                {
+                                    int Count { get; }
+                                }
+
+                                class C : INamed, ISized, ICounted
+                                {
+                                    #region Properties
+
+                                    public string {|RH7410:Name|} => "";
+
+                                    int ISized.{|RH7410:Size|} => 0;
+
+                                    #endregion
+
+                                    public int {|RH7410:Count|} => 0;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that implicit and explicit interface implementation properties in the regions named after their interfaces
+    /// are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7410-001")]
+    public async Task VerifyNoDiagnosticsForImplicitAndExplicitImplementationsInTheirInterfaceRegions()
+    {
+        const string testData = """
+                                interface INamed
+                                {
+                                    string Name { get; }
+                                }
+
+                                interface ISized
+                                {
+                                    int Size { get; }
+                                }
+
+                                class C : INamed, ISized
+                                {
+                                    #region INamed
+
+                                    public string Name => "";
+
+                                    #endregion
+
+                                    #region ISized
+
+                                    int ISized.Size => 0;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a property that implements no interface member and an interface implementation that is an indexer are
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7410-002")]
+    public async Task VerifyNoDiagnosticsForPropertyImplementingNothingAndIndexerImplementation()
+    {
+        const string testData = """
+                                interface IIndexed
+                                {
+                                    int this[int index] { get; }
+                                }
+
+                                class C : IIndexed
+                                {
+                                    #region Indexers
+
+                                    public int this[int index] => index;
+
+                                    #endregion
+
+                                    #region Properties
+
+                                    public int P => 0;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the diagnostic of an explicit interface implementation property is located on the identifier after the
+    /// interface name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-REGGROUP-005")]
+    public async Task VerifyDiagnosticForExplicitImplementationIsOnIdentifierAfterInterfaceName()
+    {
+        const string testData = """
+                                using System;
+
+                                interface I
+                                {
+                                    int P { get; }
+
+                                    int this[int i] { get; }
+
+                                    event EventHandler E;
+                                }
+
+                                class C : I
+                                {
+                                    int I.{|RH7410:P|} => 0;
+
+                                    public int this[int i] => 0;
+
+                                    public event EventHandler E;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Characterizes a partial property that implements an interface property: it is judged and reported only at its
+    /// defining part, and the region of its implementing part is not considered. The case is an open question about
+    /// intended behavior, so this test pins today's behavior without stating it as intended
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyPartialImplementationPropertyIsJudgedAtItsDefiningPart()
+    {
+        const string testData = """
+                                interface I
+                                {
+                                    int P { get; }
+
+                                    int Q { get; }
+                                }
+
+                                partial class C : I
+                                {
+                                    #region Properties
+
+                                    public partial int {|#0:P|} { get; }
+
+                                    public partial int Q { get => 0; }
+
+                                    #endregion
+
+                                    #region I
+
+                                    public partial int P { get => 0; }
+
+                                    public partial int Q { get; }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("I")));
     }
 
     #endregion // Tests

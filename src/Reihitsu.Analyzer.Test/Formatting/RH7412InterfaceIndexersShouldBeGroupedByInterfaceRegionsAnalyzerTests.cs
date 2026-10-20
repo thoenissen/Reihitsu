@@ -20,6 +20,8 @@ public class RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7412-002")]
+    [Requirement("SHARED-REGGROUP-004")]
     public async Task VerifyNoDiagnosticsForOverrideIndexerImplementingInterfaceInBaseTypeRegion()
     {
         const string testData = """
@@ -51,6 +53,7 @@ public class RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7412-001")]
     public async Task VerifyNoDiagnosticsForImplicitImplementationInMatchingRegion()
     {
         const string testData = """
@@ -77,6 +80,8 @@ public class RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7412-001")]
+    [Requirement("SHARED-REGGROUP-005")]
     public async Task VerifyDiagnosticForImplicitImplementationInGenericRegion()
     {
         const string testData = """
@@ -103,6 +108,7 @@ public class RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7412-001")]
     public async Task VerifyNoDiagnosticsForExplicitImplementationInMatchingRegion()
     {
         const string testData = """
@@ -129,6 +135,8 @@ public class RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7412-001")]
+    [Requirement("SHARED-REGGROUP-005")]
     public async Task VerifyDiagnosticForExplicitImplementationInGenericRegion()
     {
         const string testData = """
@@ -155,6 +163,7 @@ public class RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7412-001")]
     public async Task VerifyDiagnosticForImplementationOutsideRegion()
     {
         const string testData = """
@@ -177,6 +186,8 @@ public class RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7412-001")]
+    [Requirement("SHARED-REGGROUP-004")]
     public async Task VerifyNoDiagnosticsForInheritedInterfaceMemberInDeclaringInterfaceRegion()
     {
         const string testData = """
@@ -207,6 +218,8 @@ public class RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7412-001")]
+    [Requirement("SHARED-REGGROUP-004")]
     public async Task VerifyDiagnosticForInheritedInterfaceMemberUsesDeclaringInterface()
     {
         const string testData = """
@@ -237,6 +250,7 @@ public class RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7412-001")]
     public async Task VerifyDiagnosticsForMembersFromDifferentInterfaces()
     {
         const string testData = """
@@ -273,6 +287,7 @@ public class RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7412-002")]
     public async Task VerifyNoDiagnosticsForNonInterfaceMember()
     {
         const string testData = """
@@ -305,6 +320,7 @@ public class RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7412-002")]
     public async Task VerifyNoDiagnosticsForMemberOfOtherKind()
     {
         const string testData = """
@@ -320,6 +336,154 @@ public class RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzerTes
                                     public int Id => 0;
 
                                     #endregion // Properties
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that implicit and explicit interface implementation indexers in a region of another name or in no region
+    /// are reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7412-001")]
+    public async Task VerifyDiagnosticsForImplicitAndExplicitImplementationsOutsideTheirInterfaceRegion()
+    {
+        const string testData = """
+                                interface IIndexed
+                                {
+                                    int this[int index] { get; }
+                                }
+
+                                interface IKeyed
+                                {
+                                    int this[string key] { get; }
+                                }
+
+                                interface ILongIndexed
+                                {
+                                    int this[long index] { get; }
+                                }
+
+                                class C : IIndexed, IKeyed, ILongIndexed
+                                {
+                                    #region Indexers
+
+                                    public int {|RH7412:this|}[int index] => index;
+
+                                    int IKeyed.{|RH7412:this|}[string key] => 0;
+
+                                    #endregion
+
+                                    public int {|RH7412:this|}[long index] => 0;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that implicit and explicit interface implementation indexers in the regions named after their interfaces
+    /// are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7412-001")]
+    public async Task VerifyNoDiagnosticsForImplicitAndExplicitImplementationsInTheirInterfaceRegions()
+    {
+        const string testData = """
+                                interface IIndexed
+                                {
+                                    int this[int index] { get; }
+                                }
+
+                                interface IKeyed
+                                {
+                                    int this[string key] { get; }
+                                }
+
+                                class C : IIndexed, IKeyed
+                                {
+                                    #region IIndexed
+
+                                    public int this[int index] => index;
+
+                                    #endregion
+
+                                    #region IKeyed
+
+                                    int IKeyed.this[string key] => 0;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an indexer that implements no interface member and an interface implementation that is a property are
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7412-002")]
+    public async Task VerifyNoDiagnosticsForIndexerImplementingNothingAndPropertyImplementation()
+    {
+        const string testData = """
+                                interface INamed
+                                {
+                                    string Name { get; }
+                                }
+
+                                class C : INamed
+                                {
+                                    #region Properties
+
+                                    public string Name => "";
+
+                                    #endregion
+
+                                    #region Indexers
+
+                                    public int this[int index] => index;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the diagnostic of an interface implementation indexer is located on its this keyword
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-REGGROUP-005")]
+    public async Task VerifyDiagnosticForIndexerIsOnThisKeyword()
+    {
+        const string testData = """
+                                using System;
+
+                                interface I
+                                {
+                                    int P { get; }
+
+                                    int this[int i] { get; }
+
+                                    event EventHandler E;
+                                }
+
+                                class C : I
+                                {
+                                    int I.P => 0;
+
+                                    public int {|RH7412:this|}[int i] => 0;
+
+                                    public event EventHandler E;
                                 }
                                 """;
 
