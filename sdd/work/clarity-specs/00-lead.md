@@ -73,3 +73,4 @@ thoenissen/Reihitsu#912 has reached GitHub's limit of 100 sub-issues, so each is
 - Spec checker findings on the second repair round (24): routed within the same approved round, since they concern the requirements and tests that round repaired (RH3001-004, RH3103-003, RH3001 pins, RH3002-001 tags).
 - RH3001-004 still open after the repair round (escalation 7, 2026-10-20): small targeted fix allowed (`squad/decisions/2026-10-20-997-rh3001-targeted-fix.md`).
 - RH3001-004 shift operators (escalation 7, 2026-10-20): also exclude `>>`/`>>>` (`squad/decisions/2026-10-20-997-rh3001-shift-operators.md`).
+- RH3001-004 parentheses claim (escalation 7, 2026-10-20): negative claim dropped; extra-parentheses positions filed on #1245 Q3 (`squad/decisions/2026-10-20-997-rh3001-parentheses-claim.md`). The earlier narrowing for assignment operators (47b1fad) was a lead routing within the shift-operator fix, recorded here.
