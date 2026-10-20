@@ -1318,5 +1318,88 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
         await Verify(source, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat));
     }
 
+    /// <summary>
+    /// Verifying that a creation passing a constant with the value <see langword="null"/> as comparer, through a
+    /// <see langword="const"/> field or a <see langword="const"/> local, is not exempt, while a creation passing a local
+    /// that is not a <see langword="const"/> and is initialized with <see langword="null"/> is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH1001-003")]
+    [Requirement("SHARED-EQUAL-002")]
+    public async Task VerifyCreationWithConstantNullComparerIsNotExempt()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  const IEqualityComparer<S> NoComparer = null;
+
+                                  void M()
+                                  {
+                                      const IEqualityComparer<S> none = null;
+                                      IEqualityComparer<S> notConst = null;
+
+                                      var a = new Dictionary<{|#0:S|}, int>(NoComparer);
+                                      Dictionary<{|#1:S|}, int> b = new(none);
+                                      Dictionary<S, int> c = new(notConst);
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Characterizes a creation whose comparer argument is <see langword="default"/> of a type parameter constrained to
+    /// the comparer interface: the declared type of <c>map</c>, which passes <c>default(TC)</c>, is reported, while
+    /// <c>other</c>, which passes <c>default(TV)</c> of a type parameter constrained to a value type, counts as passing
+    /// a custom comparer and is not. The case is an open question about intended behavior, so this test pins today's
+    /// behavior without stating it as intended
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCreationWithDefaultOfTypeParameterNotConstrainedToValueTypeIsReported()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+                              using System.Linq;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  void M<TC, TN, TR, TV>(IEnumerable<S> items)
+                                      where TC : IEqualityComparer<S>
+                                      where TN : notnull, IEqualityComparer<S>
+                                      where TR : class, IEqualityComparer<S>
+                                      where TV : struct, IEqualityComparer<S>
+                                  {
+                                      items.Distinct(default(TC));
+                                      items.Distinct(default(TN));
+                                      items.Distinct(default(TR));
+                                      items.Distinct(default(TV));
+                                  }
+
+                                  void N<TC, TV>()
+                                      where TC : IEqualityComparer<S>
+                                      where TV : struct, IEqualityComparer<S>
+                                  {
+                                      Dictionary<{|#0:S|}, int> map = new(default(TC));
+                                      Dictionary<S, int> other = new(default(TV));
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat));
+    }
+
     #endregion // Methods
 }

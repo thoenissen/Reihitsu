@@ -1734,11 +1734,14 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     }
 
     /// <summary>
-    /// Verifying which comparer arguments count as custom: a comparer instance, a named or non-trailing named argument,
-    /// a conditional or <see langword="switch"/> that can produce a comparer, and <see langword="default"/> of a value-type
-    /// comparer, while <see langword="null"/>, <see langword="default"/>, <c>EqualityComparer&lt;T&gt;.Default</c>, and
-    /// expressions that can only produce those, through parentheses, <c>!</c>, casts, <c>??</c>, conditionals, a constant
-    /// condition, <see langword="switch"/> arms, and a null-conditional access on <see langword="null"/>, do not
+    /// Verifying that the form of a comparer argument decides whether it counts as custom: an object creation, a
+    /// variable passed as a named or non-trailing named argument, a conditional or <see langword="switch"/> with a
+    /// variable branch or arm, and <see langword="default"/> of a non-nullable value-type comparer count as custom, while
+    /// <see langword="null"/>, <see langword="default"/>, <c>EqualityComparer&lt;T&gt;.Default</c>, a cast of
+    /// <see langword="null"/> inside parentheses behind <c>!</c>, a conditional or <see langword="switch"/> whose branches
+    /// or arms all have such a form, a constant condition whose chosen branch has one, a <c>??</c> of two such forms, a
+    /// null-conditional access on a cast of <see langword="null"/>, and <see langword="default"/> of a nullable
+    /// value-type comparer do not
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -2079,6 +2082,91 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                               """;
 
         await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifying that a constant with the value <see langword="null"/>, a <see langword="const"/> field, a
+    /// <see langword="const"/> local, or a conditional choosing between <see langword="null"/> and such a constant, is not
+    /// a custom comparer, while a local that is not a <see langword="const"/> and is initialized with
+    /// <see langword="null"/> is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-EQUAL-002")]
+    public async Task VerifyConstantWithValueNullIsNotCustomComparer()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+                              using System.Linq;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  const IEqualityComparer<S> NoComparer = null;
+
+                                  void M(IEnumerable<S> items, bool flag)
+                                  {
+                                      const IEqualityComparer<S> none = null;
+                                      IEqualityComparer<S> notConst = null;
+
+                                      items.{|#0:Distinct|}(NoComparer);
+                                      items.{|#1:Distinct|}(none);
+                                      items.{|#2:Distinct|}(flag ? null : NoComparer);
+                                      items.Distinct(notConst);
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Characterizes <see langword="default"/> of a type parameter constrained to the comparer interface as a comparer
+    /// argument: the calls with <c>default(TC)</c>, <c>default(TN)</c>, and <c>default(TR)</c> are reported, while the
+    /// call with <c>default(TV)</c>, whose type parameter is constrained to a value type, counts as custom and is not.
+    /// The case is an open question about intended behavior, so this test pins today's behavior without stating it as
+    /// intended
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDefaultOfTypeParameterNotConstrainedToValueTypeCountsAsNoComparer()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+                              using System.Linq;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  void M<TC, TN, TR, TV>(IEnumerable<S> items)
+                                      where TC : IEqualityComparer<S>
+                                      where TN : notnull, IEqualityComparer<S>
+                                      where TR : class, IEqualityComparer<S>
+                                      where TV : struct, IEqualityComparer<S>
+                                  {
+                                      items.{|#0:Distinct|}(default(TC));
+                                      items.{|#1:Distinct|}(default(TN));
+                                      items.{|#2:Distinct|}(default(TR));
+                                      items.Distinct(default(TV));
+                                  }
+
+                                  void N<TC, TV>()
+                                      where TC : IEqualityComparer<S>
+                                      where TV : struct, IEqualityComparer<S>
+                                  {
+                                      Dictionary<S, int> map = new(default(TC));
+                                      Dictionary<S, int> other = new(default(TV));
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 3));
     }
 
     #endregion // Methods
