@@ -50,3 +50,44 @@ All findings are about coverage or wording. No requirement is false against the 
 8. Nothing left behind: ok. `sdd/work/` holds only `o1-ordering-specs/`, which the lead deletes before publishing.
 
 Also confirmed: no production file is in `git diff origin/main..HEAD` outside `sdd/`, `documentation/rules/RH7110.md`, and the 13 test files; `Reihitsu.Analyzer.Test/Base` is untouched; `OrderingDeclarationUtilitiesTests.cs` and `RegionDirectiveUtilitiesTests.cs` are untouched; no test is skipped or ignored; test comments and names carry no tracker numbers (the architecture test passes).
+
+# Repair
+
+Role: spec checker
+Commit: 76caad3
+Verdict: consistent
+
+The prompt carried no intended fix, suspected cause, or hoped-for verdict.
+
+Method: diffed `5e0efb2..HEAD` (the repair); read the changed RH7110 spec against `RH7110MembersMustBeOrderedByAccessibilityAnalyzer` and `OrderingDeclarationUtilities`; ran the six `csharp` blocks of the RH7110 spec against the RH7110 test source (whitespace-normalized containment: 6 of 6 present); read the added tests of the RH7004, RH7105, RH7106, RH7109, RH7110 classes; ran the architecture project and the five repaired classes.
+
+Results:
+
+- `scripts/test.sh --project architecture`: `Passed!  - Failed:     0, Passed:    72, Skipped:     0, Total:    72`
+- Analyzer filter over the RH7004, RH7105, RH7106, RH7109, RH7110 classes: `Passed!  - Failed:     0, Passed:   116, Skipped:     0, Total:   116`
+- `scripts/lane-check.sh tests`: `LANE CHECK: confirmed`
+
+## Findings 1 to 8
+
+| # | Status | Evidence |
+|---|---|---|
+| 1 | resolved | `ReadonlyFieldInANestedRegionOfTheSameTopLevelRegionIsReported` (RH7109-003, -006): earlier field in `#region Fields`, readonly field in nested `#region Identity`, reported, no fix. |
+| 2 | resolved | `FixMovesTheReadonlyFieldInFrontOfTheFirstOfSeveralFieldsOfItsGroup` (RH7109-005): `_a`, `B`, `_c`, `_d`; the fix puts `_d` in front of `_a`, so a fix aimed at `_c` or the previous field would fail. |
+| 3 | resolved | `CompoundAccessibilitiesAreOneGroupRegardlessOfKeywordOrder` (RH7109-001): both spellings of both compound accessibilities. |
+| 4 | resolved in the tests | `FixMovesEveryFollowingStatementInTheirOrder` (RH7004-004): two following statements, nothing in front of the declaration. Residual, not blocking: the RH7004-004 spec still shows only one-statement examples, so "in their order" is pinned by the test but not visible in the spec. Spec author may add the two-statement example; no requirement text changes. |
+| 5 | resolved | `ModifiersOutOfTheCanonicalOrderAreReportedForEveryKeywordRank` / `...InTheCanonicalOrderAreNotReported...` cover `virtual`, `sealed`, `override`, `volatile`, `extern`, `unsafe`, `file`; `FixWritesSealedBeforeOverride` pins the fix. Tagged RH7105-001/-002/-003/-004. |
+| 6 | resolved | RH7105: `EveryCheckedDeclarationKindIsReported` (7 kinds) plus `RemainingCheckedDeclarationKindsAreReported` (struct, interface, record, record struct, delegate, constructor, event, indexer) is all 15. RH7106: the same union with the operator test (compiler diagnostics off, CS0558). `DirectiveInFrontOfTheFirstModifierDoesNotWithholdTheFix` covers the directive clause of SHARED-MODORDER-002/-003. |
+| 7 | resolved | RH7110-004 now has two own example blocks (event field and indexer `this`; operator token and conversion `operator` keyword). The `Why:` states the CS0558 reachability and that the second block does not compile. Both blocks are in the RH7110 tests and tagged RH7110-004. |
+| 8 | resolved | RH7110-001 compares with the previous member of the group that carries accessibility modifiers, and the example drops `D`, `E`, and the every-earlier-member paragraph. True of the code: `narrowestSeenByGroup` is only replaced by a member that is not reported, so it is never earlier in the order than the previous such member, and any member earlier than the previous one is reported. The old input lives on as the untagged characterization test `MembersAreComparedWithTheLatestAccessibilitySeenInTheirGroup`, whose summary says no requirement states it. The tagged test `MembersAfterAMemberLaterInTheAccessibilityOrderAreReported` has the new example and no longer carries RH7110-004. |
+
+## Nothing new introduced
+
+- Spec diff since 5e0efb2 is `sdd/specs/analyzer/RH7110.md` only. It contains no open-question, principle, issue-number, or decided-but-unimplemented wording (grep clean). `requirement-ids.txt` and `sdd/specs/README.md` are unchanged: no ID added, reused, renumbered, or reserved.
+- No production file changed: outside `sdd/` and the analyzer test project the repair touches nothing.
+- No existing assertion weakened: the one rewritten test (`MembersAfterAMemberLaterInTheAccessibilityOrderAreReported`) was narrowed to the new example, and the removed `D`/`E` assertions are kept in the characterization test. Added tests carry no tracker numbers (architecture tests pass).
+- `sdd/work/` holds only `o1-ordering-specs/`, which the lead deletes before publishing.
+
+## For the lead (not findings)
+
+- The P18 question (the skeptic's question 6: does RH7110, and any other ordering rule, compare with the previous element or with the latest position seen) is still not filed. It must be filed in the `SDD open questions: sdd/specs/analyzer/RH7110.md` issue (or the list comments of #912, which is at its sub-issue limit) with the characterization test `MembersAreComparedWithTheLatestAccessibilitySeenInTheirGroup` named as the current behavior.
+- All other open questions from `01-spec-author.md` and `02-skeptic.md` remain to be filed by the lead, as in the first round.
