@@ -772,6 +772,54 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
     }
 
     /// <summary>
+    /// Characterizes that the fix of a negation that starts the right operand of a built-in <c>&gt;</c> in an argument,
+    /// as the governing expression of a <see langword="switch"/> expression, writes parentheses that, with the
+    /// <c>&lt;</c> of the previous argument, read as a generic invocation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixOfNegationStartingASwitchAfterGreaterThanInAnArgumentWritesAGenericReading()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int G;
+                                    int A;
+                                    int B;
+
+                                    void M(bool x, bool y)
+                                    {
+                                    }
+
+                                    void Run(bool x)
+                                    {
+                                        M(G < A, B > !x switch { true => 1, false => 0 });
+                                    }
+                                }
+                                """;
+
+        const string expectedCode = """
+                                    class C
+                                    {
+                                        int G;
+                                        int A;
+                                        int B;
+
+                                        void M(bool x, bool y)
+                                        {
+                                        }
+
+                                        void Run(bool x)
+                                        {
+                                            M(G < A, B > (x == false) switch { true => 1, false => 0 });
+                                        }
+                                    }
+                                    """;
+
+        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+    }
+
+    /// <summary>
     /// Characterizes that a negation that is the whole expression of an argument is reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
