@@ -1735,19 +1735,19 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
 
     /// <summary>
     /// Verifying that the form of a comparer argument decides whether it counts as custom: an object creation, a
-    /// variable passed as a named or non-trailing named argument, a conditional or <see langword="switch"/> with a
-    /// variable branch or arm, and <see langword="default"/> of a non-nullable value-type comparer count as custom, while
-    /// <see langword="null"/>, <see langword="default"/>, <c>EqualityComparer&lt;T&gt;.Default</c>, a cast of
-    /// <see langword="null"/> inside parentheses behind <c>!</c>, a conditional or <see langword="switch"/> whose branches
-    /// or arms all have such a form, a constant condition whose chosen branch has one, a <c>??</c> of two such forms, a
-    /// null-conditional access on a cast of <see langword="null"/>, and <see langword="default"/> of a nullable
-    /// value-type comparer do not
+    /// variable passed as a named argument or positionally after a non-trailing named argument, a conditional or
+    /// <see langword="switch"/> with a variable branch or arm, and <see langword="default"/> of a non-nullable value-type
+    /// comparer count as custom, while <see langword="null"/>, <see langword="default"/>,
+    /// <c>EqualityComparer&lt;T&gt;.Default</c>, a cast of <see langword="null"/> inside parentheses behind <c>!</c>, a
+    /// conditional or <see langword="switch"/> whose branches or arms all have such a form, a constant condition whose
+    /// chosen branch has one, a <c>??</c> of two such forms, a null-conditional access on a cast of
+    /// <see langword="null"/>, and <see langword="default"/> of a nullable value-type comparer do not
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-EQUAL-002")]
     [Requirement("RH1002-001")]
-    public async Task VerifyOnlyArgumentsThatCanProduceAComparerCountAsCustom()
+    public async Task VerifyComparerArgumentCountsAsCustomByItsForm()
     {
         const string source = """
                               using System.Collections.Generic;
@@ -2319,6 +2319,56 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                               """;
 
         await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a null-conditional access whose receiver is a constant with the value <see langword="null"/> or
+    /// <see langword="default"/> of a reference type or of a nullable value type — a <see langword="const"/> field, a
+    /// <see langword="const"/> local, <c>default(Holder)</c>, or <c>default(VH?)</c> — is not a custom comparer, while one
+    /// whose receiver is a local that is not a <see langword="const"/> and is initialized with <see langword="null"/> is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-EQUAL-002")]
+    public async Task VerifyNullConditionalAccessOnNullConstantReceiverIsNotCustomComparer()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+                              using System.Linq;
+
+                              struct S
+                              {
+                              }
+
+                              class Holder
+                              {
+                                  public IEqualityComparer<S> Comparer { get; set; }
+                              }
+
+                              struct VH
+                              {
+                                  public IEqualityComparer<S> Comparer { get; set; }
+                              }
+
+                              class C
+                              {
+                                  const Holder NullHolder = null;
+
+                                  void M(IEnumerable<S> items)
+                                  {
+                                      const Holder isConst = null;
+                                      Holder notConst = null;
+
+                                      items.{|#0:Distinct|}(NullHolder?.Comparer);
+                                      items.{|#1:Distinct|}(isConst?.Comparer);
+                                      items.{|#2:Distinct|}(default(Holder)?.Comparer);
+                                      items.{|#3:Distinct|}(default(VH?)?.Comparer);
+                                      items.Distinct(notConst?.Comparer);
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 4));
     }
 
     #endregion // Methods
