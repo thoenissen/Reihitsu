@@ -901,6 +901,52 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
     }
 
     /// <summary>
+    /// Characterizes that the fix of a negation as the right operand of a <c>&gt;&gt;&gt;=</c> compound assignment with
+    /// a user-defined <c>&gt;&gt;&gt;</c> puts the comparison in parentheses, although the assignment binds more weakly
+    /// than the comparison
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixOfNegationAfterUnsignedRightShiftAssignmentAddsParentheses()
+    {
+        const string testCode = """
+                                class T
+                                {
+                                    public static T operator >>>(T a, bool b) => a;
+                                }
+
+                                class C
+                                {
+                                    T B;
+
+                                    void Run(bool x)
+                                    {
+                                        B >>>= !x;
+                                    }
+                                }
+                                """;
+
+        const string expectedCode = """
+                                    class T
+                                    {
+                                        public static T operator >>>(T a, bool b) => a;
+                                    }
+
+                                    class C
+                                    {
+                                        T B;
+
+                                        void Run(bool x)
+                                        {
+                                            B >>>= (x == false);
+                                        }
+                                    }
+                                    """;
+
+        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+    }
+
+    /// <summary>
     /// Characterizes that a negation that is the whole expression of an argument is reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
