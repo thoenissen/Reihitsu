@@ -68,3 +68,4 @@ thoenissen/Reihitsu#912 has reached GitHub's limit of 100 sub-issues, so each is
 - shared/expression-body-conversion.md → thoenissen/Reihitsu#1237
 - shared/empty-parentheses.md → thoenissen/Reihitsu#1238
 - Prefix collision after merging main (escalation 9, 2026-10-20): this run's SHARED-EMPTY-001/-002 → SHARED-PARENS-001/-002, SHARED-BRACE-001 → SHARED-AFTERBRACE-001 (`squad/decisions/2026-10-20-997-shared-prefix-collision.md`).
+- Auditor blocked after the repair round (escalation 7, 2026-10-20): one more repair round allowed for all findings (`squad/decisions/2026-10-20-997-second-repair-round.md`).
