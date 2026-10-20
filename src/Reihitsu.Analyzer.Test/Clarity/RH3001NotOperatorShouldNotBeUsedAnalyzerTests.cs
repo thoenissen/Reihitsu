@@ -820,6 +820,87 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
     }
 
     /// <summary>
+    /// Characterizes that the fix of a negation as the right operand of a user-defined <c>&gt;&gt;</c> in an argument
+    /// writes parentheses that, with the two <c>&lt;</c> in front, read as a generic invocation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixOfNegationAfterShiftRightInAnArgumentWritesAGenericReading()
+    {
+        const string testCode = """
+                                class V
+                                {
+                                    public static bool operator <(V a, W b) => true;
+
+                                    public static bool operator >(V a, W b) => true;
+                                }
+
+                                class W
+                                {
+                                }
+
+                                class T
+                                {
+                                    public static W operator >>(T a, bool b) => new W();
+                                }
+
+                                class C
+                                {
+                                    int G;
+                                    int A;
+                                    V H;
+                                    T B;
+
+                                    void M(bool p, bool q)
+                                    {
+                                    }
+
+                                    void Run(bool x)
+                                    {
+                                        M(G < A, H < B >> !x);
+                                    }
+                                }
+                                """;
+
+        const string expectedCode = """
+                                    class V
+                                    {
+                                        public static bool operator <(V a, W b) => true;
+
+                                        public static bool operator >(V a, W b) => true;
+                                    }
+
+                                    class W
+                                    {
+                                    }
+
+                                    class T
+                                    {
+                                        public static W operator >>(T a, bool b) => new W();
+                                    }
+
+                                    class C
+                                    {
+                                        int G;
+                                        int A;
+                                        V H;
+                                        T B;
+
+                                        void M(bool p, bool q)
+                                        {
+                                        }
+
+                                        void Run(bool x)
+                                        {
+                                            M(G < A, H < B >> (x == false));
+                                        }
+                                    }
+                                    """;
+
+        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+    }
+
+    /// <summary>
     /// Characterizes that a negation that is the whole expression of an argument is reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
