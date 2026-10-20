@@ -154,6 +154,8 @@ Numbering used with the maintainer (item numbers of the question message):
 22 #1160: B = fix result `M( /* c */ 1)` (the agent's reading is confirmed).
 Not covered by 7a, still individual questions (round 7b): see round7 plan file.
 
+Round 7a bookkeeping DONE 2026-10-20 (agent): 31 new issues #1260-#1290 (N01 = #1260 SDD P15-P22; mapping in `round7-created.md`), 17 existing extended (#1138 body P14a-d/P23/P24, #1241 retitled, others commented), 43 question issues closed, 19 commented and left open, #912 summary comment posted. 26 questions open -> `round7-open.md` (round 7b). Next: round 7b to maintainer, then batch prompts #985, #995, #993.
+
 ## Waiting for maintainer
 
 - 2026-10-19: round 6 squads running (#984, #991, #992, #994, #996, #997). Maintainer to confirm #1160 reading `M(/* c */ 1)` → `M( /* c */ 1)`. Earlier: verified on GitHub — #1068 (PR #1100), #1069 (PR #1099), #981, #983, #987, #990 merged; no open PRs. Coordinator runs inventory of the 24 new open-question issues, then question round 5, then next batch prompts.
