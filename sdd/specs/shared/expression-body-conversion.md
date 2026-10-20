@@ -60,10 +60,10 @@ class C
 {
     private int _value;
 
-    public C(int value) {|RH3203:=> _value = value
+    public C(int value) {|RH3203:=> _value = value|}
 #if DEBUG
         + 1
-#endif|}
+#endif
         ;
 }
 ```
