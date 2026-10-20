@@ -82,21 +82,32 @@ class C<T>
 
 ### SHARED-EQUAL-002 — A custom comparer argument replaces the equality members
 
-A rule MUST treat an operation as not using the compared type's equality members when one of its arguments, positional or named, is passed to a parameter of type `IEqualityComparer<T>` and is a custom comparer. An argument MUST count as not custom exactly when its expression has one of these forms, each of which can only produce `null` or `EqualityComparer<T>.Default`:
+A rule MUST treat an operation as not using the compared type's equality members when one of its arguments, positional or named, is passed to a parameter of type `IEqualityComparer<T>` and is a custom comparer. The rule decides by the form of the argument expression.
 
-- `null`, or `default` of a reference type or of a nullable value type;
+An argument MUST count as not custom when its expression has one of these forms, each of which can only produce `null` or `EqualityComparer<T>.Default`:
+
+- a constant with the value `null` — the literal `null`, a cast of it, or a `const` field or local initialized with `null` — or `default` of a reference type or of a nullable value type;
 - `EqualityComparer<T>.Default`;
 - one of these forms inside parentheses, behind the null-forgiving operator `!`, converted by a cast that is not a user-defined conversion, or converted by the `as` operator;
 - a `??` expression whose two operands have one of these forms, or whose left operand has one of these forms and always produces `EqualityComparer<T>.Default`, so that its right operand is never used;
 - a conditional expression whose two branches have one of these forms, or, when its condition is a constant, whose chosen branch has one;
-- a `switch` expression whose arms all have one of these forms;
-- a null-conditional access whose receiver is `null`.
+- a `switch` expression that has at least one arm and whose arms all have one of these forms;
+- a null-conditional access whose receiver has a form of the first item.
 
-Every other argument MUST count as custom. The rule decides by the form of the expression alone: a variable, a field, a property, or a method call counts as custom whatever value it has at run time, also a local variable initialized with `null`, and so does a cast with a user-defined conversion, whatever its operand. `default` of a non-nullable value type that implements `IEqualityComparer<T>` is a comparer and MUST count as a custom one.
+An argument MUST count as custom when its expression has one of these forms:
 
-This requirement covers a parameter of type `IEqualityComparer<T>` only when `T` is the type the operation compares. It covers a conditional expression with a `throw` branch, and a `switch` expression with a `throw` arm, only when another branch or arm counts as custom. It covers an argument whose whole expression is a form inside parentheses or behind `!` only when that form is a constant with the value `null` or always produces `EqualityComparer<T>.Default`: `((IEqualityComparer<S>)null)!` and `(EqualityComparer<S>.Default ?? comparer)` are covered, `(flag ? null : EqualityComparer<S>.Default)` and `(null as IEqualityComparer<S>)` are not.
+- a variable, a field that is not a constant, a property other than `EqualityComparer<T>.Default`, a method call, or an object creation, whatever value it has at run time, also a local variable that is not a `const` and is initialized with `null`;
+- `default` of a non-nullable value type that implements `IEqualityComparer<T>`, which is a comparer;
+- a cast with a user-defined conversion, whatever its operand;
+- one of these forms inside parentheses, behind `!`, converted by a cast that is not a user-defined conversion, or converted by the `as` operator;
+- a `??` expression whose left operand has one of these forms;
+- a conditional expression whose condition is not a constant and one of whose branches has one of these forms, or whose condition is a constant and whose chosen branch has one;
+- a `switch` expression one of whose arms has one of these forms;
+- a null-conditional access, such as `holder?.Comparer`, whose receiver is a variable, a field that is not a constant, a property, or a method call.
 
-Why: A comparer passed to the operation does the comparing and hashing itself, so the type's own members are never called. `null` and `EqualityComparer<T>.Default` both fall back to the type's own equality behavior, so passing them changes nothing, however the expression is written. The rule does not follow a variable or a call to the value it produces, and a conversion operator can return any comparer, so such an argument may be a real comparer. A value-type comparer is boxed into a real instance and is used.
+This requirement specifies the outcome only for the argument forms the two lists name, and leaves every other form unspecified. Among the forms it leaves out are a conditional expression with a `throw` branch, or a `switch` expression with a `throw` arm, whose other branches or arms all count as not custom; a `switch` expression without arms; and `default` of a type parameter, which neither list includes, whatever the type parameter's constraints. It covers a parameter of type `IEqualityComparer<T>` only when `T` is the type the operation compares. Of the arguments whose whole expression is a form of the first list inside parentheses or behind `!`, it covers only those whose inner form is a constant with the value `null` or always produces `EqualityComparer<T>.Default`: `((IEqualityComparer<S>)null)!` and `(EqualityComparer<S>.Default ?? comparer)` are covered, `(flag ? null : EqualityComparer<S>.Default)` and `(null as IEqualityComparer<S>)` are not.
+
+Why: A comparer passed to the operation does the comparing and hashing itself, so the type's own members are never called. `null` and `EqualityComparer<T>.Default` both fall back to the type's own equality behavior, so passing them changes nothing, however the expression is written. A constant's value is known where it is used, so a constant holding `null` is the same as the literal. The rule does not follow a variable or a call to the value it produces, and a conversion operator can return any comparer, so such an argument may be a real comparer. A value-type comparer is boxed into a real instance and is used.
 
 Example — RH1002:
 
