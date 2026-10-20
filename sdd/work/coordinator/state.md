@@ -120,6 +120,11 @@ Next: resume phase 4 batches (#981, #983, #984, #985, #987, #990–#997 unblocke
 Round 4 issues: #1000 Q1, #1001 Q1, #1029 Q1, #1030 Q1–Q4, #1031 Q1, #1037 Q1–Q5, #1058 Q1–Q3, #1062 Q1, #1065 Q2.
 Still open questions: #1000 Q1, #1001 Q1, #1029 Q1, #1030 Q1–Q4, #1031 Q1, #1037 Q1–Q5, #1058 Q1–Q3, #1062 Q1, #1065 Q2.
 
+## Round 7 (started 2026-10-20)
+
+Verified on GitHub (agent): round-6 batches #984 (PR #1162), #991 (#1163), #992 (#1164), #994 (#1165), #996 (#1166), #997 (#1167) all merged, issues closed, 0 open PRs. #1161, #1138, #1139 still open, no PR (not run yet). 62 open `SDD open questions` issues, none in #912 body: #1168-1177, #1183-1187, #1195-1201, #1209-1222, #1224-1238, #1245, #1247-1256. New non-question issues: #1239-#1244, #1257-#1259 (bugs/code-review reports, not triaged by coordinator). Inventory: `inventory/round7-*.md` (families: LA/LC, O2, D3, B2, B1).
+Remaining batches: #985 (after #984, now unblocked), #995 (after #994, now unblocked), #993 (after #994+#996, now unblocked), then #939, #998.
+
 ## Waiting for maintainer
 
 - 2026-10-19: round 6 squads running (#984, #991, #992, #994, #996, #997). Maintainer to confirm #1160 reading `M(/* c */ 1)` → `M( /* c */ 1)`. Earlier: verified on GitHub — #1068 (PR #1100), #1069 (PR #1099), #981, #983, #987, #990 merged; no open PRs. Coordinator runs inventory of the 24 new open-question issues, then question round 5, then next batch prompts.
