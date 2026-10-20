@@ -15,4 +15,4 @@ _None._ (The format script's Debug build prints S1125 in `src/Reihitsu.Cli` file
 
 ## Checks
 - `scripts/build.sh`: 0 Warning(s), 0 Error(s).
-- Focused RH1001/RH1002 analyzer tests: see result below.
+- Focused RH1001/RH1002 analyzer tests: Passed! Failed 0, Passed 72.
