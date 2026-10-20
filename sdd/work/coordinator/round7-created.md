@@ -35,3 +35,22 @@ N30 -> #1289
 N31 -> #1290
 
 Blocked-by lines name real numbers (N01 = #1260). Extensions to existing issues are not listed here.
+
+## Round 7b (2026-10-20)
+
+New issues (milestone SDD), real numbers:
+
+- #1291 SDD clarification FMT-BREAK-021, FMT-BREAK-018, struct-equality (#1214 Q1, #1218 Q4, #1247 Q1)
+- #1292 documentation rules report on every documentable declaration (#1195 Q2, #1199 Q3)
+- #1293 RH8107 owns void members, RH8106 skips them (#1196 Q1)
+- #1294 RH8203 constructor matching like the compiler (#1200 Q2)
+- #1295 RH1001/RH1002 Nullable, tuples, collection expressions (#1247 Q2, #1248 Q2/Q3)
+- #1296 RH1002 more methods and query clauses (#1249 Q1/Q2)
+- #1297 RH1002 comparer judged against the key type (#1247 Q3)
+- #1298 RH2006/RH2007 string.Empty and all-empty conditionals (#1250 Q1)
+- #1299 RH2001 replaceable properties only, attributed exempt (#1251 Q4/Q5)
+- #1300 RH2002 explicit implementations reported (#1252 Q1)
+
+Extended with one comment: #1262 (#1176 Q2, #1177 Q1, #1185 Q1), #1263 (#1175 Q4 case 3), #1285 (#1245 Q3), #1288 (#1254 Q1/Q2), #1289 (#1256 Q4), #1290 (#1247 Q6).
+
+Closed (19): #1175, #1176, #1177, #1185, #1214, #1218, #1195, #1196, #1199, #1200, #1245, #1247, #1248, #1249, #1250, #1251, #1252, #1254, #1256. Summary comment on #912: https://github.com/thoenissen/Reihitsu/issues/912#issuecomment-6298700600
