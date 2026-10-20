@@ -2046,5 +2046,40 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
         await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat));
     }
 
+    /// <summary>
+    /// Characterizes a comparer argument that can only produce <see langword="null"/> or
+    /// <c>EqualityComparer&lt;T&gt;.Default</c> and is wrapped as a whole in parentheses or behind the null-forgiving
+    /// operator <c>!</c>: the unwrapped conditional and the unwrapped <see langword="as"/> expression are reported, while
+    /// the wrapped ones count as custom and are not. The case is an open question about intended behavior, so this test
+    /// pins today's behavior without stating it as intended
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyWrappedArgumentThatCanOnlyProduceNullOrDefaultComparerIsNotReported()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+                              using System.Linq;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  void M(IEnumerable<S> items, bool flag)
+                                  {
+                                      items.{|#0:Distinct|}(flag ? null : EqualityComparer<S>.Default);
+                                      items.Distinct((flag ? null : EqualityComparer<S>.Default));
+                                      items.Distinct((flag ? null : EqualityComparer<S>.Default)!);
+                                      items.{|#1:Distinct|}(null as IEqualityComparer<S>);
+                                      items.Distinct((null as IEqualityComparer<S>));
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
+    }
+
     #endregion // Methods
 }

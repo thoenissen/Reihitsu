@@ -1288,5 +1288,35 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
         await Verify(source, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 2));
     }
 
+    /// <summary>
+    /// Characterizes a creation whose comparer argument is an <see langword="as"/> expression that can only produce
+    /// <see langword="null"/>: the declared type of <c>a</c> is reported, while <c>b</c>, whose argument is the same
+    /// expression wrapped in parentheses, counts as passing a custom comparer and is not. The case is an open question
+    /// about intended behavior, so this test pins today's behavior without stating it as intended
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCreationWithWrappedAsExpressionComparerArgumentIsNotReported()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      Dictionary<{|#0:S|}, int> a = new(null as IEqualityComparer<S>);
+                                      Dictionary<S, int> b = new((null as IEqualityComparer<S>));
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat));
+    }
+
     #endregion // Methods
 }
