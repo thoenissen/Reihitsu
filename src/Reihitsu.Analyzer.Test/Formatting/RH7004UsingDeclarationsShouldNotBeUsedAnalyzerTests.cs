@@ -812,6 +812,47 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
         await Verify(source, fixedSource);
     }
 
+    /// <summary>
+    /// Verifying that the fix moves every following statement of the block into the new block, in their order
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-004")]
+    public async Task FixMovesEveryFollowingStatementInTheirOrder()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var stream = new MemoryStream();
+                                      stream.Flush();
+                                      stream.Close();
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           using (var stream = new MemoryStream())
+                                           {
+                                               stream.Flush();
+                                               stream.Close();
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

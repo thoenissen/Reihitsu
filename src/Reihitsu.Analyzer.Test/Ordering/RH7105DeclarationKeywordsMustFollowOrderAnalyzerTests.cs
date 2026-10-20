@@ -527,6 +527,206 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : BatchCodeFi
         await VerifyNoCodeFixIsOffered(source);
     }
 
+    /// <summary>
+    /// Verifying the canonical positions of <c>virtual</c>, <c>sealed</c>, <c>override</c>, <c>volatile</c>,
+    /// <c>extern</c>, <c>unsafe</c>, and <c>file</c>: each list out of order is reported on its first misplaced modifier
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7105-001")]
+    [Requirement("RH7105-003")]
+    public async Task ModifiersOutOfTheCanonicalOrderAreReportedForEveryKeywordRank()
+    {
+        const string source = """
+                              class B
+                              {
+                                  {|RH7105:virtual|} public void M()
+                                  {
+                                  }
+                              }
+
+                              class C : B
+                              {
+                                  public {|RH7105:override|} sealed void M()
+                                  {
+                                  }
+
+                                  public {|RH7105:volatile|} static int _value;
+
+                                  public {|RH7105:extern|} static void External();
+
+                                  public static {|RH7105:unsafe|} extern void Native();
+                              }
+
+                              {|RH7105:sealed|} file class F
+                              {
+                              }
+                              """;
+
+        await Verify(source, AllowUnsafe);
+    }
+
+    /// <summary>
+    /// Verifying that <c>virtual</c>, <c>sealed</c>, <c>override</c>, <c>volatile</c>, <c>extern</c>, <c>unsafe</c>,
+    /// and <c>file</c> in their canonical positions are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7105-002")]
+    public async Task ModifiersInTheCanonicalOrderAreNotReportedForEveryKeywordRank()
+    {
+        const string source = """
+                              class B
+                              {
+                                  public virtual void M()
+                                  {
+                                  }
+                              }
+
+                              class C : B
+                              {
+                                  public sealed override void M()
+                                  {
+                                  }
+
+                                  public static volatile int _value;
+
+                                  public static extern void External();
+
+                                  public static extern unsafe void Native();
+                              }
+
+                              file sealed class F
+                              {
+                              }
+                              """;
+
+        await Verify(source, AllowUnsafe);
+    }
+
+    /// <summary>
+    /// Verifying that the fix writes <c>sealed</c> before <c>override</c> after the accessibility
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7105-004")]
+    public async Task FixWritesSealedBeforeOverride()
+    {
+        const string source = """
+                              class B
+                              {
+                                  public virtual void M()
+                                  {
+                                  }
+                              }
+
+                              class C : B
+                              {
+                                  {|RH7105:sealed|} override public void M()
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class B
+                                   {
+                                       public virtual void M()
+                                       {
+                                       }
+                                   }
+
+                                   class C : B
+                                   {
+                                       public sealed override void M()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying that RH7105 checks the struct, interface, record, record struct, delegate, constructor, event, and
+    /// indexer declarations too, so together with <see cref="EveryCheckedDeclarationKindIsReported"/> it checks every
+    /// declaration kind of the shared specification
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-MODORDER-001")]
+    public async Task RemainingCheckedDeclarationKindsAreReported()
+    {
+        const string source = """
+                              using System;
+
+                              public class C
+                              {
+                                  {|RH7105:readonly|} public struct S
+                                  {
+                                  }
+
+                                  {|RH7105:new|} public interface I
+                                  {
+                                  }
+
+                                  {|RH7105:sealed|} public record R;
+
+                                  {|RH7105:readonly|} public record struct RS;
+
+                                  {|RH7105:new|} public delegate void D();
+
+                                  {|RH7105:unsafe|} public C()
+                                  {
+                                  }
+
+                                  {|RH7105:static|} public event Action E
+                                  {
+                                      add
+                                      {
+                                      }
+
+                                      remove
+                                      {
+                                      }
+                                  }
+
+                                  {|RH7105:virtual|} public int this[int index] => index;
+                              }
+                              """;
+
+        await Verify(source, AllowUnsafe);
+    }
+
+    /// <summary>
+    /// Verifying that a directive in front of the first modifier does not withhold the fix and stays in front of the
+    /// new first modifier
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-MODORDER-002")]
+    [Requirement("SHARED-MODORDER-003")]
+    public async Task DirectiveInFrontOfTheFirstModifierDoesNotWithholdTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                              #pragma warning disable CS0169
+                                  {|RH7105:static|} public int A;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                   #pragma warning disable CS0169
+                                       public static int A;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
     #endregion // Tests
 
     #region Methods

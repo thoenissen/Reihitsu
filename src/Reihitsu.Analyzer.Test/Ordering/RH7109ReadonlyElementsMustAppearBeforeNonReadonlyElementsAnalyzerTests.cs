@@ -714,6 +714,90 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
         await Verify(source, fixedSource);
     }
 
+    /// <summary>
+    /// Verifying that a readonly field in a region nested in the top-level region of an earlier field of its group is
+    /// reported, and no code fix is offered because the regions open in the crossed span
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7109-003")]
+    [Requirement("RH7109-006")]
+    public async Task ReadonlyFieldInANestedRegionOfTheSameTopLevelRegionIsReported()
+    {
+        const string source = """
+                              class C
+                              {
+                                  #region Fields
+
+                                  private int _count;
+
+                                  #region Identity
+
+                                  private readonly int {|RH7109:_id|};
+
+                                  #endregion
+
+                                  #endregion
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that the fix moves the readonly field in front of the first of several earlier fields of its group,
+    /// across a field of another group
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7109-005")]
+    public async Task FixMovesTheReadonlyFieldInFrontOfTheFirstOfSeveralFieldsOfItsGroup()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a;
+                                  public int B;
+                                  private int _c;
+                                  private readonly int {|RH7109:_d|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private readonly int _d;
+                                       private int _a;
+                                       public int B;
+                                       private int _c;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying that <c>protected internal</c> and <c>private protected</c> are each one group regardless of the
+    /// order of their keywords
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7109-001")]
+    public async Task CompoundAccessibilitiesAreOneGroupRegardlessOfKeywordOrder()
+    {
+        const string source = """
+                              class C
+                              {
+                                  internal protected int _a;
+                                  protected internal readonly int {|RH7109:_b|};
+                                  protected private int _c;
+                                  private protected readonly int {|RH7109:_d|};
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

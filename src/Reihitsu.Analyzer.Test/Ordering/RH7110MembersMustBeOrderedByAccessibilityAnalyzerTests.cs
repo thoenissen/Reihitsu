@@ -161,14 +161,46 @@ public class RH7110MembersMustBeOrderedByAccessibilityAnalyzerTests : AnalyzerTe
     }
 
     /// <summary>
-    /// Verifying the specification example: each member is compared with the latest accessibility in the order that
-    /// came before it in its group, and both spellings of the compound accessibilities share one position
+    /// Verifying the specification example: a member is reported when its accessibility comes earlier in the order
+    /// than that of the previous member of its group, and both spellings of the compound accessibilities share one
+    /// position
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7110-001")]
-    [Requirement("RH7110-004")]
     public async Task MembersAfterAMemberLaterInTheAccessibilityOrderAreReported()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a;
+                                  public int {|RH7110:B|};
+
+                                  protected void M()
+                                  {
+                                  }
+
+                                  protected private void N()
+                                  {
+                                  }
+
+                                  internal protected void {|RH7110:O|}()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Characterizes current behavior that no requirement states: a member is also reported when its accessibility
+    /// comes earlier in the order than that of an earlier member of its group that is not the previous one, because
+    /// the analyzer compares with the latest position in the order seen so far in the group
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task MembersAreComparedWithTheLatestAccessibilitySeenInTheirGroup()
     {
         const string source = """
                               class C
@@ -245,7 +277,8 @@ public class RH7110MembersMustBeOrderedByAccessibilityAnalyzerTests : AnalyzerTe
     }
 
     /// <summary>
-    /// Verifying that an event field is reported on the identifier of its first declarator
+    /// Verifying the specification example: an event field is reported on the identifier of its first declarator,
+    /// and an indexer on its <c>this</c> keyword
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -259,6 +292,9 @@ public class RH7110MembersMustBeOrderedByAccessibilityAnalyzerTests : AnalyzerTe
                               {
                                   private event Action _changed;
                                   public event Action {|RH7110:Changed|}, Updated;
+
+                                  private int this[int index] => index;
+                                  public int {|RH7110:this|}[string key] => 0;
                               }
                               """;
 
@@ -303,9 +339,9 @@ public class RH7110MembersMustBeOrderedByAccessibilityAnalyzerTests : AnalyzerTe
     }
 
     /// <summary>
-    /// Verifying that an operator is reported on its operator token and a conversion operator on its
-    /// <c>operator</c> keyword. Operators must be public, so the input does not compile and only the location is
-    /// checked
+    /// Verifying the specification example: an operator is reported on its operator token and a conversion operator
+    /// on its <c>operator</c> keyword. Operators must be public, so the input does not compile and only the location
+    /// is checked
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

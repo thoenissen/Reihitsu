@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Organization;
@@ -280,6 +281,68 @@ public class RH7106ProtectedMustComeBeforeInternalAnalyzerTests : BatchCodeFixTe
                                    """;
 
         await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying that RH7106 checks the class, field, event field, property, and method declarations too, so together
+    /// with <see cref="EveryCheckedDeclarationKindIsReported"/> and
+    /// <see cref="OperatorsAreCheckedEvenThoughTheyCannotCompileWithACompoundAccessibility"/> it checks every
+    /// declaration kind of the shared specification
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-MODORDER-001")]
+    public async Task RemainingCheckedDeclarationKindsAreReported()
+    {
+        const string source = """
+                              using System;
+
+                              public class C
+                              {
+                                  internal {|RH7106:protected|} class N
+                                  {
+                                  }
+
+                                  internal {|RH7106:protected|} int F;
+
+                                  internal {|RH7106:protected|} event Action E;
+
+                                  internal {|RH7106:protected|} int P { get; set; }
+
+                                  internal {|RH7106:protected|} void M()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifying that RH7106 checks operator and conversion operator declarations. Operators must be public, so the
+    /// input does not compile and only the reported diagnostics are checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-MODORDER-001")]
+    public async Task OperatorsAreCheckedEvenThoughTheyCannotCompileWithACompoundAccessibility()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  internal {|RH7106:protected|} static C operator +(C a, C b)
+                                  {
+                                      return a;
+                                  }
+
+                                  internal {|RH7106:protected|} static implicit operator int(C c)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await Verify(source, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
     }
 
     #endregion // Tests

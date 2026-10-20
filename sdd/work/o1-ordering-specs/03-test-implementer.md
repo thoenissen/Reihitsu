@@ -152,3 +152,43 @@ scripts/test.sh --project architecture --filter "FullyQualifiedName~SpecConsiste
 ```
 
 Results on the working tree: analyzer filter 193 passed (before the last 6 additions) and then 84 of 84 in the re-run of the five classes that changed. Architecture filter: 39 passed; the whole architecture project: 72 passed. Analyzer `FullyQualifiedName~SelfHosting`: 17 passed (the self-hosting run takes about 16 minutes). `scripts/format.sh` over the 13 changed test files: 0 files changed.
+
+# Repair (spec checker, 05-spec-checker.md findings 1 to 6; RH7110 change of cd7b8ef)
+
+Commit derived from: cd7b8ef. Every item was re-derived from the specs as they stand at cd7b8ef and from the code. No spec edited, no production code touched. All new tests pass on the unchanged code.
+
+## Tests
+
+| Test | Requirement / finding | Helper | Expected now |
+|---|---|---|---|
+| RH7109 `ReadonlyFieldInANestedRegionOfTheSameTopLevelRegionIsReported` | RH7109-003, -006 (finding 1: earlier field in `#region Fields`, readonly field in nested `#region Identity`; reported, no fix) | NF | pass |
+| RH7109 `FixMovesTheReadonlyFieldInFrontOfTheFirstOfSeveralFieldsOfItsGroup` | RH7109-005 (finding 2: `_a`, `B` (other group), `_c`, then `_d` → `_d` moves in front of `_a`; a fix targeting `_c` would give another output) | VF | pass |
+| RH7109 `CompoundAccessibilitiesAreOneGroupRegardlessOfKeywordOrder` | RH7109-001 (finding 3: `internal protected` / `protected internal readonly`, `protected private` / `private protected readonly` both reported) | V | pass |
+| RH7004 `FixMovesEveryFollowingStatementInTheirOrder` | RH7004-004 (finding 4: two following statements, nothing before the declaration) | VF | pass |
+| RH7105 `ModifiersOutOfTheCanonicalOrderAreReportedForEveryKeywordRank` | RH7105-001, -003 (finding 5: `virtual`, `override` before `sealed`, `volatile`, `extern`, `unsafe` before `extern`, `sealed` before `file`) | V (unsafe allowed) | pass |
+| RH7105 `ModifiersInTheCanonicalOrderAreNotReportedForEveryKeywordRank` | RH7105-002 (finding 5, the canonical counterparts of the same declarations) | V (unsafe allowed) | pass |
+| RH7105 `FixWritesSealedBeforeOverride` | RH7105-004 (`sealed override public` → `public sealed override`) | VF | pass |
+| RH7105 `RemainingCheckedDeclarationKindsAreReported` | SHARED-MODORDER-001 (finding 6: struct, interface, record, record struct, delegate, constructor, event, indexer for RH7105; with `EveryCheckedDeclarationKindIsReported` all 15 kinds) | V (unsafe allowed) | pass |
+| RH7105 `DirectiveInFrontOfTheFirstModifierDoesNotWithholdTheFix` | SHARED-MODORDER-002, -003 (finding 6: `#pragma` in front of `static public int A;` → fix offered, pragma stays in front) | VF | pass |
+| RH7106 `RemainingCheckedDeclarationKindsAreReported` | SHARED-MODORDER-001 (finding 6: class, field, event field, property, method for RH7106) | V | pass |
+| RH7106 `OperatorsAreCheckedEvenThoughTheyCannotCompileWithACompoundAccessibility` | SHARED-MODORDER-001 (finding 6: operator and conversion operator for RH7106; operators must be `public` (CS0558), so compiler diagnostics are off and only the diagnostics are checked) | V, compiler diagnostics off | pass |
+
+RH7110, after cd7b8ef narrowed RH7110-001 to the previous member of the group:
+
+| Test | Change | Expected now |
+|---|---|---|
+| `MembersAfterAMemberLaterInTheAccessibilityOrderAreReported` | Input replaced by the new RH7110-001 example (`B`, `O` reported; `D` and `E` gone); tag RH7110-004 removed, RH7110-001 kept | pass |
+| `MembersAreComparedWithTheLatestAccessibilitySeenInTheirGroup` | New, untagged characterization test with the old input (`B`, `D`, `E`, `O` reported): comparison with the latest position seen, which RH7110-001 no longer states | pass |
+| `EventFieldIsReportedOnItsFirstDeclarator` | Input extended to the new RH7110-004 example (event field + indexer `this`); tag RH7110-004 | pass |
+| `OperatorsAreReportedOnTheirOperatorTokens` | Already the second RH7110-004 example; summary wording only; tag RH7110-004 | pass |
+
+Every other RH7110-001-tagged test has two members of a group, or members in order, so both readings agree on it; no other tag moves. `PublicMethodAfterPrivateMethodIsReported` and `PublicFieldAfterPrivateFieldIsReported` keep RH7110-004 (identifier location of a method and a field).
+
+## Commands
+
+```shell
+scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH7004UsingDecl|FullyQualifiedName~RH7105Decl|FullyQualifiedName~RH7106Prot|FullyQualifiedName~RH7109Readonly|FullyQualifiedName~RH7110Members"
+scripts/test.sh --project architecture
+```
+
+Results: analyzer filter 116 passed; architecture 72 passed. `scripts/format.sh` over the 5 changed test files changed nothing.
