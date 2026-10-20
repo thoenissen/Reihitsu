@@ -1896,5 +1896,155 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
         await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat));
     }
 
+    /// <summary>
+    /// Verifying that the form of the argument decides whether a comparer is custom: parentheses, <c>!</c>, a <c>??</c>,
+    /// conditional, or <see langword="switch"/> with a custom operand, a <see langword="throw"/> branch next to a custom
+    /// one, a null-conditional access on a receiver that is not <see langword="null"/>, a cast with a user-defined
+    /// conversion, and a local variable initialized with <see langword="null"/> count as custom, while forms that can only
+    /// produce <see langword="null"/> or <c>EqualityComparer&lt;T&gt;.Default</c>, including
+    /// <c>EqualityComparer&lt;T&gt;.Default ?? comparer</c>, do not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-EQUAL-002")]
+    public async Task VerifyFormOfArgumentDecidesWhetherComparerIsCustom()
+    {
+        const string source = """
+                              using System;
+                              using System.Collections.Generic;
+                              using System.Linq;
+
+                              struct S
+                              {
+                              }
+
+                              class Token
+                              {
+                              }
+
+                              class SComparer : IEqualityComparer<S>
+                              {
+                                  public bool Equals(S x, S y) => true;
+
+                                  public int GetHashCode(S obj) => 0;
+
+                                  public static implicit operator SComparer(Token token) => new SComparer();
+                              }
+
+                              struct ValueComparer : IEqualityComparer<S>
+                              {
+                                  public bool Equals(S x, S y) => true;
+
+                                  public int GetHashCode(S obj) => 0;
+                              }
+
+                              class Holder
+                              {
+                                  public IEqualityComparer<S> Comparer { get; set; }
+                              }
+
+                              class C
+                              {
+                                  void M(IEnumerable<S> items, IEqualityComparer<S> comparer, Holder holder, bool flag, int mode)
+                                  {
+                                      IEqualityComparer<S> none = null;
+
+                                      items.Distinct(new SComparer());
+                                      items.Distinct(comparer: comparer);
+                                      Enumerable.Distinct(source: items, comparer);
+                                      items.Distinct((comparer));
+                                      items.Distinct(comparer!);
+                                      items.Distinct(comparer ?? null);
+                                      items.Distinct(flag ? comparer : null);
+                                      items.Distinct(flag ? comparer : throw new InvalidOperationException());
+                                      items.Distinct(mode switch { 0 => comparer, _ => null });
+                                      items.Distinct(holder?.Comparer);
+                                      items.Distinct((SComparer)(Token)null);
+                                      items.Distinct(none);
+                                      items.Distinct(default(ValueComparer));
+                                      items.{|#0:Distinct|}(null);
+                                      items.{|#1:Distinct|}(default);
+                                      items.{|#2:Distinct|}(EqualityComparer<S>.Default);
+                                      items.{|#3:Distinct|}(((IEqualityComparer<S>)null)!);
+                                      items.{|#4:Distinct|}(flag ? null : EqualityComparer<S>.Default);
+                                      items.{|#5:Distinct|}(true ? null : comparer);
+                                      items.{|#6:Distinct|}((IEqualityComparer<S>)null ?? EqualityComparer<S>.Default);
+                                      items.{|#7:Distinct|}(EqualityComparer<S>.Default ?? comparer);
+                                      items.{|#8:Distinct|}(mode switch { 0 => null, _ => EqualityComparer<S>.Default });
+                                      items.{|#9:Distinct|}(((Holder)null)?.Comparer);
+                                      items.{|#10:Distinct|}(default(ValueComparer?));
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 11));
+    }
+
+    /// <summary>
+    /// Characterizes a comparer argument that can only produce <see langword="null"/> or throw: a conditional with a
+    /// <see langword="throw"/> branch and a <see langword="switch"/> with a <see langword="throw"/> arm count as custom
+    /// and are not reported, while the conditional that can only produce <see langword="null"/> or
+    /// <c>EqualityComparer&lt;T&gt;.Default</c> is. The case is an open question about intended behavior, so this test
+    /// pins today's behavior without stating it as intended
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyArgumentThatCanOnlyProduceNullOrThrowCountsAsCustom()
+    {
+        const string source = """
+                              using System;
+                              using System.Collections.Generic;
+                              using System.Linq;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  void M(IEnumerable<S> items, bool flag, int mode)
+                                  {
+                                      items.Distinct(flag ? null : throw new InvalidOperationException());
+                                      items.Distinct(mode switch { 0 => null, _ => throw new InvalidOperationException() });
+                                      items.{|#0:Distinct|}(flag ? null : EqualityComparer<S>.Default);
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat));
+    }
+
+    /// <summary>
+    /// Characterizes the <c>group … by</c>, <c>join</c>, and <c>join … into</c> clauses of a query expression: they are not
+    /// reported, while the <c>GroupBy</c> call is. The case is an open question about intended behavior, so this test
+    /// pins today's behavior without stating it as intended
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyQueryExpressionClausesAreNotReported()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+                              using System.Linq;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  void M(IEnumerable<S> items)
+                                  {
+                                      var groups = from x in items group x by x;
+                                      var joined = from a in items join b in items on a equals b select a;
+                                      var grouped = from a in items join b in items on a equals b into g select g;
+                                      var method = items.{|#0:GroupBy|}(x => x);
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat));
+    }
+
     #endregion // Methods
 }

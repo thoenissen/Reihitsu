@@ -1,5 +1,7 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Performance;
@@ -1069,6 +1071,221 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
                               """;
 
         await Verify(source, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying which initial values exempt the declared or cast type: creations that pass a custom comparer, inside
+    /// parentheses, behind <c>!</c>, converted by a cast that is not user-defined, in both conditional branches, or in
+    /// every <see langword="switch"/> arm, while a creation without a custom comparer, a cast with a user-defined
+    /// conversion, a <c>??</c> expression, a variable, a <see langword="throw"/> next to a creation without one,
+    /// <see langword="default"/>, and a collection expression leave the type reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH1001-003")]
+    public async Task VerifyOnlyInitialValuesOfRecognizedCreationFormsExemptTheDeclaredType()
+    {
+        const string source = """
+                              using System;
+                              using System.Collections.Generic;
+
+                              struct S
+                              {
+                              }
+
+                              class Wrapper
+                              {
+                                  public static implicit operator Wrapper(Dictionary<{|#0:S|}, int> map) => new Wrapper();
+
+                                  public static explicit operator Dictionary<{|#1:S|}, int>(Wrapper wrapper) => null;
+                              }
+
+                              class C
+                              {
+                                  IEqualityComparer<S> _comparer;
+                                  bool _flag;
+                                  int _mode;
+                                  Dictionary<{|#2:S|}, int> _other;
+
+                                  void M()
+                                  {
+                                      var a = new Dictionary<S, int>(_comparer);
+                                      Dictionary<S, int> b = new(_comparer);
+                                      Dictionary<S, int> c = _flag ? new(_comparer) : new Dictionary<S, int>(_comparer);
+                                      Dictionary<S, int> d = _mode switch
+                                      {
+                                          0 => new(_comparer),
+                                          _ => new(_comparer),
+                                      };
+                                      Dictionary<{|#3:S|}, int> e = _flag ? new(_comparer) : new();
+                                      Dictionary<S, int> f = true ? new(_comparer) : new();
+                                      Dictionary<S, int> l = new(_comparer), m = new(_comparer);
+                                      Dictionary<{|#4:S|}, int> n = new(_comparer), o = new();
+                                      Dictionary<S, int> h = (new(_comparer))!;
+                                      object i = (Dictionary<S, int>)new Dictionary<S, int>(_comparer);
+                                      object j = (Dictionary<{|#5:S|}, int>)new Dictionary<{|#6:S|}, int>();
+                                      var k = new Dictionary<{|#7:S|}, int>(EqualityComparer<S>.Default);
+                                      Dictionary<S, int> p = (Dictionary<S, int>)new(_comparer);
+                                      Dictionary<{|#8:S|}, int> q = (Dictionary<{|#9:S|}, int>)(Wrapper)new Dictionary<S, int>(_comparer);
+                                      Dictionary<{|#10:S|}, int> r = _other ?? new(_comparer);
+                                      Dictionary<{|#11:S|}, int> t = _other;
+                                      Dictionary<{|#12:S|}, int> u = _flag ? new() : throw new InvalidOperationException();
+                                      Dictionary<{|#13:S|}, int> w = default;
+                                      HashSet<{|#14:S|}> v = [];
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 15));
+    }
+
+    /// <summary>
+    /// Characterizes a creation whose comparer argument can only produce <see langword="null"/> or throw: it counts as
+    /// passing a custom comparer and is not reported, while the creation whose argument can only produce
+    /// <see langword="null"/> or <c>EqualityComparer&lt;T&gt;.Default</c> is. The case is an open question about
+    /// intended behavior, so this test pins today's behavior without stating it as intended
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCreationWithComparerArgumentThatCanOnlyProduceNullOrThrowIsNotReported()
+    {
+        const string source = """
+                              using System;
+                              using System.Collections.Generic;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  void M(bool flag)
+                                  {
+                                      Dictionary<S, int> map = new(comparer: flag ? null : throw new InvalidOperationException());
+                                      Dictionary<{|#0:S|}, int> other = new(comparer: flag ? null : EqualityComparer<S>.Default);
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat));
+    }
+
+    /// <summary>
+    /// Characterizes declarations whose initial value picks between creations with a custom comparer and a
+    /// <see langword="throw"/>: the declared types of <c>a</c> and <c>b</c> are reported, while <c>c</c>, which picks
+    /// only between such creations, is not. The case is an open question about intended behavior, so this test pins
+    /// today's behavior without stating it as intended
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDeclarationPickingBetweenCustomComparerCreationAndThrowIsReported()
+    {
+        const string source = """
+                              using System;
+                              using System.Collections.Generic;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  IEqualityComparer<S> _comparer;
+                                  bool _flag;
+                                  int _mode;
+
+                                  void M()
+                                  {
+                                      Dictionary<{|#0:S|}, int> a = _mode switch { 0 => new(_comparer), _ => throw new InvalidOperationException() };
+                                      Dictionary<{|#1:S|}, int> b = _flag ? new(_comparer) : throw new InvalidOperationException();
+                                      Dictionary<S, int> c = _flag ? new(_comparer) : new(_comparer);
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Characterizes a collection expression that passes a custom comparer through <c>with(…)</c>: the declared type of
+    /// <c>set</c> is reported, while <c>other</c>, created with <see langword="new"/> and the same comparer, is not. The
+    /// case is an open question about intended behavior, so this test pins today's behavior without stating it as
+    /// intended
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCollectionExpressionPassingCustomComparerThroughWithIsReported()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  IEqualityComparer<S> _comparer;
+                                  S _item;
+
+                                  void M()
+                                  {
+                                      HashSet<{|#0:S|}> set = [with(_comparer), _item];
+                                      HashSet<S> other = new(_comparer) { _item };
+                                  }
+                              }
+                              """;
+
+        await Verify(source,
+                     test => test.SolutionTransforms.Add(ApplyPreviewLanguageVersionToTestProject),
+                     Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat));
+
+        static Solution ApplyPreviewLanguageVersionToTestProject(Solution solution, ProjectId projectId)
+        {
+            var project = solution.GetProject(projectId);
+
+            if (project?.ParseOptions is CSharpParseOptions parseOptions)
+            {
+                solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion.Preview));
+            }
+
+            return solution;
+        }
+    }
+
+    /// <summary>
+    /// Characterizes a collection expression that creates the collection as an argument: the parameter type and the
+    /// target-typed <c>new()</c> of <c>Take(new())</c> are reported, while <c>[_item]</c> is not. The case is an open
+    /// question about intended behavior, so this test pins today's behavior without stating it as intended
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCollectionExpressionArgumentIsNotReportedWhereTargetTypedCreationIs()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  S _item;
+
+                                  void Take(HashSet<{|#0:S|}> set)
+                                  {
+                                  }
+
+                                  void M()
+                                  {
+                                      Take([_item]);
+                                      Take({|#1:new|}());
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 2));
     }
 
     #endregion // Methods
