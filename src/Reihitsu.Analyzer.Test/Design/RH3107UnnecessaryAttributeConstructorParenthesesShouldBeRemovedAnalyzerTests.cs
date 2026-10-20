@@ -22,8 +22,8 @@ public class RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnal
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3107-001")]
-    [Requirement("SHARED-EMPTY-001")]
-    [Requirement("SHARED-EMPTY-002")]
+    [Requirement("SHARED-PARENS-001")]
+    [Requirement("SHARED-PARENS-002")]
     public async Task VerifyDiagnosticsAndCodeFix()
     {
         const string testData = """
@@ -76,7 +76,7 @@ public class RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnal
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3107-001")]
-    [Requirement("SHARED-EMPTY-001")]
+    [Requirement("SHARED-PARENS-001")]
     public async Task EmptyArgumentListsOfAttributesAreReportedOverTheParentheses()
     {
         const string testCode = """
@@ -111,7 +111,7 @@ public class RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("SHARED-EMPTY-002")]
+    [Requirement("SHARED-PARENS-002")]
     public async Task FixRemovesTheEmptyArgumentListAndKeepsACommentInFrontOfIt()
     {
         const string testCode = """

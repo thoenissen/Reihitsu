@@ -567,7 +567,7 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3208-002")]
-    [Requirement("SHARED-BRACE-001")]
+    [Requirement("SHARED-AFTERBRACE-001")]
     public async Task VerifyStatementDirectlyAfterLocalFunctionIsSeparatedByBlankLine()
     {
         const string testData = """
@@ -911,7 +911,7 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3208-002")]
-    [Requirement("SHARED-BRACE-001")]
+    [Requirement("SHARED-AFTERBRACE-001")]
     public async Task VerifyBlankLineIsInsertedAboveCommentLeadingNextStatement()
     {
         const string testData = """
@@ -955,7 +955,7 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3208-002")]
-    [Requirement("SHARED-BRACE-001")]
+    [Requirement("SHARED-AFTERBRACE-001")]
     public async Task VerifyBlankLineIsInsertedAfterDirectiveLeadingNextStatement()
     {
         const string testData = """
@@ -1422,7 +1422,7 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("SHARED-BRACE-001")]
+    [Requirement("SHARED-AFTERBRACE-001")]
     public async Task FixInsertsTheBlankLineAboveACommentAndBehindADirective()
     {
         const string testData = """

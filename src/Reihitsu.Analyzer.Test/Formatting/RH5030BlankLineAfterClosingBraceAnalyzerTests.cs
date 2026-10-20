@@ -23,7 +23,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     [TestMethod]
     [Requirement("RH5030-001")]
     [Requirement("RH5030-002")]
-    [Requirement("SHARED-BRACE-001")]
+    [Requirement("SHARED-AFTERBRACE-001")]
     [Requirement("SHARED-BLANK-003")]
     public async Task VerifyDiagnosticWhenStatementFollowsIfBlockWithoutBlankLine()
     {
@@ -73,7 +73,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5030-001")]
-    [Requirement("SHARED-BRACE-001")]
+    [Requirement("SHARED-AFTERBRACE-001")]
     [Requirement("SHARED-BLANK-003")]
     public async Task VerifyDiagnosticWhenStatementFollowsWhileBlockWithoutBlankLine()
     {
@@ -133,7 +133,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5030-001")]
-    [Requirement("SHARED-BRACE-001")]
+    [Requirement("SHARED-AFTERBRACE-001")]
     [Requirement("SHARED-BLANK-003")]
     public async Task VerifyDiagnosticWhenStatementFollowsTryBlockWithoutBlankLine()
     {
@@ -189,7 +189,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5030-001")]
-    [Requirement("SHARED-BRACE-001")]
+    [Requirement("SHARED-AFTERBRACE-001")]
     [Requirement("SHARED-BLANK-003")]
     public async Task VerifyDiagnosticWhenStatementInSwitchSectionFollowsBlockWithoutBlankLine()
     {
@@ -260,7 +260,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5030-001")]
-    [Requirement("SHARED-BRACE-001")]
+    [Requirement("SHARED-AFTERBRACE-001")]
     [Requirement("SHARED-BLANK-003")]
     public async Task VerifyDiagnosticWhenStatementFollowsEndRegionDirectiveWithoutBlankLine()
     {
@@ -538,7 +538,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5030-001")]
-    [Requirement("SHARED-BRACE-001")]
+    [Requirement("SHARED-AFTERBRACE-001")]
     [Requirement("SHARED-BLANK-004")]
     public async Task VerifyDiagnosticAndFixForBreakAfterClosingBraceInsideBracedSwitchSection()
     {
@@ -655,7 +655,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5030-001")]
-    [Requirement("SHARED-BRACE-001")]
+    [Requirement("SHARED-AFTERBRACE-001")]
     [Requirement("SHARED-BLANK-003")]
     public async Task VerifyDiagnosticWhenCommentLineSeparatesClosingBraceFromNextStatement()
     {
@@ -713,7 +713,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5030-001")]
-    [Requirement("SHARED-BRACE-001")]
+    [Requirement("SHARED-AFTERBRACE-001")]
     [Requirement("SHARED-BLANK-004")]
     public async Task VerifyDiagnosticAndFixForBreakStatementAfterClosingBraceOutsideSwitchSection()
     {
@@ -842,7 +842,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5030-001")]
-    [Requirement("SHARED-BRACE-001")]
+    [Requirement("SHARED-AFTERBRACE-001")]
     [Requirement("SHARED-BLANK-004")]
     public async Task VerifyDiagnosticAndFixForNonTerminalDirectBreakAfterClosingBrace()
     {
@@ -963,7 +963,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("SHARED-BRACE-001")]
+    [Requirement("SHARED-AFTERBRACE-001")]
     [Requirement("SHARED-BLANK-003")]
     public async Task VerifyFixInsertsBlankLineDirectlyBeforeNextStatement()
     {
@@ -1027,7 +1027,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("SHARED-BRACE-001")]
+    [Requirement("SHARED-AFTERBRACE-001")]
     public async Task VerifyFixInsertsCarriageReturnLineFeedBlankLineBeforeNextStatement()
     {
         const string testCode = "class C\n{\n    void M(int a)\n    {\n        if (a > 0)\n        {\n        }\n        a++;\n    }\n}\n";

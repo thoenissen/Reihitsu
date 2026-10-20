@@ -22,8 +22,8 @@ public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzerTests : 
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3106-001")]
-    [Requirement("SHARED-EMPTY-001")]
-    [Requirement("SHARED-EMPTY-002")]
+    [Requirement("SHARED-PARENS-001")]
+    [Requirement("SHARED-PARENS-002")]
     public async Task VerifyDiagnosticAndCodeFix()
     {
         const string testData = """
@@ -67,7 +67,7 @@ public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzerTests : 
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3106-001")]
-    [Requirement("SHARED-EMPTY-001")]
+    [Requirement("SHARED-PARENS-001")]
     public async Task EmptyParameterListsOfAnonymousMethodsAreReportedOverTheParentheses()
     {
         const string testCode = """
@@ -94,7 +94,7 @@ public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("SHARED-EMPTY-002")]
+    [Requirement("SHARED-PARENS-002")]
     public async Task FixRemovesTheEmptyParameterList()
     {
         const string testCode = """
