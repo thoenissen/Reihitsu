@@ -20,6 +20,7 @@ public class RH7402OverridePropertiesShouldBeGroupedByBaseTypeRegionsAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7402-001")]
     public async Task VerifyDiagnosticForOverridePropertyImplementingInterfaceInInterfaceRegion()
     {
         const string testData = """
@@ -51,6 +52,7 @@ public class RH7402OverridePropertiesShouldBeGroupedByBaseTypeRegionsAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7402-001")]
     public async Task VerifyNoDiagnosticsForOverridePropertyInMatchingRegion()
     {
         const string testData = """
@@ -77,6 +79,7 @@ public class RH7402OverridePropertiesShouldBeGroupedByBaseTypeRegionsAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7402-001")]
     public async Task VerifyDiagnosticForOverridePropertyOutsideRegion()
     {
         const string testData = """
@@ -99,6 +102,8 @@ public class RH7402OverridePropertiesShouldBeGroupedByBaseTypeRegionsAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7402-001")]
+    [Requirement("SHARED-REGGROUP-003")]
     public async Task VerifyDiagnosticsForOverridePropertiesFromDifferentBaseTypes()
     {
         const string testData = """
@@ -135,6 +140,7 @@ public class RH7402OverridePropertiesShouldBeGroupedByBaseTypeRegionsAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7402-002")]
     public async Task VerifyNoDiagnosticsForOverrideMethod()
     {
         const string testData = """
@@ -150,6 +156,84 @@ public class RH7402OverridePropertiesShouldBeGroupedByBaseTypeRegionsAnalyzerTes
                                     public override void Execute()
                                     {
                                     }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that override properties in a region of another name or in no region are reported, also when they implement
+    /// an interface property
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7402-001")]
+    public async Task VerifyDiagnosticsForOverridePropertiesOutsideTheirBaseTypeRegion()
+    {
+        const string testData = """
+                                interface INamed
+                                {
+                                    string Name { get; }
+                                }
+
+                                abstract class B
+                                {
+                                    public abstract string Name { get; }
+
+                                    public virtual int Size => 0;
+
+                                    public virtual int Count => 0;
+                                }
+
+                                class C : B, INamed
+                                {
+                                    #region INamed
+
+                                    public override string {|RH7402:Name|} => "";
+
+                                    #endregion
+
+                                    #region Properties
+
+                                    public override int {|RH7402:Size|} => 1;
+
+                                    #endregion
+
+                                    public override int {|RH7402:Count|} => 1;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a property that overrides nothing, an override method, and an override indexer are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7402-002")]
+    public async Task VerifyNoDiagnosticsForPropertyThatOverridesNothingOrOverrideOfOtherKind()
+    {
+        const string testData = """
+                                class B
+                                {
+                                    public virtual void M()
+                                    {
+                                    }
+
+                                    public virtual int this[int i] => 0;
+                                }
+
+                                class C : B
+                                {
+                                    public override void M()
+                                    {
+                                    }
+
+                                    public override int this[int i] => 1;
+
+                                    public int P => 0;
                                 }
                                 """;
 

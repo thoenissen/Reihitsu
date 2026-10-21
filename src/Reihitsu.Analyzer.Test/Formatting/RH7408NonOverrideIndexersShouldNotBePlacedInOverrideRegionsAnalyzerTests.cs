@@ -20,6 +20,8 @@ public class RH7408NonOverrideIndexersShouldNotBePlacedInOverrideRegionsAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7408-001")]
+    [Requirement("SHARED-REGGROUP-005")]
     public async Task VerifyDiagnosticForNonOverrideIndexerInOverrideRegion()
     {
         const string testData = """
@@ -66,6 +68,7 @@ public class RH7408NonOverrideIndexersShouldNotBePlacedInOverrideRegionsAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7408-002")]
     public async Task VerifyNoDiagnosticsForMixedOverrideKindsInSameRegion()
     {
         const string testData = """
@@ -112,6 +115,7 @@ public class RH7408NonOverrideIndexersShouldNotBePlacedInOverrideRegionsAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7408-002")]
     public async Task VerifyNoDiagnosticsForNonOverrideIndexerInGenericRegion()
     {
         const string testData = """
@@ -162,6 +166,8 @@ public class RH7408NonOverrideIndexersShouldNotBePlacedInOverrideRegionsAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7408-002")]
+    [Requirement("SHARED-REGGROUP-006")]
     public async Task VerifyNoDiagnosticsForBaseTypeNamedRegionWithoutOverrideIndexers()
     {
         const string testData = """
@@ -182,6 +188,69 @@ public class RH7408NonOverrideIndexersShouldNotBePlacedInOverrideRegionsAnalyzer
                                     }
 
                                     #endregion // BaseProcessor
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an indexer that overrides nothing is reported in an override region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7408-001")]
+    public async Task VerifyDiagnosticForIndexerOfOwnInOverrideRegion()
+    {
+        const string testData = """
+                                class B
+                                {
+                                    public virtual int this[int index] => 0;
+                                }
+
+                                class C : B
+                                {
+                                    #region B
+
+                                    public override int this[int index] => 1;
+
+                                    public int {|RH7408:this|}[string key] => 0;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an override indexer in an override region and an indexer that overrides nothing in an ordinary region
+    /// are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7408-002")]
+    public async Task VerifyNoDiagnosticsForOverrideIndexerAndIndexerInOrdinaryRegion()
+    {
+        const string testData = """
+                                class B
+                                {
+                                    public virtual int this[int index] => 0;
+                                }
+
+                                class C : B
+                                {
+                                    #region B
+
+                                    public override int this[int index] => 1;
+
+                                    #endregion
+
+                                    #region Indexers
+
+                                    public int this[string key] => 0;
+
+                                    #endregion
                                 }
                                 """;
 

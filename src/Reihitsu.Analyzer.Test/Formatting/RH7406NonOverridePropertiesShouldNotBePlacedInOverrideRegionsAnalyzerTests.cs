@@ -20,6 +20,7 @@ public class RH7406NonOverridePropertiesShouldNotBePlacedInOverrideRegionsAnalyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7406-001")]
     public async Task VerifyDiagnosticForNonOverridePropertyInOverrideRegion()
     {
         const string testData = """
@@ -47,6 +48,7 @@ public class RH7406NonOverridePropertiesShouldNotBePlacedInOverrideRegionsAnalyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7406-002")]
     public async Task VerifyNoDiagnosticsForMixedOverrideKindsInSameRegion()
     {
         const string testData = """
@@ -81,6 +83,7 @@ public class RH7406NonOverridePropertiesShouldNotBePlacedInOverrideRegionsAnalyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7406-002")]
     public async Task VerifyNoDiagnosticsForNonOverridePropertyInGenericRegion()
     {
         const string testData = """
@@ -113,6 +116,8 @@ public class RH7406NonOverridePropertiesShouldNotBePlacedInOverrideRegionsAnalyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7406-002")]
+    [Requirement("SHARED-REGGROUP-006")]
     public async Task VerifyNoDiagnosticsForBaseTypeNamedRegionWithoutOverrideProperties()
     {
         const string testData = """
@@ -127,6 +132,144 @@ public class RH7406NonOverridePropertiesShouldNotBePlacedInOverrideRegionsAnalyz
                                     public string DisplayName => string.Empty;
 
                                     #endregion // BaseProcessor
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a property that overrides nothing is reported in an override region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7406-001")]
+    public async Task VerifyDiagnosticForPropertyOfOwnInOverrideRegion()
+    {
+        const string testData = """
+                                class B
+                                {
+                                    public virtual int P => 0;
+                                }
+
+                                class C : B
+                                {
+                                    #region B
+
+                                    public override int P => 1;
+
+                                    public int {|RH7406:Q|} => 0;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an override property in an override region and a property that overrides nothing in an ordinary region
+    /// are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7406-002")]
+    public async Task VerifyNoDiagnosticsForOverridePropertyAndPropertyInOrdinaryRegion()
+    {
+        const string testData = """
+                                class B
+                                {
+                                    public virtual int P => 0;
+                                }
+
+                                class C : B
+                                {
+                                    #region B
+
+                                    public override int P => 1;
+
+                                    #endregion
+
+                                    #region Properties
+
+                                    public int Q => 0;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a static property, a new property, and an interface implementation that override nothing are reported
+    /// in an override region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7406-001")]
+    public async Task VerifyDiagnosticsForStaticNewAndInterfacePropertiesInOverrideRegion()
+    {
+        const string testData = """
+                                interface INamed
+                                {
+                                    string Name { get; }
+                                }
+
+                                class B
+                                {
+                                    public virtual int P => 0;
+
+                                    public int H => 0;
+                                }
+
+                                class C : B, INamed
+                                {
+                                    #region B
+
+                                    public override int P => 1;
+
+                                    public static int {|RH7406:S|} => 0;
+
+                                    public new int {|RH7406:H|} => 1;
+
+                                    public string {|RH7406:Name|} => "";
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Characterizes a region that only an override method names: it is not an override region of properties, so a property
+    /// that overrides nothing in it is not reported. The case is an open question about intended behavior, so this test
+    /// pins today's behavior without stating it as intended
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyOverrideOfOtherMemberKindDoesNotMakePropertyOverrideRegion()
+    {
+        const string testData = """
+                                class B
+                                {
+                                    public virtual void M()
+                                    {
+                                    }
+                                }
+
+                                class C : B
+                                {
+                                    #region B
+
+                                    public override void M()
+                                    {
+                                    }
+
+                                    public int Q => 0;
+
+                                    #endregion
                                 }
                                 """;
 
