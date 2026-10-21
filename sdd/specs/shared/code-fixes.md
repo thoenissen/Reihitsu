@@ -13,7 +13,8 @@ This spec covers what holds for every code fix of an analyzer rule, so a rule sp
 
 - What a fix produces and when it is withheld — each rule's own spec.
 - Whether a fix leaves diagnostics of other rules in the code it changed. It is a known failure class (`squad/failure-classes.md`), not specified behavior; SHARED-FIX-004 only forbids a fix that undoes the fix of another rule.
-- How a fix lays out the code it changed — FMT-PIPE-010 for fixes that delegate to the formatter.
+- How the formatter's node-level entry points keep the code around their target — FMT-PIPE-010.
+- The line ending a fix writes into a document that has no line break, or whose line breaks already mix line endings.
 
 ## Requirements
 
@@ -121,9 +122,9 @@ RH5028 reports the whole run, and RH5023 reports its second and third line. The 
 
 ### SHARED-FIX-002 — Fix All corrects everything in one application
 
-A code fix that offers Fix All MUST correct every reported diagnostic of a document, a project, or a solution in one Fix All application, and the result MUST equal the result of applying the single fixes one after another.
+A code fix that offers Fix All MUST correct, in one Fix All application, every reported diagnostic of a document, a project, or a solution whose fix is offered on the code the application starts from, and the result MUST equal the result of applying those single fixes one after another. A diagnostic whose fix a guard withholds on that code, and releases only after another fix has run, is not covered: it may still be reported after the application, and its fix is offered on the result once the guard releases it.
 
-Why: The user applies Fix All expecting one step that leaves nothing behind. Requiring the same result as the single fixes makes the outcome independent of the order in which the diagnostics are fixed.
+Why: The user applies Fix All expecting one step that leaves nothing behind. Requiring the same result as the single fixes makes the outcome independent of the order in which the diagnostics are fixed. A fix that its guard withholds is not offered on the starting code, so it is not among the fixes the user asked to apply; running fixes until every guard releases would apply a fix nobody was offered.
 
 Example — the RH2005 fix, applied with Fix All:
 
@@ -145,6 +146,28 @@ public class C
 }
 ```
 
+Example — a fix that a guard releases only after another fix has run, for RH7103:
+
+```csharp
+public class C
+{
+    private int _instance;
+    private static int {|RH7103:_a|} = 1;
+    private static int {|RH7103:_b|} = _a;
+}
+```
+
+```csharp
+public class C
+{
+    private static int _a = 1;
+    private int _instance;
+    private static int {|RH7103:_b|} = _a;
+}
+```
+
+On the starting code, only `_a` has a fix: the guard of SHARED-FIX-003 withholds the fix for `_b`, because moving `_b` in front of `_a` would change its initial value. One Fix All application moves only `_a`, which is the result of the one single fix offered. In the result, `_b` is still reported and is offered its fix.
+
 ### SHARED-FIX-003 — A fix that could break the code is withheld
 
 A code fix MUST NOT be offered when its result would:
@@ -154,7 +177,7 @@ A code fix MUST NOT be offered when its result would:
 - change the text of a comment, a directive, or a literal that the user wrote; or
 - leave code that an `#if` branch excludes referring to a name the fix changed.
 
-The diagnostic is still reported. The second and third conditions are bounded as follows:
+The diagnostic is still reported: a rule reports the construct it names for every input, also for an input where the fix is withheld because no correction compiles or keeps what the program does, for example `typeof(Nullable<>)` or `x is !true`. The second and third conditions are bounded as follows:
 
 - **Run time.** The new name or the new accessibility that the fix exists to produce does not count; any other difference in behavior does. Reordering the instance fields of a type whose field order sets its layout counts. That is a struct, which has sequential layout unless it declares `LayoutKind.Auto` or `LayoutKind.Explicit`, and any other type declared with `[StructLayout(LayoutKind.Sequential)]`. Under `LayoutKind.Explicit`, each field's `[FieldOffset]` sets its offset, so the field order sets no layout. A reorder that changes neither a layout nor the order in which code runs does not count.
 - **Comment, directive, and literal text.** Text that a diagnostic of the fix's own rule reports may change. Two kinds of text change together with a name the fix changes, as part of the rename:
@@ -306,9 +329,10 @@ Example — layout, for RH3202:
 ```csharp
 public class C
 {
-    ///<summary>runs</summary>
-    ///<returns>one</returns>
-    public int M() {|RH3202:=> 1|};
+    private int _value;
+
+
+    public int GetValue() {|RH3202:=> _value|};
 
     public string N() {|RH3202:=>
         """
@@ -320,13 +344,12 @@ public class C
 ```csharp
 public class C
 {
-    /// <summary>
-    /// runs
-    /// </summary>
-    /// <returns>one</returns>
-    public int M()
+    private int _value;
+
+
+    public int GetValue()
     {
-        return 1;
+        return _value;
     }
 
     public string N()
@@ -338,7 +361,7 @@ public class C
 }
 ```
 
-The fix changes the `///` exterior of the documentation comment of `M` and the line breaks next to its XML tags, and the indentation of the raw string literal in `N`; the comment's text and the literal's value stay the same.
+The fix changes the indentation of the raw string literal in `N`; the literal's value stays the same. The two blank lines above `GetValue` stay two blank lines: they are outside the node the fix replaces (SHARED-FIX-006).
 
 Example — whitespace inside a comment's text, for RH5601, where `→` marks a tab character:
 
@@ -467,3 +490,302 @@ public class C
 ```
 
 is reported, and no code fix is offered, because the name the fix derives is `_1st` again.
+
+### SHARED-FIX-006 — A fix changes only the code its diagnostic is about
+
+A code fix MUST change only the code its diagnostic is about; the layout of the code around it MUST stay as it was. In particular:
+
+- **Blank lines.** A fix MUST NOT insert a blank line before the node it changes, and MUST NOT change the blank lines between that node and its neighbours, unless those blank lines are the code its diagnostic is about. The blank line that a fix leaves by removing a directive line is handled as SHARED-FIX-007 states.
+- **Formatting.** A fix MUST format only the node it replaces, with the whitespace of the lines it edits. It MUST NOT format the member, the statement, or the type that contains that node.
+
+Why: The user applies a fix to correct one finding. A change to code the diagnostic does not name is a second edit nobody asked for: it hides the correction in an unrelated diff, can undo a layout the author chose, and makes a decision that belongs to the rule or the formatter that owns that layout. The blank lines between a node and its neighbours are such a layout, and formatting the member, statement, or type around the node reaches all of the code around it.
+
+Example — the RH6024 fix:
+
+```csharp
+using System;
+
+class C
+{
+    void N(int a)
+    {
+        _ = a{|RH6024:+|}M(a, () => { return 1; });
+    }
+
+    int M(int a, Func<int> f)
+    {
+        return a;
+    }
+}
+```
+
+```csharp
+using System;
+
+class C
+{
+    void N(int a)
+    {
+        _ = a + M(a, () => { return 1; });
+    }
+
+    int M(int a, Func<int> f)
+    {
+        return a;
+    }
+}
+```
+
+The fix changes only the two gaps next to `+`. The lambda stays on its line, although formatting the document would break it over several lines.
+
+Example — blank lines, for RH3202:
+
+```csharp
+class C
+{
+    private int _value;
+
+    public int GetValue() {|RH3202:=> _value|};
+}
+```
+
+```csharp
+class C
+{
+    private int _value;
+
+    public int GetValue()
+    {
+        return _value;
+    }
+}
+```
+
+The blank line between `_value` and `GetValue` stays, and no blank line is inserted. A blank line is the code a diagnostic is about where its rule reports the missing or extra blank line: the RH5002 fix under SHARED-FIX-001 inserts the blank line in front of `if`.
+
+Example — formatting only the replaced node, for RH3203:
+
+```csharp
+using System;
+
+class C
+{
+    private int _value;
+
+    ///<summary>x</summary>
+    [Obsolete] public  C( int value ) {|RH3203:=> _value = value|};
+}
+```
+
+```csharp
+using System;
+
+class C
+{
+    private int _value;
+
+    ///<summary>x</summary>
+    [Obsolete] public  C( int value )
+    {
+        _value = value;
+    }
+}
+```
+
+The fix replaces the expression body and its semicolon with a block, indented from the line it edits. The documentation comment, the attribute on the constructor's line, and the spacing of the signature stay as they were. The layout example under SHARED-FIX-003 shows the same for the blank lines above a converted method.
+
+### SHARED-FIX-007 — The changed code is laid out as the formatter lays it out
+
+The code a fix changes MUST be laid out as the formatter lays it out, in one application, so that formatting the result changes nothing in that code. In particular:
+
+- **Shared line.** When the member a fix changes shares its line with another member after the fix, the changed member MUST get its own line and the other member MUST start on the next line. Around a member that has its line to itself after the fix, the line breaks and blank lines stay as SHARED-FIX-006 states.
+- **Removed directive line.** A fix that removes a region or conditional directive line MUST also remove the blank line that the removal leaves at the start of a body, at the end of a body, or doubled between two lines, and MUST NOT insert a blank line. A single blank line that the removal leaves between two lines stays.
+
+Why: The fix wrote the changed code, so no layout the author chose is lost when it is laid out the way the formatter would lay it out. A fix that leaves its own code in a shape the formatter changes again hands the user a second diff for the same correction, on lines the user has just reviewed, and leaves layout that the layout rules report. A member that shares a line with another, and a blank line that a removal leaves at the edge of a body or next to another blank line, are such shapes, and the fix's own edit produced them.
+
+Example — the RH5101 fix:
+
+```csharp
+class C
+{
+    void N()
+    {
+        M(
+            {|RH5101:"""
+            a
+            """|},
+            2);
+    }
+
+    void M(string s, int i)
+    {
+    }
+}
+```
+
+```csharp
+class C
+{
+    void N()
+    {
+        M("""
+          a
+          """,
+          2);
+    }
+
+    void M(string s, int i)
+    {
+    }
+}
+```
+
+The raw string literal moves onto the line of the opening parenthesis, and its content and its closing quotes are at the column that formatting the document gives them, under the opening quotes. Formatting the result changes nothing in the argument list.
+
+Example — a shared line, for RH5417:
+
+```csharp
+class C
+{
+    void M() {|RH5417:{|} } int _x;
+
+    int N() {|RH5417:{|} return 1; }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+    }
+    int _x;
+
+    int N()
+    {
+        return 1;
+    }
+}
+```
+
+After the fix, the closing brace of `M` would share its line with `_x`, so `_x` starts on the next line. `N` has its line to itself, and the blank line above it stays.
+
+Example — a removed region at the start and at the end of a body, for RH7310:
+
+```csharp
+class C
+{
+
+    {|RH7310:#region Fields|}
+    #endregion // Fields
+    int _a;
+
+    {|RH7310:#region Methods|}
+
+    #endregion // Methods
+}
+```
+
+```csharp
+class C
+{
+    int _a;
+}
+```
+
+Removing the `Fields` region leaves a blank line at the start of the body, and removing the `Methods` region leaves one at its end; both go.
+
+Example — a removed region between two members, for RH7310:
+
+```csharp
+class C
+{
+    int _a;
+
+    {|RH7310:#region Fields|}
+    #endregion // Fields
+    int _b;
+
+    {|RH7310:#region Methods|}
+
+    #endregion // Methods
+
+    int _c;
+}
+```
+
+```csharp
+class C
+{
+    int _a;
+
+    int _b;
+
+    int _c;
+}
+```
+
+Removing the `Fields` region leaves one blank line between `_a` and `_b`, which stays. Removing the `Methods` region leaves two blank lines between `_b` and `_c`, of which one goes.
+
+Example — a removed region between two statements, for RH7303:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var x = 1;
+        {|RH7303:#region Work|}
+        x++;
+        {|RH7303:#endregion // Work|}
+        x--;
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var x = 1;
+        x++;
+        x--;
+    }
+}
+```
+
+No blank line is left by the removal, and none is inserted.
+
+### SHARED-FIX-008 — A fix keeps the document's line ending
+
+A code fix MUST write only the line ending the document already uses: every line break the fix creates or keeps MUST be that line ending, in a document whose line breaks are CRLF as in one whose line breaks are LF. A line break inside a literal is part of the literal's value and stays as it is (SHARED-FIX-003).
+
+Why: A fix that introduces the other line ending leaves the file with mixed line endings, which the formatter then rewrites.
+
+Example — the RH5405 fix in a document whose line breaks are all CRLF:
+
+```csharp
+class C
+{
+    void M(bool a, bool b)
+    {
+        if (a) {|RH5405:M(a, b);|}
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+            M(a, b);
+        }
+    }
+}
+```
+
+Every line break of the result is CRLF, including the three the fix creates. In a document whose line breaks are all LF, the same fix creates LF line breaks.
