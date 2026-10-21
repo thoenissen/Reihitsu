@@ -77,7 +77,8 @@ Earlier: 3 — plan the analyzer backfill. Phase 1 and 2 complete (2026-10-17): 
 
 ## Running
 
-- Round 6 (prompts 2026-10-19, `sdd/work/coordinator/prompts-round6.md`, overlap check `inventory/batches-round6.md`): #984, #991, #992, #994, #996, #997. Next: #985 after #984; #995 after #994; #993 after #994 and #996; then #939, #998.
+- 2026-10-21 (round 8): nothing running. Round-7 batches #985 (PR #1301), #993 (PR #1303), #995 (PR #1302) merged. Remaining batches: #939, then #998 last. Spec issues #1138, #1139, #1161, #1260 still open, no PR (not run yet). Status file: `inventory/round8-status.md`.
+- Earlier, round 6 (prompts 2026-10-19, `sdd/work/coordinator/prompts-round6.md`, overlap check `inventory/batches-round6.md`): #984, #991, #992, #994, #996, #997. Next: #985 after #984; #995 after #994; #993 after #994 and #996; then #939, #998.
 
 ## Next: question round (new chat, planned 2026-10-18)
 
@@ -167,6 +168,8 @@ Running (2026-10-20): #985, #993, #995 — prompts in `prompts-round7.md` (overl
 
 ## Waiting for maintainer
 
+- 2026-10-21: round 8 started. 25 open question issues #1304-#1328 (81 items; #1304-#1317 tracked in #912 comments, #1318-#1328 not yet). Coordinator runs inventory (`inventory/round8-*.md`), then question round 8. New non-question issues: #1329 (formatter bug: declaration after unclosed doc element becomes a comment), #1330 (test non-formattable-line helper). Next batch: #939 (unblocked), then #998.
+
 - 2026-10-19: round 6 squads running (#984, #991, #992, #994, #996, #997). Maintainer to confirm #1160 reading `M(/* c */ 1)` → `M( /* c */ 1)`. Earlier: verified on GitHub — #1068 (PR #1100), #1069 (PR #1099), #981, #983, #987, #990 merged; no open PRs. Coordinator runs inventory of the 24 new open-question issues, then question round 5, then next batch prompts.
 
 ## Question round 5 (started 2026-10-19)
@@ -211,7 +214,7 @@ Status: open / running / PR #… / merged.
 | 6 | #982 | D1 element documentation part 1, creates doc spec | — | merged (PR #1035); filed #1037 |
 | 7 | #983 | D2 element documentation part 2 | #982 | merged (PR #1101); filed #1127–#1130; follow-up #1132 |
 | 8 | #984 | D3 parameter/return/typeparam/inheritdoc docs | #982 | merged (PR #1162); filed #1195-#1201 |
-| 9 | #985 | D4 documentation layout + comments | #982 | prompt given 2026-10-20 |
+| 9 | #985 | D4 documentation layout + comments | #982 | merged (PR #1301); filed #1306-#1317 |
 | 10 | #986 | S1 whitespace/spacing part 1 | — | merged (PR #1036); filed #1038–#1052 |
 | 11 | #987 | S2 spacing part 2 | #986 | merged (PR #1103); filed #1106–#1108 |
 | 12 | #988 | BL other blank lines | — | merged (PR #1057); filed #1059–#1066 |
@@ -219,9 +222,9 @@ Status: open / running / PR #… / merged.
 | 14 | #990 | LB line breaks + alignment (fluent chain) | — | merged (PR #1104); filed #1111–#1125 |
 | 15 | #991 | LA initializers/expressions/braces | — | merged (PR #1163); filed #1209-#1222 |
 | 16 | #992 | LC trailing commas, empty types | — | merged (PR #1164); filed #1168-#1170 |
-| 17 | #993 | O1 file layout, member/modifier ordering | — | prompt given 2026-10-20 |
+| 17 | #993 | O1 file layout, member/modifier ordering | — | merged (PR #1303); filed #1318-#1328 |
 | 18 | #994 | O2 usings, regions | — | merged (PR #1165); filed #1171-#1187 |
-| 19 | #995 | O3 member grouping by regions, RH7501 | — | prompt given 2026-10-20 |
+| 19 | #995 | O3 member grouping by regions, RH7501 | — | merged (PR #1302); filed #1304, #1305 |
 | 20 | #996 | B1 RH0002–RH2109 | — | merged (PR #1166); filed #1247-#1256 |
 | 21 | #997 | B2 clarity | — | merged (PR #1167); filed #1224-#1245 |
 | 22 | #939 | tag formatter/shared/CLI/Playground tests | — | open |
