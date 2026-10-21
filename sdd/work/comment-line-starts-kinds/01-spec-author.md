@@ -95,3 +95,18 @@ No `SDD open questions: sdd/specs/shared/comment-placement.md` issue exists yet,
 ## Decisions needed
 
 _None for this role._ The test-handling decision above belongs to the lead.
+
+## Revision
+
+Commit: 4fb6eeb. Trigger: the maintainer's answer in `squad/decisions/2026-10-21-1139-shared-comment-001-contradicting-tests.md`. The SHARED-COMMENT-001 example now shows only shapes that conform today. The requirement text, which states P13 in full, is unchanged.
+
+- Removed from the SHARED-COMMENT-001 example:
+  - RH5033 reporting `/// <summary>M</summary>` and `/** <summary>N</summary> */` behind `[Obsolete]`.
+  - The RH5038 `///` inside an argument list.
+  - The RH5104 `/* note */` comment-line fix.
+- Kept in the example, all conforming per the probes above:
+  - RH5033 reports `/**/` behind an attribute list, in both documentation modes.
+  - RH5033 reports `//// note` with `DocumentationMode.None`.
+  - RH5034 does not report `/// <summary>M</summary>⏎/** <remarks>M</remarks> */⏎void M()`, in either mode.
+- The non-conforming SHARED-COMMENT-001 shapes stay recorded only under Open questions to file. The part about a `///` or `/** */` that documents nothing, and the part about a line holding only `/* */`, now have no example and no conforming test. The requirement as a whole is still covered by the conforming shapes.
+- Not changed, for the lead to decide: the decision covers only SHARED-COMMENT-001. The first example block of SHARED-COMMENT-011 still shows the decided P12 shapes from the issue: RH5110, RH5203 and RH5206, which are non-conforming (thoenissen/Reihitsu#1147), next to the conforming RH5204 and RH5201 shapes. If the same rule applies there, that block shrinks to the RH5204 and RH5201 lines.

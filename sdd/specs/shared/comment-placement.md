@@ -30,7 +30,7 @@ Wherever a rule distinguishes a line that holds only a comment from a line that 
 
 Why: A documentation comment belongs to the declaration it documents; it is not a remark on the code around it. A `///` or `/** */` comment that documents nothing belongs to no declaration — the compiler discards it — so it is a remark like any other comment, however its delimiters are written. Whether the compiler parses documentation comments is a project setting; the same source must not change its diagnostics with it. A line that holds only a comment reads as a comment line whichever delimiters the comment uses.
 
-Example — RH5033, where every comment behind an attribute list documents nothing:
+Example — RH5033, which reports the empty block comment because `/**/` is not a `/** */` comment:
 
 ```csharp
 using System;
@@ -38,42 +38,14 @@ using System;
 class C
 {
     [Obsolete]
-    {|RH5033:/// <summary>M</summary>|}
+    {|RH5033:/**/|}
     void M()
     {
     }
-
-    [Obsolete]
-    {|RH5033:/** <summary>N</summary> */|}
-    void N()
-    {
-    }
-
-    [Obsolete]
-    {|RH5033:/**/|}
-    void O()
-    {
-    }
 }
 ```
 
-With documentation comments not parsed (`DocumentationMode.None`), RH5033 reports exactly the same comments, and it reports `//// note` in the same position, because it starts with four slashes.
-
-Example — RH5038, where a `///` comment inside an argument list documents nothing:
-
-```csharp
-class C
-{
-    int M(params object[] values) => 0;
-
-    void N()
-    {
-        M(
-            {|RH5038:/// first|}
-            1);
-    }
-}
-```
+With documentation comments not parsed (`DocumentationMode.None`), RH5033 reports the same comment, and it reports `//// note` in the same position, because it starts with four slashes.
 
 Example — RH5034, where both documentation comments document `M`:
 
@@ -89,41 +61,6 @@ class C
 ```
 
 is not reported, whether or not documentation comments are parsed.
-
-Example — RH5104, whose fix inserts no blank line between a comment line and the comment it moves below it:
-
-```csharp
-class C
-{
-    void N()
-    {
-        M();
-        /* note */
-        M(); {|RH5104:// next|}
-    }
-
-    void M()
-    {
-    }
-}
-```
-
-```csharp
-class C
-{
-    void N()
-    {
-        M();
-        /* note */
-        // next
-        M();
-    }
-
-    void M()
-    {
-    }
-}
-```
 
 ### SHARED-COMMENT-002 — A comment inside a preprocessor directive is not checked
 
