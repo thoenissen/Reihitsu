@@ -228,9 +228,9 @@ namespace N
 
 When every region directive inside a class, struct, interface, record, or record struct declaration lies inside executable code or between declarations (SHARED-TYPEREGION-005), none lies inside a nested extension block, and no `#region`–`#endregion` pair (FMT-REGION-003) crosses the start or the end of one of the declaration's members, the declaration's top-level regions MUST be the pairs whose two directives lie between its members (SHARED-TYPEREGION-005), inside its braces and outside its nested type and enum declarations, and that are not nested in another such pair. A member MUST count as lying in a top-level region when it lies wholly between the region's `#region` and `#endregion`, also when it lies in a region nested in it. Each declaration of a `partial` type has its own top-level regions.
 
-A region MUST belong to the innermost class, struct, interface, record, record struct, or enum declaration whose braces enclose it. A rule MUST NOT compare a region with a region of another declaration, and a code fix MUST NOT move a region or a member from one declaration into another. A rule that judges a member by the region it lies in MUST judge it by the innermost region that encloses it.
+A region MUST belong to the innermost class, struct, interface, record, record struct, or enum declaration whose braces enclose it. A rule MUST NOT compare a region with a region of another declaration, and a code fix MUST NOT move a region or a member from one declaration into another. A rule MUST NOT compare the descriptions of two top-level regions that lie in different branches — `#if`, `#elif`, or `#else` — of one conditional directive; two regions in the same branch, or one inside and one outside the conditional directive, MUST be compared. A rule that judges a member by the region it lies in MUST judge it by the innermost region that encloses it.
 
-Why: The regions directly in a type's body form the type's outline, and a nested region is a sub-heading of the region around it, so a member belongs to the outline entry of its outer region. A region around the type belongs to the enclosing scope, a region of a nested type or enum to that declaration's outline, and a region in a method body to the method; none of them is an entry of this type's outline. The heading closest to a member is the one that describes it, so a sub-heading, not the heading above it, says what the member should be.
+Why: The regions directly in a type's body form the type's outline, and a nested region is a sub-heading of the region around it, so a member belongs to the outline entry of its outer region. A region around the type belongs to the enclosing scope, a region of a nested type or enum to that declaration's outline, and a region in a method body to the method; none of them is an entry of this type's outline. The heading closest to a member is the one that describes it, so a sub-heading, not the heading above it, says what the member should be. No build compiles two branches of one conditional directive, so their regions never appear in one outline, and the same description in both names the same part of the type in two configurations; a region outside the directive, or in the same branch, is in one outline with the other in at least one build.
 
 Example — RH7311, which compares the descriptions of top-level regions:
 
@@ -315,13 +315,7 @@ class C
 
 is not reported.
 
-### SHARED-TYPEREGION-007 — Regions in branches that exclude each other are not compared
-
-A rule that compares the descriptions of a declaration's top-level regions (SHARED-TYPEREGION-006) with each other MUST NOT compare two regions that lie in different branches — `#if`, `#elif`, or `#else` — of one conditional directive. Two regions in the same branch, or one inside and one outside the conditional directive, MUST be compared.
-
-Why: No build compiles two branches of one conditional directive, so their regions never appear in one outline; the same description in both names the same part of the type in two configurations. A region outside the directive, or in the same branch, is in the same outline as the other in at least one build.
-
-Example — RH7311:
+Example — RH7311 does not compare the regions of the `#if` and `#else` branches:
 
 ```csharp
 class C

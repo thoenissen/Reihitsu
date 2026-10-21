@@ -321,9 +321,9 @@ public static class Extensions
 
 ### SHARED-DIAG-008 — A conditional directive in the judged span
 
-A rule MUST NOT report a construct when a conditional directive — `#if`, `#elif`, `#else`, or `#endif` — or code that such a directive excludes lies inside the span the rule judges: the part of the construct its verdict is about, such as a modifier list, a declarator list, an accessor list, the gap between a trailing comma and the closing brace, or a namespace header. A conditional directive elsewhere in the construct, such as in a body the rule does not judge, MUST NOT keep the construct from being reported. A `#region`, `#endregion`, or `#pragma` directive inside the judged span MUST NOT keep the construct from being reported either. SHARED-TRAIL-002 is one instance of this requirement.
+A rule MUST NOT report a construct when a conditional directive — `#if`, `#elif`, `#else`, or `#endif` — or code that such a directive excludes lies inside the span the rule judges: the part of the construct its verdict is about, such as a modifier list, a declarator list, an accessor list, the gap between a trailing comma and the closing brace, or a namespace header. A conditional directive elsewhere in the construct, such as in a body the rule does not judge, MUST NOT keep the construct from being reported. A `#region`, `#endregion`, or `#pragma` directive inside the judged span MUST NOT keep the construct from being reported either, but a code fix that rewrites or moves the part of the judged span that holds such a directive MUST NOT be offered; the diagnostic is still reported. A fix that leaves the directive and its line in place, such as removing the comma in front of it, stays offered. SHARED-TRAIL-002 is one instance of this requirement.
 
-Why: Behind a conditional directive, another build configuration compiles another version of the judged span — one more element, another modifier, another accessor — so a verdict on the version the analyzer sees can be wrong for the others. A directive in a part the rule does not judge cannot change its verdict. A `#region`, `#endregion`, or `#pragma` directive is the same in every configuration and adds nothing to the span.
+Why: Behind a conditional directive, another build configuration compiles another version of the judged span — one more element, another modifier, another accessor — so a verdict on the version the analyzer sees can be wrong for the others. A directive in a part the rule does not judge cannot change its verdict. A `#region`, `#endregion`, or `#pragma` directive is the same in every configuration and adds nothing to the span. A fix that rewrites the part of the span around such a directive would have to drop it or move it next to other code; a fix that does not touch it cannot.
 
 Example — the body of an empty type is the span RH5412 judges, so a conditional block in it keeps the type from being reported:
 
@@ -347,6 +347,8 @@ class C
     {|RH7106:protected|} int _value;
 }
 ```
+
+is reported, and no code fix is offered: the fix would rewrite the modifier list that holds the directive.
 
 Example — the conditional directive lies in the namespace's body, which RH7003 does not judge:
 
