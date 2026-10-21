@@ -183,6 +183,10 @@ Item numbers as in the round-8 message (1-9 = 8a principles, 10-21 = 8b, 22 = co
 20 (#1316 Q1) NEITHER: maintainer: "not checked; 'copyright' is not a sufficient marker; keep it as is and replace completely." = today's behavior is intended: the RH8402 fix replaces the whole leading comment run (clarification). Decides #1316 Q2: the deletion is intended, not P1 -> clarification, no G4 entry.
 21 (#1316 Q3) a: header must be followed by a line break or end of file.
 22 confirmations (#1305 Q10, #1310 Q1, #1311 Q3): maintainer asked for more input -> re-asked with examples 2026-10-21.
+10 reading CONFIRMED by maintainer: (i) RH7302 does not report a region name prescribed by another rule (RH7401-RH7412 type/interface names); (ii) the formatter no longer changes region-name casing (FMT-REGION-001 casing part retired, behavior change + change doc); RH7302 still reports and fixes other lower-case names.
+22a (#1305 Q10) b: the RH7501 fix drops the blank line (`}⏎    break;`) — against recommendation; maintainer chose b, so P14a does not keep it here (record as stated exception for RH7501).
+22b (#1310 Q1) b + NEW RULE: the formatter becomes case-sensitive for documentation tags (FMT-DOC-008, behavior change); new analyzer rule reports wrongly cased known documentation tags (e.g. `<Summary>`), fix corrects the case.
+22c (#1311 Q3) a: P8c applied to RH8306's word check; `Gets<!-- c -->value` not reported.
 Bookkeeping: first attempt to spawn the principle-decided bookkeeping agent was denied by the permission classifier (external writes); maintainer's clear answer now covers decided items.
 
 ## Waiting for maintainer
