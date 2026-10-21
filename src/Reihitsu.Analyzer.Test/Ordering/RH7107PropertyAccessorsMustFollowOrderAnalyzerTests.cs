@@ -24,6 +24,9 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7107-001")]
+    [Requirement("RH7107-003")]
+    [Requirement("RH7107-004")]
     public async Task PropertyAccessorsAreReportedAndFixedWhenGetAppearsAfterSet()
     {
         const string testCode = """
@@ -255,6 +258,219 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH7107PropertyAccessorsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7107MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying the specification example: a <c>get</c> accessor after <c>init</c> or <c>set</c> is reported on its
+    /// keyword, for auto accessors, accessors with bodies, an indexer, and an interface property
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7107-001")]
+    [Requirement("RH7107-003")]
+    public async Task GetAccessorAfterSetOrInitIsReportedOnItsKeyword()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A { init; {|RH7107:get|}; }
+
+                                  public int this[int index] { set { } {|RH7107:get|} { return index; } }
+                              }
+
+                              interface I
+                              {
+                                  int B { set; {|RH7107:get|}; }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifying that a <c>get</c> accessor after a <c>set</c> accessor of a record property is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7107-001")]
+    public async Task GetAccessorAfterSetInARecordIsReported()
+    {
+        const string source = """
+                              record R
+                              {
+                                  public int A { set; {|RH7107:get|}; }
+                              }
+
+                              struct S
+                              {
+                                  public int B { set; {|RH7107:get|}; }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: accessor lists that start with <c>get</c> or have no <c>get</c> are not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7107-002")]
+    public async Task AccessorListsInOrderAreNotReported()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A { get; set; }
+
+                                  public int B { get; init; }
+
+                                  public int D { set { } }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: the fix moves <c>get</c> in front of <c>init</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7107-004")]
+    public async Task FixMovesGetInFrontOfInit()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A { init; {|RH7107:get|}; }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       public int A { get; init; }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: the comment above the <c>get</c> accessor travels with it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7107-004")]
+    [Requirement("SHARED-ORDER-002")]
+    public async Task FixMovesTheCommentAboveTheGetAccessorWithIt()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _value;
+
+                                  public int A
+                                  {
+                                      set
+                                      {
+                                          _value = value;
+                                      }
+
+                                      // Reads the value
+                                      {|RH7107:get|}
+                                      {
+                                          return _value;
+                                      }
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _value;
+
+                                       public int A
+                                       {
+                                           // Reads the value
+                                           get
+                                           {
+                                               return _value;
+                                           }
+
+                                           set
+                                           {
+                                               _value = value;
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: a pragma directive in front of the moved accessor withholds the fix, and
+    /// the diagnostic is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7107-005")]
+    public async Task PragmaDirectiveInFrontOfTheGetAccessorWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A
+                                  {
+                                      set
+                                      {
+                                      }
+
+                              #pragma warning disable CS0162
+                                      {|RH7107:get|}
+                                      {
+                                          return 0;
+                                      }
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Characterizes current behavior that no requirement states: a balanced pragma pair inside the body of the
+    /// crossed <c>set</c> accessor withholds the fix, and the diagnostic is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task BalancedPragmaPairInTheCrossedAccessorBodyWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A
+                                  {
+                                      set
+                                      {
+                              #pragma warning disable CS0168
+                                          int unused;
+                              #pragma warning restore CS0168
+                                      }
+
+                                      {|RH7107:get|}
+                                      {
+                                          return 0;
+                                      }
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     #endregion // Tests

@@ -20,6 +20,7 @@ public class RH7405NonOverrideMethodsShouldNotBePlacedInOverrideRegionsAnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7405-001")]
     public async Task VerifyDiagnosticForNonOverrideMethodInOverrideRegion()
     {
         const string testData = """
@@ -55,6 +56,7 @@ public class RH7405NonOverrideMethodsShouldNotBePlacedInOverrideRegionsAnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7405-002")]
     public async Task VerifyNoDiagnosticsForMixedOverrideKindsInSameRegion()
     {
         const string testData = """
@@ -89,6 +91,7 @@ public class RH7405NonOverrideMethodsShouldNotBePlacedInOverrideRegionsAnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7405-002")]
     public async Task VerifyNoDiagnosticsForNonOverrideMethodInGenericRegion()
     {
         const string testData = """
@@ -128,6 +131,8 @@ public class RH7405NonOverrideMethodsShouldNotBePlacedInOverrideRegionsAnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7405-002")]
+    [Requirement("SHARED-REGGROUP-006")]
     public async Task VerifyNoDiagnosticsForBaseTypeNamedRegionWithoutOverrideMethods()
     {
         const string testData = """
@@ -145,6 +150,259 @@ public class RH7405NonOverrideMethodsShouldNotBePlacedInOverrideRegionsAnalyzerT
                                     }
 
                                     #endregion // BaseProcessor
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a static method, a new method, and an interface implementation that override nothing are reported in
+    /// an override region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7405-001")]
+    public async Task VerifyDiagnosticsForStaticNewAndInterfaceMethodsInOverrideRegion()
+    {
+        const string testData = """
+                                interface IRunnable
+                                {
+                                    void Run();
+                                }
+
+                                class B
+                                {
+                                    public virtual void M()
+                                    {
+                                    }
+                                }
+
+                                class C : B, IRunnable
+                                {
+                                    #region B
+
+                                    public override void M()
+                                    {
+                                    }
+
+                                    public static void {|RH7405:S|}()
+                                    {
+                                    }
+
+                                    public new string {|RH7405:ToString|}() => "";
+
+                                    public void {|RH7405:Run|}()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an override method, a constructor, and an operator in an override region and a method in an ordinary
+    /// region are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7405-002")]
+    public async Task VerifyNoDiagnosticsForConstructorOperatorAndMethodInOrdinaryRegion()
+    {
+        const string testData = """
+                                class B
+                                {
+                                    public virtual void M()
+                                    {
+                                    }
+                                }
+
+                                class C : B
+                                {
+                                    #region B
+
+                                    public override void M()
+                                    {
+                                    }
+
+                                    public C()
+                                    {
+                                    }
+
+                                    public static C operator +(C left, C right) => left;
+
+                                    #endregion
+
+                                    #region Methods
+
+                                    private void N()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a region named after the base type of an override is an override region also when the override lies
+    /// outside it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-REGGROUP-006")]
+    [Requirement("RH7405-001")]
+    public async Task VerifyRegionIsOverrideRegionWhenOverrideLiesOutsideIt()
+    {
+        const string testData = """
+                                class B
+                                {
+                                    public virtual void M()
+                                    {
+                                    }
+                                }
+
+                                class C : B
+                                {
+                                    public override void M()
+                                    {
+                                    }
+
+                                    #region B
+
+                                    public void {|RH7405:N|}()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Characterizes a region that only an override property names: it is not an override region of methods, so a method
+    /// that overrides nothing in it is not reported. The case is an open question about intended behavior, so this test
+    /// pins today's behavior without stating it as intended
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyOverrideOfOtherMemberKindDoesNotMakeMethodOverrideRegion()
+    {
+        const string testData = """
+                                class B
+                                {
+                                    public virtual int P => 0;
+                                }
+
+                                class C : B
+                                {
+                                    #region B
+
+                                    public override int P => 1;
+
+                                    public void N()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Characterizes a partial type whose override lies in another declaration than the region named after its base type:
+    /// the region is not an override region of the declaration that holds it. The case is an open question about intended
+    /// behavior, so this test pins today's behavior without stating it as intended
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyOverrideInOtherPartialDeclarationDoesNotMakeOverrideRegion()
+    {
+        const string testData = """
+                                class B
+                                {
+                                    public virtual void M()
+                                    {
+                                    }
+                                }
+
+                                partial class C : B
+                                {
+                                    public override void M()
+                                    {
+                                    }
+                                }
+
+                                partial class C
+                                {
+                                    #region B
+
+                                    public void N()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Characterizes methods in regions nested in a top-level region: they are judged by the top-level region around them,
+    /// not by the innermost region. The case is an open question about intended behavior, so this test pins today's
+    /// behavior without stating it as intended
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMethodInNestedRegionIsJudgedByItsTopLevelRegion()
+    {
+        const string testData = """
+                                class B
+                                {
+                                    public virtual void M()
+                                    {
+                                    }
+                                }
+
+                                class C : B
+                                {
+                                    #region B
+
+                                    public override void M()
+                                    {
+                                    }
+
+                                    #region Helpers
+
+                                    private void {|RH7405:H|}()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    #endregion
+
+                                    #region Helpers2
+
+                                    #region B
+
+                                    private void K()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    #endregion
                                 }
                                 """;
 
