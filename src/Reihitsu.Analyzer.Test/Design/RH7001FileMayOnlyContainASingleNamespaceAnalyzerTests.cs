@@ -20,6 +20,8 @@ public class RH7001FileMayOnlyContainASingleNamespaceAnalyzerTests : AnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7001-001")]
+    [Requirement("RH7001-003")]
     public async Task VerifyDiagnostic()
     {
         const string testData = """
@@ -42,6 +44,77 @@ public class RH7001FileMayOnlyContainASingleNamespaceAnalyzerTests : AnalyzerTes
                                 """;
 
         await Verify(testData, Diagnostics(RH7001FileMayOnlyContainASingleNamespaceAnalyzer.DiagnosticId, AnalyzerResources.RH7001MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: every top-level namespace after the first is reported, also when it
+    /// declares the same namespace as the first one
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7001-001")]
+    public async Task EveryTopLevelNamespaceAfterTheFirstIsReported()
+    {
+        const string source = """
+                              namespace A
+                              {
+                              }
+
+                              namespace {|RH7001:B|}
+                              {
+                              }
+
+                              namespace {|RH7001:A|}
+                              {
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: namespaces nested in the single top-level namespace are not counted
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7001-002")]
+    public async Task NestedNamespacesAreNotCounted()
+    {
+        const string source = """
+                              namespace A
+                              {
+                                  namespace B
+                                  {
+                                  }
+
+                                  namespace C
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the diagnostic covers the whole qualified name of the namespace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7001-003")]
+    public async Task DiagnosticIsLocatedOnTheWholeQualifiedName()
+    {
+        const string source = """
+                              namespace A.B
+                              {
+                              }
+
+                              namespace {|RH7001:A.C|}
+                              {
+                              }
+                              """;
+
+        await Verify(source);
     }
 
     #endregion // Tests

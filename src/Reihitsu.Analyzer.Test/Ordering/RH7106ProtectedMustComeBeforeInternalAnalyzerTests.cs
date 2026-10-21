@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Organization;
@@ -24,6 +25,9 @@ public class RH7106ProtectedMustComeBeforeInternalAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7106-001")]
+    [Requirement("RH7106-003")]
+    [Requirement("RH7106-004")]
     public async Task MisorderedCompoundAccessModifiersAreReportedAndFixed()
     {
         const string testCode = """
@@ -76,6 +80,269 @@ public class RH7106ProtectedMustComeBeforeInternalAnalyzerTests : BatchCodeFixTe
                                                                .GetLocation());
 
         Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: <c>internal protected</c> and <c>protected private</c> are reported on the
+    /// second keyword, also with another modifier between the two keywords
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7106-001")]
+    [Requirement("RH7106-003")]
+    public async Task CompoundAccessibilitiesInTheOtherOrderAreReportedOnTheSecondKeyword()
+    {
+        const string source = """
+                              class C
+                              {
+                                  internal {|RH7106:protected|} int A;
+                                  protected {|RH7106:private|} int B;
+                                  internal static {|RH7106:protected|} int D;
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: <c>protected internal</c> and <c>private protected</c> are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7106-002")]
+    public async Task CanonicalCompoundAccessibilitiesAreNotReported()
+    {
+        const string source = """
+                              class C
+                              {
+                                  protected internal int A;
+                                  private protected int B;
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: the fix swaps the two keywords and leaves every other modifier at its
+    /// position
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7106-004")]
+    [Requirement("SHARED-MODORDER-002")]
+    public async Task FixSwapsTheTwoKeywordsInPlace()
+    {
+        const string source = """
+                              class C
+                              {
+                                  internal {|RH7106:protected|} void M()
+                                  {
+                                  }
+
+                                  internal static {|RH7106:protected|} int D;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       protected internal void M()
+                                       {
+                                       }
+
+                                       protected static internal int D;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying that <c>protected private</c> is fixed to <c>private protected</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7106-004")]
+    public async Task FixSwapsProtectedPrivate()
+    {
+        const string source = """
+                              class C
+                              {
+                                  protected {|RH7106:private|} int B;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private protected int B;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying the shared specification example: a struct, an interface, a record, a record struct, a delegate, a
+    /// constructor, an event, and an indexer are checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-MODORDER-001")]
+    [Requirement("RH7106-001")]
+    public async Task EveryCheckedDeclarationKindIsReported()
+    {
+        const string source = """
+                              using System;
+
+                              public class C
+                              {
+                                  internal {|RH7106:protected|} struct S
+                                  {
+                                  }
+
+                                  internal {|RH7106:protected|} interface I
+                                  {
+                                  }
+
+                                  internal {|RH7106:protected|} record R;
+
+                                  internal {|RH7106:protected|} record struct RS;
+
+                                  internal {|RH7106:protected|} delegate void D();
+
+                                  internal {|RH7106:protected|} C()
+                                  {
+                                  }
+
+                                  internal {|RH7106:protected|} event Action E
+                                  {
+                                      add
+                                      {
+                                      }
+
+                                      remove
+                                      {
+                                      }
+                                  }
+
+                                  internal {|RH7106:protected|} int this[int index] => index;
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifying the shared specification example: a pragma directive in front of a later modifier withholds the fix,
+    /// and the diagnostic is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-MODORDER-003")]
+    [Requirement("RH7106-004")]
+    public async Task PragmaDirectiveInFrontOfALaterModifierWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  internal
+                              #pragma warning disable CS0169
+                                  {|RH7106:protected|} int _value;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a comment in front of the first modifier does not withhold the fix and stays in front of the new
+    /// first modifier
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-MODORDER-002")]
+    [Requirement("SHARED-MODORDER-003")]
+    public async Task CommentInFrontOfTheFirstModifierDoesNotWithholdTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /* lead */ internal {|RH7106:protected|} int A;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       /* lead */ protected internal int A;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying that RH7106 checks the class, field, event field, property, and method declarations too, so together
+    /// with <see cref="EveryCheckedDeclarationKindIsReported"/> and
+    /// <see cref="OperatorsAreCheckedEvenThoughTheyCannotCompileWithACompoundAccessibility"/> it checks every
+    /// declaration kind of the shared specification
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-MODORDER-001")]
+    public async Task RemainingCheckedDeclarationKindsAreReported()
+    {
+        const string source = """
+                              using System;
+
+                              public class C
+                              {
+                                  internal {|RH7106:protected|} class N
+                                  {
+                                  }
+
+                                  internal {|RH7106:protected|} int F;
+
+                                  internal {|RH7106:protected|} event Action E;
+
+                                  internal {|RH7106:protected|} int P { get; set; }
+
+                                  internal {|RH7106:protected|} void M()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifying that RH7106 checks operator and conversion operator declarations. Operators must be public, so the
+    /// input does not compile and only the reported diagnostics are checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-MODORDER-001")]
+    public async Task OperatorsAreCheckedEvenThoughTheyCannotCompileWithACompoundAccessibility()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  internal {|RH7106:protected|} static C operator +(C a, C b)
+                                  {
+                                      return a;
+                                  }
+
+                                  internal {|RH7106:protected|} static implicit operator int(C c)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await Verify(source, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
     }
 
     #endregion // Tests

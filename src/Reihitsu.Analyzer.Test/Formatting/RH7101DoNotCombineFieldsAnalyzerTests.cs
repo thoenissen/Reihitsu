@@ -41,6 +41,9 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7101-001")]
+    [Requirement("RH7101-003")]
+    [Requirement("RH7101-004")]
     public async Task VerifyCombinedFieldDeclarationsAreDetectedAndFixed()
     {
         const string testData = """
@@ -102,6 +105,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7101-004")]
     public async Task VerifyCommentsArePreservedWhenSplitting()
     {
         const string testData = """
@@ -447,6 +451,191 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                                    "DEBUG");
 
         Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: combined field declarations of an interface, a struct, a record, and a
+    /// fixed-size buffer are reported, constants and static fields included
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-001")]
+    [Requirement("RH7101-003")]
+    public async Task CombinedFieldDeclarationsOfEveryTypeKindAreReported()
+    {
+        const string source = """
+                              interface I
+                              {
+                                  static int A, {|RH7101:B|};
+                              }
+
+                              struct S
+                              {
+                                  public int X, {|RH7101:Y|};
+                              }
+
+                              record R
+                              {
+                                  public const int A = 1, {|RH7101:B|} = 2;
+                              }
+
+                              unsafe struct U
+                              {
+                                  public fixed int A[2], {|RH7101:B|}[3];
+                              }
+                              """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: event field declarations and local declarations with several declarators
+    /// are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-002")]
+    public async Task EventFieldsAndLocalsWithSeveralDeclaratorsAreNotReported()
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  public event Action E1, E2;
+
+                                  void M()
+                                  {
+                                      int a, b;
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a declaration with three declarators is reported once, on its second
+    /// declarator
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-003")]
+    public async Task DeclarationIsReportedOnceOnItsSecondDeclarator()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a, {|RH7101:_b|} = 1, _c;
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the fix gives each generated field the attributes, modifiers, and type of
+    /// the combined declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixRepeatsAttributesModifiersAndTypeForEachField()
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  [NonSerialized]
+                                  private static readonly string _a = "a", {|RH7101:_b|} = "b";
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System;
+
+                                   class C
+                                   {
+                                       [NonSerialized]
+                                       private static readonly string _a = "a";
+                                       [NonSerialized]
+                                       private static readonly string _b = "b";
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a comment that trailed a separating comma trails the field that comma now
+    /// ends
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixKeepsTheCommentsThatTrailedTheSeparators()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _first, // first
+                                              {|RH7101:_second|}; // second
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _first; // first
+                                       private int _second; // second
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a region directive in the declaration's trivia withholds the fix, and the
+    /// diagnostic is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-005")]
+    public async Task RegionDirectiveInTheDeclarationWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  #region Fields
+                                  private int _a, {|RH7101:_b|};
+                                  #endregion
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a pragma directive between the declarators withholds the fix, and the diagnostic is still
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-005")]
+    public async Task PragmaDirectiveBetweenTheDeclaratorsWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a,
+                              #pragma warning disable CS0169
+                                              {|RH7101:_b|};
+                              #pragma warning restore CS0169
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     #endregion // Tests

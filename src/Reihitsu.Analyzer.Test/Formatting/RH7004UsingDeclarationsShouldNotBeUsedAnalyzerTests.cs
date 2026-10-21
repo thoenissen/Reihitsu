@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -23,6 +24,8 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7004-001")]
+    [Requirement("RH7004-003")]
     public async Task VerifyDiagnosticWhenUsingDeclarationIsUsed()
     {
         const string testCode = """
@@ -46,6 +49,7 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7004-001")]
     public async Task VerifyDiagnosticWhenUsingDeclarationIsUsedWithExplicitType()
     {
         const string testCode = """
@@ -69,6 +73,8 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7004-001")]
+    [Requirement("RH7004-003")]
     public async Task VerifyDiagnosticWhenMultipleUsingDeclarationsArePresent()
     {
         const string testCode = """
@@ -94,6 +100,8 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7004-001")]
+    [Requirement("RH7004-003")]
     public async Task VerifyDiagnosticWhenAwaitUsingDeclarationIsUsed()
     {
         const string testCode = """
@@ -122,6 +130,7 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7004-004")]
     public async Task VerifyCodeFixPreservesAwaitKeywordForAwaitUsingDeclaration()
     {
         const string testCode = """
@@ -178,6 +187,7 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7004-002")]
     public async Task VerifyNoDiagnosticWhenUsingStatementBlockIsUsed()
     {
         const string testCode = """
@@ -203,6 +213,7 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7004-002")]
     public async Task VerifyNoDiagnosticWhenAwaitUsingStatementBlockIsUsed()
     {
         const string testCode = """
@@ -255,6 +266,7 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7004-004")]
     public async Task VerifyCodeFixTransformsUsingDeclarationToUsingStatementBlock()
     {
         const string testCode = """
@@ -301,6 +313,7 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7004-004")]
     public async Task VerifyCodeFixTransformsUsingDeclarationWithNoFollowingStatements()
     {
         const string testCode = """
@@ -393,6 +406,7 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7004-006")]
     public async Task VerifyCodeFixIsNotOfferedWhenFollowingStatementsContainLocalFunction()
     {
         const string testCode = """
@@ -429,6 +443,7 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7004-006")]
     public async Task VerifyCodeFixIsNotOfferedWhenFollowingStatementsContainLabeledStatement()
     {
         const string testCode = """
@@ -456,6 +471,386 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
                                                                .GetLocation());
 
         Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: using declarations with <c>var</c>, an explicit type, several declarators,
+    /// <c>await</c>, and inside a lambda are each reported once on their <c>using</c> keyword
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-001")]
+    [Requirement("RH7004-003")]
+    public async Task EveryKindOfUsingDeclarationIsReportedOnItsUsingKeyword()
+    {
+        const string source = """
+                              using System;
+                              using System.IO;
+                              using System.Threading.Tasks;
+
+                              class C
+                              {
+                                  async Task M(IAsyncDisposable resource)
+                                  {
+                                      {|RH7004:using|} var stream = new MemoryStream();
+                                      {|RH7004:using|} MemoryStream first = new MemoryStream(), second = new MemoryStream();
+                                      await {|RH7004:using|} var handle = resource;
+
+                                      Action action = () =>
+                                      {
+                                          {|RH7004:using|} var inner = new MemoryStream();
+                                      };
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies that using declarations in a local function body and in a nested block are reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-001")]
+    public async Task UsingDeclarationsInLocalFunctionsAndNestedBlocksAreReported()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M(bool condition)
+                                  {
+                                      if (condition)
+                                      {
+                                          {|RH7004:using|} var stream = new MemoryStream();
+                                      }
+
+                                      void Local()
+                                      {
+                                          {|RH7004:using|} var inner = new MemoryStream();
+                                      }
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a <c>using</c> statement is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-002")]
+    public async Task UsingStatementIsNotReported()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      using (var stream = new MemoryStream())
+                                      {
+                                          stream.Flush();
+                                      }
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the fix wraps the following statement into the block of a new
+    /// <c>using</c> statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-004")]
+    public async Task FixWrapsTheFollowingStatementIntoAUsingStatement()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var stream = new MemoryStream();
+                                      stream.Flush();
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           using (var stream = new MemoryStream())
+                                           {
+                                               stream.Flush();
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the fix keeps <c>await</c> and every declarator, and writes an empty block
+    /// when no statement follows the declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-004")]
+    public async Task FixKeepsAwaitAndEveryDeclaratorAndWritesAnEmptyBlock()
+    {
+        const string source = """
+                              using System;
+                              using System.IO;
+
+                              class C
+                              {
+                                  async System.Threading.Tasks.Task M(IAsyncDisposable resource)
+                                  {
+                                      await {|RH7004:using|} var handle = resource;
+                                  }
+
+                                  void N()
+                                  {
+                                      {|RH7004:using|} MemoryStream first = new MemoryStream(), second = new MemoryStream();
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System;
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       async System.Threading.Tasks.Task M(IAsyncDisposable resource)
+                                       {
+                                           await using (var handle = resource)
+                                           {
+                                           }
+                                       }
+
+                                       void N()
+                                       {
+                                           using (MemoryStream first = new MemoryStream(), second = new MemoryStream())
+                                           {
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a using declaration among top-level statements is reported, and no code
+    /// fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-005")]
+    public async Task TopLevelUsingDeclarationIsReportedWithoutFix()
+    {
+        const string source = """
+                              using System.IO;
+
+                              {|RH7004:using|} var stream = new MemoryStream();
+                              stream.Flush();
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source, test => test.TestState.OutputKind = OutputKind.ConsoleApplication);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a local function two statements after the using declaration withholds the
+    /// fix, and the diagnostic is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-006")]
+    public async Task LaterLocalFunctionOfTheBlockWithholdsTheFix()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      Helper();
+                                      {|RH7004:using|} var stream = new MemoryStream();
+                                      stream.Flush();
+
+                                      void Helper()
+                                      {
+                                      }
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a local function directly after the using declaration withholds the fix, and the diagnostic is
+    /// still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-006")]
+    public async Task LocalFunctionDirectlyAfterTheDeclarationWithholdsTheFix()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      Helper();
+                                      {|RH7004:using|} var stream = new MemoryStream();
+
+                                      void Helper()
+                                      {
+                                      }
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a label after the using declaration withholds the fix, and the diagnostic is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-006")]
+    public async Task LaterLabelOfTheBlockWithholdsTheFix()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var stream = new MemoryStream();
+                                      stream.Flush();
+
+                                  Done:
+                                      return;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a local function nested in a following statement moves with it into the
+    /// new block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-004")]
+    [Requirement("RH7004-006")]
+    public async Task LocalFunctionNestedInAFollowingStatementDoesNotWithholdTheFix()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var stream = new MemoryStream();
+                                      if (stream.CanRead)
+                                      {
+                                          void Helper()
+                                          {
+                                          }
+                                      }
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           using (var stream = new MemoryStream())
+                                           {
+                                               if (stream.CanRead)
+                                               {
+                                                   void Helper()
+                                                   {
+                                                   }
+                                               }
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying that the fix moves every following statement of the block into the new block, in their order
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-004")]
+    public async Task FixMovesEveryFollowingStatementInTheirOrder()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var stream = new MemoryStream();
+                                      stream.Flush();
+                                      stream.Close();
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           using (var stream = new MemoryStream())
+                                           {
+                                               stream.Flush();
+                                               stream.Close();
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
     }
 
     #endregion // Tests
