@@ -21,6 +21,7 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8308-002")]
     public async Task VerifyNoDiagnosticsWhenTextStartsOnNextLine()
     {
         const string testData = """
@@ -62,6 +63,7 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8308-002")]
     public async Task VerifyNoDiagnosticsForNestedInlineXmlContent()
     {
         const string testData = """
@@ -82,6 +84,9 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8308-001")]
+    [Requirement("RH8308-003")]
+    [Requirement("RH8308-004")]
     public async Task VerifyTextAfterClosingTagIsDetectedAndRemoved()
     {
         const string testData = """
@@ -111,6 +116,9 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8308-001")]
+    [Requirement("RH8308-003")]
+    [Requirement("RH8308-004")]
     public async Task VerifyTextAfterSelfClosingTagIsDetectedAndRemoved()
     {
         const string testData = """
@@ -140,6 +148,8 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8308-001")]
+    [Requirement("SHARED-DOC-008")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string source = """
@@ -153,6 +163,149 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
                               """;
 
         await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that text after a top-level element on the line where the element ends is reported from its first
+    /// character that is not white space, after an end tag and after an empty element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8308-001")]
+    [Requirement("RH8308-003")]
+    public async Task VerifyTextAfterTopLevelElementsIsReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>
+                                    /// Runs
+                                    /// </summary> {|#0:Additional text|}
+                                    void M()
+                                    {
+                                    }
+
+                                    /// <summary>Stops</summary>   {|#1:now|}
+                                    void N()
+                                    {
+                                    }
+
+                                    /// <inheritdoc/> {|#2:inherited|}
+                                    int A;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifies that text on a later line, text inside an element, and text in a delimited documentation comment are
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8308-002")]
+    public async Task VerifyTextOnLaterLineInsideElementOrInDelimitedCommentDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>Runs</summary>
+                                    /// Text on the next line
+                                    void M()
+                                    {
+                                    }
+
+                                    /// <summary>
+                                    /// Stops <c>now</c> quickly
+                                    /// </summary>
+                                    void N()
+                                    {
+                                    }
+
+                                    /** <summary>Value</summary> text */
+                                    int A;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix removes each reported text with the white space in front of it, also on both sides of a
+    /// top-level element that follows the text on the same line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8308-001")]
+    [Requirement("RH8308-003")]
+    [Requirement("RH8308-004")]
+    public async Task VerifyFixRemovesTheText()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>
+                                    /// Runs
+                                    /// </summary> {|#0:Additional text|}
+                                    void M()
+                                    {
+                                    }
+
+                                    /// <summary>Stops</summary> {|#1:a |}<c>x</c> {|#2:b|}
+                                    void N()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>
+                                     /// Runs
+                                     /// </summary>
+                                     void M()
+                                     {
+                                     }
+
+                                     /// <summary>Stops</summary><c>x</c>
+                                     void N()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifies that the fix also removes a tab in front of the reported text
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8308-004")]
+    public async Task VerifyFixRemovesTabInFrontOfTheText()
+    {
+        var testData = ExpandWhitespaceMarkers("""
+                                               class C
+                                               {
+                                                   /// <summary>Stops</summary>→{|#0:now|}
+                                                   void N()
+                                                   {
+                                                   }
+                                               }
+                                               """);
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>Stops</summary>
+                                     void N()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat));
     }
 
     #endregion // Tests

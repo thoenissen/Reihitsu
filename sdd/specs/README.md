@@ -363,5 +363,17 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH8202.md](analyzer/RH8202.md) | RH8202 | `RH8202ValueTagMustNotBeUsedAnalyzer`, `RH8202ValueTagMustNotBeUsedCodeFixProvider` |
 | [analyzer/RH8203.md](analyzer/RH8203.md) | RH8203 | `RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer` |
 | [analyzer/RH8204.md](analyzer/RH8204.md) | RH8204 | `RH8204DoNotUsePlaceholderElementsAnalyzer`, `RH8204DoNotUsePlaceholderElementsCodeFixProvider` |
+| [analyzer/RH8301.md](analyzer/RH8301.md) | RH8301 | `RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer`, `RH8301DocumentationLinesMustBeginWithSingleSpaceCodeFixProvider` |
+| [analyzer/RH8302.md](analyzer/RH8302.md) | RH8302 | `RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer`, `RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineCodeFixProvider` |
+| [analyzer/RH8303.md](analyzer/RH8303.md) | RH8303 | `RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer`, `RH8303ElementDocumentationHeaderMustBePrecededByBlankLineCodeFixProvider` |
+| [analyzer/RH8304.md](analyzer/RH8304.md) | RH8304 | `RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer`, `RH8304XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider` |
+| [analyzer/RH8305.md](analyzer/RH8305.md) | RH8305 | `RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer`, `RH8305SummaryElementMustSpanAtLeastThreeLinesCodeFixProvider` |
+| [analyzer/RH8306.md](analyzer/RH8306.md) | RH8306 | `RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer` |
+| [analyzer/RH8307.md](analyzer/RH8307.md) | RH8307 | `RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer`, `RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagCodeFixProvider` |
+| [analyzer/RH8308.md](analyzer/RH8308.md) | RH8308 | `RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer`, `RH8308NoContentShouldAppearAfterClosingXmlTagsCodeFixProvider` |
+| [analyzer/RH8309.md](analyzer/RH8309.md) | RH8309 | `RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer`, `RH8309XmlDocumentationElementsMustFollowPrescribedOrderCodeFixProvider`, `XmlDocumentationElementOrderingUtilities` |
+| [analyzer/RH8401.md](analyzer/RH8401.md) | RH8401 | `RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer`, `RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesCodeFixProvider` |
+| [analyzer/RH8402.md](analyzer/RH8402.md) | RH8402 | `RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer`, `RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProvider` |
+| [analyzer/RH8501.md](analyzer/RH8501.md) | RH8501 | `RH8501CodeAnalysisSuppressionMustHaveJustificationAnalyzer` |
 | [cli/reihitsu-format.md](cli/reihitsu-format.md) | CLI | `Program`, `ParseResult`, `FormatCommandHandler`, `ExitCodes`, `GeneratedFileUtilities`, `FileProcessResult`, `DefaultFileSystem`, `DefaultConsoleInput`, `DefaultSourceFormatter`, `DiffGenerator` |
 | [playground/playground.md](playground/playground.md) | PLAY | `Home`, `MainLayout`, `PlaygroundFormatter`, `PlaygroundFormatResult`, `PlaygroundVersion` |

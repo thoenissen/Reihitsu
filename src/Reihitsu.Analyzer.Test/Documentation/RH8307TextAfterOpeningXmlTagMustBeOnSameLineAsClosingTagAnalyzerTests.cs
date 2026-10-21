@@ -21,6 +21,7 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8307-002")]
     public async Task VerifyNoDiagnosticsForSingleLineXmlDocumentationElement()
     {
         const string testData = """
@@ -41,6 +42,7 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8307-002")]
     public async Task VerifyNoDiagnosticsWhenTextStartsOnNewLine()
     {
         const string testData = """
@@ -64,6 +66,9 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8307-001")]
+    [Requirement("RH8307-003")]
+    [Requirement("RH8307-004")]
     public async Task VerifyMisalignedInlineXmlContentIsDetectedAndFixed()
     {
         const string testData = """
@@ -97,6 +102,9 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8307-001")]
+    [Requirement("RH8307-003")]
+    [Requirement("RH8307-004")]
     public async Task VerifyMisalignedParamElementIsDetectedAndFixed()
     {
         const string testData = """
@@ -127,6 +135,9 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8307-001")]
+    [Requirement("RH8307-003")]
+    [Requirement("RH8307-004")]
     public async Task VerifyMisalignedSummaryElementIsDetectedAndFixed()
     {
         const string testData = """
@@ -161,6 +172,9 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8307-001")]
+    [Requirement("RH8307-003")]
+    [Requirement("RH8307-004")]
     public async Task VerifyMisalignedMultilineRemarksElementIsDetectedAndFixed()
     {
         const string testData = """
@@ -195,6 +209,8 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8307-001")]
+    [Requirement("SHARED-DOC-008")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string source = """
@@ -209,6 +225,148 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTes
                               """;
 
         await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that top-level and nested elements whose content starts beside the start tag while the end tag is on
+    /// a later line are reported, with text or a nested element as the first content
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-001")]
+    [Requirement("RH8307-003")]
+    public async Task VerifyContentStartingBesideTheStartTagIsReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>
+                                    /// Runs
+                                    /// </summary>
+                                    /// {|#0:<param name="value">The value
+                                    /// </param>|}
+                                    void M(string value)
+                                    {
+                                    }
+
+                                    /// {|#1:<summary>Stops
+                                    /// now
+                                    /// </summary>|}
+                                    void N()
+                                    {
+                                    }
+
+                                    /// <summary>
+                                    /// Value
+                                    /// </summary>
+                                    /// <remarks>
+                                    /// {|#2:<para>First
+                                    /// second</para>|}
+                                    /// </remarks>
+                                    int A;
+
+                                    /// <summary>
+                                    /// Count
+                                    /// </summary>
+                                    /// {|#3:<remarks><see cref="C"/>
+                                    /// tail</remarks>|}
+                                    int B;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, AnalyzerResources.RH8307MessageFormat, 4));
+    }
+
+    /// <summary>
+    /// Verifies that elements on one line, elements whose content starts on a later line, and elements whose content
+    /// is only white space are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-002")]
+    public async Task VerifyCompleteLayoutsDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>Runs</summary>
+                                    /// <param name="value">The value</param>
+                                    void M(string value)
+                                    {
+                                    }
+
+                                    /// <summary>
+                                    /// Stops
+                                    /// </summary>
+                                    /// <remarks>
+                                    /// Remarks</remarks>
+                                    void N()
+                                    {
+                                    }
+
+                                    /// <summary>
+                                    /// Value
+                                    /// </summary>
+                                    /// <remarks>
+                                    /// </remarks>
+                                    int A;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix puts an element with one content line on one line and puts the content of a summary on
+    /// lines of its own
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-004")]
+    public async Task VerifyFixLaysTheElementOutAsTheFormatterDoes()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>
+                                    /// Runs
+                                    /// </summary>
+                                    /// {|#0:<param name="value">The value
+                                    /// </param>|}
+                                    void M(string value)
+                                    {
+                                    }
+
+                                    /// {|#1:<summary>Stops
+                                    /// now
+                                    /// </summary>|}
+                                    void N()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>
+                                     /// Runs
+                                     /// </summary>
+                                     /// <param name="value">The value</param>
+                                     void M(string value)
+                                     {
+                                     }
+
+                                     /// <summary>
+                                     /// Stops
+                                     /// now
+                                     /// </summary>
+                                     void N()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, AnalyzerResources.RH8307MessageFormat, 2));
     }
 
     #endregion // Tests

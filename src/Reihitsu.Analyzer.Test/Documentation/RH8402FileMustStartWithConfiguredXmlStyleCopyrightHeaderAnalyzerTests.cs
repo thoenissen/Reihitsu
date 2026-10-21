@@ -28,6 +28,16 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
                                     }
                                     """;
 
+    /// <summary>
+    /// Copyright text of the configuration that the specification examples use
+    /// </summary>
+    private const string SpecificationCopyrightText = "// <copyright file=\"{fileName}\" company=\"{company}\">\n// Copyright (c) {company}.\n// </copyright>";
+
+    /// <summary>
+    /// Path of the file that the specification examples check
+    /// </summary>
+    private const string SpecificationFilePath = "/0/C.cs";
+
     #endregion // Constants
 
     #region Tests
@@ -37,6 +47,7 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8402-002")]
     public async Task ValidConfiguredHeader()
     {
         const string testData = """
@@ -59,6 +70,7 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8402-002")]
     public async Task ValidConfiguredHeaderWithAdditionalPlaceholders()
     {
         const string testData = """
@@ -84,6 +96,7 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8402-002")]
     public async Task ValidConfiguredHeaderWithSeparatorLines()
     {
         const string testData = """
@@ -108,6 +121,7 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8402-002")]
     public async Task ValidConfiguredHeaderWithSingleLineComment()
     {
         const string testData = """
@@ -128,6 +142,7 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8402-002")]
     public async Task ValidConfiguredHeaderWithSingleLineBlockComment()
     {
         const string testData = """
@@ -148,6 +163,7 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8402-002")]
     public async Task ValidConfiguredHeaderWithAsteriskBlockComment()
     {
         const string testData = """
@@ -171,6 +187,7 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8402-002")]
     public async Task ValidConfiguredHeaderWithIndentedBlockComment()
     {
         const string testData = """
@@ -193,6 +210,9 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8402-003")]
+    [Requirement("RH8402-004")]
+    [Requirement("RH8402-005")]
     public async Task MissingConfiguredHeader()
     {
         const string fixedCode = """
@@ -299,6 +319,9 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8402-003")]
+    [Requirement("RH8402-004")]
+    [Requirement("RH8402-005")]
     public async Task NonCopyrightLeadingCommentIsPreserved()
     {
         const string testData = """
@@ -334,9 +357,196 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8402-001")]
     public async Task NoConfiguration()
     {
         await Verify(TestCode);
+    }
+
+    /// <summary>
+    /// Verifies that nothing is reported when the configuration has no copyright section
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-001")]
+    public async Task NoCopyrightSection()
+    {
+        await VerifySpecificationFile("namespace N;\n", "{}");
+    }
+
+    /// <summary>
+    /// Verifies that nothing is reported when the configured copyright text is only white space
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-001")]
+    public async Task WhitespaceCopyrightText()
+    {
+        await VerifySpecificationFile("namespace N;\n", CreateCopyrightConfiguration("   ", ("company", "Example")));
+    }
+
+    /// <summary>
+    /// Verifies that nothing is reported when the configuration has a problem, here a placeholder without a setting
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-001")]
+    public async Task ConfigurationWithProblem()
+    {
+        await VerifySpecificationFile("namespace N;\n", CreateCopyrightConfiguration("// Copyright (c) {owner}."));
+    }
+
+    /// <summary>
+    /// Verifies that a file starting with the configured header, its placeholders and the file name filled in, is
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-002")]
+    public async Task SpecificationHeaderWithPlaceholders()
+    {
+        const string source = """
+                              // <copyright file="C.cs" company="Example">
+                              // Copyright (c) Example.
+                              // </copyright>
+                              namespace N;
+
+                              class C
+                              {
+                              }
+                              """;
+
+        await VerifySpecificationFile(source, CreateSpecificationConfiguration());
+    }
+
+    /// <summary>
+    /// Verifies that the header is compared in the line ending of a CRLF file, although the configuration writes
+    /// its line breaks as <c>\n</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-002")]
+    public async Task SpecificationHeaderWithCarriageReturnLineFeed()
+    {
+        const string source = "// <copyright file=\"C.cs\" company=\"Example\">\r\n// Copyright (c) Example.\r\n// </copyright>\r\nnamespace N;\r\n";
+
+        await VerifySpecificationFile(source, CreateSpecificationConfiguration());
+    }
+
+    /// <summary>
+    /// Verifies that a file without the header, with a header naming another file, and with a blank line in front of
+    /// the header is reported at the start of the file
+    /// </summary>
+    /// <param name="source">Checked file</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("namespace N;\n\nclass C\n{\n}\n")]
+    [DataRow("// <copyright file=\"Other.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\nnamespace N;\n")]
+    [DataRow("\n// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\nnamespace N;\n")]
+    [Requirement("RH8402-003")]
+    [Requirement("RH8402-004")]
+    public async Task FileNotStartingWithHeader(string source)
+    {
+        await VerifySpecificationFile(source, CreateSpecificationConfiguration(), CreateSpecificationFileDiagnostic());
+    }
+
+    /// <summary>
+    /// Verifies that a header that differs only in casing is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-003")]
+    public async Task HeaderWithDifferentCasing()
+    {
+        const string source = "// <copyright file=\"C.cs\" company=\"example\">\n// Copyright (c) example.\n// </copyright>\nnamespace N;\n";
+
+        await VerifySpecificationFile(source, CreateSpecificationConfiguration(), CreateSpecificationFileDiagnostic());
+    }
+
+    /// <summary>
+    /// Verifies that an empty file is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-003")]
+    [Requirement("RH8402-004")]
+    public async Task EmptyFile()
+    {
+        await VerifySpecificationFile(string.Empty, CreateSpecificationConfiguration(), CreateSpecificationFileDiagnostic());
+    }
+
+    /// <summary>
+    /// Verifies that the fix writes the header and a line break in front of the code of a one-line file
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-005")]
+    public async Task FixInsertsHeaderInFrontOfCode()
+    {
+        await VerifySpecificationFileFix("namespace N;",
+                                         "// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\nnamespace N;");
+    }
+
+    /// <summary>
+    /// Verifies that the fix replaces a leading blank line with the header
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-005")]
+    public async Task FixReplacesLeadingBlankLine()
+    {
+        await VerifySpecificationFileFix("\nnamespace N;",
+                                         "// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\nnamespace N;");
+    }
+
+    /// <summary>
+    /// Verifies that the fix inserts the header in front of a leading comment, which stays below it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-005")]
+    public async Task FixKeepsLeadingCommentBelowHeader()
+    {
+        await VerifySpecificationFileFix("// Orders and invoices\nnamespace N;",
+                                         "// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\n// Orders and invoices\nnamespace N;");
+    }
+
+    /// <summary>
+    /// Verifies that the fix writes the header in front of a preprocessor directive that starts the file
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-005")]
+    public async Task FixInsertsHeaderInFrontOfDirective()
+    {
+        await VerifySpecificationFileFix("#nullable enable\nnamespace N;\n",
+                                         "// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\n#nullable enable\nnamespace N;\n");
+    }
+
+    /// <summary>
+    /// Verifies that the fix writes the header in front of a documentation comment that starts the file
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-005")]
+    public async Task FixInsertsHeaderInFrontOfDocumentationComment()
+    {
+        await VerifySpecificationFileFix("/// <summary>Type</summary>\nclass C\n{\n}\n",
+                                         "// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\n/// <summary>Type</summary>\nclass C\n{\n}\n");
+    }
+
+    /// <summary>
+    /// Verifies that the fix writes the header's line breaks and the separating line break in the line ending of a
+    /// CRLF file
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-002")]
+    [Requirement("RH8402-005")]
+    public async Task FixWritesHeaderWithCarriageReturnLineFeed()
+    {
+        await VerifySpecificationFileFix("namespace N;\r\n\r\nclass C\r\n{\r\n}\r\n",
+                                         "// <copyright file=\"C.cs\" company=\"Example\">\r\n// Copyright (c) Example.\r\n// </copyright>\r\nnamespace N;\r\n\r\nclass C\r\n{\r\n}\r\n");
     }
 
     #endregion // Tests
@@ -365,6 +575,70 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
                                         {
                                             ["copyright"] = copyrightConfiguration
                                         });
+    }
+
+    /// <summary>
+    /// Creates the configuration that the specification examples use
+    /// </summary>
+    /// <returns>Serialized configuration</returns>
+    private static string CreateSpecificationConfiguration()
+    {
+        return CreateCopyrightConfiguration(SpecificationCopyrightText, ("company", "Example"));
+    }
+
+    /// <summary>
+    /// Creates the diagnostic expected at the start of the file that the specification examples check
+    /// </summary>
+    /// <returns>Expected diagnostic</returns>
+    private static DiagnosticResult CreateSpecificationFileDiagnostic()
+    {
+        return Diagnostic(RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer.DiagnosticId).WithSpan(SpecificationFilePath, 1, 1, 1, 1)
+                                                                                                        .WithMessage(AnalyzerResources.RH8402MessageFormat);
+    }
+
+    /// <summary>
+    /// Verifies the analyzer on the file that the specification examples check
+    /// </summary>
+    /// <param name="source">Text of the checked file</param>
+    /// <param name="configuration">Serialized configuration</param>
+    /// <param name="expected">Expected diagnostics</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifySpecificationFile(string source, string configuration, params DiagnosticResult[] expected)
+    {
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add((SpecificationFilePath, source));
+                         test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                         test.TestBehaviors |= TestBehaviors.SkipSuppressionCheck;
+                     },
+                     expected);
+    }
+
+    /// <summary>
+    /// Verifies the diagnostic and the code fix on the file that the specification examples check
+    /// </summary>
+    /// <param name="source">Text of the checked file</param>
+    /// <param name="fixedSource">Expected text after the fix</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifySpecificationFileFix(string source, string fixedSource)
+    {
+        var configuration = CreateSpecificationConfiguration();
+
+        await Verify(source,
+                     fixedSource,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add((SpecificationFilePath, source));
+                         test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                         test.FixedState.Sources.Clear();
+                         test.FixedState.Sources.Add((SpecificationFilePath, fixedSource));
+                         test.FixedState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                         test.TestBehaviors |= TestBehaviors.SkipSuppressionCheck;
+                     },
+                     CreateSpecificationFileDiagnostic());
     }
 
     #endregion // Methods
