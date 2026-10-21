@@ -187,6 +187,7 @@ Item numbers as in the round-8 message (1-9 = 8a principles, 10-21 = 8b, 22 = co
 22a (#1305 Q10) b: the RH7501 fix drops the blank line (`}⏎    break;`) — against recommendation; maintainer chose b, so P14a does not keep it here (record as stated exception for RH7501).
 22b (#1310 Q1) b + NEW RULE: the formatter becomes case-sensitive for documentation tags (FMT-DOC-008, behavior change); new analyzer rule reports wrongly cased known documentation tags (e.g. `<Summary>`), fix corrects the case.
 22c (#1311 Q3) a: P8c applied to RH8306's word check; `Gets<!-- c -->value` not reported.
+Round 8 bookkeeping part 1 DONE (agent 2026-10-21): #1331-#1353 created (#1331 = SDD principles P25-P31 + P18/P22 clarifications; mapping `round8-created.md`), #1287/#1241/#1270 extended, 21 question issues closed. Open: #1304 (Q5 = item 10), #1305 (Q10 = 22a), #1310 (Q1 = 22b), #1311 (Q3 = 22c) -> part 2 files them. #912 summary https://github.com/thoenissen/Reihitsu/issues/912#issuecomment-6322240909
 Bookkeeping: first attempt to spawn the principle-decided bookkeeping agent was denied by the permission classifier (external writes); maintainer's clear answer now covers decided items.
 
 ## Waiting for maintainer
