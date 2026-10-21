@@ -23,3 +23,16 @@ Verdict: Lane "tests" claimed
 7. A further instance of an existing follow-up gets a comment by the lead on that issue, not a new question. A new instance of a decided principle is filed in the spec's open-questions issue, marked "Decided by principle Pn (#912)". Other analyzer/formatter disagreements (P4) are open questions per `sdd/README.md`.
 8. Must not: change production code or behavior; fix any bug; write an open question into a spec; retire, move, or renumber an existing requirement ID; mint IDs of other runs; touch files owned by concurrent runs: `shared/code-fixes.md` (#1138), `sdd/README.md` (#1161), `shared/diagnostics.md`, `type-regions.md`, `using-directive-ordering.md`, `element-documentation.md` (#1260), Formatter.Test/Playground.Test tags (#939). Text conflicts in `sdd/specs/requirement-ids.txt` and `sdd/specs/README.md` are resolved by keeping both sides.
 9. Issue comment on thoenissen/Reihitsu#1139 lists round-7a P13 instances already implemented elsewhere (RH5306 in #1272, RH3201 in #1280) and one decided (RH8204, `/** */` documenting nothing like other block comments).
+
+## Lane widening (before the implementer)
+
+`scripts/lane-check.sh tests --head worktree` → `LANE CHECK: mismatch — claimed tests, diff needs tooling`, because the decisions entry `squad/decisions/2026-10-21-1139-shared-comment-001-contradicting-tests.md` (escalation 4) is a tooling path. Widened tests → tooling, as in earlier runs (known tool gap thoenissen/Reihitsu#1054). The tooling lane adds the auditor; the implementer is still skipped because the run changes no production or tooling code. Order now: skeptic → test implementer → cleaner → spec checker → auditor → validator.
+
+## Escalations
+
+1. Escalation 4 (existing SHARED-COMMENT-001 tests contradict P13): the maintainer chose to remove the contradicting tests and the contradicting half of the two mixed tests, keeping conforming parts, and to have spec examples show only conforming shapes. Recorded in the decisions entry above. The lead applied the same example rule to SHARED-COMMENT-011 (its non-conforming RH5110/RH5203/RH5206 shapes stay tracked by thoenissen/Reihitsu#1147).
+
+## Lead actions so far
+
+- Open questions filed: thoenissen/Reihitsu#1362 (`SDD open questions: sdd/specs/shared/comment-placement.md`, Q1 marked "Decided by principle P13 (#912)", Q2, Q3).
+- Further-instance comments: thoenissen/Reihitsu#1147 (RH5205 comment-led brace, P12), thoenissen/Reihitsu#1077 (RH5033 `/** */` behind an attribute list, P6).
