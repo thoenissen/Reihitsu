@@ -166,6 +166,13 @@ Round 7b bookkeeping DONE 2026-10-20 (agent): #1291-#1300 created (milestone SDD
 
 Running (2026-10-20): #985, #993, #995 — prompts in `prompts-round7.md` (overlap check `inventory/batches-round7.md`). Then #939, then #998 last.
 
+## Round 8 (started 2026-10-21)
+
+Inventories DONE (committed): `inventory/round8-o3.md` (#1304-#1305, 10 Q: 4 decided, 6 open), `round8-o1.md` (#1318-#1328, 23 Q: 16 decided, 6 decisions M1-M6), `round8-d4.md` (#1306-#1317, 48 Q: 30 decided, 2 partly, 12 decisions + 1 confirm). #1318-#1328 tracked on #912: https://github.com/thoenissen/Reihitsu/issues/912#issuecomment-6320177371
+Principle-decided items: bookkeeping agent files them (new follow-ups grouped by cause; plan in the three inventory files, sections "Decided by principle"). Items whose follow-up depends on a round-8 answer are held (O1 A3, D4 #1316 Q2 deletion, D4 #1312 Q1 input 1, O3 Q10 confirm).
+Round 8a (principles, numbering coordinator's, agents' P25-P27 renumbered): P25 verdict independent of incidental placement/order (O3 M1/M2/M3/M5); P26 moved code keeps its layout, only indentation follows (O1 M6 = #1318 A3); P27 member-ordering rules check each top-level region on its own (O1 M3 = #1322/#1323 N3); P28 per-part rules judge each part, exception to P15 (O1 M4 = #1324 D2); P29 doc comment behind code (D4 #1306 Q2/#1307 Q3/#1308 Q2); P30 doc-mode gate only for rules reading doc elements (#1315 Q2, #1316 Q4); P31 layout rule does not report a shape the formatter deliberately keeps (#1312 Q4/Q6/Q1 in1); clarifications P22 construct = judged span (#1321 N4), P18 partner = earlier same-group elements (#1328).
+Round 8b (individual): O3 M4 (#1304 Q5), O3 M6 (#1305 Q9), O1 M2 (#1321 N1), D4 #1307 Q2, #1311 Q4, #1317 Q1, #1317 Q2, #1313 Q2, #1314 Q2, #1314 Q7, #1316 Q1, #1316 Q3; confirm #1305 Q10, #1310 Q1, #1311 Q3.
+
 ## Waiting for maintainer
 
 - 2026-10-21: round 8 started. 25 open question issues #1304-#1328 (81 items; #1304-#1317 tracked in #912 comments, #1318-#1328 not yet). Coordinator runs inventory (`inventory/round8-*.md`), then question round 8. New non-question issues: #1329 (formatter bug: declaration after unclosed doc element becomes a comment), #1330 (test non-formattable-line helper). Next batch: #939 (unblocked), then #998.
