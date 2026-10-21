@@ -24,6 +24,9 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7108-001")]
+    [Requirement("RH7108-003")]
+    [Requirement("RH7108-004")]
     public async Task EventAccessorsAreReportedAndFixedWhenAddAppearsAfterRemove()
     {
         const string testCode = """
@@ -202,6 +205,167 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH7108EventAccessorsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7108MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying the specification example: an <c>add</c> accessor after <c>remove</c> is reported on its keyword
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7108-001")]
+    [Requirement("RH7108-003")]
+    public async Task AddAccessorAfterRemoveIsReportedOnItsKeyword()
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  private Action _handlers;
+
+                                  public event Action Changed
+                                  {
+                                      remove
+                                      {
+                                          _handlers -= value;
+                                      }
+
+                                      {|RH7108:add|}
+                                      {
+                                          _handlers += value;
+                                      }
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: an event whose <c>add</c> accessor comes first is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7108-002")]
+    public async Task AccessorListInOrderIsNotReported()
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  private Action _handlers;
+
+                                  public event Action Changed
+                                  {
+                                      add
+                                      {
+                                          _handlers += value;
+                                      }
+
+                                      remove
+                                      {
+                                          _handlers -= value;
+                                      }
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: the fix moves <c>add</c> in front of <c>remove</c>, and the comment above
+    /// the <c>add</c> accessor travels with it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7108-004")]
+    [Requirement("SHARED-ORDER-002")]
+    public async Task FixMovesAddAndItsCommentInFrontOfRemove()
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  private Action _handlers;
+
+                                  public event Action Changed
+                                  {
+                                      remove
+                                      {
+                                          _handlers -= value;
+                                      }
+
+                                      // Subscribes
+                                      {|RH7108:add|}
+                                      {
+                                          _handlers += value;
+                                      }
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System;
+
+                                   class C
+                                   {
+                                       private Action _handlers;
+
+                                       public event Action Changed
+                                       {
+                                           // Subscribes
+                                           add
+                                           {
+                                               _handlers += value;
+                                           }
+
+                                           remove
+                                           {
+                                               _handlers -= value;
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: a pragma directive in front of the moved accessor withholds the fix, and
+    /// the diagnostic is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7108-005")]
+    public async Task PragmaDirectiveInFrontOfTheAddAccessorWithholdsTheFix()
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  private Action _handlers;
+
+                                  public event Action Changed
+                                  {
+                                      remove
+                                      {
+                                          _handlers -= value;
+                                      }
+
+                              #pragma warning disable CS0162
+                                      {|RH7108:add|}
+                                      {
+                                          _handlers += value;
+                                      }
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     #endregion // Tests
