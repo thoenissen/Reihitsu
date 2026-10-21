@@ -182,6 +182,7 @@ public class RH7303DoNotPlaceRegionsWithinElementsAnalyzerTests : BatchCodeFixTe
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7303-004")]
+    [Requirement("SHARED-FIX-007")]
     public async Task CodeFixRemovesBothDirectiveLinesBetweenStatements()
     {
         const string testData = """
@@ -219,6 +220,7 @@ public class RH7303DoNotPlaceRegionsWithinElementsAnalyzerTests : BatchCodeFixTe
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7303-004")]
+    [Requirement("SHARED-FIX-008")]
     public async Task CodeFixRemovesBothDirectiveLinesWithCarriageReturnLineFeed()
     {
         const string testData = """
