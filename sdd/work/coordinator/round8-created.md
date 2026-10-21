@@ -83,3 +83,32 @@ Milestone SDD (9), no labels. Open-issue titles checked (list_issues, 2 pages, 2
 Commented (25): #1304–#1328, each one comment `## Round 8 decisions`.
 Closed, completed (21): #1306, #1307, #1308, #1309, #1312, #1313, #1314, #1315, #1316, #1317, #1318, #1319, #1320, #1321, #1322, #1323, #1324, #1325, #1326, #1327, #1328.
 Left open (held items): #1304 (Q5), #1305 (Q10), #1310 (Q1), #1311 (Q3).
+
+# Part 2 (2026-10-21): held items 10, 22a–c
+
+#912 summary: https://github.com/thoenissen/Reihitsu/issues/912#issuecomment-6322301064
+
+## New issues (3, milestone SDD, no labels)
+
+- #1354 RH7302 does not report a region name prescribed by another rule; formatter no longer changes region-name casing (FMT-REGION-001) — item 10, #1304 Q5. Behavior change, change doc. Links #1334.
+- #1355 Formatter matches documentation tag names case-sensitively (FMT-DOC-008; `DocCommentElementNormalizer` OrdinalIgnoreCase) — item 22b, #1310 Q1. Behavior change, change doc. Links #1091, #1356.
+- #1356 New rule: documentation tag name is wrongly cased (RH8xxx, ID chosen by squad; fix corrects start + end tag) — item 22b, #1310 Q1. Behavior change (new rule). Links #1091, #1355.
+
+## Comments
+
+- #1332 item 22a (#1305 Q10, fix drops blank line before `break`, P14a exception in RH7501-004): https://github.com/thoenissen/Reihitsu/issues/1332#issuecomment-6322287357
+- #1153 item 22c (#1311 Q3, P8c for RH8306): https://github.com/thoenissen/Reihitsu/issues/1153#issuecomment-6322288471
+- #1091 item 22b (#1310 Q1 P8 analyzer side + links #1355/#1356): https://github.com/thoenissen/Reihitsu/issues/1091#issuecomment-6322289452
+
+## Question → tracking (replaces HELD rows above)
+
+| Question | Tracked in |
+|---|---|
+| #1304 Q5 | #1354 |
+| #1305 Q10 | #1332 comment |
+| #1310 Q1 | #1355, #1356, #1091 comment |
+| #1311 Q3 | #1153 comment |
+
+## Question issues
+
+Commented and closed (completed): #1304 (6322291607), #1305 (6322292474), #1310 (6322293548), #1311 (6322294550). All round-8 question issues #1304–#1328 closed.

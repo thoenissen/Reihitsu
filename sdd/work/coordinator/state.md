@@ -77,7 +77,7 @@ Earlier: 3 — plan the analyzer backfill. Phase 1 and 2 complete (2026-10-17): 
 
 ## Running
 
-- 2026-10-21 (round 8): nothing running. Round-7 batches #985 (PR #1301), #993 (PR #1303), #995 (PR #1302) merged. Remaining batches: #939, then #998 last. Spec issues #1138, #1139, #1161, #1260 still open, no PR (not run yet). Status file: `inventory/round8-status.md`.
+- 2026-10-21 (round 8): prompts given for #939, #1138, #1260, #1139, #1161 (`prompts-round8.md`); waiting for maintainer to start them. Before that nothing running. Round-7 batches #985 (PR #1301), #993 (PR #1303), #995 (PR #1302) merged. Remaining batches: #939, then #998 last. Spec issues #1138, #1139, #1161, #1260 still open, no PR (not run yet). Status file: `inventory/round8-status.md`.
 - Earlier, round 6 (prompts 2026-10-19, `sdd/work/coordinator/prompts-round6.md`, overlap check `inventory/batches-round6.md`): #984, #991, #992, #994, #996, #997. Next: #985 after #984; #995 after #994; #993 after #994 and #996; then #939, #998.
 
 ## Next: question round (new chat, planned 2026-10-18)
@@ -188,6 +188,8 @@ Item numbers as in the round-8 message (1-9 = 8a principles, 10-21 = 8b, 22 = co
 22b (#1310 Q1) b + NEW RULE: the formatter becomes case-sensitive for documentation tags (FMT-DOC-008, behavior change); new analyzer rule reports wrongly cased known documentation tags (e.g. `<Summary>`), fix corrects the case.
 22c (#1311 Q3) a: P8c applied to RH8306's word check; `Gets<!-- c -->value` not reported.
 Round 8 bookkeeping part 1 DONE (agent 2026-10-21): #1331-#1353 created (#1331 = SDD principles P25-P31 + P18/P22 clarifications; mapping `round8-created.md`), #1287/#1241/#1270 extended, 21 question issues closed. Open: #1304 (Q5 = item 10), #1305 (Q10 = 22a), #1310 (Q1 = 22b), #1311 (Q3 = 22c) -> part 2 files them. #912 summary https://github.com/thoenissen/Reihitsu/issues/912#issuecomment-6322240909
+Round 8 bookkeeping part 2 DONE (agent 2026-10-21): #1354 (item 10: RH7302 ignores prescribed region names + formatter keeps region casing), #1355 (formatter doc tags case-sensitive), #1356 (new rule: wrongly cased doc tags), comments #1332 (22a), #1091, #1153 (22c); #1304, #1305, #1310, #1311 closed. ALL ROUND-8 QUESTION ISSUES CLOSED. #912 summary https://github.com/thoenissen/Reihitsu/issues/912#issuecomment-6322301064
+Next runs (overlap check `inventory/batches-round8.md`, prompts `prompts-round8.md`): #939, #1138, #1260, #1139, #1161 in parallel (5 squads). Then #1331 (after #1260 + #1138, preferably #1161), then #998 last. ID plan: #1260 DIAG-004..008, DOC-017, P18 amends USING-007 or USING-011; #1138 FIX-006..008; #1139 COMMENT-011; #1331 DIAG-009/010.
 Bookkeeping: first attempt to spawn the principle-decided bookkeeping agent was denied by the permission classifier (external writes); maintainer's clear answer now covers decided items.
 
 ## Waiting for maintainer
@@ -251,7 +253,9 @@ Status: open / running / PR #… / merged.
 | 19 | #995 | O3 member grouping by regions, RH7501 | — | merged (PR #1302); filed #1304, #1305 |
 | 20 | #996 | B1 RH0002–RH2109 | — | merged (PR #1166); filed #1247-#1256 |
 | 21 | #997 | B2 clarity | — | merged (PR #1167); filed #1224-#1245 |
-| 22 | #939 | tag formatter/shared/CLI/Playground tests | — | open |
+| 22 | #939 | tag formatter/shared/CLI/Playground tests | — | prompt given 2026-10-21 |
+| 22a | #1138, #1260, #1139, #1161 | principle spec issues (specs-and-tests lane; #1161 docs) | — | prompt given 2026-10-21 |
+| 22b | #1331 | principles P25-P31 | #1260, #1138 (+#1161) | open |
 | 23 | #998 | opt-out + every test tagged | all above | open |
 
 Phase-3 decisions (maintainer 2026-10-17): #946 does not block — RH5005/RH5006 are in #977, the `await` form is covered by SHARED-STMT-004/SHARED-FIX-001 and fixed later by #946. No parallel runs. Order chosen by coordinator. 2026-10-18: maintainer has budget for 2 parallel squads — run independent batches at once (6 running: #979, #980, #982, #986, #988, #989) (never a batch with its blocker).
