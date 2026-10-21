@@ -35,3 +35,14 @@ Rules for this run:
 - A genuinely new instance of a principle found in passing is filed in the spec's "SDD open questions" issue, marked "Decided by principle Pn (#912)"; report it in the handover — only the lead touches GitHub.
 
 Related open issue on diagnostics.md: thoenissen/Reihitsu#1240 (non-goal on inactive `#if` code vs region directives) — not decided; do not resolve it in this run.
+
+## Lane widened: tests → tooling
+
+`scripts/lane-check.sh tests --head worktree` after the spec author: `LANE CHECK: mismatch — claimed tests, diff needs tooling`. The only tooling paths are the four maintainer-decision entries `squad/decisions/2026-10-21-1260-*.md`, which `squad/decisions/README.md` requires to be committed with the PR. Widened along docs → tests → tooling before the implementer started. Roles now: spec author (done), skeptic, test implementer, cleaner, spec checker, auditor, validator. The implementer stays skipped: no production code and no tooling code changes in this run.
+
+## Maintainer decisions (escalations, recorded in squad/decisions/)
+
+- SHARED-DIAG-008 fix sentence: reading B (withhold only a fix that rewrites or moves the part of the judged span holding the region/pragma directive).
+- SHARED-DIAG-003 Razor/HTML/`@@` sentence written as decided; covered by the conforming C# tests; the three RH2109 characterization tests stay until #1289.
+- Item 19 folded into SHARED-TYPEREGION-006; no SHARED-TYPEREGION-007.
+- The two in-passing questions (partial property name casing; several non-name aliases) are not filed.
