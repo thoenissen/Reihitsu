@@ -112,6 +112,29 @@ A spec describes current behavior. When the real output looks wrong while a spec
 - Each question stands on its own: input, real output, why it looks wrong, and the requirement IDs it touches.
 - The maintainer decides each question: a bug fix brings the code in line with the spec, a clarification adds the current behavior as a requirement, and a different intended behavior needs a change doc first (see [When a change doc is required](#when-a-change-doc-is-required)).
 - A question is never recorded only in a PR description, which nobody reads after the merge. The PR may link the issue.
+- A rule that stays silent where the formatter rewrites is not an open question about the formatter; [The formatter may do more than the analyzers (P11)](#the-formatter-may-do-more-than-the-analyzers-p11) says how it is filed.
+
+## The formatter may do more than the analyzers (P11)
+
+The formatter may do more than the sum of the analyzer rules. When a run finds the formatter rewriting a construct that no rule reports, the formatter's behavior is intended, and the case is not filed as an open question about the formatter. It is filed as one of two kinds, decided by the construct:
+
+- **The rule's own gap.** The construct is the one the rule names, and the rule skips only a form of it. That gap belongs to the rule: a bug against the rule's spec when the spec already covers that form, otherwise a behavior change of the rule, which adds diagnostics and needs a change doc. Example: RH5110 names generic type constraints, yet it does not report the constraint below, which the formatter moves to its own line — a behavior change of RH5110.
+
+  ```csharp
+  record struct S<T> where T : class;
+  ```
+
+- **A new-rule candidate.** The construct is a different one that the formatter also handles. A rule is not widened to it only because the formatter handles it and the rule roughly fits; that construct gets its own, specialized rule. Example: RH5101 names the argument lists of calls and object creations and is silent on the attribute argument list below, whose first argument the formatter moves onto the line of the opening parenthesis — attribute argument lists are a different construct, so this is a candidate for a new rule, not a change of RH5101.
+
+  ```csharp
+  [A(
+      1)]
+  class C
+  {
+  }
+  ```
+
+This section settles only the direction in which the formatter does more than the analyzers. Any other disagreement between a rule and the formatter is filed as described under [Open questions](#open-questions).
 
 ## Temporary working docs
 
