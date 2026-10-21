@@ -421,7 +421,7 @@ A rule that checks where a line starts — whether a token starts its line, or i
 
 Why: The first element of a line is what the reader sees at its start, so the layout of the line is measured there. The token behind a leading comment cannot be moved onto another line or into another column without moving the comment as well; a diagnostic on it would have no fix that clears it. Whether the comment may stand there at all is decided by the rules that report comments.
 
-Example — RH5110, RH5201, RH5203, RH5204, and RH5206:
+Example — RH5201 and RH5204:
 
 ```csharp
 using System.Linq;
@@ -430,28 +430,12 @@ class C
 {
     /* a */   private int _a;
 
-    void M<T>()
-        /* c */ where T : class
+    object N(int[] items)
     {
-    }
-
-    string N(int status, int[] items)
-    {
-        P(1,
-          /* two */ 2);
         var list = items.Where(x => x > 0)
                         /* all */   .ToList();
-        var a = status switch
-                {
-                    /* idle */ 0 => "Idle",
-                    _ => "Other"
-                };
 
-        return a;
-    }
-
-    void P(params int[] values)
-    {
+        return list;
     }
 }
 ```

@@ -110,3 +110,7 @@ Commit: 4fb6eeb. Trigger: the maintainer's answer in `squad/decisions/2026-10-21
   - RH5034 does not report `/// <summary>M</summary>⏎/** <remarks>M</remarks> */⏎void M()`, in either mode.
 - The non-conforming SHARED-COMMENT-001 shapes stay recorded only under Open questions to file. The part about a `///` or `/** */` that documents nothing, and the part about a line holding only `/* */`, now have no example and no conforming test. The requirement as a whole is still covered by the conforming shapes.
 - Not changed, for the lead to decide: the decision covers only SHARED-COMMENT-001. The first example block of SHARED-COMMENT-011 still shows the decided P12 shapes from the issue: RH5110, RH5203 and RH5206, which are non-conforming (thoenissen/Reihitsu#1147), next to the conforming RH5204 and RH5201 shapes. If the same rule applies there, that block shrinks to the RH5204 and RH5201 lines.
+- The lead extended the same rule to SHARED-COMMENT-011, so its first example block is now reduced to the shapes that conform today. The requirement text is unchanged.
+  - Dropped: the RH5110, RH5203 and RH5206 shapes, which thoenissen/Reihitsu#1147 still tracks.
+  - Kept, as "Example — RH5201 and RH5204": `    /* a */   private int _a;` for RH5204, and the anchor-column comment in front of `.ToList()` for RH5201. I re-probed the block as written, and neither rule reports it.
+  - The reported counterpart is unchanged: RH5203 with a trailing comment on the line above, and with a comment on its own line above. Both conform.
