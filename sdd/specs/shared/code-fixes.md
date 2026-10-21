@@ -5,7 +5,7 @@
 | ID prefix | SHARED-FIX |
 | Status | Active |
 | Code owners | — |
-| Uses | — |
+| Uses | FMT-PIPE-007 |
 
 This spec covers what holds for every code fix of an analyzer rule, so a rule spec states only what its own fix produces and when it is withheld. It applies to every rule whose header names a code fix, without being listed under `Uses`; SHARED-FIX-002 applies to the rules whose header says `Fix All`.
 
@@ -122,7 +122,7 @@ RH5028 reports the whole run, and RH5023 reports its second and third line. The 
 
 ### SHARED-FIX-002 — Fix All corrects everything in one application
 
-A code fix that offers Fix All MUST correct, in one Fix All application, every reported diagnostic of a document, a project, or a solution whose fix is offered on the code the application starts from, and the result MUST equal the result of applying those single fixes one after another. A diagnostic whose fix a guard withholds on that code, and releases only after another fix has run, is not covered: it may still be reported after the application, and its fix is offered on the result once the guard releases it.
+A code fix that offers Fix All MUST correct, in one Fix All application to a document, a project, or a solution, every reported diagnostic whose fix is offered on the code the application starts from, and the result MUST equal the result of applying those single fixes one after another. A diagnostic whose fix a guard withholds on that code, and releases only after another fix has run, is not covered: it may still be reported after the application, and its fix is offered on the result once the guard releases it.
 
 Why: The user applies Fix All expecting one step that leaves nothing behind. Requiring the same result as the single fixes makes the outcome independent of the order in which the diagnostics are fixed. A fix that its guard withholds is not offered on the starting code, so it is not among the fixes the user asked to apply; running fixes until every guard releases would apply a fix nobody was offered.
 
@@ -146,27 +146,7 @@ public class C
 }
 ```
 
-Example — a fix that a guard releases only after another fix has run, for RH7103:
-
-```csharp
-public class C
-{
-    private int _instance;
-    private static int {|RH7103:_a|} = 1;
-    private static int {|RH7103:_b|} = _a;
-}
-```
-
-```csharp
-public class C
-{
-    private static int _a = 1;
-    private int _instance;
-    private static int {|RH7103:_b|} = _a;
-}
-```
-
-On the starting code, only `_a` has a fix: the guard of SHARED-FIX-003 withholds the fix for `_b`, because moving `_b` in front of `_a` would change its initial value. One Fix All application moves only `_a`, which is the result of the one single fix offered. In the result, `_b` is still reported and is offered its fix.
+Example — a fix that a guard releases only after another fix has run, for RH7103: the example "another run-time change" under SHARED-FIX-003. On its first block, only `_a` has a fix; the guard of SHARED-FIX-003 withholds the fix for `_b`, because moving `_b` in front of `_a` would change its initial value. One Fix All application gives its second block, which is the result of the one single fix offered. In that result, `_b` is still reported and is offered its fix.
 
 ### SHARED-FIX-003 — A fix that could break the code is withheld
 
@@ -496,6 +476,7 @@ is reported, and no code fix is offered, because the name the fix derives is `_1
 A code fix MUST change only the code its diagnostic is about; the layout of the code around it MUST stay as it was. In particular:
 
 - **Blank lines.** A fix MUST NOT insert a blank line before the node it changes, and MUST NOT change the blank lines between that node and its neighbours, unless those blank lines are the code its diagnostic is about. The blank line that a fix leaves by removing a directive line is handled as SHARED-FIX-007 states.
+- **Shared line.** A member that shares its line with the member a fix changes, after the fix, is handled as SHARED-FIX-007 states.
 - **Formatting.** A fix MUST format only the node it replaces, with the whitespace of the lines it edits. It MUST NOT format the member, the statement, or the type that contains that node.
 
 Why: The user applies a fix to correct one finding. A change to code the diagnostic does not name is a second edit nobody asked for: it hides the correction in an unrelated diff, can undo a layout the author chose, and makes a decision that belongs to the rule or the formatter that owns that layout. The blank lines between a node and its neighbours are such a layout, and formatting the member, statement, or type around the node reaches all of the code around it.
@@ -598,10 +579,11 @@ The fix replaces the expression body and its semicolon with a block, indented fr
 
 The code a fix changes MUST be laid out as the formatter lays it out, in one application, so that formatting the result changes nothing in that code. In particular:
 
-- **Shared line.** When the member a fix changes shares its line with another member after the fix, the changed member MUST get its own line and the other member MUST start on the next line. Around a member that has its line to itself after the fix, the line breaks and blank lines stay as SHARED-FIX-006 states.
+- **Shared line.** When the member a fix changes shares its line with another member after the fix, the changed member MUST get its own line and the other member MUST start on the next line; the lines the fix edits are laid out as the formatter lays them out. When the other member comes first on the line, the changed member starts on the next line. Around a member that has its line to itself after the fix, the line breaks and blank lines stay as SHARED-FIX-006 states.
 - **Removed directive line.** A fix that removes a region or conditional directive line MUST also remove the blank line that the removal leaves at the start of a body, at the end of a body, or doubled between two lines, and MUST NOT insert a blank line. A single blank line that the removal leaves between two lines stays.
+- **Blank lines.** The blank lines between the node a fix changes and its neighbours follow SHARED-FIX-006 and the removed-directive bullet above, also where formatting the result would insert or remove one.
 
-Why: The fix wrote the changed code, so no layout the author chose is lost when it is laid out the way the formatter would lay it out. A fix that leaves its own code in a shape the formatter changes again hands the user a second diff for the same correction, on lines the user has just reviewed, and leaves layout that the layout rules report. A member that shares a line with another, and a blank line that a removal leaves at the edge of a body or next to another blank line, are such shapes, and the fix's own edit produced them.
+Why: A fix that leaves the code it changed in a shape the formatter changes again hands the user a second diff for the same correction, on lines the user has just reviewed, and leaves layout that the layout rules report. A member that shares its line with another member after the fix, and a blank line that a removal leaves at the edge of a body or next to another blank line, are such shapes, whoever wrote the lines around them. The blank lines between the changed node and its neighbours stay a layout the author chose: a blank line inserted or removed only because the formatter would want it is a decision the diagnostic did not name.
 
 Example — the RH5101 fix:
 
@@ -649,6 +631,8 @@ class C
 {
     void M() {|RH5417:{|} } int _x;
 
+    int _y; void P() {|RH5417:{|} }
+
     int N() {|RH5417:{|} return 1; }
 }
 ```
@@ -661,6 +645,11 @@ class C
     }
     int _x;
 
+    int _y;
+    void P()
+    {
+    }
+
     int N()
     {
         return 1;
@@ -668,7 +657,7 @@ class C
 }
 ```
 
-After the fix, the closing brace of `M` would share its line with `_x`, so `_x` starts on the next line. `N` has its line to itself, and the blank line above it stays.
+After the fix, the closing brace of `M` would share its line with `_x`, so `_x` starts on the next line. `P` would share its line with `_y`, which comes first, so `P` starts on the next line. `N` has its line to itself, and the blank line above it stays.
 
 Example — a removed region at the start and at the end of a body, for RH7310:
 
@@ -755,11 +744,11 @@ class C
 }
 ```
 
-No blank line is left by the removal, and none is inserted.
+No blank line is left by the removal, and none is inserted, although formatting the result would insert one after `var x = 1;`.
 
 ### SHARED-FIX-008 — A fix keeps the document's line ending
 
-A code fix MUST write only the line ending the document already uses: every line break the fix creates or keeps MUST be that line ending, in a document whose line breaks are CRLF as in one whose line breaks are LF. A line break inside a literal is part of the literal's value and stays as it is (SHARED-FIX-003).
+A code fix MUST write only the line ending the document already uses: every line break the fix creates or keeps MUST be that line ending, in a document whose line breaks are CRLF as in one whose line breaks are LF. A line break inside a literal or inside the text of a comment other than a documentation comment is content under SHARED-FIX-003; it stays as it is and does not count when deciding which line ending the document uses, as FMT-PIPE-007 does not count it.
 
 Why: A fix that introduces the other line ending leaves the file with mixed line endings, which the formatter then rewrites.
 
