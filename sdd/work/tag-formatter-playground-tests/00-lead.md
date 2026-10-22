@@ -44,3 +44,15 @@ Spec groups:
 - A requirement that is wrong about current behavior is filed as an open question in `SDD open questions: <spec path>`, never edited. A new instance of a decided principle (P1–P31, see thoenissen/Reihitsu#912) is filed marked "Decided by principle Pn"; a further instance of an existing follow-up issue gets a one-line comment on that issue instead.
 - No new requirement IDs. No retiring, moving, or renumbering IDs without escalating. No production code change, no bug fix. No issues besides open-question issues without approval of the exact text.
 - Other squads run in parallel on `shared/` specs and `sdd/README.md`; their files are not touched.
+
+## Escalations
+
+- Escalation 5 (Playground test seam): the maintainer approved adding bUnit to `Reihitsu.Playground.Test` only; recorded in `squad/decisions/2026-10-22-939-playground-component-tests.md`. The test project file change may make the lane check name `tooling`; tests → tooling is an allowed widening before any implementer runs (none runs in this lane). Formatter tagging proceeds in parallel.
+
+## Open questions filed
+
+SDD open questions issues (new, the earlier ones per spec are closed): cleanup.md thoenissen/Reihitsu#1364, raw-string-alignment.md thoenissen/Reihitsu#1365, pipeline.md thoenissen/Reihitsu#1366 (Q-P1 in body, Q-P2 as comment), documentation-comments.md thoenissen/Reihitsu#1367, switch-case-braces.md thoenissen/Reihitsu#1368, horizontal-spacing.md thoenissen/Reihitsu#1369, indentation.md thoenissen/Reihitsu#1370, structural-transforms.md thoenissen/Reihitsu#1371, blank-lines.md thoenissen/Reihitsu#1372, line-breaks.md thoenissen/Reihitsu#1373.
+
+Further instances commented on: thoenissen/Reihitsu#1144, #1081, #953, #963, #1148, #1077, #962, #1348, #1076, #948, #956.
+
+Tests must not tag a requirement with an input that a filed question disputes; a test pinning disputed current behavior is a characterization test without that ID.
