@@ -80,7 +80,7 @@ partial class {|RH7305:P|}
 
 A rule MUST count the members the type declaration declares directly: nested types (enums and extension blocks included), delegates, fields, constructors, finalizers, properties, indexers, events in both forms, methods, operators, and conversion operators. It MUST NOT report a type that declares none of them.
 
-A nested declaration counts as one member of the type around it. What it declares itself — the members of a nested type and the values of a nested enum — and the regions among them MUST belong to the nested declaration (SHARED-TYPEREGION-006) and MUST NOT be counted for the type around it.
+A nested declaration counts as one member of the type around it; what it declares itself MUST NOT be counted for the type around it. A region among the members of a nested class, struct, interface, record, or record struct, or among the values of a nested enum, MUST belong to that nested declaration (SHARED-TYPEREGION-006).
 
 Why: These are the declarations a reader navigates by. A type without any — an empty class or a positional record whose members are all generated from its parameter list — has nothing to organize. A nested type or enum is one entry of the outline around it; what lies inside its braces is its own outline.
 
@@ -228,9 +228,9 @@ namespace N
 
 When every region directive inside a class, struct, interface, record, or record struct declaration lies inside executable code or between declarations (SHARED-TYPEREGION-005), none lies inside a nested extension block, and no `#region`–`#endregion` pair (FMT-REGION-003) crosses the start or the end of one of the declaration's members, the declaration's top-level regions MUST be the pairs whose two directives lie between its members (SHARED-TYPEREGION-005), inside its braces and outside its nested type and enum declarations, and that are not nested in another such pair. A member MUST count as lying in a top-level region when it lies wholly between the region's `#region` and `#endregion`, also when it lies in a region nested in it. Each declaration of a `partial` type has its own top-level regions.
 
-A region MUST belong to the innermost class, struct, interface, record, record struct, or enum declaration whose braces enclose it. A rule MUST NOT compare a region with a region of another declaration, and a code fix MUST NOT move a region or a member from one declaration into another. A rule MUST NOT compare the descriptions of two top-level regions that lie in different branches — `#if`, `#elif`, or `#else` — of one conditional directive; two regions in the same branch, or one inside and one outside the conditional directive, MUST be compared. A rule that judges a member by the region it lies in MUST judge it by the innermost region that encloses it.
+A region MUST belong to the innermost class, struct, interface, record, record struct, or enum declaration whose braces enclose it. A rule MUST NOT compare a region with a region of another declaration, and a code fix MUST NOT move a region or a member from one declaration into another. A rule MUST NOT compare the descriptions of two regions that lie in different branches — `#if`, `#elif`, or `#else` — of one conditional directive. A rule that judges a member by the description of the region it lies in MUST judge it by the innermost region that encloses it; a rule that uses a region only as the scope within which it compares members is not covered by this sentence.
 
-Why: The regions directly in a type's body form the type's outline, and a nested region is a sub-heading of the region around it, so a member belongs to the outline entry of its outer region. A region around the type belongs to the enclosing scope, a region of a nested type or enum to that declaration's outline, and a region in a method body to the method; none of them is an entry of this type's outline. The heading closest to a member is the one that describes it, so a sub-heading, not the heading above it, says what the member should be. No build compiles two branches of one conditional directive, so their regions never appear in one outline, and the same description in both names the same part of the type in two configurations; a region outside the directive, or in the same branch, is in one outline with the other in at least one build.
+Why: The regions directly in a type's body form the type's outline, and a nested region is a sub-heading of the region around it, so a member belongs to the outline entry of its outer region. A region around the type belongs to the enclosing scope, a region of a nested type or enum to that declaration's outline, and a region in a method body to the method; none of them is an entry of this type's outline. The heading closest to a member is the one that describes it, so a sub-heading, not the heading above it, says what the member should be. No build compiles two branches of one conditional directive, so their regions never appear in one outline, and the same description in both names the same part of the type in two configurations.
 
 Example — RH7311, which compares the descriptions of top-level regions:
 
@@ -336,23 +336,23 @@ class C
 }
 ```
 
-is not reported, while a repeated description in a branch and outside the conditional directive is:
+is not reported.
+
+Example — RH7110 uses the top-level region `Members` only as the scope of its comparison, so it compares `B` in the nested region `Inner` with `_a`:
 
 ```csharp
 class C
 {
-    #region Fields
+    #region Members
 
-    int _a;
+    private int _a;
 
-    #endregion
+    #region Inner
 
-#if DEBUG
-    {|RH7311:#region Fields|}
-
-    int _b;
+    public int {|RH7110:B|};
 
     #endregion
-#endif
+
+    #endregion
 }
 ```

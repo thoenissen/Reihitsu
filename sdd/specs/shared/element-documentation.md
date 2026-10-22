@@ -1179,9 +1179,9 @@ public class C<T>
 
 ### SHARED-DOC-017 — An end tag with another name is no end tag of its own
 
-An XML element of a documentation comment MUST count as having an end tag of its own only when it has an end tag and that end tag carries the name of its start tag. An element without an end tag, and an element that the parser closes with an end tag of another name — `<returns>` in `<remarks><returns>Nothing</remarks>`, which `</remarks>` closes — has no end tag of its own. The code fixes of RH8107, RH8202, and RH8204 MUST NOT be offered for a reported element that has no end tag of its own; the diagnostic is still reported.
+An XML element of a documentation comment that is written with a start tag MUST count as having an end tag of its own only when the parser closes it with an end tag that carries the name of its start tag. Such an element without an end tag, and one that the parser closes with an end tag of another name — `<returns>` in `<remarks><returns>Nothing</remarks>`, which `</remarks>` closes — has no end tag of its own. The code fixes of RH8107, RH8202, and RH8204 MUST NOT be offered for a reported element that has no end tag of its own; the diagnostic is still reported. An empty element, such as `<returns/>`, `<value/>`, or `<placeholder/>`, needs no end tag, and this requirement does not withhold a fix for it.
 
-Why: An end tag with another name belongs to an element around the reported one, and an element without an end tag runs to the end of the comment. Removing or unwrapping the reported element up to where the parser ends it would also remove the end tag of the element around it, or the documentation and the code that follow it.
+Why: An end tag with another name belongs to an element around the reported one, and an element without an end tag runs to the end of the comment. An empty element ends where it is written, so removing it touches nothing else. Removing or unwrapping the reported element up to where the parser ends it would also remove the end tag of the element around it, or the documentation and the code that follow it.
 
 Example — RH8107 reports the `<returns>` element of the `void` method, which `</remarks>` closes:
 
@@ -1214,3 +1214,30 @@ public class C
 ```
 
 and no code fix is offered.
+
+Example — an empty `<returns/>` element ends where it is written, so the RH8107 fix is offered and removes its line:
+
+```csharp
+public class C
+{
+    /// <summary>
+    /// Runs
+    /// </summary>
+    /// {|RH8107:<returns/>|}
+    public void Run()
+    {
+    }
+}
+```
+
+```csharp
+public class C
+{
+    /// <summary>
+    /// Runs
+    /// </summary>
+    public void Run()
+    {
+    }
+}
+```

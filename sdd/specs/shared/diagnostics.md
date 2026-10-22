@@ -209,7 +209,7 @@ Example — in `Counter.razor`, the `@code` in the HTML comment, in the Razor co
 
 A rule that judges a type or a member declared in several parts with the `partial` modifier MUST judge it by its symbol — by the modifiers of all its parts together, so that it is `async`, `static`, or of an accessibility when any part declares it so — and MUST report it at most once. A code fix that would have to change more than one part to give a correct result MUST NOT be offered (SHARED-FIX-003); the diagnostic is still reported.
 
-This requirement covers a rule's verdict on what the declaration is. A verdict on what one part writes — the accessibility modifier or the order of the modifiers that one part carries, or the name or the parameters that one part declares — is not covered.
+This requirement covers a rule's verdict on what the declaration is. A verdict on what one part writes or holds is not covered — for example the accessibility modifier or the order of the modifiers that one part carries, the name or the parameters that one part declares, or the members and regions that one part holds.
 
 Why: The compiler builds one type or member from all its parts, and every caller, tooltip, and reader sees that one symbol. Judging one part alone gives it a verdict the declaration does not deserve — the part of an `async` method that does not repeat `async` is still an `async` method — and reporting every part repeats one finding. A change that every part has to carry cannot be made on one part without a compile error.
 
@@ -271,9 +271,9 @@ class C
 
 ### SHARED-DIAG-006 — Every element of the rule's kind is checked
 
-A rule that checks a kind of element of which a construct can hold several — such as a documentation element, a parameter, or a declarator of a field or an event declaration — MUST check every such element of the construct, and its verdict on one element MUST NOT depend on the element's position among the others or on the order of the declarators. A rule that reports declarators MUST report one diagnostic per reported declarator, located on that declarator's identifier.
+A rule that checks a kind of element of which a construct can hold several — such as a documentation element, a parameter, or a declarator of a field or an event declaration — MUST check every such element of the construct. Unless the rule's subject is the order or the position of the elements — a rule that orders them, or one that judges the last of them — its verdict on one element MUST NOT depend on the element's position among the others or on the order of the declarators. A rule that reports individual declarators MUST report one diagnostic per reported declarator, located on that declarator's identifier; a rule whose verdict is about the declaration as a whole reports the declaration once.
 
-Why: Each element stands on its own: a field declaration with two declarators declares two fields, and a documentation comment shows every element it holds. A verdict that changes when the same elements are written in another order is a verdict about the order, which the rule does not judge. One diagnostic on each reported declarator names exactly what the user has to change.
+Why: Each element stands on its own: a field declaration with two declarators declares two fields, and a documentation comment shows every element it holds. A verdict that changes when the same elements are written in another order is a verdict about the order, which the rule does not judge. One diagnostic on each reported declarator names exactly what the user has to change; a verdict that holds for every declarator alike, such as the accessibility of the declaration, is one finding.
 
 Example — RH4107 reports each declarator that is not in `_camelCase`, wherever it stands in its declaration:
 
@@ -299,9 +299,18 @@ class C
 }
 ```
 
+Example — RH2004 judges the accessibility of the whole declaration, so it reports the field declaration once, at its first declarator:
+
+```csharp
+public struct S
+{
+    int {|RH2004:a|}, b;
+}
+```
+
 ### SHARED-DIAG-007 — A diagnostic has a location in the source
 
-A rule MUST locate every diagnostic in the source of the construct it reports. A construct without a name MUST be reported at a token of its own that marks it: an extension block at its `extension` keyword.
+A rule MUST locate every diagnostic in the source of the construct it reports. A rule that locates its diagnostic on the name of a declaration MUST, for a declaration without a name, locate it on a token of the declaration that marks it: an extension block at its `extension` keyword. A rule whose location is another part of the construct, such as an element, a directive, or a span of whitespace, keeps that location.
 
 Why: A diagnostic without a location in the source cannot be found from the code, navigated to, or suppressed in place, and a code fix has nothing to start from. A name is the usual place; a construct without one needs the token a reader recognizes as its start.
 
