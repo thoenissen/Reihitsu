@@ -59,3 +59,15 @@ _None._ The lead has filed F4 and the RH5302/RH5308 shapes already.
 ## Decisions needed
 
 _None._
+
+## Revision — placement of the reference sentence (skeptic finding N4)
+
+Commit: 7628661. Decision: I added the reference rather than moved it. "A line that starts with a comment is judged as SHARED-COMMENT-011 specifies." now also stands in the requirement that decides each shape N4 names:
+
+- RH5201-001, which reports a later link for not starting a line.
+- RH5301-002, the member columns.
+- RH5303-002, the element columns.
+
+The existing references stay where they were: in RH5201-002 (link columns, next to its own block-comment sentence), RH5301-001 and RH5303-001 (brace columns). Those requirements judge comment-led lines too, so moving the sentence would have left them without it.
+
+This changes no behavior, and `Uses` stays the same. Following the lead's note, I wrote no spec text about N1–N3 (thoenissen/Reihitsu#1362 Q6, Q7, and the Q2/Q4 precedents).
