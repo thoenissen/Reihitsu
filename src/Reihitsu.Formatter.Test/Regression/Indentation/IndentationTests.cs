@@ -35,6 +35,7 @@ public class IndentationTests : FormatterTestsBase
     /// when the true branch begins on a new line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-018")]
     public void ConditionalExpressionMovesQuestionTokenToNextLine()
     {
         // Arrange

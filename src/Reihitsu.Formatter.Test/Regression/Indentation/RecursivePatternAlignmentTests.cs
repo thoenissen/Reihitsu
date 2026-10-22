@@ -16,6 +16,7 @@ public class RecursivePatternAlignmentTests : FormatterTestsBase
     /// Verifies that a single-line recursive pattern is left untouched
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-022")]
     public void SingleLineRecursivePatternRemainsUnchanged()
     {
         // Arrange
@@ -37,6 +38,7 @@ public class RecursivePatternAlignmentTests : FormatterTestsBase
     /// Verifies that a multi-line recursive pattern in an <c>is</c> expression aligns its braces to the <c>is</c> keyword and indents subpatterns by +4
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-022")]
     public void MultiLineIsPatternAlignsBracesToIsKeyword()
     {
         // Arrange
@@ -235,6 +237,8 @@ public class RecursivePatternAlignmentTests : FormatterTestsBase
     /// case line, aligns subpatterns one level past the brace, and wraps the section body in braces
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-022")]
+    [Requirement("FMT-SWITCH-004")]
     public void CasePatternRecursivePatternKeepsBraceOnCaseLineAndBracesBody()
     {
         // Arrange
@@ -481,6 +485,8 @@ public class RecursivePatternAlignmentTests : FormatterTestsBase
     /// Verifies that each combinator in an <c>and</c>/<c>or</c> chain of recursive patterns is placed on its own line aligned to the <c>is</c> keyword
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-017")]
+    [Requirement("FMT-BREAK-022")]
     public void AndOrChainRecursivePatternsPlaceEachCombinatorOnOwnLine()
     {
         // Arrange
