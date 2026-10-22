@@ -333,7 +333,8 @@ public class ReihitsuFormatterEntryPointTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a non-negative <c>indentLevel</c> sets the indentation instead of the node's position in its tree
+    /// Verifies that a non-negative <c>indentLevel</c>, zero included, sets the indentation instead of the node's position in
+    /// its tree
     /// </summary>
     [TestMethod]
     [Requirement("FMT-PIPE-012")]
@@ -343,9 +344,11 @@ public class ReihitsuFormatterEntryPointTests : FormatterTestsBase
         var target = tree.GetRoot(TestContext.CancellationToken).DescendantNodes().OfType<IfStatementSyntax>().Single();
 
         var atPosition = ReihitsuFormatter.FormatNode(target, cancellationToken: TestContext.CancellationToken);
+        var atLevelZero = ReihitsuFormatter.FormatNode(target, indentLevel: 0, cancellationToken: TestContext.CancellationToken);
         var atLevelOne = ReihitsuFormatter.FormatNode(target, indentLevel: 1, cancellationToken: TestContext.CancellationToken);
 
         Assert.AreEqual("        if (true)\n        {\n            M();\n        }", atPosition.ToFullString().TrimEnd('\n'));
+        Assert.AreEqual("if (true)\n{\n    M();\n}", atLevelZero.ToFullString().TrimEnd('\n'));
         Assert.AreEqual("    if (true)\n    {\n        M();\n    }", atLevelOne.ToFullString().TrimEnd('\n'));
     }
 

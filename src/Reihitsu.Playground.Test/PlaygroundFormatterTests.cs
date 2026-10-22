@@ -77,7 +77,7 @@ public class PlaygroundFormatterTests
     [Requirement("PLAY-005")]
     public void FormatEqualsTreeLevelFormattingWithDefaultParseOptions()
     {
-        var input = "using System;\nnamespace N{\nclass C{int P{get{return 1;}}\n#if DEBUG\n   int   d;\n#endif\nvoid M(){Console.WriteLine( 1 );}}}\n";
+        var input = "using System;\nnamespace N{\nclass C{int P{get{return 1;}}\n#if DEBUG\n   int   d;\n#endif\nvoid M(){Console.WriteLine( 1 );}}\nclass Empty{}\nstatic class E{extension(int v){public int Twice(){return v*2;}}}}\n";
         var expected = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken).ToString();
 
         var result = PlaygroundFormatter.Format(input);
@@ -87,18 +87,20 @@ public class PlaygroundFormatterTests
     }
 
     /// <summary>
-    /// Verifies that the input is parsed with the default language version, so a version-dependent transform applies
+    /// Verifies that the input is parsed with the default language version, C# 14: an extension block, which only C# 14
+    /// parses without an error, is formatted, and the version-dependent transforms of C# 6 (expression-bodied property) and
+    /// C# 12 (empty type body) apply
     /// </summary>
     [TestMethod]
     [Requirement("PLAY-005")]
     public void FormatUsesTheDefaultLanguageVersion()
     {
-        var input = "class C\n{\n    int P { get { return 1; } }\n}";
+        var input = "class C\n{\n    int P { get { return 1; } }\n}\n\nclass Empty\n{\n}\n\nstatic class Extensions\n{\n    extension(int value)\n    {\n        public int Twice() { return value * 2; }\n    }\n}";
 
         var result = PlaygroundFormatter.Format(input);
 
-        Assert.IsTrue(result.Formatted);
-        Assert.AreEqual("class C\n{\n    int P => 1;\n}", result.Text);
+        Assert.IsTrue(result.Formatted, "C# 14 input must not be reported as a syntax error.");
+        Assert.AreEqual("class C\n{\n    int P => 1;\n}\n\nclass Empty;\n\nstatic class Extensions\n{\n    extension(int value)\n    {\n        public int Twice()\n        {\n            return value * 2;\n        }\n    }\n}", result.Text);
     }
 
     /// <summary>

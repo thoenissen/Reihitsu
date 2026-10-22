@@ -44,6 +44,12 @@ public class PipelineInvariantTests : FormatterTestsBase
                                                                    raw   text
                                                                    """;
                                                              var u="""  single  """u8;
+                                                             var q=$"""
+                                                                   {v}   interpolated   raw
+                                                                   """;
+                                                             var w="""
+                                                                   utf8   raw
+                                                                   """u8;
                                                              var n=0x1F+1_000+1.5e3;
                                                      #pragma warning restore CS0168
                                                          }
@@ -141,12 +147,13 @@ public class PipelineInvariantTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that every comment, directive, disabled-text span, and literal value of the input occurs unchanged and in
-    /// the same order in the formatted output, under LF and CRLF
+    /// Verifies that the text of every comment, directive, disabled-text span, and literal of the input occurs unchanged and
+    /// in the same order in the formatted output, under LF and CRLF; only the indentation of multi-line raw string content may
+    /// move, so its value is compared instead
     /// </summary>
     [TestMethod]
     [Requirement("FMT-PIPE-002")]
-    public void EveryCommentDirectiveDisabledTextAndLiteralValueSurvives()
+    public void EveryCommentDirectiveDisabledTextAndLiteralTextSurvives()
     {
         foreach (var endOfLine in _lineEndings)
         {
@@ -189,7 +196,8 @@ public class PipelineInvariantTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Collects the text of every comment, directive, and disabled-text span and the value of every literal, in document order
+    /// Collects the text of every comment, directive, disabled-text span, and literal token in document order, taking the value
+    /// instead of the text for multi-line raw string content
     /// </summary>
     /// <param name="root">The syntax root</param>
     /// <returns>The collected content</returns>
@@ -207,7 +215,9 @@ public class PipelineInvariantTests : FormatterTestsBase
             if (token.Parent is LiteralExpressionSyntax
                 || token.IsKind(SyntaxKind.InterpolatedStringTextToken))
             {
-                content.Add($"literal:{token.ValueText}");
+                content.Add(IsMultiLineRawStringContent(token)
+                                ? $"raw:{token.ValueText}"
+                                : $"literal:{token.Text}");
             }
         }
 
@@ -232,7 +242,7 @@ public class PipelineInvariantTests : FormatterTestsBase
 
             case SyntaxKind.DisabledTextTrivia:
                 {
-                    content.Add($"disabled:{trivia.ToString().Replace("\r\n", "\n")}");
+                    content.Add($"disabled:{trivia}");
                 }
                 break;
 
@@ -245,6 +255,25 @@ public class PipelineInvariantTests : FormatterTestsBase
                 }
                 break;
         }
+    }
+
+    /// <summary>
+    /// Determines whether the token is the content of a multi-line raw string literal, plain, UTF-8, or interpolated. Raw-string
+    /// alignment may shift the indentation of such content (FMT-RAW), so only its value has to survive; the text of every other
+    /// literal token must survive as written
+    /// </summary>
+    /// <param name="token">The literal token</param>
+    /// <returns><see langword="true"/> if the token is multi-line raw string content</returns>
+    private static bool IsMultiLineRawStringContent(SyntaxToken token)
+    {
+        if (token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken)
+            || token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken))
+        {
+            return true;
+        }
+
+        return token.IsKind(SyntaxKind.InterpolatedStringTextToken)
+               && token.Parent?.FirstAncestorOrSelf<InterpolatedStringExpressionSyntax>()?.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken) == true;
     }
 
     /// <summary>
