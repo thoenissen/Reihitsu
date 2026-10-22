@@ -192,6 +192,11 @@ Round 8 bookkeeping part 2 DONE (agent 2026-10-21): #1354 (item 10: RH7302 ignor
 Next runs (overlap check `inventory/batches-round8.md`, prompts `prompts-round8.md`): #939, #1138, #1260, #1139, #1161 in parallel (5 squads). Then #1331 (after #1260 + #1138, preferably #1161), then #998 last. ID plan: #1260 DIAG-004..008, DOC-017, P18 amends USING-007 or USING-011; #1138 FIX-006..008; #1139 COMMENT-011; #1331 DIAG-009/010.
 Bookkeeping: first attempt to spawn the principle-decided bookkeeping agent was denied by the permission classifier (external writes); maintainer's clear answer now covers decided items.
 
+## Round 9 (started 2026-10-22)
+
+Inventory `inventory/round9.md`: 17 question issues #1362-#1376, #1378, #1379 (54 Q; 22 decided by principle/spec/earlier decision, 32 to maintainer) + #1377 docs follow-up (SHARED-FIX-008 citations). New issues have no milestone and are not tracked on #912 (bookkeeping to do). Unfiled PR-body follow-ups: sdd/README.md "Tests and requirements" stale after #939; formatter spec non-goals call decided issues open; SHARED-FIX-003 "for every input" vs DIAG-008/JOIN-001; AGENTS.md pointer to P11 (option); P11 closing sentence to narrow in #1331.
+Round 9 message numbering (maintainer): 1-7 principles (P32 wrap keeps comment layout; P33 multi-line comment belongs to its start line; P34 one treatment per syntax family; P35 fix EOL = FMT-PIPE-007 detection; P36 formatter refuses transform it cannot complete safely; P37 required blank line after directives, never directly before one; P12 clarification comment-led misplaced line reported); 8-27 individual; 28-31 confirmations; 32-34 PR-body follow-ups. Mapping in the message = inventory section 5 numbering: msg1=inv1, msg2=inv3, msg3=inv29colon+17+20+21+25, msg4=inv8, msg5=inv10+11, msg6=inv13+14, msg7=inv9.
+
 ## Waiting for maintainer
 
 - 2026-10-21: round 8 started. 25 open question issues #1304-#1328 (81 items; #1304-#1317 tracked in #912 comments, #1318-#1328 not yet). Coordinator runs inventory (`inventory/round8-*.md`), then question round 8. New non-question issues: #1329 (formatter bug: declaration after unclosed doc element becomes a comment), #1330 (test non-formattable-line helper). Next batch: #939 (unblocked), then #998.
