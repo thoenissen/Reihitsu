@@ -5,7 +5,7 @@
 | ID prefix | SHARED-DIAG |
 | Status | Active |
 | Code owners | `DiagnosticAnalyzerBase` |
-| Uses | SHARED-FIX-003, SHARED-TRAIL-002 |
+| Uses | SHARED-FIX-003, SHARED-JOIN-001, SHARED-TRAIL-002 |
 
 This spec covers what holds for every analyzer rule, so a rule spec states only what the rule itself reports. It applies to every rule without being listed under `Uses`.
 
@@ -330,9 +330,9 @@ public static class Extensions
 
 ### SHARED-DIAG-008 — A conditional directive in the judged span
 
-A rule MUST NOT report a construct when a conditional directive — `#if`, `#elif`, `#else`, or `#endif` — or code that such a directive excludes lies inside the span the rule judges: the part of the construct its verdict is about, such as a modifier list, a declarator list, an accessor list, the gap between a trailing comma and the closing brace, or a namespace header. A conditional directive elsewhere in the construct, such as in a body the rule does not judge, MUST NOT keep the construct from being reported. A `#region`, `#endregion`, or `#pragma` directive inside the judged span MUST NOT keep the construct from being reported either, but a code fix that rewrites or moves the part of the judged span that holds such a directive MUST NOT be offered; the diagnostic is still reported. A fix that leaves the directive and its line in place, such as removing the comma in front of it, stays offered. SHARED-TRAIL-002 is one instance of this requirement.
+A rule MUST NOT report a construct when a conditional directive — `#if`, `#elif`, `#else`, or `#endif` — or code that such a directive excludes lies inside the span the rule judges: the part of the construct its verdict is about, such as a modifier list, a declarator list, an accessor list, the gap between a trailing comma and the closing brace, or a namespace header. A conditional directive elsewhere in the construct, such as in a body the rule does not judge, MUST NOT keep the construct from being reported. A `#region`, `#endregion`, or `#pragma` directive inside the judged span MUST NOT by itself keep the construct from being reported; a rule's own requirement may still leave such a shape unreported, as SHARED-JOIN-001 does for a gap that holds a directive. For a construct that is reported, a code fix that rewrites or moves the part of the judged span that holds such a directive MUST NOT be offered; the diagnostic is still reported. A fix that leaves the directive and its line in place, such as removing the comma in front of it, stays offered. SHARED-TRAIL-002 is one instance of this requirement.
 
-Why: Behind a conditional directive, another build configuration compiles another version of the judged span — one more element, another modifier, another accessor — so a verdict on the version the analyzer sees can be wrong for the others. A directive in a part the rule does not judge cannot change its verdict. A `#region`, `#endregion`, or `#pragma` directive is the same in every configuration and adds nothing to the span. A fix that rewrites the part of the span around such a directive would have to drop it or move it next to other code; a fix that does not touch it cannot.
+Why: Behind a conditional directive, another build configuration compiles another version of the judged span — one more element, another modifier, another accessor — so a verdict on the version the analyzer sees can be wrong for the others. A directive in a part the rule does not judge cannot change its verdict. A `#region`, `#endregion`, or `#pragma` directive is the same in every configuration and adds nothing to the span, so it gives no reason of its own to stay silent; a rule may still have a reason of its own, such as a join that would have to move the directive. A fix that rewrites the part of the span around such a directive would have to drop it or move it next to other code; a fix that does not touch it cannot.
 
 Example — the body of an empty type is the span RH5412 judges, so a conditional block in it keeps the type from being reported:
 
