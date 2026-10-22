@@ -17,6 +17,7 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     /// <c>!</c> aligned like <c>.</c>
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-019")]
     public void NullForgivingAndConditionalLinksMoveTheirBreakInFrontOfTheOperator()
     {
         // Arrange
@@ -924,6 +925,7 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     /// Verifies that a break after a dot is rejoined and does not count as a wrap
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-020")]
     public void MemberNameSplitAfterConditionalAccessIsRejoinedAndIsNoWrap()
     {
         // Arrange
@@ -1062,6 +1064,7 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     /// Verifies that a wrapped <c>?[</c> joins the element in front of it
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-020")]
     public void ConditionalElementAccessJoinsItsElement()
     {
         // Arrange
@@ -1096,6 +1099,7 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     /// Verifies that a wrapped <c>[</c> joins the element in front of it in one pass
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-020")]
     public void ElementAccessJoinsItsElement()
     {
         // Arrange
@@ -1130,6 +1134,7 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     /// Verifies that a wrapped argument list joins its member name
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-020")]
     public void ArgumentListJoinsItsElement()
     {
         // Arrange
@@ -1494,6 +1499,7 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     /// Verifies that a wrapped argument list of the root joins inside a member chain
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-020")]
     public void ArgumentListOfRootJoinsInMemberChain()
     {
         // Arrange
@@ -1697,6 +1703,7 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     /// Verifies that a single-line chain is never wrapped
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-019")]
     public void SingleLineChainWithNonInvokedTailStaysUnchanged()
     {
         // Arrange
@@ -2076,6 +2083,7 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     /// Verifies that a property between calls in a wrapped chain starts its own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-019")]
     public void PropertyAfterFirstCallStartsItsOwnLineInWrappedChain()
     {
         // Arrange
@@ -2146,6 +2154,7 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     /// Verifies that a joined first prefix wrap keeps the first call on the root line and wraps the later call
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-019")]
     public void PrefixWrapJoinedKeepsFirstCallOnRootLine()
     {
         // Arrange
@@ -2416,6 +2425,7 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     /// Verifies that a comment before the first link keeps it wrapped and every link starts its own line at the root column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-019")]
     public void CommentBeforeFirstLinkPutsEveryLinkOnItsOwnLineAtRootColumn()
     {
         // Arrange

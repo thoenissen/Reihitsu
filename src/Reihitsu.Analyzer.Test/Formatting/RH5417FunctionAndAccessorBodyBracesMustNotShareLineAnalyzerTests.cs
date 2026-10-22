@@ -16,6 +16,37 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : BatchCodeFixTestsBase<RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer, RH5417FunctionAndAccessorBodyBracesMustNotShareLineCodeFixProvider>
 {
+    #region Constants
+
+    /// <summary>
+    /// Input of the SHARED-FIX-007 shared-line example's member <c>N</c>, which has its line to itself
+    /// </summary>
+    private const string MemberOnItsOwnLineTestCode = """
+                                                      class C
+                                                      {
+                                                          int _y;
+
+                                                          int N() {|RH5417:{|} return 1; }
+                                                      }
+                                                      """;
+
+    /// <summary>
+    /// Result of the SHARED-FIX-007 shared-line example's member <c>N</c>
+    /// </summary>
+    private const string MemberOnItsOwnLineFixedCode = """
+                                                       class C
+                                                       {
+                                                           int _y;
+
+                                                           int N()
+                                                           {
+                                                               return 1;
+                                                           }
+                                                       }
+                                                       """;
+
+    #endregion // Constants
+
     #region Tests
 
     /// <summary>
@@ -864,6 +895,34 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
 
         await VerifyNoCodeFixIsOffered(testData,
                                        test => test.ExpectedDiagnostics.AddRange(Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat)));
+    }
+
+    /// <summary>
+    /// Verifies that the fix lays out the braces of a member that has its line to itself as the formatter does, and
+    /// keeps the blank line above the member
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixOfAMemberOnItsOwnLineKeepsTheBlankLineAbove()
+    {
+        await Verify(MemberOnItsOwnLineTestCode, MemberOnItsOwnLineFixedCode);
+
+        AssertFormattingChangesNothing(MemberOnItsOwnLineFixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix lays out the braces of a member that has its line to itself as the formatter does, and
+    /// keeps the blank line above the member, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixOfAMemberOnItsOwnLineKeepsTheBlankLineAboveWithCarriageReturnLineFeed()
+    {
+        await Verify(NormalizeToCarriageReturnLineFeed(MemberOnItsOwnLineTestCode), NormalizeToCarriageReturnLineFeed(MemberOnItsOwnLineFixedCode));
+
+        AssertFormattingChangesNothing(NormalizeToCarriageReturnLineFeed(MemberOnItsOwnLineFixedCode));
     }
 
     #endregion // Tests

@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.LineBreaks;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Integration;
 
@@ -29,6 +30,7 @@ public class LineBreakPhaseIntegrationTests
     /// Verifies that K&amp;R-style braces are converted to Allman style
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-002")]
     public void ConvertsKAndRBracesToAllmanStyle()
     {
         // Arrange
@@ -60,6 +62,7 @@ public class LineBreakPhaseIntegrationTests
     /// Verifies that code already using Allman-style braces is not modified
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-002")]
     public void PreservesAllmanStyleBraces()
     {
         // Arrange
@@ -85,6 +88,7 @@ public class LineBreakPhaseIntegrationTests
     /// Verifies that binary operators at the end of a line are moved to the beginning of the next line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-017")]
     public void MovesBinaryOperatorToNextLine()
     {
         // Arrange
@@ -122,6 +126,7 @@ public class LineBreakPhaseIntegrationTests
     /// Verifies that a constructor initializer on the same line is placed on a new line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-010")]
     public void PlacesConstructorInitializerOnNewLine()
     {
         // Arrange
@@ -156,6 +161,7 @@ public class LineBreakPhaseIntegrationTests
     /// Verifies that an expression-bodied property split across lines is handled by the line break phase
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-026")]
     public void HandlesExpressionBodiedPropertyAcrossLines()
     {
         // Arrange

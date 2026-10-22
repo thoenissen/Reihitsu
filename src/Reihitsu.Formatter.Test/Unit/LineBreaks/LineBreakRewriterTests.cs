@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.LineBreaks;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.LineBreaks;
 
@@ -1427,6 +1428,7 @@ public class LineBreakRewriterTests
     /// Verifies that an already-correct single-line assignment is not modified
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-016")]
     public void PreservesCorrectSingleLineAssignment()
     {
         // Arrange — already-correct assignment
@@ -1514,6 +1516,7 @@ public class LineBreakRewriterTests
     /// Verifies that a raw multiline string whose opening quotes already begin on the equals line is preserved
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-016")]
     public void PreservesRawMultilineStringStartingOnEqualsLine()
     {
         // Arrange — raw multiline string opening quotes already on = line
@@ -1660,6 +1663,7 @@ public class LineBreakRewriterTests
     /// Verifies that an opening parenthesis is collapsed onto the declaration line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-011")]
     public void CollapsesOpeningParenthesisToDeclarationLine()
     {
         // Arrange

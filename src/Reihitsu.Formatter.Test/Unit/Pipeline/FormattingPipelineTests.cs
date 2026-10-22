@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.Pipeline;
 
@@ -154,6 +155,7 @@ public class FormattingPipelineTests
     /// Verifies that observing the pipeline reports every phase in runtime order without changing the final output
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-001")]
     public void ExecuteObserverReportsAllPhasesInOrderWithoutChangingOutput()
     {
         // Arrange
@@ -273,6 +275,7 @@ public class FormattingPipelineTests
     /// ensuring that newly generated block bodies receive correct indentation
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-001")]
     public void ExecutePhaseOrderStructuralBeforeIndentation()
     {
         // Arrange - expression-bodied method that needs structural conversion followed by indentation

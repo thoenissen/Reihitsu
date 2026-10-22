@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.Indentation.Contributors;
 
@@ -29,6 +30,7 @@ public class CaseWhenClauseContributorTests
     /// Verifies that a wrapped guard keyword is indented one level past the case keyword
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-021")]
     public void AlignsWrappedWhenKeywordToCasePlusIndent()
     {
         // Arrange

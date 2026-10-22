@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Organization;
@@ -1283,6 +1284,30 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     {
         await VerifyTheActionForTheFieldThatCrossesOnlyAnInstanceField(NormalizeToCarriageReturnLineFeed(CrossesOnlyAnInstanceFieldTestCode),
                                                                        NormalizeToCarriageReturnLineFeed(CrossesOnlyAnInstanceFieldFixedCode));
+    }
+
+    /// <summary>
+    /// Verifying one Fix All application moves the static field whose fix is offered on the starting code, equals the
+    /// result of that single fix, and leaves the field whose fix the guard withholds reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-002")]
+    public async Task OneFixAllApplicationCorrectsOnlyTheDiagnosticsWhoseFixIsOfferedOnTheStartingCode()
+    {
+        await Verify(CrossesOnlyAnInstanceFieldTestCode.Replace("_a = 1", "{|RH7103:_a|} = 1", StringComparison.Ordinal)
+                                                       .Replace("_b = _a", "{|RH7103:_b|} = _a", StringComparison.Ordinal),
+                     CrossesOnlyAnInstanceFieldFixedCode.Replace("_b = _a", "{|RH7103:_b|} = _a", StringComparison.Ordinal),
+                     test =>
+                     {
+                         // The field whose fix is withheld on the starting code is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+
+                         // The single fix offered on the starting code is applied once, without the fix its result releases
+                         test.CodeFixTestBehaviors |= CodeFixTestBehaviors.FixOne;
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
     }
 
     #endregion // Tests

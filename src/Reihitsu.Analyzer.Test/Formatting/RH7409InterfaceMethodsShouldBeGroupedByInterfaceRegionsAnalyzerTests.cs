@@ -724,8 +724,9 @@ public class RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzerTest
 
     /// <summary>
     /// Characterizes a partial method that implements an interface method: it is judged and reported only at its defining
-    /// part, and the region of its implementing part is not considered. The case is an open question about intended
-    /// behavior, so this test pins today's behavior without stating it as intended
+    /// part, and the region of its implementing part is not considered. This test pins today's behavior; the decided
+    /// behavior is stated by SHARED-DIAG-004, which judges a partial method by its symbol, and its change belongs to an
+    /// existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

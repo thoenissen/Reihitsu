@@ -22,6 +22,7 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
     /// the break so each conditional link starts its own aligned line with <c>?.</c>, exactly like the plain chain
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-019")]
     public void ChainWrappedBetweenQuestionMarkAndDotStartsEachLinkWithConditionalAccess()
     {
         // Arrange
@@ -58,6 +59,7 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
     /// root, the same way the plain chain does, while each later link starts its own line with <c>?.</c>
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-019")]
     public void ChainWithIdentifierRootJoinsFirstLinkOntoRootAndStartsLaterLinksWithConditionalAccess()
     {
         // Arrange
@@ -435,6 +437,7 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
     /// on the root line, and the following link aligns under its <c>?</c>
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-019")]
     public void FirstLinkAfterBlockCommentStaysOnRootLine()
     {
         // Arrange
@@ -772,6 +775,7 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
     /// Verifies that an unwrapped mixed chain is left on its single line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-019")]
     public void SingleLineMixedChainStaysUnchanged()
     {
         // Arrange

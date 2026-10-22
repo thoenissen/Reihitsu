@@ -1098,6 +1098,7 @@ public class IdempotencyTests : FormatterTestsBase
     /// Verifies that applying the formatter twice to BlankLineBeforeStatement test data produces the same result
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-004")]
     public void BlankLineBeforeStatementIsIdempotent()
     {
         AssertIdempotentUnderBothEndings(BlankLineBeforeStatementTestData);
@@ -1107,6 +1108,7 @@ public class IdempotencyTests : FormatterTestsBase
     /// Verifies that applying the formatter twice to BlankLineAfterStatement test data produces the same result
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-004")]
     public void BlankLineAfterStatementIsIdempotent()
     {
         AssertIdempotentUnderBothEndings(BlankLineAfterStatementTestData);
@@ -1116,6 +1118,7 @@ public class IdempotencyTests : FormatterTestsBase
     /// Verifies that already-formatted code produces no changes when formatted again
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-004")]
     public void AlreadyFormattedCodeProducesNoChanges()
     {
         AssertNoChangesUnderBothEndings(BlankLineBeforeStatementResultData);
@@ -1125,6 +1128,7 @@ public class IdempotencyTests : FormatterTestsBase
     /// Verifies that applying the formatter twice to ExpressionBodiedMethod test data produces the same result
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-004")]
     public void ExpressionBodiedMethodIsIdempotent()
     {
         AssertIdempotentUnderBothEndings(ExpressionBodiedMethodTestData);
@@ -1134,6 +1138,7 @@ public class IdempotencyTests : FormatterTestsBase
     /// Verifies that applying the formatter twice to ExpressionBodiedConstructor test data produces the same result
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-004")]
     public void ExpressionBodiedConstructorIsIdempotent()
     {
         AssertIdempotentUnderBothEndings(ExpressionBodiedConstructorTestData);
@@ -1145,6 +1150,7 @@ public class IdempotencyTests : FormatterTestsBase
     /// directive all survive both passes
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-004")]
     public void ExpressionBodiedCommentIsIdempotent()
     {
         AssertIdempotentUnderBothEndings(ExpressionBodiedCommentTestData);
@@ -1154,6 +1160,7 @@ public class IdempotencyTests : FormatterTestsBase
     /// Verifies that applying the formatter twice to RegionFormatting test data produces the same result
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-004")]
     public void RegionFormattingIsIdempotent()
     {
         AssertIdempotentUnderBothEndings(RegionFormattingTestData);
@@ -1163,6 +1170,7 @@ public class IdempotencyTests : FormatterTestsBase
     /// Verifies that applying the formatter twice to TrailingTriviaCleanup test data produces the same result
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-004")]
     public void TrailingTriviaCleanupIsIdempotent()
     {
         AssertIdempotentUnderBothEndings(TrailingTriviaCleanupTestData);
@@ -1172,6 +1180,7 @@ public class IdempotencyTests : FormatterTestsBase
     /// Verifies that applying the formatter twice to tab-normalization test data produces the same result
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-004")]
     public void TabNormalizationIsIdempotent()
     {
         AssertIdempotentUnderBothEndings(TabNormalizationTestData);
@@ -1181,6 +1190,7 @@ public class IdempotencyTests : FormatterTestsBase
     /// Verifies that applying the formatter twice to Indentation test data produces the same result
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-004")]
     public void IndentationIsIdempotent()
     {
         AssertIdempotentUnderBothEndings(IndentationTestData);
@@ -1190,6 +1200,7 @@ public class IdempotencyTests : FormatterTestsBase
     /// Verifies that applying the formatter twice to HorizontalSpacing test data produces the same result
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-004")]
     public void HorizontalSpacingIsIdempotent()
     {
         AssertIdempotentUnderBothEndings(HorizontalSpacingTestData);
@@ -1199,6 +1210,7 @@ public class IdempotencyTests : FormatterTestsBase
     /// Verifies that applying the formatter twice to ObjectInitializerLayout test data produces the same result
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-004")]
     public void ObjectInitializerLayoutIsIdempotent()
     {
         AssertIdempotentUnderBothEndings(ObjectInitializerLayoutTestData);
@@ -1208,6 +1220,7 @@ public class IdempotencyTests : FormatterTestsBase
     /// Verifies that applying the formatter twice to MethodChainAlignment test data produces the same result
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-004")]
     public void MethodChainAlignmentIsIdempotent()
     {
         AssertIdempotentUnderBothEndings(MethodChainAlignmentTestData);
@@ -1217,6 +1230,7 @@ public class IdempotencyTests : FormatterTestsBase
     /// Verifies that applying the formatter twice to LogicalExpressionLayout test data produces the same result
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-004")]
     public void LogicalExpressionLayoutIsIdempotent()
     {
         AssertIdempotentUnderBothEndings(LogicalExpressionLayoutTestData);
@@ -1226,6 +1240,7 @@ public class IdempotencyTests : FormatterTestsBase
     /// Verifies that line joins never collapse code into a trailing comment and remain idempotent
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-004")]
     public void CommentJoinIsIdempotent()
     {
         foreach (var endOfLine in _lineEndings)
@@ -1246,6 +1261,7 @@ public class IdempotencyTests : FormatterTestsBase
     /// Verifies that applying the formatter twice to RecursivePatternLayout test data produces the same result
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-004")]
     public void RecursivePatternLayoutIsIdempotent()
     {
         AssertIdempotentUnderBothEndings(RecursivePatternLayoutTestData);
@@ -1255,6 +1271,7 @@ public class IdempotencyTests : FormatterTestsBase
     /// Verifies that applying the formatter twice to ComplexElementInitializerLayout test data produces the same result
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-004")]
     public void ComplexElementInitializerLayoutIsIdempotent()
     {
         AssertIdempotentUnderBothEndings(ComplexElementInitializerLayoutTestData);
@@ -1264,6 +1281,7 @@ public class IdempotencyTests : FormatterTestsBase
     /// Verifies that applying the formatter twice to UncoveredInitializerLayout test data produces the same result
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-004")]
     public void UncoveredInitializerLayoutIsIdempotent()
     {
         AssertIdempotentUnderBothEndings(UncoveredInitializerLayoutTestData);
@@ -1273,6 +1291,7 @@ public class IdempotencyTests : FormatterTestsBase
     /// Verifies that applying the formatter twice to UnbracedEmbeddedStatement test data produces the same result
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-004")]
     public void UnbracedEmbeddedStatementIsIdempotent()
     {
         AssertIdempotentUnderBothEndings(UnbracedEmbeddedStatementTestData);

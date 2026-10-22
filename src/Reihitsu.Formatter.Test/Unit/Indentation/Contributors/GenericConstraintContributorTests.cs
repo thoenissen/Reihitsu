@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.Indentation.Contributors;
 
@@ -29,6 +30,7 @@ public class GenericConstraintContributorTests
     /// Verifies that the where keyword is indented one level from the parent declaration
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-017")]
     public void AlignsWhereKeywordToParentPlusIndent()
     {
         // Arrange
@@ -74,6 +76,7 @@ public class GenericConstraintContributorTests
     /// Verifies that constraints on a method are also aligned to the method declaration plus one indent level
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-017")]
     public void AlignsMethodConstraintToMethodPlusIndent()
     {
         // Arrange

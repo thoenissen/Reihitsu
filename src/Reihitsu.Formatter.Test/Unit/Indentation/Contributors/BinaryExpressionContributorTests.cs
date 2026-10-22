@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.Indentation.Contributors;
 
@@ -29,6 +30,7 @@ public class BinaryExpressionContributorTests
     /// Verifies that binary operators on continuation lines are aligned to the left operand column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-018")]
     public void AlignsOperatorToLeftOperandColumn()
     {
         // Arrange
@@ -105,6 +107,7 @@ public class BinaryExpressionContributorTests
     /// Verifies that nested binary expressions of the same kind are skipped (only outermost is processed)
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-018")]
     public void SkipsNestedBinaryOfSameKind()
     {
         // Arrange
@@ -140,6 +143,7 @@ public class BinaryExpressionContributorTests
     /// Verifies that is-pattern expressions align the is keyword to the expression column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-019")]
     public void AlignsIsKeywordToExpressionColumn()
     {
         // Arrange
@@ -181,6 +185,7 @@ public class BinaryExpressionContributorTests
     /// Verifies that the null-coalescing operator produces a layout entry for one-indent alignment
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-018")]
     public void AlignsNullCoalescingOperatorWithOneIndent()
     {
         // Arrange
@@ -217,6 +222,7 @@ public class BinaryExpressionContributorTests
     /// Verifies that string concatenation produces layout entries for aligning the plus operator
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-018")]
     public void AlignsStringConcatenationPlusOperator()
     {
         // Arrange
@@ -282,6 +288,7 @@ public class BinaryExpressionContributorTests
     /// Verifies that or keywords in an is-pattern expression produce layout entries aligned to the is keyword column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-019")]
     public void AlignsOrKeywordsInIsPatternExpression()
     {
         // Arrange

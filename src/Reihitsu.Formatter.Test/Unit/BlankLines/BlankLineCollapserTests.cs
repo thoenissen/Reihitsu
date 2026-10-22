@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.BlankLines.Rewriter;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.BlankLines;
 
@@ -30,6 +31,7 @@ public class BlankLineCollapserTests
     /// Verifies that two consecutive blank lines are collapsed to one
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-014")]
     public void CollapsesTwoConsecutiveBlankLinesToOne()
     {
         // Arrange
@@ -60,6 +62,7 @@ public class BlankLineCollapserTests
     /// Verifies that three consecutive blank lines are collapsed to a single blank line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-014")]
     public void CollapsesThreeConsecutiveBlankLinesToOne()
     {
         // Arrange
@@ -219,6 +222,7 @@ public class BlankLineCollapserTests
     /// Verifies that two or more consecutive blank lines inside a method body are collapsed to one
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-014")]
     public void CollapsesBlankLinesInMethodBody()
     {
         // Arrange
@@ -261,6 +265,7 @@ public class BlankLineCollapserTests
     /// Verifies that two or more consecutive blank lines between member declarations are collapsed to one
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-014")]
     public void CollapsesBlankLinesBetweenMembers()
     {
         // Arrange
@@ -378,6 +383,7 @@ public class BlankLineCollapserTests
     /// and that re-applying the collapser to the result is a no-op
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-014")]
     public void CollapsesThreeBlankLinesAfterRegionDirectiveToOne()
     {
         // Arrange
@@ -461,6 +467,7 @@ public class BlankLineCollapserTests
     /// and that re-applying the collapser to the result is a no-op
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-014")]
     public void CollapsesThreeBlankLinesAfterEndIfDirectiveToOne()
     {
         // Arrange
@@ -501,6 +508,7 @@ public class BlankLineCollapserTests
     /// and that re-applying the collapser to the result is a no-op
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-014")]
     public void CollapsesThreeBlankLinesAfterDocumentationCommentToOne()
     {
         // Arrange

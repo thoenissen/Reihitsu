@@ -16,6 +16,7 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
     /// Verifies that trailing whitespace before end-of-line is removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-001")]
     public void TrailingWhitespaceRemoved()
     {
         // Arrange
@@ -98,6 +99,7 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
     /// Verifies that a file ending with a single newline has the trailing newline removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-005")]
     public void FileWithSingleTrailingNewlineStripsIt()
     {
         // Arrange — file already ends with one newline
@@ -123,6 +125,7 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
     /// Verifies that multiple trailing newlines at end of file are all removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-005")]
     public void FileWithMultipleTrailingNewlinesStripsAll()
     {
         // Arrange — file ends with excessive newlines
@@ -152,6 +155,7 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
     /// Verifies that a file without a trailing newline remains unchanged
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-005")]
     public void FileWithoutTrailingNewlineRemainsUnchanged()
     {
         // Arrange — file has no trailing newline
@@ -170,6 +174,7 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
     /// Verifies that whitespace between end-of-line trivia is removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-001")]
     public void WhitespaceBetweenEOLsRemoved()
     {
         // Arrange — whitespace between EOLs (blank line with spaces)
@@ -239,6 +244,7 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
     /// Verifies that a UTF-8 BOM at the start of a file is preserved
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-009")]
     public void BomPreserved()
     {
         // Arrange

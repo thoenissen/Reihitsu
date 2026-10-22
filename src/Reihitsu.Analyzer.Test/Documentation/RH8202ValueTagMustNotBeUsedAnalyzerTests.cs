@@ -293,6 +293,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     [TestMethod]
     [Requirement("RH8202-002")]
     [Requirement("RH8202-004")]
+    [Requirement("SHARED-DOC-017")]
     public async Task VerifyNoCodeFixWhenEndTagIsMissing()
     {
         const string source = """
@@ -757,6 +758,68 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
                                                             """);
 
         await Verify(source, fixedSource, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifies an empty <c>value</c> element needs no end tag, so the code fix is offered and removes its line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-017")]
+    [Requirement("RH8202-003")]
+    public async Task VerifyCodeFixRemovesEmptyValueElement()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  /// <summary>
+                                  /// Gets the size
+                                  /// </summary>
+                                  /// {|#0:<value/>|}
+                                  public int Size { get; }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       /// <summary>
+                                       /// Gets the size
+                                       /// </summary>
+                                       public int Size { get; }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a <c>value</c> element without an end tag: it has no end tag of its own, so
+    /// it is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-017")]
+    [Requirement("RH8202-004")]
+    public async Task VerifyNoCodeFixForValueElementWithoutEndTagOfItsOwn()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  /// <summary>
+                                  /// Gets the size
+                                  /// </summary>
+                                  /// <value>The size
+                                  public int Size { get; }
+                              }
+                              """;
+
+        await Verify(source,
+                     source,
+                     Diagnostic(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId).WithSpan(6, 9, 7, 1)
+                                                                                 .WithMessage(AnalyzerResources.RH8202MessageFormat));
     }
 
     #endregion // Tests

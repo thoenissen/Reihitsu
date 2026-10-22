@@ -26,6 +26,7 @@ public class ArgumentFormattingFullPipelineTests : FormatterTestsBase
     /// Verifies that simple method call arguments are formatted correctly
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-012")]
     public void FormatsSimpleMethodCallArguments()
     {
         const string input = """
@@ -113,6 +114,7 @@ public class ArgumentFormattingFullPipelineTests : FormatterTestsBase
     /// Verifies that nested call arguments are formatted correctly
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-013")]
     public void FormatsNestedCallArguments()
     {
         const string input = """
@@ -181,6 +183,7 @@ public class ArgumentFormattingFullPipelineTests : FormatterTestsBase
     /// Verifies that constructor call arguments are formatted correctly
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-012")]
     public void FormatsConstructorCallArguments()
     {
         const string input = """
@@ -276,6 +279,7 @@ public class ArgumentFormattingFullPipelineTests : FormatterTestsBase
     /// Verifies that outer arguments fully split when a nested anonymous object becomes multi-line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-013")]
     public void FormatsArgumentsWhenNestedAnonymousObjectBecomesMultiLine()
     {
         const string input = """
@@ -324,6 +328,7 @@ public class ArgumentFormattingFullPipelineTests : FormatterTestsBase
     /// Verifies that outer arguments fully split when a nested invocation becomes multi-line after child rewrites
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-013")]
     public void FormatsOuterArgumentsWhenNestedInvocationBecomesMultiLine()
     {
         const string input = """
@@ -533,6 +538,7 @@ public class ArgumentFormattingFullPipelineTests : FormatterTestsBase
     /// argument list multi-line and formats the lambda block body correctly
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-013")]
     public void FormatsStatementLambdaAsSecondArgumentAndSplitsOuterArguments()
     {
         const string input = """

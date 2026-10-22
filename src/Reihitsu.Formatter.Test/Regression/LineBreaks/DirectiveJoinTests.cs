@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.LineBreaks;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
@@ -74,6 +75,7 @@ public class DirectiveJoinTests
     /// Verifies that a binary operator right operand is not collapsed across a directive
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
     public void BinaryOperatorIsNotCollapsedAcrossDirective()
     {
         const string input = """
@@ -90,6 +92,7 @@ public class DirectiveJoinTests
     /// Verifies that the ternary when-true branch is not collapsed across a directive after the question token
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
     public void TernaryQuestionIsNotCollapsedAcrossDirective()
     {
         const string input = """
@@ -107,6 +110,7 @@ public class DirectiveJoinTests
     /// Verifies that the ternary when-false branch is not collapsed across a directive after the colon token
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
     public void TernaryColonIsNotCollapsedAcrossDirective()
     {
         const string input = """
@@ -124,6 +128,7 @@ public class DirectiveJoinTests
     /// Verifies that an assignment value is not collapsed across a directive after the operator
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
     public void AssignmentValueIsNotCollapsedAcrossDirective()
     {
         const string input = """
@@ -140,6 +145,7 @@ public class DirectiveJoinTests
     /// Verifies that an assignment operator is not collapsed up across a directive on the target line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
     public void AssignmentOperatorIsNotCollapsedAcrossDirective()
     {
         const string input = """
@@ -156,6 +162,7 @@ public class DirectiveJoinTests
     /// Verifies that a variable initializer is not collapsed across a directive after the equals token
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
     public void VariableInitializerIsNotCollapsedAcrossDirective()
     {
         const string input = """
@@ -172,6 +179,7 @@ public class DirectiveJoinTests
     /// Verifies that a property initializer operator is not collapsed across a directive
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
     public void PropertyInitializerOperatorIsNotCollapsedAcrossDirective()
     {
         const string input = """
@@ -191,6 +199,7 @@ public class DirectiveJoinTests
     /// Verifies that a method parameter-list opener is not collapsed onto the declaration line across a directive
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
     public void ParameterListOpenerIsNotCollapsedAcrossDirective()
     {
         const string input = """
@@ -212,6 +221,7 @@ public class DirectiveJoinTests
     /// Verifies that an expression-bodied property is not collapsed across a directive
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
     public void ExpressionBodiedPropertyIsNotCollapsedAcrossDirective()
     {
         const string input = """

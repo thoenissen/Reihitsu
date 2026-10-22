@@ -16,6 +16,7 @@ public class ExpressionBodiedConstructorTests : FormatterTestsBase
     /// Verifies that an expression-bodied constructor is converted to a block body
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-005")]
     public void ExpressionBodiedConstructorConvertsToBlockBody()
     {
         // Arrange
@@ -96,6 +97,7 @@ public class ExpressionBodiedConstructorTests : FormatterTestsBase
     /// Verifies that a constructor with a this initializer is converted correctly
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-005")]
     public void ConstructorWithThisOrBaseConvertsCorrectly()
     {
         // Arrange

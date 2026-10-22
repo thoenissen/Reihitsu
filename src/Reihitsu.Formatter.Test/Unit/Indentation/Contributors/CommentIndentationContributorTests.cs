@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.Indentation.Contributors;
 
@@ -31,6 +32,7 @@ public class CommentIndentationContributorTests
     /// Verifies that a single-line comment preceding a token is aligned to the token's layout column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-006")]
     public void AlignsCommentToFollowingTokenLayout()
     {
         // Arrange
@@ -106,6 +108,7 @@ public class CommentIndentationContributorTests
     /// Verifies that comments on the same line as the token are not re-aligned
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-006")]
     public void DoesNotAlignInlineComment()
     {
         // Arrange

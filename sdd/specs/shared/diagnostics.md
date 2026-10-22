@@ -5,7 +5,7 @@
 | ID prefix | SHARED-DIAG |
 | Status | Active |
 | Code owners | `DiagnosticAnalyzerBase` |
-| Uses | — |
+| Uses | SHARED-FIX-003, SHARED-JOIN-001, SHARED-TRAIL-002 |
 
 This spec covers what holds for every analyzer rule, so a rule spec states only what the rule itself reports. It applies to every rule without being listed under `Uses`.
 
@@ -17,6 +17,7 @@ This spec covers what holds for every analyzer rule, so a rule spec states only 
 - How a code fix spells a name it writes into the code, including whether it writes the verbatim prefix `@` — the spec of that fix.
 - Whether a rule reports whitespace next to a comment — the spec of that rule.
 - Whether a code fix may change the text of a literal or of a comment — [`code-fixes.md`](code-fixes.md).
+- The name that a `using` alias directive declares, and how the using-directive rules order alias directives by it — those rules' specs.
 
 ## Requirements
 
@@ -43,9 +44,9 @@ is not reported by RH1003, which reports the same class without the comment.
 
 ### SHARED-DIAG-002 — A name is compared by its value
 
-An analyzer rule that compares a name with another name, a list, or a pattern, or derives other text from it, such as a file name, MUST use the name's value: an identifier without its verbatim prefix `@`, and a qualified name without the whitespace and comments written between its parts. A name written with `@` or with whitespace or comments inside MUST give the same result as the same name written without them. So `class @class` declares a type named `class`, and `namespace A . B` and `namespace A./* x */B` both declare the namespace `A.B`.
+An analyzer rule that compares a name with another name, a list, or a pattern, or derives other text from it, such as a file name, MUST use the name's value: an identifier without its verbatim prefix `@`, and a qualified name without the whitespace and comments written between its parts. A name written with `@` or with whitespace or comments inside MUST give the same result as the same name written without them. So `class @class` declares a type named `class`, and `namespace A . B` and `namespace A./* x */B` both declare the namespace `A.B`. A name that refers to a symbol through a `using` alias MUST be resolved to the symbol the alias names and MUST give the same result as that symbol's own name: with `using NIE = System.NotImplementedException;`, `NIE` and `System.NotImplementedException` are the same name, and with `using S = System;`, so are `S.NotImplementedException` and `System.NotImplementedException`.
 
-Why: The verbatim prefix and the trivia inside a qualified name are spelling, not part of the name; the compiler binds `@class` as `class` and `A . B` as `A.B`. A rule that compares the spelling reports a name that matches, or misses one that does not, depending only on how the author wrote it.
+Why: The verbatim prefix and the trivia inside a qualified name are spelling, not part of the name; the compiler binds `@class` as `class` and `A . B` as `A.B`. An alias is spelling too: the compiler binds `NIE` to the type it names, and the program behaves exactly as if the type's own name were written. A rule that compares the spelling reports a name that matches, or misses one that does not, depending only on how the author wrote it.
 
 Example — `@class` is documented by `<param name="class">` and is not reported, while `@event` has no `<param>` element and is reported:
 
@@ -74,12 +75,26 @@ class C
 }
 ```
 
+Example — a `using` alias names the same type as the name it stands for, so creations through an alias of the type and through an alias of its namespace are reported like the creation that writes the type's own name:
+
+```csharp
+using NIE = System.NotImplementedException;
+using S = System;
+
+class C
+{
+    object a = new {|RH2003:NIE|}();
+    object b = new {|RH2003:S.NotImplementedException|}();
+}
+```
+
 ### SHARED-DIAG-003 — Only the text of a literal or a comment is content
 
 An analyzer rule MUST treat the text of a literal and the text of a comment as content and MUST NOT report anything inside it. Only that text is content; the code around a literal and inside an interpolated string MUST be checked like any other code:
 
 - the text of a literal is the text of a string literal of any kind — regular, verbatim, raw, or UTF-8 —, the text of an interpolated string between and around its holes, the text of an interpolation's format clause, and the text of a character or numeric literal; a line inside that text, even an empty one, is part of the literal's text;
 - the text of a comment is the text of a `//`, `/* */`, `///`, or `/** */` comment; a line inside a multi-line comment, even an empty one, is part of the comment's text;
+- in a Razor file, the text of a Razor comment `@* … *@` and of an HTML comment `<!-- … -->` is the text of a comment, and an escaped `@@` is text as well; an `@` that directly follows a letter or a digit, as in `user@code`, is text and starts no Razor code;
 - the whitespace before and after a literal is code, so the spaces at the end of the line `string s = "a";` are trailing whitespace like after any other token;
 - an interpolation hole is code apart from the text of its format clause: its expression and its alignment clause, such as the braces of `new int[]{1}` in `$"{new int[]{1}.Length}"`.
 
@@ -87,7 +102,7 @@ What the text of a literal protects is its value. How the literal spells that va
 
 This requirement restricts only rules that check code. A rule whose subject is the text of a comment or of a directive, such as RH3201, RH7301, or a documentation rule (RH8###), checks that text as its subject. A rule whose subject is a literal, such as RH5202, checks how the literal spells its value.
 
-Why: The text of a literal is the program's data, and the text of a comment is the author's prose; their characters — spaces, tabs, empty lines, commas, braces — carry a meaning that a rule about code cannot judge. How a literal spells its value belongs to the literal's own syntax: the value stays the same however it is spelled, so a rule about literals may judge the spelling. Everything else is code the compiler reads as tokens. Exempting it because a literal is next to it, or because it is written inside an interpolated string, would leave ordinary code unchecked only for where it stands.
+Why: The text of a literal is the program's data, and the text of a comment is the author's prose — in a Razor file as much as in C#, where `@@` writes a plain `@` and an `@` inside a word, such as an e-mail address, is part of the word; their characters — spaces, tabs, empty lines, commas, braces — carry a meaning that a rule about code cannot judge. How a literal spells its value belongs to the literal's own syntax: the value stays the same however it is spelled, so a rule about literals may judge the spelling. Everything else is code the compiler reads as tokens. Exempting it because a literal is next to it, or because it is written inside an interpolated string, would leave ordinary code unchecked only for where it stands.
 
 Example — the comma inside the hole and the missing space before `"d"` are code and are reported; the ` ,` in the literal's text and in the comment is content, and the `//` inside a literal starts no comment:
 
@@ -176,5 +191,183 @@ class C
     string t = """
                a
                """;
+}
+```
+
+Example — in `Counter.razor`, the `@code` in the HTML comment, in the Razor comment, behind the escape `@@`, and inside `user@code` is text, so RH2109 reports only the directive on the last two lines:
+
+```razor
+<!-- @code { -->
+@* @code { *@
+<p>@@code { }</p>
+<p>user@code{</p>
+@code {
+}
+```
+
+### SHARED-DIAG-004 — A partial declaration is one declaration
+
+A rule that judges a type or a member declared in several parts with the `partial` modifier MUST judge it by its symbol — by the modifiers of all its parts together, so that it is `async`, `static`, or of an accessibility when any part declares it so — and MUST report it at most once. A code fix that would have to change more than one part to give a correct result MUST NOT be offered (SHARED-FIX-003); the diagnostic is still reported.
+
+This requirement covers a rule's verdict on what the declaration is. A verdict on what one part writes or holds is not covered — for example the accessibility modifier or the order of the modifiers that one part carries, the name or the parameters that one part declares, or the members and regions that one part holds.
+
+Why: The compiler builds one type or member from all its parts, and every caller, tooltip, and reader sees that one symbol. Judging one part alone gives it a verdict the declaration does not deserve — the part of an `async` method that does not repeat `async` is still an `async` method — and reporting every part repeats one finding. A change that every part has to carry cannot be made on one part without a compile error.
+
+Example — RH2102 reports the type once, on the part that declares the primary constructor:
+
+```csharp
+partial class {|RH2102:P|}(int value)
+{
+}
+
+partial class P
+{
+}
+```
+
+Example — the type is `public` because one of its parts says so:
+
+```csharp
+public partial class C
+{
+}
+
+partial class C
+{
+}
+```
+
+is not reported by RH2004.
+
+### SHARED-DIAG-005 — Parentheses, `!`, and a `throw` branch do not change a value
+
+A rule that judges the value an expression produces, such as an argument or an initializer, MUST judge an expression in parentheses and an expression behind the null-forgiving operator `!` as the expression inside them. A `throw` expression in a branch of a conditional expression or in an arm of a `switch` expression MUST count as producing no value, so the other branches or arms alone decide.
+
+Why: Parentheses and `!` change neither the value nor its type; `!` only silences a nullable warning. A `throw` branch never produces a value: when it is taken, the operation the rule judges is never reached, so only the other branches can reach it.
+
+Example — RH1002 judges `(null)` and `((IEqualityComparer<S>)null)!` like `null`, `(comparer)` and `comparer!` like `comparer`, and the conditional expression with a `throw` branch by its other branch:
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+struct S
+{
+}
+
+class C
+{
+    void M(IEnumerable<S> items, IEqualityComparer<S> comparer, bool flag)
+    {
+        items.Distinct((comparer));
+        items.Distinct(comparer!);
+        items.Distinct(flag ? comparer : throw new InvalidOperationException());
+        items.{|RH1002:Distinct|}((null));
+        items.{|RH1002:Distinct|}(((IEqualityComparer<S>)null)!);
+    }
+}
+```
+
+### SHARED-DIAG-006 — Every element of the rule's kind is checked
+
+A rule that checks a kind of element of which a construct can hold several — such as a documentation element, a parameter, or a declarator of a field or an event declaration — MUST check every such element of the construct. Unless the rule's subject is the order or the position of the elements — a rule that orders them, or one that judges the last of them — its verdict on one element MUST NOT depend on the element's position among the others or on the order of the declarators. A rule that reports individual declarators MUST report one diagnostic per reported declarator, located on that declarator's identifier; a rule whose verdict is about the declaration as a whole reports the declaration once.
+
+Why: Each element stands on its own: a field declaration with two declarators declares two fields, and a documentation comment shows every element it holds. A verdict that changes when the same elements are written in another order is a verdict about the order, which the rule does not judge. One diagnostic on each reported declarator names exactly what the user has to change; a verdict that holds for every declarator alike, such as the accessibility of the declaration, is one finding.
+
+Example — RH4107 reports each declarator that is not in `_camelCase`, wherever it stands in its declaration:
+
+```csharp
+public class C
+{
+    protected int _a, {|RH4107:B|};
+    protected int {|RH4107:D|}, _e;
+}
+```
+
+Example — RH8101 reports the undocumented parameter in the middle of the list:
+
+```csharp
+class C
+{
+    /// <summary>Summary</summary>
+    /// <param name="a">A</param>
+    /// <param name="c">C</param>
+    void M(int a, int {|RH8101:b|}, int c)
+    {
+    }
+}
+```
+
+Example — RH2004 judges the accessibility of the whole declaration, so it reports the field declaration once, at its first declarator:
+
+```csharp
+public struct S
+{
+    int {|RH2004:a|}, b;
+}
+```
+
+### SHARED-DIAG-007 — A diagnostic has a location in the source
+
+A rule MUST locate every diagnostic in the source of the construct it reports. A rule that locates its diagnostic on the name of a declaration MUST, for a declaration without a name, locate it on a token of the declaration that marks it: an extension block at its `extension` keyword. A rule whose location is another part of the construct, such as an element, a directive, or a span of whitespace, keeps that location.
+
+Why: A diagnostic without a location in the source cannot be found from the code, navigated to, or suppressed in place, and a code fix has nothing to start from. A name is the usual place; a construct without one needs the token a reader recognizes as its start.
+
+Example — RH8031:
+
+```csharp
+/// <summary>
+/// Extensions
+/// </summary>
+public static class Extensions
+{
+    {|RH8031:extension|}(string value)
+    {
+    }
+}
+```
+
+### SHARED-DIAG-008 — A conditional directive in the judged span
+
+A rule MUST NOT report a construct when a conditional directive — `#if`, `#elif`, `#else`, or `#endif` — or code that such a directive excludes lies inside the span the rule judges: the part of the construct its verdict is about, such as a modifier list, a declarator list, an accessor list, the gap between a trailing comma and the closing brace, or a namespace header. A conditional directive elsewhere in the construct, such as in a body the rule does not judge, MUST NOT keep the construct from being reported. A `#region`, `#endregion`, or `#pragma` directive inside the judged span MUST NOT by itself keep the construct from being reported; a rule's own requirement may still leave such a shape unreported, as SHARED-JOIN-001 does for a gap that holds a directive. For a construct that is reported, a code fix that rewrites or moves the part of the judged span that holds such a directive MUST NOT be offered; the diagnostic is still reported. A fix that leaves the directive and its line in place, such as removing the comma in front of it, stays offered. SHARED-TRAIL-002 is one instance of this requirement.
+
+Why: Behind a conditional directive, another build configuration compiles another version of the judged span — one more element, another modifier, another accessor — so a verdict on the version the analyzer sees can be wrong for the others. A directive in a part the rule does not judge cannot change its verdict. A `#region`, `#endregion`, or `#pragma` directive is the same in every configuration and adds nothing to the span, so it gives no reason of its own to stay silent; a rule may still have a reason of its own, such as a join that would have to move the directive. A fix that rewrites the part of the span around such a directive would have to drop it or move it next to other code; a fix that does not touch it cannot.
+
+Example — the body of an empty type is the span RH5412 judges, so a conditional block in it keeps the type from being reported:
+
+```csharp
+class A
+{
+#if DEBUG
+#endif
+}
+```
+
+is not reported.
+
+Example — a `#pragma` directive in the modifier list that RH7106 judges does not keep the modifier from being reported:
+
+```csharp
+class C
+{
+    internal
+#pragma warning disable CS0169
+    {|RH7106:protected|} int _value;
+}
+```
+
+is reported, and no code fix is offered: the fix would rewrite the modifier list that holds the directive.
+
+Example — the conditional directive lies in the namespace's body, which RH7003 does not judge:
+
+```csharp
+namespace {|RH7003:N|}
+{
+#if DEBUG
+    class C
+    {
+    }
+#endif
 }
 ```

@@ -124,9 +124,11 @@ class C
 
 ### SHARED-USING-004 — A group is section, kind, and root namespace
 
-Two directives MUST be in the same group exactly when they agree in all three of: global or not (SHARED-USING-002), kind (SHARED-USING-003), and root namespace. The root namespace is the first segment of the directive's name after a leading `global::` qualifier is removed, compared ordinally (case-sensitive). For an alias directive, the name is the alias target, not the alias; for a `using static` directive, it is the type name.
+Two directives MUST be in the same group exactly when they agree in all three of: global or not (SHARED-USING-002), kind (SHARED-USING-003), and root namespace. The root namespace is the first segment of the directive's name after a leading `global::` qualifier is removed, compared ordinally (case-sensitive). For an alias directive, the name is the alias target, not the alias; for a `using static` directive, it is the type name. An alias whose target is not a name — a predefined type such as `int`, a tuple, an array, a pointer, or a nullable type — has no root namespace: it MUST form a group of its own, and that group MUST come after every other group of its section.
 
-Why: Grouping by root namespace keeps everything from one library together (`Microsoft.*`, `Reihitsu.*`) and is what RH7207 checks blank lines against. Grouping aliases by their target makes an alias sit next to the library it points into rather than in one alphabetical list of unrelated names.
+This requirement covers a section with at most one alias whose target is not a name.
+
+Why: Grouping by root namespace keeps everything from one library together (`Microsoft.*`, `Reihitsu.*`) and is what RH7207 checks blank lines against. Grouping aliases by their target makes an alias sit next to the library it points into rather than in one alphabetical list of unrelated names. An alias of a type that is not a name points into no library, so it belongs to none of the groups and is placed after all of them, where it cannot be mistaken for the `System` group.
 
 Example:
 
@@ -161,6 +163,34 @@ using static Reihitsu.Core.CasingUtilities;
 using Alpha = System.Text.StringBuilder;
 
 using Zeta = Microsoft.CodeAnalysis.SyntaxNode;
+
+class C
+{
+    int x;
+}
+```
+
+Example — an alias of `int` forms its own group after the alias group of `System`:
+
+```csharp
+using System;
+
+using B = int;
+
+using A = System.Text;
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+using System;
+
+using A = System.Text;
+
+using B = int;
 
 class C
 {
@@ -241,7 +271,9 @@ class C
 
 Within a group, analyzer and formatter MUST order directives by their sort key — the alias name for an alias directive, otherwise the imported namespace or type name — compared case-insensitively (ordinal). Directives whose keys compare equal MUST keep their source order.
 
-Why: RH7203, RH7204, and RH7206 report directives out of this order. A stable order on ties means two directives that differ only in case are never swapped back and forth, so the analyzer and the formatter both converge.
+A rule that reports a directive out of this order MUST compare the directive with every earlier directive of its group in the block, whatever directives of other groups or kinds lie between them, and MUST report it when its sort key comes before the key of any of them. Every other rule that checks the order of a sequence of elements MUST compare an element in the same way: with every earlier element of its group, whatever lies between them.
+
+Why: RH7203, RH7204, and RH7206 report directives out of this order. A stable order on ties means two directives that differ only in case are never swapped back and forth, so the analyzer and the formatter both converge. Whether an element is in order is a question about its group alone: an element of another group between two elements of one group does not put them in order, and an element that sorts before an earlier element of its group is out of place even when the element right before it sorts lower.
 
 Example — aliases are grouped by target root (SHARED-USING-004) and sorted by alias name within each group:
 
@@ -291,6 +323,43 @@ using System.Xml;
 class C
 {
     int x;
+}
+```
+
+Example — `Microsoft.A` is compared with `Microsoft.B`, although a directive of the `System` group lies between them:
+
+```csharp
+using Microsoft.B;
+using System;
+using {|RH7203:Microsoft.A|};
+
+class C
+{
+    int x;
+}
+```
+
+Example — `Microsoft.B` comes after `Microsoft.A`, but before the earlier `Microsoft.C`:
+
+```csharp
+using Microsoft.C;
+using {|RH7203:Microsoft.A|};
+using {|RH7203:Microsoft.B|};
+
+class C
+{
+    int x;
+}
+```
+
+Example — RH7110 compares `D` with every earlier field, so it is reported after the `private` field `_a`, although the `public` field right before it comes earlier in the accessibility order:
+
+```csharp
+class C
+{
+    private int _a;
+    public int {|RH7110:B|};
+    internal int {|RH7110:D|};
 }
 ```
 

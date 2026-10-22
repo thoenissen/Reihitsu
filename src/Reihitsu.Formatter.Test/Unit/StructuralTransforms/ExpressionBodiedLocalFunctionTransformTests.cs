@@ -203,6 +203,7 @@ public class ExpressionBodiedLocalFunctionTransformTests : FormatterPhaseTestsBa
     /// Verifies that a non-async Task expression-bodied local function is converted with a return statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-004")]
     public void ConvertsNonAsyncTaskExpressionBodiedLocalFunctionToReturnStatement()
     {
         // Arrange
@@ -343,6 +344,7 @@ public class ExpressionBodiedLocalFunctionTransformTests : FormatterPhaseTestsBa
     /// Verifies that an expression-bodied local function throwing an exception is converted to a throw statement (not <c>return throw</c>)
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-004")]
     public void ConvertsExpressionBodiedLocalFunctionThrowingException()
     {
         // Arrange
@@ -413,6 +415,7 @@ public class ExpressionBodiedLocalFunctionTransformTests : FormatterPhaseTestsBa
     /// Verifies that a comment leading the semicolon token of an expression-bodied local function survives conversion.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
     public void PreservesCommentLeadingSemicolonInLocalFunction()
     {
         // Arrange

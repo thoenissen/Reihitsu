@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.RegionFormatting;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.RegionFormatting;
 
@@ -27,6 +28,7 @@ public class RegionFormattingPhaseTests
     /// Verifies that a lowercase region description is capitalized
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-REGION-001")]
     public void CapitalizesRegionDescription()
     {
         // Arrange
@@ -65,6 +67,7 @@ public class RegionFormattingPhaseTests
     /// Verifies that an endregion directive without a comment receives the matching region name as a comment
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-REGION-002")]
     public void SyncsEndregionWithRegion()
     {
         // Arrange
@@ -181,6 +184,7 @@ public class RegionFormattingPhaseTests
     /// Verifies that nested regions are correctly paired and each receives the correct capitalization and endregion comment
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-REGION-003")]
     public void HandlesNestedRegions()
     {
         // Arrange
@@ -227,6 +231,7 @@ public class RegionFormattingPhaseTests
     /// Verifies that a region with no description is left unchanged
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-REGION-004")]
     public void HandlesRegionWithoutDescription()
     {
         // Arrange
@@ -255,6 +260,7 @@ public class RegionFormattingPhaseTests
     /// Verifies that an endregion with an incorrect trailing comment is replaced with the correct one matching the region name
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-REGION-002")]
     public void HandlesEndregionWithMismatchedDescription()
     {
         // Arrange
@@ -293,6 +299,7 @@ public class RegionFormattingPhaseTests
     /// Verifies that a region whose description already starts with an uppercase letter is not modified
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-REGION-001")]
     public void PreservesRegionWithCorrectCasing()
     {
         // Arrange

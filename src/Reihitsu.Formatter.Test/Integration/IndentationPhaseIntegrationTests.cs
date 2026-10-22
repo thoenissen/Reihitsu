@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.Indentation;
 using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Integration;
 
@@ -30,6 +31,7 @@ public class IndentationPhaseIntegrationTests
     /// Verifies that class members at the wrong indentation level are corrected
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-002")]
     public void IndentsClassMembers()
     {
         // Arrange
@@ -59,6 +61,7 @@ public class IndentationPhaseIntegrationTests
     /// Verifies that method body statements are indented correctly
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-002")]
     public void IndentsMethodBody()
     {
         // Arrange
@@ -119,6 +122,7 @@ public class IndentationPhaseIntegrationTests
     /// Verifies that namespace-enclosed class members are indented to the correct depth
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-002")]
     public void IndentsNamespaceMembers()
     {
         // Arrange
@@ -154,6 +158,7 @@ public class IndentationPhaseIntegrationTests
     /// Verifies that switch statement case labels and statements are indented correctly
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-003")]
     public void IndentsSwitchStatement()
     {
         // Arrange

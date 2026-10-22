@@ -20,6 +20,7 @@ public class ChainSplitMemberNameRejoinTests : FormatterTestsBase
     /// case — a single split dot with no conditional access, directive, or comment involved
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-020")]
     public void SplitMemberNameRejoinsOntoItsDot()
     {
         // Arrange
@@ -54,6 +55,7 @@ public class ChainSplitMemberNameRejoinTests : FormatterTestsBase
     /// first invoked link
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-020")]
     public void SplitMemberNameRejoinsAndKeepsLaterWrappedLink()
     {
         // Arrange
@@ -89,6 +91,7 @@ public class ChainSplitMemberNameRejoinTests : FormatterTestsBase
     /// the member name, and that the argument wrap itself survives
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-020")]
     public void SplitMemberNameRejoinsWithMultiLineArgumentList()
     {
         // Arrange
@@ -123,6 +126,7 @@ public class ChainSplitMemberNameRejoinTests : FormatterTestsBase
     /// Verifies that every split at a chain-link boundary rejoins, not only the first one
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-020")]
     public void EverySplitMemberNameRejoins()
     {
         // Arrange
@@ -159,6 +163,7 @@ public class ChainSplitMemberNameRejoinTests : FormatterTestsBase
     /// call stays on the root line and only the wrapped <c>.Then()</c> starts a continuation line under it
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-020")]
     public void SplitMemberNameAfterConditionalAccessRejoins()
     {
         // Arrange
@@ -194,6 +199,7 @@ public class ChainSplitMemberNameRejoinTests : FormatterTestsBase
     /// rewriter rather than the chain normalizer — rejoins its split member name too
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-020")]
     public void SplitMemberNameRejoinsOnMemberAccessOnlyChain()
     {
         // Arrange
@@ -227,6 +233,7 @@ public class ChainSplitMemberNameRejoinTests : FormatterTestsBase
     /// it would absorb the name into the comment
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
     public void CommentBetweenDotAndMemberNameKeepsSplit()
     {
         // Arrange
@@ -251,6 +258,7 @@ public class ChainSplitMemberNameRejoinTests : FormatterTestsBase
     /// first disjunct, which inspects the <b>dot's trailing</b> trivia
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
     public void BlockCommentBetweenDotAndMemberNameKeepsSplit()
     {
         // Arrange
@@ -277,6 +285,7 @@ public class ChainSplitMemberNameRejoinTests : FormatterTestsBase
     /// pre-existing behavior of the surrounding phases and is not what this test guards
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
     public void OwnLineCommentBeforeMemberNameKeepsSplit()
     {
         // Arrange
@@ -318,6 +327,7 @@ public class ChainSplitMemberNameRejoinTests : FormatterTestsBase
     /// surrounding phases and is not what this test guards
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
     public void DirectiveBetweenDotAndMemberNameKeepsSplit()
     {
         // Arrange

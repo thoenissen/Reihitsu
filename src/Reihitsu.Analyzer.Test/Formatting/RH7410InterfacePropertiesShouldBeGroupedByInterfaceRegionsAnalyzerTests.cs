@@ -494,8 +494,9 @@ public class RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzerT
 
     /// <summary>
     /// Characterizes a partial property that implements an interface property: it is judged and reported only at its
-    /// defining part, and the region of its implementing part is not considered. The case is an open question about
-    /// intended behavior, so this test pins today's behavior without stating it as intended
+    /// defining part, and the region of its implementing part is not considered. This test pins today's behavior; the
+    /// decided behavior is stated by SHARED-DIAG-004, which judges a partial property by its symbol, and its change belongs
+    /// to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

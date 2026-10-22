@@ -391,6 +391,7 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests : Ba
     [TestMethod]
     [Requirement("SHARED-INIT-001")]
     [Requirement("RH5301-001")]
+    [Requirement("SHARED-COMMENT-011")]
     public async Task VerifyNoDiagnosticForCommentPrefixedOpeningBrace()
     {
         const string testData = """
@@ -418,6 +419,7 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests : Ba
     [TestMethod]
     [Requirement("SHARED-INIT-001")]
     [Requirement("RH5301-001")]
+    [Requirement("SHARED-COMMENT-011")]
     public async Task VerifyNoDiagnosticForCommentPrefixedClosingBrace()
     {
         const string testData = """
@@ -445,6 +447,7 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests : Ba
     [TestMethod]
     [Requirement("SHARED-INIT-001")]
     [Requirement("RH5301-002")]
+    [Requirement("SHARED-COMMENT-011")]
     public async Task VerifyNoDiagnosticForCommentPrefixedAssignment()
     {
         const string testData = """
@@ -788,6 +791,90 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                 """;
 
         await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment that starts the line of an object member in the member's column
+    /// is treated like any other comment there, so the member behind it is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5301-002")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyNoDiagnosticForDelimitedDocumentationCommentPrefixedAssignment()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Value { get; set; }
+
+                                    private static void Method()
+                                    {
+                                        var value = new Example
+                                                    {
+                                                        /** Keep value. */ Value = 1
+                                                    };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment that starts the line of an object member in the member's column
+    /// does not get the member reported when documentation comments are not parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5301-002")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyNoDiagnosticForDelimitedDocumentationCommentPrefixedAssignmentWithoutDocumentationParsing()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Value { get; set; }
+
+                                    private static void Method()
+                                    {
+                                        var value = new Example
+                                                    {
+                                                        /** Keep value. */ Value = 1
+                                                    };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that a comment that starts the line of an object member in the member's column does not get the member
+    /// reported under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5301-002")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyNoDiagnosticForCommentPrefixedAssignmentWithCrLf()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Value { get; set; }
+
+                                    private static void Method()
+                                    {
+                                        var value = new Example
+                                                    {
+                                                        /* Keep value. */ Value = 1
+                                                    };
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData));
     }
 
     #endregion // Tests

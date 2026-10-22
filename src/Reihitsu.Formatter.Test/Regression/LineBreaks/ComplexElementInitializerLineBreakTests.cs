@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.LineBreaks;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
@@ -64,6 +65,7 @@ public class ComplexElementInitializerLineBreakTests
     /// single-line layout instead of being exploded one-token-per-line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-022")]
     public void DictionaryStylePairsStaySingleLine()
     {
         const string input = """
@@ -89,6 +91,7 @@ public class ComplexElementInitializerLineBreakTests
     /// only one element
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-022")]
     public void SingleDictionaryStylePairStaysSingleLine()
     {
         const string input = """

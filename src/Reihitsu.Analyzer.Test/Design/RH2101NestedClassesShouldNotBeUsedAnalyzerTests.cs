@@ -283,8 +283,9 @@ public class RH2101NestedClassesShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase
 
     /// <summary>
     /// Characterizes a nested static partial class whose second part omits the static modifier: the class is static,
-    /// but only the part without the modifier is reported. The case is an open question about intended behavior, so
-    /// this test pins today's behavior without stating it as intended
+    /// but only the part without the modifier is reported. This test pins today's behavior; the decided behavior is
+    /// stated by SHARED-DIAG-004, which judges a partial type by the modifiers of all its parts together, and its change
+    /// belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

@@ -19,6 +19,7 @@ public class BracketedArgumentTrailingCommentTests : FormatterTestsBase
     /// multiline indexer argument list
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-014")]
     public void BlockCommentAfterClosingBracketDoesNotBlockTheCollapse()
     {
         // Arrange
@@ -52,6 +53,7 @@ public class BracketedArgumentTrailingCommentTests : FormatterTestsBase
     /// trivia
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-014")]
     public void LineCommentAfterClosingBracketDoesNotBlockTheCollapse()
     {
         // Arrange
@@ -86,6 +88,7 @@ public class BracketedArgumentTrailingCommentTests : FormatterTestsBase
     /// multi-argument indexer list, where the collapse additionally crosses the separator gaps
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-014")]
     public void CommentAfterClosingBracketDoesNotBlockTheMultiArgumentCollapse()
     {
         // Arrange
@@ -121,6 +124,8 @@ public class BracketedArgumentTrailingCommentTests : FormatterTestsBase
     /// what this test pins - the argument staying on its own line is
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
+    [Requirement("FMT-BREAK-014")]
     public void CommentBetweenTheBracketsStillBlocksTheCollapse()
     {
         // Arrange
@@ -154,6 +159,8 @@ public class BracketedArgumentTrailingCommentTests : FormatterTestsBase
     /// closing bracket is pulled up by the rewrite, so trivia in front of it is crossed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
+    [Requirement("FMT-BREAK-014")]
     public void CommentBeforeTheClosingBracketStillBlocksTheCollapse()
     {
         // Arrange
@@ -186,6 +193,8 @@ public class BracketedArgumentTrailingCommentTests : FormatterTestsBase
     /// Verifies that a directive written between the brackets still blocks the collapse
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
+    [Requirement("FMT-BREAK-014")]
     public void DirectiveBetweenTheBracketsStillBlocksTheCollapse()
     {
         // Arrange

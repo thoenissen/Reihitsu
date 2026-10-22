@@ -163,6 +163,7 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
     /// comment is preserved — the one directly before the closing brace is removed, matching RH5024
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-007")]
     public void BlankLineDirectlyBeforeClosingBraceIsRemovedWhenTrailingCommentPrecedesIt()
     {
         // Arrange
@@ -200,6 +201,7 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
     /// line RH5020 already requires before an own-line comment
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-011")]
     public void BlankLineIsInsertedBeforeTrailingCommentThatHasNone()
     {
         // Arrange
@@ -235,6 +237,7 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
     /// a blank line, since it is the first content of the scope rather than trailing content
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-011")]
     public void NoBlankLineIsInsertedBeforeCommentFirstInBlock()
     {
         // Arrange
@@ -297,6 +300,7 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
     /// blank line ahead of the directive is preserved rather than doubled
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-011")]
     public void CommentAfterDirectiveBlockStaysAttachedToFollowingStatement()
     {
         // Arrange
@@ -344,6 +348,7 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
     /// line ahead of the directive is preserved rather than doubled
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-011")]
     public void CommentAfterDisabledTextStaysAttachedToFollowingStatement()
     {
         // Arrange
@@ -391,6 +396,7 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
     /// directive is preserved rather than doubled
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-011")]
     public void CommentAfterPragmaDirectiveStaysAttachedToFollowingStatement()
     {
         // Arrange

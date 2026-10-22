@@ -23,6 +23,7 @@ public class ThrowOperandPrecedenceExpressionBodyTests : FormatterTestsBase
     /// Verifies that the reported conditional getter operand and assignment setter operand are parenthesized
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-011")]
     public void ConditionalGetterAndAssignmentSetterOperandsAreParenthesized()
     {
         // Arrange
@@ -66,6 +67,7 @@ public class ThrowOperandPrecedenceExpressionBodyTests : FormatterTestsBase
     /// Verifies that a conditional getter operand alone is parenthesized
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-011")]
     public void ConditionalGetterOperandIsParenthesized()
     {
         // Arrange
@@ -97,6 +99,7 @@ public class ThrowOperandPrecedenceExpressionBodyTests : FormatterTestsBase
     /// Verifies that an assignment setter operand alone is parenthesized
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-011")]
     public void AssignmentSetterOperandIsParenthesized()
     {
         // Arrange
@@ -197,6 +200,7 @@ public class ThrowOperandPrecedenceExpressionBodyTests : FormatterTestsBase
     /// expression operand
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-011")]
     public void QueryGetterOperandIsParenthesized()
     {
         // Arrange
@@ -425,6 +429,7 @@ public class ThrowOperandPrecedenceExpressionBodyTests : FormatterTestsBase
     /// expression
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-011")]
     public void SimpleLambdaGetterOperandIsParenthesized()
     {
         // Arrange
@@ -453,6 +458,7 @@ public class ThrowOperandPrecedenceExpressionBodyTests : FormatterTestsBase
     /// throw expression
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-011")]
     public void ParenthesizedLambdaGetterOperandIsParenthesized()
     {
         // Arrange
@@ -544,6 +550,7 @@ public class ThrowOperandPrecedenceExpressionBodyTests : FormatterTestsBase
     /// top-level node decides
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-011")]
     public void QueryBelowCoalesceGetterOperandStaysBare()
     {
         // Arrange
@@ -608,6 +615,7 @@ public class ThrowOperandPrecedenceExpressionBodyTests : FormatterTestsBase
     /// Verifies that a null-coalescing operand stays bare, because it binds as tightly as a throw expression's operand
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-011")]
     public void CoalesceGetterOperandStaysBare()
     {
         // Arrange
@@ -672,6 +680,7 @@ public class ThrowOperandPrecedenceExpressionBodyTests : FormatterTestsBase
     /// Verifies that an <c>as</c> operand stays bare, because it binds more tightly than a throw expression's operand
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-011")]
     public void AsGetterOperandStaysBare()
     {
         // Arrange

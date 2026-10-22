@@ -64,6 +64,7 @@ public class OneLineClassBodyMembersFullPipelineTests : FormatterTestsBase
     /// Verifies that two methods with block bodies inside a one-line class body are split onto separate lines
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-007")]
     public void SeparatesMethodsInOneLineClassBody()
     {
         // Arrange
@@ -132,6 +133,7 @@ public class OneLineClassBodyMembersFullPipelineTests : FormatterTestsBase
     /// Verifies that two fields inside a one-line class body are split onto separate lines
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-007")]
     public void SeparatesFieldsInOneLineClassBody()
     {
         // Arrange
@@ -237,6 +239,7 @@ public class OneLineClassBodyMembersFullPipelineTests : FormatterTestsBase
     /// Verifies that a member on the closing-brace line of the previous member in a multi-line body is moved to its own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-007")]
     public void SeparatesMemberFollowingClosingBraceInMultiLineBody()
     {
         // Arrange
@@ -270,6 +273,7 @@ public class OneLineClassBodyMembersFullPipelineTests : FormatterTestsBase
     /// Verifies that members sharing a line are split in both a nested and its containing type
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-007")]
     public void SeparatesMembersAtEveryNestingLevel()
     {
         // Arrange
@@ -329,6 +333,7 @@ public class OneLineClassBodyMembersFullPipelineTests : FormatterTestsBase
     /// Verifies that two types sharing a line inside a block namespace are split onto separate lines
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-007")]
     public void SeparatesTypesInBlockNamespace()
     {
         // Arrange
@@ -355,6 +360,7 @@ public class OneLineClassBodyMembersFullPipelineTests : FormatterTestsBase
     /// Verifies that types sharing a line with each other and with a file-scoped namespace header are split onto separate lines
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-007")]
     public void SeparatesTypesAndHeaderInFileScopedNamespace()
     {
         // Arrange
@@ -379,6 +385,7 @@ public class OneLineClassBodyMembersFullPipelineTests : FormatterTestsBase
     /// Verifies that two top-level types sharing a line are split onto separate lines
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-007")]
     public void SeparatesTypesInCompilationUnit()
     {
         // Arrange
@@ -442,6 +449,7 @@ public class OneLineClassBodyMembersFullPipelineTests : FormatterTestsBase
     /// Verifies that top-level statements sharing a line are split onto separate lines
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-007")]
     public void SeparatesTopLevelStatements()
     {
         // Arrange
@@ -479,6 +487,8 @@ public class OneLineClassBodyMembersFullPipelineTests : FormatterTestsBase
     /// Verifies that the line break before an attributed member is inserted before its attribute list
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-007")]
+    [Requirement("FMT-BREAK-027")]
     public void PlacesAttributedMemberOnItsOwnLine()
     {
         // Arrange
@@ -504,6 +514,8 @@ public class OneLineClassBodyMembersFullPipelineTests : FormatterTestsBase
     /// Verifies that a single-line block comment between two members stays on the line of the preceding member
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
+    [Requirement("FMT-BREAK-007")]
     public void KeepsBlockCommentTrailingPreviousMember()
     {
         // Arrange

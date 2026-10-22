@@ -21,6 +21,7 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
     /// Verifies that a method whose expression body carries a directive before the expression is left alone
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-007")]
     public void MethodWithDirectiveBeforeExpressionIsNotConverted()
     {
         // Arrange
@@ -67,6 +68,7 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
     /// Verifies that a constructor whose expression body carries a directive before the expression is left alone
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-007")]
     public void ConstructorWithDirectiveBeforeExpressionIsNotConverted()
     {
         // Arrange
@@ -92,6 +94,7 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
     /// Verifies that an operator whose expression body carries a directive before the expression is left alone
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-007")]
     public void OperatorWithDirectiveBeforeExpressionIsNotConverted()
     {
         // Arrange
@@ -116,6 +119,7 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
     /// is left alone
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-007")]
     public void ConversionOperatorWithDirectiveBeforeExpressionIsNotConverted()
     {
         // Arrange
@@ -139,6 +143,7 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
     /// Verifies that a finalizer whose expression body carries a directive before the expression is left alone
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-007")]
     public void FinalizerWithDirectiveBeforeExpressionIsNotConverted()
     {
         // Arrange
@@ -165,6 +170,7 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
     /// left alone
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-007")]
     public void LocalFunctionWithDirectiveBeforeExpressionIsNotConverted()
     {
         // Arrange
@@ -194,6 +200,7 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
     /// to conditional directives
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-007")]
     public void MethodWithPragmaBeforeExpressionIsNotConverted()
     {
         // Arrange
@@ -215,6 +222,7 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
     /// Verifies that a nullable directive before the expression is refused
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-007")]
     public void MethodWithNullableDirectiveBeforeExpressionIsNotConverted()
     {
         // Arrange
@@ -236,6 +244,7 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
     /// Verifies that a line directive before the expression is refused
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-007")]
     public void MethodWithLineDirectiveBeforeExpressionIsNotConverted()
     {
         // Arrange
@@ -258,6 +267,7 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
     /// the directive onto the declaration line instead of preserving its required standalone line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-007")]
     public void MethodWithRegionDirectiveBeforeExpressionIsNotConverted()
     {
         // Arrange
@@ -283,6 +293,7 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
     /// inside the generated statement and keeps its own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-007")]
     public void MethodWithDirectiveAfterExpressionIsStillConverted()
     {
         // Arrange
@@ -315,6 +326,7 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
     /// still converted, because the whole group travels into the generated statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-007")]
     public void MethodWithBalancedConditionalAfterExpressionIsStillConverted()
     {
         // Arrange
@@ -352,6 +364,7 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
     /// directive placement and token boundaries
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-007")]
     public void MethodWithRegionAfterExpressionIsNotConverted()
     {
         // Arrange
@@ -382,6 +395,7 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
     /// agree on a member whose region directive sits outside the rewritten span
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-007")]
     public void MethodWithRegionBeforeArrowIsNotConverted()
     {
         // Arrange

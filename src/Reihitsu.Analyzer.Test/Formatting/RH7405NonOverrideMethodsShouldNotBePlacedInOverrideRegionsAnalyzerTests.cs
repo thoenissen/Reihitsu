@@ -359,8 +359,9 @@ public class RH7405NonOverrideMethodsShouldNotBePlacedInOverrideRegionsAnalyzerT
 
     /// <summary>
     /// Characterizes methods in regions nested in a top-level region: they are judged by the top-level region around them,
-    /// not by the innermost region. The case is an open question about intended behavior, so this test pins today's
-    /// behavior without stating it as intended
+    /// not by the innermost region. This test pins today's behavior; the decided behavior is stated by
+    /// SHARED-TYPEREGION-006, which judges a member by the innermost region that encloses it, and its change belongs to an
+    /// existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

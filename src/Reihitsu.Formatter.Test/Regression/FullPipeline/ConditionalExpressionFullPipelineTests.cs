@@ -44,6 +44,7 @@ public class ConditionalExpressionFullPipelineTests : FormatterTestsBase
     /// the inner conditional aligning one indent deeper than the outer operator
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-018")]
     public void SingleLineNestedConditionalGetsConsistentIndentation()
     {
         // Arrange
@@ -181,6 +182,7 @@ public class ConditionalExpressionFullPipelineTests : FormatterTestsBase
     /// one step deeper than the previous operator column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-018")]
     public void TripleNestedConditionalInFalseBranchIndentsConsistently()
     {
         // Arrange
@@ -219,6 +221,7 @@ public class ConditionalExpressionFullPipelineTests : FormatterTestsBase
     /// question-mark operator column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-018")]
     public void NestedConditionalInTrueBranchIndentsRelativeToParentOperator()
     {
         // Arrange
@@ -255,6 +258,7 @@ public class ConditionalExpressionFullPipelineTests : FormatterTestsBase
     /// every operator is on its own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-018")]
     public void ShortNestedConditionalIsBrokenOntoOwnLines()
     {
         // Arrange
@@ -291,6 +295,7 @@ public class ConditionalExpressionFullPipelineTests : FormatterTestsBase
     /// never broken across lines (guard against over-breaking)
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-018")]
     public void SimpleSingleLineConditionalIsNotBroken()
     {
         // Arrange

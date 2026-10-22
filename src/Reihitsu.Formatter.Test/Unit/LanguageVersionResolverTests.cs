@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Test.Helpers;
 using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Test.Unit;
@@ -19,6 +20,7 @@ public class LanguageVersionResolverTests
     /// Roslyn upgrade that introduces a newer version fails here until the maximum is raised deliberately
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-008")]
     public void MaxSupportedLanguageVersionMatchesRoslynLatest()
     {
         Assert.AreEqual(LanguageVersionResolver.MaxSupportedLanguageVersion, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
@@ -28,6 +30,7 @@ public class LanguageVersionResolverTests
     /// Verifies that a concrete version at or below the maximum resolves to itself
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-008")]
     public void ResolveKeepsConcreteVersionsUpToTheMaximum()
     {
         Assert.AreEqual(LanguageVersion.CSharp1, LanguageVersionResolver.Resolve(LanguageVersion.CSharp1));
@@ -40,6 +43,7 @@ public class LanguageVersionResolverTests
     /// Verifies that every symbolic version resolves to the maximum rather than to a symbolic value
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-008")]
     public void ResolveMapsSymbolicVersionsToTheMaximum()
     {
         Assert.AreEqual(LanguageVersionResolver.MaxSupportedLanguageVersion, LanguageVersionResolver.Resolve(LanguageVersion.Default));
@@ -52,6 +56,7 @@ public class LanguageVersionResolverTests
     /// Verifies that a concrete version above the maximum is clamped to it
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-008")]
     public void ResolveClampsVersionsAboveTheMaximum()
     {
         Assert.AreEqual(LanguageVersionResolver.MaxSupportedLanguageVersion, LanguageVersionResolver.Resolve((LanguageVersion)1500));
@@ -61,6 +66,7 @@ public class LanguageVersionResolverTests
     /// Verifies that parse options resolve through their effective language version
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-008")]
     public void ResolveReadsTheLanguageVersionOfParseOptions()
     {
         Assert.AreEqual(LanguageVersion.CSharp11, LanguageVersionResolver.Resolve(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp11)));
@@ -71,6 +77,7 @@ public class LanguageVersionResolverTests
     /// Verifies that missing parse options resolve to the maximum
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-008")]
     public void ResolveTreatsMissingParseOptionsAsTheMaximum()
     {
         Assert.AreEqual(LanguageVersionResolver.MaxSupportedLanguageVersion, LanguageVersionResolver.Resolve((CSharpParseOptions)null));
