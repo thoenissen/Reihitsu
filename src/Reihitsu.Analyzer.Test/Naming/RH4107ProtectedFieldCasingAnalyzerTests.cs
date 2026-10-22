@@ -270,6 +270,37 @@ public class RH4107ProtectedFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
                      });
     }
 
+    /// <summary>
+    /// Verifies the specification example of declarators in several positions: each declarator that does not use
+    /// _camelCase is reported on its own identifier, whether it follows or precedes a declarator that does, and the fix
+    /// renames only those declarators
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-006")]
+    [Requirement("RH4107-001")]
+    [Requirement("RH4107-002")]
+    public async Task EveryDeclaratorIsCheckedWhereverItStandsInItsDeclaration()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    protected int _a, {|#0:B|};
+                                    protected int {|#1:D|}, _e;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     protected int _a, _b;
+                                     protected int _d, _e;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH4107ProtectedFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4107MessageFormat, 2));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

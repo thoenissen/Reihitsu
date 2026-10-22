@@ -7,7 +7,7 @@
 | Code owners | `SplitElementDocumentationAnalyzerBase`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `XmlDocumentationExpander`, `DocumentationModeAnalysisContextExtensions` |
 | Uses | — |
 
-This spec covers the rules that require one kind of element to be documented. It defines which declarations such a rule checks, the private and non-private groups that split each kind between two rules, the declarations it exempts, and when a declaration counts as documented. It also defines what every documentation rule relies on: which documentation comments belong to a declaration, when a summary has text, when the parameters and type parameters of an element count as documented, and when documentation rules do not run at all. For the rules that check the descriptions of parameters, type parameters, and return values, it defines when such a description has text, how the descriptions are paired with the parameters, and when a description lacks a name. Each rule that uses this spec states which element kind it checks, which group, and where its diagnostic is located.
+This spec covers the rules that require one kind of element to be documented. It defines which declarations such a rule checks, the private and non-private groups that split each kind between two rules, the declarations it exempts, and when a declaration counts as documented. It also defines what every documentation rule relies on: which documentation comments belong to a declaration, when a summary has text, when the parameters and type parameters of an element count as documented, and when documentation rules do not run at all. For the rules that check the descriptions of parameters, type parameters, and return values, it defines when such a description has text, how the descriptions are paired with the parameters, and when a description lacks a name. For the code fixes that remove or unwrap a documentation element, it defines when an element has an end tag of its own. Each rule that uses this spec states which element kind it checks, which group, and where its diagnostic is located.
 
 ## Non-goals
 
@@ -1172,6 +1172,71 @@ public class C<T>
     /// <param>Nested</param>
     /// </remarks>
     public void M(int a, int b, int c, int d, int e)
+    {
+    }
+}
+```
+
+### SHARED-DOC-017 — An end tag with another name is no end tag of its own
+
+An XML element of a documentation comment that is written with a start tag MUST count as having an end tag of its own only when the parser closes it with an end tag that carries the name of its start tag. Such an element without an end tag, and one that the parser closes with an end tag of another name — `<returns>` in `<remarks><returns>Nothing</remarks>`, which `</remarks>` closes — has no end tag of its own. The code fixes of RH8107, RH8202, and RH8204 MUST NOT be offered for a reported element that has no end tag of its own; the diagnostic is still reported. An empty element, such as `<returns/>`, `<value/>`, or `<placeholder/>`, needs no end tag, and this requirement does not withhold a fix for it.
+
+Why: An end tag with another name belongs to an element around the reported one, and an element without an end tag runs to the end of the comment. An empty element ends where it is written, so removing it touches nothing else. Removing or unwrapping the reported element up to where the parser ends it would also remove the end tag of the element around it, or the documentation and the code that follow it.
+
+Example — RH8107 reports the `<returns>` element of the `void` method, which `</remarks>` closes:
+
+```csharp
+public class C
+{
+    /// <summary>
+    /// Runs
+    /// </summary>
+    /// <remarks><returns>Nothing</remarks>
+    public void Run()
+    {
+    }
+}
+```
+
+and no code fix is offered.
+
+Example — RH8202 reports the `<value>` element, which has no end tag:
+
+```csharp
+public class C
+{
+    /// <summary>
+    /// Gets the size
+    /// </summary>
+    /// <value>The size
+    public int Size { get; }
+}
+```
+
+and no code fix is offered.
+
+Example — an empty `<returns/>` element ends where it is written, so the RH8107 fix is offered and removes its line:
+
+```csharp
+public class C
+{
+    /// <summary>
+    /// Runs
+    /// </summary>
+    /// {|RH8107:<returns/>|}
+    public void Run()
+    {
+    }
+}
+```
+
+```csharp
+public class C
+{
+    /// <summary>
+    /// Runs
+    /// </summary>
+    public void Run()
     {
     }
 }
