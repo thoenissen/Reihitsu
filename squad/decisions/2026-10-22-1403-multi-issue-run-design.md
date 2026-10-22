@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Date | 2026-10-22 |
-| Escalation | 1 |
+| Escalation | none of 1–10; the issue left four design points to the maintainer |
 | Run | issue #1403 |
 
 ## Question
