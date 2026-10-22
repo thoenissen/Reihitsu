@@ -36,3 +36,6 @@ Verdict: Lane "tests" claimed
 
 - Open questions filed: thoenissen/Reihitsu#1362 (`SDD open questions: sdd/specs/shared/comment-placement.md`, Q1 marked "Decided by principle P13 (#912)", Q2, Q3).
 - Further-instance comments: thoenissen/Reihitsu#1147 (RH5205 comment-led brace, P12), thoenissen/Reihitsu#1077 (RH5033 `/** */` behind an attribute list, P6).
+- Escalation 5 (P12 scope): the maintainer added RH5301, RH5302, RH5303, RH5305, RH5306, RH5308 to the specs that list SHARED-COMMENT-011 (`squad/decisions/2026-10-22-1139-p12-scope-rh53xx.md`).
+- More open questions filed on thoenissen/Reihitsu#1362: Q4 (multi-line comment tail), Q5 (RH5302/RH5308, decided by P12), Q6 (RH5305, decided by P12), Q7 (RH5301/RH5303 with two leading comments, decided by P12), and precedents for Q2/Q4. Further #1147 comment: RH5206 brace shape.
+- Test implementer's RH5203 fix finding (an own-line comment moved to column 0) is the existing RH5203 instance of thoenissen/Reihitsu#1144; reused, nothing filed.
