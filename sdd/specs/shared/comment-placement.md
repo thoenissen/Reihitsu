@@ -417,7 +417,7 @@ The comments of the `switch` statement are not reported.
 
 ### SHARED-COMMENT-011 — A line that starts with a comment is not judged by the token behind it
 
-A rule that checks where a line starts — whether a token starts its line, or in which column a line starts — MUST take a comment of any kind that starts its line (SHARED-BLANK-002) as the first element of that line. When such a comment stands where the rule asks the line to start, a token behind it on the comment's first line MUST NOT be reported for its position: neither for not starting its line nor for its column. A comment that does not start its line, such as one behind code on the line above, does not make the line start with a comment.
+A rule that checks where a line starts — whether a token starts its line, or in which column a line starts — MUST take a comment of any kind that starts its line (SHARED-BLANK-002) as the first element of that line. When such a comment stands where the rule asks the line to start, the first token behind it on the comment's first line MUST NOT be reported for its position: neither for not starting its line nor for its column. Only that first token is exempt; a later token on the same line is judged by the rule's own requirements. A comment that does not start its line, such as one behind code on the line above, does not make the line start with a comment.
 
 Why: A rule that checks where a line starts judges the line's first element, and a comment there is the line's first element as much as a token would be. Whether the comment may stand there at all is for the rules that report comments to decide, not for the rule that places the line.
 
@@ -442,7 +442,30 @@ class C
 }
 ```
 
-is not reported, whether or not documentation comments are parsed. A comment that does not start the argument's line — behind code on the line above, or on a line of its own above it — leaves the argument to RH5203:
+is not reported, whether or not documentation comments are parsed. A later token on the comment's line is not the token behind the comment, so RH5201 and RH5303 still report it:
+
+```csharp
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    object N(int[] items)
+    {
+        var list = items.Where(x => x > 0)
+                        /* all */ .Select(x => x){|RH5201:.|}ToList();
+
+        var values = new List<int>()
+                     {
+                         /* a */ 1, {|RH5303:2|}
+                     };
+
+        return list;
+    }
+}
+```
+
+A comment that does not start the argument's line — behind code on the line above, or on a line of its own above it — leaves the argument to RH5203:
 
 ```csharp
 class C
