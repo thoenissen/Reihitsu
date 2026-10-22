@@ -77,7 +77,7 @@ Earlier: 3 — plan the analyzer backfill. Phase 1 and 2 complete (2026-10-17): 
 
 ## Running
 
-- 2026-10-22 (round 9): #939 (PR #1358), #1138 (#1357), #1260 (#1359), #1161 (#1360), #1139 (#1361) merged; maintainer reports further follow-ups. Inventory running -> `inventory/round9.md`. Next: #1331, then #998. Round-7 batches #985 (PR #1301), #993 (PR #1303), #995 (PR #1302) merged. Remaining batches: #939, then #998 last. Spec issues #1138, #1139, #1161, #1260 still open, no PR (not run yet). Status file: `inventory/round8-status.md`.
+- 2026-10-22: prompts given for #1331, #1380, #1402 (`prompts-round9.md`). Earlier (round 9): #939 (PR #1358), #1138 (#1357), #1260 (#1359), #1161 (#1360), #1139 (#1361) merged; maintainer reports further follow-ups. Inventory running -> `inventory/round9.md`. Next: #1331, then #998. Round-7 batches #985 (PR #1301), #993 (PR #1303), #995 (PR #1302) merged. Remaining batches: #939, then #998 last. Spec issues #1138, #1139, #1161, #1260 still open, no PR (not run yet). Status file: `inventory/round8-status.md`.
 - Earlier, round 6 (prompts 2026-10-19, `sdd/work/coordinator/prompts-round6.md`, overlap check `inventory/batches-round6.md`): #984, #991, #992, #994, #996, #997. Next: #985 after #984; #995 after #994; #993 after #994 and #996; then #939, #998.
 
 ## Next: question round (new chat, planned 2026-10-18)
@@ -202,6 +202,9 @@ Round 9 message numbering (msg -> inventory section 5 item): 1 P32 (inv9); 2 P33
 1 P32 (b) wrapping (braces/blocks/expression-body conversion) keeps author's comment layout (#1368 SW-Q2, #1371 Q-S2, supports #963). 2 P33 (b) multi-line comment belongs to the line it starts on; token behind its tail does not start a line; formatter breaks before it, rules report (#1362 Q4, #1373 LB-Q2; SHARED-INIT-001 + 2 formatter tests change). 3 P34 (a) one treatment per syntax family in the formatter (#1373 LB-Q5/Q8/Q9, #1370 Q-I5, attribute colon part of #1369 SP-Q2; spacing parts -> #958). 4 P35 (a) fix EOL = FMT-PIPE-007 detection, lone CR counts as LF (#1363 Q6, #1377 SHARED-ATTR-008/-017). 5 P36 (c) formatter does not apply a structural rewrite that would break the build, drop documentation or move a comment (#1371 Q-S5). 6 P37 (b) required blank line after directives, never directly before one (#1372 Q-B3/Q-B4; formatter + RH5002/RH5008 fixes). 7 P12 clarification (a) misplaced comment-led line is reported (#1362 Q2).
 8 #1362 Q3 a; 9 #1363 Q1 a (bug, RH5104-005 changes); 10 #1363 Q2 a; 11 #1363 Q3 a (bug); 12 #1363 Q4 a; 13 #1371 Q-S4 b; 14 #1372 Q-B2 b (keeps #1081; RH5030 exempts following block); 15 #1373 LB-Q3 b; 16 #1373 LB-Q4 a+b+c; 17 LB-Q6 c; 18 LB-Q7 b; 19 #1368 SW-Q1 b; 20 #1370 Q-I1 b; 21 Q-I2 b; 22 Q-I6 a; 23 Q-I7 a; 24 #1369 SP-Q1 a; 25 SP-Q2 b.
 26 #1374 Q1 close, no change. 27 extend #1276 (formatter extension-block braces). 28 #1370 Q-I3 code follows FMT-INDENT-013. 29 one docs-lane issue (README "Tests and requirements" stale + formatter non-goals naming decided issues open); SHARED-FIX-003 "for every input" wording -> #1331. 30 yes: AGENTS.md one-line pointer to P11 under "Issue intake" (tooling lane, file as issue).
+
+Round 9 bookkeeping DONE (agent 2026-10-22): #1380 (SDD P32-P37 + P12 clar.), follow-ups #1381-#1400, docs #1401 (item 29), tooling #1402 (item 30); #1147, #1276, #958, #895, #1377, #963 extended; all 17 question issues closed. Mapping `round9-created.md`. #912 https://github.com/thoenissen/Reihitsu/issues/912#issuecomment-6350039592
+Next runs (prompts `prompts-round9.md`): #1331, #1380, #1402 in parallel; then #1401 and #1377 (after #1331/#1380); then #998 last.
 
 ## Waiting for maintainer
 
