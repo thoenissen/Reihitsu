@@ -34,3 +34,8 @@ Verdict: lane claimed
 
 - The escalation answers are recorded under `squad/decisions/`, a tooling path, so the lane check reported a mismatch. Before any implementer started, the lane is widened tests → **tooling** (precedent: thoenissen/Reihitsu#1359). The only tooling paths are the decision entries.
 - The widened lane adds the implementer and the auditor. The auditor runs. The implementer is skipped: the run carries no production or tooling code.
+
+## Filed by the lead
+
+- thoenissen/Reihitsu#1407 — `SDD open questions: sdd/specs/shared/element-documentation.md`, Q1: RH8305/RH8307 fixes move a behind-code `///` comment (decided by P29).
+- thoenissen/Reihitsu#1408 — `SDD open questions: sdd/specs/shared/code-fixes.md`, Q1: the brace fixes RH5405–RH5407 reformat the wrapped statement (decided by P26).
