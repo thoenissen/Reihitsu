@@ -207,9 +207,9 @@ Example — in `Counter.razor`, the `@code` in the HTML comment, in the Razor co
 
 ### SHARED-DIAG-004 — A partial declaration is one declaration
 
-A rule that judges a type or a member declared in several parts with the `partial` modifier MUST judge it by its symbol — by the modifiers of all its parts together, so that it is `async`, `static`, or of an accessibility when any part declares it so — and MUST report it at most once. A code fix that would have to change more than one part to give a correct result MUST NOT be offered (SHARED-FIX-003); the diagnostic is still reported.
+A rule that judges a type or a member declared in several parts with the `partial` modifier as a whole — what the declaration is — MUST judge it by its symbol — by the modifiers of all its parts together, so that it is `async`, `static`, or of an accessibility when any part declares it so — and MUST report it at most once. A code fix that would have to change more than one part to give a correct result MUST NOT be offered (SHARED-FIX-003); the diagnostic is still reported.
 
-A rule whose subject is what one part writes — the accessibility modifier or the order of the modifiers that the part carries — MUST judge each part on its own: it MUST report every part whose own modifiers it reports, located on that part, also when another part of the same declaration writes what this part omits, and its code fix MUST change only that part.
+A rule whose subject is what one part writes — the accessibility modifier or the order of the modifiers that the part carries — is not covered by the first paragraph. It MUST judge each part on its own: it MUST report each part whose own modifiers break the rule, located on that part, also when another part of the same declaration writes what this part omits, and its code fix MUST change only that part.
 
 A verdict on the name or the parameters that one part declares, or on the members and regions that one part holds, is not covered by this requirement.
 
@@ -246,20 +246,24 @@ Example — RH7104 judges the accessibility modifier that each part writes, so i
 ```csharp
 public partial class C
 {
+    private int _a;
 }
 
 partial class {|RH7104:C|}
 {
+    private int _b;
 }
 ```
 
 ```csharp
 public partial class C
 {
+    private int _a;
 }
 
 public partial class C
 {
+    private int _b;
 }
 ```
 
@@ -406,9 +410,9 @@ A rule's verdict on an element MUST depend only on the element, on the group it 
 - which part of a `partial` type holds a declaration the verdict relates to, such as the base list that names an interface, or an override that makes a region an override region;
 - whether the type declares a member of another kind that the verdict is not about.
 
-When an element belongs to several groups at once — a method that implements a member of each of two interfaces — a rule that asks for the element to lie in its group MUST accept it in any one of them. A `partial` element MUST be judged with all its parts together, as SHARED-DIAG-004 states.
+When an element comes from several sources at once — a method that implements a member of each of two interfaces — a rule that asks for the element to lie in a region named after its source MUST accept any one of them. Whether the parts of a `partial` element are judged together or each on its own is stated by SHARED-DIAG-004.
 
-Why: The order of the interfaces in a base list, the file that holds one part of a type, and a member the verdict is not about are incidental: the compiler builds the same type however they are arranged, and the reader of the element sees the same element. A verdict that changes with them changes while the code it judges stays the same, so reordering a base list or moving a declaration into another part would create or clear a diagnostic. An element that belongs to several groups is in its place in any of them; accepting only the one an incidental order picks would ask for a change that makes the code no clearer.
+Why: The order of the interfaces in a base list, the file that holds one part of a type, and a member the verdict is not about are incidental: the compiler builds the same type however they are arranged, and the reader of the element sees the same element. A verdict that changes with them changes while the code it judges stays the same, so reordering a base list or moving a declaration into another part would create or clear a diagnostic. An element that comes from several sources is in its place under any of them; accepting only the one an incidental order picks would ask for a change that makes the code no clearer.
 
 Example — RH7409, where `M` implements both `IA.M` and `IB.M` and lies in the region of one of them; the order of the base list does not change the verdict:
 
