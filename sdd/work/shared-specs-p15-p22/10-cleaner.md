@@ -15,4 +15,4 @@ _None._
 
 ## Checks
 - `scripts/build.sh`: 0 Warning(s), 0 Error(s).
-- Focused analyzer tests (RH5409, RH2003, RH7311): see result below in the report; no source changed by this stage.
+- `scripts/test.sh --project analyzer --filter RH5409|RH2003|RH7311`: Passed! Failed: 0, Passed: 50, Total: 50.
