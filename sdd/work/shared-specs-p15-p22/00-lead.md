@@ -46,3 +46,10 @@ Related open issue on diagnostics.md: thoenissen/Reihitsu#1240 (non-goal on inac
 - SHARED-DIAG-003 Razor/HTML/`@@` sentence written as decided; covered by the conforming C# tests; the three RH2109 characterization tests stay until #1289.
 - Item 19 folded into SHARED-TYPEREGION-006; no SHARED-TYPEREGION-007.
 - The two in-passing questions (partial property name casing; several non-name aliases) are not filed.
+
+## Maintainer decisions after the skeptic
+
+- SHARED-DIAG-004: write it; tag the RH2102/RH2004 shapes as covering tests even though they cannot fail (real coverage with #1287).
+- SHARED-USING-004 item 18: written; no new test pins item 18 until #1267.
+- Existing untagged characterization tests that contradict a new requirement (list in 02-skeptic.md): keep each test and its assertion; reword its summary from "open question" to "pins current behavior; the decided behavior is tracked by #N" (or by principle Pn when no issue tracks it). Comment-only.
+- Filed thoenissen/Reihitsu#1374 (P22 using-block instance); commented on #1264 and #1275.
