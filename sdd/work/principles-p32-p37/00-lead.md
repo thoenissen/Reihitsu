@@ -35,3 +35,7 @@ Verdict: lane claimed — tests
 
 - Escalation 1 (P37 shared side without a conforming shape): answered (b) — P37 is recorded only as FMT-BLANK-016; no SHARED-STMT requirement is written in this run; thoenissen/Reihitsu#1385 adds it. Recorded in `squad/decisions/2026-10-22-1380-p37-shared-side-deferred.md`.
 - Lead commented further instances on thoenissen/Reihitsu#1147 (RH5110 example), #1382 (RH5203 fix without progress), and the deferral on #1385.
+
+## Lane widened
+
+`scripts/lane-check.sh tests --head worktree` → `LANE CHECK: mismatch — claimed tests, diff needs tooling`, caused only by the lead's decisions entry under `squad/decisions/` (known classification, thoenissen/Reihitsu#1054). Widened before any implementer stage: tests → tooling, as in thoenissen/Reihitsu#1035 and #1036. Roles now: spec author → skeptic → test implementer → cleaner → spec checker → auditor → validator. Implementer: skipped — no production or tooling code to change. The run remains a specs-and-tests run in substance: no production code, no change doc.
