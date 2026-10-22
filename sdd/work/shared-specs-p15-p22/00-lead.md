@@ -57,3 +57,12 @@ Related open issue on diagnostics.md: thoenissen/Reihitsu#1240 (non-goal on inac
 ## After the spec checker (06)
 
 Maintainer decisions (squad/decisions/2026-10-22-1260-diag008-spec-checker-findings.md): findings 1 and 4 filed as P22 instances in thoenissen/Reihitsu#1375 (RH5111) and thoenissen/Reihitsu#1376 (attribute-targets); finding 2 (RH3001 parenthesized operand) is not the judged span; finding 3 (RH7003-001) stays as is. No spec or test change results, so no repair round.
+
+## Repair round (auditor 07)
+
+Worklist, one round:
+- R1 (test implementer, auditor finding 1): reword the summaries of the seven contradicting characterization tests in RH1001, RH7407, RH7410 and RH7105 under the existing rewording decision. Summaries only.
+- R2 (test implementer, auditor finding 3): the summary of the RH7305 nested-enum test must state what the test observes.
+- R3 (spec author, auditor finding 2b; squad/decisions/2026-10-22-1260-diag008-auditor-findings.md): narrow the SHARED-DIAG-008 `#region`/`#endregion`/`#pragma` sentence so that such a directive does not by itself stop the report, while a rule's own requirement (for example SHARED-JOIN-001) may still exclude the shape.
+- Auditor finding 2a filed as thoenissen/Reihitsu#1378 (RH5102) and thoenissen/Reihitsu#1379 (RH5109).
+Then cleaner, spec checker, auditor (repair only), validator.
