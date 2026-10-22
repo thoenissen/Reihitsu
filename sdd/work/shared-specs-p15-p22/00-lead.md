@@ -53,3 +53,7 @@ Related open issue on diagnostics.md: thoenissen/Reihitsu#1240 (non-goal on inac
 - SHARED-USING-004 item 18: written; no new test pins item 18 until #1267.
 - Existing untagged characterization tests that contradict a new requirement (list in 02-skeptic.md): keep each test and its assertion; reword its summary from "open question" to "pins current behavior; the decided behavior is tracked by #N" (or by principle Pn when no issue tracks it). Comment-only.
 - Filed thoenissen/Reihitsu#1374 (P22 using-block instance); commented on #1264 and #1275.
+
+## After the spec checker (06)
+
+Maintainer decisions (squad/decisions/2026-10-22-1260-diag008-spec-checker-findings.md): findings 1 and 4 filed as P22 instances in thoenissen/Reihitsu#1375 (RH5111) and thoenissen/Reihitsu#1376 (attribute-targets); finding 2 (RH3001 parenthesized operand) is not the judged span; finding 3 (RH7003-001) stays as is. No spec or test change results, so no repair round.
