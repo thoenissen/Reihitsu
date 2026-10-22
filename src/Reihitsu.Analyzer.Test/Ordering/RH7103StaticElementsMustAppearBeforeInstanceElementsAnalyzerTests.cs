@@ -899,6 +899,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7103-004")]
+    [Requirement("SHARED-ORDER-004")]
     public async Task NoDiagnosticWhenStaticAndInstanceLiveInSeparateRegions()
     {
         const string testCode = """
@@ -932,6 +933,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7103-004")]
+    [Requirement("SHARED-ORDER-004")]
     public async Task NoDiagnosticWhenInstanceIsOutsideRegionAndStaticIsInsideRegion()
     {
         const string testCode = """
@@ -961,6 +963,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7103-004")]
+    [Requirement("SHARED-ORDER-004")]
     public async Task NoDiagnosticWhenStaticIsOutsideRegionAndInstanceIsInsideRegion()
     {
         const string testCode = """
@@ -990,6 +993,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7103-004")]
+    [Requirement("SHARED-ORDER-004")]
     public async Task StaticMembersAreReportedWhenTheyAppearAfterInstanceMembersInSameRegion()
     {
         const string testCode = """
@@ -1308,6 +1312,149 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                          test.NumberOfIncrementalIterations = 1;
                          test.NumberOfFixAllIterations = 1;
                      });
+    }
+
+    /// <summary>
+    /// Verifies the specification example of the region scope: members are compared only within their own top-level
+    /// region, so a static method after an instance method of another top-level region is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-004")]
+    public async Task MembersAreComparedOnlyWithinTheirOwnTopLevelRegion()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    #region Instance
+
+                                    private int _a;
+
+                                    public void Run()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    #region Shared
+
+                                    public int B;
+
+                                    public static void Create()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a static member in a region nested in a top-level region is compared with the instance members of
+    /// that top-level region outside the nested region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-004")]
+    public async Task StaticMemberInANestedRegionIsComparedWithTheRestOfItsTopLevelRegion()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    #region Members
+
+                                    public void Run()
+                                    {
+                                    }
+
+                                    #region Factories
+
+                                    public static void {|#0:Create|}()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testCode, Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a static member outside every region is compared with an instance member outside every region,
+    /// also when a top-level region lies between them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-004")]
+    public async Task StaticMemberOutsideEveryRegionIsComparedWithInstanceMembersOutsideEveryRegion()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    public void Run()
+                                    {
+                                    }
+
+                                    #region Lifecycle
+
+                                    public void Stop()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    public static void {|#0:Create|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a rule about the order of members: the static method is reported and moved,
+    /// although the formatter never reorders members
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-010")]
+    public async Task OrderRuleReportsAShapeTheFormatterKeeps()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    public void Run()
+                                    {
+                                    }
+
+                                    public static void {|#0:Create|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     public static void Create()
+                                     {
+                                     }
+
+                                     public void Run()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        AssertFormattingChangesNothing(testCode.Replace("{|#0:", string.Empty).Replace("|}", string.Empty));
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
     }
 
     #endregion // Tests

@@ -61,7 +61,9 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when documentation mode is none
+    /// Characterizes a documentation-style comment in a syntax tree whose documentation mode is none: it is not reported.
+    /// This test pins today's behavior; the decided behavior is stated by SHARED-DOC-008, under which a rule about an
+    /// ordinary comment checks every documentation mode, and its change belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

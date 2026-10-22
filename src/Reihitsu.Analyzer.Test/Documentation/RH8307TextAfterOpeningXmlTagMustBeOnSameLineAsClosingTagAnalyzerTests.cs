@@ -1,10 +1,13 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
 using Reihitsu.Analyzer.Rules.Documentation;
 using Reihitsu.Analyzer.Test.Base;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.Test.Documentation;
 
@@ -369,7 +372,65 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTes
         await Verify(testData, fixedData, Diagnostics(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, AnalyzerResources.RH8307MessageFormat, 2));
     }
 
+    /// <summary>
+    /// Verifies the conforming part of the specification example of a layout rule: the half-wrapped element of a
+    /// <c>///</c> comment, which the formatter lays out again, is reported, and one application of the fix produces what
+    /// the formatter produces
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-010")]
+    public async Task VerifyHalfWrappedElementThatTheFormatterChangesIsReportedAndFixed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// {|#0:<summary>Total
+                                    /// sum</summary>|}
+                                    int A;
+                                }
+                                """;
+        const string plainData = """
+                                 class C
+                                 {
+                                     /// <summary>Total
+                                     /// sum</summary>
+                                     int A;
+                                 }
+                                 """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>
+                                     /// Total
+                                     /// sum
+                                     /// </summary>
+                                     int A;
+                                 }
+                                 """;
+
+        Assert.AreEqual(fixedData, Format(plainData), "The formatter must change the reported shape into the fixed one.");
+
+        await Verify(testData, fixedData, Diagnostics(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, AnalyzerResources.RH8307MessageFormat));
+    }
+
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Formats the provided code with the formatter
+    /// </summary>
+    /// <param name="code">Code without markup</param>
+    /// <returns>The formatted code</returns>
+    private static string Format(string code)
+    {
+        return ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(code), CancellationToken.None)
+                                .GetText()
+                                .ToString();
+    }
+
+    #endregion // Methods
 
     #region BatchCodeFixTestsBase
 

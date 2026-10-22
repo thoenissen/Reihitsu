@@ -111,6 +111,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5105-001")]
+    [Requirement("SHARED-DIAG-010")]
     [Requirement("SHARED-JOIN-001")]
     public async Task VerifyNoDiagnosticWhenCommentIsInGap()
     {
@@ -135,6 +136,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5105-001")]
+    [Requirement("SHARED-DIAG-010")]
     [Requirement("SHARED-JOIN-001")]
     public async Task VerifyNoDiagnosticWhenDirectiveIsInGap()
     {

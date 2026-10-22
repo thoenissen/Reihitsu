@@ -336,6 +336,43 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : Batch
         await Verify(source, fixedSource);
     }
 
+    /// <summary>
+    /// Verifies the specification example: the accessibility modifier that each part of a partial type writes is judged
+    /// on its own, so the part that omits it is reported although another part makes the type public, and the fix writes
+    /// the accessibility on the reported part only
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-004")]
+    public async Task PartThatOmitsTheAccessibilityIsReportedAndFixedAloneWhenAnotherPartDeclaresIt()
+    {
+        const string testCode = """
+                                public partial class C
+                                {
+                                    private int _a;
+                                }
+
+                                partial class {|#0:C|}
+                                {
+                                    private int _b;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public partial class C
+                                 {
+                                     private int _a;
+                                 }
+
+                                 public partial class C
+                                 {
+                                     private int _b;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7104PartialElementsMustDeclareAccessModifierAnalyzer.DiagnosticId, AnalyzerResources.RH7104MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
