@@ -64,6 +64,7 @@ public class ControlFlowBraceElsePlacementTests : FormatterTestsBase
     /// <c>else if</c> keeps starting its own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-001")]
     public void ElseIfChainWithAllBranchesUnbracedPlacesEveryElseOnItsOwnLine()
     {
         // Arrange
@@ -291,6 +292,7 @@ public class ControlFlowBraceElsePlacementTests : FormatterTestsBase
     /// the enclosing block's own closing brace, still braces the else-branch and stays otherwise unaffected
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-001")]
     public void ThenBranchAlreadyBracedElseBranchUnbracedBracesTheElseBranch()
     {
         // Arrange

@@ -18,6 +18,7 @@ public class AutoAccessorListLayoutTests : FormatterTestsBase
     /// line, and that the accessor modifier starts the following accessor's line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void InteriorCommentBeforeAccessorModifierLaysOutAccessors()
     {
         // Arrange
@@ -47,6 +48,7 @@ public class AutoAccessorListLayoutTests : FormatterTestsBase
     /// accessor on its own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void AttributedAutoAccessorsWithInteriorCommentStartOwnLines()
     {
         // Arrange
@@ -76,6 +78,7 @@ public class AutoAccessorListLayoutTests : FormatterTestsBase
     /// Verifies that attributed auto accessors sharing a line in a multi-line accessor list each start their own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-024")]
     public void AttributedAutoAccessorsSharingLineInMultiLineListStartOwnLines()
     {
         // Arrange
@@ -109,6 +112,7 @@ public class AutoAccessorListLayoutTests : FormatterTestsBase
     /// line instead of staying behind on the first accessor's line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-024")]
     public void AttributeOnSecondAutoAccessorInMultiLineListStartsTheAccessorLine()
     {
         // Arrange
@@ -236,6 +240,7 @@ public class AutoAccessorListLayoutTests : FormatterTestsBase
     /// Verifies that a single-line auto-property with an attributed accessor stays on one line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-024")]
     public void SingleLineAttributedAutoPropertyRemainsUnchanged()
     {
         // Arrange
@@ -254,6 +259,7 @@ public class AutoAccessorListLayoutTests : FormatterTestsBase
     /// Verifies that a single-line auto-property whose second accessor carries an attribute stays on one line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-024")]
     public void SingleLineAutoPropertyWithAttributedSecondAccessorRemainsUnchanged()
     {
         // Arrange
@@ -290,6 +296,7 @@ public class AutoAccessorListLayoutTests : FormatterTestsBase
     /// Verifies that a single-line attributed auto-property with an initializer stays on one line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-024")]
     public void SingleLineAttributedAutoPropertyWithInitializerRemainsUnchanged()
     {
         // Arrange
@@ -328,6 +335,7 @@ public class AutoAccessorListLayoutTests : FormatterTestsBase
     /// Verifies that a single-line auto indexer with an attributed accessor stays on one line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-024")]
     public void SingleLineAttributedAutoIndexerRemainsUnchanged()
     {
         // Arrange
@@ -346,6 +354,7 @@ public class AutoAccessorListLayoutTests : FormatterTestsBase
     /// Verifies that a multi-line auto indexer whose accessors share a line collapses to a single line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-024")]
     public void MultiLineAutoIndexerCollapses()
     {
         // Arrange
@@ -373,6 +382,7 @@ public class AutoAccessorListLayoutTests : FormatterTestsBase
     /// Verifies that an auto indexer whose accessor list spans two lines collapses to a single line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-024")]
     public void AutoIndexerWithClosingBraceOnAccessorLineCollapses()
     {
         // Arrange
@@ -398,6 +408,7 @@ public class AutoAccessorListLayoutTests : FormatterTestsBase
     /// Verifies that a multi-line abstract auto indexer collapses to a single line and keeps its accessor modifier
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-024")]
     public void MultiLineAbstractAutoIndexerWithAccessorModifierCollapses()
     {
         // Arrange
@@ -487,6 +498,7 @@ public class AutoAccessorListLayoutTests : FormatterTestsBase
     /// Verifies that an auto indexer whose interior comment prevents the collapse places each accessor on its own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void AutoIndexerWithInteriorCommentIsLaidOut()
     {
         // Arrange
@@ -537,6 +549,7 @@ public class AutoAccessorListLayoutTests : FormatterTestsBase
     /// line instead of being collapsed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-024")]
     public void MultiLineAttributedAutoIndexerIsLaidOut()
     {
         // Arrange

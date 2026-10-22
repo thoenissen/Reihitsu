@@ -40,6 +40,7 @@ public class MethodChainDirectiveAlignmentTests : FormatterTestsBase
     /// statement column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-029")]
     public void DirectiveAboveFirstWrappedCallAlignsChainUnderRoot()
     {
         // Arrange

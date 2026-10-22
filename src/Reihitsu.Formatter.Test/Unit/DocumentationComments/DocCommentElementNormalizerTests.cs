@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Pipeline.DocumentationComments.Utilities;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.DocumentationComments;
 
@@ -30,6 +31,7 @@ public class DocCommentElementNormalizerTests
     /// Verifies that a single-line summary element is reported as requiring normalization
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-008")]
     public void RequiresNormalizationReturnsTrueForSingleLineSummary()
     {
         // Arrange
@@ -52,6 +54,7 @@ public class DocCommentElementNormalizerTests
     /// Verifies that a summary already spanning at least three lines is left untouched
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-010")]
     public void RequiresNormalizationReturnsFalseForSummarySpanningThreeLines()
     {
         // Arrange
@@ -76,6 +79,7 @@ public class DocCommentElementNormalizerTests
     /// Verifies that an element whose content starts on the start-tag line but spans multiple lines requires normalization
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-009")]
     public void RequiresNormalizationReturnsTrueForMisalignedElement()
     {
         // Arrange
@@ -100,6 +104,7 @@ public class DocCommentElementNormalizerTests
     /// Verifies that a well-aligned multi-line element does not require normalization
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-010")]
     public void RequiresNormalizationReturnsFalseForWellAlignedElement()
     {
         // Arrange
@@ -125,6 +130,7 @@ public class DocCommentElementNormalizerTests
     /// Verifies that a single-line summary is expanded across three lines
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-008")]
     public void BuildReplacementExpandsSingleLineSummary()
     {
         // Arrange
@@ -153,6 +159,7 @@ public class DocCommentElementNormalizerTests
     /// Verifies that a non-summary element with single-line content is collapsed to one line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-009")]
     public void BuildReplacementCollapsesNonSummaryElement()
     {
         // Arrange
@@ -177,6 +184,7 @@ public class DocCommentElementNormalizerTests
     /// Verifies that sentence text before a mid-line element is not duplicated on rebuilt continuation lines
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-011")]
     public void BuildReplacementDoesNotDuplicateLeadingSentenceText()
     {
         // Arrange
@@ -213,6 +221,7 @@ public class DocCommentElementNormalizerTests
     /// Verifies that significant indentation inside a code element is preserved when the element is rebuilt
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-011")]
     public void BuildReplacementPreservesCodeIndentation()
     {
         // Arrange

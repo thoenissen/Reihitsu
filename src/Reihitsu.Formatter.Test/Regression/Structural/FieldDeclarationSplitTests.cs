@@ -16,6 +16,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     /// Verifies that a combined field declaration without comments is split into separate declarations
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-021")]
     public void CombinedFieldsAreSplit()
     {
         // Arrange
@@ -41,6 +42,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     /// Verifies that a trailing comment after the separator is preserved on the corresponding declaration
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-022")]
     public void TrailingCommentAfterSeparatorIsPreserved()
     {
         // Arrange
@@ -67,6 +69,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     /// Verifies that a standalone comment line before a later declarator is preserved
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-022")]
     public void StandaloneCommentBeforeDeclaratorIsPreserved()
     {
         // Arrange
@@ -1527,6 +1530,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     /// directive guard inspects the whole declaration, so it covers the newly read slot as well.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-023")]
     public void DirectiveBeforeFirstDeclaratorLeavesTheFieldIntact()
     {
         // Arrange
@@ -1549,6 +1553,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     /// Verifies that disabled text written before the first declarator still leaves the field declaration intact.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-023")]
     public void DisabledTextBeforeFirstDeclaratorLeavesTheFieldIntact()
     {
         // Arrange
@@ -1592,6 +1597,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     /// Verifies that static fields declared in an interface are split
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-021")]
     public void CombinedStaticInterfaceFieldsAreSplit()
     {
         // Arrange

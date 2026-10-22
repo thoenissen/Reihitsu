@@ -20,6 +20,7 @@ public class WrappedAngleBracketListTests : FormatterTestsBase
     /// is joined onto the declaration line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-014")]
     public void SingleBaseTypeWithWrappedTypeArgumentsJoins()
     {
         // Arrange
@@ -50,6 +51,8 @@ public class WrappedAngleBracketListTests : FormatterTestsBase
     /// continuation to the first type argument's column, instead of the enclosing block level
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
+    [Requirement("FMT-BREAK-014")]
     public void LineCommentBetweenTypeArgumentsRefusesJoinAndAligns()
     {
         // Arrange
@@ -81,6 +84,8 @@ public class WrappedAngleBracketListTests : FormatterTestsBase
     /// to the first type argument's column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
+    [Requirement("FMT-BREAK-014")]
     public void BlockCommentOnTypeArgumentRefusesJoinAndAligns()
     {
         // Arrange
@@ -112,6 +117,8 @@ public class WrappedAngleBracketListTests : FormatterTestsBase
     /// aligns both branches' live tokens to the first type argument's column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
+    [Requirement("FMT-BREAK-014")]
     public void ActiveDirectiveBetweenTypeArgumentsRefusesJoinAndAligns()
     {
         // Arrange
@@ -152,6 +159,7 @@ public class WrappedAngleBracketListTests : FormatterTestsBase
     /// multi-line element after the inner list is rewritten
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-014")]
     public void NestedUnjoinableTypeArgumentRefusesOuterJoin()
     {
         // Arrange
@@ -232,6 +240,7 @@ public class WrappedAngleBracketListTests : FormatterTestsBase
     /// Verifies that a wrapped type-parameter list on a class declaration is joined onto one line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-014")]
     public void WrappedClassTypeParameterListJoins()
     {
         // Arrange
@@ -261,6 +270,7 @@ public class WrappedAngleBracketListTests : FormatterTestsBase
     /// Verifies that a wrapped type-parameter list on a method declaration is joined onto one line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-014")]
     public void WrappedMethodTypeParameterListJoins()
     {
         // Arrange
@@ -290,6 +300,7 @@ public class WrappedAngleBracketListTests : FormatterTestsBase
     /// Verifies that a wrapped function-pointer parameter list is joined onto one line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-014")]
     public void WrappedFunctionPointerParameterListJoins()
     {
         // Arrange
@@ -316,6 +327,7 @@ public class WrappedAngleBracketListTests : FormatterTestsBase
     /// Verifies that a wrapped generic field type joins onto one line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-014")]
     public void WrappedGenericFieldTypeJoins()
     {
         // Arrange
@@ -483,6 +495,7 @@ public class WrappedAngleBracketListTests : FormatterTestsBase
     /// Verifies that wrapped invocation type arguments join onto one line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-014")]
     public void WrappedInvocationTypeArgumentsJoin()
     {
         // Arrange
@@ -526,6 +539,7 @@ public class WrappedAngleBracketListTests : FormatterTestsBase
     /// Verifies that a wrapped generic type in an object-creation expression joins onto one line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-014")]
     public void WrappedGenericObjectCreationTypeJoins()
     {
         // Arrange

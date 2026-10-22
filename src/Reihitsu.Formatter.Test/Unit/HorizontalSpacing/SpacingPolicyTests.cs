@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Pipeline.HorizontalSpacing.Utilities;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.HorizontalSpacing;
 
@@ -28,6 +29,7 @@ public class SpacingPolicyTests
     /// Verifies that the closing bracket of an attribute list is followed by a single space
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-003")]
     public void AttributeListCloseBracketRequiresSingleSpace()
     {
         AssertDesiredSpaces("[System.Obsolete]void M(){}", SyntaxKind.CloseBracketToken, 1);
@@ -55,6 +57,7 @@ public class SpacingPolicyTests
     /// Verifies that commas in a rank-only array specifier stay compact
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-008")]
     public void RankOnlyArrayCommaRequiresNoSpace()
     {
         AssertDesiredSpaces("class C{int[,] _t;}", SyntaxKind.CommaToken, 0);
@@ -73,6 +76,7 @@ public class SpacingPolicyTests
     /// Verifies that a semicolon in a for-loop header is followed by a single space
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-011")]
     public void ForLoopSemicolonRequiresSingleSpace()
     {
         AssertDesiredSpaces("class C{void M(){for(var i=0;i<1;i++){}}}", SyntaxKind.SemicolonToken, 1);
@@ -101,6 +105,7 @@ public class SpacingPolicyTests
     /// <see langword="null"/> and only the collapse-multiple-spaces fallback applies
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-002")]
     public void NoRuleAppliesBetweenTypeAndIdentifier()
     {
         var tree = CSharpSyntaxTree.ParseText("class C{void M(){Foo bar=null;}}", cancellationToken: TestContext.CancellationToken);
@@ -119,6 +124,8 @@ public class SpacingPolicyTests
     /// keeps the bracket adjacent even though <c>new</c> is a spaced keyword
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-002")]
+    [Requirement("FMT-SPACE-012")]
     public void NoSpaceRuleTakesPrecedenceOverKeywordForImplicitArray()
     {
         AssertDesiredSpaces("class C{void M(){var a=new[]{1};}}", SyntaxKind.NewKeyword, 0);

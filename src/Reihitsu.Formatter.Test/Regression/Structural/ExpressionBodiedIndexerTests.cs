@@ -17,6 +17,7 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
     /// Verifies that an expression-bodied indexer is kept
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-008")]
     public void ExpressionBodiedIndexerRemainsUnchanged()
     {
         // Arrange
@@ -189,6 +190,7 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
     /// Verifies that accessor-level expression bodies are left alone
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-008")]
     public void AccessorLevelExpressionBodiesRemainUnchanged()
     {
         // Arrange
@@ -213,6 +215,7 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
     /// Verifies that an expression-bodied property is still not converted to a block body
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-008")]
     public void ExpressionBodiedPropertyRemainsUnchanged()
     {
         // Arrange

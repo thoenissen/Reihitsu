@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Pipeline.HorizontalSpacing;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Integration;
 
@@ -28,6 +29,7 @@ public class HorizontalSpacingPhaseIntegrationTests
     /// Verifies that spaces are inserted around binary operators
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-010")]
     public void InsertsSpacesAroundBinaryOperators()
     {
         // Arrange
@@ -63,6 +65,7 @@ public class HorizontalSpacingPhaseIntegrationTests
     /// Verifies that exactly one space is inserted after commas
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-008")]
     public void InsertsSpaceAfterComma()
     {
         // Arrange
@@ -96,6 +99,7 @@ public class HorizontalSpacingPhaseIntegrationTests
     /// Verifies that spaces inside parentheses are removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-004")]
     public void RemovesSpacesInsideParentheses()
     {
         // Arrange
@@ -129,6 +133,7 @@ public class HorizontalSpacingPhaseIntegrationTests
     /// Verifies that a space is inserted after keywords such as <c>if</c>
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-012")]
     public void InsertsSpaceAfterKeyword()
     {
         // Arrange
@@ -168,6 +173,7 @@ public class HorizontalSpacingPhaseIntegrationTests
     /// Verifies that multiple consecutive spaces between tokens are collapsed to a single space
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-002")]
     public void CollapsesMultipleSpaces()
     {
         // Arrange

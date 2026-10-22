@@ -19,6 +19,7 @@ public class ElseIfConditionCommentTests : FormatterTestsBase
     /// moved between the <c>else</c> and <c>if</c> keywords
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-005")]
     public void TrailingCommentOnElseIfConditionDoesNotSplitElseIf()
     {
         var input = """
@@ -44,6 +45,7 @@ public class ElseIfConditionCommentTests : FormatterTestsBase
     /// line above the <c>if</c> keyword
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-005")]
     public void TrailingCommentOnPlainIfConditionMovesToOwnLine()
     {
         var input = """

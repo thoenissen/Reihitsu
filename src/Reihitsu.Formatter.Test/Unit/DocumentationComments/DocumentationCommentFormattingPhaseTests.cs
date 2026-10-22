@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.DocumentationComments;
 using Reihitsu.Formatter.Pipeline.DocumentationComments.Utilities;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.DocumentationComments;
 
@@ -33,6 +34,7 @@ public class DocumentationCommentFormattingPhaseTests
     /// Verifies that a missing separator after a <c>///</c> line prefix is inserted
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-005")]
     public void NormalizesLinePrefixSpacing()
     {
         // Arrange
@@ -64,6 +66,7 @@ public class DocumentationCommentFormattingPhaseTests
     /// Verifies that whitespace after the canonical separator is preserved as content indentation
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-005")]
     public void PreservesContentIndentationAfterCanonicalSeparator()
     {
         // Arrange
@@ -88,6 +91,7 @@ public class DocumentationCommentFormattingPhaseTests
     /// Verifies that a single-line summary is expanded across three lines
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-008")]
     public void ExpandsSingleLineSummary()
     {
         // Arrange
@@ -117,6 +121,7 @@ public class DocumentationCommentFormattingPhaseTests
     /// Verifies that an already well-formed documentation comment is left unchanged
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-010")]
     public void LeavesWellFormedCommentUnchanged()
     {
         // Arrange
@@ -167,6 +172,7 @@ public class DocumentationCommentFormattingPhaseTests
     /// line stays content
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-007")]
     public void LeavesLaterSlashesOnTheLineAsContent()
     {
         // Arrange

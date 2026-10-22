@@ -18,6 +18,7 @@ public class CaseWhenClauseLayoutTests : FormatterTestsBase
     /// Verifies that a guard clause whose pattern fits on one line is collapsed onto the case label line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-028")]
     public void GuardOnSingleLinePatternIsCollapsedInline()
     {
         var input = """
@@ -56,6 +57,7 @@ public class CaseWhenClauseLayoutTests : FormatterTestsBase
     /// Verifies that an already inline guard clause is left unchanged
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-028")]
     public void GuardThatIsAlreadyInlineIsLeftUnchanged()
     {
         var input = """
@@ -79,6 +81,7 @@ public class CaseWhenClauseLayoutTests : FormatterTestsBase
     /// Verifies that a case pattern without a guard clause is left unchanged
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-028")]
     public void CasePatternWithoutGuardIsLeftUnchanged()
     {
         var input = """
@@ -103,6 +106,7 @@ public class CaseWhenClauseLayoutTests : FormatterTestsBase
     /// spaces past the case keyword
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-028")]
     public void GuardOnMultiLinePatternWrapsOntoOwnLine()
     {
         var input = """
@@ -146,6 +150,8 @@ public class CaseWhenClauseLayoutTests : FormatterTestsBase
     /// is preserved
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
+    [Requirement("FMT-BREAK-028")]
     public void GuardSeparatedByCommentIsNotCollapsed()
     {
         var input = """

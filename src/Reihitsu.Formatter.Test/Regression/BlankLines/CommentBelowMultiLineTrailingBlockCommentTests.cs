@@ -18,6 +18,7 @@ public class CommentBelowMultiLineTrailingBlockCommentTests : FormatterTestsBase
     /// Verifies that a line comment directly below a two-line block comment behind a field gets one blank line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-011")]
     public void InsertsBlankLineAboveLineCommentBelowTwoLineTrailingBlockComment()
     {
         const string input = """
@@ -47,6 +48,7 @@ public class CommentBelowMultiLineTrailingBlockCommentTests : FormatterTestsBase
     /// Verifies that a single-line block comment directly below a two-line block comment behind a field gets one blank line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-011")]
     public void InsertsBlankLineAboveBlockCommentBelowTwoLineTrailingBlockComment()
     {
         const string input = """
@@ -390,6 +392,7 @@ public class CommentBelowMultiLineTrailingBlockCommentTests : FormatterTestsBase
     /// block comment trails the brace
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-011")]
     public void KeepsCommentBelowTwoLineBlockCommentBehindOpeningBrace()
     {
         const string input = """
@@ -409,6 +412,7 @@ public class CommentBelowMultiLineTrailingBlockCommentTests : FormatterTestsBase
     /// comment trails the preceding field
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-011")]
     public void KeepsCommentDirectlyBelowDirectiveAfterTwoLineTrailingBlockComment()
     {
         const string input = """
@@ -495,6 +499,7 @@ public class CommentBelowMultiLineTrailingBlockCommentTests : FormatterTestsBase
     /// own line with one blank line above it in one pass
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-012")]
     public void MovesSingleLineDocumentationBelowTwoLineBlockCommentEndingOnItsLineInOnePass()
     {
         const string input = """
@@ -526,6 +531,7 @@ public class CommentBelowMultiLineTrailingBlockCommentTests : FormatterTestsBase
     /// two-line block comment, like the same comment behind code
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-012")]
     public void KeepsStrandedSingleLineDocumentationBehindTwoLineBlockComment()
     {
         const string input = """
@@ -547,6 +553,7 @@ public class CommentBelowMultiLineTrailingBlockCommentTests : FormatterTestsBase
     /// two-line block comment, like the same comment behind code
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-012")]
     public void KeepsStrandedDelimitedDocumentationBehindTwoLineBlockComment()
     {
         const string input = """
@@ -568,6 +575,7 @@ public class CommentBelowMultiLineTrailingBlockCommentTests : FormatterTestsBase
     /// block comment
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-012")]
     public void KeepsStrandedDocumentationBehindSingleLineBlockComment()
     {
         const string input = """
@@ -588,6 +596,7 @@ public class CommentBelowMultiLineTrailingBlockCommentTests : FormatterTestsBase
     /// its own line below a two-line trailing block comment
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-012")]
     public void SeparatesOwnLineStrandedDocumentationBelowTwoLineBlockComment()
     {
         const string input = """

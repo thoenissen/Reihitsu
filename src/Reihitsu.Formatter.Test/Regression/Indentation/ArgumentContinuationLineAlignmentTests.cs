@@ -43,6 +43,7 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
     /// Verifies that a leading comma of a tuple expression placed at the block column is moved under the tuple's first element
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-012")]
     public void TupleLeadingCommaAtBlockColumnIsAlignedWithTheElements()
     {
         // Arrange
@@ -80,6 +81,7 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
     /// Verifies that a line inside a tuple element that a line comment holds is aligned with the element's first token
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-013")]
     public void TupleElementInteriorLineHeldByLineCommentIsAlignedWithTheElement()
     {
         // Arrange
@@ -117,6 +119,7 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
     /// Verifies that a leading comma of an argument list kept on its own line by a line comment is aligned with the arguments
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-012")]
     public void ArgumentLeadingCommaAfterLineCommentIsAlignedWithTheArguments()
     {
         // Arrange
@@ -191,6 +194,7 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
     /// Verifies that a leading comma following a pragma directive is aligned with the arguments while the directive keeps its line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-009")]
     public void ArgumentLeadingCommaAfterPragmaDirectiveIsAlignedWithTheArguments()
     {
         // Arrange
@@ -312,6 +316,7 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
     /// Verifies that a line inside an argument that a line comment holds is aligned with the argument's first token
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-013")]
     public void ArgumentInteriorLineHeldByLineCommentIsAlignedWithTheArgument()
     {
         // Arrange
@@ -349,6 +354,7 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
     /// Verifies that a held line inside a wrapped second argument is aligned with that argument's first token
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-013")]
     public void ArgumentInteriorLineOfWrappedSecondArgumentIsAlignedWithThatArgument()
     {
         // Arrange
@@ -412,6 +418,7 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
     /// Verifies that a leading comma of an element access argument list is aligned with the column after the opening bracket
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-012")]
     public void ElementAccessLeadingCommaIsAlignedWithTheArguments()
     {
         // Arrange
@@ -449,6 +456,7 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
     /// Verifies that a held line inside an element access argument is aligned with the argument's first token
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-013")]
     public void ElementAccessInteriorLineHeldByLineCommentIsAlignedWithTheArgument()
     {
         // Arrange
@@ -486,6 +494,7 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
     /// Verifies that a leading comma of a member attribute's argument list is aligned with the attribute arguments
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-012")]
     public void MemberAttributeLeadingCommaIsAlignedWithTheArguments()
     {
         // Arrange
@@ -566,6 +575,7 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
     /// Verifies that a named attribute value that a line comment keeps on its own line is aligned under the argument name
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-013")]
     public void MemberAttributeNamedValueHeldByLineCommentIsAlignedUnderTheName()
     {
         // Arrange
@@ -646,6 +656,7 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
     /// Verifies that a line inside a type argument that a line comment holds is aligned with the type argument's first token
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-013")]
     public void TypeArgumentInteriorLineHeldByLineCommentIsAlignedWithTheTypeArgument()
     {
         // Arrange
@@ -677,6 +688,7 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
     /// Verifies that a leading comma of a type argument list keeps its existing alignment with the first type argument
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-015")]
     public void TypeArgumentLeadingCommaStaysAlignedWithTheFirstTypeArgument()
     {
         // Arrange
@@ -698,6 +710,7 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
     /// Verifies that a leading comma of a multi-line dictionary key is aligned with the key body
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-014")]
     public void DictionaryKeyLeadingCommaIsAlignedWithTheKeyBody()
     {
         // Arrange
@@ -741,6 +754,7 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
     /// Verifies that the clauses of a query argument are aligned with the query's first token rather than the argument name
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-013")]
     public void QueryClausesOfNamedArgumentAreAlignedWithTheQueryStart()
     {
         // Arrange
@@ -781,6 +795,7 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
     /// switch expression, which places it exactly as it does outside an argument
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-013")]
     public void HeldLineInsideSwitchExpressionArgumentIsLeftToTheSwitchExpression()
     {
         // Arrange
@@ -811,6 +826,7 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
     /// the initializer, which places it exactly as it does outside an argument
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-013")]
     public void HeldLineInsideObjectInitializerArgumentIsLeftToTheInitializer()
     {
         // Arrange

@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.Indentation.Contributors;
 
@@ -29,6 +30,7 @@ public class SwitchExpressionContributorTests
     /// Verifies that braces of a switch expression are aligned to the governing expression column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-027")]
     public void AlignsBracesToGoverningExpression()
     {
         // Arrange
@@ -82,6 +84,7 @@ public class SwitchExpressionContributorTests
     /// Verifies that arms of a switch expression are indented one level from the governing expression
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-027")]
     public void IndentsArmsOneLevelFromGoverningExpression()
     {
         // Arrange

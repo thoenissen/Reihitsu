@@ -18,6 +18,7 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     /// Verifies that an argument wrapped after its <c>out</c> modifier is joined onto one line with a separating space
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-015")]
     public void OutModifierWrappedBeforeDeclarationIsJoined()
     {
         // Arrange
@@ -54,6 +55,7 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     /// Verifies that a named argument whose value was wrapped after the colon is joined, so the argument list is no longer split
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-015")]
     public void NamedArgumentValueWrappedAfterColonIsJoinedAndTheListStaysOnOneLine()
     {
         // Arrange
@@ -90,6 +92,7 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     /// Verifies that a lambda argument whose expression body was wrapped after the arrow is joined onto the lambda's line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-015")]
     public void LambdaExpressionBodyWrappedAfterArrowIsJoined()
     {
         // Arrange
@@ -126,6 +129,7 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     /// Verifies that an argument wrapped after <c>await</c> is joined without merging the keyword into its operand
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-015")]
     public void AwaitWrappedBeforeOperandIsJoinedWithSeparatingSpace()
     {
         // Arrange
@@ -162,6 +166,7 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     /// Verifies that an object creation argument wrapped after <c>new</c> is joined
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-015")]
     public void NewWrappedBeforeTypeIsJoined()
     {
         // Arrange
@@ -342,6 +347,7 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     /// Verifies that a named tuple element whose value was wrapped after the colon is joined
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-015")]
     public void TupleExpressionNamedElementValueWrappedAfterColonIsJoined()
     {
         // Arrange
@@ -451,6 +457,7 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     /// Verifies that a qualified type argument wrapped after its dot is joined
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-015")]
     public void QualifiedTypeArgumentWrappedAfterDotIsJoined()
     {
         // Arrange
@@ -481,6 +488,7 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     /// Verifies that the value of a named attribute argument of a parameter attribute is pulled up onto the argument name's line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-015")]
     public void NamedAttributeArgumentValueWrappedAfterColonIsJoined()
     {
         // Arrange
@@ -629,6 +637,7 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     /// Verifies that a parameter wrapped between its type and its name is joined
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-015")]
     public void ParameterWrappedBetweenTypeAndNameIsJoined()
     {
         // Arrange
@@ -861,6 +870,7 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     /// Verifies that a tuple type element wrapped between its type and its name is joined
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-015")]
     public void TupleTypeElementWrappedBetweenTypeAndNameIsJoined()
     {
         // Arrange
@@ -891,6 +901,7 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     /// Verifies that a wrap between two arguments is not an interior wrap and stays
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-015")]
     public void WrapBetweenArgumentsIsNotJoined()
     {
         // Arrange
@@ -915,6 +926,7 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     /// Verifies that a binary operator wrap inside an argument stays, because operator wraps keep their own layout
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-015")]
     public void BinaryOperatorWrapInsideArgumentIsNotJoined()
     {
         // Arrange
@@ -940,6 +952,7 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     /// Verifies that the block body of a lambda argument keeps its own lines
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-015")]
     public void BlockLambdaArgumentBodyIsNotJoined()
     {
         // Arrange
@@ -966,6 +979,7 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     /// Verifies that a conditional operator wrap inside an argument stays
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-015")]
     public void ConditionalOperatorWrapInsideArgumentIsNotJoined()
     {
         // Arrange
@@ -1015,6 +1029,7 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     /// Verifies that an object initializer brace of an argument keeps its own line while the creation itself is joined
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-015")]
     public void ObjectInitializerOfArgumentIsNotJoined()
     {
         // Arrange
@@ -1057,6 +1072,8 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     /// Verifies that an interior wrap a line comment holds is not joined and is aligned with the argument's first token
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
+    [Requirement("FMT-BREAK-015")]
     public void InteriorWrapHeldByLineCommentIsAlignedInsteadOfJoined()
     {
         // Arrange
@@ -1094,6 +1111,8 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     /// Verifies that an interior wrap held by a block comment on its own line is not joined
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
+    [Requirement("FMT-BREAK-015")]
     public void InteriorWrapHeldByOwnLineBlockCommentIsAlignedInsteadOfJoined()
     {
         // Arrange
@@ -1134,6 +1153,8 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     /// Verifies that a parameter wrapped after a modifier that a line comment holds keeps the wrap and is aligned with the modifier
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
+    [Requirement("FMT-BREAK-015")]
     public void ParameterInteriorWrapHeldByLineCommentIsNotJoined()
     {
         // Arrange
@@ -1277,6 +1298,7 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     /// Verifies that the links of a method chain argument keep their own lines, because chain wraps keep their own layout
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-015")]
     public void MethodChainWrapInsideArgumentIsNotJoined()
     {
         // Arrange
@@ -1302,6 +1324,7 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     /// Verifies that a named argument whose value is a verbatim string spanning lines keeps its wrap
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-015")]
     public void MultiLineVerbatimStringArgumentIsNotJoined()
     {
         // Arrange
@@ -1363,6 +1386,7 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     /// Verifies that the clauses of a query expression argument keep their own lines
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-015")]
     public void QueryClauseWrapInsideArgumentIsNotJoined()
     {
         // Arrange
@@ -1719,6 +1743,8 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     /// Verifies that an interior wrap a pragma directive holds is not joined and is aligned with the argument's first token
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
+    [Requirement("FMT-BREAK-015")]
     public void InteriorWrapHeldByPragmaDirectiveIsAlignedInsteadOfJoined()
     {
         // Arrange
@@ -1758,6 +1784,8 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     /// Verifies that interior wraps held by conditional directives are not joined, the disabled text is untouched, and the active tokens are aligned with the argument's first token
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
+    [Requirement("FMT-BREAK-015")]
     public void InteriorWrapHeldByConditionalDirectivesIsAlignedInsteadOfJoined()
     {
         // Arrange
@@ -1805,6 +1833,8 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     /// Verifies that a parameter wrap that a disabled modifier holds is not joined and is aligned with the parameter's first token
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
+    [Requirement("FMT-BREAK-015")]
     public void ParameterInteriorWrapHeldByDisabledTextIsAlignedInsteadOfJoined()
     {
         // Arrange

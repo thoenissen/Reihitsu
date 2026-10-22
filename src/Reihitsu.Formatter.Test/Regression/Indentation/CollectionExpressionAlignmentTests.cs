@@ -58,6 +58,7 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
     /// Elements are aligned relative to the opening bracket column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-025")]
     public void CollectionExpressionInLocalDeclarationAlignsToOpeningBracketColumnCurrentBehavior()
     {
         // Arrange
@@ -147,6 +148,7 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
     /// Elements are aligned relative to the opening bracket column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-025")]
     public void CollectionExpressionInFieldInitializerAlignsToOpeningBracketColumnCurrentBehavior()
     {
         // Arrange

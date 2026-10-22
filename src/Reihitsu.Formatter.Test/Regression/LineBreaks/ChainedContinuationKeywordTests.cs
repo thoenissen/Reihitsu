@@ -30,6 +30,7 @@ public class ChainedContinuationKeywordTests : FormatterTestsBase
     /// chain, glued to the preceding closing brace, moves onto its own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-004")]
     public void GluedElseIfChainMovesEveryElseOntoItsOwnLine()
     {
         // Arrange
@@ -82,6 +83,7 @@ public class ChainedContinuationKeywordTests : FormatterTestsBase
     /// into Allman form with <c>else</c> on its own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-004")]
     public void SingleLineAlreadyBracedIfElseSplitsElseOntoItsOwnLine()
     {
         // Arrange
@@ -121,6 +123,7 @@ public class ChainedContinuationKeywordTests : FormatterTestsBase
     /// the closing brace of the block it chains from, move onto their own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-004")]
     public void GluedCatchClausesAndFinallyMoveOntoTheirOwnLine()
     {
         // Arrange
@@ -180,6 +183,7 @@ public class ChainedContinuationKeywordTests : FormatterTestsBase
     /// clauses), glued to the closing brace, moves onto its own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-004")]
     public void GluedFinallyAfterTryBlockWithNoCatchesMovesOntoItsOwnLine()
     {
         // Arrange
@@ -225,6 +229,7 @@ public class ChainedContinuationKeywordTests : FormatterTestsBase
     /// block body, moves onto its own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-004")]
     public void GluedDoWhileMovesWhileOntoItsOwnLine()
     {
         // Arrange
@@ -288,6 +293,7 @@ public class ChainedContinuationKeywordTests : FormatterTestsBase
     /// keywords moved onto their own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-004")]
     public void NestedGluedIfElseMovesBothLevelsElseOntoItsOwnLine()
     {
         // Arrange
@@ -346,6 +352,8 @@ public class ChainedContinuationKeywordTests : FormatterTestsBase
     /// stays on the closing brace's line while <c>else</c> still moves onto its own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
+    [Requirement("FMT-BREAK-004")]
     public void GluedElseWithBlockCommentOnBraceLineKeepsCommentOnBraceLine()
     {
         // Arrange
@@ -435,6 +443,7 @@ public class ChainedContinuationKeywordTests : FormatterTestsBase
     /// Verifies that an <c>else</c> keyword that already starts its own line is left byte-identical
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-004")]
     public void ElseAlreadyOnItsOwnLineStaysUnchanged()
     {
         // Arrange
@@ -463,6 +472,7 @@ public class ChainedContinuationKeywordTests : FormatterTestsBase
     /// Verifies that a <c>catch</c> keyword that already starts its own line is left byte-identical
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-004")]
     public void CatchAlreadyOnItsOwnLineStaysUnchanged()
     {
         // Arrange

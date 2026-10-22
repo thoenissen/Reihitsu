@@ -17,6 +17,7 @@ public class BlankLineRegionTests : FormatterTestsBase
     /// closing brace is removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-013")]
     public void BlankLineBetweenEndRegionAndClosingBraceIsRemoved()
     {
         // Arrange
@@ -52,6 +53,7 @@ public class BlankLineRegionTests : FormatterTestsBase
     /// is removed while the closing brace keeps its indentation
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-013")]
     public void BlankLineBetweenEndRegionAndNestedClosingBraceIsRemoved()
     {
         // Arrange
@@ -93,6 +95,7 @@ public class BlankLineRegionTests : FormatterTestsBase
     /// closing brace are removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-013")]
     public void MultipleBlankLinesBetweenEndRegionAndClosingBraceAreRemoved()
     {
         // Arrange
@@ -375,6 +378,7 @@ public class BlankLineRegionTests : FormatterTestsBase
     /// Verifies that a blank line is inserted before a <c>#region</c> directive that directly follows a member
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-013")]
     public void BlankLineBeforeRegionIsInserted()
     {
         // Arrange
@@ -411,6 +415,7 @@ public class BlankLineRegionTests : FormatterTestsBase
     /// Verifies that a blank line is inserted after a <c>#region</c> directive that directly precedes a member
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-013")]
     public void BlankLineAfterRegionIsInserted()
     {
         // Arrange
@@ -443,6 +448,7 @@ public class BlankLineRegionTests : FormatterTestsBase
     /// Verifies that a blank line is inserted after an <c>#endregion</c> directive that directly precedes a member
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-013")]
     public void BlankLineAfterEndRegionIsInserted()
     {
         // Arrange
@@ -480,6 +486,7 @@ public class BlankLineRegionTests : FormatterTestsBase
     /// comment's own line terminator being mistaken for the required blank line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-013")]
     public void BlankLineInsertedBetweenCommentAndRegion()
     {
         // Arrange
@@ -519,6 +526,7 @@ public class BlankLineRegionTests : FormatterTestsBase
     /// symmetric counterpart of the <c>#region</c> case
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-013")]
     public void BlankLineInsertedBetweenCommentAndEndRegion()
     {
         // Arrange

@@ -19,6 +19,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that a property's single-statement get and set accessor blocks are converted to expression bodies
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-009")]
     public void PropertyGetAndSetAccessorsConvertToExpressionBodies()
     {
         // Arrange
@@ -61,6 +62,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that an indexer's single-statement get and set accessor blocks are converted to expression bodies
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-009")]
     public void IndexerGetAndSetAccessorsConvertToExpressionBodies()
     {
         // Arrange
@@ -103,6 +105,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that a single-statement init accessor block is converted to an expression body
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-009")]
     public void InitAccessorConvertsToExpressionBody()
     {
         // Arrange
@@ -145,6 +148,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that a getter whose only statement throws is converted to a throw expression body
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-009")]
     public void GetterThrowStatementConvertsToThrowExpression()
     {
         // Arrange
@@ -175,6 +179,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that setter and init accessors whose only statement throws are converted to throw expression bodies
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-009")]
     public void SetterAndInitThrowStatementsConvertToThrowExpressions()
     {
         // Arrange
@@ -486,6 +491,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that a comment trailing the statement's semicolon stays behind the semicolon of the converted accessor
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-012")]
     public void TrailingCommentAfterStatementMovesToNewSemicolon()
     {
         // Arrange
@@ -562,6 +568,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that a comment trailing the accessor's closing brace follows the semicolon of the converted accessor
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-012")]
     public void TrailingCommentAfterClosingBraceMovesToNewSemicolon()
     {
         // Arrange
@@ -635,6 +642,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// expression-bodied accessor
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-013")]
     public void BalancedConditionalInsideExpressionConverts()
     {
         // Arrange
@@ -688,6 +696,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// the first one, which is then the branch that is realigned
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-013")]
     public void BalancedConditionalInsideExpressionConvertsWhenSymbolIsDefined()
     {
         // Arrange
@@ -741,6 +750,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that an own-line comment above the statement keeps the accessor block, because converting would move it relative to the code
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-012")]
     public void OwnLineCommentBeforeStatementKeepsBlock()
     {
         // Arrange
@@ -768,6 +778,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that a comment between the statement and the closing brace keeps the accessor block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-012")]
     public void CommentBeforeClosingBraceKeepsBlock()
     {
         // Arrange
@@ -796,6 +807,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that a comment trailing the opening brace keeps the accessor block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-012")]
     public void CommentAfterOpeningBraceKeepsBlock()
     {
         // Arrange
@@ -822,6 +834,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that a comment trailing the accessor keyword keeps the accessor block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-012")]
     public void CommentAfterAccessorKeywordKeepsBlock()
     {
         // Arrange
@@ -849,6 +862,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// because the keyword it follows is removed by the conversion
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-012")]
     public void CommentAfterReturnKeywordKeepsBlock()
     {
         // Arrange
@@ -875,6 +889,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that comments trailing both the statement and the closing brace keep the accessor block, because they cannot share one semicolon
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-012")]
     public void CommentsAfterStatementAndClosingBraceKeepBlock()
     {
         // Arrange
@@ -901,6 +916,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that a single-line comment between the expression and the semicolon keeps the accessor block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-012")]
     public void LineCommentBeforeSemicolonKeepsBlock()
     {
         // Arrange
@@ -928,6 +944,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that a documentation comment inside the accessor body keeps the accessor block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-012")]
     public void DocumentationCommentInsideBodyKeepsBlock()
     {
         // Arrange
@@ -987,6 +1004,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that a pragma directive before the statement keeps the accessor block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-012")]
     public void PragmaBeforeStatementKeepsBlock()
     {
         // Arrange
@@ -1014,6 +1032,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that a region directive inside the accessor body keeps the accessor block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-013")]
     public void RegionInsideBodyKeepsBlock()
     {
         // Arrange
@@ -1044,6 +1063,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that a conditional group that opens inside the expression and closes outside the body keeps the accessor block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-013")]
     public void ConditionalStartingInsideExpressionAndEndingOutsideBodyKeepsBlock()
     {
         // Arrange
@@ -1080,6 +1100,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that an accessor body with two statements keeps its block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-010")]
     public void TwoStatementsKeepBlock()
     {
         // Arrange
@@ -1108,6 +1129,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that an empty setter body keeps its block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-010")]
     public void EmptySetterKeepsBlock()
     {
         // Arrange
@@ -1132,6 +1154,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that a getter whose only statement is an expression statement keeps its block, because it has no value to return
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-010")]
     public void GetterExpressionStatementKeepsBlock()
     {
         // Arrange
@@ -1160,6 +1183,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that a getter whose only statement is a rethrow without an operand keeps its block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-010")]
     public void GetterRethrowKeepsBlock()
     {
         // Arrange
@@ -1184,6 +1208,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that an iterator getter whose only statement is a yield return keeps its block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-010")]
     public void GetterYieldReturnKeepsBlock()
     {
         // Arrange
@@ -1210,6 +1235,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that a setter whose only statement is a return keeps its block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-010")]
     public void SetterReturnKeepsBlock()
     {
         // Arrange
@@ -1235,6 +1261,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that a setter whose only statement is a local declaration keeps its block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-010")]
     public void SetterDeclarationKeepsBlock()
     {
         // Arrange
@@ -1260,6 +1287,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that a setter whose only statement is a compound statement keeps its block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-010")]
     public void SetterIfStatementKeepsBlock()
     {
         // Arrange
@@ -1290,6 +1318,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that event add and remove accessors keep their blocks
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-010")]
     public void EventAccessorsKeepBlocks()
     {
         // Arrange
@@ -1346,6 +1375,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that a comment between the accessor keyword and the opening brace keeps the accessor block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-012")]
     public void CommentBeforeOpeningBraceKeepsBlock()
     {
         // Arrange
@@ -1374,6 +1404,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that a pragma directive before the opening brace keeps the accessor block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-012")]
     public void PragmaBeforeOpeningBraceKeepsBlock()
     {
         // Arrange
@@ -1403,6 +1434,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// it follows is removed by the conversion
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-012")]
     public void CommentBeforeReturnedExpressionKeepsBlock()
     {
         // Arrange
@@ -1432,6 +1464,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// Verifies that an own-line comment before the statement's semicolon keeps the accessor block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-012")]
     public void CommentBeforeStatementSemicolonKeepsBlock()
     {
         // Arrange
@@ -1492,6 +1525,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// keep both region endpoints in place
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-013")]
     public void RegionInsideExpressionKeepsBlock()
     {
         // Arrange
@@ -1633,6 +1667,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// accessors or throw expressions
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-009")]
     public void AccessorBlocksStayBelowCSharp7()
     {
         // Arrange
@@ -1673,6 +1708,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// accessors and throw expressions
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-009")]
     public void AccessorBlocksConvertFromCSharp7()
     {
         // Arrange
@@ -1717,6 +1753,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     /// same pass
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-009")]
     public void AccessorBlocksStayBelowCSharp7AfterEarlierTransformChangedTree()
     {
         // Arrange

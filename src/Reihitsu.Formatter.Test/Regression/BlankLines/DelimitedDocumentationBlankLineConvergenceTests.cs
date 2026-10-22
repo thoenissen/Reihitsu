@@ -53,6 +53,7 @@ public class DelimitedDocumentationBlankLineConvergenceTests : FormatterTestsBas
     /// Verifies that a delimited documentation comment behind an enum member is separated from it in one pass
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-012")]
     public void SeparatesDelimitedDocumentationFromPrecedingEnumMemberInOnePass()
     {
         const string input = """
@@ -80,6 +81,7 @@ public class DelimitedDocumentationBlankLineConvergenceTests : FormatterTestsBas
     /// it in one pass
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-012")]
     public void SeparatesDelimitedDocumentationFromPrecedingTypeDeclarationInOnePass()
     {
         const string input = """

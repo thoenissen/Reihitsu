@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.Indentation.Contributors;
 
@@ -29,6 +30,7 @@ public class AnonymousObjectContributorTests
     /// Verifies that braces of an anonymous object are aligned to the new keyword column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-024")]
     public void AlignsBracesToNewKeyword()
     {
         // Arrange
@@ -81,6 +83,7 @@ public class AnonymousObjectContributorTests
     /// Verifies that members of an anonymous object are indented one level from the new keyword
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-024")]
     public void IndentsMembersOneLevelFromNewKeyword()
     {
         // Arrange

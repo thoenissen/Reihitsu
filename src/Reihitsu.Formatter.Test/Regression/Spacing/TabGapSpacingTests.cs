@@ -18,6 +18,7 @@ public class TabGapSpacingTests : FormatterTestsBase
     /// Verifies that a single tab between two tokens is collapsed to one space
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-002")]
     public void SingleTabBetweenTokensCollapsesToOneSpace()
     {
         // Arrange
@@ -32,6 +33,7 @@ public class TabGapSpacingTests : FormatterTestsBase
     /// Verifies that two tabs between two tokens are collapsed to one space
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-002")]
     public void TwoTabsBetweenTokensCollapseToOneSpace()
     {
         // Arrange
@@ -46,6 +48,7 @@ public class TabGapSpacingTests : FormatterTestsBase
     /// Verifies that a tab mixed with a space between two tokens is collapsed to one space
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-002")]
     public void TabFollowedBySpaceBetweenTokensCollapsesToOneSpace()
     {
         // Arrange
@@ -61,6 +64,7 @@ public class TabGapSpacingTests : FormatterTestsBase
     /// boundary the collapse decision is taken on
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-002")]
     public void SingleSpaceBetweenTokensIsLeftUnchanged()
     {
         // Arrange
@@ -74,6 +78,8 @@ public class TabGapSpacingTests : FormatterTestsBase
     /// Verifies that a tab in a gap a spacing rule already owns is normalized by that rule
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-002")]
+    [Requirement("FMT-SPACE-010")]
     public void TabBeforeBinaryOperatorIsNormalizedToSingleSpace()
     {
         // Arrange

@@ -16,6 +16,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     /// Verifies that a line comment moves together with its using directive during reordering
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-USING-008")]
     public void LineCommentMovesWithUsingDirective()
     {
         // Arrange
@@ -42,6 +43,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     /// Verifies that an exact System child is ordered before a separately grouped global-qualified case variant while its comment stays attached
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-USING-001")]
     public void GlobalQualifiedCaseVariantIsSeparatedFromExactSystemGroup()
     {
         // Arrange
@@ -73,6 +75,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     /// Verifies that every global using type precedes local usings while ordinal root groups stay contiguous
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-USING-001")]
     public void GlobalSectionPrecedesLocalSectionAndKeepsOrdinalRootsContiguous()
     {
         // Arrange
@@ -115,6 +118,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     /// Verifies that a using block with a nullable directive on a later directive is not reordered
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-USING-004")]
     public void BlockWithNullableDirectiveIsNotReordered()
     {
         // Arrange
@@ -135,6 +139,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     /// Verifies that a using block with conditional directives is not reordered
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-USING-004")]
     public void BlockWithConditionalDirectiveIsNotReordered()
     {
         // Arrange
@@ -155,6 +160,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     /// Verifies that a using block with a pragma warning directive on a later directive is not reordered
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-USING-004")]
     public void BlockWithPragmaWarningDirectiveIsNotReordered()
     {
         // Arrange
@@ -175,6 +181,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     /// Verifies that an inline trailing comment moves together with its using directive during reordering
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-USING-006")]
     public void InlineTrailingCommentMovesWithUsingDirective()
     {
         // Arrange
@@ -199,6 +206,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     /// Verifies that a comment attached to an alias directive is preserved during reordering
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-USING-008")]
     public void AliasDirectiveCommentMovesWithUsingDirective()
     {
         // Arrange
@@ -227,6 +235,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     /// carries an RH7204 (alias ordering) diagnostic
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-USING-001")]
     public void AliasesAreOrderedByTargetRootNamespace()
     {
         // Arrange
@@ -252,6 +261,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     /// Verifies that a comment attached to a static using is preserved during reordering
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-USING-008")]
     public void StaticUsingCommentMovesWithUsingDirective()
     {
         // Arrange
@@ -280,6 +290,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     /// using block.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-USING-009")]
     public void BannerStaysAtTopWhenOriginalFirstDirectiveIsDemoted()
     {
         // Arrange
@@ -309,6 +320,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     /// directive moves into a different group and picks up its own blank-line separator.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-USING-009")]
     public void MultiLineBannerStaysAtTopWhenOriginalFirstDirectiveIsDemotedAcrossGroups()
     {
         // Arrange
@@ -343,6 +355,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     /// global using directive.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-USING-009")]
     public void BannerStaysAtTopWithGlobalUsingReordering()
     {
         // Arrange
@@ -372,6 +385,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     /// alias directive.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-USING-009")]
     public void BannerStaysAtTopWithAliasReordering()
     {
         // Arrange
@@ -401,6 +415,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     /// than duplicating it, when reordering demotes the original first directive.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-USING-009")]
     public void IndentedBannerIsNotDuplicatedWhenOriginalFirstDirectiveIsDemoted()
     {
         // Arrange
@@ -430,6 +445,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     /// content in the file still separates the reordered directives onto their own lines.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-USING-007")]
     public void FileScopedNamespaceUsingOnlyBlockKeepsSeparatorsWhenBlockEndsTheFile()
     {
         // Arrange
@@ -475,6 +491,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     /// Verifies that attached comments remain with non-first namespace usings after reordering
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-USING-008")]
     public void NamespaceUsingsWithCommentsKeepAttachedTrivia()
     {
         // Arrange
@@ -507,6 +524,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     /// Verifies that a cross-group pair sharing one line is formatted into separate groups in one pass
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-USING-003")]
     public void CrossGroupPairSharingOneLineIsSeparatedInOnePass()
     {
         // Arrange
@@ -531,6 +549,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     /// Verifies that same-line directives in a block that cannot be reordered are split without being reordered
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-USING-004")]
     public void SameLineDirectivesInDirectiveBearingBlockAreSplitWithoutReordering()
     {
         // Arrange
@@ -559,6 +578,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     /// line is left where it is
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-USING-005")]
     public void SameGroupDirectiveBehindMultiLineBlockCommentIsLeftUnchanged()
     {
         // Arrange

@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.Indentation.Contributors;
 
@@ -29,6 +30,7 @@ public class ArgumentAlignmentContributorTests
     /// Verifies that arguments spanning multiple lines are aligned to the column after the opening parenthesis
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-012")]
     public void AlignsMultiLineArgumentsToOpenParen()
     {
         // Arrange
@@ -108,6 +110,7 @@ public class ArgumentAlignmentContributorTests
     /// Verifies that parameters spanning multiple lines are aligned to the column after the opening parenthesis
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-012")]
     public void AlignsMultiLineParametersToOpenParen()
     {
         // Arrange
@@ -154,6 +157,7 @@ public class ArgumentAlignmentContributorTests
     /// Verifies that bracketed argument lists spanning multiple lines are aligned to the column after the opening bracket
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-012")]
     public void AlignsBracketedArgumentList()
     {
         // Arrange
@@ -228,6 +232,7 @@ public class ArgumentAlignmentContributorTests
     /// Verifies that attribute arguments spanning multiple lines are aligned to the column after the opening parenthesis
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-012")]
     public void AlignsAttributeArguments()
     {
         // Arrange
@@ -270,6 +275,7 @@ public class ArgumentAlignmentContributorTests
     /// opening bracket and aligns the closing bracket with the opening bracket
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-014")]
     public void AlignsMultiLineDictionaryIndexerKey()
     {
         // Arrange
@@ -333,6 +339,7 @@ public class ArgumentAlignmentContributorTests
     /// so that simple keys remain unchanged
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-014")]
     public void DoesNotAlignSingleLineDictionaryIndexerKey()
     {
         // Arrange
@@ -372,6 +379,7 @@ public class ArgumentAlignmentContributorTests
     /// Verifies that tuple elements in a method call argument produce alignment layouts
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-012")]
     public void AlignsTupleArgumentElements()
     {
         // Arrange

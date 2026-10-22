@@ -284,6 +284,7 @@ public class SeparatedListCommaBlockCommentSpacingTests : FormatterTestsBase
     /// Verifies that the space between a leading comma and a following block comment is kept when the comma moves to the previous parameter line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-011")]
     public void LeadingCommaFollowedByBlockCommentKeepsSpaceWhenMovedToPreviousParameterLine()
     {
         // Arrange
@@ -318,6 +319,7 @@ public class SeparatedListCommaBlockCommentSpacingTests : FormatterTestsBase
     /// Verifies that a leading comma followed only by whitespace leaves no trailing whitespace when it moves to the previous parameter line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-011")]
     public void LeadingCommaFollowedByWhitespaceOnlyDropsWhitespaceWhenMovedToPreviousParameterLine()
     {
         // Arrange

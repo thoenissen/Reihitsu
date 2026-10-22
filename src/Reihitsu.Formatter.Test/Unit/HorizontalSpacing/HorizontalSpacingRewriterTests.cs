@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Pipeline.HorizontalSpacing;
 using Reihitsu.Formatter.Pipeline.HorizontalSpacing.Rewriter;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.HorizontalSpacing;
 
@@ -27,6 +28,7 @@ public class HorizontalSpacingRewriterTests
     /// Verifies that the phase adds exactly one space around binary operators such as +, -, *, /, ==, etc
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-010")]
     public void AddsSpaceAroundBinaryOperator()
     {
         const string input = """
@@ -60,6 +62,7 @@ public class HorizontalSpacingRewriterTests
     /// Verifies that exactly one space is added after each comma in argument and parameter lists
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-008")]
     public void AddsSpaceAfterComma()
     {
         const string input = """
@@ -89,6 +92,7 @@ public class HorizontalSpacingRewriterTests
     /// Verifies that multidimensional array creations get a space after commas while rank-only declarations stay compact
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-008")]
     public void HandlesCommaSpacingInMultidimensionalArrays()
     {
         const string input = """
@@ -122,6 +126,7 @@ public class HorizontalSpacingRewriterTests
     /// Verifies that the commas of an unbound generic type stay compact while bound generic arguments get a space
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-008")]
     public void KeepsUnboundGenericCommasCompact()
     {
         const string input = """
@@ -165,6 +170,7 @@ public class HorizontalSpacingRewriterTests
     /// Verifies that exactly one space is added after semicolons inside a for-loop header
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-011")]
     public void AddsSpaceAfterSemicolonInForLoop()
     {
         const string input = """
@@ -198,6 +204,7 @@ public class HorizontalSpacingRewriterTests
     /// Verifies that spaces immediately inside parentheses and brackets are removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-004")]
     public void RemovesSpaceInsideParentheses()
     {
         const string input = """
@@ -229,6 +236,7 @@ public class HorizontalSpacingRewriterTests
     /// Verifies that any spaces before a comma are removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-004")]
     public void RemovesSpaceBeforeComma()
     {
         const string input = """
@@ -258,6 +266,7 @@ public class HorizontalSpacingRewriterTests
     /// Verifies that exactly one space is added after keywords such as if, for, while, switch, etc
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-012")]
     public void AddsSpaceAfterKeyword()
     {
         const string input = """
@@ -318,6 +327,7 @@ public class HorizontalSpacingRewriterTests
     /// and that the throw keyword followed by a semicolon also has no space
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-004")]
     public void RemovesSpaceBeforeSemicolon()
     {
         const string input = """
@@ -525,6 +535,7 @@ public class HorizontalSpacingRewriterTests
     /// Verifies that exactly one space is added around assignment operators such as =, +=, -=, etc
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-010")]
     public void AddsSpaceAroundAssignment()
     {
         const string input = """
@@ -558,6 +569,7 @@ public class HorizontalSpacingRewriterTests
     /// Verifies that multiple consecutive spaces between tokens are collapsed to a single space
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-002")]
     public void RemovesDoubleSpaces()
     {
         const string input = """
@@ -615,6 +627,7 @@ public class HorizontalSpacingRewriterTests
     /// Verifies that the space between new and () in a generic constraint is removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-012")]
     public void RemovesSpaceInNewConstraint()
     {
         // Arrange
@@ -647,6 +660,7 @@ public class HorizontalSpacingRewriterTests
     /// following token instead of separating it from the comment
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-015")]
     public void KeepsIndentationOfTokenFollowingSingleLineDocumentationComment()
     {
         const string input = """
@@ -668,6 +682,7 @@ public class HorizontalSpacingRewriterTests
     /// removed when no space is allowed in front of that token
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-014")]
     public void RemovesGapBetweenDelimitedDocumentationCommentAndFollowingToken()
     {
         const string input = """
