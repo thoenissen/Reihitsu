@@ -30,3 +30,8 @@ Verdict: lane claimed — tests
 8. Must not: change production code or behavior; fix a bug; write an open question into a spec; retire, move or renumber an existing requirement ID; write P25–P31 (thoenissen/Reihitsu#1331); edit AGENTS.md.
 9. A further instance of an existing follow-up issue is reported in the handover (the lead comments on that issue). A new instance of a decided principle is a follow-up candidate filed in the spec's open-questions issue, marked "Decided by principle Pn (#912)".
 10. Follow-ups named on the issue: #1381 (P32), #1382 (P33), #1383 (P34), #1384 (P36), #1385 (P37), #1377 (SHARED-ATTR-008/-017 may cite SHARED-FIX-008), #1147 (P12 test note), #963.
+
+## Escalations
+
+- Escalation 1 (P37 shared side without a conforming shape): answered (b) — P37 is recorded only as FMT-BLANK-016; no SHARED-STMT requirement is written in this run; thoenissen/Reihitsu#1385 adds it. Recorded in `squad/decisions/2026-10-22-1380-p37-shared-side-deferred.md`.
+- Lead commented further instances on thoenissen/Reihitsu#1147 (RH5110 example), #1382 (RH5203 fix without progress), and the deferral on #1385.
