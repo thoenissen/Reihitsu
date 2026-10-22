@@ -77,7 +77,7 @@ Earlier: 3 — plan the analyzer backfill. Phase 1 and 2 complete (2026-10-17): 
 
 ## Running
 
-- 2026-10-21 (round 8): prompts given for #939, #1138, #1260, #1139, #1161 (`prompts-round8.md`); waiting for maintainer to start them. Before that nothing running. Round-7 batches #985 (PR #1301), #993 (PR #1303), #995 (PR #1302) merged. Remaining batches: #939, then #998 last. Spec issues #1138, #1139, #1161, #1260 still open, no PR (not run yet). Status file: `inventory/round8-status.md`.
+- 2026-10-22 (round 9): #939 (PR #1358), #1138 (#1357), #1260 (#1359), #1161 (#1360), #1139 (#1361) merged; maintainer reports further follow-ups. Inventory running -> `inventory/round9.md`. Next: #1331, then #998. Round-7 batches #985 (PR #1301), #993 (PR #1303), #995 (PR #1302) merged. Remaining batches: #939, then #998 last. Spec issues #1138, #1139, #1161, #1260 still open, no PR (not run yet). Status file: `inventory/round8-status.md`.
 - Earlier, round 6 (prompts 2026-10-19, `sdd/work/coordinator/prompts-round6.md`, overlap check `inventory/batches-round6.md`): #984, #991, #992, #994, #996, #997. Next: #985 after #984; #995 after #994; #993 after #994 and #996; then #939, #998.
 
 ## Next: question round (new chat, planned 2026-10-18)
@@ -253,8 +253,8 @@ Status: open / running / PR #… / merged.
 | 19 | #995 | O3 member grouping by regions, RH7501 | — | merged (PR #1302); filed #1304, #1305 |
 | 20 | #996 | B1 RH0002–RH2109 | — | merged (PR #1166); filed #1247-#1256 |
 | 21 | #997 | B2 clarity | — | merged (PR #1167); filed #1224-#1245 |
-| 22 | #939 | tag formatter/shared/CLI/Playground tests | — | prompt given 2026-10-21 |
-| 22a | #1138, #1260, #1139, #1161 | principle spec issues (specs-and-tests lane; #1161 docs) | — | prompt given 2026-10-21 |
+| 22 | #939 | tag formatter/shared/CLI/Playground tests | — | merged (PR #1358) |
+| 22a | #1138, #1260, #1139, #1161 | principle spec issues (specs-and-tests lane; #1161 docs) | — | merged (PRs #1357, #1359, #1361, #1360) |
 | 22b | #1331 | principles P25-P31 | #1260, #1138 (+#1161) | open |
 | 23 | #998 | opt-out + every test tagged | all above | open |
 
