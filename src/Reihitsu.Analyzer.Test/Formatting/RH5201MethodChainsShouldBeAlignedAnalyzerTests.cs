@@ -1731,6 +1731,96 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     }
 
     /// <summary>
+    /// Verifies that a later link on a line that starts with a block comment in the anchor's column is still reported
+    /// for not starting its line, because only the first link behind the comment is exempt
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-001")]
+    [Requirement("RH5201-005")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyLaterLinkOnLineStartingWithBlockCommentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static object Run(int[] items)
+                                    {
+                                        var list = items.Where(value => value > 0)
+                                                        /* all */ .Select(value => value){|#0:.|}ToList();
+
+                                        return list;
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static object Run(int[] items)
+                                      {
+                                          var list = items.Where(value => value > 0)
+
+                                                          /* all */ .Select(value => value)
+                                                          .ToList();
+
+                                          return list;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a later link on a line that starts with a block comment in the anchor's column is still reported
+    /// and fixed under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-001")]
+    [Requirement("RH5201-005")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyLaterLinkOnLineStartingWithBlockCommentIsDetectedAndFixedWithCrLf()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static object Run(int[] items)
+                                    {
+                                        var list = items.Where(value => value > 0)
+                                                        /* all */ .Select(value => value){|#0:.|}ToList();
+
+                                        return list;
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static object Run(int[] items)
+                                      {
+                                          var list = items.Where(value => value > 0)
+
+                                                          /* all */ .Select(value => value)
+                                                          .ToList();
+
+                                          return list;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
     /// Formats the given source text through the shared formatting pipeline with LF line endings,
     /// the same engine <c>reihitsu-format</c> uses, without going through the CLI
     /// </summary>
