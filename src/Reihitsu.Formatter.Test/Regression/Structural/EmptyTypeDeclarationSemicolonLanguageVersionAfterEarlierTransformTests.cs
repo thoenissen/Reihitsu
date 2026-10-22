@@ -89,6 +89,7 @@ public class EmptyTypeDeclarationSemicolonLanguageVersionAfterEarlierTransformTe
     /// Verifies that an empty record struct keeps its braced body below C# 10 after the control-flow brace transform rewrote the tree
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-017")]
     public void EmptyRecordStructStaysBracedBelowCSharp10AfterControlFlowBraceTransform()
     {
         AssertRuleResult("public record struct R { }\n" + ControlFlowTriggerInput,
@@ -249,6 +250,7 @@ public class EmptyTypeDeclarationSemicolonLanguageVersionAfterEarlierTransformTe
     /// Verifies that an empty class keeps its braced body below C# 12 when no earlier rewriter changes the tree
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-017")]
     public void EmptyClassStaysBracedBelowCSharp12WithoutEarlierTransform()
     {
         AssertRuleResult("public class A { }\n\npublic class B\n{\n}",
@@ -260,6 +262,7 @@ public class EmptyTypeDeclarationSemicolonLanguageVersionAfterEarlierTransformTe
     /// Verifies that an empty class still converts from C# 12 on when an earlier rewriter changed the tree
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-017")]
     public void EmptyClassConvertsFromCSharp12AfterControlFlowBraceTransform()
     {
         AssertRuleResult("public class A { }\n" + ControlFlowTriggerInput,
@@ -271,6 +274,7 @@ public class EmptyTypeDeclarationSemicolonLanguageVersionAfterEarlierTransformTe
     /// Verifies that an empty record struct still converts from C# 10 on when an earlier rewriter changed the tree
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-017")]
     public void EmptyRecordStructConvertsFromCSharp10AfterControlFlowBraceTransform()
     {
         AssertRuleResult("public record struct R { }\n" + ControlFlowTriggerInput,
@@ -282,6 +286,7 @@ public class EmptyTypeDeclarationSemicolonLanguageVersionAfterEarlierTransformTe
     /// Verifies that an empty record class still converts from C# 9 on when an earlier rewriter changed the tree
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-017")]
     public void EmptyRecordConvertsFromCSharp9AfterControlFlowBraceTransform()
     {
         AssertRuleResult("public record R { }\n" + ControlFlowTriggerInput,

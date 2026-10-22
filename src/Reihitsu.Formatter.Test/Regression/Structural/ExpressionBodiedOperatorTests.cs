@@ -16,6 +16,7 @@ public class ExpressionBodiedOperatorTests : FormatterTestsBase
     /// Verifies that a value-returning operator is converted to a block body with a return statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-005")]
     public void ReturningOperatorConvertsToReturnStatement()
     {
         // Arrange
@@ -43,6 +44,7 @@ public class ExpressionBodiedOperatorTests : FormatterTestsBase
     /// Verifies that a void compound assignment operator is converted to a block body with an expression statement, because <c>return</c> with a value does not compile in a void member
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-005")]
     public void VoidCompoundAssignmentOperatorConvertsToExpressionStatement()
     {
         // Arrange
@@ -74,6 +76,7 @@ public class ExpressionBodiedOperatorTests : FormatterTestsBase
     /// Verifies that a void instance increment operator is converted to a block body with an expression statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-005")]
     public void VoidIncrementOperatorConvertsToExpressionStatement()
     {
         // Arrange
@@ -138,6 +141,7 @@ public class ExpressionBodiedOperatorTests : FormatterTestsBase
     /// Verifies that a void operator whose body is a throw expression is converted to a throw statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-005")]
     public void VoidOperatorWithThrowExpressionConvertsToThrowStatement()
     {
         // Arrange

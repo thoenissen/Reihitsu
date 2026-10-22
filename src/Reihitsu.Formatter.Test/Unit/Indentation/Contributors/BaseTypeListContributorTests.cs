@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.Indentation.Contributors;
 
@@ -29,6 +30,7 @@ public class BaseTypeListContributorTests
     /// Verifies that subsequent base types are aligned to the column of the first base type
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-016")]
     public void AlignsSubsequentBaseTypesToFirst()
     {
         // Arrange
@@ -72,6 +74,7 @@ public class BaseTypeListContributorTests
     /// Verifies that a single base type does not produce any layout entries
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-016")]
     public void DoesNotAlignSingleBaseType()
     {
         // Arrange
@@ -128,6 +131,7 @@ public class BaseTypeListContributorTests
     /// Verifies that base types on the same line do not produce layout entries
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-016")]
     public void DoesNotAlignBaseTypesOnSameLine()
     {
         // Arrange

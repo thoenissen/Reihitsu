@@ -16,6 +16,7 @@ public class BracePlacementTests : FormatterTestsBase
     /// Verifies brace placement for block-scoped namespaces
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-002")]
     public void BlockScopedNamespaceBracesAreMovedToNewLines()
     {
         // Arrange
@@ -45,6 +46,7 @@ public class BracePlacementTests : FormatterTestsBase
     /// Verifies brace placement for class and method declarations
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-002")]
     public void TypeAndMethodBracesAreMovedToNewLines()
     {
         // Arrange
@@ -71,6 +73,7 @@ public class BracePlacementTests : FormatterTestsBase
     /// Verifies brace placement for constructor declarations
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-002")]
     public void ConstructorBracesAreMovedToNewLines()
     {
         // Arrange
@@ -97,6 +100,7 @@ public class BracePlacementTests : FormatterTestsBase
     /// Verifies brace placement for property accessors
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-002")]
     public void PropertyAccessorBracesAreMovedToNewLines()
     {
         // Arrange
@@ -132,6 +136,7 @@ public class BracePlacementTests : FormatterTestsBase
     /// Verifies brace placement for if and else blocks
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-002")]
     public void IfElseBracesAreMovedToNewLines()
     {
         // Arrange
@@ -167,6 +172,7 @@ public class BracePlacementTests : FormatterTestsBase
     /// Verifies brace placement for for-loops
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-002")]
     public void ForLoopBracesAreMovedToNewLines()
     {
         // Arrange
@@ -198,6 +204,7 @@ public class BracePlacementTests : FormatterTestsBase
     /// Verifies brace placement for foreach loops
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-002")]
     public void ForeachLoopBracesAreMovedToNewLines()
     {
         // Arrange
@@ -232,6 +239,7 @@ public class BracePlacementTests : FormatterTestsBase
     /// Verifies brace placement for while and do-while blocks
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-002")]
     public void WhileAndDoWhileBracesAreMovedToNewLines()
     {
         // Arrange
@@ -270,6 +278,7 @@ public class BracePlacementTests : FormatterTestsBase
     /// Verifies brace placement for try, catch, and finally blocks
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-002")]
     public void TryCatchFinallyBracesAreMovedToNewLines()
     {
         // Arrange
@@ -309,6 +318,7 @@ public class BracePlacementTests : FormatterTestsBase
     /// Verifies brace placement for switch statement blocks
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-008")]
     public void SwitchStatementBracesAreMovedToNewLines()
     {
         // Arrange
@@ -349,6 +359,7 @@ public class BracePlacementTests : FormatterTestsBase
     /// Verifies brace placement for object initializer blocks
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-021")]
     public void ObjectInitializerBracesAreMovedToNewLines()
     {
         // Arrange
@@ -390,6 +401,7 @@ public class BracePlacementTests : FormatterTestsBase
     /// Verifies brace placement for anonymous object initializer blocks
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-021")]
     public void AnonymousObjectInitializerBracesAreMovedToNewLines()
     {
         // Arrange
@@ -422,6 +434,7 @@ public class BracePlacementTests : FormatterTestsBase
     /// Verifies brace placement for lambda block bodies
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-002")]
     public void LambdaBlockBracesAreMovedToNewLines()
     {
         // Arrange
@@ -462,6 +475,7 @@ public class BracePlacementTests : FormatterTestsBase
     /// Verifies brace placement when the entire input is written as a single minimized line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-002")]
     public void FullyMinimizedSingleLineInputBracesAreMovedToNewLines()
     {
         // Arrange
@@ -509,6 +523,7 @@ public class BracePlacementTests : FormatterTestsBase
     /// Verifies that collection initializer braces in a method chain are moved to dedicated lines
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-021")]
     public void CollectionInitializerInMethodChainBracesAreMovedToNewLines()
     {
         // Arrange

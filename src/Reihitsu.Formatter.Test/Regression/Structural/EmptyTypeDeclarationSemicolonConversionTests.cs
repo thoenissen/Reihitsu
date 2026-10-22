@@ -20,6 +20,7 @@ public class EmptyTypeDeclarationSemicolonConversionTests : FormatterTestsBase
     /// Verifies that an empty class converts to semicolon form
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-017")]
     public void EmptyClassConvertsToSemicolonForm()
     {
         const string input = """
@@ -37,6 +38,7 @@ public class EmptyTypeDeclarationSemicolonConversionTests : FormatterTestsBase
     /// Verifies that an empty struct converts to semicolon form
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-017")]
     public void EmptyStructConvertsToSemicolonForm()
     {
         const string input = """
@@ -54,6 +56,7 @@ public class EmptyTypeDeclarationSemicolonConversionTests : FormatterTestsBase
     /// Verifies that an empty interface converts to semicolon form
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-017")]
     public void EmptyInterfaceConvertsToSemicolonForm()
     {
         const string input = """
@@ -71,6 +74,7 @@ public class EmptyTypeDeclarationSemicolonConversionTests : FormatterTestsBase
     /// Verifies that an empty record converts to semicolon form
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-017")]
     public void EmptyRecordConvertsToSemicolonForm()
     {
         const string input = """
@@ -91,6 +95,7 @@ public class EmptyTypeDeclarationSemicolonConversionTests : FormatterTestsBase
     /// make <c>CanConvertSafely</c>'s <c>IsKind(declarationKind)</c> check refuse every record struct
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-017")]
     public void EmptyRecordStructConvertsToSemicolonForm()
     {
         const string input = """

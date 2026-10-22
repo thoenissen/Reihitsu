@@ -19,6 +19,7 @@ public class TrailingPragmaAtEndOfFileTests : FormatterTestsBase
     /// of file stays on its own line, using the reported scenario
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-007")]
     public void TrailingPragmaAfterNamespaceClosingBraceStaysOnOwnLine()
     {
         // Arrange — the issue's own reported scenario, with a member so structural simplification of
@@ -45,6 +46,7 @@ public class TrailingPragmaAtEndOfFileTests : FormatterTestsBase
     /// end of file (no enclosing namespace) stays on its own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-007")]
     public void TrailingPragmaAfterTopLevelClassClosingBraceStaysOnOwnLine()
     {
         // Arrange

@@ -16,6 +16,7 @@ public class DocumentationSummaryFormattingFullPipelineTests : FormatterTestsBas
     /// Verifies that single-line summary elements are expanded to three lines
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-008")]
     public void ExpandsSingleLineSummaryElement()
     {
         const string input = """
@@ -46,6 +47,8 @@ public class DocumentationSummaryFormattingFullPipelineTests : FormatterTestsBas
     /// Verifies that inline XML content remains on the same content line when the summary is expanded
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-008")]
+    [Requirement("FMT-DOC-011")]
     public void ExpandsSingleLineSummaryElementWithInlineXmlContent()
     {
         const string input = """

@@ -21,6 +21,7 @@ public class AccessorListDeclarationBraceTests : FormatterTestsBase
     /// block has no expression-bodied form and is re-flowed rather than converted
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void IndexerBraceMovesWhenAccessorBodyIsReflowed()
     {
         // Arrange
@@ -59,6 +60,7 @@ public class AccessorListDeclarationBraceTests : FormatterTestsBase
     /// expression-bodied form and stays as written
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void IndexerBraceMovesWhenAccessorBodyNeedsNoChange()
     {
         // Arrange
@@ -99,6 +101,7 @@ public class AccessorListDeclarationBraceTests : FormatterTestsBase
     /// its accessor-list opening brace moved to its own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void EventBraceMovesWhenAccessorBodiesAreReflowed()
     {
         // Arrange
@@ -140,6 +143,7 @@ public class AccessorListDeclarationBraceTests : FormatterTestsBase
     /// Verifies that an event declaration that is already laid out correctly stays untouched
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void FormattedEventRemainsUnchanged()
     {
         // Arrange
@@ -172,6 +176,7 @@ public class AccessorListDeclarationBraceTests : FormatterTestsBase
     /// gets its accessor-list opening brace moved to its own line, matching the property counterpart
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void IndexerBraceMovesWhenAccessorsAreInInactiveBranch()
     {
         // Arrange
@@ -206,6 +211,7 @@ public class AccessorListDeclarationBraceTests : FormatterTestsBase
     /// accessor-list opening brace moved to its own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void EventBraceMovesWhenAccessorsAreInInactiveBranch()
     {
         // Arrange
@@ -263,6 +269,7 @@ public class AccessorListDeclarationBraceTests : FormatterTestsBase
     /// its own line, matching the property counterpart, which cannot collapse either
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void AutoAccessorIndexerWithCommentMovesBraceLikeProperty()
     {
         // Arrange
@@ -310,6 +317,7 @@ public class AccessorListDeclarationBraceTests : FormatterTestsBase
     /// brace moved to its own line, matching the property counterpart
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void AutoAccessorIndexerWithDirectiveMovesBraceLikeProperty()
     {
         // Arrange
@@ -396,6 +404,7 @@ public class AccessorListDeclarationBraceTests : FormatterTestsBase
     /// Verifies that a single-line auto-accessor indexer stays on the declaration line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-024")]
     public void SingleLineAutoAccessorIndexerRemainsUnchanged()
     {
         // Arrange
@@ -415,6 +424,7 @@ public class AccessorListDeclarationBraceTests : FormatterTestsBase
     /// declaration line, collapses to a single line like the matching auto-property
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-024")]
     public void MultiLineAutoAccessorIndexerCollapses()
     {
         // Arrange

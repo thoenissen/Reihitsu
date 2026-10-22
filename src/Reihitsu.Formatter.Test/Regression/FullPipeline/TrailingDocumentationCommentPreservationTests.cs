@@ -17,6 +17,8 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     /// Verifies that a trailing summary is moved intact above the following member
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-001")]
+    [Requirement("FMT-DOC-004")]
     public void MovesTrailingSummaryAboveFollowingMember()
     {
         const string input = """
@@ -46,6 +48,8 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     /// Verifies that documentation on the first token is separated safely from an ordinary banner comment
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-002")]
+    [Requirement("FMT-DOC-004")]
     public void MovesFirstTokenDocumentationBelowPrecedingBannerComment()
     {
         const string input = """
@@ -73,6 +77,7 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     /// Verifies that a leading block-comment sibling is separated from following documentation inside a containing root
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-002")]
     public void MovesDocumentationBelowLeadingBlockCommentSibling()
     {
         const string input = """
@@ -103,6 +108,7 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     /// Verifies that a multi-line block-comment sibling is separated from following documentation inside a containing root
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-002")]
     public void MovesDocumentationBelowLeadingMultilineBlockCommentSibling()
     {
         const string input = """
@@ -162,6 +168,7 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     /// Verifies that every line of a trailing multi-line element is moved above the following member
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-001")]
     public void MovesTrailingMultilineElementAboveFollowingMember()
     {
         const string input = """
@@ -193,6 +200,7 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     /// Verifies that trailing plain documentation text is moved above the following member
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-001")]
     public void MovesTrailingPlainDocumentationTextAboveFollowingMember()
     {
         const string input = """
@@ -220,6 +228,7 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     /// Verifies that relocation preserves nested XML content
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-004")]
     public void MovesTrailingSummaryWithNestedXmlAboveFollowingMember()
     {
         const string input = """
@@ -313,6 +322,7 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     /// placement decision the formatter cannot make
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-003")]
     public void PreservesTrailingDocumentationWithoutFollowingMember()
     {
         const string input = """
@@ -684,6 +694,7 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     /// Verifies that a single line documentation comment written after a field's semicolon stays on the field's line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-003")]
     public void PreservesSingleLineDocumentationAfterFieldSemicolon()
     {
         const string input = """
@@ -839,6 +850,7 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     /// Verifies that several off-position documentation comments are relocated in one pass
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-001")]
     public void MovesSeveralTrailingDocumentationCommentsInOnePass()
     {
         const string input = """

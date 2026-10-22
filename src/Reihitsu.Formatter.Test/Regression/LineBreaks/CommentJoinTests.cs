@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.LineBreaks;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
@@ -61,6 +62,7 @@ public class CommentJoinTests
     /// Verifies that a chain dot is not collapsed into a trailing comment on the previous line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
     public void ChainDotIsNotCollapsedIntoTrailingComment()
     {
         const string input = """
@@ -75,6 +77,7 @@ public class CommentJoinTests
     /// Verifies that a binary operator is not collapsed into a trailing comment
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
     public void BinaryOperatorIsNotCollapsedIntoTrailingComment()
     {
         const string input = """
@@ -89,6 +92,7 @@ public class CommentJoinTests
     /// Verifies that the ternary question token is not collapsed into a trailing comment
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
     public void TernaryQuestionIsNotCollapsedIntoTrailingComment()
     {
         const string input = """
@@ -104,6 +108,7 @@ public class CommentJoinTests
     /// Verifies that the ternary colon token is not collapsed into a trailing comment
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
     public void TernaryColonIsNotCollapsedIntoTrailingComment()
     {
         const string input = """
@@ -119,6 +124,7 @@ public class CommentJoinTests
     /// Verifies that an assignment value is not collapsed into a trailing comment after the operator
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
     public void AssignmentValueIsNotCollapsedIntoTrailingComment()
     {
         const string input = """
@@ -133,6 +139,7 @@ public class CommentJoinTests
     /// Verifies that an assignment operator is not collapsed up into a trailing comment on the target line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
     public void AssignmentOperatorIsNotCollapsedIntoTrailingComment()
     {
         const string input = """
@@ -147,6 +154,7 @@ public class CommentJoinTests
     /// Verifies that a variable initializer is not collapsed into a trailing comment after the equals token
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
     public void VariableInitializerIsNotCollapsedIntoTrailingComment()
     {
         const string input = """
@@ -161,6 +169,7 @@ public class CommentJoinTests
     /// Verifies that the first argument is not collapsed into a trailing comment after the open parenthesis
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
     public void FirstArgumentIsNotCollapsedIntoTrailingComment()
     {
         const string input = """
@@ -175,6 +184,7 @@ public class CommentJoinTests
     /// Verifies that a method parameter-list opener is not collapsed into a trailing comment on the declaration line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
     public void ParameterListOpenerIsNotCollapsedIntoTrailingComment()
     {
         const string input = """
@@ -194,6 +204,7 @@ public class CommentJoinTests
     /// Verifies that an expression-bodied property is not collapsed into a trailing comment
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
     public void ExpressionBodiedPropertyIsNotCollapsedIntoTrailingComment()
     {
         const string input = """
@@ -235,6 +246,7 @@ public class CommentJoinTests
     /// regression (the placement loop previously spun forever because it reported a change unconditionally)
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
     [Timeout(30000, CooperativeCancellation = true)]
     public void SingleLineParameterAttributeFollowedByCommentDoesNotLoopForever()
     {
@@ -259,6 +271,7 @@ public class CommentJoinTests
     /// leave the shape untouched. The timeout guards the non-termination regression
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
     [Timeout(30000, CooperativeCancellation = true)]
     public void SingleLineParameterAttributeFollowedByDirectiveDoesNotLoopForever()
     {

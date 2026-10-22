@@ -16,6 +16,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that a single space is ensured around the binary plus operator
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-010")]
     public void BinaryOperatorPlusEnsuresSingleSpace()
     {
         // Arrange
@@ -46,6 +47,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that a single space is ensured around the binary minus operator
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-010")]
     public void BinaryOperatorMinusEnsuresSingleSpace()
     {
         // Arrange
@@ -76,6 +78,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that a single space is ensured around the simple assignment operator
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-010")]
     public void AssignmentOperatorEnsuresSingleSpace()
     {
         // Arrange
@@ -108,6 +111,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that a single space is ensured around compound assignment operators
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-010")]
     public void CompoundAssignmentEnsuresSingleSpace()
     {
         // Arrange
@@ -140,6 +144,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that a single space is ensured around the equals sign in a variable declaration
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-010")]
     public void EqualsValueClauseEnsuresSingleSpace()
     {
         // Arrange
@@ -170,6 +175,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that a space is ensured after a comma token
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-008")]
     public void CommaTokenEnsuresSpaceAfter()
     {
         // Arrange
@@ -198,6 +204,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that multidimensional array creations get a space after commas
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-008")]
     public void MultidimensionalArrayCreationEnsuresSpaceAfterComma()
     {
         // Arrange
@@ -228,6 +235,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that a space is ensured after semicolons inside a for-statement header
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-011")]
     public void SemicolonInForEnsuresSpaceAfter()
     {
         // Arrange
@@ -283,6 +291,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that a space is ensured after the <c>if</c> keyword
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-012")]
     public void IfKeywordEnsuresSpaceAfter()
     {
         // Arrange
@@ -317,6 +326,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that a space is ensured after the <c>for</c> keyword
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-012")]
     public void ForKeywordEnsuresSpaceAfter()
     {
         // Arrange
@@ -351,6 +361,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that a space is ensured after the <c>foreach</c> keyword
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-012")]
     public void ForEachKeywordEnsuresSpaceAfter()
     {
         // Arrange
@@ -385,6 +396,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that a space is ensured after the <c>while</c> keyword
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-012")]
     public void WhileKeywordEnsuresSpaceAfter()
     {
         // Arrange
@@ -419,6 +431,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that a space is ensured after the <c>return</c> keyword before an expression
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-012")]
     public void ReturnKeywordEnsuresSpaceAfter()
     {
         // Arrange
@@ -449,6 +462,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that no space is added after the <c>return</c> keyword when followed by a semicolon
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-012")]
     public void ReturnKeywordBeforeSemicolonNoSpace()
     {
         // Arrange
@@ -470,6 +484,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that no space is added after the <c>throw</c> keyword when followed by a semicolon
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-012")]
     public void ThrowKeywordBeforeSemicolonNoSpace()
     {
         // Arrange
@@ -497,6 +512,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that the <c>new</c> keyword does not add a space before <c>(</c> in target-typed new expressions
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-012")]
     public void NewKeywordDoesNotAddSpaceBeforeParenInTargetTypedNew()
     {
         // Arrange
@@ -518,6 +534,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that a space is ensured after the <c>new</c> keyword when followed by a type name
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-012")]
     public void NewKeywordEnsuresSpaceBeforeTypeName()
     {
         // Arrange
@@ -539,6 +556,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that anonymous type creation in a local variable is spaced correctly
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-010")]
     public void AnonymousTypeLocalVariableEnsuresSpacing()
     {
         // Arrange
@@ -661,6 +679,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that explicit anonymous type member names are spaced correctly
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-010")]
     public void AnonymousTypeWithExplicitMemberNamesEnsuresSpacing()
     {
         // Arrange
@@ -699,6 +718,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that a space after an opening parenthesis is removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-004")]
     public void OpenParenRemovesSpaceAfter()
     {
         // Arrange
@@ -727,6 +747,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that a space before a closing parenthesis is removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-004")]
     public void CloseParenRemovesSpaceBefore()
     {
         // Arrange
@@ -755,6 +776,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that multiple consecutive spaces are normalized to a single space
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-002")]
     public void MultipleSpacesNormalizedToSingle()
     {
         // Arrange
@@ -785,6 +807,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that a multi-line binary expression is not modified by horizontal spacing
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-001")]
     public void MultiLineExpressionNoSpacingChange()
     {
         // Arrange
@@ -828,6 +851,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that the space between new and () in a generic constraint is removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-012")]
     public void NewConstraintSpaceRemoved()
     {
         // Arrange
@@ -861,6 +885,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that the space between a unary minus and a negated operand is kept so the tokens do not glue into a pre-decrement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-007")]
     public void NestedUnaryMinusKeepsSpace()
     {
         // Arrange
@@ -891,6 +916,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that the space between a unary plus and a positively signed operand is kept so the tokens do not glue into a pre-increment
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-007")]
     public void NestedUnaryPlusKeepsSpace()
     {
         // Arrange
@@ -921,6 +947,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// Verifies that the space between an address-of operator and an address-of operand is kept so the tokens do not glue into the logical-and operator
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-007")]
     public void NestedAddressOfKeepsSpace()
     {
         // Arrange
@@ -956,6 +983,8 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// deliberate, documented divergence rather than a defect in either surface
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-005")]
+    [Requirement("FMT-SPACE-013")]
     public void BlockCommentBeforeGenericBracketOnSameLineIsGluedToBracket()
     {
         // Arrange
@@ -996,6 +1025,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// line-break re-flow of that continuation, not a decision this rule owns
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-001")]
     public void BlockCommentBeforeGenericBracketOnContinuationLineKeepsGapUntouched()
     {
         // Arrange

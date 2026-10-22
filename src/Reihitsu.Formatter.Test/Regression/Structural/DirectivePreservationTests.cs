@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Regression.Structural;
 
@@ -119,6 +120,7 @@ public class DirectivePreservationTests
     /// is indented one level deeper than the <c>if</c> statement rather than left at its column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-003")]
     public void ControlFlowBraceInsertionKeepsDirectivesAroundBody()
     {
         const string input = """
@@ -200,6 +202,7 @@ public class DirectivePreservationTests
     /// <c>#if</c>/<c>#endif</c> around the initializer are not deleted
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-023")]
     public void FieldDeclarationSplitKeepsDirectivesInDeclaration()
     {
         const string input = """

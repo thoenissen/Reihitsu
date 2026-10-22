@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.BlankLines;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Integration;
 
@@ -29,6 +30,7 @@ public class BlankLinePhaseIntegrationTests
     /// Verifies that a blank line is inserted before a return statement preceded by another statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void InsertsBlankLineBeforeReturnStatement()
     {
         // Arrange
@@ -67,6 +69,7 @@ public class BlankLinePhaseIntegrationTests
     /// Verifies that blank lines after an opening brace are removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-007")]
     public void RemovesBlankLineAfterOpenBrace()
     {
         // Arrange
@@ -103,6 +106,7 @@ public class BlankLinePhaseIntegrationTests
     /// Verifies that a blank line is inserted before an if statement preceded by another statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void InsertsBlankLineBeforeIfStatement()
     {
         // Arrange
@@ -141,6 +145,7 @@ public class BlankLinePhaseIntegrationTests
     /// Verifies that no blank line is inserted before the first statement in a block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void DoesNotInsertBlankLineForFirstStatement()
     {
         // Arrange
@@ -166,6 +171,7 @@ public class BlankLinePhaseIntegrationTests
     /// Verifies that excessive consecutive blank lines are collapsed to a single blank line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-014")]
     public void CollapsesExcessiveBlankLines()
     {
         // Arrange

@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.Indentation.Contributors;
 
@@ -29,6 +30,7 @@ public class ObjectInitializerContributorTests
     /// Verifies that braces of an object initializer are aligned to the new keyword column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-022")]
     public void AlignsBracesToNewKeyword()
     {
         // Arrange
@@ -81,6 +83,7 @@ public class ObjectInitializerContributorTests
     /// Verifies that members of an object initializer are indented one level from the new keyword
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-022")]
     public void IndentsMembersOneLevelFromNewKeyword()
     {
         // Arrange
@@ -131,6 +134,7 @@ public class ObjectInitializerContributorTests
     /// Verifies that array creation with initializer is handled
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-022")]
     public void AlignsArrayCreationInitializer()
     {
         // Arrange
@@ -240,6 +244,7 @@ public class ObjectInitializerContributorTests
     /// keyword column.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-022")]
     public void AlignsWithExpressionInitializerBraces()
     {
         // Arrange
@@ -295,6 +300,7 @@ public class ObjectInitializerContributorTests
     /// the <c>with</c> keyword.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-022")]
     public void IndentsWithExpressionMembersOneLevelFromWithKeyword()
     {
         // Arrange
@@ -348,6 +354,7 @@ public class ObjectInitializerContributorTests
     /// <c>stackalloc</c> keyword column.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-022")]
     public void AlignsStackAllocInitializerBraces()
     {
         // Arrange
@@ -426,6 +433,7 @@ public class ObjectInitializerContributorTests
     /// the <c>stackalloc</c> keyword column.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-022")]
     public void AlignsImplicitStackAllocInitializerBraces()
     {
         // Arrange
@@ -472,6 +480,7 @@ public class ObjectInitializerContributorTests
     /// being flattened to the same column.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-023")]
     public void IndentsEqualsValueClauseInitializerMembersOneLevel()
     {
         // Arrange

@@ -18,6 +18,7 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
     /// Verifies that a statement terminator below a stray documentation comment behind a return expression keeps its indentation
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-015")]
     public void KeepsTerminatorIndentationBelowStrayDocumentationCommentBehindReturnExpression()
     {
         const string input = """
@@ -38,6 +39,7 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
     /// Verifies that a closing bracket below a stray documentation comment behind an attribute argument list keeps its indentation
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-015")]
     public void KeepsClosingBracketIndentationBelowStrayDocumentationCommentBehindAttributeArguments()
     {
         const string input = """
@@ -57,6 +59,7 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
     /// same way a closing brace in that position keeps it
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-015")]
     public void KeepsAuthoredColumnOfOverIndentedTerminatorBelowStrayDocumentationComment()
     {
         const string input = """
@@ -77,6 +80,7 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
     /// Verifies that a field terminator below a stray documentation comment keeps its indentation
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-015")]
     public void KeepsFieldTerminatorIndentationBelowStrayDocumentationComment()
     {
         const string input = """
@@ -94,6 +98,7 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
     /// Verifies that an argument separator below a stray documentation comment keeps its indentation
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-015")]
     public void KeepsCommaIndentationBelowStrayDocumentationComment()
     {
         const string input = """
@@ -114,6 +119,7 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
     /// Verifies that a closing parenthesis below a stray documentation comment keeps its indentation
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-015")]
     public void KeepsClosingParenthesisIndentationBelowStrayDocumentationComment()
     {
         const string input = """
@@ -134,6 +140,7 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
     /// Verifies that a member access dot below a stray documentation comment keeps its indentation
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-015")]
     public void KeepsMemberAccessDotIndentationBelowStrayDocumentationComment()
     {
         const string input = """
@@ -176,6 +183,7 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
     /// Verifies that a terminator below a two-line stray documentation comment keeps its indentation
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-015")]
     public void KeepsTerminatorIndentationBelowTwoLineStrayDocumentationComment()
     {
         const string input = """
@@ -329,6 +337,7 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
     /// Verifies that the gap between a delimited documentation comment and a terminator on the same line is still removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-014")]
     public void RemovesGapBetweenDelimitedDocumentationCommentAndTerminatorOnSameLine()
     {
         const string input = """

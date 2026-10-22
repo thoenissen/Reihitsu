@@ -647,6 +647,7 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
+    [Requirement("FMT-PIPE-010")]
     public async Task RemovesTabBehindPreviousMemberWhenSeparatingDelimitedDocumentation()
     {
         const string input = "public class TestClass\n{\n    private string _d;\t/** Doc */\n    public string Description { get; set; }\n}";
@@ -718,6 +719,7 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
+    [Requirement("FMT-PIPE-010")]
     public async Task MovesSingleLineDocumentationBehindPreviousMemberWithoutTrailingWhitespace()
     {
         const string input = "public class TestClass\n{\n    private string _d; /// Doc\n    public string Description { get; set; }\n}";
@@ -877,6 +879,7 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
+    [Requirement("FMT-PIPE-010")]
     public async Task KeepsSingleLineDocumentationBehindPreviousTopLevelType()
     {
         const string input = "public class First\n{\n    private int _a;\n} /// Doc\npublic class Second\n{\n    private int _b;\n}";

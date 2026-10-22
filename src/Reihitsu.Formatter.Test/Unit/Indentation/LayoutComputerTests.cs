@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.Indentation;
 
@@ -765,6 +766,7 @@ public class LayoutComputerTests
     /// each link's own embedded (unbraced) body is still indented one level deeper.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-004")]
     public void ComputeHandlesUnbracedElseIfChainWithoutAccumulatingIndentation()
     {
         // Arrange

@@ -52,6 +52,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     /// and aligns subsequent dots to the first dot's column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-029")]
     public void MultiLineChainCollapsesFirstLinkAndAligns()
     {
         // Arrange — first dot on different line, others misaligned
@@ -76,6 +77,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     /// Verifies that conditional access tokens (<c>?.</c>) in a mixed chain are collapsed and aligned correctly
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-029")]
     public void ChainWithConditionalAccessCollapsesAndAligns()
     {
         // Arrange — obj.Foo().Bar()?.Baz() with dots/? at different columns
@@ -170,6 +172,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     /// Verifies that conditional-access and null-forgiving operators use the same chain-link alignment
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-029")]
     public void ConditionalAccessAndNullForgivingOperatorsAlignAsChainLinks()
     {
         // Arrange
@@ -2189,6 +2192,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     /// chain's final column rather than the column the chain held before its anchor was resolved
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-030")]
     public void ArgumentListUnderChainContinuationLineFollowsTheResolvedChainColumn()
     {
         // Arrange
@@ -2273,6 +2277,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     /// resolved column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-030")]
     public void StatementLambdaUnderChainContinuationLineFollowsTheResolvedChainColumn()
     {
         // Arrange
@@ -2315,6 +2320,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     /// column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-030")]
     public void TernaryUnderChainContinuationLineFollowsTheResolvedChainColumn()
     {
         // Arrange

@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Pipeline.RawStringAlignment;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.RawStringAlignment;
 
@@ -26,6 +27,7 @@ public class RawStringAlignmentPhaseTests
     /// Verifies that an already aligned non-interpolated raw string is not modified
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-RAW-006")]
     public void AlreadyAlignedNonInterpolatedRawStringIsNotModified()
     {
         const string input = """"
@@ -52,6 +54,7 @@ public class RawStringAlignmentPhaseTests
     /// Verifies that a misaligned non-interpolated raw string is corrected
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-RAW-001")]
     public void MisalignedNonInterpolatedRawStringIsCorrected()
     {
         const string input = """"
@@ -90,6 +93,7 @@ public class RawStringAlignmentPhaseTests
     /// Verifies that a single-line raw string is not modified
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-RAW-006")]
     public void SingleLineRawStringIsNotModified()
     {
         const string input = """"
@@ -114,6 +118,7 @@ public class RawStringAlignmentPhaseTests
     /// Verifies that a four-quote raw string is aligned correctly
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-RAW-001")]
     public void FourQuoteRawStringIsAlignedCorrectly()
     {
         var input = "class C\r\n{\r\n    void M()\r\n    {\r\n        var a = \"\"\"\"\r\n    Hello \"\"\"\r\n    \"\"\"\";\r\n    }\r\n}";
@@ -131,6 +136,7 @@ public class RawStringAlignmentPhaseTests
     /// Verifies that multiple content lines are all adjusted uniformly
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-RAW-002")]
     public void MultipleContentLinesAreAdjustedUniformly()
     {
         const string input = """"
@@ -173,6 +179,7 @@ public class RawStringAlignmentPhaseTests
     /// Verifies that a raw string needing leftward shift is handled correctly
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-RAW-002")]
     public void LeftwardShiftIsHandledCorrectly()
     {
         const string input = """"
@@ -211,6 +218,7 @@ public class RawStringAlignmentPhaseTests
     /// Verifies that a misaligned UTF-8 (<c>u8</c>) raw string is corrected
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-RAW-004")]
     public void MisalignedUtf8RawStringIsCorrected()
     {
         const string input = """"
@@ -249,6 +257,8 @@ public class RawStringAlignmentPhaseTests
     /// Verifies that an already aligned UTF-8 (<c>u8</c>) raw string is not modified
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-RAW-004")]
+    [Requirement("FMT-RAW-006")]
     public void AlreadyAlignedUtf8RawStringIsNotModified()
     {
         const string input = """"
@@ -279,6 +289,7 @@ public class RawStringAlignmentPhaseTests
     /// Verifies that an already aligned interpolated raw string is not modified
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-RAW-006")]
     public void AlreadyAlignedInterpolatedRawStringIsNotModified()
     {
         const string input = """"
@@ -307,6 +318,7 @@ public class RawStringAlignmentPhaseTests
     /// Verifies that a misaligned interpolated raw string is corrected
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-RAW-001")]
     public void MisalignedInterpolatedRawStringIsCorrected()
     {
         const string input = """"
@@ -349,6 +361,7 @@ public class RawStringAlignmentPhaseTests
     /// Verifies that a double-dollar interpolated raw string is aligned correctly
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-RAW-003")]
     public void DoubleDollarInterpolatedRawStringIsAlignedCorrectly()
     {
         var input = "class C\r\n{\r\n    void M()\r\n    {\r\n        var x = 1;\r\n\r\n        var a = $$\"\"\"\r\n    {{x}} Test\r\n    \"\"\";\r\n    }\r\n}";
@@ -366,6 +379,7 @@ public class RawStringAlignmentPhaseTests
     /// Verifies that an interpolated raw string with multiple interpolation holes is aligned correctly
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-RAW-001")]
     public void InterpolatedRawStringWithMultipleHolesIsAligned()
     {
         const string input = """"
@@ -416,6 +430,7 @@ public class RawStringAlignmentPhaseTests
     /// Verifies that multiple raw strings in the same file are all aligned independently
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-RAW-001")]
     public void MultipleRawStringsAreAlignedIndependently()
     {
         const string input = """"

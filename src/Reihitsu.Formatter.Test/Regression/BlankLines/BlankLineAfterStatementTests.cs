@@ -17,6 +17,7 @@ public class BlankLineAfterStatementTests : FormatterTestsBase
     /// when followed by another statement in a block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-004")]
     public void BreakInBlockInsertsBlankLineAfter()
     {
         // Arrange
@@ -58,6 +59,7 @@ public class BlankLineAfterStatementTests : FormatterTestsBase
     /// when it is the last statement in a block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-004")]
     public void BreakLastInBlockNoBlankLine()
     {
         // Arrange
@@ -83,6 +85,7 @@ public class BlankLineAfterStatementTests : FormatterTestsBase
     /// after a <c>break</c> statement in a switch section
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-004")]
     public void BreakInSwitchSectionInsertsBlankLineBeforeNextLabel()
     {
         // Arrange
@@ -128,6 +131,7 @@ public class BlankLineAfterStatementTests : FormatterTestsBase
     /// in the last section of a switch statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-004")]
     public void BreakInSwitchSectionLastSectionNoBlankLine()
     {
         // Arrange
@@ -154,6 +158,7 @@ public class BlankLineAfterStatementTests : FormatterTestsBase
     /// already exists after the <c>break</c> statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-004")]
     public void AlreadyHasBlankLineNoDoubleInsert()
     {
         // Arrange
@@ -181,6 +186,7 @@ public class BlankLineAfterStatementTests : FormatterTestsBase
     /// such as <c>return</c>
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-004")]
     public void NonBreakStatementNoBlankLine()
     {
         // Arrange
@@ -208,6 +214,7 @@ public class BlankLineAfterStatementTests : FormatterTestsBase
     /// line after it when followed by another statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-004")]
     public void NestedBlocksHandlesCorrectly()
     {
         // Arrange
@@ -256,6 +263,7 @@ public class BlankLineAfterStatementTests : FormatterTestsBase
     /// region rather than outside it
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-006")]
     public void BreakFollowedByDirectiveNoBlankLineInsertedInsideRegion()
     {
         // Arrange

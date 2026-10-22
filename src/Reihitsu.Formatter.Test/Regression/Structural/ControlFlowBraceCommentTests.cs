@@ -17,6 +17,7 @@ public class ControlFlowBraceCommentTests : FormatterTestsBase
     /// Verifies that a comment above an unbraced if-body statement is preserved when braces are added
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-002")]
     public void LeadingCommentAboveUnbracedIfBodyIsPreserved()
     {
         // Arrange
@@ -54,6 +55,7 @@ public class ControlFlowBraceCommentTests : FormatterTestsBase
     /// Verifies that a trailing comment on an unbraced if-body statement is preserved when braces are added
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-002")]
     public void TrailingCommentOnUnbracedIfBodyIsPreserved()
     {
         // Arrange

@@ -31,6 +31,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     /// Verifies that a multi-line <c>&amp;&amp;</c> expression aligns operators to the left operand column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-018")]
     public void MultiLineAndAlignsOperators()
     {
         // Arrange
@@ -52,6 +53,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     /// Verifies that a multi-line <c>||</c> expression aligns operators to the left operand column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-018")]
     public void MultiLineOrAlignsOperators()
     {
         // Arrange
@@ -90,6 +92,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     /// are all aligned to the left operand column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-018")]
     public void NestedMixedOperatorsAlignToLeftOperand()
     {
         // Arrange
@@ -153,6 +156,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     /// to the left operand column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-018")]
     public void MultiLineNullCoalescingAlignsOperator()
     {
         // Arrange
@@ -232,6 +236,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     /// align to the <c>is</c> column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-019")]
     public void OrPatternInIsStatementAlignsToIsColumn()
     {
         // Arrange
@@ -431,6 +436,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     /// and aligns <c>:</c> under <c>?</c>
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-020")]
     public void MultiLineTernaryAlignsQuestionAndColonTokens()
     {
         // Arrange
@@ -495,6 +501,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     /// Verifies that or pattern keywords in a return statement align to the first pattern value column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-019")]
     public void IsOrPatternInReturnStatementAlignsAllAlternatives()
     {
         // Arrange
@@ -533,6 +540,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     /// than the parent operator column, consistently with the outer conditional
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-020")]
     public void NestedTernaryInObjectInitializerIndentsRelativeToParentOperator()
     {
         // Arrange
@@ -605,6 +613,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     /// align to the <c>is</c> column anchor
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-019")]
     public void IsAndPatternInReturnStatementAlignsToIsColumn()
     {
         // Arrange

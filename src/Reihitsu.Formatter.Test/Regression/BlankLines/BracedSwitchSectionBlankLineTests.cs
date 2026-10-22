@@ -19,6 +19,7 @@ public class BracedSwitchSectionBlankLineTests : FormatterTestsBase
     /// Verifies that a blank line is inserted between two braced switch sections
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-004")]
     public void BracedSwitchSectionsAreSeparatedByBlankLine()
     {
         // Arrange
@@ -78,6 +79,7 @@ public class BracedSwitchSectionBlankLineTests : FormatterTestsBase
     /// Verifies that a blank line is inserted between two unbraced switch sections
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-004")]
     public void UnbracedSwitchSectionsAreSeparatedByBlankLine()
     {
         // Arrange

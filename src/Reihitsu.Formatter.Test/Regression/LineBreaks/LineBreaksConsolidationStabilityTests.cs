@@ -29,6 +29,7 @@ public class LineBreaksConsolidationStabilityTests : FormatterTestsBase
     /// in the detached node the rewriter holds)
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-006")]
     public void StatementAfterBlockCloseBraceStillMovesToOwnLine()
     {
         const string input = """
@@ -140,6 +141,7 @@ public class LineBreaksConsolidationStabilityTests : FormatterTestsBase
     /// one shared generic implementation
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-006")]
     public void TwoStatementsOnOneLineInBlockAreSplit()
     {
         const string input = """

@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.StructuralTransforms;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Integration;
 
@@ -178,6 +179,7 @@ public class StructuralTransformPhaseIntegrationTests
     /// Verifies that a trailing comma is removed from the final enum member
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-019")]
     public void RemovesTrailingCommaFromFinalEnumMember()
     {
         // Arrange
@@ -207,6 +209,7 @@ public class StructuralTransformPhaseIntegrationTests
     /// Verifies that a comment attached to the final enum member is preserved when removing the trailing comma
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-019")]
     public void RemovesTrailingCommaFromFinalEnumMemberWhilePreservingComment()
     {
         // Arrange
@@ -234,6 +237,7 @@ public class StructuralTransformPhaseIntegrationTests
     /// Verifies that a trailing comma is removed from the final array initializer item
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-020")]
     public void RemovesTrailingCommaFromFinalArrayInitializerItem()
     {
         // Arrange
@@ -269,6 +273,7 @@ public class StructuralTransformPhaseIntegrationTests
     /// Verifies that a comment attached to the final array initializer item is preserved when removing the trailing comma
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-020")]
     public void RemovesTrailingCommaFromFinalArrayInitializerItemWhilePreservingComment()
     {
         // Arrange
@@ -302,6 +307,7 @@ public class StructuralTransformPhaseIntegrationTests
     /// Verifies that a trailing comma is removed from the final collection initializer item
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-020")]
     public void RemovesTrailingCommaFromFinalCollectionInitializerItem()
     {
         // Arrange
@@ -341,6 +347,7 @@ public class StructuralTransformPhaseIntegrationTests
     /// Verifies that a comment attached to the final collection initializer item is preserved when removing the trailing comma
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-020")]
     public void RemovesTrailingCommaFromFinalCollectionInitializerItemWhilePreservingComment()
     {
         // Arrange
@@ -379,6 +386,7 @@ public class StructuralTransformPhaseIntegrationTests
     /// in an array initializer, using the issue's exact reported input (SYMBOL undefined, top-level statement)
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-020")]
     public void PreservesTrailingCommaBeforeConditionalBlockInArrayInitializer()
     {
         // Arrange
@@ -431,6 +439,7 @@ public class StructuralTransformPhaseIntegrationTests
     /// it, while the outer initializer's clean trailing comma is still removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-020")]
     public void PreservesInnerTrailingCommaInNestedArrayInitializerWhileRemovingOuter()
     {
         // Arrange
@@ -475,6 +484,7 @@ public class StructuralTransformPhaseIntegrationTests
     /// in a collection initializer
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-020")]
     public void PreservesTrailingCommaBeforeConditionalBlockInCollectionInitializer()
     {
         // Arrange
@@ -501,6 +511,7 @@ public class StructuralTransformPhaseIntegrationTests
     /// on the final enum member
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-019")]
     public void PreservesTrailingCommaBeforeConditionalBlockInFinalEnumMember()
     {
         // Arrange
@@ -713,6 +724,7 @@ public class StructuralTransformPhaseIntegrationTests
     /// follows it
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-019")]
     public void PreservesTrailingCommaInEnumWhenActiveIfTrueBranchFollowsFinalMember()
     {
         // Arrange

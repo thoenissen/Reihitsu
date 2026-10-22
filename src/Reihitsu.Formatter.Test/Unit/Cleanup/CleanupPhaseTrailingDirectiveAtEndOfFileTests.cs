@@ -2,6 +2,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Pipeline.Cleanup;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.Cleanup;
 
@@ -29,6 +30,7 @@ public class CleanupPhaseTrailingDirectiveAtEndOfFileTests
     /// end of file is preserved (CRLF), using a minimal repro of the reported scenario verbatim
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-007")]
     public void TrailingPragmaAtEndOfFileKeepsSeparateLineCrLf()
     {
         // Arrange — verbatim from the reported minimal repro
@@ -49,6 +51,7 @@ public class CleanupPhaseTrailingDirectiveAtEndOfFileTests
     /// Verifies the same scenario under LF line endings.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-007")]
     public void TrailingPragmaAtEndOfFileKeepsSeparateLineLf()
     {
         // Arrange
@@ -71,6 +74,7 @@ public class CleanupPhaseTrailingDirectiveAtEndOfFileTests
     /// since the merged result is still syntactically valid C#.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-006")]
     public void TrailingCommentAtEndOfFileKeepsSeparateLineCrLf()
     {
         // Arrange
@@ -91,6 +95,7 @@ public class CleanupPhaseTrailingDirectiveAtEndOfFileTests
     /// Verifies the same trailing-comment scenario under LF line endings.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-006")]
     public void TrailingCommentAtEndOfFileKeepsSeparateLineLf()
     {
         // Arrange
@@ -113,6 +118,7 @@ public class CleanupPhaseTrailingDirectiveAtEndOfFileTests
     /// minimal repro
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-007")]
     public void BlankLineBeforeTrailingPragmaAtEndOfFileIsPreservedCrLf()
     {
         // Arrange
@@ -134,6 +140,7 @@ public class CleanupPhaseTrailingDirectiveAtEndOfFileTests
     /// the minimal repro
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-007")]
     public void BlankLineBeforeTrailingPragmaAtEndOfFileIsPreservedLf()
     {
         // Arrange
@@ -155,6 +162,7 @@ public class CleanupPhaseTrailingDirectiveAtEndOfFileTests
     /// proving the fix is trivia-kind agnostic rather than <c>#pragma</c>-specific
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-007")]
     public void NonPragmaDirectiveAtEndOfFileKeepsSeparateLineCrLf()
     {
         // Arrange
@@ -175,6 +183,7 @@ public class CleanupPhaseTrailingDirectiveAtEndOfFileTests
     /// Verifies the same non-<c>#pragma</c> directive scenario under LF line endings
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-007")]
     public void NonPragmaDirectiveAtEndOfFileKeepsSeparateLineLf()
     {
         // Arrange
@@ -196,6 +205,7 @@ public class CleanupPhaseTrailingDirectiveAtEndOfFileTests
     /// line, separate from the preceding closing brace (CRLF)
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-007")]
     public void DisabledTextAtEndOfFileKeepsSeparateLineCrLf()
     {
         // Arrange
@@ -216,6 +226,7 @@ public class CleanupPhaseTrailingDirectiveAtEndOfFileTests
     /// Verifies the same disabled-text scenario under LF line endings
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-007")]
     public void DisabledTextAtEndOfFileKeepsSeparateLineLf()
     {
         // Arrange
@@ -238,6 +249,7 @@ public class CleanupPhaseTrailingDirectiveAtEndOfFileTests
     /// content, not only <c>#pragma</c> or single-line comments (CRLF)
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-006")]
     public void TrailingBlockCommentAtEndOfFileKeepsSeparateLineCrLf()
     {
         // Arrange
@@ -258,6 +270,7 @@ public class CleanupPhaseTrailingDirectiveAtEndOfFileTests
     /// Verifies the same trailing block-comment scenario under LF line endings
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-006")]
     public void TrailingBlockCommentAtEndOfFileKeepsSeparateLineLf()
     {
         // Arrange
@@ -281,6 +294,7 @@ public class CleanupPhaseTrailingDirectiveAtEndOfFileTests
     /// stripping behaviour used when formatting a freshly generated node before insertion
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-008")]
     public void DetachedNodeTrailingEndOfLineIsStillRemoved()
     {
         // Arrange — a standalone member declaration parsed without an enclosing tree; its last token's
@@ -301,6 +315,7 @@ public class CleanupPhaseTrailingDirectiveAtEndOfFileTests
     /// the previous real token's trailing trivia never runs when there is no such token
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-007")]
     public void DirectiveOnlyFileIsUnchanged()
     {
         // Arrange

@@ -19,6 +19,7 @@ public class InterpolationAlignmentSpacingReproTests : FormatterTestsBase
     /// Verifies that a negative alignment component stays adjacent to the comma
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-008")]
     public void NegativeAlignmentComponentStaysAdjacentToComma()
     {
         // Arrange
@@ -131,6 +132,7 @@ public class InterpolationAlignmentSpacingReproTests : FormatterTestsBase
     /// The formatter's own current (pre-fix) output must be normalized back to a compact comma
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-008")]
     public void SingleSpaceAfterAlignmentCommaIsRemoved()
     {
         // Arrange
@@ -156,6 +158,7 @@ public class InterpolationAlignmentSpacingReproTests : FormatterTestsBase
     /// <c>int[,   ]</c> collapses to <c>int[,]</c>
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-008")]
     public void MultipleSpacesAfterAlignmentCommaAreCollapsed()
     {
         // Arrange
@@ -181,6 +184,7 @@ public class InterpolationAlignmentSpacingReproTests : FormatterTestsBase
     /// because the before-gap is owned by a different spacing rule
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-008")]
     public void SpaceBeforeAlignmentCommaIsRemoved()
     {
         // Arrange
@@ -332,6 +336,7 @@ public class InterpolationAlignmentSpacingReproTests : FormatterTestsBase
     /// of the comment
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-013")]
     public void CommentBeforeAlignmentCommaStaysUnchanged()
     {
         // Arrange
@@ -354,6 +359,7 @@ public class InterpolationAlignmentSpacingReproTests : FormatterTestsBase
     /// comment and the alignment component, because the comma's desired spacing after it is now zero
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-013")]
     public void SpaceAfterCommentFollowingAlignmentCommaIsRemoved()
     {
         // Arrange
@@ -408,6 +414,7 @@ public class InterpolationAlignmentSpacingReproTests : FormatterTestsBase
     /// widen to ordinary argument or array-initializer commas
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-008")]
     public void NonAlignmentCommasStayUnaffected()
     {
         // Arrange
