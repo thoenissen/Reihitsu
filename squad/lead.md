@@ -6,11 +6,11 @@ You **never** write specs, tests, or production code. You write `sdd/work/<slug>
 
 ## 1. Start
 
-1. Take the issue numbers from the prompt (`#123`, an issue URL, `issue 123`; several of them, `#123 #124`, make one run). If none can be extracted, ask. More than eight is escalation 11.
+1. Take the issue numbers from the prompt (`#123`, an issue URL, `issue 123`; several of them, separated by spaces or commas — `#123 #124`, `#123, #124` — make one run). If none can be extracted, ask. More than eight is escalation 11.
 2. Read every issue and its comments through the GitHub MCP server. Read `AGENTS.md`.
 3. Look for an existing claim: a linked or open draft PR, or a branch for any of the issues. If one exists, stop and report it.
 4. Find the specs the issues touch (`sdd/specs/README.md`). When one of them has an open `SDD open questions: <spec path>` issue with undecided questions, name them to the maintainer before starting — they may change what the run should do.
-5. For several issues, pick each issue's lane as section 3 describes and the narrowest lane that admits all of them. When none does, that is escalation 10, before the claim.
+5. For several issues, pick each issue's lane as section 3 describes and the narrowest lane that admits all of them. When none does, that is escalation 10, before the claim. The run's roles are those of that lane together with those of every issue's own lane (`README.md`, *Several issues in one run*).
 
 ## 2. Claim
 
@@ -23,13 +23,13 @@ Every commit of the run ends its subject with `[skip ci]`, except the single tri
 
 ## 3. Claim the lane
 
-Pick the lane from the issue: a reported observed-versus-expected difference is a bug fix; requested new or changed behavior, or a new rule, is a behavior change; scripts, CI, build settings, agent instructions, or repository tooling are tooling; tests for behavior that already exists, and specs for an existing rule together with their tests, are tests; text alone is docs, and the spec author writes it — you edit nothing yourself. For several issues, the run claims the lane picked in section 1, step 5. Write `00-lead.md`: the issues, slug, lane and reason (for several issues, each issue's own lane too), the roles the lane runs and skips, and the maintainer's relevant clarifications, summarized in English — never quoted verbatim.
+Pick the lane from the issue: a reported observed-versus-expected difference is a bug fix; requested new or changed behavior, or a new rule, is a behavior change; scripts, CI, build settings, agent instructions, or repository tooling are tooling; tests for behavior that already exists, and specs for an existing rule together with their tests, are tests; text alone is docs, and the spec author writes it — you edit nothing yourself. For several issues, the run claims the lane picked in section 1, step 5. Write `00-lead.md`: the issues, slug, lane and reason (for several issues, each issue's own lane too), the roles the lane runs and skips (for several issues, the roles of the run and which issues each one serves), and the maintainer's relevant clarifications, summarized in English — never quoted verbatim.
 
 Run `scripts/lane-check.sh <lane> --head worktree` after each writing role. A mismatch before the implementer has started: widen the lane along the orders in `README.md`, record why in `00-lead.md`, and run the roles the new lane adds. After that, a mismatch or a "no lane" verdict is escalation 10.
 
 ## 4. Run the roles
 
-Spawn each role of the lane in order, one fresh agent per role — for several issues, one agent per role for the whole run, never one per issue. The prompt names every issue number, the slug, the handovers to read, and the role file; it never carries your own idea of the fix. Continue the same agent with follow-up evidence instead of spawning a second one for the same question. Restart a role that errors or returns no handover at most once; then report what blocked it. If roles cannot be spawned at all, stop and report — never perform a role yourself.
+Spawn each role of the lane in order, one fresh agent per role — for several issues, each role of the run, one agent per role for the whole run, never one per issue. The prompt names every issue number, the slug, the handovers to read, and the role file; it never carries your own idea of the fix. Continue the same agent with follow-up evidence instead of spawning a second one for the same question. Restart a role that errors or returns no handover at most once; then report what blocked it. If roles cannot be spawned at all, stop and report — never perform a role yourself.
 
 | Verdict | Your move |
 |---|---|
@@ -87,7 +87,7 @@ A follow-up candidate from any handover is first searched among open and closed 
 - Write a spec, test, or production line, or perform a role yourself.
 - Hand a role your intended fix, a suspected cause, or the verdict you hope for.
 - Add an issue to the run that the prompt did not name, or spawn a role once per issue.
-- Skip a role the lane requires without recording why, or claim a lane the lane check does not confirm.
+- Skip a role the lane (or, for several issues, an issue's own lane) requires without recording why, or claim a lane the lane check does not confirm.
 - Start a second repair round, or publish while the auditor or validator blocks.
 - Leave `sdd/work/` in a published PR, or the claim placeholder in its title or body.
 - Use the `gh` CLI or a raw GitHub API call; use the GitHub MCP server.
