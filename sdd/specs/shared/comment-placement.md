@@ -9,7 +9,7 @@
 
 This spec covers the rules that report a comment placed in a position inside a declaration or a statement: which comments they check, where the diagnostic is, and, for the rules that report every comment inside a delimited region such as an argument list or a statement header, which gaps of the region count and which comment positions inside it stay valid. Each rule that uses this spec states the positions it reports, or the regions it checks, and any exception of its own.
 
-It also states, for the rules that list them under `Uses`, which comments are ordinary comments, every kind alike (SHARED-COMMENT-001), and how a rule that checks where a line starts treats a line that starts with a comment (SHARED-COMMENT-011).
+It also states, for the rules that list them under `Uses`, which comments are ordinary comments, every kind alike (SHARED-COMMENT-001), how a rule that checks where a line starts treats a line that starts with a comment (SHARED-COMMENT-011), and, for these rules and the formatter alike, which line a comment that spans several lines belongs to (SHARED-COMMENT-012).
 
 ## Non-goals
 
@@ -417,9 +417,9 @@ The comments of the `switch` statement are not reported.
 
 ### SHARED-COMMENT-011 — A line that starts with a comment is not judged by the token behind it
 
-A rule that checks where a line starts — whether a token starts its line, or in which column a line starts — MUST take a comment of any kind that starts its line (SHARED-BLANK-002) as the first element of that line. When such a comment stands where the rule asks the line to start, the first token behind it on the comment's first line MUST NOT be reported for its position: neither for not starting its line nor for its column. Only that first token is exempt; a later token on the same line is judged by the rule's own requirements. A comment that does not start its line, such as one behind code on the line above, does not make the line start with a comment.
+A rule that checks where a line starts — whether a token starts its line, or in which column a line starts — MUST take a comment of any kind that starts its line (SHARED-BLANK-002) as the first element of that line. When such a comment stands where the rule asks the line to start, the first token behind it on the comment's first line MUST NOT be reported for its position: neither for not starting its line nor for its column. Only that first token is exempt; a later token on the same line is judged by the rule's own requirements. When the comment stands anywhere else, the line is out of place, and the rule MUST report it as it reports a line whose first token stands where the comment stands, whatever column the token behind the comment reaches; the diagnostic is located where the rule's own requirements locate it. A comment that does not start its line, such as one behind code on the line above, does not make the line start with a comment.
 
-Why: A rule that checks where a line starts judges the line's first element, and a comment there is the line's first element as much as a token would be. Whether the comment may stand there at all is for the rules that report comments to decide, not for the rule that places the line.
+Why: A rule that checks where a line starts judges the line's first element, and a comment there is the line's first element as much as a token would be. So a comment in the right place keeps the line in place, and a comment in the wrong place puts the line out of place, wherever the token behind it lands. Whether the comment may stand there at all is for the rules that report comments to decide, not for the rule that places the line.
 
 Example — RH5201 and RH5204:
 
@@ -442,7 +442,17 @@ class C
 }
 ```
 
-is not reported, whether or not documentation comments are parsed. A later token on the comment's line is not the token behind the comment, so RH5201 and RH5303 still report it:
+is not reported, whether or not documentation comments are parsed. A comment that starts its line in another column than the one the line belongs in puts the line out of place, so RH5204 reports both lines below, also the second, where `private` happens to stand in the member column:
+
+```csharp
+class C
+{
+      /* a */ {|RH5204:private|} int _a;
+/**/{|RH5204:private|} int _b;
+}
+```
+
+A later token on the comment's line is not the token behind the comment, so RH5201 and RH5303 still report it:
 
 ```csharp
 using System.Collections.Generic;
@@ -477,6 +487,61 @@ class C
         P(1,
           // two
             {|RH5203:2|});
+    }
+
+    void P(params int[] values)
+    {
+    }
+}
+```
+
+### SHARED-COMMENT-012 — A comment that spans several lines belongs to the line it starts on
+
+A delimited comment — `/* */` or `/** */` — whose closing `*/` stands on a later line than its opening MUST belong to the line on which it starts. The first token behind the closing `*/` on the comment's last line MUST NOT count as starting a line, whatever stands in front of the comment:
+
+- where a requirement of the formatter asks that token to start its own line, the formatter MUST break the line in front of the token;
+- a rule that checks where a line starts — whether a token starts its line, or in which column a line starts — MUST NOT take the comment's last line for a line of its own, and MUST report the token where the rule expects that token to start its line, because it does not.
+
+A delimited comment that starts and ends on the token's line is not covered; it is the line's first element when it starts its line, as SHARED-COMMENT-011 specifies. A `///` comment ends with its line, so a token on the next line starts that line. This requirement states for tokens what SHARED-BLANK-002 states for trivia behind such a comment.
+
+Why: The author writes a comment that spans several lines as part of the line it starts on, and its last line continues that line rather than starting a new one. A token behind the closing `*/` sits where a reader does not look for the start of a statement, a member, or an argument, so it is placed by the line it continues: the formatter gives it a line of its own where one is required, and the rules that judge line starts report it there. A rule and the formatter that took the comment's last line for a line of its own would disagree with those that do not, on the same code.
+
+Example — the formatter breaks the line in front of `Foo();`, which the block asks to start its own line:
+
+```csharp
+class C
+{
+    void M()
+    {
+        { /* p
+        q */ Foo(); }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        { /* p
+        q */
+            Foo();
+        }
+    }
+}
+```
+
+Example — RH5203, which reports the argument behind the comment's last line:
+
+```csharp
+class C
+{
+    void N()
+    {
+        P(1,
+          /* a
+          b */ {|RH5203:2|});
     }
 
     void P(params int[] values)

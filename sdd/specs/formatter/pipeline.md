@@ -5,7 +5,7 @@
 | ID prefix | FMT-PIPE |
 | Status | Active |
 | Code owners | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `FormattingContext`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities` |
-| Uses | SHARED-FIX-006 |
+| Uses | SHARED-FIX-006, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-016 |
 
 This spec covers what holds for the formatter as a whole: the public entry points, the fixed phase order, and the invariants every phase must keep. What an individual phase decides is specified in that phase's own spec.
 
@@ -245,3 +245,100 @@ Why: A code fix that reformats the member it changed must not also change the me
 `FormatNode` MUST format the node it is given without checking for syntax errors or the generated-code marker, and MUST take the indentation level from its `indentLevel` argument when that is zero or greater, otherwise from the node's position in its tree.
 
 Why: `FormatNode` receives freshly generated or detached subtrees that have no file header and whose tree diagnostics say nothing about the file they will be inserted into. The caller is responsible for passing a node that is safe to format.
+
+### FMT-PIPE-013 — Wrapping code in a block keeps the comments' layout
+
+When the formatter wraps code in braces or a block — the braces of a switch section (FMT-SWITCH), the braces of an `if` or `else` body, or the block body of an expression-bodied member (FMT-STRUCT) — it MUST keep the layout the author gave the comments that the wrapped code carries:
+
+- the space between two comments on the same line;
+- a comment's place on the line of its statement, whether the comment stands in front of the statement or behind it;
+- the blank lines between the comments that lead a statement.
+
+A comment on a line of its own above the statement stays on a line of its own, and a comment behind the statement stays behind it. The phases after the wrap decide for the wrapped comments what they decide for any other comment, such as collapsing a run of blank lines to one.
+
+Why: A wrap adds braces; it is not a decision about the comments. The space between two comments, a comment written on its statement's line, and a blank line that groups comments are the author's layout, and the same comments keep it in code that needs no wrap. FMT-PIPE-002 lets a phase normalize the whitespace around comments; a wrap that loses this layout only because it rebuilt the trivia around the new braces is no such normalization.
+
+Example — the comment in front of `Foo();` stays on its own line, and the comments behind `42` and `Foo();` stay on their lines:
+
+```csharp
+class C
+{
+    int Get() => 42 /* why */;
+
+    void M(bool a)
+    {
+        if (a)
+            // leading
+            Foo(); // trailing
+    }
+}
+```
+
+```csharp
+class C
+{
+    int Get()
+    {
+        return 42 /* why */;
+    }
+
+    void M(bool a)
+    {
+        if (a)
+        {
+            // leading
+            Foo(); // trailing
+        }
+    }
+}
+```
+
+### FMT-PIPE-014 — One treatment per syntax family
+
+The formatter MUST lay out and space every member of a syntax family alike. Each of these is one family:
+
+- every parameter list, the bracketed parameter list of an indexer included;
+- every assignment operator: `=` and every compound assignment operator, such as `+=` and `??=`;
+- every arrow `=>`, whatever construct it belongs to;
+- every colon that ends an attribute target, such as the colon of `return:`, `assembly:`, or `field:`;
+- every closing bracket of an initializer-like block, such as the `}` of an object or collection initializer and the `]` of a collection expression.
+
+Why: A reader learns the layout of a construct once and expects it wherever the construct occurs. When the formatter lays out one member of a family and leaves another as it was written, the same shape stays formatted in one place and unformatted in the next, and the author cannot predict which.
+
+Example — the parameter lists of a constructor and a method are laid out alike (FMT-BREAK-011, FMT-BREAK-012), and so are two assignments wrapped before and after their `=` (FMT-BREAK-016):
+
+```csharp
+class C
+{
+    C(int a
+      , int b)
+    {
+    }
+
+    void M(int a
+           , int b)
+    {
+        a
+            = b;
+        b =
+            a;
+    }
+}
+```
+
+```csharp
+class C
+{
+    C(int a,
+      int b)
+    {
+    }
+
+    void M(int a,
+           int b)
+    {
+        a = b;
+        b = a;
+    }
+}
+```
