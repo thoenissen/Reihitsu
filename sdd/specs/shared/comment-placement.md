@@ -5,26 +5,32 @@
 | ID prefix | SHARED-COMMENT |
 | Status | Active |
 | Code owners | `CommentPositionAnalyzerBase`, `CommentRegionAnalyzerBase`, `CommentPositionUtilities`, `FluentChainAnalysisHelper` |
-| Uses | — |
+| Uses | SHARED-BLANK-002 |
 
 This spec covers the rules that report a comment placed in a position inside a declaration or a statement: which comments they check, where the diagnostic is, and, for the rules that report every comment inside a delimited region such as an argument list or a statement header, which gaps of the region count and which comment positions inside it stay valid. Each rule that uses this spec states the positions it reports, or the regions it checks, and any exception of its own.
+
+It also states, for the rules that list them under `Uses`, which comments are ordinary comments, every kind alike (SHARED-COMMENT-001), and how a rule that checks where a line starts treats a line that starts with a comment (SHARED-COMMENT-011).
 
 ## Non-goals
 
 - Which positions or regions a rule checks, and its own exceptions — each rule's spec.
 - A comment before the first call of a wrapped fluent chain — RH5048 and SHARED-CHAIN.
 - Comments next to a token the parser inserted for a syntax error.
-- Moving a comment. These rules have no code fix; only the author can decide what a comment refers to.
+- Moving a comment. The rules that report a comment in a position have no code fix; only the author can decide what a comment refers to.
 
 ## Requirements
 
-### SHARED-COMMENT-001 — Only ordinary comments are checked
+### SHARED-COMMENT-001 — Only ordinary comments are checked, every kind alike
 
-A rule MUST check only ordinary comments: `//` comments and `/* */` comments. It MUST NOT report a documentation comment, whether or not the compiler parses documentation comments. When it does not, a comment counts as a documentation comment by its text: a `//` comment that starts with exactly three slashes, and a `/* */` comment that starts with `/**` and is not the empty comment `/**/`.
+A rule MUST check only ordinary comments, and MUST treat every kind of them alike: a `//` comment, a `/* */` comment, and a `///` or `/** */` comment that documents nothing. It MUST NOT report a documentation comment that documents a declaration. A `///` or `/** */` comment documents a declaration exactly when the compiler reads it as that declaration's documentation and does not report it as misplaced (CS1587). The compiler reads documentation only in front of a type, a delegate, a member, or an enum member, ahead of the declaration's attribute lists and modifiers; a `///` or `/** */` comment anywhere else documents nothing — behind an attribute list, inside an argument list or a statement, in front of a namespace, an accessor, a parameter, a local function, or a statement, or behind the last member of a type.
 
-Why: A documentation comment belongs to the declaration that follows it; it is not a remark on the code around it. Whether the compiler parses documentation comments is a project setting; the same source must not change its diagnostics with it.
+The verdict MUST NOT depend on whether the compiler parses documentation comments. When it does not, a comment counts as a `///` or `/** */` comment by its text — a `//` comment that starts with exactly three slashes, and a `/* */` comment that starts with `/**` and is not the empty comment `/**/` — and it documents a declaration exactly where it would if documentation comments were parsed.
 
-Example — RH5033:
+Wherever a rule distinguishes a line that holds only a comment from a line that holds code, a line holding only a `/* */` comment MUST count like a line holding only a `//` comment.
+
+Why: A documentation comment belongs to the declaration it documents; it is not a remark on the code around it. A `///` or `/** */` comment that documents nothing belongs to no declaration — the compiler discards it — so it is a remark like any other comment, however its delimiters are written. Whether the compiler parses documentation comments is a project setting; the same source must not change its diagnostics with it. A line that holds only a comment reads as a comment line whichever delimiters the comment uses.
+
+Example — RH5033, which reports the empty block comment because `/**/` is not a `/** */` comment:
 
 ```csharp
 using System;
@@ -32,26 +38,29 @@ using System;
 class C
 {
     [Obsolete]
-    /// <summary>M</summary>
-    void M()
-    {
-    }
-
-    [Obsolete]
-    /** <summary>N</summary> */
-    void N()
-    {
-    }
-
-    [Obsolete]
     {|RH5033:/**/|}
-    void O()
+    void M()
     {
     }
 }
 ```
 
-With documentation comments not parsed (`DocumentationMode.None`), RH5033 reports exactly the same comment, and it reports `//// note` in the same position, because it starts with four slashes.
+With documentation comments not parsed (`DocumentationMode.None`), RH5033 reports the same comment, and it reports `//// note` in the same position, because it starts with four slashes.
+
+Example — RH5034, where both documentation comments document `M`:
+
+```csharp
+class C
+{
+    /// <summary>M</summary>
+    /** <remarks>M</remarks> */
+    void M()
+    {
+    }
+}
+```
+
+is not reported, whether or not documentation comments are parsed.
 
 ### SHARED-COMMENT-002 — A comment inside a preprocessor directive is not checked
 
@@ -405,3 +414,73 @@ class C
 ```
 
 The comments of the `switch` statement are not reported.
+
+### SHARED-COMMENT-011 — A line that starts with a comment is not judged by the token behind it
+
+A rule that checks where a line starts — whether a token starts its line, or in which column a line starts — MUST take a comment of any kind that starts its line (SHARED-BLANK-002) as the first element of that line. When such a comment stands where the rule asks the line to start, the first token behind it on the comment's first line MUST NOT be reported for its position: neither for not starting its line nor for its column. Only that first token is exempt; a later token on the same line is judged by the rule's own requirements. A comment that does not start its line, such as one behind code on the line above, does not make the line start with a comment.
+
+Why: A rule that checks where a line starts judges the line's first element, and a comment there is the line's first element as much as a token would be. Whether the comment may stand there at all is for the rules that report comments to decide, not for the rule that places the line.
+
+Example — RH5201 and RH5204:
+
+```csharp
+using System.Linq;
+
+class C
+{
+    /* a */   private int _a;
+
+    /** <summary>B</summary> */   private int _b;
+
+    object N(int[] items)
+    {
+        var list = items.Where(x => x > 0)
+                        /* all */   .ToList();
+
+        return list;
+    }
+}
+```
+
+is not reported, whether or not documentation comments are parsed. A later token on the comment's line is not the token behind the comment, so RH5201 and RH5303 still report it:
+
+```csharp
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    object N(int[] items)
+    {
+        var list = items.Where(x => x > 0)
+                        /* all */ .Select(x => x){|RH5201:.|}ToList();
+
+        var values = new List<int>()
+                     {
+                         /* a */ 1, {|RH5303:2|}
+                     };
+
+        return list;
+    }
+}
+```
+
+A comment that does not start the argument's line — behind code on the line above, or on a line of its own above it — leaves the argument to RH5203:
+
+```csharp
+class C
+{
+    void N()
+    {
+        P(1, /* one */
+            {|RH5203:2|});
+        P(1,
+          // two
+            {|RH5203:2|});
+    }
+
+    void P(params int[] values)
+    {
+    }
+}
+```

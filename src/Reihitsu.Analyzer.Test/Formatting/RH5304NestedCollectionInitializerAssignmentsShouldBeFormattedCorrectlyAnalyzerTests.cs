@@ -732,6 +732,7 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     [TestMethod]
     [Requirement("SHARED-INIT-001")]
     [Requirement("RH5304-002")]
+    [Requirement("SHARED-COMMENT-011")]
     public async Task VerifyNoDiagnosticForCommentPrefixedNestedCollectionClosingBrace()
     {
         const string testData = """
@@ -818,6 +819,7 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     [TestMethod]
     [Requirement("SHARED-INIT-001")]
     [Requirement("RH5304-002")]
+    [Requirement("SHARED-COMMENT-011")]
     public async Task VerifyNoDiagnosticForCommentPrefixedOrdinaryElements()
     {
         const string testData = """

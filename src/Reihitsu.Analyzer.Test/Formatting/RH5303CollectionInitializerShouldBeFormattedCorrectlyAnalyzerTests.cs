@@ -332,6 +332,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     [Requirement("SHARED-INIT-001")]
     [Requirement("SHARED-INIT-002")]
     [Requirement("RH5303-003")]
+    [Requirement("SHARED-COMMENT-011")]
     public async Task VerifyNoDiagnosticForCommentPrefixedComplexElementTokens()
     {
         const string testData = """
@@ -738,6 +739,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     [TestMethod]
     [Requirement("SHARED-INIT-001")]
     [Requirement("RH5303-001")]
+    [Requirement("SHARED-COMMENT-011")]
     public async Task VerifyNoDiagnosticForCommentPrefixedCollectionOpeningBrace()
     {
         const string testData = """
@@ -765,6 +767,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     [TestMethod]
     [Requirement("SHARED-INIT-001")]
     [Requirement("RH5303-001")]
+    [Requirement("SHARED-COMMENT-011")]
     public async Task VerifyNoDiagnosticForCommentPrefixedCollectionClosingBrace()
     {
         const string testData = """
@@ -1149,6 +1152,123 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
                                  """;
 
         await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
+    /// <summary>
+    /// Verifies that a comment that starts the line of a collection element in the element's column does not get the
+    /// element reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5303-002")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyNoDiagnosticForCommentPrefixedCollectionElement()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        var values = new List<int>()
+                                                     {
+                                                         /* Keep element. */ 1,
+                                                         2
+                                                     };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a later element on a line that starts with a comment in the element column is still reported,
+    /// because only the first element behind the comment is exempt
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5303-002")]
+    [Requirement("RH5303-005")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyLaterElementOnLineStartingWithCommentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        var values = new List<int>()
+                                                     {
+                                                         /* a */ 1, {|#0:2|}
+                                                     };
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Collections.Generic;
+
+                                  internal class Example
+                                  {
+                                      private static void Method()
+                                      {
+                                          var values = new List<int>()
+                                                       {
+                                                           /* a */ 1,
+                                                           2
+                                                       };
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a later element on a line that starts with a comment in the element column is still reported and
+    /// fixed under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5303-002")]
+    [Requirement("RH5303-005")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyLaterElementOnLineStartingWithCommentIsDetectedAndFixedWithCrLf()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        var values = new List<int>()
+                                                     {
+                                                         /* a */ 1, {|#0:2|}
+                                                     };
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Collections.Generic;
+
+                                  internal class Example
+                                  {
+                                      private static void Method()
+                                      {
+                                          var values = new List<int>()
+                                                       {
+                                                           /* a */ 1,
+                                                           2
+                                                       };
+                                      }
+                                  }
+                                  """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
     }
 
     #endregion // Tests

@@ -1908,56 +1908,6 @@ public class RH5038CommentsMustNotBePlacedInsideArgumentListAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Verifies that a documentation comment in an argument list is not reported
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("SHARED-COMMENT-001")]
-    public async Task VerifyNoDiagnosticForDocumentationCommentInArgumentList()
-    {
-        const string testData = """
-                                internal class TestClass
-                                {
-                                    void Method()
-                                    {
-                                        Run(
-                                            /// <summary>First</summary>
-                                            1);
-                                    }
-
-                                    static int Run(params object[] values) => 0;
-                                }
-                                """;
-
-        await Verify(testData);
-    }
-
-    /// <summary>
-    /// Verifies that a documentation comment in an argument list is not reported when documentation comments are not parsed
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("SHARED-COMMENT-001")]
-    public async Task VerifyNoDiagnosticForDocumentationCommentInArgumentListWithoutDocumentationParsing()
-    {
-        const string testData = """
-                                internal class TestClass
-                                {
-                                    void Method()
-                                    {
-                                        Run(
-                                            /// <summary>First</summary>
-                                            1);
-                                    }
-
-                                    static int Run(params object[] values) => 0;
-                                }
-                                """;
-
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
-    }
-
-    /// <summary>
     /// Verifies that a comment before the first argument is reported with CRLF line endings
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

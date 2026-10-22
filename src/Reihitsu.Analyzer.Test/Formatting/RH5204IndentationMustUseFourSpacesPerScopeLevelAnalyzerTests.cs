@@ -1406,6 +1406,135 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
         await Verify(testData, fixedData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a line which starts with a block comment in the scope's column is not reported for the column of
+    /// the member behind the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyNoDiagnosticForMemberBehindBlockCommentStartingTheLine()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /* a */   private int _a;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a line which starts with a block comment in the scope's column is not reported for the column of
+    /// the member behind the comment when documentation comments are not parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyNoDiagnosticForMemberBehindBlockCommentStartingTheLineWithoutDocumentationParsing()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /* a */   private int _a;
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that a line which starts with a block comment in the scope's column is not reported for the column of
+    /// the member behind the comment under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyNoDiagnosticForMemberBehindBlockCommentStartingTheLineWithCrLf()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /* a */   private int _a;
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData));
+    }
+
+    /// <summary>
+    /// Verifies that a line which starts with a delimited documentation comment in the scope's column is not reported
+    /// for the column of the member behind the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyNoDiagnosticForMemberBehindDelimitedDocumentationCommentStartingTheLine()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /** <summary>B</summary> */   private int _b;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a line which starts with a delimited documentation comment in the scope's column is not reported
+    /// for the column of the member behind the comment when documentation comments are not parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyNoDiagnosticForMemberBehindDelimitedDocumentationCommentStartingTheLineWithoutDocumentationParsing()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /** <summary>B</summary> */   private int _b;
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that a member on the line below a comment line is judged by its own column, because the comment does
+    /// not start the member's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("RH5204-006")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyMemberBelowBlockCommentLineIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /* a */
+                                      {|#0:private|} int _a;
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     /* a */
+                                     private int _a;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
