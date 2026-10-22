@@ -56,3 +56,13 @@ SDD open questions issues (new, the earlier ones per spec are closed): cleanup.m
 Further instances commented on: thoenissen/Reihitsu#1144, #1081, #953, #963, #1148, #1077, #962, #1348, #1076, #948, #956.
 
 Tests must not tag a requirement with an input that a filed question disputes; a test pinning disputed current behavior is a characterization test without that ID.
+
+## Lane widened: tests → tooling
+
+`scripts/lane-check.sh tests --head worktree` at 0b09148: `LANE CHECK: mismatch — claimed tests, diff needs tooling`, caused only by `src/Reihitsu.Playground.Test/Reihitsu.Playground.Test.csproj` (the maintainer-approved bUnit reference). Widened along docs → tests → tooling before any implementer ran; `scripts/lane-check.sh tooling --head worktree`: `LANE CHECK: confirmed — claimed tooling, diff needs tooling`.
+
+Roles the tooling lane adds: implementer — skipped, because the only tooling change is the approved test-project package reference, already made by the test implementer, and there is no tool code to implement; auditor — runs. Spec author and skeptic are not part of the tooling lane but already ran as part of the original claim (skeptic) or were skipped (spec author) as recorded above.
+
+Additional enforcement: `formatter/` and `playground/` added to `EnforcedSpecPaths` (0b09148); `CoverageReportCountsUncoveredRequirementsPerSpecNotYetEnforced` moved its not-yet-enforced fixture from `formatter/cleanup.md` to `shared/casing.md`.
+
+Further question: Q-I8 (FMT-INDENT-015, omitted first type argument) added to thoenissen/Reihitsu#1370.
