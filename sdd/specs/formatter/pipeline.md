@@ -5,7 +5,7 @@
 | ID prefix | FMT-PIPE |
 | Status | Active |
 | Code owners | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `FormattingContext`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities` |
-| Uses | — |
+| Uses | SHARED-FIX-006 |
 
 This spec covers what holds for the formatter as a whole: the public entry points, the fixed phase order, and the invariants every phase must keep. What an individual phase decides is specified in that phase's own spec.
 
@@ -208,7 +208,7 @@ Why: The CLI, the analyzer code fixes, and the Playground share one engine. Keep
 
 `FormatNodeInDocumentAsync` and `FormatNodeInDocumentWithContextAsync` MUST rewrite only the target node and keep the rest of the document as it is. The one exception is the whitespace that ended the line before a documentation comment the target moves onto its own line, which MUST be removed as document-level formatting removes it. The target's leading trivia MUST be kept when the target does not start its line or is a direct child of the root, and its trailing trivia MUST be kept in every case.
 
-Why: These entry points serve code fixes, which may only change the code their diagnostic is about. Reformatting the surrounding document would turn a one-line fix into an unrelated diff.
+Why: These entry points serve code fixes, which change only the code their diagnostic is about (SHARED-FIX-006). Reformatting the surrounding document would turn a one-line fix into an unrelated diff.
 
 Example — `FormatNodeInDocumentAsync` with the property `P` as target:
 

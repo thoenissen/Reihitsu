@@ -282,6 +282,7 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-FIX-001")]
+    [Requirement("SHARED-FIX-006")]
     public async Task OneApplicationCorrectsTheLineInFrontOfTheReportedIf()
     {
         const string testCode = "class C\n{\n    void M(int a)\n    {\n        a++;\n        {|RH5002:if|} (a > 1)\n        {\n        }\n    }\n}\n";

@@ -187,6 +187,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3202-005")]
+    [Requirement("SHARED-FIX-006")]
     public async Task VerifyBlankLineAboveFixedMethodIsKept()
     {
         const string testData = """
