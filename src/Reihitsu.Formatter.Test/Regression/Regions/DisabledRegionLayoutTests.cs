@@ -29,6 +29,7 @@ public class DisabledRegionLayoutTests : FormatterTestsBase
     /// Verifies that a canonically named region inside disabled code survives formatting byte for byte
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-REGION-006")]
     public void CanonicalRegionInsideDisabledCodeIsUnchanged()
     {
         // Arrange
@@ -55,6 +56,7 @@ public class DisabledRegionLayoutTests : FormatterTestsBase
     /// Verifies that a region inside disabled code is renamed without being padded with blank lines
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-REGION-006")]
     public void RegionInsideDisabledCodeIsRenamedWithoutBlankLinePadding()
     {
         // Arrange
@@ -117,6 +119,7 @@ public class DisabledRegionLayoutTests : FormatterTestsBase
     /// layout changes
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-REGION-005")]
     public void RegionInsideDisabledMethodBodyIsNotRemoved()
     {
         // Arrange

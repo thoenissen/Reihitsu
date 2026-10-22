@@ -1460,6 +1460,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     /// expression body, because document-level formatting runs every structural transform
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-016")]
     public void FormatSyntaxTreeConvertsSingleStatementAccessorToExpressionBody()
     {
         foreach (var endOfLine in _lineEndings)
@@ -1483,6 +1484,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
+    [Requirement("FMT-STRUCT-016")]
     public async Task FormatDocumentAsyncConvertsSingleStatementAccessorToExpressionBody()
     {
         foreach (var endOfLine in _lineEndings)
@@ -1511,6 +1513,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     /// formatting serves code fixes, which must not rewrite accessors they were not asked to change
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-016")]
     public void FormatNodeKeepsSingleStatementAccessorBlock()
     {
         foreach (var endOfLine in _lineEndings)
@@ -1537,6 +1540,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
+    [Requirement("FMT-STRUCT-016")]
     public async Task FormatNodeInDocumentAsyncKeepsSingleStatementAccessorBlock()
     {
         await AssertNodeLevelFormattingKeepsSource(BlockBodiedAccessorSource,
@@ -1563,6 +1567,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
+    [Requirement("FMT-STRUCT-016")]
     public async Task FormatNodeInDocumentWithContextAsyncKeepsSingleStatementAccessorBlock()
     {
         await AssertNodeLevelFormattingKeepsSource(BlockBodiedAccessorSource,
@@ -1673,6 +1678,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
+    [Requirement("FMT-STRUCT-016")]
     public async Task FormatDocumentAsyncConvertsGetOnlyPropertyToExpressionBodiedProperty()
     {
         foreach (var endOfLine in _lineEndings)
@@ -1701,6 +1707,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     /// node-level formatting serves code fixes, which must not rewrite a property's body form
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-016")]
     public void FormatNodeKeepsGetOnlyAccessorList()
     {
         foreach (var endOfLine in _lineEndings)
@@ -1725,6 +1732,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
+    [Requirement("FMT-STRUCT-016")]
     public async Task FormatNodeInDocumentAsyncKeepsGetOnlyAccessorList()
     {
         await AssertNodeLevelFormattingKeepsSource(GetOnlyAccessorListSource,
@@ -1751,6 +1759,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
+    [Requirement("FMT-STRUCT-016")]
     public async Task FormatNodeInDocumentWithContextAsyncKeepsGetOnlyAccessorList()
     {
         await AssertNodeLevelFormattingKeepsSource(GetOnlyAccessorListSource,

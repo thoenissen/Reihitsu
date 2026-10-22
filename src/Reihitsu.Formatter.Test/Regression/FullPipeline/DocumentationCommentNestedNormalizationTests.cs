@@ -19,6 +19,7 @@ public class DocumentationCommentNestedNormalizationTests : FormatterTestsBase
     /// as the element that contains it
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-011")]
     public void NestedCodeElementIsNormalizedInTheSameRun()
     {
         // Arrange
@@ -64,6 +65,7 @@ public class DocumentationCommentNestedNormalizationTests : FormatterTestsBase
     /// Verifies that a candidate nested two levels deep is normalized in the same run
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-011")]
     public void TwiceNestedElementIsNormalizedInTheSameRun()
     {
         // Arrange
@@ -158,6 +160,7 @@ public class DocumentationCommentNestedNormalizationTests : FormatterTestsBase
     /// column zero was ever normalized
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-005")]
     public void IndentedDocumentationExteriorGainsItsSpace()
     {
         // Arrange
@@ -192,6 +195,7 @@ public class DocumentationCommentNestedNormalizationTests : FormatterTestsBase
     /// Verifies that a documentation exterior at column zero gains its separating space
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-005")]
     public void ColumnZeroDocumentationExteriorGainsItsSpace()
     {
         // Arrange

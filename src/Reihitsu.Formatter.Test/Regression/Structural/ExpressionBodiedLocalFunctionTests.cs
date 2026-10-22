@@ -16,6 +16,7 @@ public class ExpressionBodiedLocalFunctionTests : FormatterTestsBase
     /// Verifies that an expression-bodied void local function is converted to a block body with an expression statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-004")]
     public void VoidLocalFunctionConvertsToExpressionStatement()
     {
         // Arrange
@@ -49,6 +50,7 @@ public class ExpressionBodiedLocalFunctionTests : FormatterTestsBase
     /// Verifies that an expression-bodied returning local function is converted to a block body with a return statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-004")]
     public void ReturningLocalFunctionConvertsToReturnStatement()
     {
         // Arrange
@@ -139,6 +141,7 @@ public class ExpressionBodiedLocalFunctionTests : FormatterTestsBase
     /// Verifies that an async Task expression-bodied local function is converted to a block body with an expression statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-004")]
     public void AsyncTaskLocalFunctionConvertsToExpressionStatement()
     {
         // Arrange

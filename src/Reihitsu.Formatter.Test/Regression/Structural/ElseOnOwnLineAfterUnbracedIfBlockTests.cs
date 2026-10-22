@@ -18,6 +18,7 @@ public class ElseOnOwnLineAfterUnbracedIfBlockTests : FormatterTestsBase
     /// single statements
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-001")]
     public void LiteralExampleBothBranchesUnbraced()
     {
         // Arrange

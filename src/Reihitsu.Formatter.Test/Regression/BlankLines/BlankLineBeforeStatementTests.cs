@@ -17,6 +17,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     /// that follows another statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void IfStatementInsertsBlankLine()
     {
         // Arrange
@@ -280,6 +281,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     /// follows an <c>#endif</c> directive, mirroring the exemption RH5020 applies
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-011")]
     public void CommentPrecededByDirectiveNoBlankLineInserted()
     {
         // Arrange
@@ -369,6 +371,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     /// is the first statement in a block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void IfStatementFirstInBlockNoBlankLine()
     {
         // Arrange
@@ -393,6 +396,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     /// <c>else if</c> clause
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void ElseIfNoBlankLine()
     {
         // Arrange
@@ -420,6 +424,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     /// that follows another statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void TryStatementInsertsBlankLine()
     {
         // Arrange
@@ -465,6 +470,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     /// that follows another statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void WhileStatementInsertsBlankLine()
     {
         // Arrange
@@ -506,6 +512,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     /// that follows another statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void DoStatementInsertsBlankLine()
     {
         // Arrange
@@ -549,6 +556,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     /// that follows another statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void ForStatementInsertsBlankLine()
     {
         // Arrange
@@ -588,6 +596,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     /// that follows another statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void ForEachStatementInsertsBlankLine()
     {
         // Arrange
@@ -627,6 +636,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     /// that follows another statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void ReturnStatementInsertsBlankLine()
     {
         // Arrange
@@ -662,6 +672,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     /// is the first statement in a block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void ReturnStatementFirstInBlockNoBlankLine()
     {
         // Arrange
@@ -684,6 +695,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     /// that follows another statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void ThrowStatementInsertsBlankLine()
     {
         // Arrange
@@ -719,6 +731,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     /// that follows another statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-004")]
     public void BreakStatementInsertsBlankLine()
     {
         // Arrange
@@ -760,6 +773,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     /// that follows another statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void ContinueStatementInsertsBlankLine()
     {
         // Arrange
@@ -801,6 +815,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     /// that follows another statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void GotoStatementInsertsBlankLine()
     {
         // Arrange
@@ -840,6 +855,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     /// that follows another statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void SwitchStatementInsertsBlankLine()
     {
         // Arrange
@@ -883,6 +899,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     /// that follows another statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void CheckedStatementInsertsBlankLine()
     {
         // Arrange
@@ -924,6 +941,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     /// that follows another statement inside an <c>unsafe</c> context
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void FixedStatementInsertsBlankLine()
     {
         // Arrange
@@ -963,6 +981,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     /// that follows another statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void LockStatementInsertsBlankLine()
     {
         // Arrange
@@ -1002,6 +1021,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     /// that follows another statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void UsingStatementInsertsBlankLine()
     {
         // Arrange
@@ -1041,6 +1061,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     /// statement that is the first yield in a method
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-003")]
     public void YieldReturnInsertsBlankLine()
     {
         // Arrange
@@ -1076,6 +1097,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     /// <c>yield return</c> statements
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-003")]
     public void YieldReturnAfterYieldReturnNoBlankLine()
     {
         // Arrange
@@ -1100,6 +1122,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     /// already exists before the statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void AlreadyHasBlankLineNoDoubleInsert()
     {
         // Arrange
@@ -1127,6 +1150,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     /// conditional region rather than outside it
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-006")]
     public void ReturnStatementPrecededByDirectiveNoBlankLineInsertedInsideRegion()
     {
         // Arrange
