@@ -293,8 +293,9 @@ public class RH7403OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzerTests :
 
     /// <summary>
     /// Characterizes a field-like override event with several declarators: only its first declarator is judged, so a second
-    /// declarator from another base type is not reported in the region of the first one's base type. The case is an open
-    /// question about intended behavior, so this test pins today's behavior without stating it as intended
+    /// declarator from another base type is not reported in the region of the first one's base type. This test pins
+    /// today's behavior; the decided behavior is stated by SHARED-DIAG-006, which checks every declarator, and its change
+    /// belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

@@ -583,6 +583,49 @@ public class RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzerTests : Bat
                      Diagnostics(RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5412MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies a <c>#region</c>/<c>#endregion</c> pair in the body does not keep an empty class from being reported, and
+    /// that no code fix is offered, since the fix would rewrite the body that holds the directives
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-008")]
+    [Requirement("RH5412-001")]
+    public async Task VerifyRegionDirectivesInBodyAreReportedWithoutCodeFix()
+    {
+        const string testData = """
+                                class {|#0:A|}
+                                {
+                                    #region R
+                                    #endregion
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData,
+                                       test => test.ExpectedDiagnostics.AddRange(Diagnostics(RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5412MessageFormat)));
+    }
+
+    /// <summary>
+    /// Verifies a <c>#pragma</c> directive in the body does not keep an empty class from being reported, and that no code
+    /// fix is offered, since the fix would rewrite the body that holds the directive
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-008")]
+    [Requirement("RH5412-001")]
+    public async Task VerifyPragmaDirectiveInBodyIsReportedWithoutCodeFix()
+    {
+        const string testData = """
+                                class {|#0:A|}
+                                {
+                                #pragma warning disable CS0169
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData,
+                                       test => test.ExpectedDiagnostics.AddRange(Diagnostics(RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5412MessageFormat)));
+    }
+
     #endregion // Tests
 
     #region Methods

@@ -1984,11 +1984,48 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     }
 
     /// <summary>
+    /// Verifies the specification example of parentheses, the null-forgiving operator, and a <see langword="throw"/>
+    /// branch: <c>(comparer)</c>, <c>comparer!</c>, and a conditional whose other branch is <c>comparer</c> are judged like
+    /// <c>comparer</c> and not reported, while <c>(null)</c> and <c>((IEqualityComparer&lt;S&gt;)null)!</c> are judged like
+    /// <see langword="null"/> and reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-005")]
+    public async Task VerifyParenthesesNullForgivingOperatorAndThrowBranchDoNotChangeTheJudgedValue()
+    {
+        const string source = """
+                              using System;
+                              using System.Collections.Generic;
+                              using System.Linq;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  void M(IEnumerable<S> items, IEqualityComparer<S> comparer, bool flag)
+                                  {
+                                      items.Distinct((comparer));
+                                      items.Distinct(comparer!);
+                                      items.Distinct(flag ? comparer : throw new InvalidOperationException());
+                                      items.{|#0:Distinct|}((null));
+                                      items.{|#1:Distinct|}(((IEqualityComparer<S>)null)!);
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
+    }
+
+    /// <summary>
     /// Characterizes a comparer argument that can only produce <see langword="null"/> or throw: a conditional with a
     /// <see langword="throw"/> branch and a <see langword="switch"/> with a <see langword="throw"/> arm count as custom
     /// and are not reported, while the conditional that can only produce <see langword="null"/> or
-    /// <c>EqualityComparer&lt;T&gt;.Default</c> is. The case is an open question about intended behavior, so this test
-    /// pins today's behavior without stating it as intended
+    /// <c>EqualityComparer&lt;T&gt;.Default</c> is. This test pins today's behavior; the decided behavior is stated by
+    /// SHARED-DIAG-005, under which a <see langword="throw"/> branch produces no value and the other branch alone decides,
+    /// and its change belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

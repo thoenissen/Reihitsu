@@ -242,6 +242,7 @@ public class RH7106ProtectedMustComeBeforeInternalAnalyzerTests : BatchCodeFixTe
     [TestMethod]
     [Requirement("SHARED-MODORDER-003")]
     [Requirement("RH7106-004")]
+    [Requirement("SHARED-DIAG-008")]
     public async Task PragmaDirectiveInFrontOfALaterModifierWithholdsTheFix()
     {
         const string source = """

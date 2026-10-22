@@ -603,8 +603,9 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzerTests
 
     /// <summary>
     /// Characterizes a field-like event with several declarators that implement members of two interfaces: only its first
-    /// declarator is judged, so the second declarator is not reported in the region of the first one's interface. The case
-    /// is an open question about intended behavior, so this test pins today's behavior without stating it as intended
+    /// declarator is judged, so the second declarator is not reported in the region of the first one's interface. This
+    /// test pins today's behavior; the decided behavior is stated by SHARED-DIAG-006, which checks every declarator, and
+    /// its change belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -638,8 +639,8 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzerTests
 
     /// <summary>
     /// Characterizes a field-like event with several declarators outside its interface's region: it is reported once, at
-    /// its first declarator. The case is an open question about intended behavior, so this test pins today's behavior
-    /// without stating it as intended
+    /// its first declarator. This test pins today's behavior; the decided behavior is stated by SHARED-DIAG-006, which
+    /// reports one diagnostic per reported declarator, and its change belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

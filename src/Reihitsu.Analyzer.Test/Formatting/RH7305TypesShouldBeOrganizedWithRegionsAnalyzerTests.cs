@@ -806,5 +806,33 @@ public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies the specification example of a type whose only member is a nested enum in a region: the enum counts as one
+    /// member of the type, the region among its values belongs to the enum, and the type is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TYPEREGION-002")]
+    public async Task NestedEnumInARegionIsOneMemberWhateverRegionsItHasAmongItsValues()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Types
+
+                                    enum E
+                                    {
+                                        #region Values
+                                        A,
+                                        #endregion
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }
