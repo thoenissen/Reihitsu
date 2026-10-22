@@ -5,18 +5,18 @@
 | ID prefix | SHARED-COMMENT |
 | Status | Active |
 | Code owners | `CommentPositionAnalyzerBase`, `CommentRegionAnalyzerBase`, `CommentPositionUtilities`, `FluentChainAnalysisHelper` |
-| Uses | — |
+| Uses | SHARED-BLANK-002 |
 
 This spec covers the rules that report a comment placed in a position inside a declaration or a statement: which comments they check, where the diagnostic is, and, for the rules that report every comment inside a delimited region such as an argument list or a statement header, which gaps of the region count and which comment positions inside it stay valid. Each rule that uses this spec states the positions it reports, or the regions it checks, and any exception of its own.
 
-It also states two things every rule shares: which comments are ordinary comments, every kind alike (SHARED-COMMENT-001), and how a rule that checks where a line starts treats a line that starts with a comment (SHARED-COMMENT-011).
+It also states, for the rules that list them under `Uses`, which comments are ordinary comments, every kind alike (SHARED-COMMENT-001), and how a rule that checks where a line starts treats a line that starts with a comment (SHARED-COMMENT-011).
 
 ## Non-goals
 
 - Which positions or regions a rule checks, and its own exceptions — each rule's spec.
 - A comment before the first call of a wrapped fluent chain — RH5048 and SHARED-CHAIN.
 - Comments next to a token the parser inserted for a syntax error.
-- Moving a comment. These rules have no code fix; only the author can decide what a comment refers to.
+- Moving a comment. The rules that report a comment in a position have no code fix; only the author can decide what a comment refers to.
 
 ## Requirements
 
@@ -417,9 +417,9 @@ The comments of the `switch` statement are not reported.
 
 ### SHARED-COMMENT-011 — A line that starts with a comment is not judged by the token behind it
 
-A rule that checks where a line starts — whether a token starts its line, or in which column a line starts — MUST take a comment that starts the line as the line's first element, whatever kind of comment it is. A line whose first element is a comment MUST NOT be reported for the position of the token behind that comment: neither for the token not starting its line nor for the token's column. A comment that does not start the line — one behind a token on the line, or one on a line of its own above it — MUST NOT change how the line is judged. This requirement does not cover a line whose leading comment is itself not where the rule asks the line to start.
+A rule that checks where a line starts — whether a token starts its line, or in which column a line starts — MUST take a comment of any kind that starts its line (SHARED-BLANK-002) as the first element of that line. When such a comment stands where the rule asks the line to start, a token behind it on the comment's first line MUST NOT be reported for its position: neither for not starting its line nor for its column. A comment that does not start its line, such as one behind code on the line above, does not make the line start with a comment.
 
-Why: The first element of a line is what the reader sees at its start, so the layout of the line is measured there. The token behind a leading comment cannot be moved onto another line or into another column without moving the comment as well; a diagnostic on it would have no fix that clears it. Whether the comment may stand there at all is decided by the rules that report comments.
+Why: A rule that checks where a line starts judges the line's first element, and a comment there is the line's first element as much as a token would be. Whether the comment may stand there at all is for the rules that report comments to decide, not for the rule that places the line.
 
 Example — RH5201 and RH5204:
 
@@ -429,6 +429,8 @@ using System.Linq;
 class C
 {
     /* a */   private int _a;
+
+    /** <summary>B</summary> */   private int _b;
 
     object N(int[] items)
     {
@@ -440,7 +442,7 @@ class C
 }
 ```
 
-is not reported. A comment that does not start the line leaves the line to its first token:
+is not reported, whether or not documentation comments are parsed. A comment that does not start the argument's line — behind code on the line above, or on a line of its own above it — leaves the argument to RH5203:
 
 ```csharp
 class C
