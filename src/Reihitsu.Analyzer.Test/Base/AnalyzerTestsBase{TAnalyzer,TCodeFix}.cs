@@ -9,12 +9,14 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Test.Verifiers;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.Test.Base;
 
@@ -83,6 +85,19 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
     protected static string NormalizeToCarriageReturnLineFeed(string text)
     {
         return text.Replace("\r\n", "\n").Replace("\n", "\r\n");
+    }
+
+    /// <summary>
+    /// Asserts that formatting the provided code with the formatter changes nothing in it, so a code fix result that
+    /// equals this code is laid out as the formatter lays it out
+    /// </summary>
+    /// <param name="code">Code without markup and without a final line break, which the formatter removes</param>
+    protected static void AssertFormattingChangesNothing(string code)
+    {
+        var syntaxTree = CSharpSyntaxTree.ParseText(code);
+        var formattedCode = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, CancellationToken.None).GetText().ToString();
+
+        Assert.AreEqual(code, formattedCode, "Formatting the code must change nothing in it.");
     }
 
     /// <summary>
