@@ -1,6 +1,8 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.Formatter.Test.Helpers;
+
 namespace Reihitsu.Formatter.Test.Unit;
 
 /// <summary>
@@ -27,6 +29,7 @@ public class ReihitsuFormatterTrailingDirectiveAtEndOfFileTests
     /// directive at end of file on its own line, separate from the preceding closing brace.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-007")]
     public void FormatSyntaxTreeKeepsTrailingPragmaOnOwnLineAtEndOfFile()
     {
         // Arrange — the issue's own reported scenario

@@ -1,7 +1,9 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Pipeline.Cleanup;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.Cleanup;
 
@@ -26,6 +28,7 @@ public class CleanupPhaseTests
     /// Verifies that trailing whitespace before end-of-line trivia is removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-001")]
     public void RemovesTrailingWhitespaceBeforeEndOfLine()
     {
         // Arrange — lines have trailing spaces before the line break
@@ -164,6 +167,7 @@ public class CleanupPhaseTests
     /// Verifies that trailing end-of-line trivia at the end of a file is removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-005")]
     public void RemovesTrailingEndOfLineAtEndOfFile()
     {
         // Arrange — multiple trailing newlines at end of file
@@ -267,6 +271,7 @@ public class CleanupPhaseTests
     /// Verifies that comment trivia is preserved during cleanup
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-004")]
     public void PreservesCommentTrivia()
     {
         // Arrange — code with single-line and multi-line comments
@@ -292,6 +297,7 @@ public class CleanupPhaseTests
     /// Verifies that whitespace trivia on otherwise blank lines is removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-001")]
     public void RemovesWhitespaceBetweenEndOfLines()
     {
         // Arrange — whitespace on blank lines (spaces on an otherwise empty line)
@@ -329,6 +335,7 @@ public class CleanupPhaseTests
     /// <c>BlankLineCollapser</c> — so consecutive blank lines are preserved
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-001")]
     public void HandlesMultipleCleanupIssuesInOneFile()
     {
         // Arrange — trailing whitespace, blank line after brace, trailing newline
@@ -372,6 +379,7 @@ public class CleanupPhaseTests
     /// Verifies that tab characters within whitespace trivia are replaced with an equivalent run of spaces
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-002")]
     public void ReplacesTabsInWhitespaceTriviaWithSpaces()
     {
         // Arrange — a tab used as the gap before a trailing comment, which no earlier phase normalizes
@@ -392,6 +400,7 @@ public class CleanupPhaseTests
     /// Verifies that tabs inside comment trivia are preserved, since only whitespace trivia is normalized
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-004")]
     public void PreservesTabsInsideComments()
     {
         // Arrange — a tab inside a comment body is content, not indentation
@@ -414,6 +423,7 @@ public class CleanupPhaseTests
     /// to print", not as content that blocks the strip
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-005")]
     public void RemovesTrailingWhitespaceOnlyBlankLineAtEndOfFile()
     {
         // Arrange — a final blank line consisting of trailing whitespace followed by a newline
@@ -436,6 +446,7 @@ public class CleanupPhaseTests
     /// structured, so the token-level cleanup pass never visits tokens inside it directly
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-CLEAN-003")]
     public void ReplacesTabsInsideDirectiveInteriorWithSpaces()
     {
         // Arrange — a tab used as the keyword gap inside a #pragma directive
@@ -450,6 +461,33 @@ public class CleanupPhaseTests
 
         // Assert
         Assert.AreEqual(expected, actual, "Tabs inside a directive's own interior should be replaced with spaces.");
+    }
+
+    /// <summary>
+    /// Verifies that the whitespace behind a token is removed when the line break that ends the line is the first leading
+    /// trivia of the following token, as it is after an earlier phase moved the line break there
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-CLEAN-001")]
+    public void RemovesTrailingWhitespaceBeforeLineBreakInFollowingTokenLeadingTrivia()
+    {
+        // Arrange — move the line break behind "int x;" from its trailing trivia into the leading trivia of "}"
+        var tree = CSharpSyntaxTree.ParseText("class Foo\n{\n    int x;   \n}", cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var semicolon = root.DescendantTokens().Single(token => token.IsKind(SyntaxKind.SemicolonToken));
+        var closeBrace = semicolon.GetNextToken();
+        var rewritten = root.ReplaceTokens([semicolon, closeBrace],
+                                           (original, _) => original == semicolon
+                                                                ? original.WithTrailingTrivia(SyntaxFactory.Whitespace("   "))
+                                                                : original.WithLeadingTrivia(SyntaxFactory.LineFeed));
+
+        Assert.AreEqual("class Foo\n{\n    int x;   \n}", rewritten.ToFullString());
+
+        // Act
+        var result = CleanupPhase.Execute(rewritten, TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual("class Foo\n{\n    int x;\n}", result.ToFullString(), "Whitespace in front of a line break in the next token's leading trivia should be removed.");
     }
 
     #endregion // Methods

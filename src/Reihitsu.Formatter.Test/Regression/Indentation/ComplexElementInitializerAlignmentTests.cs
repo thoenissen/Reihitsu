@@ -34,6 +34,7 @@ public class ComplexElementInitializerAlignmentTests : FormatterTestsBase
     /// Verifies that a multi-line key is indented one level inside the complex element braces
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-023")]
     public void MultiLineKeyAndSingleLineValueIndentRecursively()
     {
         // Arrange
@@ -66,6 +67,7 @@ public class ComplexElementInitializerAlignmentTests : FormatterTestsBase
     /// Verifies that a multi-line value is indented one level inside the complex element braces
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-023")]
     public void SingleLineKeyAndMultiLineValueIndentRecursively()
     {
         // Arrange
@@ -98,6 +100,7 @@ public class ComplexElementInitializerAlignmentTests : FormatterTestsBase
     /// Verifies that multi-line keys and values each retain their recursively nested indentation
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-023")]
     public void MultiLineKeyAndValueIndentRecursively()
     {
         // Arrange

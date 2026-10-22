@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.Indentation;
 
@@ -226,6 +227,7 @@ public class IndentationRewriterTests
     /// Verifies that the content of string literals is not altered by indentation
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-011")]
     public void ApplyPreservesStringLiterals()
     {
         // Arrange

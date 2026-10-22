@@ -17,6 +17,7 @@ public class InlineDocumentationCommentIndentationTests : FormatterTestsBase
     /// Verifies that a delimited documentation comment behind the opening brace of a type leaves the brace at its column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-006")]
     public void KeepsOpeningBraceColumnWithDelimitedDocumentationBehindIt()
     {
         // Arrange
@@ -35,6 +36,7 @@ public class InlineDocumentationCommentIndentationTests : FormatterTestsBase
     /// Verifies that a delimited documentation comment behind a switch label leaves the label at its column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-006")]
     public void KeepsCaseLabelColumnWithDelimitedDocumentationBehindIt()
     {
         // Arrange
@@ -89,6 +91,7 @@ public class InlineDocumentationCommentIndentationTests : FormatterTestsBase
     /// of the member it documents
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-006")]
     public void IndentsDelimitedDocumentationOnOwnLineBelowOpeningBrace()
     {
         // Arrange

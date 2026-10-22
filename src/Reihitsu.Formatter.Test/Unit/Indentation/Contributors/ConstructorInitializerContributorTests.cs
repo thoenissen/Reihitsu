@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.Indentation.Contributors;
 
@@ -29,6 +30,7 @@ public class ConstructorInitializerContributorTests
     /// Verifies that the colon token of a base initializer is indented one level from the constructor
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-017")]
     public void AlignsBaseInitializerColonToConstructorPlusIndent()
     {
         // Arrange
@@ -77,6 +79,7 @@ public class ConstructorInitializerContributorTests
     /// Verifies that the colon token of a this initializer is indented one level from the constructor
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-017")]
     public void AlignsThisInitializerColonToConstructorPlusIndent()
     {
         // Arrange

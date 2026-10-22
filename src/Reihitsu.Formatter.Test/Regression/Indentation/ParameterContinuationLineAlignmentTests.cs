@@ -461,6 +461,7 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
     /// under the attribute list
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-030")]
     public void LambdaBlockInDefaultValueFollowsMovedParameter()
     {
         // Arrange
@@ -506,6 +507,8 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
     /// parameter's type is moved under the attribute list
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-030")]
+    [Requirement("FMT-RAW-005")]
     public void RawStringDefaultValueFollowsMovedParameter()
     {
         // Arrange
@@ -733,6 +736,7 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
     /// Verifies that a leading comma that was placed at the base indentation is moved under the parameters
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-012")]
     public void LeadingCommaAtBaseIndentationIsAlignedWithTheParameters()
     {
         // Arrange

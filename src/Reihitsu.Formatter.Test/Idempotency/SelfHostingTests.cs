@@ -44,6 +44,7 @@ public class SelfHostingTests : FormatterTestsBase
     /// formatting a file twice produces the same result as formatting it once
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-004")]
     public void FormatterIsIdempotentOnAllSourceFiles()
     {
         var solutionRoot = FindSolutionRoot();
@@ -91,6 +92,7 @@ public class SelfHostingTests : FormatterTestsBase
     /// with a diff summary
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-004")]
     public void FormatterProducesNoChangesOnSourceFiles()
     {
         var solutionRoot = FindSolutionRoot();

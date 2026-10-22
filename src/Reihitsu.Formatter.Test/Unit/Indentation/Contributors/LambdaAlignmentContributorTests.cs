@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.Indentation.Contributors;
 
@@ -29,6 +30,7 @@ public class LambdaAlignmentContributorTests
     /// Verifies that a parenthesized lambda block body is shifted to align the open brace with the open parenthesis
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-028")]
     public void ShiftsParenthesizedLambdaBlockToAnchor()
     {
         // Arrange
@@ -84,6 +86,7 @@ public class LambdaAlignmentContributorTests
     /// Verifies that a simple lambda block body is shifted to align with the parameter identifier
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-028")]
     public void ShiftsSimpleLambdaBlockToParameterAnchor()
     {
         // Arrange

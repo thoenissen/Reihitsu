@@ -72,6 +72,7 @@ public class IndentationTests : FormatterTestsBase
     /// keeping the comment and the following statement aligned after the leading trivia is rebuilt
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-007")]
     public void MultiLineCommentBeforeStatementIsReIndented()
     {
         // Arrange — comment and statement are under-indented relative to the method body
@@ -108,6 +109,7 @@ public class IndentationTests : FormatterTestsBase
     /// with every documentation comment line and the member itself moving to the target column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-008")]
     public void DocumentationCommentBeforeMemberIsReIndented()
     {
         // Arrange
@@ -144,6 +146,7 @@ public class IndentationTests : FormatterTestsBase
     /// together with the member it documents
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-008")]
     public void DocumentationCommentWithXmlSummaryBeforeMemberIsReIndented()
     {
         // Arrange
@@ -182,6 +185,7 @@ public class IndentationTests : FormatterTestsBase
     /// confirming the fix is not limited to method declarations
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-008")]
     public void DocumentationCommentBeforeFieldIsReIndented()
     {
         // Arrange
@@ -214,6 +218,7 @@ public class IndentationTests : FormatterTestsBase
     /// realigned to the target column, rather than being mistaken for the comment's opening line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-008")]
     public void DocumentationCommentContinuationLineAtColumnZeroIsRealigned()
     {
         // Arrange
@@ -230,6 +235,7 @@ public class IndentationTests : FormatterTestsBase
     /// target column using spaces, rather than being mistaken for the comment's opening line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-008")]
     public void DocumentationCommentContinuationLineWithTabIsRealigned()
     {
         // Arrange
@@ -247,6 +253,7 @@ public class IndentationTests : FormatterTestsBase
     /// column 0, matching existing non-region directive handling
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-008")]
     public void DocumentationCommentBeforeMemberAcrossDirectiveIsReIndented()
     {
         // Arrange
@@ -262,6 +269,7 @@ public class IndentationTests : FormatterTestsBase
     /// Verifies that a multiline switch expression in a regular method is broken and aligned correctly
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-027")]
     public void SwitchExpressionWithoutLambdaBreaksAndAligns()
     {
         // Arrange
@@ -352,6 +360,7 @@ public class IndentationTests : FormatterTestsBase
     /// Verifies that members of a block-scoped namespace get one level of indentation
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-002")]
     public void BlockScopedNamespaceMembersOneLevel()
     {
         // Arrange
@@ -403,6 +412,7 @@ public class IndentationTests : FormatterTestsBase
     /// Verifies that methods inside a class get correct indentation
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-002")]
     public void ClassMembersCorrectIndentation()
     {
         // Arrange
@@ -438,6 +448,7 @@ public class IndentationTests : FormatterTestsBase
     /// Verifies that statements inside a method body get correct indentation
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-002")]
     public void MethodBodyCorrectIndentation()
     {
         // Arrange
@@ -472,6 +483,7 @@ public class IndentationTests : FormatterTestsBase
     /// Verifies that nested blocks accumulate indentation levels
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-002")]
     public void NestedBlocksCumulativeIndentation()
     {
         // Arrange
@@ -515,6 +527,7 @@ public class IndentationTests : FormatterTestsBase
     /// Verifies that switch statements have correct indentation for the switch body, case labels, and statements
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-003")]
     public void SwitchStatementCorrectLevels()
     {
         // Arrange
@@ -559,6 +572,7 @@ public class IndentationTests : FormatterTestsBase
     /// Verifies that statements in a switch section get an extra indent level beyond the case labels
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-003")]
     public void SwitchSectionStatementsIndented()
     {
         // Arrange
@@ -601,6 +615,7 @@ public class IndentationTests : FormatterTestsBase
     /// no expression-bodied form and keeps its braces
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-002")]
     public void PropertyAccessorCorrectIndentation()
     {
         // Arrange
@@ -638,6 +653,7 @@ public class IndentationTests : FormatterTestsBase
     /// Verifies that enum members get correct indentation
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-002")]
     public void EnumMembersCorrectIndentation()
     {
         // Arrange
@@ -667,6 +683,7 @@ public class IndentationTests : FormatterTestsBase
     /// Verifies that initializer expression contents get correct indentation
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-022")]
     public void InitializerExpressionIndentsCorrectly()
     {
         // Arrange
@@ -704,6 +721,7 @@ public class IndentationTests : FormatterTestsBase
     /// Verifies that anonymous object creation contents get correct indentation
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-024")]
     public void AnonymousObjectIndentsCorrectly()
     {
         // Arrange
@@ -780,6 +798,7 @@ public class IndentationTests : FormatterTestsBase
     /// Verifies that wrong indentation (e.g. 2 spaces) is corrected to the expected 4 spaces per level
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-002")]
     public void WrongIndentationCorrected()
     {
         // Arrange
@@ -811,6 +830,7 @@ public class IndentationTests : FormatterTestsBase
     /// Verifies that tab-based indentation is replaced with the correct number of spaces
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-001")]
     public void TabsReplacedWithSpaces()
     {
         // Arrange
@@ -975,6 +995,7 @@ public class IndentationTests : FormatterTestsBase
     /// gets correct indentation for the block and its contents
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-028")]
     public void LambdaBlockBodyInArgumentListIndentsCorrectly()
     {
         // Arrange
@@ -1024,6 +1045,8 @@ public class IndentationTests : FormatterTestsBase
     /// Verifies that switch expression arms remain aligned with the switch expression block style
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-027")]
+    [Requirement("FMT-INDENT-019")]
     public void SwitchExpressionArmsRemainAlignedWithSwitchKeyword()
     {
         // Arrange
@@ -1285,6 +1308,7 @@ public class IndentationTests : FormatterTestsBase
     /// aligns to the <c>is</c> keyword column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-019")]
     public void MultilineOrPatternExpressionAlignsToIsKeyword()
     {
         // Arrange
@@ -1320,6 +1344,7 @@ public class IndentationTests : FormatterTestsBase
     /// Verifies that a nested async lambda in an object initializer is indented and aligned correctly
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-028")]
     public void NestedAsyncLambdaInObjectInitializerIndentsCorrectly()
     {
         // Arrange
@@ -1670,6 +1695,7 @@ public class IndentationTests : FormatterTestsBase
     /// Verifies that base type continuation remains aligned
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-016")]
     public void BaseTypeContinuationRemainsAligned()
     {
         // Arrange
@@ -1817,6 +1843,7 @@ public class IndentationTests : FormatterTestsBase
     /// Verifies that nested ternary continuation remains aligned
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-020")]
     public void NestedTernaryContinuationRemainsAligned()
     {
         // Arrange
@@ -2992,6 +3019,7 @@ public class IndentationTests : FormatterTestsBase
     /// Verifies that the null-coalescing operator is indented once from the parent statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-018")]
     public void NullCoalescingOperatorIndentedOnceFromStatement()
     {
         // Arrange
@@ -3031,6 +3059,7 @@ public class IndentationTests : FormatterTestsBase
     /// Verifies that tuple elements in a method call argument are aligned vertically
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-012")]
     public void TupleArgumentElementsAlignVertically()
     {
         // Arrange
@@ -3074,6 +3103,7 @@ public class IndentationTests : FormatterTestsBase
     /// Verifies that string concatenation with a wrapped plus operator aligns correctly
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-018")]
     public void StringConcatenationWrappedPlusAlignedCorrectly()
     {
         // Arrange
@@ -3109,6 +3139,7 @@ public class IndentationTests : FormatterTestsBase
     /// of being flattened to the declaration's column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-023")]
     public void EqualsValueClauseArrayInitializerIndentsMembersCorrectly()
     {
         // Arrange
@@ -3148,6 +3179,7 @@ public class IndentationTests : FormatterTestsBase
     /// <c>with</c> keyword instead of being flattened to the statement's column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-022")]
     public void WithExpressionInitializerAlignsToWithKeyword()
     {
         // Arrange
@@ -3192,6 +3224,7 @@ public class IndentationTests : FormatterTestsBase
     /// the <c>stackalloc</c> keyword instead of being flattened to the statement's column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-022")]
     public void StackAllocInitializerAlignsToStackAllocKeyword()
     {
         // Arrange
@@ -3233,6 +3266,7 @@ public class IndentationTests : FormatterTestsBase
     /// column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-022")]
     public void ImplicitStackAllocInitializerAlignsToStackAllocKeyword()
     {
         // Arrange
@@ -3273,6 +3307,7 @@ public class IndentationTests : FormatterTestsBase
     /// deeper than the <c>while</c> statement itself, rather than being de-indented to its column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-004")]
     public void UnbracedWhileBodyStaysIndentedOneLevelDeeper()
     {
         // Arrange
@@ -3298,6 +3333,7 @@ public class IndentationTests : FormatterTestsBase
     /// deeper than the <c>for</c> statement itself
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-004")]
     public void UnbracedForBodyStaysIndentedOneLevelDeeper()
     {
         // Arrange
@@ -3321,6 +3357,7 @@ public class IndentationTests : FormatterTestsBase
     /// deeper than the <c>foreach</c> statement itself
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-004")]
     public void UnbracedForEachBodyStaysIndentedOneLevelDeeper()
     {
         // Arrange
@@ -3344,6 +3381,7 @@ public class IndentationTests : FormatterTestsBase
     /// deeper than the <c>using</c> statement itself
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-004")]
     public void UnbracedUsingBodyStaysIndentedOneLevelDeeper()
     {
         // Arrange
@@ -3367,6 +3405,7 @@ public class IndentationTests : FormatterTestsBase
     /// deeper than the <c>lock</c> statement itself
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-004")]
     public void UnbracedLockBodyStaysIndentedOneLevelDeeper()
     {
         // Arrange
@@ -3392,6 +3431,7 @@ public class IndentationTests : FormatterTestsBase
     /// deeper than the <c>fixed</c> statement itself
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-004")]
     public void UnbracedFixedBodyStaysIndentedOneLevelDeeper()
     {
         // Arrange
@@ -3415,6 +3455,7 @@ public class IndentationTests : FormatterTestsBase
     /// column is corrected back to one level deeper
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-004")]
     public void UnbracedWhileBodyWrongIndentationIsCorrected()
     {
         // Arrange
@@ -3453,6 +3494,7 @@ public class IndentationTests : FormatterTestsBase
     /// column is corrected back to one level deeper
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-004")]
     public void UnbracedFixedBodyWrongIndentationIsCorrected()
     {
         // Arrange
@@ -3487,6 +3529,7 @@ public class IndentationTests : FormatterTestsBase
     /// nesting level instead of collapsing to a single level
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-004")]
     public void UnbracedNestedWhileBodyIndentsEachLevel()
     {
         // Arrange
