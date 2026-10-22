@@ -2090,8 +2090,9 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// Characterizes a comparer argument that can only produce <see langword="null"/> or
     /// <c>EqualityComparer&lt;T&gt;.Default</c> and is wrapped as a whole in parentheses or behind the null-forgiving
     /// operator <c>!</c>: the unwrapped conditional and the unwrapped <see langword="as"/> expression are reported, while
-    /// the wrapped ones count as custom and are not. The case is an open question about intended behavior, so this test
-    /// pins today's behavior without stating it as intended
+    /// the wrapped ones count as custom and are not. This test pins today's behavior; the decided behavior is stated by
+    /// SHARED-DIAG-005, which judges an expression in parentheses or behind <c>!</c> as the expression inside them, and its
+    /// change belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

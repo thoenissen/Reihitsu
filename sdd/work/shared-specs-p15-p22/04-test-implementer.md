@@ -64,13 +64,14 @@ All tests listed in `02-skeptic.md` were kept with their assertions, names, and 
 
 The three RH2109 Razor characterization tests are unchanged, per decision `…-razor-content-no-conforming-shape.md`.
 
-### Further contradicting tests found in passing; not in the skeptic's list, so not edited
+### Further contradicting tests found in passing
 
-These go to the lead, who decides whether the same decision applies to them.
+The lead confirmed that the decision covers every existing test that pins the opposite of a new requirement, not only the skeptic's list. A follow-up commit applied it to two more tests. Again, only the `<summary>` changed; assertions, names, and attributes are untouched, and neither test is tagged.
 
-- `RH1002…Tests.VerifyWrappedArgumentThatCanOnlyProduceNullOrDefaultComparerIsNotReported` — untagged, and its summary still says "open question". It pins `(flag ? null : EqualityComparer<S>.Default)`, and the same expression behind `!`, as not reported, while the unwrapped form is reported. SHARED-DIAG-005 says parentheses and `!` are judged as the expression inside them.
-- `RH7106ProtectedMustComeBeforeInternalAnalyzerTests.MisorderedCompoundAccessModifiersWithDirectiveAreReportedWithoutFix` — untagged, and not labelled a characterization. It pins `internal` / `#if FEATURE` / `#endif` / `protected` as reported. SHARED-DIAG-008 says a conditional directive in the modifier list means not reported. `03-spec-author.md` names this shape under "do not pin" (RH7105/RH7106 with `#if`, thoenissen/Reihitsu#1337).
-- Tagged with rule requirements, for the spec checker: `RH5111…Tests.VerifyDeclaratorWithDirectiveIsReportedWithoutCodeFix` (RH5111-005, `#if` between declarator and `=`, reported) and `RH3001…Tests.DirectiveAfterTheOperatorIsReportedWithoutACodeFix` (RH3001-006, `#if/#else/#endif` between `!` and its operand, reported). Whether those gaps are "the span the rule judges" under SHARED-DIAG-008 is a question of spec against spec. Both tests pass, and I changed nothing.
+- `RH1002…Tests.VerifyWrappedArgumentThatCanOnlyProduceNullOrDefaultComparerIsNotReported` (SHARED-DIAG-005). It pins `(flag ? null : EqualityComparer<S>.Default)`, and the same expression behind `!`, as not reported, while the unwrapped form is reported. Its summary no longer says "open question" and now uses the wording above.
+- `RH7106ProtectedMustComeBeforeInternalAnalyzerTests.MisorderedCompoundAccessModifiersWithDirectiveAreReportedWithoutFix` (SHARED-DIAG-008). It pins `internal` / `#if FEATURE` / `#endif` / `protected` as reported. It is now labelled a characterization test with the same wording. Its earlier summary presented the behavior as intended.
+
+Left unchanged, as the lead decided, because the spec checker judges them: `RH5111…Tests.VerifyDeclaratorWithDirectiveIsReportedWithoutCodeFix` (RH5111-005, `#if` between the declarator and `=`, reported) and `RH3001…Tests.DirectiveAfterTheOperatorIsReportedWithoutACodeFix` (RH3001-006, `#if/#else/#endif` between `!` and its operand, reported). Whether those gaps are "the span the rule judges" under SHARED-DIAG-008 is a question of one spec against another.
 
 ## Scenarios (bug fix)
 
@@ -117,4 +118,12 @@ scripts/test.sh --project analyzer --no-build --filter "TestCategory=SHARED-DIAG
 scripts/test.sh --project analyzer --no-build --filter "TestCategory=SHARED-DIAG-008"   # 8 passed
 scripts/test.sh --project architecture --filter "FullyQualifiedName~RequirementCoverageTests|FullyQualifiedName~SpecConsistencyTests|FullyQualifiedName~SpecStructureTests"   # 39 passed
 scripts/test.sh --project architecture --no-build                                        # 72 passed
+```
+
+Follow-up (the two reworded summaries above), all passed:
+
+```shell
+scripts/format.sh --force <RH1002 and RH7106 test files>        # Formatted 0 of 2
+scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzerTests|FullyQualifiedName~RH7106ProtectedMustComeBeforeInternalAnalyzerTests"   # 66 passed
+scripts/test.sh --project architecture --filter "FullyQualifiedName~RequirementCoverageTests|FullyQualifiedName~SpecConsistencyTests|FullyQualifiedName~SpecStructureTests"   # 39 passed
 ```
