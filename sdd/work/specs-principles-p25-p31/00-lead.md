@@ -29,3 +29,8 @@ Verdict: lane claimed
 - P30 reach (`squad/decisions/2026-10-22-1331-p30-reach.md`): RH8301–RH8303 stay gated. The gate covers every rule about documentation comments; only rules about ordinary comments or file text (RH8401, RH8402, RH8501) check in every documentation mode. SHARED-DOC-008 is worded accordingly.
 - Spec examples that show decided but not yet implemented behavior stay, by the precedent `squad/decisions/2026-10-21-1260-razor-content-no-conforming-shape.md`; covering tests pin conforming shapes only.
 - Existing untagged tests that pin the opposite of a new requirement keep their assertions; by the precedent `squad/decisions/2026-10-21-1260-contradicting-characterization-tests.md`, their summaries are reworded (comment-only) to say they pin current behavior and the decided behavior is tracked by the named follow-up issue.
+
+## Lane widened
+
+- The escalation answers are recorded under `squad/decisions/`, a tooling path, so the lane check reported a mismatch. Before any implementer started, the lane is widened tests → **tooling** (precedent: thoenissen/Reihitsu#1359). The only tooling paths are the decision entries.
+- The widened lane adds the implementer and the auditor. The auditor runs. The implementer is skipped: the run carries no production or tooling code.
