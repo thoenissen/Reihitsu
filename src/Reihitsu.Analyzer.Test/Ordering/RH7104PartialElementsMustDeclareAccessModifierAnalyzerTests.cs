@@ -343,6 +343,8 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7104-001")]
+    [Requirement("RH7104-004")]
     [Requirement("SHARED-DIAG-004")]
     public async Task PartThatOmitsTheAccessibilityIsReportedAndFixedAloneWhenAnotherPartDeclaresIt()
     {
@@ -367,6 +369,49 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : Batch
                                  public partial class C
                                  {
                                      private int _b;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7104PartialElementsMustDeclareAccessModifierAnalyzer.DiagnosticId, AnalyzerResources.RH7104MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a nested part that omits the accessibility is reported although another part states a compound
+    /// accessibility, and that the fix writes that accessibility, not the default of a nested type, on the reported part only
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7104-001")]
+    [Requirement("RH7104-004")]
+    public async Task NestedPartIsFixedWithTheCompoundAccessibilityAnotherPartStates()
+    {
+        const string testCode = """
+                                public class Outer
+                                {
+                                    protected internal partial class Inner
+                                    {
+                                        private int _a;
+                                    }
+
+                                    partial class {|#0:Inner|}
+                                    {
+                                        private int _b;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Outer
+                                 {
+                                     protected internal partial class Inner
+                                     {
+                                         private int _a;
+                                     }
+
+                                     protected internal partial class Inner
+                                     {
+                                         private int _b;
+                                     }
                                  }
                                  """;
 

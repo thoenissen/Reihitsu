@@ -451,6 +451,30 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
     }
 
     /// <summary>
+    /// Verifies that a file not starting with the header is reported in a syntax tree whose documentation mode is parse,
+    /// as in the default mode diagnose
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-003")]
+    public async Task FileNotStartingWithHeaderWhenDocumentationModeIsParse()
+    {
+        const string source = "namespace N;\n\nclass C\n{\n}\n";
+        var configuration = CreateSpecificationConfiguration();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add((SpecificationFilePath, source));
+                         test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                         test.TestBehaviors |= TestBehaviors.SkipSuppressionCheck;
+                         test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject);
+                     },
+                     CreateSpecificationFileDiagnostic());
+    }
+
+    /// <summary>
     /// Verifies that a header that differs only in casing is reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

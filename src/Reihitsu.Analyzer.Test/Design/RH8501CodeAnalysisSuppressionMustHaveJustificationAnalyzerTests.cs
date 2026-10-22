@@ -213,6 +213,7 @@ public class RH8501CodeAnalysisSuppressionMustHaveJustificationAnalyzerTests : A
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8501-001")]
     [Requirement("SHARED-DOC-008")]
     public async Task VerifyDiagnosticWhenDocumentationModeIsNone()
     {
@@ -225,6 +226,7 @@ public class RH8501CodeAnalysisSuppressionMustHaveJustificationAnalyzerTests : A
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8501-001")]
     [Requirement("SHARED-DOC-008")]
     public async Task VerifyDiagnosticWhenDocumentationModeIsParse()
     {
