@@ -705,6 +705,41 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCode
         await Verify(ExpandWhitespaceMarkers(testData), fixedData);
     }
 
+    /// <summary>
+    /// Verifies that the fix changes only the gaps next to the reported operator and keeps the unformatted spacing of
+    /// its own statement and of the statements around it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-006")]
+    public async Task FixChangesOnlyTheGapsNextToTheOperator()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int M(int a, int b)
+                                    {
+                                        int  y=1;
+                                        int  z = a{|RH6024:+|}b;
+                                        return  z;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int M(int a, int b)
+                                     {
+                                         int  y=1;
+                                         int  z = a + b;
+                                         return  z;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

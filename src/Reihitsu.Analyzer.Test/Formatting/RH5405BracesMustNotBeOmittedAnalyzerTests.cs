@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -14,6 +15,39 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<RH5405BracesMustNotBeOmittedAnalyzer, RH5405BracesMustNotBeOmittedCodeFixProvider>
 {
+    #region Constants
+
+    /// <summary>
+    /// Input of the SHARED-FIX-008 example: a body on the line of its <c>if</c>, without markup
+    /// </summary>
+    private const string LineOfIfTestCode = """
+                                            class C
+                                            {
+                                                void M(bool a, bool b)
+                                                {
+                                                    if (a) M(a, b);
+                                                }
+                                            }
+                                            """;
+
+    /// <summary>
+    /// Result of the SHARED-FIX-008 example, in which the fix creates three line breaks
+    /// </summary>
+    private const string LineOfIfFixedCode = """
+                                             class C
+                                             {
+                                                 void M(bool a, bool b)
+                                                 {
+                                                     if (a)
+                                                     {
+                                                         M(a, b);
+                                                     }
+                                                 }
+                                             }
+                                             """;
+
+    #endregion // Constants
+
     #region Tests
 
     /// <summary>
@@ -590,6 +624,7 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-BRACE-002")]
+    [Requirement("SHARED-FIX-008")]
     public async Task VerifyFixWrapsBodyOnLineOfIfInBracesWithCarriageReturnLineFeed()
     {
         const string testCode = """
@@ -617,7 +652,131 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
         await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
     }
 
+    /// <summary>
+    /// Verifies that every line break of the fix result is CRLF in a document whose line breaks are all CRLF,
+    /// including the line breaks the fix creates
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    public async Task FixWritesCarriageReturnLineFeedInADocumentThatUsesIt()
+    {
+        var actual = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(LineOfIfTestCode));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(LineOfIfFixedCode), actual);
+    }
+
+    /// <summary>
+    /// Verifies that every line break of the fix result is LF in a document whose line breaks are all LF, including
+    /// the line breaks the fix creates
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    public async Task FixWritesLineFeedInADocumentThatUsesIt()
+    {
+        var actual = await ApplyCodeFixAsync(NormalizeToLineFeed(LineOfIfTestCode));
+
+        Assert.AreEqual(NormalizeToLineFeed(LineOfIfFixedCode), actual);
+    }
+
+    /// <summary>
+    /// Verifies that the LF line breaks inside a verbatim string literal stay LF when the fix is applied in a document
+    /// whose other line breaks are CRLF, and that they do not decide the line ending of the line breaks the fix
+    /// creates, although they outnumber the document's other line breaks
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    public async Task FixKeepsTheLineFeedsInsideALiteralAndWritesTheDocumentsCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string _s = LITERAL;
+
+                                    void M(bool a, bool b)
+                                    {
+                                        if (a) M(a, b);
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     string _s = LITERAL;
+
+                                     void M(bool a, bool b)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a, b);
+                                         }
+                                     }
+                                 }
+                                 """;
+        const string literal = "@\"1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\"";
+
+        var actual = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testCode).Replace("LITERAL", literal, StringComparison.Ordinal));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode).Replace("LITERAL", literal, StringComparison.Ordinal), actual);
+    }
+
+    /// <summary>
+    /// Verifies that the LF line breaks inside a block comment stay LF when the fix is applied in a document whose
+    /// other line breaks are CRLF, and that they do not decide the line ending of the line breaks the fix creates,
+    /// although they outnumber the document's other line breaks
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    public async Task FixKeepsTheLineFeedsInsideACommentAndWritesTheDocumentsCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    COMMENT
+                                    void M(bool a, bool b)
+                                    {
+                                        if (a) M(a, b);
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     COMMENT
+                                     void M(bool a, bool b)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a, b);
+                                         }
+                                     }
+                                 }
+                                 """;
+        const string comment = "/* 1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14 */";
+
+        var actual = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testCode).Replace("COMMENT", comment, StringComparison.Ordinal));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode).Replace("COMMENT", comment, StringComparison.Ordinal), actual);
+    }
+
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Normalizes the line endings of the provided text to LF, irrespective of how the source file is stored
+    /// </summary>
+    /// <param name="text">Text to normalize</param>
+    /// <returns>The text with LF line endings</returns>
+    private static string NormalizeToLineFeed(string text)
+    {
+        return text.Replace("\r\n", "\n", StringComparison.Ordinal);
+    }
+
+    #endregion // Methods
 
     #region BatchCodeFixTestsBase
 
