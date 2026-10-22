@@ -163,5 +163,28 @@ public class RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzerTe
         await Verify(source, Diagnostics(RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzer.DiagnosticId, AnalyzerResources.RH2102MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the specification example of a partial class declared in two parts: the class is reported once, on the
+    /// part that declares the primary constructor
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-004")]
+    [Requirement("RH2102-001")]
+    public async Task VerifyPartialClassDeclaredInTwoPartsIsReportedOnce()
+    {
+        const string source = """
+                              partial class {|#0:P|}(int value)
+                              {
+                              }
+
+                              partial class P
+                              {
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzer.DiagnosticId, AnalyzerResources.RH2102MessageFormat));
+    }
+
     #endregion // Tests
 }

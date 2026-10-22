@@ -136,6 +136,7 @@ public class RH8031ExtensionDeclarationsMustHaveSummaryTextAnalyzerTests : Analy
     [TestMethod]
     [Requirement("RH8031-001")]
     [Requirement("RH8031-003")]
+    [Requirement("SHARED-DIAG-007")]
     public async Task VerifySpecificationExampleReportsExtensionDeclarationsWithoutSummary()
     {
         const string source = """
@@ -181,6 +182,7 @@ public class RH8031ExtensionDeclarationsMustHaveSummaryTextAnalyzerTests : Analy
     [TestMethod]
     [Requirement("RH8031-002")]
     [Requirement("RH8031-003")]
+    [Requirement("SHARED-DIAG-007")]
     public async Task VerifySpecificationExampleReportsExtensionDeclarationSummariesWithoutText()
     {
         const string source = """

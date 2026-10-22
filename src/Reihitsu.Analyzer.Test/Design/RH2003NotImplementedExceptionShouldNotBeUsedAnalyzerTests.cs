@@ -275,9 +275,33 @@ public class RH2003NotImplementedExceptionShouldNotBeUsedAnalyzerTests : Analyze
     }
 
     /// <summary>
+    /// Verifies a name qualified through a <see langword="using"/> alias of the namespace <see cref="System"/> is resolved
+    /// to the type the alias names: <c>S.NotImplementedException</c> is reported like
+    /// <c>System.NotImplementedException</c>, and <c>S.ArgumentException</c> is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-002")]
+    [Requirement("RH2003-001")]
+    public async Task VerifyCreationThroughNamespaceAliasIsReportedLikeTheTypeName()
+    {
+        const string testData = """
+                                using S = System;
+
+                                class C
+                                {
+                                    object a = new {|#0:S.NotImplementedException|}();
+                                    object b = new S.ArgumentException();
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2003MessageFormat));
+    }
+
+    /// <summary>
     /// Characterizes a creation through a <see langword="using"/> alias of <see cref="System.NotImplementedException"/>: it is
-    /// not reported, while the qualified name is. The case is an open question about intended behavior, so this test
-    /// pins today's behavior without stating it as intended
+    /// not reported, while the qualified name is. This test pins today's behavior; the decided behavior is stated by
+    /// SHARED-DIAG-002, which resolves the alias to the type it names, and its change belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

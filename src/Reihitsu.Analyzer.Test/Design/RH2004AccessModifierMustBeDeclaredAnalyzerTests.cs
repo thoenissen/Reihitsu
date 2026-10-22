@@ -240,6 +240,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH2004-002")]
+    [Requirement("SHARED-DIAG-004")]
     public async Task VerifyPartialTypeWithAccessibilityOnAnotherPartDoesNotTriggerDiagnostic()
     {
         const string testData = """
@@ -515,6 +516,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
     [TestMethod]
     [Requirement("RH2004-001")]
     [Requirement("RH2004-005")]
+    [Requirement("SHARED-DIAG-007")]
     public async Task VerifyOperatorsWithoutAccessibilityModifierAreReportedOnTheirToken()
     {
         const string testData = """
@@ -659,6 +661,8 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH2004-005")]
+    [Requirement("SHARED-DIAG-006")]
+    [Requirement("SHARED-DIAG-007")]
     public async Task VerifyDiagnosticIsOnFirstDeclaratorAndIndexerKeyword()
     {
         const string testData = """
@@ -874,8 +878,9 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
 
     /// <summary>
     /// Characterizes partial properties, indexers, events, and constructors: every part of a partial property, indexer,
-    /// and event is reported, and of a partial constructor only the implementing part. These cases are open questions
-    /// about intended behavior, so this test pins today's behavior without stating it as intended
+    /// and event is reported, and of a partial constructor only the implementing part. This test pins today's behavior;
+    /// the decided behavior is stated by SHARED-DIAG-004, which judges a partial member by its symbol and reports it at
+    /// most once, and its change belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -920,8 +925,9 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
 
     /// <summary>
     /// Characterizes one application of the fix on a partial property: it adds <see langword="private"/> to one part
-    /// only, whichever part's diagnostic it is applied to. The case is an open question decided by principle, so this test pins today's behavior without stating it
-    /// as intended
+    /// only, whichever part's diagnostic it is applied to. This test pins today's behavior; the decided behavior is
+    /// stated by SHARED-DIAG-004, which withholds a fix that would have to change more than one part, and its change
+    /// belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

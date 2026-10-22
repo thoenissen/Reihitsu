@@ -591,5 +591,56 @@ public class RH8101ElementParametersMustBeDocumentedAnalyzerTests : AnalyzerTest
         await Verify(source);
     }
 
+    /// <summary>
+    /// Verifies the specification example of a parameter in the middle of the list: the undocumented parameter
+    /// <c>b</c> between two documented parameters is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-006")]
+    [Requirement("RH8101-001")]
+    public async Task VerifyUndocumentedParameterInTheMiddleOfTheListIsReported()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <summary>Summary</summary>
+                                  /// <param name="a">A</param>
+                                  /// <param name="c">C</param>
+                                  void M(int a, int {|#0:b|}, int c)
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8101ElementParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8101MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies every parameter counts as documented whatever the position of its <c>param</c> element among the others,
+    /// so parameters documented in the reverse order of the parameter list are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-006")]
+    [Requirement("RH8101-001")]
+    public async Task VerifyParametersDocumentedInAnotherOrderAreNotReported()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <summary>Summary</summary>
+                                  /// <param name="c">C</param>
+                                  /// <param name="b">B</param>
+                                  /// <param name="a">A</param>
+                                  void M(int a, int b, int c)
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
     #endregion // Tests
 }

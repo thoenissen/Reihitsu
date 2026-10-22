@@ -625,8 +625,9 @@ public class RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzerTests 
 
     /// <summary>
     /// Characterizes an override in a region nested in a top-level region: it is judged by the top-level region around it,
-    /// not by the innermost region. The case is an open question about intended behavior, so this test pins today's
-    /// behavior without stating it as intended
+    /// not by the innermost region. This test pins today's behavior; the decided behavior is stated by
+    /// SHARED-TYPEREGION-006, which judges a member by the innermost region that encloses it, and its change belongs to an
+    /// existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -721,8 +722,9 @@ public class RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzerTests 
 
     /// <summary>
     /// Characterizes a partial override method whose parts lie in two regions that do not match its base type: it is
-    /// reported once for each part. The case is an open question about intended behavior, so this test pins today's
-    /// behavior without stating it as intended
+    /// reported once for each part. This test pins today's behavior; the decided behavior is stated by SHARED-DIAG-004,
+    /// which judges a partial method by its symbol and reports it at most once, and its change belongs to an existing
+    /// follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

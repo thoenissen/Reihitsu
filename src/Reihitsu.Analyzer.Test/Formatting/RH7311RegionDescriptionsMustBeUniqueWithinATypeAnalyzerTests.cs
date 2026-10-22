@@ -544,7 +544,10 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Characterizes the current behavior for the same description in an <c>#if</c> and an <c>#else</c> branch, which the specification leaves open: the region of the second branch is reported
+    /// Characterizes the current behavior for the same description in an <c>#if</c> and an <c>#else</c> branch: the region
+    /// of the second branch is reported. This test pins today's behavior; the decided behavior is stated by
+    /// SHARED-TYPEREGION-006, which does not compare the regions of different branches of one conditional directive, and
+    /// its change belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

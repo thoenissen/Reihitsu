@@ -284,8 +284,9 @@ public class RH7407NonOverrideEventsShouldNotBePlacedInOverrideRegionsAnalyzerTe
 
     /// <summary>
     /// Characterizes a field-like override event with several declarators: only the base type of its first declarator names
-    /// an override region, so an event in the region of the second declarator's base type is not reported. The case is an
-    /// open question about intended behavior, so this test pins today's behavior without stating it as intended
+    /// an override region, so an event in the region of the second declarator's base type is not reported. This test pins
+    /// today's behavior; the decided behavior is stated by SHARED-DIAG-006, which checks every declarator, and its change
+    /// belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -321,8 +322,8 @@ public class RH7407NonOverrideEventsShouldNotBePlacedInOverrideRegionsAnalyzerTe
 
     /// <summary>
     /// Characterizes a field-like event with several declarators in an override region: it is reported once, at its first
-    /// declarator. The case is an open question about intended behavior, so this test pins today's behavior without stating
-    /// it as intended
+    /// declarator. This test pins today's behavior; the decided behavior is stated by SHARED-DIAG-006, which reports one
+    /// diagnostic per reported declarator, and its change belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

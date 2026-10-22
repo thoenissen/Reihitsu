@@ -229,8 +229,10 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : BatchCodeFi
     }
 
     /// <summary>
-    /// Verifying that a misordered modifier list is still reported without offering a fix when a preprocessor
-    /// directive sits between the modifiers
+    /// Characterizes a misordered modifier list with a conditional directive between the modifiers: it is reported
+    /// without offering a fix. This test pins today's behavior; the decided behavior is stated by SHARED-DIAG-008, under
+    /// which a conditional directive in the modifier list the rule judges keeps the declaration from being reported, and
+    /// its change belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

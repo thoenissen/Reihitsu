@@ -377,8 +377,9 @@ public class RH2002AsyncVoidShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH2
 
     /// <summary>
     /// Characterizes an async void partial method: it is reported twice, on the defining declaration without
-    /// <see langword="async"/> and on the implementing declaration. The case is an open question about intended
-    /// behavior, so this test pins today's behavior without stating it as intended
+    /// <see langword="async"/> and on the implementing declaration. This test pins today's behavior; the decided behavior
+    /// is stated by SHARED-DIAG-004, which judges a partial method by its symbol and reports it at most once, and its
+    /// change belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

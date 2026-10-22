@@ -308,6 +308,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
     [Requirement("RH8107-001")]
     [Requirement("RH8107-005")]
     [Requirement("RH8107-007")]
+    [Requirement("SHARED-DOC-017")]
     public async Task VerifyNoCodeFixWhenEndTagIsMissing()
     {
         const string source = """
@@ -635,6 +636,46 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
                                    """;
 
         await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of an empty <c>returns</c> element: it needs no end tag, so the code fix is
+    /// offered and removes its line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-017")]
+    [Requirement("RH8107-006")]
+    public async Task VerifyCodeFixRemovesEmptyReturnsElement()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  /// {|#0:<returns/>|}
+                                  public void Run()
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       /// <summary>
+                                       /// Runs
+                                       /// </summary>
+                                       public void Run()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat));
     }
 
     #endregion // Tests

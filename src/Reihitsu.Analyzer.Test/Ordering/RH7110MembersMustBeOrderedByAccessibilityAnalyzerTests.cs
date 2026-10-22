@@ -194,12 +194,13 @@ public class RH7110MembersMustBeOrderedByAccessibilityAnalyzerTests : AnalyzerTe
     }
 
     /// <summary>
-    /// Characterizes current behavior that no requirement states: a member is also reported when its accessibility
-    /// comes earlier in the order than that of an earlier member of its group that is not the previous one, because
-    /// the analyzer compares with the latest position in the order seen so far in the group
+    /// Verifying that a member is compared with every earlier member of its group: it is also reported when its
+    /// accessibility comes earlier in the order than that of an earlier member of its group that is not the previous one,
+    /// such as <c>D</c> after <c>_a</c> although <c>B</c> right before it comes earlier in the order
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-USING-007")]
     public async Task MembersAreComparedWithTheLatestAccessibilitySeenInTheirGroup()
     {
         const string source = """
@@ -308,6 +309,7 @@ public class RH7110MembersMustBeOrderedByAccessibilityAnalyzerTests : AnalyzerTe
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7110-003")]
+    [Requirement("SHARED-TYPEREGION-006")]
     public async Task MemberInANestedRegionIsComparedWithinItsTopLevelRegion()
     {
         const string source = """
