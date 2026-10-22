@@ -22,3 +22,10 @@ Verdict: lane claimed
 - Update the `Uses` lines of the affected rule specs. Register new IDs in `sdd/specs/requirement-ids.txt`.
 - Concurrent runs: thoenissen/Reihitsu#1380 edits SHARED-FIX-008 in `shared/code-fixes.md` and several formatter specs — touch only FIX-003 and FIX-007 in that file. Do not write P32–P37. Do not edit `AGENTS.md`.
 - Must not: change production code or behavior, fix a bug, write an open question into a spec, retire/move/renumber an existing ID. A new instance of a principle found in passing goes to the spec's "SDD open questions" issue marked "Decided by principle Pn (#912)" — list it in the handover; the lead files it.
+
+## Escalation answers after the skeptic (summarized)
+
+- P26 reach (`squad/decisions/2026-10-22-1331-p26-reach.md`): SHARED-FIX-007's moved-code rule covers statements a fix wraps into a new block, including the brace fixes RH5405–RH5407 (SHARED-BRACE-002 is a P26 instance; the lead files it). It does not cover the expression-body-to-block conversion of RH3202/RH3203 (the expression becomes a new return statement, the replaced node of P10) or the using-block organizers RH7201–RH7207 (their group separators are the rules' subject). SHARED-FIX-007 states this scope.
+- P30 reach (`squad/decisions/2026-10-22-1331-p30-reach.md`): RH8301–RH8303 stay gated. The gate covers every rule about documentation comments; only rules about ordinary comments or file text (RH8401, RH8402, RH8501) check in every documentation mode. SHARED-DOC-008 is worded accordingly.
+- Spec examples that show decided but not yet implemented behavior stay, by the precedent `squad/decisions/2026-10-21-1260-razor-content-no-conforming-shape.md`; covering tests pin conforming shapes only.
+- Existing untagged tests that pin the opposite of a new requirement keep their assertions; by the precedent `squad/decisions/2026-10-21-1260-contradicting-characterization-tests.md`, their summaries are reworded (comment-only) to say they pin current behavior and the decided behavior is tracked by the named follow-up issue.
