@@ -26,3 +26,12 @@ Recorded in `squad/decisions/2026-10-22-1403-multi-issue-run-design.md`. In shor
 4. Soft limit of eight issues (more → ask the maintainer); escalation 5 is measured against the batch; one change doc may cover several issues of the same cause, otherwise one per issue.
 
 The issue's other proposals (branch name, claim title, one `Closes #N` per issue, CI trigger commit naming, one `sdd/work/<slug>/`, rewording the "two separable concerns" rule so the lead never bundles issues on its own) are proposals, not decisions; the implementer weighs them.
+
+## Repair round 1
+
+The auditor's verdict (`04-auditor.md`) has two findings, both routed to the implementer, who owns the changed process files:
+
+1. Medium — which roles a run of several issues spawns. The maintainer decided (`squad/decisions/2026-10-22-1403-batch-roles-and-change-doc.md`): run the union of the claimed lane's roles and every issue's own-lane roles, and give each issue the duties of its own lane.
+2. Low — the `/squad` command and `squad/lead.md` disagree on which arguments name issues.
+
+The maintainer also decided to leave `sdd/changes/2026-10/establish-squad.md` unchanged.
