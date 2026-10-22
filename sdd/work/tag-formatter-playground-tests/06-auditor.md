@@ -79,3 +79,62 @@ Probes ran in a scratch worktree of a6bd8e6 (removed afterwards); nothing in the
 - `RecursivePatternAlignmentTests.ParenthesizedRecursivePatternBreaksParenthesisOntoOwnLine` carries FMT-INDENT-026, but its input `value is ({` depends on the LB-Q7-disputed move of `(` onto its own line; the FMT-INDENT-026 spec example starts with `(` already on its own line. The tag will need to move if LB-Q7 is decided against today's output.
 - `CoverageReportCountsUncoveredRequirementsPerSpecNotYetEnforced` uses a real spec path that is not enforced yet (`shared/casing.md`); it will need the same fixture move again when `shared/` is enforced.
 - Stale comments in untagged existing tests, already noted by the roles: `ObjectInitializerContributorTests.AlignsCollectionInitializerInsideObjectInitializer` and `SwitchCaseBraceRewriterTests.AddsBracesToTypePatternCaseWithMultipleStatements`.
+
+## Repair round
+
+Role: auditor
+Commit: f5719ee
+Verdict: pass, text cleanup
+
+### Scope
+
+Repair delta against f88035c: 963611e (test implementer), 022968c (cleaner), 7a89e04 and f5719ee (spec checker). Head f5719ee, working tree clean; `git ls-remote origin refs/heads/main` is still d70f487, which is merged. The repair changes three test files (`PipelineInvariantTests.cs`, `ReihitsuFormatterEntryPointTests.cs`, `PlaygroundFormatterTests.cs`) and three handovers. No production file, spec, project file, or `[Requirement]` line changed (`git diff -U0` shows no added or removed tag). `scripts/lane-check.sh tooling`: confirmed. Scope did not grow, so this is a delta audit. The coordinator's message carried no intended fix or hoped-for verdict.
+
+Each finding was checked against the mutant that falsified it in the first audit. The three mutants ran together in a scratch worktree of f5719ee, which was removed afterwards: the numeric-literal `CleanupPhase` mutant, `indentLevel > 0` in `ReihitsuFormatter.FormatNode`, and `PlaygroundFormatter` parsing with `LanguageVersion.CSharp13`, a version closer than the original C# 10. Each failure message names its own mutant.
+
+### Previous findings
+
+| # | Status | Evidence |
+|---|---|---|
+| 1 | closed | `CollectUserAuthoredContent` now records `token.Text` for every literal token and `ValueText` only for multi-line raw content (`IsMultiLineRawStringContent`: `MultiLineRawStringLiteralToken`, `Utf8MultiLineRawStringLiteralToken`, and text tokens of the nearest `InterpolatedStringExpressionSyntax` whose start token is `InterpolatedMultiLineRawStringStartToken`, so a regular interpolated string nested in a raw hole still compares text). Disabled text is compared as written. The input gains an interpolated and a `u8` multi-line raw literal. Against the numeric-literal mutant, `EveryCommentDirectiveDisabledTextAndLiteralTextSurvives` fails: 2 of 23 elements differ, starting at `literal:0x1F`. The raw-content fallback is necessary, because the interpolated raw string's leading indentation token records as `raw:` (empty value) while its text moves with FMT-RAW. |
+| 2 | closed | `FormatUsesTheDefaultLanguageVersion` asserts `Formatted` and the exact text for an extension block (C# 14), an empty class (`class Empty;`, C# 12), and a get-only property (C# 6). `FormatEqualsTreeLevelFormattingWithDefaultParseOptions` gains an empty class and a single-line extension block. With the C# 13 mutant both fail: "C# 14 input must not be reported as a syntax error" and `Formatted` false. The exact-text test writes the extension block in Allman layout, so it does not pin LB-Q1, which disputes brace placement only when `{` shares the header line. The equality test contains the LB-Q1 shape but compares against the formatter's own output, so it holds however LB-Q1 is decided. |
+| 3 | closed | `FormatNodeTakesTheIndentationFromTheIndentLevelArgument` adds `indentLevel: 0` on the nested `if` and expects column 0. With the `> 0` mutant it fails: the expected text is at column 0, the actual at column 8. |
+| 4 | open | `sdd/README.md` lines 76 and 79 are unchanged. The lead routes this to the squad that owns the file, as a follow-up. It is documentation only: it cannot reach compiled behavior, diagnostics, public API documentation, or rule metadata. It is the only open finding, hence `pass, text cleanup`. |
+
+### Findings
+
+| # | Severity | Location | Failure class | Scope relation | What goes wrong | Suggested change |
+|---|---|---|---|---|---|---|
+| _None new._ | | | | | | |
+
+### Guard scope
+
+| Decision | Inspected span | Counterpart predicate | Agreement | Verdict |
+|---|---|---|---|---|
+| Which literal tokens may change text (`IsMultiLineRawStringContent`) | Multi-line raw tokens (plain, `u8`) and the text tokens of the nearest enclosing interpolated string with a multi-line raw start | FMT-RAW-001/002/004: only multi-line raw literals are re-aligned. Single-line raw (`"""  single  """u8`) keeps text comparison | Agree; single-line and nested regular interpolated strings stay on text comparison | ok |
+
+### Policy ownership
+
+_N/A — the repair adds no policy; `IsMultiLineRawStringContent` is a private test helper with no counterpart in test code. Production decides raw-string alignment by token kind in `RawStringAlignmentPhase`, and this helper's kind list matches it._
+
+### Assertion adequacy
+
+| Test | Invariant | Falsifying observation | Helper | Verdict |
+|---|---|---|---|---|
+| `PipelineInvariantTests.EveryCommentDirectiveDisabledTextAndLiteralTextSurvives` | Text of every comment, directive, disabled text, and non-raw literal; value of multi-line raw content | Numeric-literal mutant fails; the test implementer reports a CRLF→LF disabled-text mutant failing too | `FormatSyntaxTree`, `AreSequenceEqual`, LF and CRLF | ok |
+| `PlaygroundFormatterTests.FormatUsesTheDefaultLanguageVersion` | Default language version (C# 14) | C# 13 mutant fails; C# 10 too per the test implementer | `PlaygroundFormatter.Format`, exact text | ok; no formatter rule separates C# 14 from a preview version, so this is the tightest pin available |
+| `PlaygroundFormatterTests.FormatEqualsTreeLevelFormattingWithDefaultParseOptions` | Playground output equals tree-level output with default options | C# 13 mutant fails | Formatter-computed oracle, as PLAY-005 defines it | ok |
+| `ReihitsuFormatterEntryPointTests.FormatNodeTakesTheIndentationFromTheIndentLevelArgument` | `indentLevel` 0 and 1 win over position 2 | `> 0` mutant fails | `FormatNode` | ok |
+
+### Comments and naming
+
+The renamed test and both changed summaries describe the new assertions (FC-031). The new helper's summary states its kind list and why. No `TODO` or tracker number appears in the added lines. The old name `EveryCommentDirectiveDisabledTextAndLiteralValueSurvives` survives only in `sdd/work/` handovers.
+
+### Failure classes dismissed
+
+All classes dismissed in the first audit stay dismissed for the same reasons. The repair touches no production code and no guard, and it moves no tag. FC-003, FC-017, and FC-033 were checked above by mutation.
+
+### Hints
+
+- Correction to the first audit's second hint: the `with` initializer non-idempotency was already filed before that audit, as Q-P2, a comment dated 2026-10-21 on thoenissen/Reihitsu#1366. `00-lead.md` records it as "Q-P2 as comment". The claim that it was not recorded was wrong.
+- The other first-audit hints are unchanged and remain non-blocking.
