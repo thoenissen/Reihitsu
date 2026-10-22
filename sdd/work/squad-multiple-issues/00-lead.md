@@ -14,7 +14,7 @@ Slug: `squad-multiple-issues`. The session is bound to the branch `claude/cool-a
 
 Tooling — the change is to agent instructions and the squad process (`squad/`, `.claude/`, `CLAUDE.md`, `AGENTS.md`), which the lane check classifies as tooling.
 
-Roles run: test implementer (only if a tool with tests is affected — the implementer and test implementer decide from the diff; Markdown process files have no tests), implementer, cleaner, spec checker, auditor, validator. Skipped: spec author and skeptic, which the tooling lane does not run.
+Roles run: implementer, cleaner, spec checker, auditor, validator. Skipped: spec author and skeptic, which the tooling lane does not run; test implementer, because the change is to Markdown process files that no test covers (the lane classifier in `Reihitsu.Tooling` is not in scope).
 
 ## Maintainer's decisions
 
