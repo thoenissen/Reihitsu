@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Date | 2026-10-22 |
-| Escalation | 7 |
+| Escalation | 4 |
 | Run | issue #1260 |
 
 ## Question
