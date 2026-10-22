@@ -123,3 +123,11 @@ scripts/test.sh --project architecture   # 72 passed (RequirementCoverageTests i
 scripts/test.sh --project analyzer --filter "FullyQualifiedName~SelfHosting"   # 17 passed, Playground.Test with bUnit included
 ```
 
+
+## Enforcement switch (stage after all groups committed, base d202919)
+
+- `src/Reihitsu.ArchitectureTests/Sdd/RequirementCoverageTests.cs`: `EnforcedSpecPaths` now also lists `formatter/` and `playground/`. The class and field doc comments name no areas, so they needed no change. Enforcing `formatter/` also enforces the `shared/` requirements the formatter specs list under `Uses` (for example SHARED-BLANK-002 and SHARED-CHAIN-007); all are covered.
+- `CoverageReportCountsUncoveredRequirementsPerSpecNotYetEnforced` used `formatter/cleanup.md` as its example of a spec that is not enforced, so it failed once `formatter/` was enforced (the report correctly left that spec out). Its fixture now uses `shared/casing.md` (`SHARED-CASING-001/002`), a spec that is still not enforced; what the test asserts is unchanged.
+- `scripts/test.sh --project architecture`: 72 passed, 0 failed. `EveryRequirementOfAnEnforcedSpecIsCovered` reports no uncovered active requirement in `formatter/` or `playground/`, and `EveryRequirementReferenceNamesAnActiveRequirement` passes.
+- The FMT-INDENT-015 omitted-first-element finding is filed as Q-I8 on thoenissen/Reihitsu#1370 (by the lead). No test tags that input.
+- For the lead: `sdd/README.md` (*Tests and requirements*) still lists only `analyzer/`, `cli/`, `shared/code-fixes.md`, and `shared/diagnostics.md` under "Enforced today", and names only three projects that declare the attribute. Other squads edit that file in parallel, so I left it alone.

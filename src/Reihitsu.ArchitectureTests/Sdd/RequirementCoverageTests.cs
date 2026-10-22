@@ -23,7 +23,7 @@ public sealed class RequirementCoverageTests
     /// Spec directories, each ending with a slash, and single spec files, relative to <c>sdd/specs</c>, whose active
     /// requirements must each be covered by a test. A path stays on this list once it is added
     /// </summary>
-    internal static readonly IReadOnlyList<string> EnforcedSpecPaths = ["analyzer/", "cli/", "shared/code-fixes.md", "shared/diagnostics.md"];
+    internal static readonly IReadOnlyList<string> EnforcedSpecPaths = ["analyzer/", "cli/", "formatter/", "playground/", "shared/code-fixes.md", "shared/diagnostics.md"];
 
     /// <summary>
     /// Spec directory of the shared specs, whose requirements an enforced spec can enforce by using them
@@ -312,16 +312,16 @@ public sealed class RequirementCoverageTests
 
         using (var fixture = new SpecFixtureDirectory())
         {
-            fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001", "FMT-CLEAN-002");
+            fixture.WriteSpec("shared/casing.md", "`CasingUtilities`", "SHARED-CASING-001", "SHARED-CASING-002");
             fixture.WriteSpec("cli/reihitsu-format.md", "`Program`", "CLI-001");
-            fixture.WriteFile("src/Reihitsu.Formatter.Test/CleanupTests.cs", CreateTestSource("[Requirement(\"FMT-CLEAN-001\")]"));
+            fixture.WriteFile("src/Reihitsu.Core.Test/CasingTests.cs", CreateTestSource("[Requirement(\"SHARED-CASING-001\")]"));
 
             // Act
             report = DescribeCoverageOfSpecsNotYetEnforced(fixture.Path);
         }
 
         // Assert
-        Assert.Contains("formatter/cleanup.md: 1 of 2 uncovered (FMT-CLEAN-002)", report);
+        Assert.Contains("shared/casing.md: 1 of 2 uncovered (SHARED-CASING-002)", report);
         Assert.DoesNotContain("cli/reihitsu-format.md", report);
     }
 
