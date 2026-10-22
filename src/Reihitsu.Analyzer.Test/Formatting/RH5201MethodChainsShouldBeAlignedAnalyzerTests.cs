@@ -1473,6 +1473,7 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5201-002")]
+    [Requirement("SHARED-COMMENT-011")]
     public async Task VerifyBlockCommentStartingTheLinkLineIsAlignedWithTheLink()
     {
         const string testData = """
@@ -1669,6 +1670,64 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
                                   """;
 
         await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that a link behind a block comment which starts its line in the anchor's column is reported neither
+    /// for not starting its line nor for its column, whatever space stands between the comment and the link
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-001")]
+    [Requirement("RH5201-002")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyNoDiagnosticForLinkBehindBlockCommentStartingTheLineInTheAnchorColumn()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static object Run(int[] items)
+                                    {
+                                        var list = items.Where(value => value > 0)
+                                                        /* all */   .ToList();
+
+                                        return list;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a link behind a block comment which starts its line in the anchor's column is not reported under
+    /// CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-001")]
+    [Requirement("RH5201-002")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyNoDiagnosticForLinkBehindBlockCommentStartingTheLineInTheAnchorColumnWithCrLf()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static object Run(int[] items)
+                                    {
+                                        var list = items.Where(value => value > 0)
+                                                        /* all */   .ToList();
+
+                                        return list;
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData));
     }
 
     /// <summary>
