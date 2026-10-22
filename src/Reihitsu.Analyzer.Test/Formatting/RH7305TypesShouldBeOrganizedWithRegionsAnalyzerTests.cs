@@ -807,8 +807,8 @@ public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
     }
 
     /// <summary>
-    /// Verifies the specification example of a type whose only member is a nested enum in a region: the enum counts as one
-    /// member of the type, the region among its values belongs to the enum, and the type is not reported
+    /// Verifies the specification example of a type whose only member is a nested enum that lies in a region and has a
+    /// region among its values: the type is not reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

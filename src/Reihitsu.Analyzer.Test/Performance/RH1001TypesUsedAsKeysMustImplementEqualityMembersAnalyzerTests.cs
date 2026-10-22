@@ -1142,8 +1142,9 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     /// <summary>
     /// Characterizes a creation whose comparer argument can only produce <see langword="null"/> or throw: it counts as
     /// passing a custom comparer and is not reported, while the creation whose argument can only produce
-    /// <see langword="null"/> or <c>EqualityComparer&lt;T&gt;.Default</c> is. The case is an open question about
-    /// intended behavior, so this test pins today's behavior without stating it as intended
+    /// <see langword="null"/> or <c>EqualityComparer&lt;T&gt;.Default</c> is. This test pins today's behavior; the decided
+    /// behavior is stated by SHARED-DIAG-005, under which a <see langword="throw"/> branch produces no value and the other
+    /// branch alone decides, and its change belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1173,8 +1174,9 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     /// <summary>
     /// Characterizes declarations whose initial value picks between creations with a custom comparer and a
     /// <see langword="throw"/>: the declared types of <c>a</c> and <c>b</c> are reported, while <c>c</c>, which picks
-    /// only between such creations, is not. The case is an open question about intended behavior, so this test pins
-    /// today's behavior without stating it as intended
+    /// only between such creations, is not. This test pins today's behavior; the decided behavior is stated by
+    /// SHARED-DIAG-005, under which a <see langword="throw"/> branch or arm produces no value and the other branches or
+    /// arms alone decide, and its change belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1291,8 +1293,9 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     /// <summary>
     /// Characterizes a creation whose comparer argument is an <see langword="as"/> expression that can only produce
     /// <see langword="null"/>: the declared type of <c>a</c> is reported, while <c>b</c>, whose argument is the same
-    /// expression wrapped in parentheses, counts as passing a custom comparer and is not. The case is an open question
-    /// about intended behavior, so this test pins today's behavior without stating it as intended
+    /// expression wrapped in parentheses, counts as passing a custom comparer and is not. This test pins today's behavior;
+    /// the decided behavior is stated by SHARED-DIAG-005, which judges an expression in parentheses as the expression
+    /// inside them, and its change belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
