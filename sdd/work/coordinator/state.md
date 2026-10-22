@@ -77,7 +77,7 @@ Earlier: 3 — plan the analyzer backfill. Phase 1 and 2 complete (2026-10-17): 
 
 ## Running
 
-- 2026-10-22: prompts given for #1331, #1380, #1402 (`prompts-round9.md`). Earlier (round 9): #939 (PR #1358), #1138 (#1357), #1260 (#1359), #1161 (#1360), #1139 (#1361) merged; maintainer reports further follow-ups. Inventory running -> `inventory/round9.md`. Next: #1331, then #998. Round-7 batches #985 (PR #1301), #993 (PR #1303), #995 (PR #1302) merged. Remaining batches: #939, then #998 last. Spec issues #1138, #1139, #1161, #1260 still open, no PR (not run yet). Status file: `inventory/round8-status.md`.
+- 2026-10-22: #1331 and #1380 started by maintainer (`prompts-round9.md`). #1402 NOT started: to be bundled with #1401 + #1377 into one run once multi-issue squad runs exist (#1403). Maintainer filed request #1403 (squad: `/squad #a #b #c`, details to clarify later; coordinator's recommendations 1a-4a in the issue). Earlier (round 9): #939 (PR #1358), #1138 (#1357), #1260 (#1359), #1161 (#1360), #1139 (#1361) merged; maintainer reports further follow-ups. Inventory running -> `inventory/round9.md`. Next: #1331, then #998. Round-7 batches #985 (PR #1301), #993 (PR #1303), #995 (PR #1302) merged. Remaining batches: #939, then #998 last. Spec issues #1138, #1139, #1161, #1260 still open, no PR (not run yet). Status file: `inventory/round8-status.md`.
 - Earlier, round 6 (prompts 2026-10-19, `sdd/work/coordinator/prompts-round6.md`, overlap check `inventory/batches-round6.md`): #984, #991, #992, #994, #996, #997. Next: #985 after #984; #995 after #994; #993 after #994 and #996; then #939, #998.
 
 ## Next: question round (new chat, planned 2026-10-18)
@@ -207,6 +207,8 @@ Round 9 bookkeeping DONE (agent 2026-10-22): #1380 (SDD P32-P37 + P12 clar.), fo
 Next runs (prompts `prompts-round9.md`): #1331, #1380, #1402 in parallel; then #1401 and #1377 (after #1331/#1380); then #998 last.
 
 ## Waiting for maintainer
+
+- 2026-10-22: #1331, #1380 running. Open: design points 1-4 of #1403 (multi-issue squad runs) — clarify before its run. Next: #1403 run (tooling), then #1401+#1377+#1402 as one run, then #998 last. Phase 5: implement follow-ups in batches by cause/code area (proposal, not yet decided).
 
 - 2026-10-21: round 8 started. 25 open question issues #1304-#1328 (81 items; #1304-#1317 tracked in #912 comments, #1318-#1328 not yet). Coordinator runs inventory (`inventory/round8-*.md`), then question round 8. New non-question issues: #1329 (formatter bug: declaration after unclosed doc element becomes a comment), #1330 (test non-formattable-line helper). Next batch: #939 (unblocked), then #998.
 
