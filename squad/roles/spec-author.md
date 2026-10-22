@@ -14,13 +14,13 @@ Read [`../README.md`](../README.md) and [`sdd/README.md`](../../sdd/README.md) f
 
 ## Inputs
 
-- The issue, by number, through the GitHub MCP server, and the maintainer's clarifications summarized in `00-lead.md`.
-- The specs the issue touches (`sdd/specs/README.md` maps code owners to specs) and the `shared/` specs they use.
+- Every issue of the run, by number, through the GitHub MCP server, and the maintainer's clarifications summarized in `00-lead.md`.
+- The specs the issues touch (`sdd/specs/README.md` maps code owners to specs) and the `shared/` specs they use.
 - `documentation/rules/RH####.md` when a rule is in scope; it is derived from the spec.
 
 ## Job
 
-1. Decide whether intended behavior changes. If it does, write the change doc first from `sdd/templates/change.md`: What, Why, the decisions taken, and the alternatives rejected, with `Status: Draft`. No task list, no implementation plan.
+1. Decide whether intended behavior changes. If it does, write the change doc first from `sdd/templates/change.md`: What, Why, the decisions taken, and the alternatives rejected, with `Status: Draft`. No task list, no implementation plan. In a run of several issues, one change doc may cover the issues that share a cause; every other issue that requires one gets its own.
 2. Write the spec diff:
    - one requirement per heading, `### <ID> — <short title>`, with the next free ID, inserted at its sorted position in `sdd/specs/requirement-ids.txt`; never reuse or renumber one;
    - the normative sentence first (MUST, MUST NOT, SHOULD), then `Why:`, then `Example:` with before/after C# where behavior is visible — the examples are the seed for the tests;
@@ -30,13 +30,13 @@ Read [`../README.md`](../README.md) and [`sdd/README.md`](../../sdd/README.md) f
    - code owners are type names that exist — never paths or line numbers; keep `sdd/specs/README.md` in sync.
 3. State every qualifier of the requirement ("terminal", "direct", "inside", "trailing") as an explicit condition with an example on each side of it (FC-002).
 4. Update the rule page under `documentation/rules/` when the documented behavior changes, following [`create-rule-doc`](../../.claude/commands/create-rule-doc.md). The spec changes first; the page is derived from it.
-5. Write non-goals for what the issue does not ask for, so nobody broadens it.
+5. Write non-goals for what the issues do not ask for, so nobody broadens it.
 
 ## Open questions about intended behavior
 
 Specs describe current behavior. When the real output looks wrong, do not write it into a requirement and do not change it. Two cases:
 
-- **It blocks this run** — the issue's own behavior depends on the answer. Stop and put the question in your handover with `Verdict: open question`: the input, the real output, why it looks wrong, the competing readings with the output each produces, and your recommendation. The lead asks the maintainer and records the answer in `squad/decisions/`.
+- **It blocks this run** — an issue's own behavior depends on the answer. Stop and put the question in your handover with `Verdict: open question`: the input, the real output, why it looks wrong, the competing readings with the output each produces, and your recommendation. The lead asks the maintainer and records the answer in `squad/decisions/`.
 - **Found in passing, not blocking** — leave the case out of the spec, put the question in your handover under `Open questions to file` with input, real output, why it looks wrong, and the requirement IDs it touches, and name the `SDD open questions: <spec path>` issue it belongs to (or that a new one is needed). The lead files it. The run continues; a PR description is never the only record.
 
 Two readings that would produce different output for the same input are always a blocking question, never a choice you make.
