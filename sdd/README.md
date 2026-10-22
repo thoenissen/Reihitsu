@@ -134,7 +134,7 @@ The formatter may do more than the sum of the analyzer rules. When a run finds t
   }
   ```
 
-This section settles only the direction in which the formatter does more than the analyzers. Any other disagreement between a rule and the formatter is filed as described under [Open questions](#open-questions).
+This section settles only the direction in which the formatter does more than the analyzers. A layout rule that does not report a shape the formatter deliberately keeps is not a gap of either kind: that silence is what [SHARED-DIAG-010](specs/shared/diagnostics.md) (P31) asks for. Any other disagreement between a rule and the formatter is filed as described under [Open questions](#open-questions).
 
 ## Temporary working docs
 
