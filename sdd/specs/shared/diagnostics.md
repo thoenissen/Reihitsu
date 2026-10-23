@@ -211,11 +211,11 @@ A rule that judges a type or a member declared in several parts with the `partia
 
 A rule whose subject is text that one part writes independently of the other parts is not covered by the first paragraph. Such text is the accessibility modifier that one part of a partial type writes or omits, as RH7104 judges it, and the order of the modifiers that one part carries, as RH7105 and RH7106 judge it. Such a rule MUST judge each part on its own: it MUST report each part whose own modifiers break the rule, located on that part, also when another part of the same declaration writes what this part omits, and its code fix MUST change only that part.
 
-The accessibility modifiers of a partial member — a method, property, indexer, event, or constructor — are not written independently, because every part of the member has to write the same ones. A rule about them judges the member as a whole and is covered by the first paragraph.
+Which accessibility one part of a partial member — a method, property, indexer, event, or constructor — states, and whether it states one, is not written independently, because every part of the member has to state the same accessibility. A rule about which accessibility a part of a partial member states, or whether it states one, judges the member as a whole and is covered by the first paragraph. The order of the keywords that state that accessibility is written independently: the compiler leaves it to each part, so a rule about it judges the order of the modifiers that one part carries, under the second paragraph.
 
 A verdict on the name or the parameters that one part declares, or on the members and regions that one part holds, is not covered by this requirement.
 
-Why: The compiler builds one type or member from all its parts, and every caller, tooltip, and reader sees that one symbol. Judging one part alone gives it a verdict the declaration does not deserve — the part of an `async` method that does not repeat `async` is still an `async` method — and reporting every part repeats one finding. A change that every part has to carry cannot be made on one part without a compile error. The modifiers a part writes independently are different: they are text of that part, read in the file that holds it. A part of a partial type that omits its accessibility leaves the reader of that file guessing whatever another part says, and writing it on that part alone compiles, because the compiler only forbids the parts of a type to state different accessibilities; the order of a part's modifiers is that part's own as well. The parts of a partial member, in contrast, have to write the same accessibility modifiers, so writing one on a single part does not compile, and the member's accessibility is a verdict on the member as a whole.
+Why: The compiler builds one type or member from all its parts, and every caller, tooltip, and reader sees that one symbol. Judging one part alone gives it a verdict the declaration does not deserve — the part of an `async` method that does not repeat `async` is still an `async` method — and reporting every part repeats one finding. A change that every part has to carry cannot be made on one part without a compile error. The modifiers a part writes independently are different: they are text of that part, read in the file that holds it. A part of a partial type that omits its accessibility leaves the reader of that file guessing whatever another part says, and writing it on that part alone compiles, because the compiler only forbids the parts of a type to state different accessibilities; the order of a part's modifiers is that part's own as well. The parts of a partial member, in contrast, have to state the same accessibility, so adding an accessibility to a single part does not compile, and which accessibility the member has is a verdict on the member as a whole; only the order in which a part writes the keywords of that accessibility, such as `internal protected` for `protected internal`, is free, and it is that part's own.
 
 Example — RH2102 reports the type once, on the part that declares the primary constructor:
 
@@ -271,7 +271,7 @@ public partial class C
 
 The fix writes the accessibility on the reported part and leaves the first part as it is.
 
-Example — every part of a partial property has to write the same accessibility modifiers, so RH2004 judges the property as a whole under the first paragraph:
+Example — every part of a partial property has to state the same accessibility, so RH2004, which judges whether an accessibility is stated, judges the property as a whole under the first paragraph:
 
 ```csharp
 public partial class P
@@ -283,6 +283,28 @@ public partial class P
 ```
 
 is reported by RH2004 at most once, and no code fix is offered: writing `private` on one part alone does not compile.
+
+Example — RH7106 judges the order in which one part of a partial property writes its accessibility keywords, so it reports the first part, although the second part writes the same accessibility in the canonical order:
+
+```csharp
+public partial class C
+{
+    internal {|RH7106:protected|} partial int P { get; }
+
+    protected internal partial int P => 1;
+}
+```
+
+```csharp
+public partial class C
+{
+    protected internal partial int P { get; }
+
+    protected internal partial int P => 1;
+}
+```
+
+The fix swaps the keywords of the reported part and leaves the second part as it is.
 
 ### SHARED-DIAG-005 — Parentheses, `!`, and a `throw` branch do not change a value
 
