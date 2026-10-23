@@ -6,12 +6,12 @@ Verdict: change doc written
 
 _None._ No requirement is added, changed, retired, moved, or renumbered; `sdd/specs/` is untouched. The change is a process change:
 
-- `sdd/changes/2026-10/requirement-coverage-opt-out.md` — new change doc, `Status: Draft`, `Affected requirements: none — process change`, recording the decisions of `00-lead.md` and `squad/decisions/2026-10-23-998-untagged-tests-allowed.md`.
+- `sdd/changes/2026-10/requirement-coverage-opt-out.md` — new change doc, `Status: Accepted` (initially `Draft`), `Affected requirements: none — process change`, recording the decisions of `00-lead.md` and `squad/decisions/2026-10-23-998-untagged-tests-allowed.md`.
 - `sdd/README.md`, *Tests and requirements* — coverage is opt-out: every spec is enforced unless `RequirementCoverageTests` exempts it, each exemption names one spec and states why, the list is empty today; a test derived from a requirement tags it from the start (a reproduction tags the requirement the bug violates); a test is not required to carry a tag, and architecture and tooling tests carry none and need no exemption. "A test that verifies a requirement only incidentally does not tag it" is kept verbatim.
 - `sdd/README.md`, *Checks* — the coverage check fails for an uncovered requirement of every spec it does not exempt and for an exemption without a reason; it reports exempted specs without failing; it does not check that every test is tagged, and the spec checker checks the tags of new tests.
 - `squad/roles/test-implementer.md` — new section *Requirement tags*: every test derived from a requirement carries its tag; incidental and requirement-free tests carry none; the handover's `Requirement / failure class` column names exactly the requirement IDs each test is tagged with.
 - `squad/roles/spec-checker.md` — new check 8 *New tests carry their requirement's tag* (old check 8 is now 9; nothing references check numbers); Inputs now include the test implementer's handover.
-- `squad/README.md` — the spec checker's row in the role table names the new check. Outside the three files the prompt listed; a one-phrase consistency edit, revert it if unwanted.
+- `squad/README.md` — the spec checker's row in the role table names the new check. Outside the three files the prompt listed; a one-phrase consistency edit, approved by the maintainer.
 
 ### Why the spec checker, not the auditor
 
@@ -38,6 +38,6 @@ _None._
 ## Notes
 
 - `scripts/lane-check.sh tooling --head worktree --no-install`: `LANE CHECK: confirmed — claimed tooling, diff needs tooling`.
-- The change doc stays `Draft`; the lead sets `Accepted` once the maintainer approves it, before the PR is marked ready.
+- The change doc is `Accepted`: the maintainer approved its What and Why as written, including the spec checker as the role that checks tags and the `squad/README.md` role-table edit (`squad/decisions/2026-10-23-998-change-doc-approved.md`, option A). Status set in the follow-up commit on 7834bb7.
 - My prompt carried no intended fix or hoped-for verdict beyond the maintainer's narrowed scope, which I followed.
 - `squad/roles/skeptic.md`, `squad/failure-classes.md`, `squad/roles/auditor.md`, and every `.cs` file are untouched.
