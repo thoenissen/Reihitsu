@@ -243,9 +243,9 @@ class C
 
 ### FMT-BLANK-005 — The blank line after a closing brace goes behind a directive
 
-The formatter MUST apply SHARED-BLANK-003. When directives stand between the closing brace and the next statement, it MUST insert the blank line after the last of those directives, directly before the statement. When both statements share a line, it MUST insert the blank line as well; FMT-BREAK then puts them on separate lines.
+The formatter MUST apply SHARED-BLANK-003. When directives stand between the closing brace and the next statement, it MUST insert the blank line after the last of those directives: directly before the statement, or, when comments stand between that directive and the statement, in front of those comments (FMT-BLANK-016). When both statements share a line, it MUST insert the blank line as well; FMT-BREAK then puts them on separate lines.
 
-Why: SHARED-BLANK-003 has no directive exemption, but a blank line inserted at the start of the gap would land inside the conditional region the directive opens or closes. Placing it directly before the statement keeps it outside. Same-line pairs do not survive formatting, so the formatter decides them as if they were already split.
+Why: SHARED-BLANK-003 has no directive exemption, but a blank line inserted at the start of the gap would land inside the conditional region the directive opens or closes. Placing it after the last directive keeps it outside. Same-line pairs do not survive formatting, so the formatter decides them as if they were already split.
 
 Example:
 
@@ -1011,6 +1011,39 @@ class C
         a++;
 #pragma warning disable CS0168
         return;
+    }
+}
+```
+
+A comment between the last directive and the statement stays with the statement, so the blank line goes in front of the comment:
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        if (a > 0)
+        {
+        }
+#pragma warning disable CS0168
+        // why
+        a++;
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        if (a > 0)
+        {
+        }
+#pragma warning disable CS0168
+
+        // why
+        a++;
     }
 }
 ```

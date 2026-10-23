@@ -748,9 +748,9 @@ No blank line is left by the removal, and none is inserted, although formatting 
 
 ### SHARED-FIX-008 — A fix keeps the document's line ending
 
-A code fix MUST write only the line ending the document already uses, which is the line ending FMT-PIPE-007 detects for the document: every line break the fix creates or keeps MUST be that line ending, in a document whose line breaks are CRLF as in one whose line breaks are LF. A lone `\r` counts as `\n` in that detection, so in a document whose line breaks are all a lone `\r`, every line break the fix creates MUST be `\n`. A line break inside a literal or inside the text of a comment other than a documentation comment is content under SHARED-FIX-003; it stays as it is and does not count when deciding which line ending the document uses, as FMT-PIPE-007 does not count it.
+A code fix MUST write the line ending FMT-PIPE-007 detects for the document. In a document whose line breaks are CRLF, as in one whose line breaks are LF, that is the line ending the document already uses, and every line break the fix creates or keeps MUST be that line ending. A lone `\r` counts as `\n` in that detection, so in a document whose line breaks are all a lone `\r`, every line break the fix creates MUST be `\n`, and a line break the fix keeps MUST stay a lone `\r`. A line break inside a literal or inside the text of a comment other than a documentation comment is content under SHARED-FIX-003; it stays as it is and does not count when deciding which line ending the document uses, as FMT-PIPE-007 does not count it.
 
-Why: A fix that introduces the other line ending leaves the file with mixed line endings, which the formatter then rewrites. Detecting the line ending as the formatter does makes a fix and the formatter write the same line ending into the same document.
+Why: A fix that introduces the other line ending leaves the file with mixed line endings, which the formatter then rewrites. Detecting the line ending as the formatter does makes a fix and the formatter write the same line ending into the same document, `\n` in a document whose line breaks are all a lone `\r`. The lone `\r` line breaks a fix keeps there are the document's own, not a line ending the fix introduces; formatting the document rewrites them together with every other one.
 
 Example — the RH5405 fix in a document whose line breaks are all CRLF:
 
@@ -777,4 +777,4 @@ class C
 }
 ```
 
-Every line break of the result is CRLF, including the three the fix creates. In a document whose line breaks are all LF, the same fix creates LF line breaks, and in a document whose line breaks are all a lone `\r`, it creates `\n` line breaks.
+Every line break of the result is CRLF, including the three the fix creates. In a document whose line breaks are all LF, the same fix creates LF line breaks, and in a document whose line breaks are all a lone `\r`, it creates `\n` line breaks, while the line break behind the closing brace, which the fix keeps from the input, stays a lone `\r`.

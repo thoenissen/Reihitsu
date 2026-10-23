@@ -5,7 +5,7 @@
 | ID prefix | SHARED-COMMENT |
 | Status | Active |
 | Code owners | `CommentPositionAnalyzerBase`, `CommentRegionAnalyzerBase`, `CommentPositionUtilities`, `FluentChainAnalysisHelper` |
-| Uses | SHARED-BLANK-002 |
+| Uses | SHARED-BLANK-002, SHARED-CHAIN-004 |
 
 This spec covers the rules that report a comment placed in a position inside a declaration or a statement: which comments they check, where the diagnostic is, and, for the rules that report every comment inside a delimited region such as an argument list or a statement header, which gaps of the region count and which comment positions inside it stay valid. Each rule that uses this spec states the positions it reports, or the regions it checks, and any exception of its own.
 
@@ -417,9 +417,9 @@ The comments of the `switch` statement are not reported.
 
 ### SHARED-COMMENT-011 — A line that starts with a comment is not judged by the token behind it
 
-A rule that checks where a line starts — whether a token starts its line, or in which column a line starts — MUST take a comment of any kind that starts its line (SHARED-BLANK-002) as the first element of that line. When such a comment stands where the rule asks the line to start, the first token behind it on the comment's first line MUST NOT be reported for its position: neither for not starting its line nor for its column. Only that first token is exempt; a later token on the same line is judged by the rule's own requirements. When the comment stands anywhere else, the line is out of place, and the rule MUST report it as it reports a line whose first token stands where the comment stands, whatever column the token behind the comment reaches; the diagnostic is located where the rule's own requirements locate it. A comment that does not start its line, such as one behind code on the line above, does not make the line start with a comment.
+A rule that checks where a line starts — whether a token starts its line, or in which column a line starts — MUST take a comment of any kind that starts its line (SHARED-BLANK-002) as the first element of that line. When such a comment stands where the rule asks the line to start, the first token behind it on the comment's first line MUST NOT be reported for its position: neither for not starting its line nor for its column. Only that first token is exempt; a later token on the same line is judged by the rule's own requirements. When the comment stands anywhere else, the line is out of place, and the rule MUST report it as it reports a line whose first token stands where the comment stands, whatever column the token behind the comment reaches; the diagnostic is located where the rule's own requirements locate it. A requirement that keeps the rule from reporting because a comment stands in that place still applies: under SHARED-CHAIN-004, RH5112 does not report a chain whose first link stands behind a comment that starts the link's line. A comment that does not start its line, such as one behind code on the line above, does not make the line start with a comment.
 
-Why: A rule that checks where a line starts judges the line's first element, and a comment there is the line's first element as much as a token would be. So a comment in the right place keeps the line in place, and a comment in the wrong place puts the line out of place, wherever the token behind it lands. Whether the comment may stand there at all is for the rules that report comments to decide, not for the rule that places the line.
+Why: A rule that checks where a line starts judges the line's first element, and a comment there is the line's first element as much as a token would be. So a comment in the right place keeps the line in place, and a comment in the wrong place puts the line out of place, wherever the token behind it lands. Whether the comment may stand there at all is for the rules that report comments to decide, not for the rule that places the line. A requirement that exempts a comment in that place has already made that decision: the comment, not the line, is what the author has to move, and another rule reports it.
 
 Example — RH5201 and RH5204:
 
@@ -452,7 +452,22 @@ class C
 }
 ```
 
-A later token on the comment's line is not the token behind the comment, so RH5201 and RH5303 still report it:
+A comment between the root and the first link of a chain keeps RH5112 from reporting the chain (SHARED-CHAIN-004), also when that comment starts the link's line, where RH5112 asks no line to start, so
+
+```csharp
+class C
+{
+    string M(string s)
+    {
+        var x = s
+/* c */ .Trim();
+
+        return x;
+    }
+}
+```
+
+is not reported by RH5112. A later token on the comment's line is not the token behind the comment, so RH5201 and RH5303 still report it:
 
 ```csharp
 using System.Collections.Generic;
@@ -500,7 +515,7 @@ class C
 A delimited comment — `/* */` or `/** */` — whose closing `*/` stands on a later line than its opening MUST belong to the line on which it starts. The first token behind the closing `*/` on the comment's last line MUST NOT count as starting a line, whatever stands in front of the comment:
 
 - where a requirement of the formatter asks that token to start its own line, the formatter MUST break the line in front of the token;
-- a rule that checks where a line starts — whether a token starts its line, or in which column a line starts — MUST NOT take the comment's last line for a line of its own, and MUST report the token where the rule expects that token to start its line, because it does not.
+- a rule that checks where a line starts — whether a token starts its line, or in which column a line starts — MUST NOT take the comment's last line for a line of its own. When the token would start its line if the comment were not there, because only whitespace stands between the line break in front of the comment and the comment, and between the comment and the token, and the token is one the rule judges where it starts a line, such as an argument of a wrapped argument list for RH5203, the rule MUST report the token, whatever column it reaches, because the token does not start its line; the diagnostic is located where the rule's own requirements locate it. A token that stands behind code on the comment's first line is judged as the rule judges a token behind code on its line.
 
 A delimited comment that starts and ends on the token's line is not covered; it is the line's first element when it starts its line, as SHARED-COMMENT-011 specifies. A `///` comment ends with its line, so a token on the next line starts that line. This requirement states for tokens what SHARED-BLANK-002 states for trivia behind such a comment.
 
@@ -532,7 +547,7 @@ class C
 }
 ```
 
-Example — RH5203, which reports the argument behind the comment's last line:
+Example — RH5203 reports the argument behind the comment's last line: without the comment, `2` would start its line, and behind the comment it does not:
 
 ```csharp
 class C
