@@ -32,3 +32,13 @@ Roles: spec author (runs although the tooling lane marks it optional: the issue 
 | Reihitsu.Playground.Test | 17 | 0 |
 | Reihitsu.ArchitectureTests | ~80 | ~79 |
 | Reihitsu.Tooling.Test | 66 | 66 |
+
+## Escalation answered (escalation 5, before the test implementer)
+
+Recorded in `squad/decisions/2026-10-23-998-untagged-tests-allowed.md`. Scope narrowed by the maintainer:
+
+- Keep: `RequirementCoverageTests` becomes opt-out — every spec area is enforced by default; the exemption list of spec areas is empty, or each entry carries a reason.
+- Dropped: enforcing that every test method is tagged or exempted. Untagged tests stay allowed; the rulebook keeps "a test that verifies a requirement only incidentally does not tag it". No exemption attribute, no exemption list for tests. Architecture and tooling tests need no special handling.
+- New tests: `squad/roles/test-implementer.md` states that every test derived from a requirement carries that requirement's tag; the spec checker (or the auditor) checks that the tests a run adds for a requirement carry its tag.
+- `sdd/README.md` (*Tests and requirements*, *Checks*) and the process change doc (`Affected requirements: none — process change`) state this.
+- The PR still closes thoenissen/Reihitsu#998 and states how the shipped change differs from the issue text.
