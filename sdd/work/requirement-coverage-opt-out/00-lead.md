@@ -42,3 +42,7 @@ Recorded in `squad/decisions/2026-10-23-998-untagged-tests-allowed.md`. Scope na
 - New tests: `squad/roles/test-implementer.md` states that every test derived from a requirement carries that requirement's tag; the spec checker (or the auditor) checks that the tests a run adds for a requirement carry its tag.
 - `sdd/README.md` (*Tests and requirements*, *Checks*) and the process change doc (`Affected requirements: none — process change`) state this.
 - The PR still closes thoenissen/Reihitsu#998 and states how the shipped change differs from the issue text.
+
+## Escalation answered (escalation 2)
+
+The maintainer approved the change doc's What and Why as written, including the spec checker owning the new-test tag check and the `squad/README.md` role-table edit (`squad/decisions/2026-10-23-998-change-doc-approved.md`). The spec author sets the change doc to `Accepted`.
