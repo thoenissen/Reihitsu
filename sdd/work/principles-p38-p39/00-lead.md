@@ -47,3 +47,8 @@ The decisions entries under `squad/decisions/` classify as tooling: `scripts/lan
 - Comments with new instances on thoenissen/Reihitsu#1417 (RH3103 `using static`), #1262 (RH7309 shapes 1–3), #1336 (RH7101 documented split), #1388 (RH5406 and RH7309 line endings).
 - New issue thoenissen/Reihitsu#1422: RH3104 `new S();` and RH5417 under C# 10 are not reported (P38).
 - The formatter question about splitting a documented field (from 03-spec-author.md) is not filed: thoenissen/Reihitsu#1384 (P36) already decides and tracks it.
+
+## Repair round 1 (after 07-auditor.md, verdict findings)
+
+- Finding 1 (medium; formatter-delegating fixes inherit the documented field split): this is a pre-existing defect that the new SHARED-FIX-003 condition now names. It is a follow-up candidate and is not repaired in this run. The lead drafts a comment on thoenissen/Reihitsu#1384 for the maintainer to approve, and lists the violation in the run report.
+- Finding 2 (low; stale summary of `FixCarriesADocumentationCommentBehindCodeWithTheMovedDeclaration`, FC-031): introduced by this PR and routed to the test implementer. It is comment-only, so the proof is `scripts/verify-text-only.sh`.
