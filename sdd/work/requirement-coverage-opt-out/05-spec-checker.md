@@ -21,3 +21,18 @@ Verdict: consistent
 ## Notes for the lead
 - The untagged-tests decision entry names "the spec checker or the auditor"; the change doc and role files settle on the spec checker. The entry is history and is not edited.
 - The test implementer's `Requirement / failure class` column carries prose and failure-class IDs next to "none"; no requirement ID appears other than none, so check 8 holds.
+
+## Repair round (auditor 06 worklist; head e691641)
+Verdict: consistent
+
+All nine checks re-run on the diff to `origin/main`; no findings.
+
+1. Change doc: ok. Unchanged, still `Accepted`, `none — process change`.
+2. Specs match the diff: ok. `sdd/specs/` still untouched. The rewritten `sdd/README.md` *Checks* bullets match `IsEnforced`: an uncovered requirement fails when its spec is not exempted, or when it belongs to an exempted `shared/` spec that a non-exempted spec lists under `Uses`; the exempted-spec report never fails; the exemption-without-reason bullet is kept. They agree with *Tests and requirements* and the change doc. The `FindUncoveredRequirements` summary states the same condition.
+3. IDs: ok. Ledger untouched.
+4. Code owners: ok. No spec or owner change.
+5. User documentation: ok. No rule page affected.
+6. Open questions: ok. None new; auditor hints 1 and 2 are follow-up candidates for the lead, not spec questions.
+7. Architecture tests: `scripts/test.sh --project architecture --no-install` -> `Passed!  - Failed:     0, Passed:    84, Skipped:     0, Total:    84` (83 plus the new directory-key test).
+8. Tags on new tests: ok. The new `CoverageCheckDoesNotExemptTheSpecsOfAnExemptedDirectory` carries no `[Requirement]` and the test implementer's table lists it against "none"; the corrected FC-001 claim for `CoverageCheckSkipsOnlyTheExemptedSpec` is now accurate. The four `[Requirement(...)]` matches added in `src` are fixture strings, not attributes. `.claude/agents/spec-checker.md` description now matches the `squad/README.md` role-table row (auditor hint 3).
+9. Nothing left behind: ok for now; `sdd/work/` holds only this run's directory, which the lead deletes.
