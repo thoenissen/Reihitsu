@@ -19,7 +19,7 @@ I verified the links. `../sdd/...` from `squad/` and `../../sdd/...` from `squad
 - The follow-up route has one owner, `squad/lead.md` *Follow-ups*. Check 3 defers to it instead of describing its own route.
 
 ## Tests run
-No test covers these Markdown files, and no compiled file changed. I ran `scripts/lane-check.sh tooling` after the commit; the lead can repeat it on the head.
+No test covers these Markdown files, and no compiled file changed. `scripts/lane-check.sh tooling` at `8261e8d`: `LANE CHECK: confirmed — claimed tooling, diff needs tooling`.
 
 ## Disputed tests or scope
 I made a scope note for the lead and did not act on it. The skeptic handover template (`squad/roles/skeptic.md`, *Handover*) has no `Follow-up candidates` section, though `squad/README.md:103` and now check 3 send finds there. The auditor named a matching slot as optional. The template is outside "check 3", so I did not add one. The candidate still reaches the lead because *Follow-ups* covers "any handover". Whether to add the slot is the lead's call.
