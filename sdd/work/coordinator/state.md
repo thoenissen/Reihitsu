@@ -206,6 +206,12 @@ Round 9 message numbering (msg -> inventory section 5 item): 1 P32 (inv9); 2 P33
 Round 9 bookkeeping DONE (agent 2026-10-22): #1380 (SDD P32-P37 + P12 clar.), follow-ups #1381-#1400, docs #1401 (item 29), tooling #1402 (item 30); #1147, #1276, #958, #895, #1377, #963 extended; all 17 question issues closed. Mapping `round9-created.md`. #912 https://github.com/thoenissen/Reihitsu/issues/912#issuecomment-6350039592
 Next runs (prompts `prompts-round9.md`): #1331, #1380, #1402 in parallel; then #1401 and #1377 (after #1331/#1380); then #998 last.
 
+## Round 10 (started 2026-10-23)
+
+Inventory `inventory/round10.md`: #1407 (3 Q), #1408 (3 Q incl. Q-1380-1/2); 3 decided by principle (#1407 Q1 P29 -> extend #1342; #1408 Q1 P26 -> new brace-fix issue RH5405-RH5407 + SHARED-BRACE-002; Q-1380-1 P35 -> extend #1388, RH5011-004/RH8304-004 join #1377). Other: #1411 (RH3103 where T? invalid, Triage), #1412 (RH7105/RH7106 partial ctor bug). #1407/#1408 not on #912 yet.
+Round 10 message items: 1 P38 (#1411 b); 2 P39 (#1407 Q3 c); 3 P35 clarification "creates or keeps" (Q-1380-2 b); 4 P29 clarification doc mode None = ordinary trailing comment (#1407 Q2 b); 5 confirm #1405 readings FMT-STRUCT-024 / SHARED-COMMENT-012; 6 switch-arm `=>` candidate -> comment on #953.
+Prompts `prompts-round10.md`: #1401+#1377 (docs, one run), #1402 (tooling). Then #998.
+
 ## Waiting for maintainer
 
 - 2026-10-23: #1331 (PR #1404), #1380 (PR #1405), #1403 (PR #1406) merged. #1406 rule: a multi-issue run needs ONE shared lane (else maintainer splits); one agent per role for the whole run; branch claude/issues-a-b-c-slug or claude/batch-a-slug. Consequence: #1401+#1377 (docs) one run, #1402 (tooling) separate. Round-10 inventory running -> `inventory/round10.md`.
