@@ -833,9 +833,9 @@ The statements that move into the new block are indented one level deeper and ot
 
 ### SHARED-FIX-008 — A fix keeps the document's line ending
 
-A code fix MUST write only the line ending the document already uses: every line break the fix creates or keeps MUST be that line ending, in a document whose line breaks are CRLF as in one whose line breaks are LF. A line break inside a literal or inside the text of a comment other than a documentation comment is content under SHARED-FIX-003; it stays as it is and does not count when deciding which line ending the document uses, as FMT-PIPE-007 does not count it.
+A code fix MUST write the line ending FMT-PIPE-007 detects for the document. In a document whose line breaks are CRLF, as in one whose line breaks are LF, that is the line ending the document already uses, and every line break the fix creates or keeps MUST be that line ending. A lone `\r` counts as `\n` in that detection, so in a document whose line breaks are all a lone `\r`, every line break the fix creates MUST be `\n`. A line break inside a literal or inside the text of a comment other than a documentation comment is content under SHARED-FIX-003; it stays as it is and does not count when deciding which line ending the document uses, as FMT-PIPE-007 does not count it.
 
-Why: A fix that introduces the other line ending leaves the file with mixed line endings, which the formatter then rewrites.
+Why: A fix that introduces the other line ending leaves the file with mixed line endings, which the formatter then rewrites. Detecting the line ending as the formatter does makes a fix and the formatter write the same line ending into the same document, `\n` in a document whose line breaks are all a lone `\r`.
 
 Example — the RH5405 fix in a document whose line breaks are all CRLF:
 
@@ -862,4 +862,4 @@ class C
 }
 ```
 
-Every line break of the result is CRLF, including the three the fix creates. In a document whose line breaks are all LF, the same fix creates LF line breaks.
+Every line break of the result is CRLF, including the three the fix creates. In a document whose line breaks are all LF, the same fix creates LF line breaks, and in a document whose line breaks are all a lone `\r`, it creates `\n` line breaks.

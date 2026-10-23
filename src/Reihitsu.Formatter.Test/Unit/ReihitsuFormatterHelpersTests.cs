@@ -106,6 +106,66 @@ public class ReihitsuFormatterHelpersTests
     }
 
     /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatterHelpers.DetectEndOfLine"/> returns LF when every line break of the source is a lone carriage return
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-007")]
+    public void DetectEndOfLineReturnsLineFeedWhenEveryLineBreakIsALoneCarriageReturn()
+    {
+        // Arrange
+        const string input = "namespace Test;\rclass Foo { }\rclass Bar { }\r";
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+
+        // Act
+        var result = ReihitsuFormatterHelpers.DetectEndOfLine(root);
+
+        // Assert
+        Assert.AreEqual("\n", result);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatterHelpers.DetectEndOfLine"/> counts a lone carriage return as LF, so two lone carriage returns outnumber one CRLF
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-007")]
+    public void DetectEndOfLineCountsALoneCarriageReturnAsLineFeed()
+    {
+        // Arrange
+        const string input = "namespace Test;\rclass Foo { }\r\nclass Bar { }\r";
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+
+        // Act
+        var result = ReihitsuFormatterHelpers.DetectEndOfLine(root);
+
+        // Assert
+        Assert.AreEqual("\n", result);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatterHelpers.DetectEndOfLine"/> returns CRLF when one lone carriage return, counted as LF, ties with one CRLF
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-007")]
+    public void DetectEndOfLineReturnsCarriageReturnLineFeedWhenALoneCarriageReturnTiesWithIt()
+    {
+        // Arrange
+        const string input = "namespace Test;\rclass Foo { }\r\nclass Bar { }";
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+
+        // Act
+        var result = ReihitsuFormatterHelpers.DetectEndOfLine(root);
+
+        // Assert
+        Assert.AreEqual("\r\n", result);
+    }
+
+    /// <summary>
     /// Verifies that <see cref="ReihitsuFormatterHelpers.DetectEndOfLine"/> falls back to <see cref="System.Environment.NewLine"/> when no end-of-line trivia is found
     /// </summary>
     [TestMethod]

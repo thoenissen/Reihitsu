@@ -681,6 +681,25 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
     }
 
     /// <summary>
+    /// Verifies that the three line breaks the fix creates are LF in a document whose line breaks are all a lone
+    /// carriage return
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    public async Task FixWritesLineFeedInADocumentWhoseLineBreaksAreLoneCarriageReturns()
+    {
+        var source = NormalizeToLineFeed(LineOfIfTestCode).Replace("\n", "\r", StringComparison.Ordinal);
+
+        var actual = await ApplyCodeFixAsync(source);
+
+        // The fix creates the line breaks behind "if (a)", behind the opening brace and behind the body. Only those are
+        // asserted to be LF; the layout is compared with every line break read as LF.
+        Assert.AreEqual(NormalizeToLineFeed(LineOfIfFixedCode), NormalizeEveryLineBreakToLineFeed(actual));
+        Assert.Contains("        if (a)\n        {\n            M(a, b);\n        }", actual);
+    }
+
+    /// <summary>
     /// Verifies that the LF line breaks inside a verbatim string literal stay LF when the fix is applied in a document
     /// whose other line breaks are CRLF, and that they do not decide the line ending of the line breaks the fix
     /// creates, although they outnumber the document's other line breaks
@@ -774,6 +793,16 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
     private static string NormalizeToLineFeed(string text)
     {
         return text.Replace("\r\n", "\n", StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Reads every line break of the provided text as LF, whether it is CRLF, LF or a lone carriage return
+    /// </summary>
+    /// <param name="text">Text to normalize</param>
+    /// <returns>The text with LF line breaks</returns>
+    private static string NormalizeEveryLineBreakToLineFeed(string text)
+    {
+        return NormalizeToLineFeed(text).Replace("\r", "\n", StringComparison.Ordinal);
     }
 
     #endregion // Methods

@@ -5,7 +5,7 @@
 | ID prefix | FMT-PIPE |
 | Status | Active |
 | Code owners | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `FormattingContext`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities` |
-| Uses | SHARED-FIX-006 |
+| Uses | SHARED-FIX-006, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026 |
 
 This spec covers what holds for the formatter as a whole: the public entry points, the fixed phase order, and the invariants every phase must keep. What an individual phase decides is specified in that phase's own spec.
 
@@ -135,9 +135,9 @@ class C
 
 ### FMT-PIPE-007 — The file's predominant line ending is used
 
-The formatter MUST detect the file's predominant line ending by counting end-of-line trivia and documentation-comment newlines, use `\r\n` when it occurs at least as often as `\n`, and fall back to `Environment.NewLine` when the input contains no line break at all. Every line break the formatter writes MUST use the detected line ending, and FMT-EOL rewrites the existing line breaks between tokens and inside documentation comments to it. Line breaks inside literals, inside other comments, and inside disabled text keep their original line ending (FMT-PIPE-002).
+The formatter MUST detect the file's predominant line ending by counting end-of-line trivia and documentation-comment newlines, use `\r\n` when it occurs at least as often as `\n`, and fall back to `Environment.NewLine` when the input contains no line break at all. A line break of a single character, such as a lone `\r`, MUST count as `\n`, so a file whose line breaks are all a lone `\r` gets `\n`. Every line break the formatter writes MUST use the detected line ending, and FMT-EOL rewrites the existing line breaks between tokens and inside documentation comments to it. Line breaks inside literals, inside other comments, and inside disabled text keep their original line ending (FMT-PIPE-002).
 
-Why: Mixed line endings produce whole-file diffs in version control. The majority wins because it is what the file's author most likely uses; a tie goes to `\r\n` so the decision is deterministic.
+Why: Mixed line endings produce whole-file diffs in version control. The majority wins because it is what the file's author most likely uses; a tie goes to `\r\n` so the decision is deterministic. A lone `\r` is not a line ending the formatter writes, so a file that uses it gets the one-character line ending it does write.
 
 Example — the input has four `\r\n` line breaks and one `\n` (`␍` marks a `\r`); the missing final line break is FMT-CLEAN's doing:
 
@@ -158,6 +158,24 @@ class C␍
     int x;␍
 }
 ```
+
+Example — the input has two lone `\r` line breaks and one `\r\n` (`␍` marks a `\r`: at the end of a line it is the first half of a `\r\n`, inside a line it is a lone `\r`). The two lone `\r` count as `\n`, so `\n` outnumbers `\r\n`:
+
+```csharp
+class C␍{␍void M(){}␍
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+    }
+}
+```
+
+Every line break of the result is `\n`. With a second `\r\n` behind the closing brace, the count is a tie and every line break of the result is `\r\n`. In a file whose line breaks are all a lone `\r`, every line break of the result is `\n`.
 
 ### FMT-PIPE-008 — Version-dependent rules follow the language version
 
@@ -245,3 +263,102 @@ Why: A code fix that reformats the member it changed must not also change the me
 `FormatNode` MUST format the node it is given without checking for syntax errors or the generated-code marker, and MUST take the indentation level from its `indentLevel` argument when that is zero or greater, otherwise from the node's position in its tree.
 
 Why: `FormatNode` receives freshly generated or detached subtrees that have no file header and whose tree diagnostics say nothing about the file they will be inserted into. The caller is responsible for passing a node that is safe to format.
+
+### FMT-PIPE-013 — Wrapping code in a block keeps the comments' layout
+
+When the formatter wraps code in braces or a block — the braces of a switch section (FMT-SWITCH), the braces of an `if` or `else` body, or the block body of an expression-bodied member (FMT-STRUCT) — it MUST keep the layout the author gave the comments that the wrapped code carries:
+
+- the space between two comments on the same line;
+- a comment's place on the line of its statement, whether the comment stands in front of the statement or behind it;
+- the blank lines between the comments that lead a statement.
+
+A comment on a line of its own above the statement stays on a line of its own, and a comment behind the statement stays behind it. The phases after the wrap decide for the wrapped comments what they decide for any other comment, such as collapsing a run of blank lines to one.
+
+Why: A wrap adds braces; it is not a decision about the comments. The space between two comments, a comment written on its statement's line, and a blank line that groups comments are the author's layout, and the same comments keep it in code that needs no wrap. FMT-PIPE-002 lets a phase normalize the whitespace around comments; a wrap that loses this layout only because it rebuilt the trivia around the new braces is no such normalization.
+
+Example — the comment in front of `Foo();` stays on its own line, and the comments behind `42` and `Foo();` stay on their lines:
+
+```csharp
+class C
+{
+    int Get() => 42 /* why */;
+
+    void M(bool a)
+    {
+        if (a)
+            // leading
+            Foo(); // trailing
+    }
+}
+```
+
+```csharp
+class C
+{
+    int Get()
+    {
+        return 42 /* why */;
+    }
+
+    void M(bool a)
+    {
+        if (a)
+        {
+            // leading
+            Foo(); // trailing
+        }
+    }
+}
+```
+
+### FMT-PIPE-014 — One treatment per syntax family
+
+The formatter MUST lay out and space every member of a syntax family alike. Each of these is one family:
+
+- every parameter list, the bracketed parameter list of an indexer included;
+- every assignment operator: `=` and every compound assignment operator, such as `+=` and `??=`;
+- every arrow `=>`, whatever construct it belongs to;
+- every colon that ends an attribute target, such as the colon of `return:`, `assembly:`, or `field:`;
+- every closing bracket of an initializer-like block, such as the `}` of an object or collection initializer and the `]` of a collection expression.
+
+This requirement does not override the layout a construct's own requirement chooses for it inside its family; it requires that no member of a family is left out of the treatment the requirements give that family. These choices stay as their requirements make them: a function-pointer parameter list is joined onto one line (FMT-BREAK-014); an array initializer keeps the author's layout while an object or collection initializer is laid out over several lines (FMT-BREAK-021); a collection expression written on one line stays on it (FMT-BREAK-022); the arrow of an expression-bodied property or indexer joins the declaration's line (FMT-BREAK-026); and the arms of a switch expression keep the line breaks the author wrote. Within those choices, an indexer's parameter list is laid out as the parameter list of a method is, a compound assignment as an assignment with `=` is, every attribute-target colon is spaced alike, a comment in front of a closing `]` is indented as one in front of a closing `}` is, and every arrow is spaced alike.
+
+Why: A reader learns the layout of a construct once and expects it wherever the construct occurs. When the formatter lays out one member of a family and leaves another as it was written, the same shape stays formatted in one place and unformatted in the next, and the author cannot predict which. A construct's own requirement chooses its layout for reasons of its own, such as keeping literal data lists short; the family statement does not undo those reasons, it keeps a member from being left out because the treatment was written for its neighbors only.
+
+Example — the parameter lists of a constructor and a method are laid out alike (FMT-BREAK-011, FMT-BREAK-012), and so are two assignments wrapped before and after their `=` (FMT-BREAK-016):
+
+```csharp
+class C
+{
+    C(int a
+      , int b)
+    {
+    }
+
+    void M(int a
+           , int b)
+    {
+        a
+            = b;
+        b =
+            a;
+    }
+}
+```
+
+```csharp
+class C
+{
+    C(int a,
+      int b)
+    {
+    }
+
+    void M(int a,
+           int b)
+    {
+        a = b;
+        b = a;
+    }
+}
+```

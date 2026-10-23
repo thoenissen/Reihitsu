@@ -877,6 +877,62 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests : Ba
         await Verify(NormalizeToCarriageReturnLineFeed(testData));
     }
 
+    /// <summary>
+    /// Verifies that an object member behind a block comment which starts its line in column zero is reported,
+    /// although the member stands in its column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5301-002")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyMemberInItsColumnBehindMisplacedBlockCommentIsDetected()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Value { get; set; }
+
+                                    private static void Method()
+                                    {
+                                        var value = new Example
+                                                    {
+                                /* c */                 {|#0:Value = 1|}
+                                                    };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5301MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an object member behind a block comment which starts its line in column zero is reported,
+    /// although the member stands in its column, under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5301-002")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyMemberInItsColumnBehindMisplacedBlockCommentIsDetectedWithCrLf()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Value { get; set; }
+
+                                    private static void Method()
+                                    {
+                                        var value = new Example
+                                                    {
+                                /* c */                 {|#0:Value = 1|}
+                                                    };
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5301MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

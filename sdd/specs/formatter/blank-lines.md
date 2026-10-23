@@ -243,9 +243,9 @@ class C
 
 ### FMT-BLANK-005 — The blank line after a closing brace goes behind a directive
 
-The formatter MUST apply SHARED-BLANK-003. When directives stand between the closing brace and the next statement, it MUST insert the blank line after the last of those directives, directly before the statement. When both statements share a line, it MUST insert the blank line as well; FMT-BREAK then puts them on separate lines.
+The formatter MUST apply SHARED-BLANK-003. When directives stand between the closing brace and the next statement, it MUST insert the blank line after the last of those directives: directly before the statement, or, when comments stand between that directive and the statement, in front of those comments (FMT-BLANK-016). When both statements share a line, it MUST insert the blank line as well; FMT-BREAK then puts them on separate lines.
 
-Why: SHARED-BLANK-003 has no directive exemption, but a blank line inserted at the start of the gap would land inside the conditional region the directive opens or closes. Placing it directly before the statement keeps it outside. Same-line pairs do not survive formatting, so the formatter decides them as if they were already split.
+Why: SHARED-BLANK-003 has no directive exemption, but a blank line inserted at the start of the gap would land inside the conditional region the directive opens or closes. Placing it after the last directive keeps it outside. Same-line pairs do not survive formatting, so the formatter decides them as if they were already split.
 
 Example:
 
@@ -966,6 +966,84 @@ y";
 
 
            two */
+    }
+}
+```
+
+### FMT-BLANK-016 — A required blank line goes after directives, never directly in front of one
+
+When the formatter inserts a blank line that FMT-BLANK-001 to FMT-BLANK-005 ask for into a gap that holds a preprocessor directive, it MUST insert the blank line after the last directive of the gap, in front of the comments that stand between that directive and the code behind it, and it MUST NOT insert a blank line directly in front of a directive. Whether such a gap needs the blank line at all is decided by the requirement that asks for it, together with FMT-BLANK-006 for a directive directly in front of a statement. This requirement covers only the blank lines the formatter inserts; a blank line the author wrote in front of a directive is decided by the other requirements, such as FMT-BLANK-009.
+
+Why: A directive opens or closes a conditional region, or changes the compiler's state for the code behind it. A blank line inserted in front of it lands inside the region of the directive above, or separates the directive from code the author grouped with it. Behind the last directive, the blank line separates what the requirement asks it to separate: the code that follows, with the comments that describe it, from what comes before.
+
+Example — no blank line is inserted in front of `#if` or `#pragma`, and the blank line after the `if` statement's closing brace goes after `#endif`:
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        a++;
+#if !NEVER
+        if (a > 0)
+        {
+        }
+#endif
+        a++;
+#pragma warning disable CS0168
+        return;
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        a++;
+#if !NEVER
+        if (a > 0)
+        {
+        }
+#endif
+
+        a++;
+#pragma warning disable CS0168
+        return;
+    }
+}
+```
+
+A comment between the last directive and the statement stays with the statement, so the blank line goes in front of the comment:
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        if (a > 0)
+        {
+        }
+#pragma warning disable CS0168
+        // why
+        a++;
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        if (a > 0)
+        {
+        }
+#pragma warning disable CS0168
+
+        // why
+        a++;
     }
 }
 ```
