@@ -435,6 +435,35 @@ public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzerTes
         Assert.Contains("              b);\n        }", actual);
     }
 
+    /// <summary>
+    /// Verifies that the line break the fix keeps inside the body it wraps, between <c>M(a,</c> and <c>b);</c>, is LF
+    /// in a document whose line breaks are all a lone carriage return, like the line breaks the fix creates
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    public async Task FixWritesLineFeedForTheLineBreakItKeepsInsideTheWrappedBodyInADocumentWhoseLineBreaksAreLoneCarriageReturns()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, bool b)
+                                    {
+                                        if (a) M(a,
+                                                 b);
+                                    }
+                                }
+                                """;
+
+        var source = NormalizeToCarriageReturnLineFeed(testCode).Replace("\r\n", "\r", StringComparison.Ordinal);
+
+        Assert.DoesNotContain("\n", source, "The input must contain lone carriage returns only.");
+
+        var actual = await ApplyCodeFixAsync(source);
+
+        Assert.Contains("            M(a,\n              b);", actual, "The line break the fix keeps inside the body must be LF.");
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

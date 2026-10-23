@@ -13,8 +13,8 @@ This spec covers the raw-string phase: after indentation has placed every token,
 
 - The position of the opening quotes — they move with the statement, decided by FMT-BREAK, FMT-SPACE, and FMT-INDENT.
 - Single-line raw strings, regular strings, and verbatim (`@"…"`) strings, whose line starts are part of the value.
-- The layout of interpolation holes that span several lines, and of raw strings nested inside an interpolation hole.
-- Raw strings whose indentation uses tab characters.
+- The layout of interpolation holes that span several lines, and of raw strings nested inside an interpolation hole. Their intended layout is decided as a bug, tracked in thoenissen/Reihitsu#951.
+- Raw strings whose indentation uses tab characters. Their intended alignment is decided as a bug, tracked in thoenissen/Reihitsu#951.
 
 ## Requirements
 

@@ -183,6 +183,7 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3003-002")]
+    [Requirement("SHARED-DIAG-011")]
     public async Task EmptyStringInConstFieldIsNotReported()
     {
         const string testCode = """
@@ -460,6 +461,7 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3003-002")]
+    [Requirement("SHARED-DIAG-011")]
     public async Task EmptyLiteralsWhereAConstantIsRequiredAreNotReported()
     {
         const string testCode = """
@@ -563,6 +565,36 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
 
                                          return s switch { var y when y == string.Empty => 2, _ => 3 };
                                      }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a position that requires a constant: the empty literal that initializes
+    /// a <c>const</c> field is not reported, because <c>string.Empty</c> is not a constant, while the empty literal
+    /// that initializes an ordinary field is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3003-002")]
+    [Requirement("SHARED-DIAG-011")]
+    public async Task StringEmptyIsAskedForOnlyWhereNoConstantIsRequired()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    const string F = "";
+                                    string _g = {|RH3003:""|};
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     const string F = "";
+                                     string _g = string.Empty;
                                  }
                                  """;
 

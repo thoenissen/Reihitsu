@@ -5,7 +5,7 @@
 | ID prefix | SHARED-STMT |
 | Status | Active |
 | Code owners | `StatementShouldBePrecededByABlankLineAnalyzerBase<TStatement>`, `StatementShouldBePrecededByABlankLineCodeFixProviderBase` |
-| Uses | SHARED-BLANK-001, FMT-BLANK-001 |
+| Uses | SHARED-BLANK-001, FMT-BLANK-001, SHARED-FIX-008 |
 
 This spec covers the rules that ask for a blank line in front of one kind of statement: when such a statement is reported, which statements are never checked, and what the code fix inserts. Each rule that uses this spec names its statement kind, where its diagnostic is located, and any exception of its own. The formatter's counterpart is FMT-BLANK-001.
 
@@ -113,7 +113,7 @@ is not reported by RH5002.
 
 ### SHARED-STMT-004 — The fix inserts one blank line above the statement and its comments
 
-The code fix MUST make exactly one blank line appear in front of the reported statement. When comments sit directly above the statement on their own lines, the blank line MUST go above the first of them. When the statement shares its line with the statement before it, the fix MUST move it to a new line, indented like the statement it follows. Inserted line breaks MUST use the line ending the document already uses.
+The code fix MUST make exactly one blank line appear in front of the reported statement. When comments sit directly above the statement on their own lines, the blank line MUST go above the first of them. When the statement shares its line with the statement before it, the fix MUST move it to a new line, indented like the statement it follows. Inserted line breaks MUST use the line ending SHARED-FIX-008 specifies.
 
 Why: A comment directly above the statement describes it, so it stays with the statement; putting the blank line between them would leave the comment describing the code above. The fix changes only the gap in front of the statement.
 

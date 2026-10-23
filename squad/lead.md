@@ -76,11 +76,11 @@ Watch the published PR until its CI is green. A failure caused by the PR is a fi
 
 ## Escalating
 
-Stop all role work — in a run of several issues, for every issue, not only the one that escalated. Ask with the facts the maintainer needs to answer without scrolling back: the question, the options with a concrete example each, and your recommendation. Record the answer, summarized in English, in `squad/decisions/` (see [`decisions/README.md`](decisions/README.md)) before continuing.
+Stop all role work — in a run of several issues, for every issue, not only the one that escalated. Ask in the chat, in the format of `Asking the maintainer` in [`AGENTS.md`](../AGENTS.md): the context the maintainer needs to answer without scrolling back, the question, the options with a concrete example each, and your recommendation; then wait for the answer in the chat. Record the answer, summarized in English, in `squad/decisions/` (see [`decisions/README.md`](decisions/README.md)) before continuing.
 
 ## Follow-ups
 
-A follow-up candidate from any handover is first searched among open and closed issues; reuse an exact match. Otherwise draft it in English from the matching `.github/ISSUE_TEMPLATE/` form and show it to the maintainer. Create it through the GitHub MCP server only after the maintainer approved that exact text, and link it under `Follow-up work` in the PR. A follow-up never joins the run: the run implements exactly the issues the prompt names, and two separable concerns in one issue become two PRs.
+A follow-up candidate from any handover is first searched among open and closed issues; reuse an exact match. Otherwise draft it in English from the matching `.github/ISSUE_TEMPLATE/` form and show it to the maintainer. Create it through the GitHub MCP server only after the maintainer approved that exact text, and link it under `Follow-up work` in the PR. A new-rule candidate ([P11](../sdd/README.md#the-formatter-may-do-more-than-the-analyzers-p11)) that a handover names is a follow-up candidate like any other: you present it, and the maintainer decides whether it becomes an issue. A follow-up never joins the run: the run implements exactly the issues the prompt names, and two separable concerns in one issue become two PRs.
 
 ## Never
 

@@ -1126,6 +1126,8 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-DIAG-011")]
+    [Requirement("SHARED-FIX-003")]
     public async Task NegationAsAWholeIsPatternIsReportedWithoutACodeFix()
     {
         const string testCode = """

@@ -8,6 +8,10 @@ Everything above is imported from `AGENTS.md`, the single source of repository i
 
 Claude runs in a Linux cloud sandbox, so let the repository scripts install .NET 10 into `$HOME/.dotnet` when no `10.*` SDK is present — the sandbox is fresh on every session, so `--no-install` does not apply here. GitHub is reached through the GitHub MCP server (`mcp__github__*`), not the `gh` CLI.
 
+## Asking the maintainer
+
+`AskUserQuestion` is the question dialog that `Asking the maintainer` in `AGENTS.md` restricts: use it only for a short question whose options fit in their labels and need no code or background. Every other question — every squad escalation included — is a chat message in the format `AGENTS.md` describes, and you end your turn after posting it.
+
 ## The squad
 
 Issues are implemented by the squad described in [`squad/README.md`](squad/README.md). Start a run with `/squad <issue>`, or with `/squad <issue> <issue> ...` for one run with one pull request over several issues: the session agent becomes the lead and follows [`squad/lead.md`](squad/lead.md).

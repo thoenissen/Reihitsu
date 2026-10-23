@@ -5,7 +5,7 @@
 | ID prefix | SHARED-FIX |
 | Status | Active |
 | Code owners | — |
-| Uses | FMT-PIPE-007, SHARED-DIAG-008, SHARED-DIAG-010, SHARED-JOIN-001, SHARED-ORDER-002 |
+| Uses | FMT-PIPE-007, SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, SHARED-DOC-004, SHARED-JOIN-001, SHARED-ORDER-002 |
 
 This spec covers what holds for every code fix of an analyzer rule, so a rule spec states only what its own fix produces and when it is withheld. It applies to every rule whose header names a code fix, without being listed under `Uses`; SHARED-FIX-002 applies to the rules whose header says `Fix All`.
 
@@ -154,10 +154,11 @@ A code fix MUST NOT be offered when its result would:
 
 - have a compile error that the code did not have;
 - change what the program does at run time;
-- change the text of a comment, a directive, or a literal that the user wrote; or
-- leave code that an `#if` branch excludes referring to a name the fix changed.
+- change the text of a comment, a directive, or a literal that the user wrote;
+- leave code that an `#if` branch excludes referring to a name the fix changed; or
+- change which declarations a documentation comment documents.
 
-The diagnostic is still reported: withholding a fix never removes a report, also for an input where the fix is withheld because no correction compiles or keeps what the program does, for example `typeof(Nullable<>)` or `x is !true`. Which inputs a rule reports at all is decided by its own requirements and by the requirements that name inputs a rule does not report, such as SHARED-DIAG-008, SHARED-DIAG-010, and SHARED-JOIN-001; this requirement adds none. The second and third conditions are bounded as follows:
+The diagnostic is still reported: withholding a fix never removes a report, also for an input where the change the rule asks for can be written at that position and only the fix is withheld, for example `x is !true`, which RH3001 reports without a fix although `x is (true == false)` is valid there. Which inputs a rule reports at all is decided by its own requirements and by the requirements that name inputs a rule does not report, such as SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, and SHARED-JOIN-001; this requirement adds none. The second, third, and fifth conditions are bounded as follows:
 
 - **Run time.** The new name or the new accessibility that the fix exists to produce does not count; any other difference in behavior does. Reordering the instance fields of a type whose field order sets its layout counts. That is a struct, which has sequential layout unless it declares `LayoutKind.Auto` or `LayoutKind.Explicit`, and any other type declared with `[StructLayout(LayoutKind.Sequential)]`. Under `LayoutKind.Explicit`, each field's `[FieldOffset]` sets its offset, so the field order sets no layout. A reorder that changes neither a layout nor the order in which code runs does not count.
 - **Comment, directive, and literal text.** Text that a diagnostic of the fix's own rule reports may change. Two kinds of text change together with a name the fix changes, as part of the rename:
@@ -165,8 +166,9 @@ The diagnostic is still reported: withholding a fix never removes a report, also
   - the comment of an `#endregion` that repeats the name of the region the fix renames; an `#endregion` comment that does not repeat that name stays unchanged.
 
   Layout does not count: the whitespace around a comment or a directive and the indentation of its lines; in a documentation comment, also the `///` exterior and the whitespace and line breaks next to an XML tag; and the indentation of a raw string literal's lines when the literal's value stays the same. The text of a comment or a directive is content, including the whitespace and line breaks inside it, such as between two words of a `//` or `/* */` comment or of a directive's message. A change to that text counts, and so does a changed value of a literal.
+- **Documentation.** A documentation comment documents a declaration as SHARED-DOC-004 states, when the documentation mode of the syntax tree is `Parse` or `Diagnose`; a comment of a field or event declaration with several declarators documents each of them. A fix changes which declarations a comment documents when, in its result, a declaration that the comment documented in the code the fix is applied to is no longer documented by it, or a declaration it did not document is, for example because the fix moves the declaration and leaves the comment behind, or splits a declaration with several declarators and keeps the comment on one part only. A fix that removes the declaration together with its comment does not count, and neither does a change to a documentation comment that a diagnostic of the fix's own rule reports. In the documentation mode `None`, the compiler attaches no documentation comment to a declaration, so the condition does not apply; where a `///` comment behind code goes then is stated by SHARED-DOC-004.
 
-Why: A user applies a fix trusting that it only corrects what the diagnostic names. A fix that breaks the build, changes behavior, or edits text the user wrote as content hands the user a defect in exchange for a warning. The new name or accessibility is the correction itself, not a change in behavior; a field order that sets a type's layout is behavior, because native code and code that reads the memory directly see the fields in that order. A rename has to reach every place that refers to the symbol or repeats the region's name, and layout is not content, so neither is such an edit. Code excluded by `#if` compiles in another configuration, so a rename that misses it breaks that build. A diagnostic without a fix is a supported end state; a broken fix is not.
+Why: A user applies a fix trusting that it only corrects what the diagnostic names. A fix that breaks the build, changes behavior, or edits text the user wrote as content hands the user a defect in exchange for a warning. The new name or accessibility is the correction itself, not a change in behavior; a field order that sets a type's layout is behavior, because native code and code that reads the memory directly see the fields in that order. A rename has to reach every place that refers to the symbol or repeats the region's name, and layout is not content, so neither is such an edit. Code excluded by `#if` compiles in another configuration, so a rename that misses it breaks that build. Documentation belongs to the declarations it documents, and no fix may lose it: a fix that leaves it behind, or keeps it on one part of a split declaration, takes it from a declaration and can hand it to whatever code follows, which changes the documentation the compiler generates and what the editor shows. Where the documentation should go then is the author's decision, so the user rearranges such code by hand. A diagnostic without a fix is a supported end state; a broken fix is not.
 
 Example — a compile error, for RH4106:
 
@@ -420,6 +422,8 @@ public class C
 ```
 
 The excluded branch does not name `Value`, so the fix is offered and leaves that branch as it is.
+
+Example — documentation that stays with its declaration, for RH7103: the RH7103 examples under SHARED-DOC-004, where the fix carries a documentation comment with the declaration it moves. The comment documents the same declaration after the fix, so the fix is offered.
 
 ### SHARED-FIX-004 — The fixes of two rules do not undo each other
 
@@ -833,9 +837,9 @@ The statements that move into the new block are indented one level deeper and ot
 
 ### SHARED-FIX-008 — A fix keeps the document's line ending
 
-A code fix MUST write the line ending FMT-PIPE-007 detects for the document. In a document whose line breaks are CRLF, as in one whose line breaks are LF, that is the line ending the document already uses, and every line break the fix creates or keeps MUST be that line ending. A lone `\r` counts as `\n` in that detection, so in a document whose line breaks are all a lone `\r`, every line break the fix creates MUST be `\n`. A line break inside a literal or inside the text of a comment other than a documentation comment is content under SHARED-FIX-003; it stays as it is and does not count when deciding which line ending the document uses, as FMT-PIPE-007 does not count it.
+A code fix MUST write the line ending FMT-PIPE-007 detects for the document: every line break the fix creates or keeps in the code it changes MUST be that line ending. The code it changes is the span the fix replaces, rewrites, or moves, its trailing trivia included; a line break the fix keeps in that span, such as one inside code it moves (SHARED-FIX-007), keeps its position and gets that line ending. A line break outside that span, such as the one that ends the line of a change that ends within the line, is not in the scope of the fix and is not covered by this requirement. In a document whose line breaks are CRLF, as in one whose line breaks are LF, the detected line ending is the one the document already uses. A lone `\r` counts as `\n` in that detection, so in a document whose line breaks are all a lone `\r`, every line break the fix creates or keeps in the code it changes MUST be `\n`. A line break inside a literal or inside the text of a comment other than a documentation comment is content under SHARED-FIX-003; it stays as it is and does not count when deciding which line ending the document uses, as FMT-PIPE-007 does not count it.
 
-Why: A fix that introduces the other line ending leaves the file with mixed line endings, which the formatter then rewrites. Detecting the line ending as the formatter does makes a fix and the formatter write the same line ending into the same document, `\n` in a document whose line breaks are all a lone `\r`.
+Why: A fix that introduces the other line ending leaves the file with mixed line endings, which the formatter then rewrites. Detecting the line ending as the formatter does makes a fix and the formatter write the same line ending into the same document, `\n` in a document whose line breaks are all a lone `\r`. A line break the fix keeps in the code it changes is part of the lines it rewrites, so it gets the same line ending as the ones it creates; one rule for both leaves no line of the changed code with a line ending the fix would not write.
 
 Example — the RH5405 fix in a document whose line breaks are all CRLF:
 

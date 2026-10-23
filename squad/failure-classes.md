@@ -56,8 +56,8 @@ Known ways a change in this repository goes wrong. The skeptic names the classes
 | FC-010 | A phase run on its own output is not a no-op, often only on CRLF input | RC reviews |
 | FC-011 | A loop-until-stable has no decreasing measure, or a guard that refuses an edit still reports "changed" upstream — a hang | RC reviews |
 | FC-012 | Two neighboring phases undo each other (insert ↔ collapse) | RC reviews |
-| FC-013 | Analyzer and formatter disagree: formatter output is flagged by the analyzer, or analyzer-clean code is changed by the formatter | RC reviews |
-| FC-014 | A new analyzer's concern is owned by no formatter phase, leaving permanent diagnostics for CLI users | RC reviews |
+| FC-013 | Analyzer and formatter disagree: formatter output is flagged by a rule that [SHARED-DIAG-010](../sdd/specs/shared/diagnostics.md) (P31) covers — a layout rule whose code fix lays code out as the formatter does. An order or content rule may report what the formatter keeps, and analyzer-clean code that the formatter changes is not this class where [P11](../sdd/README.md#the-formatter-may-do-more-than-the-analyzers-p11) calls the rewrite intended | RC reviews |
+| FC-014 | A new rule's concern is of a kind the formatter judges — layout, or an order or a syntax form that a formatter phase rewrites, such as using order, expression bodies, trailing commas, braces of empty types, or field splitting — but no formatter phase owns it for the rule's construct, leaving permanent diagnostics for CLI users. Order or content that the formatter does not judge, such as the order of members or the content of comments, is not this class: the formatter keeps it without judging it, so [SHARED-DIAG-010](../sdd/specs/shared/diagnostics.md) lets a rule about it report what the formatter keeps | RC reviews |
 
 ## Tests and evidence
 
