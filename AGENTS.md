@@ -56,8 +56,39 @@ Issues here are filed under the maintainer's GitHub account, but many of them ar
 - Verify the premise before implementing it. A bug report is confirmed only by a test that reproduces its reported behavior; a report that says it was derived from reading code rather than from running it has confirmed nothing yet, however precise its file-and-line references look.
 - Check the reasoning, not only the example. A report can reproduce and still be wrong about why it matters, how far it generalizes, or how severe it is. Its severity argument is a claim like any other and gets tested like one.
 - Reject a framing the repository's own policy contradicts. A report that treats a diagnostic without a fix as a defect in itself is arguing against `Code-fix coverage` above, and that argument does not become correct by being written in an issue.
+- Check a report that asks an analyzer to follow the formatter, or calls the formatter wrong because no rule reports what it rewrites, against [The formatter may do more than the analyzers (P11)](sdd/README.md#the-formatter-may-do-more-than-the-analyzers-p11) before implementing it: the formatter may do more than the analyzers, a rule is not widened to a different construct only because it roughly fits, and a gap inside the rule's own construct is the rule's gap.
 - Fix the defect that exists, not the one the issue asserts. Where the analysis and the report disagree, implement the analysis and state plainly in the pull request how the shipped change differs from what was requested.
 - Say so when a report turns out to be wrong, overstated, or already-correct behavior. Downgrading, narrowing, or closing it is a legitimate result of a run. A bug that does not reproduce keeps its passing test as a characterization test, the pull request links the issue with `Refs #<N>` rather than `Closes #<N>`, and the maintainer decides how to proceed.
+
+## Asking the maintainer
+
+A question the maintainer has to decide is posted as an ordinary chat message, and the maintainer answers in the chat. Question dialogs and option pickers truncate long text, render no code, and leave no room for context; they are used only for a short question whose options fit in a few words and need no explanation, such as confirming a step. Anything with code, several trade-offs, or background goes into the chat.
+
+Write the question so it can be answered without opening a file or scrolling back:
+
+1. **Context** — what you are working on (issue, run, stage), what you found, and why it needs a decision now. Quote the relevant code, input, or output inline in a fenced block, kept to the lines that matter, with its `path:line`. State what has already been ruled out.
+2. **Question** — one sentence, answerable by naming an option.
+3. **Options** — labeled `A`, `B`, `C`, each with what it means, a concrete example (code, or input and resulting output), and its consequence: what it costs, what it breaks, what it leaves for later.
+4. **Recommendation** — always. Name the option and give the reason in one or two sentences. When no option is clearly better, still pick one and say what would change the pick.
+
+Several questions in one message are numbered `1`, `2`, … with options `1A`, `1B`, …, so that an answer such as `1A, 2C` is unambiguous. Ask everything that is open at that point in one message rather than one question per turn.
+
+Then stop and wait. The recommendation is not an answer: do not continue on it, and do not treat silence or an unrelated reply as consent. An answer that does not clearly select an option is asked back, briefly.
+
+```markdown
+**Context.** Issue #123, RH3202 code fix. The fix rewrites expression-bodied methods to block bodies, but this input carries a comment inside the arrow expression (`src/Reihitsu.Analyzer.CodeFixes/...:42`):
+
+    int Get() => /* cached */ _value;
+
+Moving the comment into the block changes its position relative to `return`.
+
+**Question.** Should the fix withhold itself for this input?
+
+- **A** — Withhold the fix; the diagnostic stays without one. Satisfies SHARED-FIX-003, and the gap is the comment limitation `general-notes.md` already states.
+- **B** — Move the comment before `return`. Output: `{ /* cached */ return _value; }`. Relocates a user comment, which SHARED-FIX-003 forbids.
+
+**Recommendation: A** — B violates SHARED-FIX-003, and A needs no new documentation.
+```
 
 ## The squad
 
