@@ -42,3 +42,10 @@ The auditor blocked again (`08-auditor.md`, escalation 7). The maintainer chose 
 
 1. Medium — an issue's own lane is never re-checked during the run; it widens like a single run's lane, with the roles the widening adds run for that issue and escalation 10 once the implementer has started; the README's two sentences on lane-keyed duties of the tree-checking roles must agree.
 2. Low — only issue references select issues; other prompt text is context, and the lead asks when it is unclear whether an issue is meant.
+
+## Repair round 3
+
+The auditor blocked again (`12-auditor.md`, escalation 7). The maintainer chose a third repair round with a changed design (`squad/decisions/2026-10-23-1403-same-lane-batches.md`): every issue of a run shares one lane, the per-issue lanes and the union of roles are removed, the run widens as a whole like a single-issue run, and issues that need different lanes are split before the claim. Both findings go to the implementer:
+
+1. Medium — the per-issue lane mechanism, replaced by the same-lane rule.
+2. Low — a single issue reference inside other text is asked about too.
