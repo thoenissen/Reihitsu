@@ -678,8 +678,9 @@ public class RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzerTest
 
     /// <summary>
     /// Characterizes a method that implements the members of two interfaces: only the first interface in base-list order is
-    /// accepted, so the verdict changes with the order of the base list. The case is an open question about intended
-    /// behavior, so this test pins today's behavior without stating it as intended
+    /// accepted, so the verdict changes with the order of the base list. This test pins today's behavior; the decided
+    /// behavior is stated by SHARED-DIAG-009, which accepts the region of any interface the method implements, and its
+    /// change belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -761,6 +762,87 @@ public class RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzerTest
                                     public partial void N();
 
                                     #endregion
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("I")));
+    }
+
+    /// <summary>
+    /// Verifies the conforming part of the specification example: a method that implements a member of two interfaces
+    /// and lies in the region of the interface that comes first in the base list is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-009")]
+    public async Task VerifyMethodImplementingTwoInterfacesInTheRegionOfTheFirstInBaseListIsNotReported()
+    {
+        const string testData = """
+                                interface IA
+                                {
+                                    void M();
+                                }
+
+                                interface IB
+                                {
+                                    void M();
+                                }
+
+                                class D : IB, IA
+                                {
+                                    #region IB
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the base list written in another part of a partial type decides the verdict
+    /// as it would in the same part, so a method in the region of its interface is not reported and a method in no
+    /// region is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-009")]
+    public async Task VerifyBaseListInAnotherPartialDeclarationDecidesTheVerdict()
+    {
+        const string testData = """
+                                interface I
+                                {
+                                    void M();
+                                }
+
+                                partial class C : I
+                                {
+                                }
+
+                                partial class C
+                                {
+                                    #region I
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+
+                                partial class D : I
+                                {
+                                }
+
+                                partial class D
+                                {
+                                    public void {|#0:M|}()
+                                    {
+                                    }
                                 }
                                 """;
 

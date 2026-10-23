@@ -853,6 +853,56 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
         await Verify(source, fixedSource);
     }
 
+    /// <summary>
+    /// Verifies that the statements the fix wraps into the new block are only indented one level deeper: every line of a
+    /// multi-line statement follows the new nesting, and the blank line between the moved statements stays
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixOnlyReindentsTheStatementsItWrapsIntoTheNewBlock()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var stream = new MemoryStream();
+                                      if (stream.CanRead)
+                                      {
+                                          stream.Flush();
+                                      }
+
+                                      stream.Flush();
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           using (var stream = new MemoryStream())
+                                           {
+                                               if (stream.CanRead)
+                                               {
+                                                   stream.Flush();
+                                               }
+
+                                               stream.Flush();
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -308,6 +308,37 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
         await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a documentation comment that starts behind code on its line is judged as if it started its own line,
+    /// and that the fix leaves the comment behind that code
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-004")]
+    public async Task VerifyTextAfterClosingTagInCommentBehindCodeIsDetectedAndFixed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int A; /// <summary>
+                                    /// Value
+                                    /// </summary> {|#0:trailing|}
+                                    int B;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int A; /// <summary>
+                                     /// Value
+                                     /// </summary>
+                                     int B;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

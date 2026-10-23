@@ -5,16 +5,16 @@
 | ID prefix | SHARED-DOC |
 | Status | Active |
 | Code owners | `SplitElementDocumentationAnalyzerBase`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `XmlDocumentationExpander`, `DocumentationModeAnalysisContextExtensions` |
-| Uses | — |
+| Uses | SHARED-FIX-006, SHARED-ORDER-002 |
 
-This spec covers the rules that require one kind of element to be documented. It defines which declarations such a rule checks, the private and non-private groups that split each kind between two rules, the declarations it exempts, and when a declaration counts as documented. It also defines what every documentation rule relies on: which documentation comments belong to a declaration, when a summary has text, when the parameters and type parameters of an element count as documented, and when documentation rules do not run at all. For the rules that check the descriptions of parameters, type parameters, and return values, it defines when such a description has text, how the descriptions are paired with the parameters, and when a description lacks a name. For the code fixes that remove or unwrap a documentation element, it defines when an element has an end tag of its own. Each rule that uses this spec states which element kind it checks, which group, and where its diagnostic is located.
+This spec covers the rules that require one kind of element to be documented. It defines which declarations such a rule checks, the private and non-private groups that split each kind between two rules, the declarations it exempts, and when a declaration counts as documented. It also defines what every documentation rule relies on: which documentation comments belong to a declaration, when a summary has text, when the parameters and type parameters of an element count as documented, and in which documentation modes documentation rules run. For the rules that check the descriptions of parameters, type parameters, and return values, it defines when such a description has text, how the descriptions are paired with the parameters, and when a description lacks a name. For the code fixes that remove or unwrap a documentation element, it defines when an element has an end tag of its own. Each rule that uses this spec states which element kind it checks, which group, and where its diagnostic is located.
 
 ## Non-goals
 
 - Which element kind and which group a rule checks, and where its diagnostic is located — each rule's spec.
 - Which `<summary>` elements are checked for text, and where that diagnostic is located — RH8030 and RH8031; whether `<inheritdoc>` is used where nothing is inherited — RH8203.
 - Which parameters and type parameters a rule checks, and where its diagnostic is located — RH8032, RH8033, RH8101 to RH8104, and RH8108 to RH8111; the documentation of return values — RH8105 to RH8107.
-- The content, order, and layout of a documentation comment — RH8301 to RH8309.
+- The content, order, and layout of a documentation comment — RH8301 to RH8309, apart from which comments they judge (SHARED-DOC-004).
 
 ## Requirements
 
@@ -210,9 +210,11 @@ public class Outer
 
 The documentation comments of a declaration MUST be the `///` and `/** */` comments in its leading trivia, which comes before the declaration's first token — its first attribute list, modifier, keyword, or name. A documentation comment between an attribute list and the rest of the declaration MUST NOT belong to the declaration. Ordinary comments, preprocessor directives, and disabled text between the last documentation comment and the declaration MUST NOT separate them.
 
+A `///` comment that starts behind code on its line, after the last token of the code in front of the declaration, MUST count as a documentation comment of that declaration, like a `///` comment that starts its own line in front of it. A rule about the layout of documentation comments, such as RH8301, RH8302, or RH8303, MUST judge such a comment as if it started its own line. A code fix that moves neither the declaration the comment documents nor the code the comment stands behind MUST leave the comment behind that code where it stands, except the RH8303 fix, which moves it onto a line of its own above the declaration. A code fix that moves the declaration the comment documents, and not the code the comment stands behind, MUST carry the comment with the declaration when the documentation mode of the syntax tree is `Parse` or `Diagnose` and no preprocessor directive stands between the comment and the declaration, as SHARED-ORDER-002 states for the comments in a moved declaration's leading trivia; where the comment then starts is not covered by this requirement. Such a move is not covered by this requirement when the documentation mode is `None`, nor when a preprocessor directive stands between the comment and the declaration. A code fix that moves the code the comment stands behind is not covered by this requirement.
+
 This requirement covers leading trivia in which nothing but whitespace and line breaks stands between two documentation comments; leading trivia in which an ordinary comment, a preprocessor directive, or disabled text separates two documentation comments is not covered.
 
-Why: The compiler attaches the documentation comments that precede a declaration, attributes included, and ignores one that follows an attribute list as misplaced. A rule that read a different comment would disagree with the documentation the compiler generates.
+Why: The compiler attaches the documentation comments that precede a declaration, attributes included, and ignores one that follows an attribute list as misplaced. A rule that read a different comment would disagree with the documentation the compiler generates. A `///` comment behind code is attached to the declaration below it as well — when documentation comments are parsed, the compiler places it in that declaration's leading trivia — and a reader takes it as the start of that declaration's documentation; judged by where it starts instead of by what it is, it would escape every layout rule while it is laid out worst. Moving it off the code line is the correction RH8303 names, because a blank line above a documentation comment needs the comment on a line of its own; any other fix that moved it while its declaration stays would change code its diagnostic is not about (SHARED-FIX-006). A fix that moves the declaration itself is about that declaration, and its documentation belongs to it: leaving the comment behind would detach the documentation from what it documents. The requirement asks for this only where the comment is part of what SHARED-ORDER-002 moves with the declaration: when documentation comments are not parsed, a `///` comment behind code is ordinary trivia of the code in front of it, and a directive between the comment and the declaration can start the block a fix moves, as a `#region` directive starts the region block that RH7309 moves.
 
 Example — RH8001:
 
@@ -250,6 +252,82 @@ public class C
 // Ordinary comment
 public class D
 {
+}
+```
+
+Example — RH8026, where the comment behind `A` documents `B`:
+
+```csharp
+public class C
+{
+    public int {|RH8026:A|}; /// <summary>Value</summary>
+    public int B;
+}
+```
+
+Example — RH8302 and RH8303 judge the comment behind `A` as if it started its line:
+
+```csharp
+class C
+{
+    int A; {|RH8303:///|} <summary>
+    /// B</summary>
+{|RH8302:
+|}    int B;
+}
+```
+
+The RH8303 fix moves the comment onto a line of its own above `B`:
+
+```csharp
+class C
+{
+    int A; {|RH8303:///|} <summary>
+    /// B</summary>
+    int B;
+}
+```
+
+```csharp
+class C
+{
+    int A;
+
+    /// <summary>
+    /// B</summary>
+    int B;
+}
+```
+
+Example — RH7103, with the documentation mode `Parse` or `Diagnose`, where the comment behind `Run`'s closing brace documents `Create`:
+
+```csharp
+public class C
+{
+    public void Run()
+    {
+    } /// <summary>Creates</summary>
+    public static void {|RH7103:Create|}()
+    {
+    }
+}
+```
+
+The fix moves `Create` in front of `Run`, and the comment moves with it as `Create`'s documentation; it does not stay behind `Run`'s closing brace.
+
+Where the comment goes is not covered by this requirement when the same input has the documentation mode `None`, and not when a preprocessor directive stands between the comment and `Create`:
+
+```csharp
+public class C
+{
+    public void Run()
+    {
+    } /// <summary>Creates</summary>
+#if DEBUG
+#endif
+    public static void {|RH7103:Create|}()
+    {
+    }
 }
 ```
 
@@ -377,11 +455,13 @@ public class {|RH8001:C|}
 }
 ```
 
-### SHARED-DOC-008 — Nothing is reported when documentation is not parsed
+### SHARED-DOC-008 — Documentation comments are not judged when documentation is not parsed
 
-A rule MUST NOT report anything in a syntax tree whose documentation mode is `None`. It MUST check syntax trees whose documentation mode is `Parse` or `Diagnose`.
+A rule whose subject is a documentation comment — its elements, its lines, or its position, as RH8001 to RH8309 judge them — MUST NOT report anything in a syntax tree whose documentation mode is `None`. It MUST check syntax trees whose documentation mode is `Parse` or `Diagnose`.
 
-Why: Without documentation parsing, a documentation comment is plain trivia whose elements cannot be identified, so every element would look undocumented. RH0002 reports that mode.
+A documentation rule whose subject is not a documentation comment — an ordinary comment, such as RH8401 judges, the text of the file, such as RH8402 judges, or code, such as the attribute RH8501 judges — MUST check syntax trees in every documentation mode, `None` included.
+
+Why: Without documentation parsing, a documentation comment is plain trivia whose elements cannot be identified, so every element would look undocumented. RH0002 reports that mode. Only documentation comments depend on the parsing: an ordinary comment written with documentation slashes, a copyright header, and the arguments of an attribute are text and syntax that every mode keeps, so a rule about them has the same subject whether documentation is parsed or not. Staying silent would switch such a rule off only because the project does not generate documentation.
 
 Example — RH8001: with the documentation mode `None`,
 
@@ -392,6 +472,36 @@ public class C
 ```
 
 is not reported; with the mode `Parse` or `Diagnose`, it is reported on `C`.
+
+Example — RH8501, which reads an attribute and no documentation comment: with the documentation mode `None`,
+
+```csharp
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    [{|RH8501:SuppressMessage|}("Design", "CA1000")]
+    void M()
+    {
+    }
+}
+```
+
+is reported.
+
+Example — RH8401, whose subject is an ordinary comment written with documentation slashes: with the documentation mode `None`,
+
+```csharp
+class C
+{
+    void M()
+    {
+        {|RH8401:///|} workaround
+    }
+}
+```
+
+is reported.
 
 ### SHARED-DOC-009 — Explicit interface implementations are not checked
 

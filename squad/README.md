@@ -56,6 +56,8 @@ A handover starts with three lines — `Role`, `Commit` (the commit the role's s
 - refers to issues and PRs by number (`thoenissen/Reihitsu#<N>`), never by a pasted copy;
 - summarizes the maintainer's clarifications in English when they matter, never quoting them verbatim; they override the issue text.
 
+A run of several issues splits every handover by issue ([below](#several-issues-in-one-run)).
+
 `sdd/work/` is committed to the branch, so a run can continue in a later session, and it is deleted before the PR is published.
 
 ## Escalations
@@ -71,13 +73,27 @@ The lead stops and asks the maintainer when:
 7. the auditor still blocks after one repair round;
 8. a bug does not reproduce, or the report carries no scenario concrete enough to test;
 9. a failure also exists on `main`, independent of the change;
-10. no lane admits the diff, or the lane must widen after the implementer has started.
+10. no lane admits the diff, or the lane must widen after the implementer has started — or, before the claim, the issues a prompt names for one run do not share a lane;
+11. the prompt names more than eight issues for one run.
 
 Every answer is recorded in `squad/decisions/` (see [`decisions/README.md`](decisions/README.md)). When the same kind of question keeps getting the same answer, the maintainer turns it into a rule and the escalation goes away. When something slipped through that should have reached the maintainer, a new escalation is added. The squad never tunes its own escalations, and a new rule is added only together with a decisions entry naming the failure it prevents.
 
 ## Repairs
 
 The lead routes each finding — from the spec checker, the auditor, the validator, or CI — to the role that owns it: code to the implementer, a missing or weak test to the test implementer, a spec gap to the spec author, formatting or warnings to the cleaner. All findings of one verdict form one worklist and one repair round. A second block is escalation 7.
+
+## Several issues in one run
+
+A run implements the issues the maintainer names in the prompt — usually one, or several (`/squad #a #b #c`) that become one run with one branch, one `sdd/work/<slug>/`, and one pull request. A single-issue run is the case the rest of this file and the role files describe; a run of several issues follows them too, with these additions ([decision](decisions/2026-10-22-1403-multi-issue-run-design.md)):
+
+- **The prompt sets the batch.** The issues of a run are the ones the prompt's issue references select ([`lead.md`](lead.md), section 1, step 1); other text in the prompt is context. The lead never adds an issue to a run on its own; a follow-up candidate or a related issue it finds stays outside the run. More than eight issues is escalation 11, asked before the claim.
+- **One agent per role for the whole run**, never one per issue. Wherever a role file says "the issue", it means each issue of the run; wherever it keys a duty to a lane, it means the run's lane, which every issue of the run shares.
+- **One section per issue in every handover.** After the three header lines, the handover has one `## thoenissen/Reihitsu#<N>` section per issue, in the order the prompt names them, each holding the sections the role file prescribes one heading level down; an issue the role has nothing to do for gets one line saying so and why. A result that belongs to the whole tree rather than to one issue — a build, a full test run, a lane check — is written once, in a final `## Whole run` section. When the issues' verdicts differ, the `Verdict` line names one per issue (`#<a>: reproduced; #<b>: not reproduced`).
+- **One lane.** Every issue of a run has the same lane: the lane it would claim on its own ([`lead.md`](lead.md), *Claim the lane*) ([decision](decisions/2026-10-23-1403-same-lane-batches.md)). The run claims that lane, runs that lane's roles, and widens as a whole exactly like a single-issue run: a widening gives every issue the new lane and runs the roles it adds, and once the implementer has started it is escalation 10. When the issues a prompt names need different lanes — a rule-page text fix and a `scripts/` change, say — the lead asks the maintainer to split them into runs of one lane each, before the claim (escalation 10).
+- **Change docs.** One change doc may cover several issues of the run that share a cause; otherwise each issue that requires one gets its own, and escalation 2 applies to each.
+- **An escalation stops the whole run.** An escalation for any one issue halts role work for every issue until the maintainer answers; issues do not drop out on their own. The answer decides that issue's outcome, and the run then resumes for all of them.
+- **Scope is measured against the batch.** Escalation 5 compares the scope of the whole run with what its handovers and change docs name together, not each issue with its own share.
+- **One link per issue.** The pull request carries one `Closes #<N>` line per issue, or `Refs #<N>` for one the run does not close — an issue that did not reproduce, or one the maintainer's answer left open.
 
 ## Rules for every role
 

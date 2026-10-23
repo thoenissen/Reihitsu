@@ -165,8 +165,12 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
     }
 
     /// <summary>
-    /// Verifying the code fix for block event accessors written on one line places each reordered accessor on its
-    /// own line
+    /// Characterizes the code fix for block event accessors written on one line: it puts the accessor list and each
+    /// reordered accessor on lines of their own, and spreads the braces of the moved <c>add</c> accessor over separate
+    /// lines. This test pins today's behavior; the decided behavior is stated by SHARED-FIX-007, under which the moved
+    /// accessor keeps its braces and line breaks as written and the separators around it follow SHARED-ORDER-002, and by
+    /// SHARED-FIX-006, under which the fix does not format the event that holds the accessors, and its change belongs to
+    /// an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

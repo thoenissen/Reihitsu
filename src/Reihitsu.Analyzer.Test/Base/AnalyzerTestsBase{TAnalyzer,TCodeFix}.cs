@@ -88,16 +88,26 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
     }
 
     /// <summary>
+    /// Formats the provided code with the formatter, so a test can compare a code fix result with what the formatter
+    /// produces for the same code
+    /// </summary>
+    /// <param name="code">Code without markup</param>
+    /// <returns>The formatted code</returns>
+    protected static string Format(string code)
+    {
+        return ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(code), CancellationToken.None)
+                                .GetText()
+                                .ToString();
+    }
+
+    /// <summary>
     /// Asserts that formatting the provided code with the formatter changes nothing in it, so a code fix result that
     /// equals this code is laid out as the formatter lays it out
     /// </summary>
     /// <param name="code">Code without markup and without a final line break, which the formatter removes</param>
     protected static void AssertFormattingChangesNothing(string code)
     {
-        var syntaxTree = CSharpSyntaxTree.ParseText(code);
-        var formattedCode = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, CancellationToken.None).GetText().ToString();
-
-        Assert.AreEqual(code, formattedCode, "Formatting the code must change nothing in it.");
+        Assert.AreEqual(code, Format(code), "Formatting the code must change nothing in it.");
     }
 
     /// <summary>

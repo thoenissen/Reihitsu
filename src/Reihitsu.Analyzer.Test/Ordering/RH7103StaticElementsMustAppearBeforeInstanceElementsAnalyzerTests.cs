@@ -3,7 +3,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -899,6 +901,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7103-004")]
+    [Requirement("SHARED-ORDER-004")]
     public async Task NoDiagnosticWhenStaticAndInstanceLiveInSeparateRegions()
     {
         const string testCode = """
@@ -932,6 +935,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7103-004")]
+    [Requirement("SHARED-ORDER-004")]
     public async Task NoDiagnosticWhenInstanceIsOutsideRegionAndStaticIsInsideRegion()
     {
         const string testCode = """
@@ -961,6 +965,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7103-004")]
+    [Requirement("SHARED-ORDER-004")]
     public async Task NoDiagnosticWhenStaticIsOutsideRegionAndInstanceIsInsideRegion()
     {
         const string testCode = """
@@ -990,6 +995,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7103-004")]
+    [Requirement("SHARED-ORDER-004")]
     public async Task StaticMembersAreReportedWhenTheyAppearAfterInstanceMembersInSameRegion()
     {
         const string testCode = """
@@ -1308,6 +1314,222 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                          test.NumberOfIncrementalIterations = 1;
                          test.NumberOfFixAllIterations = 1;
                      });
+    }
+
+    /// <summary>
+    /// Verifies the specification example of the region scope: members are compared only within their own top-level
+    /// region, so a static method after an instance method of another top-level region is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-004")]
+    public async Task MembersAreComparedOnlyWithinTheirOwnTopLevelRegion()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    #region Instance
+
+                                    private int _a;
+
+                                    public void Run()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    #region Shared
+
+                                    public int B;
+
+                                    public static void Create()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a static member in a region nested in a top-level region is compared with the instance members of
+    /// that top-level region outside the nested region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-004")]
+    public async Task StaticMemberInANestedRegionIsComparedWithTheRestOfItsTopLevelRegion()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    #region Members
+
+                                    public void Run()
+                                    {
+                                    }
+
+                                    #region Factories
+
+                                    public static void {|#0:Create|}()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testCode, Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a static member outside every region is compared with an instance member outside every region,
+    /// also when a top-level region lies between them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-004")]
+    public async Task StaticMemberOutsideEveryRegionIsComparedWithInstanceMembersOutsideEveryRegion()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    public void Run()
+                                    {
+                                    }
+
+                                    #region Lifecycle
+
+                                    public void Stop()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    public static void {|#0:Create|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a rule about the order of members: the static method is reported and moved,
+    /// although the formatter never reorders members
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-010")]
+    public async Task OrderRuleReportsAShapeTheFormatterKeeps()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    public void Run()
+                                    {
+                                    }
+
+                                    public static void {|#0:Create|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     public static void Create()
+                                     {
+                                     }
+
+                                     public void Run()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        AssertFormattingChangesNothing(testCode.Replace("{|#0:", string.Empty).Replace("|}", string.Empty));
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a documentation comment behind code whose declaration a fix moves: the
+    /// <c>///</c> comment behind the closing brace of <c>Run</c> documents <c>Create</c>, the static method is reported,
+    /// and the fix carries the comment with <c>Create</c> in front of <c>Run</c> instead of leaving it behind the brace.
+    /// The fix runs with documentation comments parsed (documentation mode <c>Parse</c>), and no preprocessor
+    /// directive stands between the comment and <c>Create</c>, the shape the specification covers. Where the comment
+    /// starts after the move, the layout of its lines, and the layout of the rest of the type are not asserted
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-DOC-004")]
+    [Requirement("SHARED-ORDER-002")]
+    public async Task FixCarriesADocumentationCommentBehindCodeWithTheMovedDeclaration(string endOfLine)
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    public void Run()
+                                    {
+                                    } /// <summary>Creates</summary>
+                                    public static void {|RH7103:Create|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+
+        var plainCode = testCode.Replace("{|RH7103:", string.Empty)
+                                .Replace("|}", string.Empty)
+                                .Replace("\r\n", "\n")
+                                .Replace("\n", endOfLine);
+
+        var fixedCode = await ApplyCodeFixAsync(plainCode);
+
+        var syntaxTree = CSharpSyntaxTree.ParseText(fixedCode, new CSharpParseOptions(documentationMode: DocumentationMode.Parse), cancellationToken: CancellationToken.None);
+        var root = await syntaxTree.GetRootAsync(CancellationToken.None);
+        var methods = root.DescendantNodes()
+                          .OfType<MethodDeclarationSyntax>()
+                          .ToList();
+
+        Assert.HasCount(2, methods);
+        Assert.AreEqual("Create", methods[0].Identifier.ValueText, "The fix must move Create in front of Run.");
+        Assert.AreEqual("Run", methods[1].Identifier.ValueText, "The fix must move Create in front of Run.");
+
+        var createDocumentation = methods[0].GetLeadingTrivia()
+                                            .Where(trivia => trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
+                                            .ToList();
+
+        Assert.HasCount(1, createDocumentation, "The documentation comment must travel with Create.");
+
+        var summary = createDocumentation[0].GetStructure()
+                                            .DescendantNodes()
+                                            .OfType<XmlElementSyntax>()
+                                            .Single(element => element.StartTag.Name.LocalName.ValueText == "summary");
+        var summaryText = string.Concat(summary.Content.Select(content => content.ToString()))
+                                .Replace("///", string.Empty)
+                                .Trim();
+
+        Assert.AreEqual("Creates", summaryText, "The comment that travels must be the summary of Create.");
+
+        var commentsInRun = methods[1].DescendantTrivia()
+                                      .Where(trivia => trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+                                                       || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
+                                      .ToList();
+
+        Assert.IsEmpty(commentsInRun, "No comment may stay behind the closing brace of Run.");
+        Assert.AreEqual(fixedCode.IndexOf("Creates", StringComparison.Ordinal), fixedCode.LastIndexOf("Creates", StringComparison.Ordinal), "The fix must keep exactly one copy of the comment.");
     }
 
     #endregion // Tests

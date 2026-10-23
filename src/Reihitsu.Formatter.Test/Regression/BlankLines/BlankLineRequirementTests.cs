@@ -204,6 +204,7 @@ public class BlankLineRequirementTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-005")]
+    [Requirement("FMT-BLANK-016")]
     public void BlankLineAfterClosingBraceGoesBehindDirective()
     {
         // Arrange
@@ -280,12 +281,105 @@ public class BlankLineRequirementTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that the blank line after a closing brace goes behind the directive and in front of the comment that
+    /// stands between that directive and the next statement
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-016")]
+    [Requirement("FMT-BLANK-005")]
+    public void BlankLineAfterClosingBraceGoesBetweenDirectiveAndComment()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int a)
+                                 {
+                                     if (a > 0)
+                                     {
+                                     }
+                             #pragma warning disable CS0168
+                                     // why
+                                     a++;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        if (a > 0)
+                                        {
+                                        }
+                                #pragma warning disable CS0168
+
+                                        // why
+                                        a++;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line after a closing brace goes behind the last directive of a conditional group whose
+    /// branch is disabled text, in front of the comment that leads the next statement
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-016")]
+    [Requirement("FMT-BLANK-005")]
+    public void BlankLineAfterClosingBraceGoesBehindLastDirectiveOfConditionalGroup()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int a)
+                                 {
+                                     if (a > 0)
+                                     {
+                                     }
+                             #if NEVER
+                                     a--;
+                             #endif
+                                     // why
+                                     a++;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        if (a > 0)
+                                        {
+                                        }
+                                #if NEVER
+                                        a--;
+                                #endif
+
+                                        // why
+                                        a++;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a directive directly before an <c>if</c> or a <c>return</c> suppresses their blank line, while
     /// the blank line after the closing brace still goes behind the <c>#endif</c>
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-006")]
     [Requirement("FMT-BLANK-005")]
+    [Requirement("FMT-BLANK-016")]
     public void DirectiveDirectlyBeforeStatementSuppressesStatementKindBlankLine()
     {
         // Arrange

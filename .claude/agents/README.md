@@ -1,6 +1,6 @@
 # Agent definitions
 
-One thin wrapper per squad role. The role's job lives in `squad/roles/<role>.md`, which is agent-neutral; these files hold only what is specific to Claude Code: model tier, effort level, and tool restrictions. The lead is the session agent itself, started with `/squad <issue>`, so it has no wrapper.
+One thin wrapper per squad role. The role's job lives in `squad/roles/<role>.md`, which is agent-neutral; these files hold only what is specific to Claude Code: model tier, effort level, and tool restrictions. The lead is the session agent itself, started with `/squad <issue> [<issue> ...]`, so it has no wrapper.
 
 The lead spawns a role by its `subagent_type` and passes no model argument, so re-tuning a role is a one-line change here.
 

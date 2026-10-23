@@ -145,8 +145,11 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Verifying the code fix for expression-bodied accessors written on one line places each reordered accessor
-    /// on its own line
+    /// Characterizes the code fix for expression-bodied accessors written on one line: it puts the accessor list and
+    /// each reordered accessor on lines of their own. This test pins today's behavior; the decided behavior is stated by
+    /// SHARED-FIX-007, under which the separators around the moved accessor follow SHARED-ORDER-002 and stay as written,
+    /// and by SHARED-FIX-006, under which the fix does not format the property that holds the accessors, and its change
+    /// belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -178,7 +181,10 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Verifying the code fix for a multi-line auto indexer collapses the reordered accessor list to a single line
+    /// Characterizes the code fix for a multi-line auto indexer: it collapses the reordered accessor list to a single
+    /// line. This test pins today's behavior; the decided behavior is stated by SHARED-FIX-007, under which the line
+    /// breaks around the moved accessor follow SHARED-ORDER-002 and stay as written, and by SHARED-FIX-006, under which
+    /// the fix does not format the indexer that holds the accessors, and its change belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -206,8 +212,10 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Verifying the code fix keeps the blank line above the reordered property when a preceding structural
-    /// transform (bracing the if-statement body) rewrites the accessor being moved
+    /// Verifying the code fix keeps the blank line above the reordered property, and characterizes that it also braces
+    /// the body of the <c>if</c> statement in the <c>set</c> accessor. The bracing pins today's behavior; the decided
+    /// behavior is stated by SHARED-FIX-006 and SHARED-FIX-007, under which the <c>set</c> accessor keeps the layout it
+    /// was written with, and its change belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

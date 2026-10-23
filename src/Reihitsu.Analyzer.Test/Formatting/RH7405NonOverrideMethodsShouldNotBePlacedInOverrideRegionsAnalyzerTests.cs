@@ -288,8 +288,9 @@ public class RH7405NonOverrideMethodsShouldNotBePlacedInOverrideRegionsAnalyzerT
 
     /// <summary>
     /// Characterizes a region that only an override property names: it is not an override region of methods, so a method
-    /// that overrides nothing in it is not reported. The case is an open question about intended behavior, so this test
-    /// pins today's behavior without stating it as intended
+    /// that overrides nothing in it is not reported. This test pins today's behavior; the decided behavior is stated by
+    /// SHARED-DIAG-009, whose verdict does not depend on whether the type declares a member of another kind, and its
+    /// change belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -320,8 +321,9 @@ public class RH7405NonOverrideMethodsShouldNotBePlacedInOverrideRegionsAnalyzerT
 
     /// <summary>
     /// Characterizes a partial type whose override lies in another declaration than the region named after its base type:
-    /// the region is not an override region of the declaration that holds it. The case is an open question about intended
-    /// behavior, so this test pins today's behavior without stating it as intended
+    /// the region is not an override region of the declaration that holds it. This test pins today's behavior; the decided
+    /// behavior is stated by SHARED-DIAG-009, whose verdict does not depend on which part of a partial type holds the
+    /// override, and its change belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
