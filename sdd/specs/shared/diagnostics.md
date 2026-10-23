@@ -5,7 +5,7 @@
 | ID prefix | SHARED-DIAG |
 | Status | Active |
 | Code owners | `DiagnosticAnalyzerBase` |
-| Uses | SHARED-FIX-003, SHARED-JOIN-001, SHARED-TRAIL-002 |
+| Uses | FMT-DOC-012, SHARED-FIX-003, SHARED-FIX-005, SHARED-JOIN-001, SHARED-TRAIL-002 |
 
 This spec covers what holds for every analyzer rule, so a rule spec states only what the rule itself reports. It applies to every rule without being listed under `Uses`.
 
@@ -207,11 +207,15 @@ Example — in `Counter.razor`, the `@code` in the HTML comment, in the Razor co
 
 ### SHARED-DIAG-004 — A partial declaration is one declaration
 
-A rule that judges a type or a member declared in several parts with the `partial` modifier MUST judge it by its symbol — by the modifiers of all its parts together, so that it is `async`, `static`, or of an accessibility when any part declares it so — and MUST report it at most once. A code fix that would have to change more than one part to give a correct result MUST NOT be offered (SHARED-FIX-003); the diagnostic is still reported.
+A rule that judges a type or a member declared in several parts with the `partial` modifier as a whole — what the declaration is — MUST judge it by its symbol — by the modifiers of all its parts together, so that it is `async`, `static`, or of an accessibility when any part declares it so — and MUST report it at most once. A code fix that would have to change more than one part to give a correct result MUST NOT be offered (SHARED-FIX-003); the diagnostic is still reported.
 
-This requirement covers a rule's verdict on what the declaration is. A verdict on what one part writes or holds is not covered — for example the accessibility modifier or the order of the modifiers that one part carries, the name or the parameters that one part declares, or the members and regions that one part holds.
+A rule whose subject is text that one part writes independently of the other parts is not covered by the first paragraph. Such text is the accessibility modifier that one part of a partial type writes or omits, as RH7104 judges it, and the order of the modifiers that one part carries, as RH7105 and RH7106 judge it. Such a rule MUST judge each part on its own: it MUST report each part whose own modifiers break the rule, located on that part, also when another part of the same declaration writes what this part omits, and its code fix MUST change only that part.
 
-Why: The compiler builds one type or member from all its parts, and every caller, tooltip, and reader sees that one symbol. Judging one part alone gives it a verdict the declaration does not deserve — the part of an `async` method that does not repeat `async` is still an `async` method — and reporting every part repeats one finding. A change that every part has to carry cannot be made on one part without a compile error.
+Which accessibility one part of a partial member — a method, property, indexer, event, or constructor — states, and whether it states one, is not written independently, because every part of the member has to state the same accessibility. A rule about which accessibility a part of a partial member states, or whether it states one, judges the member as a whole and is covered by the first paragraph. The order of the keywords that state that accessibility is written independently: the compiler leaves it to each part, so a rule about it judges the order of the modifiers that one part carries, under the second paragraph.
+
+A verdict on the name or the parameters that one part declares, or on the members and regions that one part holds, is not covered by this requirement.
+
+Why: The compiler builds one type or member from all its parts, and every caller, tooltip, and reader sees that one symbol. Judging one part alone gives it a verdict the declaration does not deserve — the part of an `async` method that does not repeat `async` is still an `async` method — and reporting every part repeats one finding. A change that every part has to carry cannot be made on one part without a compile error. The modifiers a part writes independently are different: they are text of that part, read in the file that holds it. A part of a partial type that omits its accessibility leaves the reader of that file guessing whatever another part says, and writing it on that part alone compiles, because the compiler only forbids the parts of a type to state different accessibilities; the order of a part's modifiers is that part's own as well. The parts of a partial member, in contrast, have to state the same accessibility, so adding an accessibility to a single part does not compile, and which accessibility the member has is a verdict on the member as a whole; only the order in which a part writes the keywords of that accessibility, such as `internal protected` for `protected internal`, is free, and it is that part's own.
 
 Example — RH2102 reports the type once, on the part that declares the primary constructor:
 
@@ -225,7 +229,7 @@ partial class P
 }
 ```
 
-Example — the type is `public` because one of its parts says so:
+Example — RH2004 does not judge partial types and leaves them to RH7104, so it reports neither part of `C`; whether each part writes an accessibility modifier is judged by RH7104 under the second paragraph, as the next example shows:
 
 ```csharp
 public partial class C
@@ -238,6 +242,69 @@ partial class C
 ```
 
 is not reported by RH2004.
+
+Example — RH7104 judges the accessibility modifier that each part writes, so it reports the second part, although the first part makes the type `public`:
+
+```csharp
+public partial class C
+{
+    private int _a;
+}
+
+partial class {|RH7104:C|}
+{
+    private int _b;
+}
+```
+
+```csharp
+public partial class C
+{
+    private int _a;
+}
+
+public partial class C
+{
+    private int _b;
+}
+```
+
+The fix writes the accessibility on the reported part and leaves the first part as it is.
+
+Example — every part of a partial property has to state the same accessibility, so RH2004, which judges whether an accessibility is stated, judges the property as a whole under the first paragraph:
+
+```csharp
+public partial class P
+{
+    partial int Prop { get; set; }
+
+    partial int Prop { get => 1; set { } }
+}
+```
+
+is reported by RH2004 at most once, and no code fix is offered: writing `private` on one part alone does not compile.
+
+Example — RH7106 judges the order in which one part of a partial property writes its accessibility keywords, so it reports the first part, although the second part writes the same accessibility in the canonical order:
+
+```csharp
+public partial class C
+{
+    internal {|RH7106:protected|} partial int P { get; }
+
+    protected internal partial int P => 1;
+}
+```
+
+```csharp
+public partial class C
+{
+    protected internal partial int P { get; }
+
+    protected internal partial int P => 1;
+}
+```
+
+The fix swaps the keywords of the reported part and leaves the second part as it is.
 
 ### SHARED-DIAG-005 — Parentheses, `!`, and a `throw` branch do not change a value
 
@@ -369,5 +436,130 @@ namespace {|RH7003:N|}
     {
     }
 #endif
+}
+```
+
+### SHARED-DIAG-009 — A verdict does not depend on incidental placement or order
+
+A rule's verdict on an element MUST depend only on the element, on the group it lies in — such as the region, the accessibility, or the member kind within which the rule judges it — and on the symbol it belongs to. In particular, it MUST NOT depend on:
+
+- the order of the interfaces in a base list;
+- which part of a `partial` type holds a declaration the verdict relates to, such as the base list that names an interface, or an override that makes a region an override region;
+- whether the type declares a member of another kind that the verdict is not about.
+
+When an element comes from several sources at once — a method that implements a member of each of two interfaces — a rule that asks for the element to lie in a region named after its source MUST accept any one of them. Whether the parts of a `partial` element are judged together or each on its own is stated by SHARED-DIAG-004.
+
+Why: The order of the interfaces in a base list, the file that holds one part of a type, and a member the verdict is not about are incidental: the compiler builds the same type however they are arranged, and the reader of the element sees the same element. A verdict that changes with them changes while the code it judges stays the same, so reordering a base list or moving a declaration into another part would create or clear a diagnostic. An element that comes from several sources is in its place under any of them; accepting only the one an incidental order picks would ask for a change that makes the code no clearer.
+
+Example — RH7409, where `M` implements both `IA.M` and `IB.M` and lies in the region of one of them; the order of the base list does not change the verdict:
+
+```csharp
+interface IA
+{
+    void M();
+}
+
+interface IB
+{
+    void M();
+}
+
+class C : IA, IB
+{
+    #region IB
+
+    public void M()
+    {
+    }
+
+    #endregion
+}
+
+class D : IB, IA
+{
+    #region IB
+
+    public void M()
+    {
+    }
+
+    #endregion
+}
+```
+
+is not reported.
+
+Example — RH7409, where the base list is written in the other part of the type; it decides the verdict as it would in the same part:
+
+```csharp
+interface I
+{
+    void M();
+}
+
+partial class C : I
+{
+}
+
+partial class C
+{
+    #region I
+
+    public void M()
+    {
+    }
+
+    #endregion
+}
+
+partial class D : I
+{
+}
+
+partial class D
+{
+    public void {|RH7409:M|}()
+    {
+    }
+}
+```
+
+`C.M` lies in the region of the interface it implements, and `D.M` lies in no region.
+
+### SHARED-DIAG-010 — A layout rule does not report a shape the formatter keeps
+
+A rule whose subject is the layout of code — its line breaks, blank lines, indentation, or spacing — and whose code fix lays the reported code out as the formatter lays it out MUST NOT report a shape that the formatter deliberately keeps as it is: a shape that a requirement of the formatter leaves unchanged, such as the text of a delimited documentation comment (FMT-DOC-012) or a gap that the formatter does not join because a comment or a directive sits in it. A shape that the formatter changes MUST be reported as the rule's own requirements state. SHARED-JOIN-001 is one instance of this requirement.
+
+A rule whose subject is the order or the content of code is not covered: it reports what its own requirements state, also where the formatter keeps the code as it is. A rule without a code fix that lays out the reported code as the formatter does is not covered either.
+
+Why: The fix of such a rule produces what the formatter produces, so for a shape the formatter keeps it changes nothing and is not offered (SHARED-FIX-005). The diagnostic would stay for good, asking for a layout that the formatter, which owns the layout, has decided against. The formatter may do more than the rules; a layout rule that asks for more than the formatter is the reverse disagreement, and the formatter's decision stands. The order of members and the content of comments are not the formatter's decision — it keeps them because it does not judge them, not because they are right — so a rule about them reports what it judges.
+
+Example — RH8307 reports the half-wrapped element of the `///` comment, which the formatter lays out again, and not the same element in the delimited comment, which the formatter keeps:
+
+```csharp
+class C
+{
+    /// {|RH8307:<summary>Total
+    /// sum</summary>|}
+    int A;
+
+    /** <summary>Total
+     * sum</summary> */
+    int D;
+}
+```
+
+Example — RH7103's subject is the order of members, so it reports `Create`, although the formatter never reorders members:
+
+```csharp
+public class C
+{
+    public void Run()
+    {
+    }
+
+    public static void {|RH7103:Create|}()
+    {
+    }
 }
 ```

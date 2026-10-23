@@ -140,6 +140,7 @@ public class RH7110MembersMustBeOrderedByAccessibilityAnalyzerTests : AnalyzerTe
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7110-003")]
+    [Requirement("SHARED-ORDER-004")]
     public async Task PublicMemberAfterPrivateMemberOfSameKindWithinSameRegionIsReported()
     {
         const string testCode = """
@@ -309,6 +310,7 @@ public class RH7110MembersMustBeOrderedByAccessibilityAnalyzerTests : AnalyzerTe
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7110-003")]
+    [Requirement("SHARED-ORDER-004")]
     [Requirement("SHARED-TYPEREGION-006")]
     public async Task MemberInANestedRegionIsComparedWithinItsTopLevelRegion()
     {
@@ -362,6 +364,39 @@ public class RH7110MembersMustBeOrderedByAccessibilityAnalyzerTests : AnalyzerTe
                               """;
 
         await Verify(source, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that a member outside every region is compared with a member of its kind outside every region, also
+    /// when a top-level region lies between them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-004")]
+    public async Task MemberOutsideEveryRegionIsComparedWithMembersOutsideEveryRegion()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private void A()
+                                    {
+                                    }
+
+                                    #region Api
+
+                                    private void B()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    public void {|#0:D|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, Diagnostics(RH7110MembersMustBeOrderedByAccessibilityAnalyzer.DiagnosticId, AnalyzerResources.RH7110MessageFormat));
     }
 
     #endregion // Diagnostic cases
@@ -510,6 +545,7 @@ public class RH7110MembersMustBeOrderedByAccessibilityAnalyzerTests : AnalyzerTe
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7110-003")]
+    [Requirement("SHARED-ORDER-004")]
     public async Task MemberInARegionIsNotComparedWithAMemberOutsideEveryRegion()
     {
         const string source = """
@@ -530,6 +566,43 @@ public class RH7110MembersMustBeOrderedByAccessibilityAnalyzerTests : AnalyzerTe
                               """;
 
         await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of the region scope: members are compared only within their own top-level
+    /// region, so a public field after a private field of another top-level region is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-004")]
+    public async Task MembersAreComparedOnlyWithinTheirOwnTopLevelRegion()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    #region Instance
+
+                                    private int _a;
+
+                                    public void Run()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    #region Shared
+
+                                    public int B;
+
+                                    public static void Create()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testCode);
     }
 
     #endregion // Non-diagnostic cases

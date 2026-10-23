@@ -1,5 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Documentation;
@@ -204,5 +207,72 @@ public class RH8501CodeAnalysisSuppressionMustHaveJustificationAnalyzerTests : A
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies the specification example: a rule whose subject is an attribute and not a documentation comment reports
+    /// it in a syntax tree whose documentation mode is none
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8501-001")]
+    [Requirement("SHARED-DOC-008")]
+    public async Task VerifyDiagnosticWhenDocumentationModeIsNone()
+    {
+        await VerifyInDocumentationMode(DocumentationMode.None, ApplyDocumentationModeNoneToTestProject);
+    }
+
+    /// <summary>
+    /// Verifies the specification example in a syntax tree whose documentation mode is parse, so the report in mode none
+    /// is the same report as in a mode that parses documentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8501-001")]
+    [Requirement("SHARED-DOC-008")]
+    public async Task VerifyDiagnosticWhenDocumentationModeIsParse()
+    {
+        await VerifyInDocumentationMode(DocumentationMode.Parse, ApplyDocumentationModeParseToTestProject);
+    }
+
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Verifies that the specification example of SHARED-DOC-008 is reported in the given documentation mode, and that
+    /// the test project was really parsed in that mode
+    /// </summary>
+    /// <param name="expectedMode">Documentation mode the transform applies</param>
+    /// <param name="applyMode">Transform that applies the documentation mode to the test project</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyInDocumentationMode(DocumentationMode expectedMode, Func<Solution, ProjectId, Solution> applyMode)
+    {
+        const string source = """
+                              using System.Diagnostics.CodeAnalysis;
+
+                              class C
+                              {
+                                  [{|#0:SuppressMessage|}("Design", "CA1000")]
+                                  void M()
+                                  {
+                                  }
+                              }
+                              """;
+
+        DocumentationMode? appliedMode = null;
+
+        await Verify(source,
+                     test => test.SolutionTransforms.Add((solution, projectId) =>
+                                                         {
+                                                             var transformedSolution = applyMode(solution, projectId);
+
+                                                             appliedMode = (transformedSolution.GetProject(projectId)?.ParseOptions as CSharpParseOptions)?.DocumentationMode;
+
+                                                             return transformedSolution;
+                                                         }),
+                     Diagnostics(RH8501CodeAnalysisSuppressionMustHaveJustificationAnalyzer.DiagnosticId, AnalyzerResources.RH8501MessageFormat));
+
+        Assert.AreEqual(expectedMode, appliedMode);
+    }
+
+    #endregion // Methods
 }

@@ -311,6 +311,38 @@ public class RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzerTests : 
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), actual);
     }
 
+    /// <summary>
+    /// Verifies that a documentation comment that starts behind code on its line is judged as if it started its own line,
+    /// and that the fix leaves the comment behind that code
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-004")]
+    public async Task VerifyElementsOnSameLineInCommentBehindCodeAreDetectedAndFixed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int A; /// <summary>
+                                    /// Value
+                                    /// </summary> {|#0:<remarks>x</remarks>|}
+                                    int B;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int A; /// <summary>
+                                     /// Value
+                                     /// </summary>
+                                     /// <remarks>x</remarks>
+                                     int B;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8304MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

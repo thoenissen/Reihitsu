@@ -729,6 +729,82 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : BatchCodeFi
         await Verify(source, fixedSource);
     }
 
+    /// <summary>
+    /// Verifying that the part of a partial method that writes <c>static public</c> is reported although the other part
+    /// writes its modifiers in the canonical order, and that the fix reorders the reported part only and leaves the
+    /// other part as it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7105-001")]
+    [Requirement("RH7105-004")]
+    [Requirement("SHARED-DIAG-004")]
+    public async Task PartOfAPartialMethodIsReportedAndFixedOnItsOwn()
+    {
+        const string source = """
+                              public partial class C
+                              {
+                                  {|RH7105:static|} public partial void M();
+
+                                  public static partial void M()
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public partial class C
+                                   {
+                                       public static partial void M();
+
+                                       public static partial void M()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying that the part of a partial class that writes <c>static public</c> is reported on that part although the
+    /// first part writes its modifiers in the canonical order, and that the fix reorders the reported part only and
+    /// leaves the first part as it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7105-001")]
+    [Requirement("RH7105-004")]
+    [Requirement("SHARED-DIAG-004")]
+    public async Task PartOfAPartialTypeIsReportedAndFixedOnItsOwn()
+    {
+        const string source = """
+                              public static partial class C
+                              {
+                                  public const int A = 1;
+                              }
+
+                              {|RH7105:static|} public partial class C
+                              {
+                                  public const int B = 2;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public static partial class C
+                                   {
+                                       public const int A = 1;
+                                   }
+
+                                   public static partial class C
+                                   {
+                                       public const int B = 2;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
     #endregion // Tests
 
     #region Methods

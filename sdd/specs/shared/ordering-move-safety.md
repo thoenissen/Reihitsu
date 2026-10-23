@@ -5,16 +5,16 @@
 | ID prefix | SHARED-ORDER |
 | Status | Active |
 | Code owners | `OrderingMoveSafety`, `OrderingDeclarationUtilities`, `AccessorOrderingUtilities`, `TypeMemberOrderingCodeFixProviderBase` |
-| Uses | — |
+| Uses | SHARED-TYPEREGION-006 |
 
-This spec covers how the code fixes of the ordering rules move one declaration in front of an earlier sibling, and when such a move is refused. It applies to the member reordering fixes (RH7102 constants before fields, RH7103 static before instance, RH7109 readonly before non-readonly) and to the accessor reordering fixes (RH7107 property accessors, RH7108 event accessors). Which declaration a rule reports and where it should go is each rule's own spec; this spec owns the move and its guards.
+This spec covers how the code fixes of the ordering rules move one declaration in front of an earlier sibling, and when such a move is refused. It applies to the member reordering fixes (RH7102 constants before fields, RH7103 static before instance, RH7109 readonly before non-readonly) and to the accessor reordering fixes (RH7107 property accessors, RH7108 event accessors). It also states the region scope that every rule ordering the members of a type shares (SHARED-ORDER-004), RH7110 included, which offers no fix. Apart from that scope, which declaration a rule reports and where it should go is each rule's own spec; this spec owns the move and its guards.
 
 ## Non-goals
 
-- Which members a rule reports, and which earlier sibling a fix chooses as the target — each rule's own spec.
-- Layout of the moved code after the move. Every fix lays the result out with the formatter (FMT-PIPE); this spec only fixes which trivia travels and which stays.
+- Which members a rule reports, apart from the region scope of SHARED-ORDER-004, and which earlier sibling a fix chooses as the target — each rule's own spec.
+- Layout of the moved code after the move — SHARED-FIX-007. This spec only fixes which trivia travels and which stays.
 - Reordering of using directives (SHARED-USING) and of whole regions (RH7309).
-- Rules that report an ordering problem without offering a fix, such as RH7110.
+- Rules that report an ordering problem without offering a fix, such as RH7110, apart from the region scope of SHARED-ORDER-004.
 - A balanced `#pragma` or `#nullable` pair inside the body of a crossed or moved declaration. The guard currently refuses such a move; whether it should allow it as it allows balanced conditional pairs (SHARED-ORDER-006) is an open question.
 
 ## Requirements
@@ -135,11 +135,61 @@ is reported by RH7103 when `DEBUG` is defined, and no code fix is offered.
 
 ### SHARED-ORDER-004 — A region boundary is not crossed
 
-A fix MUST NOT offer a move when the moved span or the crossed span (SHARED-ORDER-003) contains a `#region` or `#endregion` whose partner lies outside that span.
+A rule that checks the order of the members of a type declaration MUST check each top-level region of the declaration (SHARED-TYPEREGION-006) on its own: it MUST compare a member only with members that lie in the same top-level region, or, for a member that lies outside every top-level region, only with members that lie outside every top-level region too. A member that lies in a region nested in a top-level region belongs to that top-level region and MUST be compared with the other members of it. A fix MUST NOT offer a move when the moved span or the crossed span (SHARED-ORDER-003) contains a `#region` or `#endregion` whose partner lies outside that span.
 
-Why: Moving the directive with the declaration, or moving the declaration across it, puts declarations in a region the author did not choose. Regions are excluded from SHARED-ORDER-005, so this requirement is their only guard.
+Why: A type organized in regions has chosen its outline by region, and each region is read on its own. Comparing a member with one in another region would ask it to leave the region its author chose. A nested region is a sub-heading of the region around it, so its members are read in order with the rest of that region. Moving the directive with the declaration, or moving the declaration across it, puts declarations in a region the author did not choose. Regions are excluded from SHARED-ORDER-005, so this requirement is their only guard.
 
-Example:
+Example — the members are compared only within their own top-level region:
+
+```csharp
+public class C
+{
+    #region Instance
+
+    private int _a;
+
+    public void Run()
+    {
+    }
+
+    #endregion
+
+    #region Shared
+
+    public int B;
+
+    public static void Create()
+    {
+    }
+
+    #endregion
+}
+```
+
+is not reported: RH7103 does not compare `Create` with `Run`, and RH7110 does not compare `B` with `_a`, because each pair lies in two top-level regions.
+
+Example — RH7102, where the field and the constant lie in two top-level regions:
+
+```csharp
+class C
+{
+    #region Fields
+
+    private int _count;
+
+    #endregion
+
+    #region Constants
+
+    private const int Max = 1;
+
+    #endregion
+}
+```
+
+is not reported.
+
+Example — a region boundary in the crossed span:
 
 ```csharp
 public class TestClass

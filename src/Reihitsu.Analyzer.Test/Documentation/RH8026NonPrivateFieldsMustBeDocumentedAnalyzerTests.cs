@@ -231,5 +231,25 @@ public class RH8026NonPrivateFieldsMustBeDocumentedAnalyzerTests : AnalyzerTests
         await Verify(source, Diagnostics(RH8026NonPrivateFieldsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8026MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the specification example: a documentation comment behind the first field documents the field below it,
+    /// so only the first field is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-004")]
+    public async Task VerifyDocumentationCommentBehindCodeDocumentsTheFollowingField()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  public int {|#0:A|}; /// <summary>Value</summary>
+                                  public int B;
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8026NonPrivateFieldsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8026MessageFormat));
+    }
+
     #endregion // Tests
 }

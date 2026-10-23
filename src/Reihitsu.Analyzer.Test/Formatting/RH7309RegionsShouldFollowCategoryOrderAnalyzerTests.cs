@@ -17,6 +17,60 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixTestsBase<RH7309RegionsShouldFollowCategoryOrderAnalyzer, RH7309RegionsShouldFollowCategoryOrderCodeFixProvider>
 {
+    #region Constants
+
+    /// <summary>
+    /// Specification example of moved code, whose region blocks hold a layout the formatter changes
+    /// </summary>
+    private const string MovedCodeSource = """
+                                           using System;
+
+                                           public class C : IDisposable
+                                           {
+                                               #region IDisposable
+
+                                               public void Dispose() { }
+
+                                               #endregion // IDisposable
+
+                                               {|RH7309:#region Fields|}
+
+                                               private int _a;
+
+
+                                               private int _b;
+
+                                               #endregion // Fields
+                                           }
+                                           """;
+
+    /// <summary>
+    /// Expected result of fixing <see cref="MovedCodeSource"/>
+    /// </summary>
+    private const string MovedCodeFixedSource = """
+                                                using System;
+
+                                                public class C : IDisposable
+                                                {
+                                                    #region Fields
+
+                                                    private int _a;
+
+
+                                                    private int _b;
+
+                                                    #endregion // Fields
+
+                                                    #region IDisposable
+
+                                                    public void Dispose() { }
+
+                                                    #endregion // IDisposable
+                                                }
+                                                """;
+
+    #endregion // Constants
+
     #region Tests
 
     /// <summary>
@@ -1422,6 +1476,33 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
                                  """;
 
         await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of moved code: the region blocks change places as they were written, so the two
+    /// blank lines between the fields and the braces of the method on its line stay, although formatting the result
+    /// would change both
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task MovedRegionBlocksKeepTheirLayout()
+    {
+        Assert.AreNotEqual(MovedCodeFixedSource, Format(MovedCodeFixedSource), "The example must hold a layout that formatting changes.");
+
+        await Verify(MovedCodeSource, MovedCodeFixedSource);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of moved code in a document whose line breaks are CRLF: the region blocks
+    /// change places as they were written, and every line break stays CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task MovedRegionBlocksKeepTheirLayoutInCarriageReturnLineFeedDocument()
+    {
+        await Verify(NormalizeToCarriageReturnLineFeed(MovedCodeSource), NormalizeToCarriageReturnLineFeed(MovedCodeFixedSource));
     }
 
     #endregion // Tests

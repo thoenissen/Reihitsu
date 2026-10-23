@@ -231,7 +231,10 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     }
 
     /// <summary>
-    /// Verifies that directive safety still withholds the fix for a mixed-accessibility interface violation
+    /// Characterizes a readonly field in a region that follows a mutable field outside every region: it is reported, and
+    /// directive safety withholds the fix. This test pins today's behavior; the decided behavior is stated by
+    /// SHARED-ORDER-004, which compares a member in a top-level region only with members of that region, and its change
+    /// belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

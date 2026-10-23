@@ -61,7 +61,35 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when documentation mode is none
+    /// Verifies that a documentation-style comment is reported in a syntax tree whose documentation mode is parse, as in
+    /// the default mode diagnose
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8401-001")]
+    public async Task VerifyDiagnosticWhenDocumentationModeIsParse()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal class TestClass
+                              {
+                                  {|#0:///|} just a comment
+                                  internal void TestMethod()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source,
+                     test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject),
+                     Diagnostics(RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer.DiagnosticId, AnalyzerResources.RH8401MessageFormat));
+    }
+
+    /// <summary>
+    /// Characterizes a documentation-style comment in a syntax tree whose documentation mode is none: it is not reported.
+    /// This test pins today's behavior; the decided behavior is stated by SHARED-DOC-008, under which a rule about an
+    /// ordinary comment checks every documentation mode, and its change belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
