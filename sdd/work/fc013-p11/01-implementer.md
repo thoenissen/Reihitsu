@@ -1,5 +1,5 @@
 Role: implementer
-Commit: b4b2abd
+Commit: 69c4ecc
 Verdict: tests pass
 
 The prompt carried no intended fix, suspected cause, or hoped-for verdict beyond the maintainer's clarifications in `00-lead.md`, which this change follows.
@@ -16,7 +16,12 @@ Links verified: both relative targets exist from each file's directory (`ls` fro
 `rg -n "FC-013|formatter-stable|analyzer-clean" squad sdd AGENTS.md CLAUDE.md .claude` before the edit found the policy stated only in `squad/failure-classes.md:59` and `squad/roles/skeptic.md:23` (plus `00-lead.md`). It also found `squad/roles/test-implementer.md:51`, the helper row for `VerifyFormatter(source)` ("Analyzer-clean code stays untouched and analyzer-clean after formatting"); that row describes what the helper asserts for a test that chooses it, not a rule that all analyzer-clean code must stay formatter-stable, so it does not contradict P11 and stays unchanged (out of scope in any case). The owner of the intended direction is `sdd/README.md`, section P11; both texts now defer to it by link instead of restating it.
 
 ## Tests run
-No test covers these Markdown files (per `00-lead.md`); no compiled file changed. `scripts/lane-check.sh tooling` result is in the commit's run (see below).
+No test covers these Markdown files (per `00-lead.md`); no compiled file changed. `scripts/lane-check.sh tooling` at `69c4ecc`:
+
+```
+TEXT-ONLY PROOF: PASS — base=c81091b head=69c4ecc — 4 changed file(s) (4 non-compiled, 0 C# comment/layout-only); xml-doc impact: none
+LANE CHECK: confirmed — claimed tooling, diff needs tooling
+```
 
 ## Disputed tests or scope
 _None._
