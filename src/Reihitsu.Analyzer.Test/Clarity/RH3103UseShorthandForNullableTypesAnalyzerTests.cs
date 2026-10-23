@@ -1012,12 +1012,15 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
     }
 
     /// <summary>
-    /// Characterizes that a <c>Nullable&lt;T&gt;</c> qualified with dots as the argument of <c>nameof</c> is reported on
-    /// the generic name alone. Only the report is pinned; the offered fix is not applied
+    /// Verifies a dotted <c>Nullable&lt;T&gt;</c> as the argument of <c>nameof</c> is reported on the generic name
+    /// alone and no fix is offered, because the generic name is the <c>Name</c> of a member access, not a
+    /// <see cref="QualifiedNameSyntax"/>, so replacing it with a <see cref="NullableTypeSyntax"/> would not fit
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task DottedNullableGenericAsNameofArgumentIsReportedOnTheGenericName()
+    [Requirement("RH3103-006")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task DottedNullableGenericAsNameofArgumentDoesNotOfferFix()
     {
         const string testCode = """
                                 using System;
@@ -1028,16 +1031,20 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
                                 }
                                 """;
 
-        await Verify(testCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Characterizes that a <c>Nullable&lt;T&gt;</c> qualified with dots behind <c>global::</c> as the argument of
-    /// <c>nameof</c> is reported on the generic name alone. Only the report is pinned; the offered fix is not applied
+    /// Verifies a dotted <c>Nullable&lt;T&gt;</c> qualified behind <c>global::</c> as the argument of <c>nameof</c>
+    /// is reported on the generic name alone and no fix is offered, because the generic name is the <c>Name</c> of a
+    /// member access, not a <see cref="QualifiedNameSyntax"/>, so replacing it with a <see cref="NullableTypeSyntax"/>
+    /// would not fit
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task GlobalDottedNullableGenericAsNameofArgumentIsReportedOnTheGenericName()
+    [Requirement("RH3103-006")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task GlobalDottedNullableGenericAsNameofArgumentDoesNotOfferFix()
     {
         const string testCode = """
                                 class C
@@ -1046,7 +1053,7 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
                                 }
                                 """;
 
-        await Verify(testCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     #endregion // Tests
