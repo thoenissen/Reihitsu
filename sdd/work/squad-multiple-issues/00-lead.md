@@ -35,3 +35,10 @@ The auditor's verdict (`04-auditor.md`) has two findings, both routed to the imp
 2. Low — the `/squad` command and `squad/lead.md` disagree on which arguments name issues.
 
 The maintainer also decided to leave `sdd/changes/2026-10/establish-squad.md` unchanged.
+
+## Repair round 2
+
+The auditor blocked again (`08-auditor.md`, escalation 7). The maintainer chose a second repair round (`squad/decisions/2026-10-23-1403-second-repair-round.md`). Both findings go to the implementer:
+
+1. Medium — an issue's own lane is never re-checked during the run; it widens like a single run's lane, with the roles the widening adds run for that issue and escalation 10 once the implementer has started; the README's two sentences on lane-keyed duties of the tree-checking roles must agree.
+2. Low — only issue references select issues; other prompt text is context, and the lead asks when it is unclear whether an issue is meant.
