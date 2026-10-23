@@ -43,3 +43,7 @@ Verdict: lane claimed
 ## Second repair round (escalation 7, `squad/decisions/2026-10-23-1331-second-repair-round.md`)
 
 The maintainer approved a second repair round on all seven auditor findings in `11-auditor.md`. Routing: findings 1, 2, 3, 5, 6 to the spec author; findings 4 and 7 to the test implementer. Afterwards: cleaner, spec checker, auditor (repair only), validator.
+
+## Third repair round (escalation 7, `squad/decisions/2026-10-23-1331-third-repair-round.md`)
+
+The maintainer approved a third repair round on findings 8 and 9 of `16-auditor.md`, both routed to the spec author. The lead files the not-covered SHARED-DOC-004 shapes (documentation mode `None`; a directive between comment and declaration) as a question on thoenissen/Reihitsu#1407. Afterwards: test implementer if tags or tests are affected, cleaner, spec checker, auditor (repair only), validator.
