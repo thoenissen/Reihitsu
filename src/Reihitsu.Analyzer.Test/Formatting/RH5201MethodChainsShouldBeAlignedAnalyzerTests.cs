@@ -1821,6 +1821,34 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     }
 
     /// <summary>
+    /// Verifies that a link behind a block comment which starts its line in column zero is reported, although the
+    /// link stands in the anchor's column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-002")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyLinkInAnchorColumnBehindMisplacedBlockCommentIsDetected()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static object Run(int[] items)
+                                    {
+                                        var list = items.Where(value => value > 0)
+                                /* all */               {|#0:.|}ToList();
+
+                                        return list;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
     /// Formats the given source text through the shared formatting pipeline with LF line endings,
     /// the same engine <c>reihitsu-format</c> uses, without going through the CLI
     /// </summary>

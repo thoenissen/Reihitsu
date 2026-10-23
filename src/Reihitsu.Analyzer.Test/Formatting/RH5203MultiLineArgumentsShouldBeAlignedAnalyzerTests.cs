@@ -437,6 +437,64 @@ public class RH5203MultiLineArgumentsShouldBeAlignedAnalyzerTests : BatchCodeFix
         await Verify(testData, Diagnostics(RH5203MultiLineArgumentsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5203MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that an argument behind the closing <c>*/</c> of a comment that spans several lines is reported,
+    /// because it would start its line without the comment and does not start it behind the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5203-001")]
+    [Requirement("SHARED-COMMENT-012")]
+    public async Task VerifyArgumentBehindEndOfMultiLineCommentIsDetected()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        P(1,
+                                          /* a
+                                          b */ {|#0:2|});
+                                    }
+
+                                    void P(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5203MultiLineArgumentsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5203MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an argument behind the closing <c>*/</c> of a comment that spans several lines is reported under
+    /// CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5203-001")]
+    [Requirement("SHARED-COMMENT-012")]
+    public async Task VerifyArgumentBehindEndOfMultiLineCommentIsDetectedWithCrLf()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        P(1,
+                                          /* a
+                                          b */ {|#0:2|});
+                                    }
+
+                                    void P(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH5203MultiLineArgumentsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5203MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

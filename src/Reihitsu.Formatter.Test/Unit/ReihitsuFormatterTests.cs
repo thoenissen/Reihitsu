@@ -1396,6 +1396,51 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatSyntaxTree"/> writes LF for every line break of a source whose line breaks are all a lone carriage return
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-007")]
+    public void FormatSyntaxTreeWritesLineFeedWhenEveryLineBreakIsALoneCarriageReturn()
+    {
+        // Arrange — every line break of the input is a lone \r
+        var input = Lf("""
+                       namespace Test;
+
+                       public class Foo
+                       {
+                           public int Bar()
+                           {
+                               var x = 1;
+                               return x;
+                           }
+                       }
+                       """).Replace("\n", "\r");
+        var expected = Lf("""
+                          namespace Test;
+
+                          public class Foo
+                          {
+                              public int Bar()
+                              {
+                                  var x = 1;
+
+                                  return x;
+                              }
+                          }
+                          """);
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+
+        // Act
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var actual = result.GetRoot(TestContext.CancellationToken).ToFullString();
+
+        // Assert
+        Assert.AreEqual(expected, actual, "Every line break of the output should be LF.");
+        Assert.DoesNotContain("\r", actual, "Output should not keep a lone carriage return.");
+    }
+
+    /// <summary>
     /// Verifies that <see cref="ReihitsuFormatter.FormatSyntaxTree"/> throws <see cref="OperationCanceledException"/> when cancellation is requested
     /// </summary>
     [TestMethod]

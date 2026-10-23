@@ -1271,6 +1271,34 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
         await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a collection element behind a block comment which starts its line in column zero is reported,
+    /// although the element stands in its column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5303-002")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyElementInItsColumnBehindMisplacedBlockCommentIsDetected()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        var values = new List<int>()
+                                                     {
+                                /* c */                  {|#0:1|}
+                                                     };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

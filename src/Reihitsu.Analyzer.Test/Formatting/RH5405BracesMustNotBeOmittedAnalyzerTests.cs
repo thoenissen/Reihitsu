@@ -681,6 +681,35 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
     }
 
     /// <summary>
+    /// Verifies that the line breaks the fix creates are LF in a document whose line breaks are all a lone carriage
+    /// return, and that the line break the fix keeps from the input stays a lone carriage return
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    public async Task FixWritesLineFeedInADocumentWhoseLineBreaksAreLoneCarriageReturns()
+    {
+        var source = NormalizeToLineFeed(LineOfIfTestCode).Replace("\n", "\r", StringComparison.Ordinal);
+
+        var actual = await ApplyCodeFixAsync(source);
+
+        // The three line breaks inside the new block are created by the fix; the one behind its closing brace is the
+        // line break that ended the statement's line in the input
+        const string expected = "class C\r"
+                                + "{\r"
+                                + "    void M(bool a, bool b)\r"
+                                + "    {\r"
+                                + "        if (a)\n"
+                                + "        {\n"
+                                + "            M(a, b);\n"
+                                + "        }\r"
+                                + "    }\r"
+                                + "}";
+
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
     /// Verifies that the LF line breaks inside a verbatim string literal stay LF when the fix is applied in a document
     /// whose other line breaks are CRLF, and that they do not decide the line ending of the line breaks the fix
     /// creates, although they outnumber the document's other line breaks

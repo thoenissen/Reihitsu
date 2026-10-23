@@ -1535,6 +1535,67 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
         await Verify(testData, fixedData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a line which starts with a block comment outside the scope's column is reported on the member
+    /// behind the comment, whatever column that member reaches
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyMemberBehindMisplacedBlockCommentStartingTheLineIsDetected()
+    {
+        const string testData = """
+                                class C
+                                {
+                                      /* a */ {|#0:private|} int _a;
+                                /**/{|#1:private|} int _b;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that a line which starts with a block comment in column zero is reported on the member behind the
+    /// comment, although that member stands in the scope's column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyMemberInScopeColumnBehindMisplacedBlockCommentIsDetected()
+    {
+        const string testData = """
+                                class C
+                                {
+                                /**/{|#0:private|} int _b;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a line which starts with a block comment in column zero is reported on the member behind the
+    /// comment, although that member stands in the scope's column, under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyMemberInScopeColumnBehindMisplacedBlockCommentIsDetectedWithCrLf()
+    {
+        const string testData = """
+                                class C
+                                {
+                                /**/{|#0:private|} int _b;
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
