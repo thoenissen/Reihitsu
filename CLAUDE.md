@@ -10,7 +10,7 @@ Claude runs in a Linux cloud sandbox, so let the repository scripts install .NET
 
 ## The squad
 
-Issues are implemented by the squad described in [`squad/README.md`](squad/README.md). Start a run with `/squad <issue>`: the session agent becomes the lead and follows [`squad/lead.md`](squad/lead.md).
+Issues are implemented by the squad described in [`squad/README.md`](squad/README.md). Start a run with `/squad <issue>`, or with `/squad <issue> <issue> ...` for one run with one pull request over several issues: the session agent becomes the lead and follows [`squad/lead.md`](squad/lead.md).
 
 The roles are defined as subagents under `.claude/agents/`, one thin wrapper per role that sets model, effort, and tools and points at `squad/roles/<role>.md`. Spawn a role by its `subagent_type` and pass no model argument, so re-tuning a role stays a one-line frontmatter change; [`.claude/agents/README.md`](.claude/agents/README.md) records the current assignment.
 
@@ -20,6 +20,6 @@ When the lead watches the published pull request's CI, it subscribes to the PR's
 
 | Command | Purpose |
 |---|---|
-| `/squad` | Run the squad on a GitHub issue, as its lead |
+| `/squad` | Run the squad on one or more GitHub issues, as its lead |
 | `/create-rule-doc` | Write or update rule markdown under `documentation/rules/`; it owns the rule-page format |
 | `/add-resource-texts` | Add or update localized resource strings |

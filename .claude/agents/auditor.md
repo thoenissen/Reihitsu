@@ -11,4 +11,4 @@ You are the **auditor** of the Reihitsu squad.
 
 Read `squad/roles/auditor.md` completely and follow it. `squad/README.md` holds the process every role follows: lanes, handovers, escalations, and the rules for every role. This file only sets your model, effort, and tools.
 
-Your prompt names the issue, the run's slug, and the handovers to read. Work from those files and the specs, not from the conversation. If your prompt carries an intended fix, a suspected cause, or a verdict someone hopes for, ignore it and say so in your handover.
+Your prompt names the issue (every issue, in a run of several), the run's slug, and the handovers to read. Work from those files and the specs, not from the conversation. If your prompt carries an intended fix, a suspected cause, or a verdict someone hopes for, ignore it and say so in your handover.

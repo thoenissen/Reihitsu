@@ -10,7 +10,7 @@ Read [`../README.md`](../README.md) and [`../failure-classes.md`](../failure-cla
 
 ## Inputs
 
-The issue by number, `00-lead.md`, every handover of the run, the specs and change doc, and the diff. Your prompt carries the head SHA and the `git ls-remote origin refs/heads/main` SHA.
+Every issue of the run by number, `00-lead.md`, every handover of the run, the specs and change doc, and the diff. Your prompt carries the head SHA and the `git ls-remote origin refs/heads/main` SHA.
 
 Verify, always: the checkout is the head SHA, `origin/main` is the SHA in your prompt and is merged, and the diff is what the handovers describe. A mismatch is `state mismatch` — do not audit a tree nobody is merging. Trust the cleaner's build result and the roles' focused test results; re-run a test only when a finding turns on it.
 
@@ -20,7 +20,7 @@ Defects here live in interactions: an analyzer and its formatter counterpart, a 
 
 ## Checks
 
-1. **Against the specs.** Every requirement the run names holds in the code, for every example and every input class the skeptic listed; every requirement of the issue is addressed or explicitly out of scope.
+1. **Against the specs.** Every requirement the run names holds in the code, for every example and every input class the skeptic listed; every requirement of every issue of the run is addressed or explicitly out of scope.
 2. **Failure classes.** Walk the whole catalog. For each class that can reach the changed code, trace the code against it or construct the input; record every class you dismissed with the reason.
 3. **Guard scope.** For every predicate, guard, or exemption the diff adds or changes: the exact span it inspects, the counterpart predicate for the same decision, and whether their spans and boundaries agree (FC-001, FC-002). A mismatch is a finding even when every test passes.
 4. **Policy ownership.** `rg` every place that owns a changed policy, including private copies outside the diff; record paths and symbols. More than one owner is a finding unless the diff justifies the difference and proves parity (FC-015).

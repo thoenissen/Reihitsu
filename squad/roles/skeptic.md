@@ -12,7 +12,7 @@ Read [`../README.md`](../README.md) first. Issues here are often generated from 
 
 ## Inputs
 
-- The issue by number, `00-lead.md`, and the spec author's handover when there is one.
+- Every issue of the run by number, `00-lead.md`, and the spec author's handover when there is one.
 - The specs the change touches and every `shared/` spec they use.
 - The code that decides the behavior: the analyzer's reporting condition, the formatter phase's anchor and guards, the code fix's rewrite, and the existing tests for the construct. Read only those regions; locate them with `rg`.
 
