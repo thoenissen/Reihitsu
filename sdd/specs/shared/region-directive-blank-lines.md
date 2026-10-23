@@ -5,7 +5,7 @@
 | ID prefix | SHARED-REGION |
 | Status | Active |
 | Code owners | `RegionDirectiveBlankLineAnalyzerBase`, `RegionDirectiveBlankLineCodeFixProviderBase` |
-| Uses | SHARED-BLANK-005, SHARED-BLANK-006 |
+| Uses | SHARED-BLANK-005, SHARED-BLANK-006, SHARED-FIX-008 |
 
 This spec covers what the two rules that ask for a blank line next to a `#region` or `#endregion` directive share beyond the blank-line policy itself: where the diagnostic is, and what the code fix inserts. Which directive misses its blank line is SHARED-BLANK-005 (the line above, RH5031) and SHARED-BLANK-006 (the line below, RH5032); each rule that uses this spec names the side it checks.
 
@@ -50,7 +50,7 @@ class C
 
 ### SHARED-REGION-002 — The fix inserts one empty line on the reported side
 
-The code fix MUST insert one empty line — a line break in the line ending the document already uses, with no indentation — directly above the directive's line for the rule that checks the line above, or directly below it for the rule that checks the line below. It MUST NOT change anything else: a comment directly above or below the directive stays where it is, so the empty line goes between that comment and the directive. The fix is offered for every reported directive.
+The code fix MUST insert one empty line — a line break in the line ending SHARED-FIX-008 specifies, with no indentation — directly above the directive's line for the rule that checks the line above, or directly below it for the rule that checks the line below. It MUST NOT change anything else: a comment directly above or below the directive stays where it is, so the empty line goes between that comment and the directive. The fix is offered for every reported directive.
 
 Why: The missing blank line is the whole correction. A comment next to the directive is its own line of content whose separation is decided by RH5020, not by the region rules; moving it would change what the comment appears to annotate.
 

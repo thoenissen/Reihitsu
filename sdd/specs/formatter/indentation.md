@@ -14,9 +14,9 @@ This spec covers the indentation phase: the column at which every line that star
 - Where lines break — FMT-BREAK. This phase never adds or removes a line break.
 - Spacing between tokens on the same line — FMT-SPACE. The rest of a line keeps its spacing and moves with its first token.
 - Blank lines — FMT-BLANK.
-- The content lines and the closing marker of a multi-line raw string literal — FMT-RAW. Lines inside a multi-line interpolation hole of such a literal are not specified yet (see the open questions for this phase).
+- The content lines and the closing marker of a multi-line raw string literal — FMT-RAW. Lines inside a multi-line interpolation hole of such a literal are not specified yet; their intended layout is decided as a bug, tracked in thoenissen/Reihitsu#951.
 - The text of documentation comments other than the column of their `///` markers — FMT-DOC.
-- The column of a continuation line that no requirement below owns — for example the right operand of a wrapped binary expression, the expression after `=>` or `=` that stays on its own line, or the content of a parenthesized pattern that is not a property pattern. Such lines currently take the block column of the enclosing statement or declaration; whether that is intended is an open question.
+- The column of a continuation line that no requirement below owns — for example the right operand of a wrapped binary expression, the expression after `=>` or `=` that stays on its own line, or the content of a parenthesized pattern that is not a property pattern. Such lines currently take the block column of the enclosing statement or declaration; indenting them one level deeper is a decided behavior change, tracked in thoenissen/Reihitsu#953.
 - Configuration. The indentation unit is fixed; no option or `.editorconfig` setting is read.
 
 ## Requirements

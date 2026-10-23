@@ -14,7 +14,7 @@ This spec covers `HorizontalSpacingPhase`: the whitespace between two adjacent t
 - Whitespace in a gap that contains a line break: indentation and continuation columns belong to [indentation.md](indentation.md) (FMT-INDENT), and whether a line break exists at all to [line-breaks.md](line-breaks.md) (FMT-BREAK).
 - Whitespace at the end of a line, tabs used as indentation, and the final newline — [cleanup.md](cleanup.md) (FMT-CLEAN).
 - The text of literals, interpolated-string text, comments, and disabled text, which the phase never edits (FMT-PIPE-002).
-- Token pairs no rule covers, such as the lambda arrow, the conditional operator, `case` and named-argument colons, or the space between a method name and its argument list. The phase only collapses their whitespace (FMT-SPACE-002).
+- Token pairs no rule covers, such as the lambda arrow, the conditional operator, `case` and named-argument colons, or the space between a method name and its argument list. The phase only collapses their whitespace (FMT-SPACE-002). Spacing rules for the lambda arrow, the conditional operator, named-argument colons, and the space before an argument list are a decided behavior change, tracked in thoenissen/Reihitsu#958.
 
 ## Requirements
 

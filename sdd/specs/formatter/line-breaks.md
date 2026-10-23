@@ -15,8 +15,8 @@ This spec covers the sixth phase of the pipeline, which decides where lines brea
 - How many blank lines separate statements, members, comments, and directives — FMT-BLANK. Where this phase moves a token onto a new line it inserts no blank line.
 - Whether an `if`/`else` body gets braces, whether a member is expression-bodied, and whether an empty type becomes a semicolon declaration — FMT-STRUCT. Braces of switch sections — FMT-SWITCH.
 - Starting a wrap because a line is long. The phase has no line-length limit: it only normalizes wraps the author made, apart from the shapes it always lays out over several lines (braces, object initializers, nested conditionals).
-- Unbraced embedded statements (`while (a) Foo();`), enum member lists, tuple expressions, and the arms of a switch expression keep the line breaks the author wrote.
-- The position of a comma or of the closing parenthesis in an argument list (as opposed to a parameter list, FMT-BREAK-011).
+- Unbraced embedded statements (`while (a) Foo();`), enum member lists, tuple expressions, and the arms of a switch expression keep the line breaks the author wrote. One switch-expression arm per line is a decided behavior change, tracked in thoenissen/Reihitsu#956.
+- The position of a comma or of the closing parenthesis in an argument list (as opposed to a parameter list, FMT-BREAK-011). Laying out argument lists like parameter lists is a decided behavior change, tracked in thoenissen/Reihitsu#956.
 
 ## Requirements
 
