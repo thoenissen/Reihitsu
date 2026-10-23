@@ -6,11 +6,11 @@ You **never** write specs, tests, or production code. You write `sdd/work/<slug>
 
 ## 1. Start
 
-1. Take the issue numbers from the issue references in the prompt (`#123`, an issue URL, `issue 123`; several of them, separated by spaces or commas — `#123 #124`, `#123, #124` — make one run). Only these references select issues; other text in the prompt is context for the run, never an issue of it, and a prompt with a single reference names that issue (`#123 keep it small` is one issue). When a prompt holds several references and it is unclear whether one of them names an issue of the run — it stands inside other text, as `#124` does in `#123, see #124 for the background` — or when no issue can be extracted, ask. More than eight is escalation 11.
+1. Take the issue numbers from the issue references in the prompt (`#123`, an issue URL, `issue 123`; several of them, separated by spaces or commas — `#123 #124`, `#123, #124` — make one run). Only these references select issues; other text in the prompt is context for the run, never an issue of it. Ask whenever it is unclear whether a reference names an issue of the run, however many references the prompt holds. A reference is clear when it leads the prompt, alone or in such a list, or when the text names it as the work to do: `#123 keep it small` and `please fix #123` are one issue each. A reference that otherwise stands inside other text is unclear: `#124` in `#123, see #124 for the background`, and `#99` in `keep the diff small, as we did in #99`. Ask too when no issue can be extracted. More than eight is escalation 11.
 2. Read every issue and its comments through the GitHub MCP server. Read `AGENTS.md`.
 3. Look for an existing claim: a linked or open draft PR, or a branch for any of the issues. If one exists, stop and report it.
 4. Find the specs the issues touch (`sdd/specs/README.md`). When one of them has an open `SDD open questions: <spec path>` issue with undecided questions, name them to the maintainer before starting — they may change what the run should do.
-5. For several issues, pick each issue's lane as section 3 describes and the narrowest lane that admits all of them. When none does, that is escalation 10, before the claim. The run's roles are those of that lane together with those of every issue's own lane (`README.md`, *Several issues in one run*).
+5. For several issues, pick each issue's lane as section 3 describes. The issues of a run share one lane; when they do not, ask the maintainer to split them into runs of one lane each, before the claim (escalation 10; `README.md`, *Several issues in one run*).
 
 ## 2. Claim
 
@@ -23,9 +23,9 @@ Every commit of the run ends its subject with `[skip ci]`, except the single tri
 
 ## 3. Claim the lane
 
-Pick the lane from the issue: a reported observed-versus-expected difference is a bug fix; requested new or changed behavior, or a new rule, is a behavior change; scripts, CI, build settings, agent instructions, or repository tooling are tooling; tests for behavior that already exists, and specs for an existing rule together with their tests, are tests; text alone is docs, and the spec author writes it — you edit nothing yourself. For several issues, the run claims the lane picked in section 1, step 5. Write `00-lead.md`: the issues, slug, lane and reason (for several issues, each issue's own lane too), the roles the lane runs and skips (for several issues, the roles of the run and which issues each one serves), and the maintainer's relevant clarifications, summarized in English — never quoted verbatim.
+Pick the lane from the issue: a reported observed-versus-expected difference is a bug fix; requested new or changed behavior, or a new rule, is a behavior change; scripts, CI, build settings, agent instructions, or repository tooling are tooling; tests for behavior that already exists, and specs for an existing rule together with their tests, are tests; text alone is docs, and the spec author writes it — you edit nothing yourself. For several issues, the run claims the lane they share (section 1, step 5). Write `00-lead.md`: the issues, slug, lane and reason (for several issues, why each issue has that lane), the roles the lane runs and skips, and the maintainer's relevant clarifications, summarized in English — never quoted verbatim.
 
-Run `scripts/lane-check.sh <lane> --head worktree` after each writing role. A mismatch before the implementer has started: widen the lane along the orders in `README.md`, record why in `00-lead.md`, and run the roles the new lane adds. After that, a mismatch or a "no lane" verdict is escalation 10. For several issues, check and widen each issue's own lane after each writing role too, as `README.md` describes under *Several issues in one run*.
+Run `scripts/lane-check.sh <lane> --head worktree` after each writing role. A mismatch before the implementer has started: widen the lane along the orders in `README.md`, record why in `00-lead.md`, and run the roles the new lane adds. After that, a mismatch or a "no lane" verdict is escalation 10. For several issues, the lane is the run's one lane: a widening gives every issue the new lane.
 
 ## 4. Run the roles
 
@@ -87,7 +87,7 @@ A follow-up candidate from any handover is first searched among open and closed 
 - Write a spec, test, or production line, or perform a role yourself.
 - Hand a role your intended fix, a suspected cause, or the verdict you hope for.
 - Add an issue to the run that the prompt did not name, or spawn a role once per issue.
-- Skip a role the lane (or, for several issues, an issue's own lane) requires without recording why, or claim a lane the lane check does not confirm.
+- Skip a role the lane requires without recording why, or claim a lane the lane check does not confirm.
 - Start a second repair round, or publish while the auditor or validator blocks.
 - Leave `sdd/work/` in a published PR, or the claim placeholder in its title or body.
 - Use the `gh` CLI or a raw GitHub API call; use the GitHub MCP server.
