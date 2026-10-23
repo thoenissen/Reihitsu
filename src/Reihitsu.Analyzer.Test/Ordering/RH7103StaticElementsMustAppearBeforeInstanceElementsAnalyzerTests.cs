@@ -3,7 +3,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -1455,6 +1457,78 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
         AssertFormattingChangesNothing(testCode.Replace("{|#0:", string.Empty).Replace("|}", string.Empty));
 
         await Verify(testCode, fixedCode, Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a documentation comment behind code whose declaration a fix moves: the
+    /// <c>///</c> comment behind the closing brace of <c>Run</c> documents <c>Create</c>, the static method is reported,
+    /// and the fix carries the comment with <c>Create</c> in front of <c>Run</c> instead of leaving it behind the brace.
+    /// Where the comment starts after the move, the layout of its lines, and the layout of the rest of the type are not
+    /// asserted
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-DOC-004")]
+    [Requirement("SHARED-ORDER-002")]
+    public async Task FixCarriesADocumentationCommentBehindCodeWithTheMovedDeclaration(string endOfLine)
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    public void Run()
+                                    {
+                                    } /// <summary>Creates</summary>
+                                    public static void {|RH7103:Create|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+
+        var plainCode = testCode.Replace("{|RH7103:", string.Empty)
+                                .Replace("|}", string.Empty)
+                                .Replace("\r\n", "\n")
+                                .Replace("\n", endOfLine);
+
+        var fixedCode = await ApplyCodeFixAsync(plainCode);
+
+        var syntaxTree = CSharpSyntaxTree.ParseText(fixedCode, new CSharpParseOptions(documentationMode: DocumentationMode.Parse), cancellationToken: CancellationToken.None);
+        var root = await syntaxTree.GetRootAsync(CancellationToken.None);
+        var methods = root.DescendantNodes()
+                          .OfType<MethodDeclarationSyntax>()
+                          .ToList();
+
+        Assert.HasCount(2, methods);
+        Assert.AreEqual("Create", methods[0].Identifier.ValueText, "The fix must move Create in front of Run.");
+        Assert.AreEqual("Run", methods[1].Identifier.ValueText, "The fix must move Create in front of Run.");
+
+        var createDocumentation = methods[0].GetLeadingTrivia()
+                                            .Where(trivia => trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
+                                            .ToList();
+
+        Assert.HasCount(1, createDocumentation, "The documentation comment must travel with Create.");
+
+        var summary = createDocumentation[0].GetStructure()
+                                            .DescendantNodes()
+                                            .OfType<XmlElementSyntax>()
+                                            .Single(element => element.StartTag.Name.LocalName.ValueText == "summary");
+        var summaryText = string.Concat(summary.Content.Select(content => content.ToString()))
+                                .Replace("///", string.Empty)
+                                .Trim();
+
+        Assert.AreEqual("Creates", summaryText, "The comment that travels must be the summary of Create.");
+
+        var commentsInRun = methods[1].DescendantTrivia()
+                                      .Where(trivia => trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+                                                       || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
+                                      .ToList();
+
+        Assert.IsEmpty(commentsInRun, "No comment may stay behind the closing brace of Run.");
+        Assert.AreEqual(fixedCode.IndexOf("Creates", StringComparison.Ordinal), fixedCode.LastIndexOf("Creates", StringComparison.Ordinal), "The fix must keep exactly one copy of the comment.");
     }
 
     #endregion // Tests
