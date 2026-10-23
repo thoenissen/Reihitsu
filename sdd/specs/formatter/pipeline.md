@@ -159,7 +159,23 @@ class C␍
 }
 ```
 
-In a file whose line breaks are all a lone `\r`, every line break of the result is `\n`.
+Example — the input has two lone `\r` line breaks and one `\r\n` (`␍` marks a `\r`: at the end of a line it is the first half of a `\r\n`, inside a line it is a lone `\r`). The two lone `\r` count as `\n`, so `\n` outnumbers `\r\n`:
+
+```csharp
+class C␍{␍void M(){}␍
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+    }
+}
+```
+
+Every line break of the result is `\n`. With a second `\r\n` behind the closing brace, the count is a tie and every line break of the result is `\r\n`. In a file whose line breaks are all a lone `\r`, every line break of the result is `\n`.
 
 ### FMT-PIPE-008 — Version-dependent rules follow the language version
 
