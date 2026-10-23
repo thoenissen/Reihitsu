@@ -22,3 +22,12 @@ Roles: implementer, cleaner, spec checker, auditor, validator. Skipped: spec aut
 - "Formatter output is flagged by the analyzer" stays a failure; cite SHARED-DIAG-010 (P31: a layout rule does not report a shape the formatter keeps) as its counterpart.
 - Both texts link the P11 section by its anchor.
 - Must not: change other failure classes or other skeptic checks; change code, specs, or tests; touch `sdd/` outside `sdd/work/` (thoenissen/Reihitsu#1415 runs in parallel on `sdd/specs/`); create issues without the maintainer's approval of the exact text.
+
+## Escalation answers (after the audit at 22015e9)
+
+- New-rule candidates (P11): the maintainer chose that the lead presents each one to the maintainer, who decides whether it becomes an issue — the normal follow-up route (`squad/lead.md`, *Follow-ups*). The run widens to `squad/lead.md` as far as that needs. Decision: `squad/decisions/2026-10-23-1419-new-rule-candidate-route.md`. This replaces the earlier clarification "mentioned in the run report, no issue".
+- FC-013's "formatter output is flagged by the analyzer" clause: the maintainer chose to narrow it in this run to the rules SHARED-DIAG-010 covers; an order or content rule may report what the formatter keeps. Decision: `squad/decisions/2026-10-23-1419-fc013-layout-rules.md`. This replaces the earlier clarification "keep that clause as stated".
+
+## Repair round 1
+
+Worklist (owner: implementer): auditor findings 1 and 2 and hint H1 from `04-auditor.md`, re-derived under the answers above. Audit base: 22015e9.
