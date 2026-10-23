@@ -42,3 +42,12 @@ Verdict: lane claimed — tests
 - Escalation 3, Q1 (skeptic): SHARED-COMMENT-011 against SHARED-CHAIN-004 — answered (b): a rule's own comment exemption in that gap still applies; SHARED-COMMENT-011 says so. `squad/decisions/2026-10-23-1380-p12-chain-exemption.md`.
 - Escalation 3, Q2 (skeptic): P34 scope — answered (b): P34 governs the members its sources named within the layout each construct's own requirement chooses; FMT-PIPE-014 keeps the per-construct decisions (FMT-BREAK-014, -021, -022, -026, the switch-arm non-goal). `squad/decisions/2026-10-23-1380-p34-family-scope.md`.
 - Spec author revision (03): the FMT-PIPE-007 sentence that a lone `\r` counts as `\n` is accepted in scope — it is the clarification thoenissen/Reihitsu#1081 item 2 already decided, and the decided P35 text cites it. The PR names #1081 as partly addressed; #1081 item 2 still needs its own tagged FMT-PIPE-007 test, which this run's test implementer writes.
+- Spec author revision (03): the RH5203-001 clause pointing to SHARED-COMMENT-012 and the RH5203 `Uses` entry are accepted in scope — they place the decided P33 requirement where the coverage check enforces it; no behavior change.
+- Lead commented the RH5203 alignment-column instance on thoenissen/Reihitsu#1382.
+
+## Repair round (auditor 07)
+
+Worklist (one round):
+1. Auditor finding 1 (introduced by this PR) → spec author: the SHARED-FIX-008 clause on kept line breaks in an all-`\r` document does not hold for fixes that lay out their node through the formatter (RH5406, RH5405 with the body on the next line). Then test implementer if the requirement text needs a new covering test.
+2. Auditor finding 2 (pre-existing behavior, new instance of decided principle P35) → spec author records the contradiction between SHARED-FIX-008 and RH5011-004 / RH8304-004 among the run's left-in-place contradictions; the lead files the instance in the open-questions issue for `sdd/specs/shared/code-fixes.md`, marked decided by P35.
+3. Auditor hints accepted into the round: FMT-PIPE-007 gets a code example (thoenissen/Reihitsu#1081 asks for one) → spec author; CRLF variants of the new RH5201/RH5301/RH5303 tests and a conforming RH5304 test for amended SHARED-COMMENT-011 → test implementer.
