@@ -21,6 +21,7 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8302-002")]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
         const string testData = """
@@ -43,6 +44,7 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8302-002")]
     public async Task VerifyNoDiagnosticsForCleanMultiLineDocumentation()
     {
         const string testData = """
@@ -91,6 +93,9 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8302-001")]
+    [Requirement("RH8302-003")]
+    [Requirement("RH8302-004")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -125,6 +130,9 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8302-001")]
+    [Requirement("RH8302-003")]
+    [Requirement("RH8302-004")]
     public async Task VerifyMultiLineDocumentationIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -159,6 +167,7 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8302-004")]
     public async Task VerifyMultipleBlankLinesAreRemovedByOneCodeFix()
     {
         const string testData = """
@@ -193,6 +202,7 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8302-002")]
     public async Task VerifyRawStringContentDoesNotProduceDiagnostics()
     {
         const string testData = """"
@@ -216,6 +226,7 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8302-002")]
     public async Task VerifyFourSlashCommentDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -238,6 +249,7 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8302-002")]
     public async Task VerifyBlankLineAfterFourSlashBlockDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -263,6 +275,7 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8302-002")]
     public async Task VerifyMultiLineCommentsDoNotProduceDiagnostics()
     {
         const string testData = """
@@ -284,6 +297,7 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8302-002")]
     public async Task VerifyDisabledTextDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -304,6 +318,8 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8302-001")]
+    [Requirement("SHARED-DOC-008")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string testData = """
@@ -318,6 +334,213 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
                                 """;
 
         await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that a blank line after a documentation comment is reported whatever follows it: the declaration,
+    /// an ordinary comment, another documentation comment, or a preprocessor directive
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8302-001")]
+    [Requirement("RH8302-003")]
+    public async Task VerifyBlankLinesAfterDocumentationCommentsAreReportedWhateverFollows()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>
+                                    /// First
+                                    /// </summary>
+                                {|#0:
+                                |}    int A;
+
+                                    /** <summary>Second</summary> */
+                                {|#1:
+                                |}    int B;
+
+                                    /// <summary>
+                                    /// Third
+                                    /// </summary>
+                                {|#2:
+                                |}    // Ordinary comment
+                                    int C1;
+
+                                    /// <remarks>Remarks</remarks>
+                                {|#3:
+                                |}    /// <summary>Fourth</summary>
+                                    int D;
+
+                                    /// <summary>Fifth</summary>
+                                {|#4:
+                                |}#if !NEVER
+                                    int E;
+                                #endif
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat, 5));
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment followed directly by its next line, a delimited documentation comment
+    /// whose line continues after it, a four-slash comment, and a block comment are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8302-002")]
+    public async Task VerifyOtherCommentsAndPositionsDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>
+                                    /// First
+                                    /// </summary>
+                                    int A;
+
+                                    /** <summary>Second</summary> */ // Note
+
+                                    int B;
+
+                                    ////
+
+                                    int C1;
+
+                                    /*
+                                    /// Not documentation
+                                    */
+
+                                    int D;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a run of several blank lines is reported as one diagnostic covering every line of the run
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8302-003")]
+    public async Task VerifyRunOfBlankLinesIsReportedAsOneDiagnostic()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>
+                                    /// First
+                                    /// </summary>
+                                {|#0:
+
+                                |}    int A;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the white space on a blank line belongs to the reported run and is removed with it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8302-003")]
+    [Requirement("RH8302-004")]
+    public async Task VerifyWhitespaceOnBlankLineIsPartOfTheReportedRun()
+    {
+        var testData = ExpandWhitespaceMarkers("""
+                                               class C
+                                               {
+                                                   /// <summary>First</summary>
+                                               {|#0:····
+                                               |}    int A;
+                                               }
+                                               """);
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>First</summary>
+                                     int A;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix removes the reported runs after both documentation comment forms and changes nothing else
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8302-004")]
+    public async Task VerifyFixRemovesTheBlankLines()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>
+                                    /// First
+                                    /// </summary>
+                                {|#0:
+
+                                |}    int A;
+
+                                    /** <summary>Second</summary> */
+                                {|#1:
+                                |}    int B;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>
+                                     /// First
+                                     /// </summary>
+                                     int A;
+
+                                     /** <summary>Second</summary> */
+                                     int B;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that the fix removes a run of blank lines in a CRLF document and keeps the CRLF line endings of the
+    /// remaining lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8302-004")]
+    public async Task VerifyFixRemovesTheBlankLinesWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>
+                                    /// First
+                                    /// </summary>
+
+
+                                    int A;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>
+                                     /// First
+                                     /// </summary>
+                                     int A;
+                                 }
+                                 """;
+
+        var actual = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), actual);
     }
 
     #endregion // Tests

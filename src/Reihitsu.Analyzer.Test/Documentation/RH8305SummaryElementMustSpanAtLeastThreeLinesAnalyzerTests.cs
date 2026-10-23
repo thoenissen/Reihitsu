@@ -21,6 +21,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8305-002")]
     public async Task VerifyNoDiagnosticsForCorrectThreeLineSummary()
     {
         const string testData = """
@@ -43,6 +44,9 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8305-001")]
+    [Requirement("RH8305-003")]
+    [Requirement("RH8305-004")]
     public async Task VerifySingleLineSummaryIsDetectedAndFixed()
     {
         const string testData = """
@@ -74,6 +78,9 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8305-001")]
+    [Requirement("RH8305-003")]
+    [Requirement("RH8305-004")]
     public async Task VerifySingleLineSummaryWithInlineXmlIsDetectedAndFixed()
     {
         const string testData = """
@@ -105,6 +112,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8305-002")]
     public async Task VerifyNoDiagnosticsForMultilineSummaryWithMultipleContentLines()
     {
         const string testData = """
@@ -128,6 +136,9 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8305-001")]
+    [Requirement("RH8305-003")]
+    [Requirement("RH8305-004")]
     public async Task VerifyDiagnosticForTwoLineSummaryWithContentOnStartTagLine()
     {
         const string testData = """
@@ -161,6 +172,8 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8305-001")]
+    [Requirement("RH8305-003")]
     public async Task VerifyEmptySingleLineSummaryIsDetectedAndFixed()
     {
         const string testData = """
@@ -205,6 +218,191 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
                               """;
 
         await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that summaries whose end tag starts on the line of the start tag or on the next line are reported,
+    /// also in a later documentation comment of the declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-001")]
+    [Requirement("RH8305-003")]
+    public async Task VerifySummariesOnFewerThanThreeLinesAreReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// {|#0:<summary>Runs</summary>|}
+                                    void M()
+                                    {
+                                    }
+
+                                    /// {|#1:<summary>Stops
+                                    /// </summary>|}
+                                    void N()
+                                    {
+                                    }
+
+                                    /// {|#2:<summary>
+                                    /// Value</summary>|}
+                                    int A;
+
+                                    /// <remarks>Remarks</remarks>
+
+                                    /// {|#3:<summary>Count</summary>|}
+                                    int B;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat, 4));
+    }
+
+    /// <summary>
+    /// Verifies that summaries on three lines, an empty summary element, a nested summary, and a summary in a
+    /// delimited documentation comment are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-002")]
+    public async Task VerifyOtherSummariesDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>
+                                    /// Runs
+                                    /// </summary>
+                                    void M()
+                                    {
+                                    }
+
+                                    /// <summary/>
+                                    void N()
+                                    {
+                                    }
+
+                                    /// <summary>Stops
+                                    /// now
+                                    /// </summary>
+                                    void O()
+                                    {
+                                    }
+
+                                    /// <remarks><summary>Nested</summary></remarks>
+                                    /// <summary>
+                                    /// Value
+                                    /// </summary>
+                                    int A;
+
+                                    /** <summary>Count</summary> */
+                                    int B;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix puts the start tag, each content line, and the end tag on documentation lines of their own
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-004")]
+    public async Task VerifyFixLaysTheSummaryOutOnThreeLines()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// {|#0:<summary>Runs <see cref="C"/></summary>|}
+                                    void M()
+                                    {
+                                    }
+
+                                    /// {|#1:<summary>Stops
+                                    /// now</summary>|}
+                                    void N()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>
+                                     /// Runs <see cref="C"/>
+                                     /// </summary>
+                                     void M()
+                                     {
+                                     }
+
+                                     /// <summary>
+                                     /// Stops
+                                     /// now
+                                     /// </summary>
+                                     void N()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that the fix writes the new documentation lines with CRLF line breaks in a CRLF document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-004")]
+    public async Task VerifyFixLaysTheSummaryOutWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>Runs</summary>
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>
+                                     /// Runs
+                                     /// </summary>
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        var actual = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), actual);
+    }
+
+    /// <summary>
+    /// Verifies that a one-line summary is not reported when documentation comments are not parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-001")]
+    [Requirement("SHARED-DOC-008")]
+    public async Task VerifyOneLineSummaryDoesNotProduceDiagnosticsWhenDocumentationModeIsNone()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>Runs</summary>
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
     }
 
     #endregion // Tests

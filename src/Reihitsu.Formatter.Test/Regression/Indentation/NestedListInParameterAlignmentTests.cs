@@ -42,6 +42,7 @@ public class NestedListInParameterAlignmentTests : FormatterTestsBase
     /// Verifies that a wrapped tuple type element placed under the opening parenthesis is moved under the first element
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-012")]
     public void WrappedTupleTypeElementInParameterIsMovedUnderTheFirstElement()
     {
         // Arrange
@@ -386,6 +387,7 @@ public class NestedListInParameterAlignmentTests : FormatterTestsBase
     /// Verifies that the second attribute of a wrapped parameter attribute list is aligned with the first attribute
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-015")]
     public void WrappedAttributeListOfParameterIsAlignedWithTheFirstAttribute()
     {
         // Arrange
@@ -425,6 +427,7 @@ public class NestedListInParameterAlignmentTests : FormatterTestsBase
     /// Verifies that the second attribute of a wrapped attribute list with a target specifier is aligned with the first attribute
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-015")]
     public void WrappedTargetedAttributeListIsAlignedWithTheFirstAttribute()
     {
         // Arrange
@@ -468,6 +471,7 @@ public class NestedListInParameterAlignmentTests : FormatterTestsBase
     /// Verifies that the second calling convention of a wrapped unmanaged calling convention list is aligned with the first one
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-012")]
     public void WrappedUnmanagedCallingConventionListIsAlignedWithTheFirstConvention()
     {
         // Arrange

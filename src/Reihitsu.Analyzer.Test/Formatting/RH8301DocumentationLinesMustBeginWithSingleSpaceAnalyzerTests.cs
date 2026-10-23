@@ -21,6 +21,7 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8301-001")]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
         const string testData = """
@@ -41,6 +42,9 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8301-001")]
+    [Requirement("RH8301-003")]
+    [Requirement("RH8301-004")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -70,6 +74,7 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8301-001")]
     public async Task VerifyNestedListIndentationDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -96,6 +101,7 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8301-002")]
     public async Task VerifyRawStringsDoNotProduceDiagnostics()
     {
         const string testData = """"
@@ -115,6 +121,7 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8301-001")]
     public async Task VerifyTabContentIndentationDoesNotProduceDiagnostics()
     {
         const string testDataWithTabMarker = """
@@ -138,6 +145,9 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8301-001")]
+    [Requirement("RH8301-003")]
+    [Requirement("RH8301-004")]
     public async Task VerifyInvalidSeparatorFixPreservesContentIndentation()
     {
         const string testDataWithTabMarker = """
@@ -172,6 +182,9 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8301-001")]
+    [Requirement("RH8301-003")]
+    [Requirement("RH8301-004")]
     public async Task VerifyWhitespaceOnlySuffixIsDetectedAndFixed()
     {
         const string testDataWithWhitespaceMarker = """
@@ -202,6 +215,7 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8301-002")]
     public async Task VerifyMultiLineCommentsDoNotProduceDiagnostics()
     {
         const string testData = """
@@ -221,6 +235,7 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8301-002")]
     public async Task VerifyDisabledTextDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -237,6 +252,8 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8301-001")]
+    [Requirement("SHARED-DOC-008")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string testData = """
@@ -250,6 +267,205 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Bat
                                 """;
 
         await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that content directly after the slashes and content after a tab are reported on the slashes, while
+    /// indentation after the single space and a line that holds only the slashes are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8301-001")]
+    [Requirement("RH8301-003")]
+    public async Task VerifyMissingAndTabSeparatorsAreReportedOnTheSlashes()
+    {
+        var testData = ExpandWhitespaceMarkers("""
+                                               class C
+                                               {
+                                                   /// <summary>
+                                                   {|#0:///|}Runs
+                                                   {|#1:///|}→the service
+                                                   ///   - nested item
+                                                   ///
+                                                   /// </summary>
+                                                   void M()
+                                                   {
+                                                   }
+                                               }
+                                               """);
+
+        await Verify(testData, Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that a line holding only a tab after the slashes is reported and keeps nothing after the slashes
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8301-001")]
+    [Requirement("RH8301-004")]
+    public async Task VerifyTabOnlySuffixIsDetectedAndRemoved()
+    {
+        var testData = ExpandWhitespaceMarkers("""
+                                               class C
+                                               {
+                                                   /// <summary>
+                                                   /// Runs
+                                                   {|#0:///|}→
+                                                   /// </summary>
+                                                   void M()
+                                                   {
+                                                   }
+                                               }
+                                               """);
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>
+                                     /// Runs
+                                     ///
+                                     /// </summary>
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a line holding only a single space after the slashes is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8301-001")]
+    public async Task VerifySingleSpaceOnlySuffixDoesNotProduceDiagnostics()
+    {
+        var testData = ExpandWhitespaceMarkers("""
+                                               class C
+                                               {
+                                                   /// <summary>
+                                                   /// Runs
+                                                   ///·
+                                                   /// </summary>
+                                                   void M()
+                                                   {
+                                                   }
+                                               }
+                                               """);
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a no-break space used as the separator is reported and replaced by a space
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8301-001")]
+    [Requirement("RH8301-004")]
+    public async Task VerifyNoBreakSpaceSeparatorIsDetectedAndReplaced()
+    {
+        const string testDataWithMarker = """
+                                          class C
+                                          {
+                                              /// <summary>
+                                              {|#0:///|}{NBSP}Runs
+                                              /// </summary>
+                                              void M()
+                                              {
+                                              }
+                                          }
+                                          """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>
+                                     /// Runs
+                                     /// </summary>
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+        var testData = testDataWithMarker.Replace("{NBSP}", " ");
+
+        await Verify(testData, fixedData, Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that four-slash comments and lines inside block comments, a verbatim string, a delimited
+    /// documentation comment, and excluded code are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8301-002")]
+    public async Task VerifyLinesOutsideDocumentationCommentsDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    ////Ordinary
+                                    int a;
+
+                                    /*
+                                    ///Block
+                                    */
+                                    string s = @"
+                                ///Literal
+                                ";
+
+                                    /**
+                                    ///Delimited
+                                    */
+                                    int b;
+                                #if NEVER
+                                    ///Excluded
+                                #endif
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix writes one space after the slashes, replaces a tab separator by it, and keeps the
+    /// indentation that follows the separator
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8301-001")]
+    [Requirement("RH8301-003")]
+    [Requirement("RH8301-004")]
+    public async Task VerifyFixWritesTheSeparatorAndKeepsTheContent()
+    {
+        var testData = ExpandWhitespaceMarkers("""
+                                               class C
+                                               {
+                                                   /// <summary>
+                                                   {|#0:///|}Runs
+                                                   {|#1:///|}→  - nested item
+                                                   /// </summary>
+                                                   void M()
+                                                   {
+                                                   }
+                                               }
+                                               """);
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>
+                                     /// Runs
+                                     ///   - nested item
+                                     /// </summary>
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat, 2));
     }
 
     #endregion // Tests

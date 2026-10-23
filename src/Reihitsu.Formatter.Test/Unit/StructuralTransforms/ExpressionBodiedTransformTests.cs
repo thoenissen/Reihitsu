@@ -141,6 +141,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     /// Verifies that an async void expression-bodied method is converted without a return statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-004")]
     public void ConvertsAsyncVoidExpressionBodiedMethodToExpressionStatement()
     {
         // Arrange
@@ -173,6 +174,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     /// Verifies that a non-async Task expression-bodied method is converted with a return statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-004")]
     public void ConvertsNonAsyncTaskExpressionBodiedMethodToReturnStatement()
     {
         // Arrange
@@ -287,6 +289,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     /// Verifies that an expression-bodied indexer is kept
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-008")]
     public void KeepsExpressionBodiedIndexer()
     {
         // Arrange
@@ -369,6 +372,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     /// Verifies that an expression-bodied finalizer is converted to block body
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-005")]
     public void ConvertsExpressionBodiedFinalizerToBlockBody()
     {
         // Arrange
@@ -397,6 +401,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     /// Verifies that an expression-bodied conversion operator is converted to block body
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-005")]
     public void ConvertsExpressionBodiedConversionToBlockBody()
     {
         // Arrange
@@ -425,6 +430,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     /// Verifies that an expression-bodied property is not converted (properties are excluded)
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-008")]
     public void DoesNotConvertExpressionBodiedProperty()
     {
         // Arrange
@@ -504,6 +510,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     /// Verifies that an expression-bodied operator throwing an exception is converted to a throw statement (not <c>return throw</c>)
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-005")]
     public void ConvertsExpressionBodiedOperatorThrowingException()
     {
         // Arrange
@@ -532,6 +539,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     /// Verifies that an expression-bodied conversion operator throwing an exception is converted to a throw statement (not <c>return throw</c>)
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-005")]
     public void ConvertsExpressionBodiedConversionThrowingException()
     {
         // Arrange
@@ -560,6 +568,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     /// Verifies that an expression-bodied indexer throwing an exception is kept
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-008")]
     public void KeepsExpressionBodiedIndexerThrowingException()
     {
         // Arrange
@@ -675,6 +684,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     /// Verifies that a comment leading the semicolon token of an expression-bodied method survives conversion.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
     public void PreservesCommentLeadingSemicolonInMethod()
     {
         // Arrange
@@ -710,6 +720,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     /// end-of-line, so only the semicolon-leading position is reachable for this trivia kind
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
     public void PreservesDirectiveLeadingSemicolonInMethod()
     {
         // Arrange
@@ -774,6 +785,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     /// Verifies that a comment leading the semicolon token of an expression-bodied constructor survives conversion.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
     public void PreservesCommentLeadingSemicolonInConstructor()
     {
         // Arrange
@@ -838,6 +850,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     /// Verifies that a comment leading the semicolon token of an expression-bodied operator survives conversion.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
     public void PreservesCommentLeadingSemicolonInOperator()
     {
         // Arrange
@@ -947,6 +960,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     /// Verifies that a comment leading the semicolon token of an expression-bodied conversion operator survives conversion.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
     public void PreservesCommentLeadingSemicolonInConversion()
     {
         // Arrange
@@ -1009,6 +1023,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     /// Verifies that a comment leading the semicolon token of an expression-bodied finalizer survives conversion.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
     public void PreservesCommentLeadingSemicolonInFinalizer()
     {
         // Arrange

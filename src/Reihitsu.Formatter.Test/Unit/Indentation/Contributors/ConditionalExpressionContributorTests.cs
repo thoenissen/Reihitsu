@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.Indentation.Contributors;
 
@@ -29,6 +30,7 @@ public class ConditionalExpressionContributorTests
     /// Verifies that the question and colon tokens are aligned at condition column plus one indent level
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-020")]
     public void AlignsQuestionAndColonToConditionPlusIndent()
     {
         // Arrange
@@ -145,6 +147,7 @@ public class ConditionalExpressionContributorTests
     /// the parent question-mark operator column, not relative to its own condition column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-020")]
     public void AlignsNestedConditionalRelativeToParentOperator()
     {
         // Arrange

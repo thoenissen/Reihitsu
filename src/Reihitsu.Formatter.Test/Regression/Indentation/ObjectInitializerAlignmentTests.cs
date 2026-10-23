@@ -32,6 +32,7 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
     /// column and assignments are indented by +4
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-022")]
     public void MultiLineInitializerAlignsToNewKeyword()
     {
         // Arrange
@@ -140,6 +141,7 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
     /// Verifies that a target-typed collection initializer is reformatted with proper indentation
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-022")]
     public void TargetTypedCollectionInitializerIsReformatted()
     {
         // Arrange
@@ -223,6 +225,7 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
     /// Verifies that a nested initializer inside another initializer aligns correctly
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-022")]
     public void NestedInitializerAlignsCorrectly()
     {
         // Arrange — outer new at col 8, inner new at col 18 after formatting
@@ -663,6 +666,7 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
     /// Verifies that a collection initializer inside an object initializer is indented correctly
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-023")]
     public void CollectionInitializerInsideObjectInitializerIndentsCorrectly()
     {
         // Arrange

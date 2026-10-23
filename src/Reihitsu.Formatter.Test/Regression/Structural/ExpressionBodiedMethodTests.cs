@@ -16,6 +16,7 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     /// Verifies that an expression-bodied void method is converted to a block body with an expression statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-004")]
     public void VoidMethodConvertsToExpressionStatement()
     {
         // Arrange
@@ -43,6 +44,7 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     /// Verifies that an expression-bodied returning method is converted to a block body with a return statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-004")]
     public void ReturningMethodConvertsToReturnStatement()
     {
         // Arrange
@@ -91,6 +93,7 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     /// Verifies that an async expression-bodied method is converted correctly
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-004")]
     public void AsyncMethodConvertsCorrectly()
     {
         // Arrange
@@ -118,6 +121,7 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     /// Verifies that an async Task expression-bodied method is converted to a block body with an expression statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-004")]
     public void AsyncTaskMethodConvertsToExpressionStatement()
     {
         // Arrange
@@ -199,6 +203,7 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     /// Verifies that an expression-bodied method throwing an exception is converted to a throw statement (not <c>return throw</c>)
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-004")]
     public void ThrowingMethodConvertsToThrowStatement()
     {
         // Arrange
@@ -226,6 +231,7 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     /// Verifies that an async ValueTask expression-bodied method is converted to a block body with an expression statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-004")]
     public void AsyncValueTaskMethodConvertsToExpressionStatement()
     {
         // Arrange
@@ -253,6 +259,7 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     /// Verifies that an async ValueTask{T} expression-bodied method keeps the return statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-004")]
     public void AsyncGenericValueTaskMethodConvertsToReturnStatement()
     {
         // Arrange

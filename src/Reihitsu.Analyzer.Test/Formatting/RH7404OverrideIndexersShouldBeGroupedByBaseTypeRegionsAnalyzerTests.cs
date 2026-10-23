@@ -20,6 +20,7 @@ public class RH7404OverrideIndexersShouldBeGroupedByBaseTypeRegionsAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7404-001")]
     public async Task VerifyDiagnosticForOverrideIndexerImplementingInterfaceInInterfaceRegion()
     {
         const string testData = """
@@ -51,6 +52,7 @@ public class RH7404OverrideIndexersShouldBeGroupedByBaseTypeRegionsAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7404-001")]
     public async Task VerifyNoDiagnosticsForOverrideIndexerInMatchingRegion()
     {
         const string testData = """
@@ -96,6 +98,8 @@ public class RH7404OverrideIndexersShouldBeGroupedByBaseTypeRegionsAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7404-001")]
+    [Requirement("SHARED-REGGROUP-005")]
     public async Task VerifyDiagnosticForOverrideIndexerInGenericRegion()
     {
         const string testData = """
@@ -141,6 +145,8 @@ public class RH7404OverrideIndexersShouldBeGroupedByBaseTypeRegionsAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7404-001")]
+    [Requirement("SHARED-REGGROUP-003")]
     public async Task VerifyDiagnosticsForOverrideIndexersFromDifferentBaseTypes()
     {
         const string testData = """
@@ -227,6 +233,7 @@ public class RH7404OverrideIndexersShouldBeGroupedByBaseTypeRegionsAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7404-002")]
     public async Task VerifyNoDiagnosticsForOverrideProperty()
     {
         const string testData = """
@@ -238,6 +245,76 @@ public class RH7404OverrideIndexersShouldBeGroupedByBaseTypeRegionsAnalyzerTests
                                 internal class DerivedProcessor : BaseProcessor
                                 {
                                     public override string Name => base.Name;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that override indexers in a region of another name or in no region are reported, also when they implement
+    /// an interface indexer
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7404-001")]
+    public async Task VerifyDiagnosticsForOverrideIndexersOutsideTheirBaseTypeRegion()
+    {
+        const string testData = """
+                                interface IIndexed
+                                {
+                                    int this[int index] { get; }
+                                }
+
+                                abstract class B
+                                {
+                                    public abstract int this[int index] { get; }
+
+                                    public virtual int this[string key] => 0;
+
+                                    public virtual int this[long index] => 0;
+                                }
+
+                                class C : B, IIndexed
+                                {
+                                    #region IIndexed
+
+                                    public override int {|RH7404:this|}[int index] => 1;
+
+                                    #endregion
+
+                                    #region Indexers
+
+                                    public override int {|RH7404:this|}[string key] => 1;
+
+                                    #endregion
+
+                                    public override int {|RH7404:this|}[long index] => 1;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an indexer that overrides nothing and an override property are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7404-002")]
+    public async Task VerifyNoDiagnosticsForIndexerThatOverridesNothingOrOverrideOfOtherKind()
+    {
+        const string testData = """
+                                class B
+                                {
+                                    public virtual int P => 0;
+                                }
+
+                                class C : B
+                                {
+                                    public override int P => 1;
+
+                                    public int this[int index] => index;
                                 }
                                 """;
 

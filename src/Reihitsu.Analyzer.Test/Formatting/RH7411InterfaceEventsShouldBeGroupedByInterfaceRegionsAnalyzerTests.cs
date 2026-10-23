@@ -20,6 +20,8 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7411-002")]
+    [Requirement("SHARED-REGGROUP-004")]
     public async Task VerifyNoDiagnosticsForOverrideEventImplementingInterfaceInBaseTypeRegion()
     {
         const string testData = """
@@ -51,6 +53,8 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7411-002")]
+    [Requirement("SHARED-REGGROUP-004")]
     public async Task VerifyNoDiagnosticsForAccessorOverrideEventImplementingInterfaceInBaseTypeRegion()
     {
         const string testData = """
@@ -90,6 +94,7 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7411-001")]
     public async Task VerifyNoDiagnosticsForImplicitImplementationInMatchingRegion()
     {
         const string testData = """
@@ -118,6 +123,8 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7411-001")]
+    [Requirement("SHARED-REGGROUP-005")]
     public async Task VerifyDiagnosticForImplicitImplementationInGenericRegion()
     {
         const string testData = """
@@ -146,6 +153,7 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7411-001")]
     public async Task VerifyNoDiagnosticsForExplicitImplementationInMatchingRegion()
     {
         const string testData = """
@@ -182,6 +190,8 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7411-001")]
+    [Requirement("SHARED-REGGROUP-005")]
     public async Task VerifyDiagnosticForExplicitImplementationInGenericRegion()
     {
         const string testData = """
@@ -218,6 +228,7 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7411-001")]
     public async Task VerifyDiagnosticForImplementationOutsideRegion()
     {
         const string testData = """
@@ -242,6 +253,8 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7411-001")]
+    [Requirement("SHARED-REGGROUP-004")]
     public async Task VerifyNoDiagnosticsForInheritedInterfaceMemberInDeclaringInterfaceRegion()
     {
         const string testData = """
@@ -274,6 +287,8 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7411-001")]
+    [Requirement("SHARED-REGGROUP-004")]
     public async Task VerifyDiagnosticForInheritedInterfaceMemberUsesDeclaringInterface()
     {
         const string testData = """
@@ -306,6 +321,7 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7411-001")]
     public async Task VerifyDiagnosticsForMembersFromDifferentInterfaces()
     {
         const string testData = """
@@ -344,6 +360,7 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7411-002")]
     public async Task VerifyNoDiagnosticsForNonInterfaceMember()
     {
         const string testData = """
@@ -378,6 +395,7 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7411-002")]
     public async Task VerifyNoDiagnosticsForMemberOfOtherKind()
     {
         const string testData = """
@@ -399,6 +417,252 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzerTests
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that field-like and accessor interface implementation events, implicit and explicit, in a region of another
+    /// name or in no region are reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7411-001")]
+    public async Task VerifyDiagnosticsForFieldLikeAndAccessorImplementationsOutsideTheirInterfaceRegion()
+    {
+        const string testData = """
+                                using System;
+
+                                interface INotifier
+                                {
+                                    event EventHandler Changed;
+                                }
+
+                                interface ISaver
+                                {
+                                    event EventHandler Saved;
+                                }
+
+                                interface ICloser
+                                {
+                                    event EventHandler Closed;
+                                }
+
+                                class C : INotifier, ISaver, ICloser
+                                {
+                                    #region Events
+
+                                    public event EventHandler {|RH7411:Changed|};
+
+                                    event EventHandler ISaver.{|RH7411:Saved|}
+                                    {
+                                        add
+                                        {
+                                        }
+
+                                        remove
+                                        {
+                                        }
+                                    }
+
+                                    #endregion
+
+                                    public event EventHandler {|RH7411:Closed|}
+                                    {
+                                        add
+                                        {
+                                        }
+
+                                        remove
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a field-like and an explicit interface implementation event in the regions named after their
+    /// interfaces are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7411-001")]
+    public async Task VerifyNoDiagnosticsForFieldLikeAndExplicitImplementationsInTheirInterfaceRegions()
+    {
+        const string testData = """
+                                using System;
+
+                                interface INotifier
+                                {
+                                    event EventHandler Changed;
+                                }
+
+                                interface ISaver
+                                {
+                                    event EventHandler Saved;
+                                }
+
+                                class C : INotifier, ISaver
+                                {
+                                    #region INotifier
+
+                                    public event EventHandler Changed;
+
+                                    #endregion
+
+                                    #region ISaver
+
+                                    event EventHandler ISaver.Saved
+                                    {
+                                        add
+                                        {
+                                        }
+
+                                        remove
+                                        {
+                                        }
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an event that implements no interface member and an interface implementation that is a property are
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7411-002")]
+    public async Task VerifyNoDiagnosticsForEventImplementingNothingAndPropertyImplementation()
+    {
+        const string testData = """
+                                using System;
+
+                                interface INamed
+                                {
+                                    string Name { get; }
+                                }
+
+                                class C : INamed
+                                {
+                                    #region Properties
+
+                                    public string Name => "";
+
+                                    #endregion
+
+                                    #region Events
+
+                                    public event EventHandler Changed;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the diagnostic of a field-like interface implementation event with one declarator is located on the
+    /// identifier of that declarator
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-REGGROUP-005")]
+    public async Task VerifyDiagnosticForFieldLikeEventIsOnIdentifierOfItsDeclarator()
+    {
+        const string testData = """
+                                using System;
+
+                                interface I
+                                {
+                                    int P { get; }
+
+                                    int this[int i] { get; }
+
+                                    event EventHandler E;
+                                }
+
+                                class C : I
+                                {
+                                    int I.P => 0;
+
+                                    public int this[int i] => 0;
+
+                                    public event EventHandler {|RH7411:E|};
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Characterizes a field-like event with several declarators that implement members of two interfaces: only its first
+    /// declarator is judged, so the second declarator is not reported in the region of the first one's interface. This
+    /// test pins today's behavior; the decided behavior is stated by SHARED-DIAG-006, which checks every declarator, and
+    /// its change belongs to an existing follow-up
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFieldLikeImplementationEventWithSeveralDeclaratorsIsJudgedByItsFirstDeclarator()
+    {
+        const string testData = """
+                                using System;
+
+                                interface IA
+                                {
+                                    event EventHandler A;
+                                }
+
+                                interface IB
+                                {
+                                    event EventHandler X;
+                                }
+
+                                class C : IA, IB
+                                {
+                                    #region IA
+
+                                    public event EventHandler A, X;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Characterizes a field-like event with several declarators outside its interface's region: it is reported once, at
+    /// its first declarator. This test pins today's behavior; the decided behavior is stated by SHARED-DIAG-006, which
+    /// reports one diagnostic per reported declarator, and its change belongs to an existing follow-up
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFieldLikeImplementationEventWithSeveralDeclaratorsIsReportedOnceAtFirstDeclarator()
+    {
+        const string testData = """
+                                using System;
+
+                                interface IA
+                                {
+                                    event EventHandler A;
+
+                                    event EventHandler X;
+                                }
+
+                                class C : IA
+                                {
+                                    public event EventHandler {|#0:A|}, X;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("IA")));
     }
 
     #endregion // Tests

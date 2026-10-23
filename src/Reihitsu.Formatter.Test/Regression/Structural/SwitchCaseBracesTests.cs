@@ -16,6 +16,8 @@ public class SwitchCaseBracesTests : FormatterTestsBase
     /// Verifies that braces are correctly added around multi-statement type-pattern switch sections
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SWITCH-002")]
+    [Requirement("FMT-SWITCH-006")]
     public void TypePatternCaseWithMultipleStatementsAddsBracesCorrectly()
     {
         // Arrange
@@ -88,6 +90,8 @@ public class SwitchCaseBracesTests : FormatterTestsBase
     /// Verifies that when braces are added, the break statement is placed outside the block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SWITCH-002")]
+    [Requirement("FMT-SWITCH-003")]
     public void BreakStatementIsPlacedOutsideBracesBlock()
     {
         // Arrange
@@ -145,6 +149,7 @@ public class SwitchCaseBracesTests : FormatterTestsBase
     /// the return stays inside the block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SWITCH-002")]
     public void ReturnStatementRemainsInsideBracesBlock()
     {
         // Arrange
@@ -209,6 +214,8 @@ public class SwitchCaseBracesTests : FormatterTestsBase
     /// unchanged on a second formatting pass
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SWITCH-001")]
+    [Requirement("FMT-SWITCH-003")]
     public void StatementFollowedByReturnAddsBracesAndIsIdempotent()
     {
         // Arrange
@@ -263,6 +270,8 @@ public class SwitchCaseBracesTests : FormatterTestsBase
     /// unchanged on a second formatting pass
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SWITCH-001")]
+    [Requirement("FMT-SWITCH-003")]
     public void StatementFollowedByThrowAddsBracesAndIsIdempotent()
     {
         // Arrange
@@ -317,6 +326,7 @@ public class SwitchCaseBracesTests : FormatterTestsBase
     /// preserved when braces are added to a switch section
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SWITCH-007")]
     public void LabelAndLeadingCommentsArePreservedWhenAddingBraces()
     {
         // Arrange
@@ -364,6 +374,7 @@ public class SwitchCaseBracesTests : FormatterTestsBase
     /// Verifies that a trailing comment on the last block statement is preserved when braces are added
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SWITCH-007")]
     public void TrailingStatementCommentIsPreservedWhenAddingBraces()
     {
         // Arrange
@@ -410,6 +421,8 @@ public class SwitchCaseBracesTests : FormatterTestsBase
     /// in braces, with the remaining sections braced consistently
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SWITCH-001")]
+    [Requirement("FMT-SWITCH-005")]
     public void CaseContainingMultiLineSwitchExpressionAddsBraces()
     {
         // Arrange
@@ -465,6 +478,8 @@ public class SwitchCaseBracesTests : FormatterTestsBase
     /// No braces should be added to a switch section that contains no statements
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SWITCH-006")]
+    [Requirement("FMT-SWITCH-008")]
     public void EmptyCasedShouldNotBeChanged()
     {
         // Arrange

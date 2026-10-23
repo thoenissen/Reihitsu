@@ -17,6 +17,7 @@ public class EmptyTypeDeclarationSemicolonCommentTests : FormatterTestsBase
     /// Verifies that a comment between a class header and its open brace blocks the semicolon conversion
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-018")]
     public void CommentBeforeOpenBraceOfEmptyClassIsPreserved()
     {
         const string input = """
@@ -113,6 +114,7 @@ public class EmptyTypeDeclarationSemicolonCommentTests : FormatterTestsBase
     /// Verifies that a comment between a record struct header and its open brace blocks the semicolon conversion
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-018")]
     public void CommentBeforeOpenBraceOfEmptyRecordStructIsPreserved()
     {
         const string input = """
@@ -137,6 +139,7 @@ public class EmptyTypeDeclarationSemicolonCommentTests : FormatterTestsBase
     /// Verifies that a comment trailing the class header line blocks the semicolon conversion
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-018")]
     public void CommentTrailingHeaderLineOfEmptyClassIsPreserved()
     {
         const string input = """
@@ -182,6 +185,7 @@ public class EmptyTypeDeclarationSemicolonCommentTests : FormatterTestsBase
     /// Verifies that a comment trailing the record header line blocks the semicolon conversion
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-018")]
     public void CommentTrailingHeaderLineOfEmptyRecordIsPreserved()
     {
         const string input = """
@@ -212,6 +216,7 @@ public class EmptyTypeDeclarationSemicolonCommentTests : FormatterTestsBase
     /// Verifies that a preprocessor directive between the class header and its open brace blocks the semicolon conversion
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-018")]
     public void DirectiveBetweenHeaderAndOpenBraceOfEmptyClassIsPreserved()
     {
         const string input = """

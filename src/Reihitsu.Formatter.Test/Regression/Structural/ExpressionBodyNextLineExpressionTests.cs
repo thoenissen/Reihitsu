@@ -18,6 +18,7 @@ public class ExpressionBodyNextLineExpressionTests : FormatterTestsBase
     /// Verifies that a returning method whose expression is indented on the next line converts to a single-spaced return statement in one pass
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
     public void ReturningMethodWithExpressionOnNextLineConvertsInOnePass()
     {
         // Arrange
@@ -68,6 +69,7 @@ public class ExpressionBodyNextLineExpressionTests : FormatterTestsBase
     /// Verifies that an operator whose expression is on the next line converts to a single-spaced return statement in one pass
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
     public void OperatorWithExpressionOnNextLineConvertsInOnePass()
     {
         // Arrange
@@ -96,6 +98,7 @@ public class ExpressionBodyNextLineExpressionTests : FormatterTestsBase
     /// Verifies that a conversion operator whose expression is on the next line converts to a single-spaced return statement in one pass
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
     public void ConversionOperatorWithExpressionOnNextLineConvertsInOnePass()
     {
         // Arrange
@@ -124,6 +127,7 @@ public class ExpressionBodyNextLineExpressionTests : FormatterTestsBase
     /// Verifies that a returning local function whose expression is on the next line converts to a single-spaced return statement in one pass
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
     public void LocalFunctionWithExpressionOnNextLineConvertsInOnePass()
     {
         // Arrange
@@ -270,6 +274,7 @@ public class ExpressionBodyNextLineExpressionTests : FormatterTestsBase
     /// Verifies that a multi-line call on the next line joins the return keyword and aligns its continuation in one pass
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
     public void MultiLineCallOnNextLineConvertsInOnePass()
     {
         // Arrange

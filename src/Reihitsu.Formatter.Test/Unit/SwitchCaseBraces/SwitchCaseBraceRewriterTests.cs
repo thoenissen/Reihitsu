@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.SwitchCaseBraces;
 using Reihitsu.Formatter.Pipeline.SwitchCaseBraces.Rewriter;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.SwitchCaseBraces;
 
@@ -101,6 +102,7 @@ public class SwitchCaseBraceRewriterTests
     /// that are already wrapped in blocks
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SWITCH-009")]
     public void PreservesExistingBraces()
     {
         // Arrange
@@ -286,6 +288,7 @@ public class SwitchCaseBraceRewriterTests
     /// the break statement is placed outside the block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SWITCH-002")]
     public void AddsBracesKeepsBreakOutsideBlock()
     {
         // Arrange
@@ -330,6 +333,7 @@ public class SwitchCaseBraceRewriterTests
     /// (e.g., ending with return or throw), all statements are placed inside the block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SWITCH-002")]
     public void AddsBracesKeepsReturnInsideBlock()
     {
         // Arrange
@@ -459,6 +463,7 @@ public class SwitchCaseBraceRewriterTests
     /// section because wrapping both sections would make the target unreachable
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SWITCH-011")]
     public void DoesNotAddBracesWhenGotoTargetsLabelInAnotherSection()
     {
         // Arrange
@@ -494,6 +499,7 @@ public class SwitchCaseBraceRewriterTests
     /// another section of the outer switch
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SWITCH-011")]
     public void DoesNotAddBracesWhenNestedSwitchGotoTargetsLabelInAnotherSection()
     {
         // Arrange
@@ -539,6 +545,7 @@ public class SwitchCaseBraceRewriterTests
     /// cross-section goto targets
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SWITCH-012")]
     public void AddBracesIgnoresGotoTargetsInsideLocalFunctions()
     {
         // Arrange
@@ -586,6 +593,7 @@ public class SwitchCaseBraceRewriterTests
     /// cross-section goto targets
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SWITCH-012")]
     public void AddBracesIgnoresGotoTargetsInsideLambdas()
     {
         // Arrange

@@ -19,6 +19,7 @@ public class ContainedBlockBraceTests : FormatterTestsBase
     /// same pass that re-flows its contents, matching the lock statement counterpart
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-002")]
     public void UnsafeBlockBraceMovesWhenContentsAreReflowed()
     {
         // Arrange
@@ -70,6 +71,7 @@ public class ContainedBlockBraceTests : FormatterTestsBase
     /// same pass that re-flows its contents
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-002")]
     public void LabeledBlockBraceMovesWhenContentsAreReflowed()
     {
         // Arrange
@@ -108,6 +110,7 @@ public class ContainedBlockBraceTests : FormatterTestsBase
     /// Verifies that an unsafe statement block that is already laid out correctly stays untouched
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-002")]
     public void FormattedUnsafeBlockRemainsUnchanged()
     {
         // Arrange

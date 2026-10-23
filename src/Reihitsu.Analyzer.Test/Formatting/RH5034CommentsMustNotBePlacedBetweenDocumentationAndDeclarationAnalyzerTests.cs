@@ -402,5 +402,53 @@ public class RH5034CommentsMustNotBePlacedBetweenDocumentationAndDeclarationAnal
         await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5034CommentsMustNotBePlacedBetweenDocumentationAndDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5034MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a block documentation comment after a single-line documentation comment is not reported, because
+    /// both comments document the method
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5034-001")]
+    [Requirement("SHARED-COMMENT-001")]
+    public async Task VerifyNoDiagnosticForBlockDocumentationCommentAfterDocumentationComment()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <summary>Does work</summary>
+                                    /** <remarks>Does work</remarks> */
+                                    public void DoWork()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a block documentation comment after a single-line documentation comment is not reported when
+    /// documentation comments are not parsed, because both comments document the method
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5034-001")]
+    [Requirement("SHARED-COMMENT-001")]
+    public async Task VerifyNoDiagnosticForBlockDocumentationCommentAfterDocumentationCommentWithoutDocumentationParsing()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <summary>Does work</summary>
+                                    /** <remarks>Does work</remarks> */
+                                    public void DoWork()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
     #endregion // Tests
 }

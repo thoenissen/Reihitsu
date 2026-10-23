@@ -76,6 +76,8 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
     /// separator instead of a single line break, when the using block is the only content in the file.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-USING-001")]
+    [Requirement("FMT-USING-002")]
     public void CrossGroupUsingsWithoutTriviaAreReordered()
     {
         // Arrange
@@ -272,6 +274,7 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
     /// without leaving the space behind as trailing whitespace
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-USING-003")]
     public void OrderedSameGroupDirectivesSeparatedBySpaceAreSplit()
     {
         // Arrange
@@ -286,6 +289,7 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
     /// Verifies that ordered same-group directives separated only by a tab are split onto separate lines
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-USING-003")]
     public void OrderedSameGroupDirectivesSeparatedByTabAreSplit()
     {
         // Arrange
@@ -316,6 +320,7 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
     /// later line, so no additional line break is inserted
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-USING-005")]
     public void SameGroupDirectiveAfterMultiLineBlockCommentIsNotSplit()
     {
         // Arrange
@@ -529,6 +534,7 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
     /// following same-group directive on a later line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-USING-005")]
     public void SameGroupDirectiveBehindBlockCommentSpanningParagraphSeparatorIsNotSplit()
     {
         // Arrange
@@ -603,6 +609,7 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
     /// instead of receiving only a single line break
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-USING-003")]
     public void CrossGroupDirectivesSeparatedBySpaceAreSplitWithBlankLine()
     {
         // Arrange

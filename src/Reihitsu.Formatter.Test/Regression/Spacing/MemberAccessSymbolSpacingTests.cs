@@ -18,6 +18,7 @@ public class MemberAccessSymbolSpacingTests : FormatterTestsBase
     /// Verifies that the space in front of a conditional-access operator is removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-006")]
     public void SpaceBeforeConditionalAccessIsRemoved()
     {
         // Arrange
@@ -48,6 +49,7 @@ public class MemberAccessSymbolSpacingTests : FormatterTestsBase
     /// Verifies that spaces on both sides of a conditional-access operator are removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-006")]
     public void SpacesAroundConditionalAccessAreRemoved()
     {
         // Arrange
@@ -78,6 +80,7 @@ public class MemberAccessSymbolSpacingTests : FormatterTestsBase
     /// Verifies that the space in front of a conditional element access is removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-006")]
     public void SpaceBeforeConditionalElementAccessIsRemoved()
     {
         // Arrange
@@ -108,6 +111,7 @@ public class MemberAccessSymbolSpacingTests : FormatterTestsBase
     /// Verifies that the space in front of a conditional invocation is removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-006")]
     public void SpaceBeforeConditionalInvocationIsRemoved()
     {
         // Arrange
@@ -138,6 +142,7 @@ public class MemberAccessSymbolSpacingTests : FormatterTestsBase
     /// Verifies that spaces around a pointer member access are removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-SPACE-006")]
     public void SpacesAroundPointerMemberAccessAreRemoved()
     {
         // Arrange

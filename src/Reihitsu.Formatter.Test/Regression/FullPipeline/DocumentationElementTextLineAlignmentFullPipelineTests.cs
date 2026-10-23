@@ -16,6 +16,7 @@ public class DocumentationElementTextLineAlignmentFullPipelineTests : FormatterT
     /// Verifies that a single-content-line documentation element is collapsed to one line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-009")]
     public void CollapsesSingleContentLineElement()
     {
         const string input = """
@@ -45,6 +46,7 @@ public class DocumentationElementTextLineAlignmentFullPipelineTests : FormatterT
     /// Verifies that multi-line content is moved below the opening tag
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-009")]
     public void MovesMultilineContentBelowOpeningTag()
     {
         const string input = """
@@ -112,6 +114,7 @@ public class DocumentationElementTextLineAlignmentFullPipelineTests : FormatterT
     /// Verifies that a blank separator line inside a code element survives line alignment
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-011")]
     public void PreservesBlankSeparatorLineInsideCodeElement()
     {
         const string input = """
@@ -147,6 +150,7 @@ public class DocumentationElementTextLineAlignmentFullPipelineTests : FormatterT
     /// Verifies that a blank separator line between paragraphs survives line alignment
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-011")]
     public void PreservesBlankSeparatorLineInsideRemarksElement()
     {
         const string input = """
@@ -182,6 +186,7 @@ public class DocumentationElementTextLineAlignmentFullPipelineTests : FormatterT
     /// Verifies that summary elements remain expanded rather than being collapsed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-009")]
     public void KeepsSummaryElementExpanded()
     {
         const string input = """
@@ -215,6 +220,7 @@ public class DocumentationElementTextLineAlignmentFullPipelineTests : FormatterT
     /// Verifies that leading inline XML content is moved below the opening tag
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-DOC-009")]
     public void MovesLeadingInlineXmlContentBelowOpeningTag()
     {
         const string input = """

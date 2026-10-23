@@ -20,6 +20,7 @@ public class AutoPropertyTrailingCommentTests : FormatterTestsBase
     /// get/set auto-property
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-024")]
     public void CommentAfterAutoAccessorListDoesNotSplitTheProperty()
     {
         // Arrange
@@ -115,6 +116,7 @@ public class AutoPropertyTrailingCommentTests : FormatterTestsBase
     /// accessor list
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-024")]
     public void MultiLineAutoPropertyWithTrailingCommentCollapses()
     {
         // Arrange
@@ -143,6 +145,7 @@ public class AutoPropertyTrailingCommentTests : FormatterTestsBase
     /// accessor list
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-024")]
     public void MultiLineGetOnlyAutoPropertyWithTrailingCommentCollapses()
     {
         // Arrange
@@ -171,6 +174,7 @@ public class AutoPropertyTrailingCommentTests : FormatterTestsBase
     /// its accessor list
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-024")]
     public void MultiLineAutoPropertyWithTrailingBlockCommentCollapses()
     {
         // Arrange
@@ -198,6 +202,7 @@ public class AutoPropertyTrailingCommentTests : FormatterTestsBase
     /// Verifies that a comment inside the accessor list still prevents the single-line collapse
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void CommentInsideAccessorListStillSplitsTheProperty()
     {
         // Arrange
@@ -228,6 +233,7 @@ public class AutoPropertyTrailingCommentTests : FormatterTestsBase
     /// receive their own normalization before the line-break phase runs
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void DirectiveInsideAccessorListStillSplitsTheProperty()
     {
         // Arrange
@@ -415,6 +421,7 @@ public class AutoPropertyTrailingCommentTests : FormatterTestsBase
     /// sits in between, which is the boundary that keeps the initializer-gap guard from over-reaching
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-024")]
     public void OwnLineInitializerWithoutTriviaIsJoined()
     {
         // Arrange

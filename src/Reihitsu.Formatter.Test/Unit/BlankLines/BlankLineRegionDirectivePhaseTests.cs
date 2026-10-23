@@ -34,6 +34,7 @@ public class BlankLineRegionDirectivePhaseTests : FormatterTestsBase
     /// general first-in-block exemption that also treats switch labels as exempt.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-013")]
     public void InsertsBlankLineBeforeRegionAfterSwitchLabel()
     {
         // Arrange
@@ -83,6 +84,7 @@ public class BlankLineRegionDirectivePhaseTests : FormatterTestsBase
     /// switch-label colon, the symmetric counterpart of the <c>#region</c> case.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-013")]
     public void InsertsBlankLineBeforeEndRegionAfterSwitchLabel()
     {
         // Arrange

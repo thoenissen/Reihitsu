@@ -23,6 +23,7 @@ public class ParameterAttributeTargetLayoutTests : FormatterTestsBase
     /// <c>property:</c> attributes is left unchanged
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-027")]
     public void PropertyTargetedAttributesOnPositionalRecordParametersStayOnParameterLine()
     {
         // Arrange
@@ -108,6 +109,7 @@ public class ParameterAttributeTargetLayoutTests : FormatterTestsBase
     /// Verifies that a <c>property:</c> attribute list with several attributes on a parameter is not split into one list per attribute
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-027")]
     public void PropertyTargetedAttributeListWithSeveralAttributesIsNotSplit()
     {
         // Arrange
@@ -127,6 +129,7 @@ public class ParameterAttributeTargetLayoutTests : FormatterTestsBase
     /// Verifies that two <c>property:</c> attribute lists on one parameter are merged into one list
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-027")]
     public void PropertyTargetedAttributeListsOnOneParameterAreMerged()
     {
         // Arrange
@@ -172,6 +175,7 @@ public class ParameterAttributeTargetLayoutTests : FormatterTestsBase
     /// Verifies that only the lists sharing a target are merged when a list of another target sits between them
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-027")]
     public void OnlyAttributeListsOfTheSameTargetAreMerged()
     {
         // Arrange
@@ -198,6 +202,7 @@ public class ParameterAttributeTargetLayoutTests : FormatterTestsBase
     /// Verifies that a <c>property:</c> list and a <c>field:</c> list on one parameter are not merged
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-027")]
     public void PropertyAndFieldTargetedAttributeListsAreNotMerged()
     {
         // Arrange
@@ -387,6 +392,7 @@ public class ParameterAttributeTargetLayoutTests : FormatterTestsBase
     /// Verifies that a <c>property:</c> attribute on a property declaration is still moved onto its own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-027")]
     public void PropertyTargetedAttributeOnPropertyIsStillPlacedOnItsOwnLine()
     {
         // Arrange
@@ -420,6 +426,7 @@ public class ParameterAttributeTargetLayoutTests : FormatterTestsBase
     /// Verifies that a <c>property:</c> attribute list with several attributes on a property declaration is still split into one list per attribute
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-027")]
     public void PropertyTargetedAttributeListWithSeveralAttributesOnPropertyIsStillSplit()
     {
         // Arrange
@@ -590,6 +597,7 @@ public class ParameterAttributeTargetLayoutTests : FormatterTestsBase
     /// Verifies that lists without a specifier on separate lines before a parameter are merged and joined in a single pass
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-027")]
     public void ImplicitListsOnSeparateLinesAreMergedInOnePass()
     {
         // Arrange
@@ -640,6 +648,8 @@ public class ParameterAttributeTargetLayoutTests : FormatterTestsBase
     /// directly before the parameter type
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
+    [Requirement("FMT-BREAK-027")]
     public void SameTargetListsFollowedByCommentLineAreNotMerged()
     {
         // Arrange

@@ -20,6 +20,8 @@ public class RH7002FileMayOnlyContainASingleTopLevelTypeAnalyzerTests : Analyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7002-001")]
+    [Requirement("RH7002-003")]
     public async Task VerifyDiagnosticsForAdditionalTopLevelTypesInFileScopedNamespace()
     {
         const string source = """
@@ -49,6 +51,7 @@ public class RH7002FileMayOnlyContainASingleTopLevelTypeAnalyzerTests : Analyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7002-001")]
     public async Task VerifyDiagnosticsForAdditionalTopLevelTypesInNestedNamespaces()
     {
         const string source = """
@@ -76,6 +79,7 @@ public class RH7002FileMayOnlyContainASingleTopLevelTypeAnalyzerTests : Analyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7002-002")]
     public async Task VerifyNestedTypesAreIgnored()
     {
         const string source = """
@@ -94,6 +98,121 @@ public class RH7002FileMayOnlyContainASingleTopLevelTypeAnalyzerTests : Analyzer
                                   }
 
                                   private enum NestedEnum
+                                  {
+                                      One,
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: every class, struct, interface, enum, and record after the first
+    /// top-level type of a file is reported on its identifier
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7002-001")]
+    [Requirement("RH7002-003")]
+    public async Task EveryTopLevelTypeAfterTheFirstIsReportedOnItsName()
+    {
+        const string source = """
+                              namespace N;
+
+                              public class A
+                              {
+                              }
+
+                              internal record {|RH7002:B|}(string Name);
+
+                              internal struct {|RH7002:S|}
+                              {
+                              }
+
+                              internal interface {|RH7002:I|}
+                              {
+                              }
+
+                              internal enum {|RH7002:E|}
+                              {
+                                  One,
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a type without <c>partial</c> that follows a <c>partial</c> declaration
+    /// is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7002-001")]
+    [Requirement("RH7002-003")]
+    public async Task TypeAfterAPartialDeclarationIsReported()
+    {
+        const string source = """
+                              partial class A
+                              {
+                              }
+
+                              class {|RH7002:B|}
+                              {
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the types of all namespaces of one file are counted together, at any
+    /// depth of nested namespaces
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7002-001")]
+    public async Task TypesOfSeveralNamespacesAreCountedTogether()
+    {
+        const string source = """
+                              namespace N1
+                              {
+                                  class A
+                                  {
+                                  }
+                              }
+
+                              namespace N2
+                              {
+                                  namespace Inner
+                                  {
+                                      class {|RH7002:B|}
+                                      {
+                                      }
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: nested types and delegates are not counted as top-level types
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7002-002")]
+    public async Task NestedTypesAndDelegatesAreNotCounted()
+    {
+        const string source = """
+                              delegate void Handler();
+
+                              class C
+                              {
+                                  private record Nested(string Name);
+
+                                  private enum Kind
                                   {
                                       One,
                                   }

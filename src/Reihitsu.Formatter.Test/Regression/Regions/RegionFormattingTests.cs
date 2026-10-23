@@ -16,6 +16,7 @@ public class RegionFormattingTests : FormatterTestsBase
     /// Verifies that a region name starting with a lowercase letter is capitalized
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-REGION-001")]
     public void LowercaseRegionNameCapitalizesFirstLetter()
     {
         // Arrange
@@ -52,6 +53,7 @@ public class RegionFormattingTests : FormatterTestsBase
     /// Verifies that a region name already starting with an uppercase letter is not changed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-REGION-001")]
     public void AlreadyUppercaseNoChange()
     {
         // Arrange
@@ -89,6 +91,7 @@ public class RegionFormattingTests : FormatterTestsBase
     /// Verifies that a missing endregion comment is added to match the region name
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-REGION-002")]
     public void EndRegionCommentSynchronizedWithRegionName()
     {
         // Arrange
@@ -125,6 +128,7 @@ public class RegionFormattingTests : FormatterTestsBase
     /// Verifies that a correct endregion comment is not modified
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-REGION-002")]
     public void EndRegionCommentAlreadyCorrectNoChange()
     {
         // Arrange
@@ -162,6 +166,7 @@ public class RegionFormattingTests : FormatterTestsBase
     /// Verifies that a mismatched endregion comment is corrected to match the region name
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-REGION-002")]
     public void MismatchedEndRegionCommentCorrected()
     {
         // Arrange
@@ -198,6 +203,7 @@ public class RegionFormattingTests : FormatterTestsBase
     /// Verifies that nested region pairs are both corrected
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-REGION-003")]
     public void NestedRegionsBothCorrected()
     {
         // Arrange
@@ -242,6 +248,7 @@ public class RegionFormattingTests : FormatterTestsBase
     /// Verifies that a region directive without a name is skipped and not modified
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-REGION-004")]
     public void RegionWithoutNameIsSkipped()
     {
         // Arrange
@@ -266,6 +273,7 @@ public class RegionFormattingTests : FormatterTestsBase
     /// Verifies that multiple region pairs in one file are all corrected
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-REGION-002")]
     public void MultipleRegionsAllCorrected()
     {
         // Arrange
@@ -369,6 +377,8 @@ public class RegionFormattingTests : FormatterTestsBase
     /// canonicalized and idempotent
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-REGION-001")]
+    [Requirement("FMT-REGION-002")]
     public void LowercaseTrailingOpeningAndBareCloseAreCanonicalized()
     {
         const string source = """

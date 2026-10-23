@@ -18,6 +18,7 @@ public class StraddlingRegionPairTests : FormatterTestsBase
     /// preserved together with its matching closing directive
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-REGION-005")]
     public void RegionStraddlingAnAccessorListIsPreservedAsAPair()
     {
         // Arrange
@@ -64,6 +65,7 @@ public class StraddlingRegionPairTests : FormatterTestsBase
     /// with its matching closing directive
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-REGION-005")]
     public void RegionStraddlingAMethodBodyIsPreservedAsAPair()
     {
         // Arrange
@@ -110,6 +112,7 @@ public class StraddlingRegionPairTests : FormatterTestsBase
     /// its opening directive
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-REGION-005")]
     public void RegionClosingInsideAMethodBodyIsPreservedAsAPair()
     {
         // Arrange
@@ -144,6 +147,7 @@ public class StraddlingRegionPairTests : FormatterTestsBase
     /// Verifies that a region fully contained in a method body is preserved and formatted
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-REGION-005")]
     public void RegionFullyInsideAMethodBodyIsPreservedAndFormatted()
     {
         // Arrange
@@ -180,6 +184,7 @@ public class StraddlingRegionPairTests : FormatterTestsBase
     /// Verifies that a region pair fully outside any element body is preserved
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-REGION-005")]
     public void RegionAroundMembersRemainsUnchanged()
     {
         // Arrange

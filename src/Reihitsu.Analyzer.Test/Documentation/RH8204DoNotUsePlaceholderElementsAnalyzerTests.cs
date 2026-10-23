@@ -163,6 +163,7 @@ public class RH8204DoNotUsePlaceholderElementsAnalyzerTests : BatchCodeFixTestsB
     [TestMethod]
     [Requirement("RH8204-002")]
     [Requirement("RH8204-003")]
+    [Requirement("SHARED-DOC-017")]
     public async Task VerifySpecificationExampleReplacesPlaceholderWithItsContent()
     {
         const string source = """

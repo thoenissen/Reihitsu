@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.BlankLines;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.BlankLines;
 
@@ -29,6 +30,7 @@ public class BlankLinePhaseTests
     /// Verifies that a blank line is inserted before a try statement when preceded by another statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void InsertsBlankLineBeforeTryStatement()
     {
         // Arrange
@@ -65,6 +67,7 @@ public class BlankLinePhaseTests
     /// Verifies that a blank line is inserted before an if statement when preceded by another statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void InsertsBlankLineBeforeIfStatement()
     {
         // Arrange
@@ -101,6 +104,7 @@ public class BlankLinePhaseTests
     /// Verifies that a blank line is inserted before a return statement when preceded by another statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void InsertsBlankLineBeforeReturnStatement()
     {
         // Arrange
@@ -137,6 +141,7 @@ public class BlankLinePhaseTests
     /// Verifies that a blank line is inserted before a foreach statement when preceded by another statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void InsertsBlankLineBeforeForEachStatement()
     {
         // Arrange
@@ -173,6 +178,7 @@ public class BlankLinePhaseTests
     /// Verifies that a blank line is inserted before a while statement when preceded by another statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void InsertsBlankLineBeforeWhileStatement()
     {
         // Arrange
@@ -209,6 +215,7 @@ public class BlankLinePhaseTests
     /// Verifies that a blank line is inserted before a throw statement when preceded by another statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void InsertsBlankLineBeforeThrowStatement()
     {
         // Arrange
@@ -245,6 +252,7 @@ public class BlankLinePhaseTests
     /// Verifies that a blank line is inserted before a switch statement when preceded by another statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void InsertsBlankLineBeforeSwitchStatement()
     {
         // Arrange
@@ -289,6 +297,7 @@ public class BlankLinePhaseTests
     /// Verifies that no blank line is inserted before the first statement in a block
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void DoesNotInsertBlankLineForFirstStatementInBlock()
     {
         // Arrange
@@ -371,6 +380,7 @@ public class BlankLinePhaseTests
     /// Verifies that blank lines after an opening brace are removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-007")]
     public void RemovesBlankLineAfterOpenBrace()
     {
         // Arrange
@@ -461,6 +471,7 @@ public class BlankLinePhaseTests
     /// while the mandatory line break before the declaration is preserved
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-010")]
     public void RemovesBlankLineAfterMultiLineDocumentationComment()
     {
         // Arrange
@@ -500,6 +511,7 @@ public class BlankLinePhaseTests
     /// Verifies that a genuine blank line after a single-line documentation comment is still removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-010")]
     public void RemovesBlankLineAfterSingleLineDocumentationComment()
     {
         // Arrange
@@ -539,6 +551,7 @@ public class BlankLinePhaseTests
     /// in the gap before the declaration
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-010")]
     public void PreservesCommentAfterDocumentationBlankLine()
     {
         // Arrange
@@ -577,6 +590,7 @@ public class BlankLinePhaseTests
     /// in the gap before the declaration
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-010")]
     public void PreservesDirectiveAfterDocumentationBlankLine()
     {
         // Arrange
@@ -616,6 +630,7 @@ public class BlankLinePhaseTests
     /// Verifies that no duplicate blank line is inserted when one already exists before a statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-001")]
     public void PreservesExistingBlankLineBeforeStatement()
     {
         // Arrange
@@ -642,6 +657,7 @@ public class BlankLinePhaseTests
     /// Verifies that blank lines are inserted between switch sections when the previous section ends with a break
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-004")]
     public void HandlesSwitchSectionBlankLines()
     {
         // Arrange
@@ -688,6 +704,7 @@ public class BlankLinePhaseTests
     /// Verifies that extra blank lines before a commented statement are collapsed to a single blank line without merging the comment with the statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-011")]
     public void CollapsesExtraBlankLinesBeforeCommentedStatement()
     {
         // Arrange
@@ -777,6 +794,7 @@ public class BlankLinePhaseTests
     /// Verifies that the blank line is inserted before #endregion, not after the following #region
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-013")]
     public void InsertsBlankLineBeforeEndRegionNotAfterNextRegion()
     {
         // Arrange

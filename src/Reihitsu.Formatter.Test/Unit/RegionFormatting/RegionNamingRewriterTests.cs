@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Pipeline.RegionFormatting.Utilities;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.RegionFormatting;
 
@@ -27,6 +28,7 @@ public class RegionNamingRewriterTests
     /// Verifies that a lowercase region description is capitalized
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-REGION-001")]
     public void CapitalizesRegionDescription()
     {
         // Arrange
@@ -62,6 +64,7 @@ public class RegionNamingRewriterTests
     /// Verifies that an endregion directive without a comment receives the matching region name
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-REGION-002")]
     public void SyncsEndregionComment()
     {
         // Arrange
@@ -97,6 +100,7 @@ public class RegionNamingRewriterTests
     /// Verifies that a region without a description is left unchanged
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-REGION-004")]
     public void LeavesRegionWithoutDescriptionUnchanged()
     {
         // Arrange

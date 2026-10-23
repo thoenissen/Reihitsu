@@ -527,6 +527,93 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
         await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
     }
 
+    /// <summary>
+    /// Verifies the specification example of a group that is not contiguous: <c>Microsoft.A</c> is compared with the
+    /// earlier <c>Microsoft.B</c> of its group and reported, although a directive of the <c>System</c> group lies between
+    /// them, and the code fix organizes the block in one pass
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-007")]
+    [Requirement("RH7203-001")]
+    [Requirement("RH7203-004")]
+    public async Task DirectiveIsComparedWithAnEarlierDirectiveOfItsGroupAcrossAnotherGroup()
+    {
+        const string testCode = """
+                                using Microsoft.B;
+                                using System;
+                                using {|RH7203:Microsoft.A|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 using Microsoft.A;
+                                 using Microsoft.B;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies a directive is compared with an earlier directive of its group across a directive of another kind:
+    /// <c>Microsoft.A</c> is reported after <c>Microsoft.B</c>, although a <see langword="using"/> <see langword="static"/>
+    /// directive lies between them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-007")]
+    [Requirement("RH7203-001")]
+    public async Task DirectiveIsComparedWithAnEarlierDirectiveOfItsGroupAcrossAnotherKind()
+    {
+        const string testCode = """
+                                using Microsoft.B;
+                                using static System.Math;
+                                using {|RH7203:Microsoft.A|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies directives of one group that are in order are not reported when a directive of another group lies
+    /// between them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-007")]
+    [Requirement("RH7203-001")]
+    public async Task OrderedDirectivesOfAGroupAreNotReportedAcrossAnotherGroup()
+    {
+        const string testCode = """
+                                using Microsoft.A;
+                                using System;
+                                using Microsoft.B;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

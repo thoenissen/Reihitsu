@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.Indentation.Contributors;
 
@@ -29,6 +30,7 @@ public class CollectionExpressionContributorTests
     /// Verifies that elements in a multi-line collection expression are indented one level from the opening bracket
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-025")]
     public void IndentsElementsOneLevelFromOpenBracket()
     {
         // Arrange
@@ -80,6 +82,7 @@ public class CollectionExpressionContributorTests
     /// Verifies that the closing bracket is aligned to the opening bracket column
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-025")]
     public void AlignsCloseBracketToOpenBracket()
     {
         // Arrange

@@ -639,6 +639,37 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies that the fix changes only the field's name and the reference to it, and keeps the two blank lines
+    /// between the members and the unformatted spacing of the member that refers to the field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-006")]
+    public async Task FixChangesOnlyTheNamesAndKeepsTheLayoutAroundThem()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int {|RH4106:Value|};
+
+
+                                    public int  Get( ) => Value;
+                                }
+                                """;
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     private int _value;
+
+
+                                     public int  Get( ) => _value;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

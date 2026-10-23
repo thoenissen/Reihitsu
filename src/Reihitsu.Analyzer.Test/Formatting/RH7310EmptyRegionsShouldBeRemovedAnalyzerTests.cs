@@ -14,6 +14,45 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsBase<RH7310EmptyRegionsShouldBeRemovedAnalyzer, RH7310EmptyRegionsShouldBeRemovedCodeFixProvider>
 {
+    #region Constants
+
+    /// <summary>
+    /// Input of the SHARED-FIX-007 example of regions removed between two members: the removal of <c>Fields</c> leaves
+    /// one blank line, the removal of <c>Methods</c> leaves two
+    /// </summary>
+    private const string RegionsBetweenMembersTestCode = """
+                                                         class C
+                                                         {
+                                                             int _a;
+
+                                                             {|RH7310:#region Fields|}
+                                                             #endregion // Fields
+                                                             int _b;
+
+                                                             {|RH7310:#region Methods|}
+
+                                                             #endregion // Methods
+
+                                                             int _c;
+                                                         }
+                                                         """;
+
+    /// <summary>
+    /// Result of the SHARED-FIX-007 example of regions removed between two members
+    /// </summary>
+    private const string RegionsBetweenMembersFixedCode = """
+                                                          class C
+                                                          {
+                                                              int _a;
+
+                                                              int _b;
+
+                                                              int _c;
+                                                          }
+                                                          """;
+
+    #endregion // Constants
+
     #region Tests
 
     /// <summary>
@@ -556,6 +595,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7310-004")]
+    [Requirement("SHARED-FIX-007")]
     public async Task CodeFixRemovesTheRegionAndTheBlankLinesAfterIt()
     {
         const string testData = """
@@ -589,6 +629,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7310-004")]
+    [Requirement("SHARED-FIX-008")]
     public async Task CodeFixRemovesTheRegionWithCarriageReturnLineFeed()
     {
         const string testData = """
@@ -616,6 +657,34 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
         var actual = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData));
 
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), actual);
+    }
+
+    /// <summary>
+    /// Verifies that removing a region between two members keeps the single blank line the removal leaves, removes one
+    /// of the two blank lines another removal leaves, and leaves code that formatting does not change
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task CodeFixKeepsASingleBlankLineAndRemovesADoubledOneBetweenMembers()
+    {
+        await Verify(RegionsBetweenMembersTestCode, RegionsBetweenMembersFixedCode);
+
+        AssertFormattingChangesNothing(RegionsBetweenMembersFixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that removing a region between two members keeps the single blank line the removal leaves and removes
+    /// one of the two blank lines another removal leaves, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task CodeFixKeepsASingleBlankLineAndRemovesADoubledOneBetweenMembersWithCarriageReturnLineFeed()
+    {
+        await Verify(NormalizeToCarriageReturnLineFeed(RegionsBetweenMembersTestCode), NormalizeToCarriageReturnLineFeed(RegionsBetweenMembersFixedCode));
+
+        AssertFormattingChangesNothing(NormalizeToCarriageReturnLineFeed(RegionsBetweenMembersFixedCode));
     }
 
     #endregion // Tests

@@ -746,6 +746,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// brace is preserved
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-009")]
     public void TrailingDirectiveBeforeOpenBraceKeepsItsBlankLine()
     {
         // Arrange
@@ -769,6 +770,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// keyword is preserved
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-009")]
     public void TrailingDirectiveBeforeElseKeepsItsBlankLine()
     {
         // Arrange
@@ -798,6 +800,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// keyword is preserved
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-009")]
     public void TrailingDirectiveBeforeCatchKeepsItsBlankLine()
     {
         // Arrange
@@ -827,6 +830,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// <c>finally</c> keyword is preserved
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-009")]
     public void TrailingDirectiveBeforeFinallyKeepsItsBlankLine()
     {
         // Arrange
@@ -856,6 +860,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// footer is preserved
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-009")]
     public void TrailingDirectiveBeforeDoWhileFooterKeepsItsBlankLine()
     {
         // Arrange
@@ -883,6 +888,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// the last content of a block is preserved
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-009")]
     public void TrailingDisabledTextWithNoFollowingStatementKeepsItsBlankLine()
     {
         // Arrange
@@ -932,6 +938,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// Verifies that two blank lines before a trailing directive collapse to one rather than to zero
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-009")]
     public void ExcessBlankLinesBeforeTrailingDirectiveCollapseToOne()
     {
         // Arrange
@@ -973,6 +980,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// still removed — the guard's non-exempt boundary, matching RH5024
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-007")]
     public void BlankLineDirectlyAboveClosingBraceWithNoDirectiveIsStillRemoved()
     {
         // Arrange
@@ -1006,6 +1014,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// the block's only content, is still removed — RH5022's region, untouched by this fix
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-007")]
     public void BlankLineAfterOpenBraceBeforeDirectiveBlockIsStillRemoved()
     {
         // Arrange
@@ -1043,6 +1052,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// removed — RH5028's region, untouched by this fix
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-007")]
     public void BlankLineAtFileStartBeforeDirectiveIsStillRemoved()
     {
         // Arrange
@@ -1067,6 +1077,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// owners of this fix now agree with each other and with RH5024
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-009")]
     public void BlankLineBeforeAndAfterTrailingDirectiveKeepsOnlyTheFirst()
     {
         // Arrange
@@ -1151,6 +1162,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// enforce it directly
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-009")]
     public void BlankLineOnlyAfterTrailingDirectiveBeforeElseIsRemoved()
     {
         // Arrange
@@ -1196,6 +1208,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// directive, is removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-009")]
     public void BlankLineOnlyAfterTrailingDirectiveBeforeCatchIsRemoved()
     {
         // Arrange
@@ -1241,6 +1254,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// directive, is removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-009")]
     public void BlankLineOnlyAfterTrailingDirectiveBeforeFinallyIsRemoved()
     {
         // Arrange
@@ -1286,6 +1300,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// is removed
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-009")]
     public void BlankLineOnlyAfterTrailingDirectiveBeforeDoWhileFooterIsRemoved()
     {
         // Arrange
@@ -1327,6 +1342,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// brace is preserved — the same guard reached through a different owning rewriter
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-009")]
     public void TrailingDirectiveBeforeTypeDeclarationClosingBraceKeepsItsBlankLine()
     {
         // Arrange
@@ -1349,6 +1365,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// decision this fix does not own
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-009")]
     public void TrailingDirectiveBeforeEnumClosingBraceKeepsItsBlankLine()
     {
         // Arrange
@@ -1425,6 +1442,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// closing brace is preserved when the preceding accessor keeps its block body
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-009")]
     public void TrailingDirectiveBeforePropertyAccessorListClosingBraceKeepsItsBlankLine()
     {
         // Arrange
@@ -1490,6 +1508,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// brace is preserved
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-009")]
     public void TrailingDirectiveBeforeInitializerClosingBraceKeepsItsBlankLine()
     {
         // Arrange

@@ -154,54 +154,6 @@ public class RH5033CommentsMustNotBePlacedBetweenAttributesAndDeclarationAnalyze
     }
 
     /// <summary>
-    /// Verifies that a documentation comment after an attribute is not reported
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("SHARED-COMMENT-001")]
-    public async Task VerifyNoDiagnosticForDocumentationCommentAfterAttribute()
-    {
-        const string testData = """
-                                using System;
-
-                                internal class TestClass
-                                {
-                                    [Obsolete]
-                                    /// <summary>Method</summary>
-                                    public void Method()
-                                    {
-                                    }
-                                }
-                                """;
-
-        await Verify(testData);
-    }
-
-    /// <summary>
-    /// Verifies that a documentation comment after an attribute is not reported when documentation comments are not parsed
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("SHARED-COMMENT-001")]
-    public async Task VerifyNoDiagnosticForDocumentationCommentAfterAttributeWithoutDocumentationParsing()
-    {
-        const string testData = """
-                                using System;
-
-                                internal class TestClass
-                                {
-                                    [Obsolete]
-                                    /// <summary>Method</summary>
-                                    public void Method()
-                                    {
-                                    }
-                                }
-                                """;
-
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
-    }
-
-    /// <summary>
     /// Verifies that a comment starting with four slashes after an attribute is reported when documentation comments are not parsed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -472,13 +424,13 @@ public class RH5033CommentsMustNotBePlacedBetweenAttributesAndDeclarationAnalyze
     }
 
     /// <summary>
-    /// Verifies that an empty block comment after an attribute is reported while a block documentation comment is not
+    /// Verifies that an empty block comment after an attribute is reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-COMMENT-001")]
     [Requirement("RH5033-001")]
-    public async Task VerifyEmptyBlockCommentAfterAttributeIsReportedButBlockDocumentationCommentIsNot()
+    public async Task VerifyEmptyBlockCommentAfterAttributeIsReported()
     {
         const string testData = """
                                 using System;
@@ -486,14 +438,8 @@ public class RH5033CommentsMustNotBePlacedBetweenAttributesAndDeclarationAnalyze
                                 internal class TestClass
                                 {
                                     [Obsolete]
-                                    /** <summary>Method</summary> */
-                                    public void Method()
-                                    {
-                                    }
-
-                                    [Obsolete]
                                     {|#0:/**/|}
-                                    public void Other()
+                                    public void Method()
                                     {
                                     }
                                 }
@@ -503,13 +449,13 @@ public class RH5033CommentsMustNotBePlacedBetweenAttributesAndDeclarationAnalyze
     }
 
     /// <summary>
-    /// Verifies that an empty block comment after an attribute is reported while a block documentation comment is not when documentation comments are not parsed
+    /// Verifies that an empty block comment after an attribute is reported when documentation comments are not parsed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-COMMENT-001")]
     [Requirement("RH5033-001")]
-    public async Task VerifyEmptyBlockCommentAfterAttributeIsReportedButBlockDocumentationCommentIsNotWithoutDocumentationParsing()
+    public async Task VerifyEmptyBlockCommentAfterAttributeWithoutDocumentationParsingIsReported()
     {
         const string testData = """
                                 using System;
@@ -517,44 +463,14 @@ public class RH5033CommentsMustNotBePlacedBetweenAttributesAndDeclarationAnalyze
                                 internal class TestClass
                                 {
                                     [Obsolete]
-                                    /** <summary>Method</summary> */
-                                    public void Method()
-                                    {
-                                    }
-
-                                    [Obsolete]
                                     {|#0:/**/|}
-                                    public void Other()
+                                    public void Method()
                                     {
                                     }
                                 }
                                 """;
 
         await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5033CommentsMustNotBePlacedBetweenAttributesAndDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5033MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that a documentation comment after an attribute is not reported when documentation comments are only parsed
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("SHARED-COMMENT-001")]
-    public async Task VerifyNoDiagnosticForDocumentationCommentAfterAttributeWithDocumentationParseMode()
-    {
-        const string testData = """
-                                using System;
-
-                                internal class TestClass
-                                {
-                                    [Obsolete]
-                                    /// <summary>Method</summary>
-                                    public void Method()
-                                    {
-                                    }
-                                }
-                                """;
-
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject));
     }
 
     /// <summary>
@@ -579,6 +495,31 @@ public class RH5033CommentsMustNotBePlacedBetweenAttributesAndDeclarationAnalyze
                                 """;
 
         await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5033CommentsMustNotBePlacedBetweenAttributesAndDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5033MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment starting with four slashes after an attribute is reported when documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5033-001")]
+    [Requirement("SHARED-COMMENT-001")]
+    public async Task VerifyQuadrupleSlashCommentAfterAttributeIsReported()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    [Obsolete]
+                                    {|#0://// note|}
+                                    public void Method()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5033CommentsMustNotBePlacedBetweenAttributesAndDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5033MessageFormat));
     }
 
     #endregion // Tests

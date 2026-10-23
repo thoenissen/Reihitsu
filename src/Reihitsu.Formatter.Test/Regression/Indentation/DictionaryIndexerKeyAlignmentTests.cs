@@ -19,6 +19,7 @@ public class DictionaryIndexerKeyAlignmentTests : FormatterTestsBase
     /// aligned with the opening bracket
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-014")]
     public void MultiLineDataClassKeyWithObjectInitializerAligns()
     {
         // Arrange
@@ -210,6 +211,7 @@ public class DictionaryIndexerKeyAlignmentTests : FormatterTestsBase
     /// leaving the single-line entry untouched
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-014")]
     public void MixedSingleLineAndMultiLineKeysAlign()
     {
         // Arrange
@@ -274,6 +276,7 @@ public class DictionaryIndexerKeyAlignmentTests : FormatterTestsBase
     /// keep each entry independently aligned
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-014")]
     public void MultipleSingleLineAndMultiLineKeysInterleavedAlign()
     {
         // Arrange

@@ -62,7 +62,10 @@ public class RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzerTests
     }
 
     /// <summary>
-    /// Verifying that directive-containing record structs are reported without offering an unsafe code fix
+    /// Characterizes a record struct whose body holds only a conditional directive: it is reported without offering an
+    /// unsafe code fix. This test pins today's behavior; the decided behavior is stated by SHARED-DIAG-008, under which a
+    /// conditional directive in the body the rule judges keeps the record struct from being reported, and its change
+    /// belongs to an existing follow-up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

@@ -322,6 +322,121 @@ public class RH5203MultiLineArgumentsShouldBeAlignedAnalyzerTests : BatchCodeFix
         await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5203MultiLineArgumentsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5203MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that an argument below a line that ends with a comment is judged by its own column, because the
+    /// comment does not start the argument's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5203-001")]
+    [Requirement("RH5203-003")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyArgumentBelowTrailingCommentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call(1, /* one */
+                                                {|#0:2|});
+                                    }
+
+                                    void Call(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  internal class TestClass
+                                  {
+                                      void Method()
+                                      {
+                                          Call(1, /* one */
+                                               2);
+                                      }
+
+                                      void Call(params int[] values)
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5203MultiLineArgumentsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5203MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an argument below a line that ends with a comment is judged by its own column under CRLF line
+    /// endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5203-001")]
+    [Requirement("RH5203-003")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyArgumentBelowTrailingCommentIsDetectedAndFixedWithCrLf()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call(1, /* one */
+                                                {|#0:2|});
+                                    }
+
+                                    void Call(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  internal class TestClass
+                                  {
+                                      void Method()
+                                      {
+                                          Call(1, /* one */
+                                               2);
+                                      }
+
+                                      void Call(params int[] values)
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5203MultiLineArgumentsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5203MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an argument below a comment on a line of its own is judged by its own column, because the comment
+    /// does not start the argument's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5203-001")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyArgumentBelowCommentLineIsDetected()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call(1,
+                                             // two
+                                                {|#0:2|});
+                                    }
+
+                                    void Call(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5203MultiLineArgumentsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5203MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

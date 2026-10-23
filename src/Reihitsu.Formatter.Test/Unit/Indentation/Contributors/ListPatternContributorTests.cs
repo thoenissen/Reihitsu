@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.Indentation.Contributors;
 
@@ -29,6 +30,7 @@ public class ListPatternContributorTests
     /// Verifies that list-pattern entries are indented one level from the opening bracket
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-025")]
     public void IndentsPatternsOneLevelFromOpenBracket()
     {
         // Arrange
@@ -63,6 +65,8 @@ public class ListPatternContributorTests
     /// rather than its stale source column when the bracket line already has a layout entry
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-025")]
+    [Requirement("FMT-INDENT-030")]
     public void AlignsToReIndentedBracketColumn()
     {
         // Arrange

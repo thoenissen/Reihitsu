@@ -19,6 +19,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a get-only property with a block-bodied getter becomes an expression-bodied property
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-014")]
     public void BlockGetterPropertyBecomesExpressionBodiedProperty()
     {
         // Arrange
@@ -54,6 +55,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// expression-bodied property
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-014")]
     public void SingleLineExpressionGetterPropertyBecomesExpressionBodiedProperty()
     {
         // Arrange
@@ -114,6 +116,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a get-only property whose getter throws becomes a property with a throw-expression body
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-014")]
     public void ThrowingGetterPropertyBecomesThrowExpressionBody()
     {
         // Arrange
@@ -194,6 +197,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a get-only indexer with a block-bodied getter becomes an expression-bodied indexer
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-014")]
     public void BlockGetterIndexerBecomesExpressionBodiedIndexer()
     {
         // Arrange
@@ -228,6 +232,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a get-only indexer with an expression-bodied getter becomes an expression-bodied indexer
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-014")]
     public void ExpressionGetterIndexerBecomesExpressionBodiedIndexer()
     {
         // Arrange
@@ -533,6 +538,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a getter with more than one statement keeps its block and the accessor list
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-015")]
     public void MultiStatementGetterKeepsAccessorList()
     {
         // Arrange
@@ -561,6 +567,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that an attribute on the getter keeps the accessor list, so the attribute keeps its target
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-015")]
     public void AttributedGetterKeepsAccessorList()
     {
         // Arrange
@@ -587,6 +594,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a modifier on the getter keeps the accessor list, so the modifier is not lost
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-015")]
     public void GetterModifierKeepsAccessorList()
     {
         // Arrange
@@ -610,6 +618,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a get-only auto-property stays unchanged
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-015")]
     public void AutoGetterIsUnchanged()
     {
         // Arrange
@@ -629,6 +638,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// property cannot carry an initializer
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-015")]
     public void PropertyWithInitializerKeepsAccessorList()
     {
         // Arrange
@@ -702,6 +712,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a line comment between the property name and the accessor list keeps the accessor list
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-015")]
     public void LineCommentAfterSignatureKeepsAccessorList()
     {
         // Arrange
@@ -725,6 +736,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a block comment between the indexer parameters and the accessor list keeps the accessor list
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-015")]
     public void BlockCommentAfterIndexerSignatureKeepsAccessorList()
     {
         // Arrange
@@ -746,6 +758,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a comment line before the getter keeps the accessor list
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-015")]
     public void CommentBeforeGetterKeepsAccessorList()
     {
         // Arrange
@@ -797,6 +810,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a comment after the getter's arrow keeps the accessor list
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-015")]
     public void CommentAfterGetterArrowKeepsAccessorList()
     {
         // Arrange
@@ -820,6 +834,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a comment line before the accessor list's closing brace keeps the accessor list
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-015")]
     public void CommentBeforeClosingBraceKeepsAccessorList()
     {
         // Arrange
@@ -876,6 +891,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a comment trailing the getter's semicolon follows the member's semicolon
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-015")]
     public void CommentTrailingGetterSemicolonFollowsMemberSemicolon()
     {
         // Arrange
@@ -910,6 +926,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a comment trailing the accessor list's closing brace follows the member's semicolon
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-015")]
     public void CommentTrailingClosingBraceFollowsMemberSemicolon()
     {
         // Arrange
@@ -941,6 +958,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that comments trailing both the getter's semicolon and the closing brace keep the accessor list
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-015")]
     public void CommentsTrailingSemicolonAndClosingBraceKeepAccessorList()
     {
         // Arrange
@@ -1018,6 +1036,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a region directive inside the accessor list keeps the accessor list
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-015")]
     public void RegionInsideAccessorListKeepsAccessorList()
     {
         // Arrange
@@ -1045,6 +1064,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a get-only property is not converted below C# 6, which introduced expression-bodied properties
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-014")]
     public void BlockGetterIsKeptBelowCSharp6()
     {
         // Arrange
@@ -1071,6 +1091,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a returning block getter is converted to an expression-bodied property in C# 6
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-014")]
     public void ReturningBlockGetterIsConvertedInCSharp6()
     {
         // Arrange
@@ -1105,6 +1126,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a throwing block getter keeps its block in C# 6, which predates throw expressions
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-014")]
     public void ThrowingBlockGetterIsKeptInCSharp6()
     {
         // Arrange
@@ -1131,6 +1153,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a throwing block getter is converted to a throw-expression body in C# 7
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-014")]
     public void ThrowingBlockGetterIsConvertedInCSharp7()
     {
         // Arrange
@@ -1165,6 +1188,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that the C# 6 gate still holds when an earlier structural transform replaced the tree in the same pass
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-014")]
     public void BlockGetterIsKeptBelowCSharp6AfterEarlierTransform()
     {
         // Arrange
@@ -1219,6 +1243,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a comment after the <c>get</c> keyword keeps the accessor list
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-015")]
     public void CommentAfterGetKeywordKeepsAccessorList()
     {
         // Arrange
@@ -1279,6 +1304,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a pragma directive before the getter keeps the accessor list
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-015")]
     public void PragmaBeforeGetterKeepsAccessorList()
     {
         // Arrange
@@ -1439,6 +1465,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a comment line between the property name and the opening brace keeps the accessor list
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-015")]
     public void CommentBeforeOpeningBraceKeepsAccessorList()
     {
         // Arrange
@@ -1501,6 +1528,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a comment trailing the opening brace keeps the accessor list
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-015")]
     public void CommentAfterOpeningBraceKeepsAccessorList()
     {
         // Arrange
@@ -1524,6 +1552,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a comment line between the <c>get</c> keyword and the getter's arrow keeps the accessor list
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-015")]
     public void CommentBeforeGetterArrowKeepsAccessorList()
     {
         // Arrange
@@ -1603,6 +1632,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a comment line between the getter's arrow and its expression keeps the accessor list
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-015")]
     public void CommentBeforeGetterExpressionKeepsAccessorList()
     {
         // Arrange
@@ -1643,6 +1673,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a directive between the getter's arrow and its expression keeps the accessor list
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-015")]
     public void DirectiveBeforeGetterExpressionKeepsAccessorList()
     {
         // Arrange
@@ -1682,6 +1713,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a comment line between the getter's expression and its semicolon keeps the accessor list
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-015")]
     public void CommentBeforeGetterSemicolonKeepsAccessorList()
     {
         // Arrange
@@ -1761,6 +1793,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     /// Verifies that a conditional directive whose branches each close the accessor list keeps the accessor list when its symbol is undefined
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-015")]
     public void UnbalancedConditionalAcrossClosingBraceKeepsAccessorList()
     {
         // Arrange

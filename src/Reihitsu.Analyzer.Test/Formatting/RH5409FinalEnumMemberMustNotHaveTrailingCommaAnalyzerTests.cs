@@ -292,6 +292,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-TRAIL-002")]
+    [Requirement("SHARED-DIAG-008")]
     public async Task VerifySpecificationExampleReportsCommaInFrontOfRegionButNotInFrontOfConditionalBlock()
     {
         const string testData = """
@@ -340,6 +341,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
     [TestMethod]
     [Requirement("SHARED-TRAIL-002")]
     [Requirement("SHARED-TRAIL-003")]
+    [Requirement("SHARED-DIAG-008")]
     public async Task VerifyCommaInFrontOfPragmaDirectivesIsReportedAndFixed()
     {
         const string testData = """
@@ -371,6 +373,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-TRAIL-002")]
+    [Requirement("SHARED-DIAG-008")]
     public async Task VerifyCommaInFrontOfEmptyConditionalBlockIsNotReported()
     {
         const string testData = """
@@ -545,6 +548,29 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
                                  """;
 
         await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH5409MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that a fully inactive <c>#if false</c> block after the comma, whose excluded code lies in the gap the rule
+    /// judges, keeps the comma from being reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-008")]
+    [Requirement("SHARED-TRAIL-002")]
+    public async Task VerifyCommaInFrontOfInactiveIfFalseBlockIsNotReported()
+    {
+        const string testData = """
+                                enum E
+                                {
+                                    A,
+                                #if false
+                                    B,
+                                #endif
+                                }
+                                """;
+
+        await Verify(testData);
     }
 
     #endregion // Tests

@@ -226,6 +226,7 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
     /// which introduced expression-bodied properties
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-008")]
     public void FormatSyntaxTreeKeepsGetOnlyAccessorListBelowCSharp6()
     {
         const string input = """
@@ -251,6 +252,7 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
     /// property in C# 6
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-008")]
     public void FormatSyntaxTreeConvertsGetOnlyPropertyInCSharp6()
     {
         const string input = """
@@ -299,6 +301,7 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
+    [Requirement("FMT-PIPE-008")]
     public async Task FormatDocumentAsyncKeepsEmptyClassBracedInCSharp11Project()
     {
         foreach (var endOfLine in _lineEndings)
@@ -320,6 +323,7 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
+    [Requirement("FMT-PIPE-008")]
     public async Task FormatNodeInDocumentAsyncKeepsNestedEmptyClassBracedInCSharp73Project()
     {
         await AssertFormatNodeInDocument(LanguageVersion.CSharp7_3, NestedBracedExpected);
@@ -341,6 +345,7 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
+    [Requirement("FMT-PIPE-008")]
     public async Task FormatNodeInDocumentWithContextAsyncKeepsEmptyClassBracedInCSharp11Project()
     {
         foreach (var endOfLine in _lineEndings)
@@ -410,6 +415,7 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
     /// options, for the newest supported language version
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-008")]
     public void FormatNodeFormatsDetachedNodeForTheNewestSupportedVersion()
     {
         var detachedRoot = SyntaxFactory.ParseCompilationUnit(TopLevelInput);

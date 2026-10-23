@@ -19,6 +19,7 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
     /// accessor list is laid out over several lines
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void ExpressionBodiedAccessorsInSingleLineListStartOwnLines()
     {
         // Arrange
@@ -51,6 +52,7 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
     /// Verifies that block accessors converted to expression bodies in the same pass each start their own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void ConvertedBlockAccessorsStartOwnLines()
     {
         // Arrange
@@ -84,6 +86,7 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
     /// without a blank line between the closing brace and the next accessor
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void MultiStatementBlockAccessorsStartOwnLines()
     {
         // Arrange
@@ -125,6 +128,7 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
     /// Verifies that an accessor written directly after the previous accessor's closing brace starts its own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void AccessorFollowingClosingBraceStartsOwnLine()
     {
         // Arrange
@@ -178,6 +182,7 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
     /// Verifies that a block accessor following an expression-bodied accessor on the same line starts its own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void BlockAccessorFollowingExpressionBodiedAccessorStartsOwnLine()
     {
         // Arrange
@@ -215,6 +220,7 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
     /// their own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void AccessorsSharingLineInMultiLineListStartOwnLines()
     {
         // Arrange
@@ -251,6 +257,7 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
     /// signature line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void AccessorsSharingLineAfterOpeningBraceOnSignatureLineStartOwnLines()
     {
         // Arrange
@@ -284,6 +291,7 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
     /// Verifies that the accessors of an indexer written on one line each start their own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void IndexerAccessorsStartOwnLines()
     {
         // Arrange
@@ -316,6 +324,7 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
     /// Verifies that indexer block accessors converted to expression bodies in the same pass each start their own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void ConvertedIndexerBlockAccessorsStartOwnLines()
     {
         // Arrange
@@ -348,6 +357,7 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
     /// Verifies that expression-bodied event accessors written on one line each start their own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void EventAccessorsStartOwnLines()
     {
         // Arrange
@@ -380,6 +390,7 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
     /// Verifies that an event block accessor following another block accessor on the same line starts its own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void EventBlockAccessorsStartOwnLines()
     {
         // Arrange
@@ -418,6 +429,7 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
     /// Verifies that an accessor modifier moves together with its accessor, so the line starts at the modifier
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void AccessorModifierStartsTheAccessorLine()
     {
         // Arrange
@@ -450,6 +462,7 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
     /// Verifies that an init accessor following another accessor on the same line starts its own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void InitAccessorStartsOwnLine()
     {
         // Arrange
@@ -483,6 +496,7 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
     /// behind on the previous accessor's line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void AttributeOnSecondAccessorStartsTheAccessorLine()
     {
         // Arrange
@@ -516,6 +530,7 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
     /// Verifies that an attribute on the first accessor does not keep the following accessor on the first accessor's line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void AttributeOnFirstAccessorKeepsFollowingAccessorOnOwnLine()
     {
         // Arrange
@@ -550,6 +565,8 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
     /// following accessor starts its own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-001")]
+    [Requirement("FMT-BREAK-025")]
     public void SameLineBlockCommentStaysWithPreviousAccessor()
     {
         // Arrange
@@ -582,6 +599,7 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
     /// Verifies that a comment inside the following accessor stays in place when that accessor moves to its own line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void CommentInsideFollowingAccessorIsPreserved()
     {
         // Arrange
@@ -614,6 +632,7 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
     /// Verifies that a comment trailing the last accessor stays on that accessor's line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void CommentTrailingLastAccessorStaysOnItsLine()
     {
         // Arrange
@@ -647,6 +666,7 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
     /// continuation line keeps its alignment
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void MultiLineAccessorIsFollowedByAccessorOnOwnLine()
     {
         // Arrange
@@ -682,6 +702,7 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
     /// directives stay in place
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void AccessorsSharingLineInActiveConditionalBranchStartOwnLines()
     {
         // Arrange
@@ -721,6 +742,7 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
     /// Verifies that accessors already separated by a single-line comment remain unchanged
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void AccessorsSeparatedByLineCommentRemainUnchanged()
     {
         // Arrange
@@ -770,6 +792,7 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
     /// Verifies that a laid-out accessor list with a single accessor remains unchanged
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void SingleAccessorListRemainsUnchanged()
     {
         // Arrange
@@ -793,6 +816,7 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
     /// Verifies that accessors already on separate lines keep the blank line between them
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-025")]
     public void AccessorsSeparatedByBlankLineRemainUnchanged()
     {
         // Arrange

@@ -7,7 +7,7 @@
 | Code owners | `TypesOrganizedWithRegionsAnalyzerBase` |
 | Uses | FMT-REGION-003 |
 
-This spec covers what the region rules share about where a region sits: when a region directive is inside executable code or between declarations (RH7303, RH7304, RH7310), what the top-level regions of a type declaration are (RH7305, RH7305A, RH7308, RH7309, RH7311), and what RH7305 (every type with members) and RH7305A (only types with several kinds of member) share beyond that: which type declarations they check, which members they count, when a type counts as organized with regions, and where the diagnostic is. Which of these regions or types a rule reports is each rule's own spec.
+This spec covers what the region rules share about where a region sits: when a region directive is inside executable code or between declarations (RH7303, RH7304, RH7310), what the top-level regions of a type declaration are and which declaration a region belongs to (RH7305, RH7305A, RH7308, RH7309, RH7311), which regions a rule compares with each other (RH7311), and what RH7305 (every type with members) and RH7305A (only types with several kinds of member) share beyond that: which type declarations they check, which members they count, when a type counts as organized with regions, and where the diagnostic is. Which of these regions or types a rule reports is each rule's own spec.
 
 ## Non-goals
 
@@ -80,7 +80,9 @@ partial class {|RH7305:P|}
 
 A rule MUST count the members the type declaration declares directly: nested types (enums and extension blocks included), delegates, fields, constructors, finalizers, properties, indexers, events in both forms, methods, operators, and conversion operators. It MUST NOT report a type that declares none of them.
 
-Why: These are the declarations a reader navigates by. A type without any — an empty class or a positional record whose members are all generated from its parameter list — has nothing to organize.
+A nested declaration counts as one member of the type around it; what it declares itself MUST NOT be counted for the type around it. A region among the members of a nested class, struct, interface, record, or record struct, or among the values of a nested enum, MUST belong to that nested declaration (SHARED-TYPEREGION-006).
+
+Why: These are the declarations a reader navigates by. A type without any — an empty class or a positional record whose members are all generated from its parameter list — has nothing to organize. A nested type or enum is one entry of the outline around it; what lies inside its braces is its own outline.
 
 Example — RH7305:
 
@@ -92,7 +94,23 @@ class C
 record R(int X);
 ```
 
-is not reported.
+is not reported, and neither is a type whose only member is a nested enum in a region, whatever regions the enum has among its values:
+
+```csharp
+class C
+{
+    #region Types
+
+    enum E
+    {
+        #region Values
+        A,
+        #endregion
+    }
+
+    #endregion
+}
+```
 
 ### SHARED-TYPEREGION-003 — A type is organized when every counted member is in a top-level region
 
@@ -208,9 +226,11 @@ namespace N
 
 ### SHARED-TYPEREGION-006 — The top-level regions of a type declaration
 
-When every region directive inside a class, struct, interface, record, or record struct declaration lies inside executable code or between declarations (SHARED-TYPEREGION-005), none lies inside a nested enum or a nested extension block, and no `#region`–`#endregion` pair (FMT-REGION-003) crosses the start or the end of one of the declaration's members, the declaration's top-level regions MUST be the pairs whose two directives lie between its members (SHARED-TYPEREGION-005), inside its braces and outside its nested types, and that are not nested in another such pair. A member MUST count as lying in a top-level region when it lies wholly between the region's `#region` and `#endregion`, also when it lies in a region nested in it. Each declaration of a `partial` type has its own top-level regions.
+When every region directive inside a class, struct, interface, record, or record struct declaration lies inside executable code or between declarations (SHARED-TYPEREGION-005), none lies inside a nested extension block, and no `#region`–`#endregion` pair (FMT-REGION-003) crosses the start or the end of one of the declaration's members, the declaration's top-level regions MUST be the pairs whose two directives lie between its members (SHARED-TYPEREGION-005), inside its braces and outside its nested type and enum declarations, and that are not nested in another such pair. A member MUST count as lying in a top-level region when it lies wholly between the region's `#region` and `#endregion`, also when it lies in a region nested in it. Each declaration of a `partial` type has its own top-level regions.
 
-Why: The regions directly in a type's body form the type's outline, and a nested region is a sub-heading of the region around it, so a member belongs to the outline entry of its outer region. A region around the type belongs to the enclosing scope, a region of a nested type to that type's outline, and a region in a method body to the method; none of them is an entry of this type's outline.
+A region MUST belong to the innermost class, struct, interface, record, record struct, or enum declaration whose braces enclose it. A rule MUST NOT compare a region with a region of another declaration, and a code fix MUST NOT move a region or a member from one declaration into another. A rule MUST NOT compare the descriptions of two regions that lie in different branches — `#if`, `#elif`, or `#else` — of one conditional directive. A rule that judges a member by the description of the region it lies in MUST judge it by the innermost region that encloses it; a rule that uses a region only as the scope within which it compares members is not covered by this sentence.
+
+Why: The regions directly in a type's body form the type's outline, and a nested region is a sub-heading of the region around it, so a member belongs to the outline entry of its outer region. A region around the type belongs to the enclosing scope, a region of a nested type or enum to that declaration's outline, and a region in a method body to the method; none of them is an entry of this type's outline. The heading closest to a member is the one that describes it, so a sub-heading, not the heading above it, says what the member should be. No build compiles two branches of one conditional directive, so their regions never appear in one outline, and the same description in both names the same part of the type in two configurations.
 
 Example — RH7311, which compares the descriptions of top-level regions:
 
@@ -252,3 +272,87 @@ class C
 
 The nested `Methods` region and the region of `D` are not top-level regions of `C`, so only the second top-level `Methods` region of `C` is reported.
 
+Example — RH7311, the region of the nested enum `E` belongs to `E` and is not compared with the regions of `C`:
+
+```csharp
+class C
+{
+    #region Values
+
+    int _a;
+
+    #endregion
+
+    enum E
+    {
+        #region Values
+        A,
+        #endregion
+    }
+}
+```
+
+is not reported.
+
+Example — RH7308 judges `Value` by the `Properties` region nested in `Fields`:
+
+```csharp
+class C
+{
+    #region Fields
+
+    private int _value;
+
+    #region Properties
+
+    public int Value => _value;
+
+    #endregion
+
+    #endregion
+}
+```
+
+is not reported.
+
+Example — RH7311 does not compare the regions of the `#if` and `#else` branches:
+
+```csharp
+class C
+{
+#if DEBUG
+    #region Fields
+
+    int _a;
+
+    #endregion
+#else
+    #region Fields
+
+    int _b;
+
+    #endregion
+#endif
+}
+```
+
+is not reported.
+
+Example — RH7110 uses the top-level region `Members` only as the scope of its comparison, so it compares `B` in the nested region `Inner` with `_a`:
+
+```csharp
+class C
+{
+    #region Members
+
+    private int _a;
+
+    #region Inner
+
+    public int {|RH7110:B|};
+
+    #endregion
+
+    #endregion
+}
+```

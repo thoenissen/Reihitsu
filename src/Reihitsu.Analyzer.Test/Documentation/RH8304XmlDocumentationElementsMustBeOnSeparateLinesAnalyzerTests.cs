@@ -21,6 +21,7 @@ public class RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8304-001")]
     public async Task VerifyNoDiagnosticsWhenElementsAreAlreadySeparated()
     {
         const string testData = """
@@ -44,6 +45,9 @@ public class RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8304-001")]
+    [Requirement("RH8304-003")]
+    [Requirement("RH8304-004")]
     public async Task VerifyElementsOnSameLineAreDetectedAndFixed()
     {
         const string testData = """
@@ -78,6 +82,9 @@ public class RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8304-001")]
+    [Requirement("RH8304-003")]
+    [Requirement("RH8304-004")]
     public async Task VerifyElementMoveDoesNotDuplicateLeadingSentenceText()
     {
         const string testData = """
@@ -108,6 +115,7 @@ public class RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8304-002")]
     public async Task VerifyNestedInlineElementsDoNotProduceDiagnostics()
     {
         const string testData = """
@@ -128,6 +136,8 @@ public class RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8304-001")]
+    [Requirement("SHARED-DOC-008")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string source = """
@@ -143,6 +153,162 @@ public class RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzerTests : 
                               """;
 
         await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that elements starting on the line where the previous top-level element ends are reported, after
+    /// nothing, after spaces, after a character reference that stands for white space, and as the second and the third
+    /// element of one line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8304-001")]
+    [Requirement("RH8304-003")]
+    public async Task VerifyElementsOnTheLineOfThePreviousElementAreReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>Runs</summary>{|#0:<remarks>Remarks</remarks>|}
+                                    void M()
+                                    {
+                                    }
+
+                                    /// <summary>Stops</summary> {|#1:<remarks>Remarks</remarks>|} {|#2:<example>Example</example>|}
+                                    void N()
+                                    {
+                                    }
+
+                                    /// <summary>
+                                    /// Value
+                                    /// </summary>{|#3:<inheritdoc/>|}
+                                    int A;
+
+                                    /// <summary>Count</summary>&#32;{|#4:<remarks>Remarks</remarks>|}
+                                    int B;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8304MessageFormat, 5));
+    }
+
+    /// <summary>
+    /// Verifies that elements separated by text, inline elements, an XML comment, and the elements of a delimited
+    /// documentation comment are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8304-002")]
+    public async Task VerifySeparatedNestedAndDelimitedElementsDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>Runs</summary> and <remarks>Remarks</remarks>
+                                    void M()
+                                    {
+                                    }
+
+                                    /// <summary>Stops <see cref="C"/> <c>now</c></summary>
+                                    void N()
+                                    {
+                                    }
+
+                                    /// <summary>Value</summary><!-- Note --><remarks>Remarks</remarks>
+                                    int A;
+
+                                    /** <summary>Count</summary><remarks>Remarks</remarks> */
+                                    int B;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a character reference that does not stand for white space separates two elements
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8304-002")]
+    public async Task VerifyElementsSeparatedByNonWhitespaceCharacterReferenceDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>Runs</summary>&amp;<remarks>Remarks</remarks>
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix moves each reported element onto a new documentation line with the indentation of its line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8304-004")]
+    public async Task VerifyFixMovesEachElementOntoANewDocumentationLine()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>Stops</summary> {|#0:<remarks>Remarks</remarks>|} {|#1:<example>Example</example>|}
+                                    void N()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>Stops</summary>
+                                     /// <remarks>Remarks</remarks>
+                                     /// <example>Example</example>
+                                     void N()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8304MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that the fix inserts the CRLF line break of the element's line in a CRLF document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8304-004")]
+    public async Task VerifyFixInsertsTheLineBreakOfTheLineWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>Stops</summary> <remarks>Remarks</remarks>
+                                    void N()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>Stops</summary>
+                                     /// <remarks>Remarks</remarks>
+                                     void N()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        var actual = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), actual);
     }
 
     #endregion // Tests

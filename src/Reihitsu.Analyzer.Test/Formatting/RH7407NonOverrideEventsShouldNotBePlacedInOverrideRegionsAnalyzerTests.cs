@@ -20,6 +20,8 @@ public class RH7407NonOverrideEventsShouldNotBePlacedInOverrideRegionsAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7407-001")]
+    [Requirement("SHARED-REGGROUP-005")]
     public async Task VerifyDiagnosticForNonOverrideEventInOverrideRegion()
     {
         const string testData = """
@@ -56,6 +58,7 @@ public class RH7407NonOverrideEventsShouldNotBePlacedInOverrideRegionsAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7407-002")]
     public async Task VerifyNoDiagnosticsForMixedOverrideKindsInSameRegion()
     {
         const string testData = """
@@ -98,6 +101,7 @@ public class RH7407NonOverrideEventsShouldNotBePlacedInOverrideRegionsAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7407-002")]
     public async Task VerifyNoDiagnosticsForNonOverrideEventInGenericRegion()
     {
         const string testData = """
@@ -138,6 +142,8 @@ public class RH7407NonOverrideEventsShouldNotBePlacedInOverrideRegionsAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7407-002")]
+    [Requirement("SHARED-REGGROUP-006")]
     public async Task VerifyNoDiagnosticsForBaseTypeNamedRegionWithoutOverrideEvents()
     {
         const string testData = """
@@ -156,6 +162,194 @@ public class RH7407NonOverrideEventsShouldNotBePlacedInOverrideRegionsAnalyzerTe
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a field-like event and an accessor event that override nothing are reported in an override region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7407-001")]
+    public async Task VerifyDiagnosticsForFieldLikeAndAccessorEventsOfOwnInOverrideRegion()
+    {
+        const string testData = """
+                                using System;
+
+                                class B
+                                {
+                                    public virtual event EventHandler Changed;
+                                }
+
+                                class C : B
+                                {
+                                    #region B
+
+                                    public override event EventHandler Changed;
+
+                                    public event EventHandler {|RH7407:Saved|};
+
+                                    public event EventHandler {|RH7407:Closed|}
+                                    {
+                                        add
+                                        {
+                                        }
+
+                                        remove
+                                        {
+                                        }
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an override event with accessors makes a region an override region like a field-like override event
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7407-001")]
+    public async Task VerifyAccessorOverrideEventMakesOverrideRegion()
+    {
+        const string testData = """
+                                using System;
+
+                                class B
+                                {
+                                    public virtual event EventHandler Changed;
+                                }
+
+                                class C : B
+                                {
+                                    #region B
+
+                                    public override event EventHandler Changed
+                                    {
+                                        add
+                                        {
+                                        }
+
+                                        remove
+                                        {
+                                        }
+                                    }
+
+                                    public event EventHandler {|RH7407:Saved|};
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an override event in an override region and an event that overrides nothing in an ordinary region are
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7407-002")]
+    public async Task VerifyNoDiagnosticsForOverrideEventAndEventInOrdinaryRegion()
+    {
+        const string testData = """
+                                using System;
+
+                                class B
+                                {
+                                    public virtual event EventHandler Changed;
+                                }
+
+                                class C : B
+                                {
+                                    #region B
+
+                                    public override event EventHandler Changed;
+
+                                    #endregion
+
+                                    #region Events
+
+                                    public event EventHandler Saved;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Characterizes a field-like override event with several declarators: only the base type of its first declarator names
+    /// an override region, so an event in the region of the second declarator's base type is not reported. This test pins
+    /// today's behavior; the decided behavior is stated by SHARED-DIAG-006, which checks every declarator, and its change
+    /// belongs to an existing follow-up
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyOnlyFirstDeclaratorOfOverrideEventNamesOverrideRegion()
+    {
+        const string testData = """
+                                using System;
+
+                                class B1
+                                {
+                                    public virtual event EventHandler A;
+                                }
+
+                                class B2 : B1
+                                {
+                                    public virtual event EventHandler X;
+                                }
+
+                                class D : B2
+                                {
+                                    public override event EventHandler A, X;
+
+                                    #region B2
+
+                                    public event EventHandler F;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Characterizes a field-like event with several declarators in an override region: it is reported once, at its first
+    /// declarator. This test pins today's behavior; the decided behavior is stated by SHARED-DIAG-006, which reports one
+    /// diagnostic per reported declarator, and its change belongs to an existing follow-up
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyEventWithSeveralDeclaratorsInOverrideRegionIsReportedOnceAtFirstDeclarator()
+    {
+        const string testData = """
+                                using System;
+
+                                class B
+                                {
+                                    public virtual event EventHandler E;
+                                }
+
+                                class C : B
+                                {
+                                    #region B
+
+                                    public override event EventHandler E;
+
+                                    public event EventHandler {|#0:F|}, G;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7407NonOverrideEventsShouldNotBePlacedInOverrideRegionsAnalyzer.DiagnosticId, CreateMessage("B")));
     }
 
     #endregion // Tests
