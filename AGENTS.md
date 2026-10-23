@@ -59,6 +59,36 @@ Issues here are filed under the maintainer's GitHub account, but many of them ar
 - Fix the defect that exists, not the one the issue asserts. Where the analysis and the report disagree, implement the analysis and state plainly in the pull request how the shipped change differs from what was requested.
 - Say so when a report turns out to be wrong, overstated, or already-correct behavior. Downgrading, narrowing, or closing it is a legitimate result of a run. A bug that does not reproduce keeps its passing test as a characterization test, the pull request links the issue with `Refs #<N>` rather than `Closes #<N>`, and the maintainer decides how to proceed.
 
+## Asking the maintainer
+
+A question the maintainer has to decide is posted as an ordinary chat message, and the maintainer answers in the chat. Question dialogs and option pickers truncate long text, render no code, and leave no room for context; they are used only for a short question whose options fit in a few words and need no explanation, such as confirming a step. Anything with code, several trade-offs, or background goes into the chat.
+
+Write the question so it can be answered without opening a file or scrolling back:
+
+1. **Context** — what you are working on (issue, run, stage), what you found, and why it needs a decision now. Quote the relevant code, input, or output inline in a fenced block, kept to the lines that matter, with its `path:line`. State what has already been ruled out.
+2. **Question** — one sentence, answerable by naming an option.
+3. **Options** — labeled `A`, `B`, `C`, each with what it means, a concrete example (code, or input and resulting output), and its consequence: what it costs, what it breaks, what it leaves for later.
+4. **Recommendation** — always. Name the option and give the reason in one or two sentences. When no option is clearly better, still pick one and say what would change the pick.
+
+Several questions in one message are numbered `1`, `2`, … with options `1A`, `1B`, …, so that an answer such as `1A, 2C` is unambiguous. Ask everything that is open at that point in one message rather than one question per turn.
+
+Then stop and wait. The recommendation is not an answer: do not continue on it, and do not treat silence or an unrelated reply as consent. An answer that does not clearly select an option is asked back, briefly.
+
+```markdown
+**Context.** Issue #123, RH3202 code fix. The fix rewrites expression-bodied methods to block bodies, but this input carries a comment inside the arrow expression (`src/Reihitsu.Analyzer.CodeFixes/...:42`):
+
+    int Get() => /* cached */ _value;
+
+Moving the comment into the block changes its position relative to `return`.
+
+**Question.** Should the fix withhold itself for this input?
+
+- **A** — Withhold the fix; the diagnostic stays without one. Satisfies SHARED-FIX-003, and the gap is the comment limitation `general-notes.md` already states.
+- **B** — Move the comment before `return`. Output: `{ /* cached */ return _value; }`. Relocates a user comment, which SHARED-FIX-003 forbids.
+
+**Recommendation: A** — B violates SHARED-FIX-003, and A needs no new documentation.
+```
+
 ## The squad
 
 Agents implement issues as a squad: the maintainer talks only to a lead, and the lead delegates every stage to a role with a narrow job. [`squad/README.md`](squad/README.md) describes the roles, lanes, handovers, and escalations; [`squad/lead.md`](squad/lead.md) is the lead's playbook, and `squad/roles/` holds one file per role. `scripts/lane-check.sh <lane>` confirms the lane a run claimed against its diff.
