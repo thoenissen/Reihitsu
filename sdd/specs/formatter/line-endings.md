@@ -13,7 +13,7 @@ This spec covers `LineEndingNormalizationPhase`: as the last phase, it rewrites 
 
 - How the line ending is detected, and which line ending the earlier phases write — FMT-PIPE-007.
 - Whether the file ends with a line break — FMT-CLEAN-005 to FMT-CLEAN-007.
-- Line breaks inside multi-line block comments and disabled text. The phase currently leaves them as written; whether it should normalize them is undecided.
+- Line breaks inside multi-line block comments and disabled text. The phase currently leaves them as written; normalizing them is a decided behavior change, tracked in thoenissen/Reihitsu#959.
 
 ## Requirements
 

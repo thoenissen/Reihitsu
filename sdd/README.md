@@ -73,10 +73,10 @@ Start from [`templates/spec.md`](templates/spec.md), or from [`templates/analyze
 ## Tests and requirements
 
 - A test names each requirement it covers with `[Requirement("<ID>")]` on its test method, one attribute per ID, the ID written as a string literal. A test that verifies a requirement only incidentally does not tag it.
-- The attribute is declared in `Reihitsu.Analyzer.Test`, `Reihitsu.Cli.Test`, and `Reihitsu.Core.Test`; another test project declares it when its tests are first tagged.
+- The attribute is declared in `Reihitsu.Analyzer.Test`, `Reihitsu.Cli.Test`, `Reihitsu.Core.Test`, `Reihitsu.Formatter.Test`, and `Reihitsu.Playground.Test`; another test project declares it when its tests are first tagged.
 - The attribute is a test category, so `scripts/test.sh --project <project> --filter "TestCategory=<ID>"` runs every test of one requirement in that project.
 - `FixAllCorrectsEveryDiagnostic` in `BatchCodeFixTestsBase` carries the shared Fix All requirements. A test class overrides it only to tag a Fix All requirement of its own rule that differs from them.
-- Every active requirement of an **enforced** spec is covered by at least one test. Enforced today: `analyzer/`, `cli/`, `shared/code-fixes.md`, `shared/diagnostics.md`, and every requirement of another `shared/` spec that an enforced spec lists under `Uses`. Every other spec is reported but not enforced. A PR that adds a requirement to an enforced spec adds its covering test in the same PR.
+- Every active requirement of an **enforced** spec is covered by at least one test. Enforced today: `analyzer/`, `cli/`, `formatter/`, `playground/`, `shared/code-fixes.md`, `shared/diagnostics.md`, and every requirement of another `shared/` spec that an enforced spec lists under `Uses`. Every other spec is reported but not enforced. A PR that adds a requirement to an enforced spec adds its covering test in the same PR.
 - A retired requirement is never tagged; the tests that covered it tag the requirement that replaced it, or no requirement.
 
 ## When a change doc is required
