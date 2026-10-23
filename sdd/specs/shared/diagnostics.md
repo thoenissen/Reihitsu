@@ -18,6 +18,7 @@ This spec covers what holds for every analyzer rule, so a rule spec states only 
 - Whether a rule reports whitespace next to a comment — the spec of that rule.
 - Whether a code fix may change the text of a literal or of a comment — [`code-fixes.md`](code-fixes.md).
 - The name that a `using` alias directive declares, and how the using-directive rules order alias directives by it — those rules' specs.
+- Which change a rule asks for, and at which positions that change can be written — each rule's own spec; SHARED-DIAG-011 states only that a rule does not report where it cannot.
 
 ## Requirements
 
@@ -563,3 +564,69 @@ public class C
     }
 }
 ```
+
+### SHARED-DIAG-011 — A change that cannot be written at a position is not asked for
+
+A rule MUST NOT report a construct at a position where the change the rule asks for cannot be written: where the code the change produces would not be valid C# at that position, because the C# grammar does not admit it there, because the language version the code is compiled with does not support it there, or because the position itself rules it out with a compile error, such as a position that requires a compile-time constant or a declaration that cannot carry the modifier the rule asks for. Where the change can be written at that position, the construct MUST be reported as the rule's own requirements state, also when the rule's code fix is withheld (SHARED-FIX-003). A compile error that the change would cause only together with the rest of the code, such as a name that another declaration already uses, does not rule the change out at that position.
+
+Why: A diagnostic asks the user for a change, and where the language offers no way to write that change at the position, nothing the user writes there satisfies it: the user can only suppress the diagnostic, and no fix can exist. Where the change can be written, the user can make it by hand even when the automatic rewrite is unsafe, so the report stays and only the fix is withheld. The language version belongs to what the user can write: a form that a later version introduces is not available to code compiled with an earlier one. A collision with another declaration is a property of the code around the construct, which the user can change, not of the position.
+
+Example — the grammar, for RH3103, which asks for `T?`:
+
+```csharp
+using System;
+
+class C
+{
+    string A() => nameof(Nullable<int>);
+    Type B() => typeof({|RH3103:Nullable<int>|});
+}
+```
+
+`nameof(int?)` does not parse, so `A` is not reported; `typeof(int?)` is valid, so `B` is.
+
+Example — a position that requires a constant, for RH3003, which asks for `string.Empty`:
+
+```csharp
+class C
+{
+    const string F = "";
+    string _g = {|RH3003:""|};
+}
+```
+
+`string.Empty` is not a constant, so `const string F = string.Empty;` does not compile, and `F` is not reported; the initializer of `_g` accepts it.
+
+Example — a declaration that cannot carry the modifier, for RH2004, which asks for an accessibility modifier:
+
+```csharp
+public class C
+{
+    static C()
+    {
+    }
+}
+```
+
+is not reported: a static constructor cannot carry an accessibility modifier.
+
+Example — the language version, for RH5412, which asks for a class declared with a semicolon:
+
+```csharp
+class {|RH5412:A|}
+{
+}
+```
+
+is reported when the code is compiled with C# 12 or later, where `class A;` is valid, and is not reported when it is compiled with C# 11 or earlier.
+
+Example — a change that can be written, for RH3001, which asks for a comparison with `false`:
+
+```csharp
+class C
+{
+    bool M(bool x) => x is {|RH3001:!|}true;
+}
+```
+
+is reported, and no code fix is offered: `x is (true == false)` is valid at that position, so the construct is reported although the fix does not write it. Likewise, the RH4106 example under SHARED-FIX-003 is reported: `_value` is a valid name at that position, and only the field that already has the name makes the renamed code fail to compile.

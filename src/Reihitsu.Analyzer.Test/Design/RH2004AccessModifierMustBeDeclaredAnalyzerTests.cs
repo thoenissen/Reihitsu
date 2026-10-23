@@ -567,6 +567,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH2004-003")]
+    [Requirement("SHARED-DIAG-011")]
     public async Task VerifyStaticConstructorAndExplicitInterfaceImplementationsAreNotReported()
     {
         const string testData = """

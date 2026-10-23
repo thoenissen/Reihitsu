@@ -549,6 +549,7 @@ public class RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzerTests : Bat
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5412-001")]
+    [Requirement("SHARED-DIAG-011")]
     public async Task VerifySpecificationExampleIsNotReportedUnderCSharp11()
     {
         const string testData = """
@@ -570,6 +571,7 @@ public class RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzerTests : Bat
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5412-001")]
+    [Requirement("SHARED-DIAG-011")]
     public async Task VerifyEmptyClassIsReportedUnderCSharp12()
     {
         const string testData = """
