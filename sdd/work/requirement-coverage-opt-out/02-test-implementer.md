@@ -34,7 +34,8 @@ No test carries a `[Requirement]` tag. These are tooling tests, `Reihitsu.Archit
 | `CoverageCheckEnforcesEverySpecByDefault` (new) | none; opt-out default, FC-003 (not exempted side) | `SpecFixtureDirectory` | red: on the stub only 4 of 7 reported (analyzer, cli, formatter, playground); `shared/casing.md`, `new-area/surface.md`, `top-level.md` missing |
 | `CoverageCheckEnforcesSharedRequirementThatNoSpecUses` (new) | none; FC-002 ("shared" is no longer a qualifier) | `SpecFixtureDirectory` | red: stub reports 0, expected `SHARED-P-002` |
 | `CoverageCheckIgnoresRetiredRequirements` (split from `CoverageCheckIgnoresSpecsNotEnforcedAndRetiredRequirements`) | none | `SpecFixtureDirectory` | passes on the stub; existing behavior kept |
-| `CoverageCheckSkipsOnlyTheExemptedSpec` (new) | none; FC-003 (exempted vs. sibling not exempted), FC-001 (an exemption names one spec, not its directory) | `SpecFixtureDirectory` | red: stub reports both `FMT-CLEAN-001` and `FMT-INDENT-001` |
+| `CoverageCheckSkipsOnlyTheExemptedSpec` (new) | none; FC-003 (an exempted spec next to a sibling that is not exempted) | `SpecFixtureDirectory` | red: stub reports both `FMT-CLEAN-001` and `FMT-INDENT-001` |
+| `CoverageCheckDoesNotExemptTheSpecsOfAnExemptedDirectory` (repair round, new) | none; FC-001, FC-003 (an exemption keyed by a directory names no spec) | `SpecFixtureDirectory` | green on 64caf7f; red on a prefix-match mutant (see *Repair round*) |
 | `CoverageCheckEnforcesExemptedSharedRequirementsThatAnEnforcedSpecUses` (replaces `CoverageCheckEnforcesSharedRequirementsThatAnEnforcedSpecUses`) | none; change doc *Uses* sentence, FC-003 (used vs. unused shared requirement) | `SpecFixtureDirectory` | red: the using spec is `new-area/surface.md`, which the old list does not enforce, so the stub reports 0 instead of `SHARED-P-001` |
 | `CoverageCheckDoesNotEnforceExemptedSharedRequirementsThatOnlyAnExemptedSpecUses` (new) | none; FC-003 (other side of *Uses*: the using spec is exempted) | `SpecFixtureDirectory` | red: stub reports `CLI-001` and `SHARED-P-001` |
 | `ExemptionCheckReportsEmptyReason` (new) | none; FC-003 | none (pure function) | red: stub reports 0 |
@@ -58,12 +59,25 @@ After the stub and reference code were removed, the build fails with `CS0103` an
 ## Not covered, and why
 
 - **The exemption list being empty.** The change doc says it "is empty when this change is merged". That is a merge-time state, not an invariant: the rulebook allows exemptions that state a reason. A test asserting emptiness would make every legitimate exemption fail. The spec checker can check that `ExemptedSpecs` is empty in the diff.
-- **An exemption naming a path that is no spec (stale or misspelled entry, or a directory key).** No rulebook or change-doc sentence makes this a failure ("names one spec" is stated, but *Checks* lists only uncovered requirements and missing reasons). `CoverageCheckSkipsOnlyTheExemptedSpec` makes sure a file key does not exempt its siblings. A check for unknown keys would be a new rule, so it is left out. Follow-up candidate if wanted.
+- **Reporting an exemption whose key names no spec (stale or misspelled entry, or a directory key).** No rulebook or change-doc sentence makes such a key a failure: *Checks* lists only uncovered requirements and missing reasons. What "each exemption names one spec" does decide is that such a key exempts nothing. `CoverageCheckDoesNotExemptTheSpecsOfAnExemptedDirectory` (repair round) tests that for a directory key. A check that fails or reports unknown keys would be a new rule, so it is left out. Follow-up candidate if wanted.
 - **Whether a requirement of an exempted shared spec that is enforced through *Uses* also appears in the exempted-spec report.** Unspecified ("writes the uncovered requirements" of an exempted spec), so I did not assert it either way.
 - **Whether an exemption without a reason still exempts its spec.** Unspecified, since the reason check fails the build anyway. Not asserted.
 - **Per-test tagging.** Dropped by the maintainer. No test asserts that an untagged test is allowed beyond the existing `CoverageCheckCountsOnlyTestMethodsInTestProjects`, because the check reads no untagged tests. The spec checker's new-test tag check is a process step and cannot be tested here.
 - Failure classes: FC-001, FC-002, and FC-003 are covered as listed. FC-017: the assertions check exact counts and IDs. FC-035: the expected values come from the change doc. FC-031: applies to the implementer (stale summaries, see above). FC-004 to FC-014, FC-018 to FC-030, FC-036, and FC-037 cannot reach this change. It touches no analyzer, code fix, formatter phase, trivia, rename, or text-only proof, only a Markdown/source scanner in an architecture-test project.
 - CRLF: the fixture specs are written with LF only, as all existing fixtures are. Line endings are not part of the change, and `SpecCatalog` reads with `File.ReadLines`, which splits both.
+
+## Repair round (auditor 06, finding 1; head 64caf7f)
+
+**Correction.** My first handover listed FC-001 ("an exemption names one spec, not its directory") against `CoverageCheckSkipsOnlyTheExemptedSpec`. That claim was wrong. The test's exemption key is a file path (`formatter/cleanup.md`), so it cannot tell exact-key matching from prefix matching. A prefix match for keys ending in `/` would leave it green. The test covers only FC-003, an exempted spec next to a sibling that is not exempted, and the row above now says so.
+
+**Derivation.** `sdd/README.md`, *Tests and requirements*: "each exemption names one spec". A directory names no spec, so an entry keyed by a directory exempts no spec, and every spec in that directory stays enforced. The auditor's suggestion matched this derivation. I took the shape from the rulebook sentence, not from the suggestion.
+
+**Test.** `CoverageCheckDoesNotExemptTheSpecsOfAnExemptedDirectory` writes two uncovered specs, `formatter/cleanup.md` and `formatter/indentation.md`, with one exemption `formatter/` that states a reason. It asserts exactly 2 findings, `FMT-CLEAN-001` and `FMT-INDENT-001`. The reason is non-blank, so the test does not depend on how a blank-reason entry is treated. The other side of the condition, an exact file key that does exempt its spec, is `CoverageCheckSkipsOnlyTheExemptedSpec`.
+
+**Watched.**
+- On 64caf7f: the focused filter passes 25 of 25.
+- Local mutant, reverted before committing: `IsEnforced`'s `exemptedSpecs.ContainsKey(requirement.SpecPath)` replaced by a key match that treats a key ending in `/` as a path prefix, which is the removed `IsInPaths` arm. Result: 1 failed and 24 passed. Only the new test failed: `expected count: 2, actual count: 0`.
+- The commit's `src/` diff is the new test method only (23 lines).
 
 ## Commands
 

@@ -344,6 +344,29 @@ public sealed class RequirementCoverageTests
     }
 
     /// <summary>
+    /// Verifies that an exemption keyed by a directory names no spec and therefore exempts none of the specs in that
+    /// directory, so their uncovered requirements still fail the check
+    /// </summary>
+    [TestMethod]
+    public void CoverageCheckDoesNotExemptTheSpecsOfAnExemptedDirectory()
+    {
+        // Arrange
+        using (var fixture = new SpecFixtureDirectory())
+        {
+            fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
+            fixture.WriteSpec("formatter/indentation.md", "`IndentationPhase`", "FMT-INDENT-001");
+
+            // Act
+            var findings = FindUncoveredRequirements(fixture.Path, CreateExemptions(("formatter/", "Its tests are written in a follow-up.")));
+
+            // Assert
+            Assert.HasCount(2, findings, DescribeFindings("Findings", findings));
+            Assert.Contains(finding => finding.StartsWith("FMT-CLEAN-001", StringComparison.Ordinal), findings);
+            Assert.Contains(finding => finding.StartsWith("FMT-INDENT-001", StringComparison.Ordinal), findings);
+        }
+    }
+
+    /// <summary>
     /// Verifies that a requirement of an exempted <c>shared/</c> spec stays enforced when a spec that is not exempted
     /// lists it under <c>Uses</c>, even in an area no list names, while an unused requirement of the same shared spec
     /// is not enforced
