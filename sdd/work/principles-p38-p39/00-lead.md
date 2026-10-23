@@ -1,6 +1,6 @@
 Role: lead
 Commit: aba1d5d12680b867a142f6a1cad3af8ff78bf3a8
-Verdict: lane claimed
+Verdict: lane widened to tests
 
 ## Run
 
@@ -21,3 +21,9 @@ Roles skipped: skeptic, test implementer, implementer, cleaner, auditor — not 
 - The maintainer answered round 10 items 1–4 of thoenissen/Reihitsu#912 with the recommended option each; the issue records the outcome. Source questions: #1411 (P38), #1407 Q2 (P29) and Q3 (P39), #1408 Q-1380-2 (P35).
 - The code follow-ups are listed in the issue's comment; none of them joins this run.
 - No open `SDD open questions:` issue exists for the touched specs (#1407, #1408 and #1411 are closed).
+
+## Lane widening
+
+After the spec author (01-spec-author.md, commit 21c2f49) the run widens from docs to tests, before any implementer started. The diff adds SHARED-DIAG-011 to the enforced spec `shared/diagnostics.md`, and `RequirementCoverageTests.EveryRequirementOfAnEnforcedSpecIsCovered` fails until a test covers it; a docs-lane diff cannot add a requirement to an enforced spec (`squad/README.md`, Lanes). The path-only lane check still reads docs, which is narrower than the claim and therefore admitted.
+
+Roles of the tests lane: spec author (done), skeptic (spec against the code), test implementer, cleaner, spec checker, validator. Skipped: implementer and auditor — not part of the tests lane.
