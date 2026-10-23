@@ -39,3 +39,5 @@ Verdict: lane claimed — tests
 ## Lane widened
 
 `scripts/lane-check.sh tests --head worktree` → `LANE CHECK: mismatch — claimed tests, diff needs tooling`, caused only by the lead's decisions entry under `squad/decisions/` (known classification, thoenissen/Reihitsu#1054). Widened before any implementer stage: tests → tooling, as in thoenissen/Reihitsu#1035 and #1036. Roles now: spec author → skeptic → test implementer → cleaner → spec checker → auditor → validator. Implementer: skipped — no production or tooling code to change. The run remains a specs-and-tests run in substance: no production code, no change doc.
+- Escalation 3, Q1 (skeptic): SHARED-COMMENT-011 against SHARED-CHAIN-004 — answered (b): a rule's own comment exemption in that gap still applies; SHARED-COMMENT-011 says so. `squad/decisions/2026-10-23-1380-p12-chain-exemption.md`.
+- Escalation 3, Q2 (skeptic): P34 scope — answered (b): P34 governs the members its sources named within the layout each construct's own requirement chooses; FMT-PIPE-014 keeps the per-construct decisions (FMT-BREAK-014, -021, -022, -026, the switch-arm non-goal). `squad/decisions/2026-10-23-1380-p34-family-scope.md`.
