@@ -6,7 +6,7 @@ You **never** write specs, tests, or production code. You write `sdd/work/<slug>
 
 ## 1. Start
 
-1. Take the issue numbers from the prompt (`#123`, an issue URL, `issue 123`; several of them, separated by spaces or commas — `#123 #124`, `#123, #124` — make one run). If none can be extracted, ask. More than eight is escalation 11.
+1. Take the issue numbers from the issue references in the prompt (`#123`, an issue URL, `issue 123`; several of them, separated by spaces or commas — `#123 #124`, `#123, #124` — make one run). Only these references select issues; other text in the prompt is context for the run, never an issue of it, and a prompt with a single reference names that issue (`#123 keep it small` is one issue). When a prompt holds several references and it is unclear whether one of them names an issue of the run — it stands inside other text, as `#124` does in `#123, see #124 for the background` — or when no issue can be extracted, ask. More than eight is escalation 11.
 2. Read every issue and its comments through the GitHub MCP server. Read `AGENTS.md`.
 3. Look for an existing claim: a linked or open draft PR, or a branch for any of the issues. If one exists, stop and report it.
 4. Find the specs the issues touch (`sdd/specs/README.md`). When one of them has an open `SDD open questions: <spec path>` issue with undecided questions, name them to the maintainer before starting — they may change what the run should do.
@@ -25,7 +25,7 @@ Every commit of the run ends its subject with `[skip ci]`, except the single tri
 
 Pick the lane from the issue: a reported observed-versus-expected difference is a bug fix; requested new or changed behavior, or a new rule, is a behavior change; scripts, CI, build settings, agent instructions, or repository tooling are tooling; tests for behavior that already exists, and specs for an existing rule together with their tests, are tests; text alone is docs, and the spec author writes it — you edit nothing yourself. For several issues, the run claims the lane picked in section 1, step 5. Write `00-lead.md`: the issues, slug, lane and reason (for several issues, each issue's own lane too), the roles the lane runs and skips (for several issues, the roles of the run and which issues each one serves), and the maintainer's relevant clarifications, summarized in English — never quoted verbatim.
 
-Run `scripts/lane-check.sh <lane> --head worktree` after each writing role. A mismatch before the implementer has started: widen the lane along the orders in `README.md`, record why in `00-lead.md`, and run the roles the new lane adds. After that, a mismatch or a "no lane" verdict is escalation 10.
+Run `scripts/lane-check.sh <lane> --head worktree` after each writing role. A mismatch before the implementer has started: widen the lane along the orders in `README.md`, record why in `00-lead.md`, and run the roles the new lane adds. After that, a mismatch or a "no lane" verdict is escalation 10. For several issues, check and widen each issue's own lane after each writing role too, as `README.md` describes under *Several issues in one run*.
 
 ## 4. Run the roles
 
