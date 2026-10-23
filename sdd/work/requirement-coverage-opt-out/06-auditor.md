@@ -89,3 +89,46 @@ The verdict is `findings`, not `pass, text cleanup`, because finding 1 is a miss
 3. **`.claude/agents/spec-checker.md` description.** It still reads "verifies specs, change doc, and user documentation against the diff", the role-table sentence before this run. The approved edit changed only `squad/README.md`. The description is still true but incomplete. Aligning it would touch a file the maintainer's approval did not name.
 4. **Test summary wording.** `CoverageCheckEnforcesEverySpecByDefault` (line 248) says "the areas the former opt-in list named", which refers to history that will not be in the code after merge. Naming the areas would be durable.
 5. **For the PR description.** thoenissen/Reihitsu#998's done-when item "every test method is tagged or visibly exempted, and the check enforcing that runs in CI" is not shipped, by the maintainer's decision. Per that decision the PR closes #998 and must state this difference.
+
+## Repair round (head 71b5b43)
+
+Commit: 71b5b43a8987ed252290cdfdba8c338d7327eb97
+Verdict: pass
+
+### Scope
+This audits the repair delta only: 17833162596daddc7fbc7019c569463c44a7c315..71b5b43a8987ed252290cdfdba8c338d7327eb97.
+- Base `origin/main` is still c857b2d97e7d4822cc9adebd0388b4953de5ebd7 (matches `ls-remote`, merged). The checkout is clean at 71b5b43, and 06-auditor.md is unchanged since my commit 714327c.
+- The repair touches `RequirementCoverageTests.cs` (one new test method and one XML summary), `sdd/README.md` *Checks* (two text edits), `.claude/agents/spec-checker.md` (description line), and the handovers. That is exactly the worklist in `00-lead.md`.
+- `scripts/lane-check.sh tooling --no-install`: confirmed.
+- Scope did not grow: no spec, change doc, or production project changed, and no unrelated surface was touched.
+- The added source lines carry no `TODO` and no tracker number.
+- Trusted, not re-run: the roles' results (25/25 focused, 84/84 architecture, Release 0 warnings, the text-only proof for finding 3).
+
+### Previous findings
+| # | Status | Evidence |
+|---|---|---|
+| 1 | closed | `CoverageCheckDoesNotExemptTheSpecsOfAnExemptedDirectory` writes two uncovered specs in `formatter/`, with one exemption keyed `formatter/` that states a reason. It asserts `HasCount(2)` plus both IDs. Static trace: putting the removed prefix arm back into `IsEnforced` makes `"formatter/cleanup.md".StartsWith("formatter/")` true for both specs, so the result is 0 findings and the test fails. This matches the test implementer's mutant (`expected count: 2, actual count: 0`). The non-blank reason keeps the test independent of how a blank reason is treated. Together with `CoverageCheckSkipsOnlyTheExemptedSpec` (an exact file key does exempt its spec), both sides of the matching condition are tested. The corrected FC-001 claim in the test-implementer table is now accurate. |
+| 2 | closed | The *Checks* bullet now names the full failing set: the spec is not exempted, or the spec is an exempted `shared/` spec and a non-exempted spec lists the requirement under `Uses`. This is `IsEnforced` (688–690) combined with `ReadSharedIdsUsedByEnforcedSpecs` (702). The report sentence ("never fails the build … fails only through the `Uses` case above") matches `DescribeCoverageOfExemptedSpecs`, which lists every uncovered requirement of an exempted spec. Both agree with *Tests and requirements* (line 81) and the unchanged change doc. Text only. |
+| 3 | closed | The `FindUncoveredRequirements` summary now states the same requirement-level condition as its filter (`IsEnforced` and not covered). `<returns>` is still accurate. XML documentation of a private method; the implementer's `verify-text-only.sh` reports PASS. |
+
+### Hints from the first audit
+- Hint 3 (`.claude/agents/spec-checker.md`): closed. The description now matches the `squad/README.md` role row word for word, and nothing else in the frontmatter changed.
+- Hints 1 and 2: the lead routed them as follow-up candidates for the maintainer.
+- Hint 4: the lead left it as is.
+- Hint 5: the lead's, at publish time.
+
+None of the open hints blocks.
+
+### Guard scope
+_N/A — the repair changes no predicate or guard. It adds a test for the existing exact-key match and edits two texts._
+
+### Policy ownership
+_N/A — no policy moved. The *Checks* text and the method summary now restate `IsEnforced` without adding an owner._
+
+### Assertion adequacy
+| Test | Invariant | Falsifying observation | Helper | Verdict |
+|---|---|---|---|---|
+| `CoverageCheckDoesNotExemptTheSpecsOfAnExemptedDirectory` | A key that names a directory exempts no spec in it | Any prefix or directory matching of keys (0 or 1 findings instead of exactly `FMT-CLEAN-001` and `FMT-INDENT-001`) | `SpecFixtureDirectory` | Adequate |
+
+### New findings
+_None._
