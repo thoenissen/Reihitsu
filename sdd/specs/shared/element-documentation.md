@@ -5,7 +5,7 @@
 | ID prefix | SHARED-DOC |
 | Status | Active |
 | Code owners | `SplitElementDocumentationAnalyzerBase`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `XmlDocumentationExpander`, `DocumentationModeAnalysisContextExtensions` |
-| Uses | SHARED-FIX-003, SHARED-FIX-006, SHARED-ORDER-002 |
+| Uses | SHARED-FIX-003, SHARED-FIX-006, SHARED-ORDER-002, SHARED-ORDER-006 |
 
 This spec covers the rules that require one kind of element to be documented. It defines which declarations such a rule checks, the private and non-private groups that split each kind between two rules, the declarations it exempts, and when a declaration counts as documented. It also defines what every documentation rule relies on: which documentation comments belong to a declaration, when a summary has text, when the parameters and type parameters of an element count as documented, and in which documentation modes documentation rules run. For the rules that check the descriptions of parameters, type parameters, and return values, it defines when such a description has text, how the descriptions are paired with the parameters, and when a description lacks a name. For the code fixes that remove or unwrap a documentation element, it defines when an element has an end tag of its own. Each rule that uses this spec states which element kind it checks, which group, and where its diagnostic is located.
 
@@ -331,7 +331,23 @@ public class C
 
 The fix moves `Create` in front of `Run`, and the comment stays behind `Run`'s closing brace, as `// Creates` would.
 
-Example — RH7309, with the documentation mode `Parse` or `Diagnose`, where a `#region` directive between the comment and `M` starts the block the fix would move: the example "a documentation comment that would be left behind" under SHARED-FIX-003. The fix is not offered.
+A directive between the comment and the declaration does not keep the fix from carrying the comment when the directive travels with the declaration as well. With the documentation mode `Parse` or `Diagnose`:
+
+```csharp
+public class C
+{
+    public void Run()
+    {
+    } /// <summary>Creates</summary>
+#if DEBUG
+#endif
+    public static void {|RH7103:Create|}()
+    {
+    }
+}
+```
+
+The fix moves `Create` in front of `Run`, and the comment and the conditional pair move with it (SHARED-ORDER-006); the comment still documents `Create`.
 
 ### SHARED-DOC-005 — A top-level `<summary>` or `<inheritdoc>` documents the element
 
