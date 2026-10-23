@@ -53,7 +53,11 @@ Watch every new test fail for the right reason before handing over. A test for e
 | Whole-repository formatter stability | `SelfHostingTests` already covers every file — do not duplicate it |
 | Rule doc, README row, code-fix column | `AnalyzerPackageMetadataTests` — keep the docs in sync instead of adding a test |
 
-A code-fix test class derives from `BatchCodeFixTestsBase` or `SingleCodeFixTestsBase` (`AGENTS.md`). Test names describe the behavior. Tag each test with `[Requirement("<ID>")]` for every requirement it covers (`sdd/README.md`); never reference tracker numbers.
+A code-fix test class derives from `BatchCodeFixTestsBase` or `SingleCodeFixTestsBase` (`AGENTS.md`). Test names describe the behavior; never reference tracker numbers.
+
+## Requirement tags
+
+Every test you derive from a requirement — from its example, its normative sentence, or a condition it states — carries `[Requirement("<ID>")]` for that requirement, one attribute per ID (`sdd/README.md`). A bug's reproduction is derived from the requirement the bug violates and tags it. A test that touches a requirement only incidentally does not tag it, and a test that verifies no requirement — a failure class with no requirement behind it, a characterization of unspecified behavior, a tool — carries no tag. In your handover's `Tests` table, the `Requirement / failure class` column names each requirement ID the test is tagged with, and no other requirement, so the spec checker can compare the two.
 
 ## Must not
 

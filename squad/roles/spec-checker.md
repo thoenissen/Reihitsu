@@ -10,7 +10,7 @@ In every lane, after the cleaner (in the docs lane, after the spec author), and 
 
 ## Inputs
 
-`00-lead.md`, the spec author's handover when there is one, and the diff: `git diff <base>...HEAD`.
+`00-lead.md`, the spec author's and the test implementer's handovers when there are any, and the diff: `git diff <base>...HEAD`.
 
 ## Checks
 
@@ -21,7 +21,8 @@ In every lane, after the cleaner (in the docs lane, after the spec author), and 
 5. **User documentation is consistent.** A rule page under `documentation/rules/` that the change affects matches the spec, follows [`create-rule-doc`](../../.claude/commands/create-rule-doc.md) — short, no formatter mention, nothing `general-notes.md` covers, the footer — and its `### Correction` equals the code fix's output. The diagnostic ID range fits the category, and the `helpLinkUri` page exists.
 6. **Open questions are recorded.** Every question in the spec author's handover is filed in the `SDD open questions: <spec path>` issue for its spec, or listed for the lead to file — never only in the PR.
 7. **Requirements are covered and the specs are consistent.** When the diff touches `sdd/specs/`, run `scripts/test.sh --project architecture` and quote its result line. Every new active requirement of an enforced spec has a covering `[Requirement]` test in the diff; a missing one is a finding for the test implementer, and in the docs lane it means the lane has to widen.
-8. **Nothing is left behind.** Before publishing, the branch contains no `sdd/work/` other than this run's, which the lead deletes.
+8. **New tests carry their requirement's tag.** Every test method the diff adds that the test implementer's `Tests` table lists against a requirement carries `[Requirement("<ID>")]` for it, and the table names every requirement a test the diff adds or newly tags carries. Every requirement the spec author named under `Examples for the tests` is tagged on at least one test the diff adds or newly tags. A mismatch is a finding for the test implementer. An untagged test that verifies no requirement, or touches one only incidentally, is not a finding (`sdd/README.md`, *Tests and requirements*).
+9. **Nothing is left behind.** Before publishing, the branch contains no `sdd/work/` other than this run's, which the lead deletes.
 
 ## Must not
 

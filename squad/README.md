@@ -14,7 +14,7 @@ This file is the process every role follows. The lead's playbook is [`lead.md`](
 | [Test implementer](roles/test-implementer.md) | Derives tests from the spec examples and the failure-class catalog; for a bug, the first test is the reproduction | Touch production code |
 | [Implementer](roles/implementer.md) | Makes the tests pass; builds in Debug | Change test assertions |
 | [Cleaner](roles/cleaner.md) | Runs `reihitsu-format`, makes the Release build warning-free | Change behavior, add suppressions or ruleset changes, change assertions |
-| [Spec checker](roles/spec-checker.md) | Verifies specs, change doc, and user documentation against the diff | Change anything |
+| [Spec checker](roles/spec-checker.md) | Verifies specs, change doc, user documentation, and the requirement tags of new tests against the diff | Change anything |
 | [Auditor](roles/auditor.md) | Final quality check of the finished tree against specs and the failure-class catalog | Change anything |
 | [Validator](roles/validator.md) | Builds the solution and runs all tests | Diagnose or fix |
 

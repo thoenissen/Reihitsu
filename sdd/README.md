@@ -73,10 +73,12 @@ Start from [`templates/spec.md`](templates/spec.md), or from [`templates/analyze
 ## Tests and requirements
 
 - A test names each requirement it covers with `[Requirement("<ID>")]` on its test method, one attribute per ID, the ID written as a string literal. A test that verifies a requirement only incidentally does not tag it.
+- A test derived from a requirement — from its example, its normative sentence, or a condition it states — tags that requirement from the start. A bug's reproduction tags the requirement the bug violates.
+- A test is not required to carry a tag. A test that verifies no requirement, such as an architecture or tooling test, carries none and needs no exemption.
 - The attribute is declared in `Reihitsu.Analyzer.Test`, `Reihitsu.Cli.Test`, `Reihitsu.Core.Test`, `Reihitsu.Formatter.Test`, and `Reihitsu.Playground.Test`; another test project declares it when its tests are first tagged.
 - The attribute is a test category, so `scripts/test.sh --project <project> --filter "TestCategory=<ID>"` runs every test of one requirement in that project.
 - `FixAllCorrectsEveryDiagnostic` in `BatchCodeFixTestsBase` carries the shared Fix All requirements. A test class overrides it only to tag a Fix All requirement of its own rule that differs from them.
-- Every active requirement of an **enforced** spec is covered by at least one test. Enforced today: `analyzer/`, `cli/`, `formatter/`, `playground/`, `shared/code-fixes.md`, `shared/diagnostics.md`, and every requirement of another `shared/` spec that an enforced spec lists under `Uses`. Every other spec is reported but not enforced. A PR that adds a requirement to an enforced spec adds its covering test in the same PR.
+- Every active requirement of an **enforced** spec is covered by at least one test. Coverage is opt-out: every spec is enforced unless `RequirementCoverageTests` exempts it, and each exemption names one spec and states why. The goal is an empty exemption list; it is empty today. A requirement of an exempted `shared/` spec stays enforced when a spec that is not exempted lists it under `Uses`. A PR that adds a requirement to an enforced spec adds its covering test in the same PR.
 - A retired requirement is never tagged; the tests that covered it tag the requirement that replaced it, or no requirement.
 
 ## When a change doc is required
@@ -164,9 +166,10 @@ The CI workflow also fails a pull request that removes a line from the ledger, s
 `RequirementCoverageTests` in the same project reads the `[Requirement]` attributes from the sources of every test project and fails the build when:
 
 - an attribute names an ID that heads no requirement, names a retired requirement, has an argument that is not one string literal, or sits on a method that is not a `[TestMethod]`;
-- an active requirement of an enforced spec has no covering test.
+- an active requirement of an enforced spec — every spec it does not exempt — has no covering test;
+- an exemption states no reason.
 
-For the specs that are not enforced yet, it writes the uncovered requirements per spec to the test output without failing.
+For an exempted spec, it writes the uncovered requirements to the test output without failing. It does not check that every test carries a tag, since untagged tests are allowed; that the tests a run derives from a requirement carry its tag is checked by the squad's spec checker.
 
 ## Keeping specs true
 
