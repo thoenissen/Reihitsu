@@ -27,3 +27,13 @@ Roles skipped: skeptic, test implementer, implementer, cleaner, auditor — not 
 After the spec author (01-spec-author.md, commit 21c2f49) the run widens from docs to tests, before any implementer started. The diff adds SHARED-DIAG-011 to the enforced spec `shared/diagnostics.md`, and `RequirementCoverageTests.EveryRequirementOfAnEnforcedSpecIsCovered` fails until a test covers it; a docs-lane diff cannot add a requirement to an enforced spec (`squad/README.md`, Lanes). The path-only lane check still reads docs, which is narrower than the claim and therefore admitted.
 
 Roles of the tests lane: spec author (done), skeptic (spec against the code), test implementer, cleaner, spec checker, validator. Skipped: implementer and auditor — not part of the tests lane.
+
+## Escalation 1 — answered (2026-10-23)
+
+The skeptic (02-skeptic.md) raised four blocking questions. The maintainer's answers, recorded in `squad/decisions/2026-10-23-1415-*.md`:
+
+- Q1 (P38 reach): reading (b). Wherever the change a rule asks for cannot be written at that position, the construct is not reported. This is a general principle that applies to every rule. Any compile error the position itself causes counts, not only the grammar and the language version.
+- Q2 (P39 and splits): reading (b). A fix must not lose documentation. The RH7101 split of a documented multi-variable declaration is withheld, and the user rearranges the code by hand.
+- Q3 (SHARED-FIX-008 scope): reading (b). Only the line breaks in the span the fix replaces, rewrites, or moves count, its trailing trivia included. A line break ending the line outside that span is not in the fix's scope.
+- Q4 (examples): reading (b). Examples use only shapes that conform today, and the requirement text states the principles in full. Where no conforming shape exists, the follow-up adds the example together with its fix and tests.
+- Follow-up candidates: the maintainer agrees they are filed. The lead drafts them for approval of the exact text.
