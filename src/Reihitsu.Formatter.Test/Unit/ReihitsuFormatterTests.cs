@@ -1441,6 +1441,48 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatSyntaxTree"/> writes LF for every line break when two lone carriage returns, counted as LF, outnumber one CRLF
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-007")]
+    public void FormatSyntaxTreeWritesLineFeedWhenLoneCarriageReturnsOutnumberCarriageReturnLineFeed()
+    {
+        // Arrange — two lone \r line breaks and one \r\n
+        const string input = "class C\r{\rvoid M(){}\r\n}";
+        const string expected = "class C\n{\n    void M()\n    {\n    }\n}";
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+
+        // Act
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var actual = result.GetRoot(TestContext.CancellationToken).ToFullString();
+
+        // Assert
+        Assert.AreEqual(expected, actual, "Every line break of the output should be LF.");
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatSyntaxTree"/> writes CRLF for every line break when two lone carriage returns, counted as LF, tie with two CRLF
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-007")]
+    public void FormatSyntaxTreeWritesCarriageReturnLineFeedWhenLoneCarriageReturnsTieWithCarriageReturnLineFeed()
+    {
+        // Arrange — two lone \r line breaks and two \r\n
+        const string input = "class C\r{\rvoid M(){}\r\n}\r\n";
+        const string expected = "class C\r\n{\r\n    void M()\r\n    {\r\n    }\r\n}";
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+
+        // Act
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var actual = result.GetRoot(TestContext.CancellationToken).ToFullString();
+
+        // Assert
+        Assert.AreEqual(expected, actual, "Every line break of the output should be CRLF.");
+    }
+
+    /// <summary>
     /// Verifies that <see cref="ReihitsuFormatter.FormatSyntaxTree"/> throws <see cref="OperationCanceledException"/> when cancellation is requested
     /// </summary>
     [TestMethod]

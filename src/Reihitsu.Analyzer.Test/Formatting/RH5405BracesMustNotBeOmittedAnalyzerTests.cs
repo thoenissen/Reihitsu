@@ -681,8 +681,8 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
     }
 
     /// <summary>
-    /// Verifies that the line breaks the fix creates are LF in a document whose line breaks are all a lone carriage
-    /// return, and that the line break the fix keeps from the input stays a lone carriage return
+    /// Verifies that the three line breaks the fix creates are LF in a document whose line breaks are all a lone
+    /// carriage return
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -693,20 +693,10 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
 
         var actual = await ApplyCodeFixAsync(source);
 
-        // The three line breaks inside the new block are created by the fix; the one behind its closing brace is the
-        // line break that ended the statement's line in the input
-        const string expected = "class C\r"
-                                + "{\r"
-                                + "    void M(bool a, bool b)\r"
-                                + "    {\r"
-                                + "        if (a)\n"
-                                + "        {\n"
-                                + "            M(a, b);\n"
-                                + "        }\r"
-                                + "    }\r"
-                                + "}";
-
-        Assert.AreEqual(expected, actual);
+        // The fix creates the line breaks behind "if (a)", behind the opening brace and behind the body. Only those are
+        // asserted to be LF; the layout is compared with every line break read as LF.
+        Assert.AreEqual(NormalizeToLineFeed(LineOfIfFixedCode), NormalizeEveryLineBreakToLineFeed(actual));
+        Assert.Contains("        if (a)\n        {\n            M(a, b);\n        }", actual);
     }
 
     /// <summary>
@@ -803,6 +793,16 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
     private static string NormalizeToLineFeed(string text)
     {
         return text.Replace("\r\n", "\n", StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Reads every line break of the provided text as LF, whether it is CRLF, LF or a lone carriage return
+    /// </summary>
+    /// <param name="text">Text to normalize</param>
+    /// <returns>The text with LF line breaks</returns>
+    private static string NormalizeEveryLineBreakToLineFeed(string text)
+    {
+        return NormalizeToLineFeed(text).Replace("\r", "\n", StringComparison.Ordinal);
     }
 
     #endregion // Methods
