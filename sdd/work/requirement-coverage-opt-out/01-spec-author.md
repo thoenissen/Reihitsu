@@ -41,3 +41,10 @@ _None._
 - The change doc is `Accepted`: the maintainer approved its What and Why as written, including the spec checker as the role that checks tags and the `squad/README.md` role-table edit (`squad/decisions/2026-10-23-998-change-doc-approved.md`, option A). Status set in the follow-up commit on 7834bb7.
 - My prompt carried no intended fix or hoped-for verdict beyond the maintainer's narrowed scope, which I followed.
 - `squad/roles/skeptic.md`, `squad/failure-classes.md`, `squad/roles/auditor.md`, and every `.cs` file are untouched.
+
+## Repair round (auditor 06 finding 2, hint 3; head c555800)
+
+- **Finding 2 — closed.** `sdd/README.md` *Checks*: the coverage bullet now states the full failing set as `IsEnforced` computes it. It covers an uncovered active requirement whose spec is not exempted, and one of an exempted `shared/` spec that a spec that is not exempted lists under `Uses`. This matches *Tests and requirements* and the change doc. The report sentence now says that for each exempted spec the check writes that spec's uncovered requirements (`DescribeCoverageOfExemptedSpecs` lists every one of them, including those enforced through `Uses`), that this report never fails the build, and that an uncovered requirement of an exempted spec fails only through the `Uses` case. I wrote the wording from `IsEnforced`, `ReadSharedIdsUsedByEnforcedSpecs`, and `DescribeCoverageOfExemptedSpecs` on c555800, not from the auditor's suggestion.
+- **Hint 3 — closed.** In `.claude/agents/spec-checker.md`, `description` now reads "verifies specs, change doc, user documentation, and the requirement tags of new tests against the diff", matching the spec checker's row in `squad/README.md`. The `.claude/agents/README.md` row ("Compares written text with the diff against a fixed checklist") is generic, still true, and unchanged.
+- I did not touch any `.cs` file, `squad/roles/skeptic.md`, or `squad/failure-classes.md`. The change doc is unchanged and stays `Accepted`.
+- `scripts/lane-check.sh tooling --head worktree --no-install`: `LANE CHECK: confirmed — claimed tooling, diff needs tooling`.

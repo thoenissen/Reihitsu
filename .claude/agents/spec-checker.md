@@ -1,6 +1,6 @@
 ---
 name: spec-checker
-description: Reihitsu squad role — verifies specs, change doc, and user documentation against the diff. Changes nothing. Spawned by the lead (`squad/lead.md`) as one fresh agent per stage; it reads its handovers under `sdd/work/<slug>/` and writes its own.
+description: Reihitsu squad role — verifies specs, change doc, user documentation, and the requirement tags of new tests against the diff. Changes nothing. Spawned by the lead (`squad/lead.md`) as one fresh agent per stage; it reads its handovers under `sdd/work/<slug>/` and writes its own.
 model: sonnet
 effort: high
 disallowedTools: Edit, NotebookEdit

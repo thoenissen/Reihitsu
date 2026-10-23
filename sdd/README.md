@@ -166,10 +166,10 @@ The CI workflow also fails a pull request that removes a line from the ledger, s
 `RequirementCoverageTests` in the same project reads the `[Requirement]` attributes from the sources of every test project and fails the build when:
 
 - an attribute names an ID that heads no requirement, names a retired requirement, has an argument that is not one string literal, or sits on a method that is not a `[TestMethod]`;
-- an active requirement of an enforced spec — every spec it does not exempt — has no covering test;
+- an active requirement has no covering test and is enforced: its spec is not exempted, or its spec is an exempted `shared/` spec and a spec that is not exempted lists the requirement under `Uses`;
 - an exemption states no reason.
 
-For an exempted spec, it writes the uncovered requirements to the test output without failing. It does not check that every test carries a tag, since untagged tests are allowed; that the tests a run derives from a requirement carry its tag is checked by the squad's spec checker.
+For each exempted spec, it also writes the spec's uncovered requirements to the test output; that report never fails the build, so an uncovered requirement of an exempted spec fails only through the `Uses` case above. It does not check that every test carries a tag, since untagged tests are allowed; that the tests a run derives from a requirement carry its tag is checked by the squad's spec checker.
 
 ## Keeping specs true
 
