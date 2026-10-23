@@ -216,6 +216,8 @@ Round 10 bookkeeping DONE (agent): #1415 (SDD P38/P39 + P29/P35 clar.), #1416 (b
 
 ## Waiting for maintainer
 
+- 2026-10-23 (round 11): #1415 (PR #1418) and #1419 (PR #1421) merged; no open-question issues filed. New: #1422 (P38 follow-up RH3104/RH5417, behavior change, phase 5; no milestone), #1423 + #1424 (squad instructions, tooling). Prompts `prompts-round11.md`: #998 (with coordinator recommendations for its two open decisions: incidental tests exempted visibly; architecture/tooling tests exempted as a class) and #1423+#1424 in parallel. Then final cleanup PR.
+
 - 2026-10-23: #1414 (#1401+#1377) and #1413 (#1402) merged; #1420 (maintainer: ask complex questions in chat) merged. #1415 running. #1419 (maintainer-filed: FC-013 + skeptic check 3 vs P11) — coordinator agrees, adds: route P11 cases (classify own gap / new-rule candidate) and cite SHARED-DIAG-010 (P31) for the other half; prompt given in chat, runs parallel to #1415 (squad/ only). Then #998, then final cleanup.
 
 - 2026-10-23: #1331 (PR #1404), #1380 (PR #1405), #1403 (PR #1406) merged. #1406 rule: a multi-issue run needs ONE shared lane (else maintainer splits); one agent per role for the whole run; branch claude/issues-a-b-c-slug or claude/batch-a-slug. Consequence: #1401+#1377 (docs) one run, #1402 (tooling) separate. Round-10 inventory running -> `inventory/round10.md`.
