@@ -39,3 +39,7 @@ Verdict: lane claimed
 
 - thoenissen/Reihitsu#1407 — `SDD open questions: sdd/specs/shared/element-documentation.md`, Q1: RH8305/RH8307 fixes move a behind-code `///` comment (decided by P29).
 - thoenissen/Reihitsu#1408 — `SDD open questions: sdd/specs/shared/code-fixes.md`, Q1: the brace fixes RH5405–RH5407 reformat the wrapped statement (decided by P26).
+
+## Second repair round (escalation 7, `squad/decisions/2026-10-23-1331-second-repair-round.md`)
+
+The maintainer approved a second repair round on all seven auditor findings in `11-auditor.md`. Routing: findings 1, 2, 3, 5, 6 to the spec author; findings 4 and 7 to the test implementer. Afterwards: cleaner, spec checker, auditor (repair only), validator.
