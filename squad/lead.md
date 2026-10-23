@@ -76,7 +76,7 @@ Watch the published PR until its CI is green. A failure caused by the PR is a fi
 
 ## Escalating
 
-Stop all role work — in a run of several issues, for every issue, not only the one that escalated. Ask with the facts the maintainer needs to answer without scrolling back: the question, the options with a concrete example each, and your recommendation. Record the answer, summarized in English, in `squad/decisions/` (see [`decisions/README.md`](decisions/README.md)) before continuing.
+Stop all role work — in a run of several issues, for every issue, not only the one that escalated. Ask in the chat, in the format of `Asking the maintainer` in [`AGENTS.md`](../AGENTS.md): the context the maintainer needs to answer without scrolling back, the question, the options with a concrete example each, and your recommendation; then wait for the answer in the chat. Record the answer, summarized in English, in `squad/decisions/` (see [`decisions/README.md`](decisions/README.md)) before continuing.
 
 ## Follow-ups
 
