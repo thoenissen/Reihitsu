@@ -46,3 +46,13 @@ Recorded in `squad/decisions/2026-10-23-998-untagged-tests-allowed.md`. Scope na
 ## Escalation answered (escalation 2)
 
 The maintainer approved the change doc's What and Why as written, including the spec checker owning the new-test tag check and the `squad/README.md` role-table edit (`squad/decisions/2026-10-23-998-change-doc-approved.md`). The spec author sets the change doc to `Accepted`.
+
+## Repair round (auditor 06, head 1783316)
+
+Worklist, all PR-introduced, all stay in the run:
+
+1. Medium — missing test: an exemption keyed by a directory (e.g. `formatter/`) must exempt nothing; no test distinguishes exact-key from prefix matching. Owner: test implementer.
+2. Low — `sdd/README.md` *Checks* omits that an uncovered requirement of an exempted `shared/` spec still fails when a non-exempted spec lists it under `Uses`. Owner: spec author. Together with auditor hint 3: `.claude/agents/spec-checker.md` description still repeats the old role-table sentence. Owner: spec author.
+3. Low — XML summary of `FindUncoveredRequirements` omits the same `Uses` case. Owner: implementer.
+
+Not routed: hint 1 (`Uses` rule limited to `shared/` exemptions) and hint 2 (stale or misspelled exemption key) are follow-up candidates for the maintainer; hint 4 (history wording in a test summary) is left as is.
