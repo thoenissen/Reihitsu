@@ -1463,8 +1463,9 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// Verifies the specification example of a documentation comment behind code whose declaration a fix moves: the
     /// <c>///</c> comment behind the closing brace of <c>Run</c> documents <c>Create</c>, the static method is reported,
     /// and the fix carries the comment with <c>Create</c> in front of <c>Run</c> instead of leaving it behind the brace.
-    /// Where the comment starts after the move, the layout of its lines, and the layout of the rest of the type are not
-    /// asserted
+    /// The fix runs with documentation comments parsed (documentation mode <c>Parse</c>), and no preprocessor
+    /// directive stands between the comment and <c>Create</c>, the shape the specification covers. Where the comment
+    /// starts after the move, the layout of its lines, and the layout of the rest of the type are not asserted
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

@@ -186,6 +186,39 @@ public class RH7106ProtectedMustComeBeforeInternalAnalyzerTests : BatchCodeFixTe
     }
 
     /// <summary>
+    /// Verifying the shared specification example of a partial property: the part that writes <c>internal protected</c>
+    /// is reported although the other part writes the same accessibility in the canonical order, and the fix swaps the
+    /// keywords of the reported part only and leaves the other part as it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7106-001")]
+    [Requirement("RH7106-004")]
+    [Requirement("SHARED-DIAG-004")]
+    public async Task PartOfAPartialPropertyIsReportedAndFixedOnItsOwn()
+    {
+        const string source = """
+                              public partial class C
+                              {
+                                  internal {|RH7106:protected|} partial int P { get; }
+
+                                  protected internal partial int P => 1;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public partial class C
+                                   {
+                                       protected internal partial int P { get; }
+
+                                       protected internal partial int P => 1;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
     /// Verifying the shared specification example: a struct, an interface, a record, a record struct, a delegate, a
     /// constructor, an event, and an indexer are checked
     /// </summary>
