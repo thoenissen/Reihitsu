@@ -12,6 +12,8 @@ permissions:
 
 jobs:
   sonarcloud:
+    # Pull requests from forks do not receive repository secrets, so SONAR_TOKEN is empty there.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout Github Action'
