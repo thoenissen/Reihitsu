@@ -208,6 +208,8 @@ Next runs (prompts `prompts-round9.md`): #1331, #1380, #1402 in parallel; then #
 
 ## Waiting for maintainer
 
+- 2026-10-23: #1331 (PR #1404), #1380 (PR #1405), #1403 (PR #1406) merged. #1406 rule: a multi-issue run needs ONE shared lane (else maintainer splits); one agent per role for the whole run; branch claude/issues-a-b-c-slug or claude/batch-a-slug. Consequence: #1401+#1377 (docs) one run, #1402 (tooling) separate. Round-10 inventory running -> `inventory/round10.md`.
+
 - 2026-10-22: #1331, #1380 running. Open: design points 1-4 of #1403 (multi-issue squad runs) — clarify before its run. Next: #1403 run (tooling), then #1401+#1377+#1402 as one run, then #998 last. Phase 5: implement follow-ups in batches by cause/code area (proposal, not yet decided).
 
 - 2026-10-21: round 8 started. 25 open question issues #1304-#1328 (81 items; #1304-#1317 tracked in #912 comments, #1318-#1328 not yet). Coordinator runs inventory (`inventory/round8-*.md`), then question round 8. New non-question issues: #1329 (formatter bug: declaration after unclosed doc element becomes a comment), #1330 (test non-formattable-line helper). Next batch: #939 (unblocked), then #998.
