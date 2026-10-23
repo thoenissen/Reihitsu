@@ -5,7 +5,7 @@
 | ID prefix | SHARED-DOC |
 | Status | Active |
 | Code owners | `SplitElementDocumentationAnalyzerBase`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `XmlDocumentationExpander`, `DocumentationModeAnalysisContextExtensions` |
-| Uses | SHARED-FIX-006, SHARED-ORDER-002 |
+| Uses | SHARED-FIX-003, SHARED-FIX-006, SHARED-ORDER-002 |
 
 This spec covers the rules that require one kind of element to be documented. It defines which declarations such a rule checks, the private and non-private groups that split each kind between two rules, the declarations it exempts, and when a declaration counts as documented. It also defines what every documentation rule relies on: which documentation comments belong to a declaration, when a summary has text, when the parameters and type parameters of an element count as documented, and in which documentation modes documentation rules run. For the rules that check the descriptions of parameters, type parameters, and return values, it defines when such a description has text, how the descriptions are paired with the parameters, and when a description lacks a name. For the code fixes that remove or unwrap a documentation element, it defines when an element has an end tag of its own. Each rule that uses this spec states which element kind it checks, which group, and where its diagnostic is located.
 
@@ -210,11 +210,11 @@ public class Outer
 
 The documentation comments of a declaration MUST be the `///` and `/** */` comments in its leading trivia, which comes before the declaration's first token — its first attribute list, modifier, keyword, or name. A documentation comment between an attribute list and the rest of the declaration MUST NOT belong to the declaration. Ordinary comments, preprocessor directives, and disabled text between the last documentation comment and the declaration MUST NOT separate them.
 
-A `///` comment that starts behind code on its line, after the last token of the code in front of the declaration, MUST count as a documentation comment of that declaration, like a `///` comment that starts its own line in front of it. A rule about the layout of documentation comments, such as RH8301, RH8302, or RH8303, MUST judge such a comment as if it started its own line. A code fix that moves neither the declaration the comment documents nor the code the comment stands behind MUST leave the comment behind that code where it stands, except the RH8303 fix, which moves it onto a line of its own above the declaration. A code fix that moves the declaration the comment documents, and not the code the comment stands behind, MUST carry the comment with the declaration when the documentation mode of the syntax tree is `Parse` or `Diagnose` and no preprocessor directive stands between the comment and the declaration, as SHARED-ORDER-002 states for the comments in a moved declaration's leading trivia; where the comment then starts is not covered by this requirement. Such a move is not covered by this requirement when the documentation mode is `None`, nor when a preprocessor directive stands between the comment and the declaration. A code fix that moves the code the comment stands behind is not covered by this requirement.
+A `///` comment that starts behind code on its line, after the last token of the code in front of the declaration, MUST count as a documentation comment of that declaration, like a `///` comment that starts its own line in front of it. A rule about the layout of documentation comments, such as RH8301, RH8302, or RH8303, MUST judge such a comment as if it started its own line. A code fix that moves neither the declaration the comment documents nor the code the comment stands behind MUST leave the comment behind that code where it stands, except the RH8303 fix, which moves it onto a line of its own above the declaration. When the documentation mode of the syntax tree is `Parse` or `Diagnose`, a code fix that moves the declaration the comment documents, and not the code the comment stands behind, MUST carry the comment with the declaration, as SHARED-ORDER-002 states for the comments in a moved declaration's leading trivia; where the comment then starts is not covered by this requirement. A fix that cannot carry it, for example because a preprocessor directive between the comment and the declaration starts the code the fix moves, MUST NOT be offered (SHARED-FIX-003); the diagnostic is still reported. When the documentation mode is `None`, the comment is an ordinary comment behind the code in front of it, not a documentation comment of the declaration: a code fix that moves the declaration MUST leave the comment behind that code, as it leaves a `//` comment behind code. A code fix that moves the code the comment stands behind is not covered by this requirement.
 
 This requirement covers leading trivia in which nothing but whitespace and line breaks stands between two documentation comments; leading trivia in which an ordinary comment, a preprocessor directive, or disabled text separates two documentation comments is not covered.
 
-Why: The compiler attaches the documentation comments that precede a declaration, attributes included, and ignores one that follows an attribute list as misplaced. A rule that read a different comment would disagree with the documentation the compiler generates. A `///` comment behind code is attached to the declaration below it as well — when documentation comments are parsed, the compiler places it in that declaration's leading trivia — and a reader takes it as the start of that declaration's documentation; judged by where it starts instead of by what it is, it would escape every layout rule while it is laid out worst. Moving it off the code line is the correction RH8303 names, because a blank line above a documentation comment needs the comment on a line of its own; any other fix that moved it while its declaration stays would change code its diagnostic is not about (SHARED-FIX-006). A fix that moves the declaration itself is about that declaration, and its documentation belongs to it: leaving the comment behind would detach the documentation from what it documents. The requirement asks for this only where the comment is part of what SHARED-ORDER-002 moves with the declaration: when documentation comments are not parsed, a `///` comment behind code is ordinary trivia of the code in front of it, and a directive between the comment and the declaration can start the block a fix moves, as a `#region` directive starts the region block that RH7309 moves.
+Why: The compiler attaches the documentation comments that precede a declaration, attributes included, and ignores one that follows an attribute list as misplaced. A rule that read a different comment would disagree with the documentation the compiler generates. A `///` comment behind code is attached to the declaration below it as well — when documentation comments are parsed, the compiler places it in that declaration's leading trivia — and a reader takes it as the start of that declaration's documentation; judged by where it starts instead of by what it is, it would escape every layout rule while it is laid out worst. Moving it off the code line is the correction RH8303 names, because a blank line above a documentation comment needs the comment on a line of its own; any other fix that moved it while its declaration stays would change code its diagnostic is not about (SHARED-FIX-006). A fix that moves the declaration itself is about that declaration, and its documentation belongs to it: leaving the comment behind would detach the documentation from what it documents. A directive between the comment and the declaration can start the block a fix moves, as a `#region` directive starts the region block that RH7309 moves; such a fix cannot carry the comment, and moving the declaration without it would hand the documentation to whatever code follows, so the fix is withheld instead. When documentation comments are not parsed, the compiler attaches the comment to no declaration: it is ordinary trailing trivia of the code in front of it, like a `//` comment behind a closing brace, and it stays with that code.
 
 Example — RH8001:
 
@@ -315,7 +315,7 @@ public class C
 
 The fix moves `Create` in front of `Run`, and the comment moves with it as `Create`'s documentation; it does not stay behind `Run`'s closing brace.
 
-Where the comment goes is not covered by this requirement when the same input has the documentation mode `None`, and not when a preprocessor directive stands between the comment and `Create`:
+With the documentation mode `None`, the same comment is an ordinary comment behind `Run`'s closing brace:
 
 ```csharp
 public class C
@@ -323,13 +323,15 @@ public class C
     public void Run()
     {
     } /// <summary>Creates</summary>
-#if DEBUG
-#endif
     public static void {|RH7103:Create|}()
     {
     }
 }
 ```
+
+The fix moves `Create` in front of `Run`, and the comment stays behind `Run`'s closing brace, as `// Creates` would.
+
+Example — RH7309, with the documentation mode `Parse` or `Diagnose`, where a `#region` directive between the comment and `M` starts the block the fix would move: the example "a documentation comment that would be left behind" under SHARED-FIX-003. The fix is not offered.
 
 ### SHARED-DOC-005 — A top-level `<summary>` or `<inheritdoc>` documents the element
 

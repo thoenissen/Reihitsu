@@ -18,6 +18,7 @@ This spec covers what holds for every analyzer rule, so a rule spec states only 
 - Whether a rule reports whitespace next to a comment — the spec of that rule.
 - Whether a code fix may change the text of a literal or of a comment — [`code-fixes.md`](code-fixes.md).
 - The name that a `using` alias directive declares, and how the using-directive rules order alias directives by it — those rules' specs.
+- Which form a rule asks for, and at which positions that form is valid C#, beyond the cases SHARED-DIAG-011 names — each rule's own spec.
 
 ## Requirements
 
@@ -563,3 +564,60 @@ public class C
     }
 }
 ```
+
+### SHARED-DIAG-011 — A form the language does not allow is not asked for
+
+A rule that asks for a construct to be written in another form MUST NOT report the construct at a position where that form is not valid C#: where the C# grammar does not admit the form at that position, or where the language version the code is compiled with does not support it there. Where the form is valid at that position, the construct MUST be reported as the rule's own requirements state, also when the rule's code fix is withheld (SHARED-FIX-003). A compile error that the form would cause only together with the rest of the code, such as a name that another declaration already uses, does not make the form invalid at that position.
+
+Why: A diagnostic asks the user for a change, and where the language offers no way to write the form the rule asks for, no change satisfies it: the user can only suppress the diagnostic, and no fix can exist. Where the form is valid, the user can write it by hand even when the automatic rewrite is unsafe, so the report stays and only the fix is withheld. The language version belongs to what the user can write: a form that a later version introduces is not available to code compiled with an earlier one. A collision with another declaration is a property of the code around the construct, which the user can change, not of the position.
+
+Example — RH3103 asks for `T?`, which is not valid as the argument of `nameof`, as the receiver of a member access, or for an unbound generic type in `typeof`:
+
+```csharp
+using System;
+
+class C
+{
+    string A() => nameof(System.Nullable<int>);
+    string B() => nameof(Nullable<int>);
+    bool D() => Nullable<int>.Equals(1, 2);
+    Type E() => typeof(Nullable<>);
+}
+```
+
+is not reported: `nameof(int?)` and `int?.Equals(1, 2)` do not compile, and `typeof(?)` does not parse.
+
+Example — where `T?` is valid, RH3103 reports the construct:
+
+```csharp
+using System;
+
+class C
+{
+    Type T() => typeof({|RH3103:Nullable<int>|});
+}
+```
+
+Example — the language version, for RH3103:
+
+```csharp
+using N = {|RH3103:System.Nullable<int>|};
+
+class C
+{
+    N _a;
+}
+```
+
+is reported when the code is compiled with C# 12 or later, where `using N = int?;` is valid, and is not reported when it is compiled with C# 11 or earlier, where an alias cannot name `int?`.
+
+Example — RH3001 asks for a comparison with `false`, which is valid in a constant pattern when it is written in parentheses:
+
+```csharp
+class C
+{
+    bool M(bool x) => x is {|RH3001:!|}true;
+}
+```
+
+is reported, and no code fix is offered: `x is (true == false)` is valid at that position, so the construct is reported although the fix does not write it. Likewise, the RH4106 example under SHARED-FIX-003 is reported: `_value` is a valid name at that position, and only the field that already has the name makes the renamed code fail to compile.
