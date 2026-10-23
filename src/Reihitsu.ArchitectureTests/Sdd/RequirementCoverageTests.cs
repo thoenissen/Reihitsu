@@ -11,8 +11,9 @@ namespace Reihitsu.ArchitectureTests.Sdd;
 /// Links the tests to the spec requirements they cover, as <c>sdd/README.md</c> describes: a test names each
 /// requirement it covers with a <c>[Requirement("&lt;ID&gt;")]</c> attribute. Every such reference must name an
 /// active requirement, and every active requirement of an enforced spec must be covered by at least one test.
-/// A spec is enforced when it lies in <see cref="EnforcedSpecPaths"/>; a requirement of a <c>shared/</c> spec is
-/// enforced as well when an enforced spec lists it under <c>Uses</c>. Everything else is reported but does not fail
+/// Every spec is enforced unless <see cref="ExemptedSpecs"/> names it, and every exemption must state its reason; a
+/// requirement of an exempted <c>shared/</c> spec stays enforced when a spec that is not exempted lists it under
+/// <c>Uses</c>. The uncovered requirements of exempted specs are reported but do not fail
 /// </summary>
 [TestClass]
 public sealed class RequirementCoverageTests
@@ -20,13 +21,14 @@ public sealed class RequirementCoverageTests
     #region Constants
 
     /// <summary>
-    /// Spec directories, each ending with a slash, and single spec files, relative to <c>sdd/specs</c>, whose active
-    /// requirements must each be covered by a test. A path stays on this list once it is added
+    /// Specs left out of the coverage check, each a single spec file relative to <c>sdd/specs</c> mapped to the reason
+    /// it is exempted. Every spec not on this list is enforced; the goal is an empty list
     /// </summary>
-    internal static readonly IReadOnlyList<string> EnforcedSpecPaths = ["analyzer/", "cli/", "formatter/", "playground/", "shared/code-fixes.md", "shared/diagnostics.md"];
+    internal static readonly IReadOnlyDictionary<string, string> ExemptedSpecs = new Dictionary<string, string>(StringComparer.Ordinal);
 
     /// <summary>
-    /// Spec directory of the shared specs, whose requirements an enforced spec can enforce by using them
+    /// Spec directory of the shared specs, whose requirements of an exempted spec an enforced spec keeps enforced by
+    /// using them
     /// </summary>
     private const string SharedDirectory = "shared/";
 
@@ -35,7 +37,7 @@ public sealed class RequirementCoverageTests
     #region Properties
 
     /// <summary>
-    /// Test context, used to report the coverage of specs that are not enforced yet
+    /// Test context, used to report the coverage of exempted specs
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -581,32 +583,44 @@ public sealed class RequirementCoverageTests
     }
 
     /// <summary>
-    /// Finds every active requirement of the given spec directories that no test method covers
+    /// Finds every active requirement of an enforced spec that no test method covers
     /// </summary>
     /// <param name="repositoryRoot">Repository root containing <c>sdd/specs</c> and <c>src</c></param>
-    /// <param name="specPaths">Spec directories, each ending with a slash, and spec files, relative to <c>sdd/specs</c></param>
+    /// <param name="exemptedSpecs">Exempted spec files, relative to <c>sdd/specs</c>, mapped to their reasons</param>
     /// <returns>One message per uncovered requirement, starting with its ID</returns>
-    private static List<string> FindUncoveredRequirements(string repositoryRoot, IReadOnlyList<string> specPaths)
+    private static List<string> FindUncoveredRequirements(string repositoryRoot, IReadOnlyDictionary<string, string> exemptedSpecs)
     {
         var coveredIds = ReadCoveredIds(repositoryRoot);
-        var usedSharedIds = ReadSharedIdsUsedBy(repositoryRoot, specPaths);
+        var usedSharedIds = ReadSharedIdsUsedByEnforcedSpecs(repositoryRoot, exemptedSpecs);
 
-        return ReadActiveRequirements(repositoryRoot).Where(requirement => IsEnforced(requirement, specPaths, usedSharedIds)
+        return ReadActiveRequirements(repositoryRoot).Where(requirement => IsEnforced(requirement, exemptedSpecs, usedSharedIds)
                                                                            && coveredIds.Contains(requirement.Id) == false)
                                                      .Select(requirement => $"{requirement.Id}: no test covers it ({requirement.SpecPath}:{requirement.Line})")
                                                      .ToList();
     }
 
     /// <summary>
-    /// Describes, per spec that is not enforced, the active requirements no test covers
+    /// Finds every exemption that states no reason
+    /// </summary>
+    /// <param name="exemptedSpecs">Exempted spec files, relative to <c>sdd/specs</c>, mapped to their reasons</param>
+    /// <returns>One message per exemption whose reason is missing, empty, or only whitespace, naming its spec</returns>
+    private static List<string> FindExemptionsWithoutReason(IReadOnlyDictionary<string, string> exemptedSpecs)
+    {
+        return exemptedSpecs.Where(exemption => string.IsNullOrWhiteSpace(exemption.Value))
+                            .Select(exemption => $"{exemption.Key}: the exemption states no reason")
+                            .ToList();
+    }
+
+    /// <summary>
+    /// Describes, per exempted spec, the active requirements no test covers
     /// </summary>
     /// <param name="repositoryRoot">Repository root containing <c>sdd/specs</c> and <c>src</c></param>
-    /// <returns>The report, one line per spec</returns>
-    private static string DescribeCoverageOfSpecsNotYetEnforced(string repositoryRoot)
+    /// <param name="exemptedSpecs">Exempted spec files, relative to <c>sdd/specs</c>, mapped to their reasons</param>
+    /// <returns>The report, one line per exempted spec</returns>
+    private static string DescribeCoverageOfExemptedSpecs(string repositoryRoot, IReadOnlyDictionary<string, string> exemptedSpecs)
     {
         var coveredIds = ReadCoveredIds(repositoryRoot);
-        var usedSharedIds = ReadSharedIdsUsedBy(repositoryRoot, EnforcedSpecPaths);
-        var lines = ReadActiveRequirements(repositoryRoot).Where(requirement => IsEnforced(requirement, EnforcedSpecPaths, usedSharedIds) == false)
+        var lines = ReadActiveRequirements(repositoryRoot).Where(requirement => exemptedSpecs.ContainsKey(requirement.SpecPath))
                                                           .GroupBy(requirement => requirement.SpecPath, StringComparer.Ordinal)
                                                           .Select(group =>
                                                                   {
@@ -619,7 +633,9 @@ public sealed class RequirementCoverageTests
                                                                   })
                                                           .ToList();
 
-        return $"Coverage of specs not yet enforced:{Environment.NewLine}{string.Join(Environment.NewLine, lines)}";
+        return lines.Count == 0
+                   ? "Coverage of exempted specs: no spec is exempted"
+                   : $"Coverage of exempted specs:{Environment.NewLine}{string.Join(Environment.NewLine, lines)}";
     }
 
     /// <summary>
@@ -660,43 +676,30 @@ public sealed class RequirementCoverageTests
     }
 
     /// <summary>
-    /// Determines whether a requirement is enforced: its spec lies in one of the given spec paths, or it belongs to a
-    /// <c>shared/</c> spec and an enforced spec uses it
+    /// Determines whether a requirement is enforced: its spec is not exempted, or it belongs to a <c>shared/</c> spec
+    /// and a spec that is not exempted uses it
     /// </summary>
     /// <param name="requirement">Requirement</param>
-    /// <param name="specPaths">Spec directories, each ending with a slash, and spec files, relative to <c>sdd/specs</c></param>
-    /// <param name="usedSharedIds">Shared requirement IDs that an enforced spec lists under <c>Uses</c></param>
+    /// <param name="exemptedSpecs">Exempted spec files, relative to <c>sdd/specs</c>, mapped to their reasons</param>
+    /// <param name="usedSharedIds">IDs that a spec that is not exempted lists under <c>Uses</c></param>
     /// <returns><see langword="true"/> when the requirement is enforced</returns>
-    private static bool IsEnforced(SpecRequirement requirement, IReadOnlyList<string> specPaths, HashSet<string> usedSharedIds)
+    private static bool IsEnforced(SpecRequirement requirement, IReadOnlyDictionary<string, string> exemptedSpecs, HashSet<string> usedSharedIds)
     {
-        return IsInPaths(requirement.SpecPath, specPaths)
+        return exemptedSpecs.ContainsKey(requirement.SpecPath) == false
                || (requirement.SpecPath.StartsWith(SharedDirectory, StringComparison.Ordinal)
                    && usedSharedIds.Contains(requirement.Id));
     }
 
     /// <summary>
-    /// Determines whether a spec lies in one of the given spec paths
-    /// </summary>
-    /// <param name="specPath">Spec path relative to <c>sdd/specs</c></param>
-    /// <param name="specPaths">Spec directories, each ending with a slash, and spec files, relative to <c>sdd/specs</c></param>
-    /// <returns><see langword="true"/> when the spec is one of the files or lies in one of the directories</returns>
-    private static bool IsInPaths(string specPath, IReadOnlyList<string> specPaths)
-    {
-        return specPaths.Any(path => path.EndsWith('/')
-                                         ? specPath.StartsWith(path, StringComparison.Ordinal)
-                                         : string.Equals(specPath, path, StringComparison.Ordinal));
-    }
-
-    /// <summary>
-    /// Reads the IDs that the specs in the given paths list under <c>Uses</c>
+    /// Reads the IDs that the specs that are not exempted list under <c>Uses</c>
     /// </summary>
     /// <param name="repositoryRoot">Repository root containing <c>sdd/specs</c></param>
-    /// <param name="specPaths">Spec directories, each ending with a slash, and spec files, relative to <c>sdd/specs</c></param>
+    /// <param name="exemptedSpecs">Exempted spec files, relative to <c>sdd/specs</c>, mapped to their reasons</param>
     /// <returns>The used IDs</returns>
-    private static HashSet<string> ReadSharedIdsUsedBy(string repositoryRoot, IReadOnlyList<string> specPaths)
+    private static HashSet<string> ReadSharedIdsUsedByEnforcedSpecs(string repositoryRoot, IReadOnlyDictionary<string, string> exemptedSpecs)
     {
         return SpecCatalog.ReadHeaders(Path.Combine(repositoryRoot, "sdd", "specs"))
-                          .Where(header => IsInPaths(header.SpecPath, specPaths))
+                          .Where(header => exemptedSpecs.ContainsKey(header.SpecPath) == false)
                           .SelectMany(header => SpecCatalog.SplitCell(header.GetRow("Uses")))
                           .ToHashSet(StringComparer.Ordinal);
     }
