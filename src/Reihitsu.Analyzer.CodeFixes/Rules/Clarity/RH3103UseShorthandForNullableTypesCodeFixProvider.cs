@@ -178,6 +178,7 @@ public class RH3103UseShorthandForNullableTypesCodeFixProvider : CodeFixProvider
                    GenericNameSyntax { Parent: QualifiedNameSyntax qualifiedName } genericName when qualifiedName.Right == genericName => qualifiedName,
                    AliasQualifiedNameSyntax aliasQualifiedName => aliasQualifiedName,
                    GenericNameSyntax { Parent: AliasQualifiedNameSyntax aliasQualifiedName } genericName when aliasQualifiedName.Name == genericName => aliasQualifiedName,
+                   GenericNameSyntax { Parent: MemberAccessExpressionSyntax memberAccess } genericName when memberAccess.Name == genericName => null,
                    GenericNameSyntax genericName => genericName,
                    _ => node.AncestorsAndSelf().OfType<TypeSyntax>().FirstOrDefault()
                };

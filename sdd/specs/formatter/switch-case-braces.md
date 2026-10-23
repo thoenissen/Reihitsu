@@ -5,7 +5,7 @@
 | ID prefix | FMT-SWITCH |
 | Status | Active |
 | Code owners | `SwitchCaseBracePhase`, `SwitchCaseBraceRewriter` |
-| Uses | FMT-PIPE-002, FMT-PIPE-003, SHARED-BLANK-004 |
+| Uses | FMT-PIPE-002, FMT-PIPE-003, SHARED-BLANK-004, FMT-PIPE-013 |
 
 This spec covers when the formatter wraps the statements of the sections of a `switch` statement in a `{ … }` block: which sections make a switch braced, what goes inside the block, and every guard that leaves a section or a whole switch as it is.
 
@@ -418,7 +418,7 @@ class C
 
 ### FMT-SWITCH-007 — Comments survive brace insertion
 
-When the formatter braces a section, a comment trailing the last label MUST stay on the label's line, a comment leading the first statement MUST move with that statement into the block, and a comment trailing the last statement in the block MUST stay on that statement's line (FMT-PIPE-002).
+When the formatter braces a section, a comment trailing the last label MUST stay on the label's line, a comment leading the first statement MUST move with that statement into the block, and a comment trailing the last statement in the block MUST stay on that statement's line (FMT-PIPE-002). The layout of these comments is kept as FMT-PIPE-013 states.
 
 Why: Brace insertion rebuilds the trivia around the labels, the new braces, and the statements it moves. Comments are user-authored content and must keep their position relative to the code they describe.
 

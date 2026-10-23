@@ -521,5 +521,79 @@ public class StructuralTransformRequirementTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that an expression body whose conversion would put a directive directly behind the created
+    /// <c>return</c>, where it does not parse, is left as it was written
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-024")]
+    public void ExpressionBodyWhoseConversionWouldNotCompileIsLeftUnchanged()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int M() =>
+                             #if DEBUG
+                                     1;
+                             #else
+                                 0;
+                             #endif
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that an accessor block whose comment would describe other code after the conversion is kept, while
+    /// the accessor whose comment stays next to the same code is converted
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-024")]
+    public void AccessorConversionIsAppliedOnlyWhereEachCommentStaysNextToItsCode()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _value;
+
+                                 int Value
+                                 {
+                                     get
+                                     {
+                                         // cached
+                                         return _value;
+                                     }
+                                     set
+                                     {
+                                         _value = value; // store
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private int _value;
+
+                                    int Value
+                                    {
+                                        get
+                                        {
+                                            // cached
+                                            return _value;
+                                        }
+                                        set => _value = value; // store
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

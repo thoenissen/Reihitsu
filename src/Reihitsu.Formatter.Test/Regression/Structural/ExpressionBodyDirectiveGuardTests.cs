@@ -22,6 +22,7 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-007")]
+    [Requirement("FMT-STRUCT-024")]
     public void MethodWithDirectiveBeforeExpressionIsNotConverted()
     {
         // Arrange
@@ -69,6 +70,7 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-007")]
+    [Requirement("FMT-STRUCT-024")]
     public void ConstructorWithDirectiveBeforeExpressionIsNotConverted()
     {
         // Arrange
@@ -95,6 +97,7 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-007")]
+    [Requirement("FMT-STRUCT-024")]
     public void OperatorWithDirectiveBeforeExpressionIsNotConverted()
     {
         // Arrange
@@ -120,6 +123,7 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-007")]
+    [Requirement("FMT-STRUCT-024")]
     public void ConversionOperatorWithDirectiveBeforeExpressionIsNotConverted()
     {
         // Arrange
@@ -144,6 +148,7 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-007")]
+    [Requirement("FMT-STRUCT-024")]
     public void FinalizerWithDirectiveBeforeExpressionIsNotConverted()
     {
         // Arrange
@@ -171,6 +176,7 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-007")]
+    [Requirement("FMT-STRUCT-024")]
     public void LocalFunctionWithDirectiveBeforeExpressionIsNotConverted()
     {
         // Arrange

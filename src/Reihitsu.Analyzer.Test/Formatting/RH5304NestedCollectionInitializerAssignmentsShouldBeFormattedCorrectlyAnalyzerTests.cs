@@ -1108,6 +1108,74 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
         await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
     }
 
+    /// <summary>
+    /// Verifies that an assignment whose element stands behind a block comment which starts its line in column zero
+    /// is reported, although the element stands in its column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5304-002")]
+    [Requirement("RH5304-003")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyElementInItsColumnBehindMisplacedBlockCommentIsDetected()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Example
+                                {
+                                    public List<int> Values { get; set; }
+
+                                    private static void Method()
+                                    {
+                                        var value = new Example
+                                                    {
+                                                        {|#0:Values = {
+                                /* c */                              1,
+                                                                     2
+                                                                 }|}
+                                                    };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an assignment whose element stands behind a block comment which starts its line in column zero
+    /// is reported, although the element stands in its column, under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5304-002")]
+    [Requirement("RH5304-003")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyElementInItsColumnBehindMisplacedBlockCommentIsDetectedWithCrLf()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Example
+                                {
+                                    public List<int> Values { get; set; }
+
+                                    private static void Method()
+                                    {
+                                        var value = new Example
+                                                    {
+                                                        {|#0:Values = {
+                                /* c */                              1,
+                                                                     2
+                                                                 }|}
+                                                    };
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

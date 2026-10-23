@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -923,6 +924,39 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
         await Verify(NormalizeToCarriageReturnLineFeed(MemberOnItsOwnLineTestCode), NormalizeToCarriageReturnLineFeed(MemberOnItsOwnLineFixedCode));
 
         AssertFormattingChangesNothing(NormalizeToCarriageReturnLineFeed(MemberOnItsOwnLineFixedCode));
+    }
+
+    /// <summary>
+    /// Verifies that the two line breaks the fix creates are LF in a document whose line breaks are all a lone
+    /// carriage return
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    public async Task FixWritesLineFeedInADocumentWhoseLineBreaksAreLoneCarriageReturns()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M() { }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        var actual = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData).Replace("\r\n", "\r", StringComparison.Ordinal));
+
+        // The fix creates the line breaks behind "void M()" and behind the opening brace. Only those are asserted to be
+        // LF; the layout is compared with every line break read as LF.
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData).Replace("\r\n", "\n", StringComparison.Ordinal),
+                        actual.Replace("\r\n", "\n", StringComparison.Ordinal).Replace("\r", "\n", StringComparison.Ordinal));
+        Assert.Contains("    void M()\n    {\n    }", actual);
     }
 
     #endregion // Tests

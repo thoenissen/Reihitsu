@@ -5,7 +5,7 @@
 | ID prefix | FMT-STRUCT |
 | Status | Active |
 | Code owners | `StructuralTransformPhase`, `ConfigurableStructuralTransforms`, `ControlFlowBraceTransform`, `ExpressionBodiedMethodTransform`, `ExpressionBodiedConstructorTransform`, `ExpressionBodiedOperatorTransform`, `ExpressionBodiedConversionTransform`, `ExpressionBodiedFinalizerTransform`, `ExpressionBodiedLocalFunctionTransform`, `ExpressionBodiedTransformUtilities`, `ExpressionBodyToBlockConverter`, `AccessorExpressionBodyTransform`, `GetOnlyMemberExpressionBodyTransform`, `EmptyTypeDeclarationSemicolonTransform`, `EnumTrailingCommaRemovalTransform`, `InitializerTrailingCommaRemovalTransform`, `TrailingCommaRemovalUtilities`, `FieldDeclarationSplitTransform` |
-| Uses | FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-008, FMT-PIPE-011 |
+| Uses | FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013 |
 
 This spec covers the first phase of the pipeline, which rewrites syntax shape before any layout is decided: braces for `if`/`else` bodies, block bodies for expression-bodied functions, expression bodies for simple accessors and get-only members, semicolon declarations for empty types, removal of trailing commas, and one field per declaration. Every rewrite produces equivalent code (FMT-PIPE-003) and is refused for a construct whose comments, directives, or disabled text it could not carry over (FMT-PIPE-002).
 
@@ -67,7 +67,7 @@ class C
 
 ### FMT-STRUCT-002 — Comments of a braced body stay with it
 
-When the formatter braces a body under FMT-STRUCT-001, a comment on its own line above the body MUST move inside the new block in front of the statement, and a comment that trailed the statement MUST stay on the statement's line.
+When the formatter braces a body under FMT-STRUCT-001, a comment on its own line above the body MUST move inside the new block in front of the statement, and a comment that trailed the statement MUST stay on the statement's line. The layout of these comments is kept as FMT-PIPE-013 states.
 
 Why: Both comments describe the statement, so they belong inside the block with it. Dropping them would violate FMT-PIPE-002; leaving the leading one outside would make it describe the brace.
 
@@ -254,7 +254,7 @@ class C
 
 ### FMT-STRUCT-006 — The converted body keeps the expression's trivia
 
-When the formatter converts an expression body under FMT-STRUCT-004 or FMT-STRUCT-005, an expression written on the line after the arrow MUST join the created `return` keyword, a comment between the expression and the semicolon MUST stay in front of the statement's semicolon, and a comment or directive in the trivia of the removed arrow or semicolon MUST be carried into the block rather than dropped.
+When the formatter converts an expression body under FMT-STRUCT-004 or FMT-STRUCT-005, an expression written on the line after the arrow MUST join the created `return` keyword, a comment between the expression and the semicolon MUST stay in front of the statement's semicolon, and a comment or directive in the trivia of the removed arrow or semicolon MUST be carried into the block rather than dropped. The layout of the comments the converted body carries is kept as FMT-PIPE-013 states.
 
 Why: The arrow and the semicolon disappear, so whatever trivia they carried needs a new owner. The line break after the arrow is layout only and has no meaning inside a `return` statement; a comment does, and FMT-PIPE-002 forbids losing it.
 
@@ -1006,3 +1006,25 @@ The formatter MUST NOT split a field declaration that contains a preprocessor di
 Why: The split rebuilds each generated field's trivia from comments only, so a directive between the declarators would be dropped or end up guarding a different field.
 
 For example, a declaration `private int _x, _debug, _y;` whose `_debug,` line is wrapped in `#if DEBUG` … `#endif` keeps its three declarators in one declaration.
+
+### FMT-STRUCT-024 — A rewrite that cannot be completed safely is not applied
+
+The formatter MUST NOT apply a rewrite of this phase when its result would not compile, would leave a declaration without documentation that applied to it in the input, or would put a comment next to other code than the code it was written next to. It MUST leave the construct as it was written instead. This holds for every transform of the phase, whether or not a requirement of its own names the case; FMT-STRUCT-007 and the comment clauses of FMT-STRUCT-012 are instances of it. It adds to FMT-PIPE-002 and FMT-PIPE-003 and does not replace them: a rewrite that would drop a comment, drop or misplace a directive or disabled text, or change what the code compiles to, is refused by those requirements, as FMT-STRUCT-003, FMT-STRUCT-018, and FMT-STRUCT-023 refuse it. A rewrite that keeps each comment next to the code it was written next to, such as one that moves a comment onto its own line in front of the same code, is not refused by this requirement.
+
+Why: A structural rewrite only changes the shape of code the author wrote, so it is worth applying only when nothing else changes. A result that does not compile, a declaration that lost its documentation, or a comment that now describes other code is a regression the author has to find and repair by hand, which costs more than the canonical shape gains. A code fix is withheld in the same situations.
+
+Example — a directive between the arrow and the expression would land directly behind the created `return`, where it does not parse (FMT-STRUCT-007):
+
+```csharp
+class C
+{
+    int M() =>
+#if DEBUG
+        1;
+#else
+    0;
+#endif
+}
+```
+
+is left unchanged.
