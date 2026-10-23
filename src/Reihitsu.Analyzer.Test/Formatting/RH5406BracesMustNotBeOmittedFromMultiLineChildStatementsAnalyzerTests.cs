@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -388,6 +389,50 @@ public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzerTes
                                  """;
 
         await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
+    /// <summary>
+    /// Verifies that the three line breaks the fix creates are LF in a document whose line breaks are all a lone
+    /// carriage return, when the body it wraps spans several lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    public async Task FixWritesLineFeedInADocumentWhoseLineBreaksAreLoneCarriageReturns()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, bool b)
+                                    {
+                                        if (a) M(a,
+                                                 b);
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, bool b)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a,
+                                               b);
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        var actual = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testCode).Replace("\r\n", "\r", StringComparison.Ordinal));
+
+        // The fix creates the line breaks behind "if (a)", behind the opening brace and behind the body. Only those are
+        // asserted to be LF; the line break inside the body comes from the input, and the layout is compared with every
+        // line break read as LF.
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode).Replace("\r\n", "\n", StringComparison.Ordinal),
+                        actual.Replace("\r\n", "\n", StringComparison.Ordinal).Replace("\r", "\n", StringComparison.Ordinal));
+        Assert.Contains("        if (a)\n        {\n            M(a,", actual);
+        Assert.Contains("              b);\n        }", actual);
     }
 
     #endregion // Tests

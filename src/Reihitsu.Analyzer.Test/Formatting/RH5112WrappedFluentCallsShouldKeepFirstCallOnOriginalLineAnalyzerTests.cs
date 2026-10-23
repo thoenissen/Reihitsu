@@ -1030,6 +1030,58 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
         await Verify(testData, resultData, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a chain whose first link stands behind a block comment which starts the link's line is not
+    /// reported, because the comment between the root and the first link keeps the rule from reporting the chain
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CHAIN-004")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyNoDiagnosticForFirstLinkBehindBlockCommentStartingTheLine()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string M(string s)
+                                    {
+                                        var x = s
+                                /* c */ .Trim();
+
+                                        return x;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a chain whose first link stands behind a block comment which starts the link's line is not
+    /// reported under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CHAIN-004")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyNoDiagnosticForFirstLinkBehindBlockCommentStartingTheLineWithCrLf()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string M(string s)
+                                    {
+                                        var x = s
+                                /* c */ .Trim();
+
+                                        return x;
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
