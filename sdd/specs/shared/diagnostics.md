@@ -209,11 +209,13 @@ Example — in `Counter.razor`, the `@code` in the HTML comment, in the Razor co
 
 A rule that judges a type or a member declared in several parts with the `partial` modifier as a whole — what the declaration is — MUST judge it by its symbol — by the modifiers of all its parts together, so that it is `async`, `static`, or of an accessibility when any part declares it so — and MUST report it at most once. A code fix that would have to change more than one part to give a correct result MUST NOT be offered (SHARED-FIX-003); the diagnostic is still reported.
 
-A rule whose subject is what one part writes — the accessibility modifier or the order of the modifiers that the part carries — is not covered by the first paragraph. It MUST judge each part on its own: it MUST report each part whose own modifiers break the rule, located on that part, also when another part of the same declaration writes what this part omits, and its code fix MUST change only that part.
+A rule whose subject is text that one part writes independently of the other parts is not covered by the first paragraph. Such text is the accessibility modifier that one part of a partial type writes or omits, as RH7104 judges it, and the order of the modifiers that one part carries, as RH7105 and RH7106 judge it. Such a rule MUST judge each part on its own: it MUST report each part whose own modifiers break the rule, located on that part, also when another part of the same declaration writes what this part omits, and its code fix MUST change only that part.
+
+The accessibility modifiers of a partial member — a method, property, indexer, event, or constructor — are not written independently, because every part of the member has to write the same ones. A rule about them judges the member as a whole and is covered by the first paragraph.
 
 A verdict on the name or the parameters that one part declares, or on the members and regions that one part holds, is not covered by this requirement.
 
-Why: The compiler builds one type or member from all its parts, and every caller, tooltip, and reader sees that one symbol. Judging one part alone gives it a verdict the declaration does not deserve — the part of an `async` method that does not repeat `async` is still an `async` method — and reporting every part repeats one finding. A change that every part has to carry cannot be made on one part without a compile error. The modifiers a part writes are different: they are text of that part, read in the file that holds it, and a part that omits its accessibility leaves the reader of that file guessing whatever another part says. Correcting them changes that part alone, so the correction compiles.
+Why: The compiler builds one type or member from all its parts, and every caller, tooltip, and reader sees that one symbol. Judging one part alone gives it a verdict the declaration does not deserve — the part of an `async` method that does not repeat `async` is still an `async` method — and reporting every part repeats one finding. A change that every part has to carry cannot be made on one part without a compile error. The modifiers a part writes independently are different: they are text of that part, read in the file that holds it. A part of a partial type that omits its accessibility leaves the reader of that file guessing whatever another part says, and writing it on that part alone compiles, because the compiler only forbids the parts of a type to state different accessibilities; the order of a part's modifiers is that part's own as well. The parts of a partial member, in contrast, have to write the same accessibility modifiers, so writing one on a single part does not compile, and the member's accessibility is a verdict on the member as a whole.
 
 Example — RH2102 reports the type once, on the part that declares the primary constructor:
 
@@ -227,7 +229,7 @@ partial class P
 }
 ```
 
-Example — the type is `public` because one of its parts says so:
+Example — RH2004 does not judge partial types and leaves them to RH7104, so it reports neither part of `C`; whether each part writes an accessibility modifier is judged by RH7104 under the second paragraph, as the next example shows:
 
 ```csharp
 public partial class C
@@ -268,6 +270,19 @@ public partial class C
 ```
 
 The fix writes the accessibility on the reported part and leaves the first part as it is.
+
+Example — every part of a partial property has to write the same accessibility modifiers, so RH2004 judges the property as a whole under the first paragraph:
+
+```csharp
+public partial class P
+{
+    partial int Prop { get; set; }
+
+    partial int Prop { get => 1; set { } }
+}
+```
+
+is reported by RH2004 at most once, and no code fix is offered: writing `private` on one part alone does not compile.
 
 ### SHARED-DIAG-005 — Parentheses, `!`, and a `throw` branch do not change a value
 
