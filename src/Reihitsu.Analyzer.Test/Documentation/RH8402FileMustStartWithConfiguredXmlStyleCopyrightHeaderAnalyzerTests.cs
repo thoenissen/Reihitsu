@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -8,6 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
 using Reihitsu.Analyzer.Rules.Documentation;
 using Reihitsu.Analyzer.Test.Base;
+using Reihitsu.Analyzer.Test.Verifiers;
 
 namespace Reihitsu.Analyzer.Test.Documentation;
 
@@ -460,18 +462,11 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
     public async Task FileNotStartingWithHeaderWhenDocumentationModeIsParse()
     {
         const string source = "namespace N;\n\nclass C\n{\n}\n";
-        var configuration = CreateSpecificationConfiguration();
 
-        await Verify(source,
-                     test =>
-                     {
-                         test.TestState.Sources.Clear();
-                         test.TestState.Sources.Add((SpecificationFilePath, source));
-                         test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
-                         test.TestBehaviors |= TestBehaviors.SkipSuppressionCheck;
-                         test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject);
-                     },
-                     CreateSpecificationFileDiagnostic());
+        await VerifySpecificationFile(source,
+                                      CreateSpecificationConfiguration(),
+                                      test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject),
+                                      CreateSpecificationFileDiagnostic());
     }
 
     /// <summary>
@@ -629,6 +624,20 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     private static async Task VerifySpecificationFile(string source, string configuration, params DiagnosticResult[] expected)
     {
+        await VerifySpecificationFile(source, configuration, null, expected);
+    }
+
+    /// <summary>
+    /// Verifies the analyzer on the file that the specification examples check, with additional configuration of the
+    /// test
+    /// </summary>
+    /// <param name="source">Text of the checked file</param>
+    /// <param name="configuration">Serialized configuration</param>
+    /// <param name="onConfigure">Additional configuration of the test, applied after the checked file and the configuration are set</param>
+    /// <param name="expected">Expected diagnostics</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifySpecificationFile(string source, string configuration, Action<CSharpAnalyzerVerifierTest<RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer>> onConfigure, params DiagnosticResult[] expected)
+    {
         await Verify(source,
                      test =>
                      {
@@ -636,6 +645,8 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
                          test.TestState.Sources.Add((SpecificationFilePath, source));
                          test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
                          test.TestBehaviors |= TestBehaviors.SkipSuppressionCheck;
+
+                         onConfigure?.Invoke(test);
                      },
                      expected);
     }

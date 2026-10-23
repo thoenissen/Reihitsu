@@ -1,16 +1,13 @@
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Organization;
 using Reihitsu.Analyzer.Rules.Organization;
 using Reihitsu.Analyzer.Test.Base;
-using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.Test.Formatting;
 
@@ -1533,18 +1530,6 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     private static string CreateMessage(string regionDescription)
     {
         return string.Format(AnalyzerResources.RH7309MessageFormat, regionDescription);
-    }
-
-    /// <summary>
-    /// Formats the provided code with the formatter
-    /// </summary>
-    /// <param name="code">Code without markup</param>
-    /// <returns>The formatted code</returns>
-    private static string Format(string code)
-    {
-        return ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(code), CancellationToken.None)
-                                .GetText()
-                                .ToString();
     }
 
     #endregion // Methods

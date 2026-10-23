@@ -1,13 +1,10 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
 using Reihitsu.Analyzer.Rules.Documentation;
 using Reihitsu.Analyzer.Test.Base;
-using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.Test.Documentation;
 
@@ -415,22 +412,6 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTes
     }
 
     #endregion // Tests
-
-    #region Methods
-
-    /// <summary>
-    /// Formats the provided code with the formatter
-    /// </summary>
-    /// <param name="code">Code without markup</param>
-    /// <returns>The formatted code</returns>
-    private static string Format(string code)
-    {
-        return ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(code), CancellationToken.None)
-                                .GetText()
-                                .ToString();
-    }
-
-    #endregion // Methods
 
     #region BatchCodeFixTestsBase
 
