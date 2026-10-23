@@ -286,6 +286,7 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
     [Requirement("RH3103-001")]
     [Requirement("RH3103-003")]
     [Requirement("RH3103-004")]
+    [Requirement("SHARED-DIAG-011")]
     public async Task NullableGenericInTypeofIsReportedAndFixed()
     {
         const string testCode = """
@@ -599,6 +600,7 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3103-002")]
+    [Requirement("SHARED-DIAG-011")]
     public async Task NullableGenericInNameofIsNotReported()
     {
         const string testCode = """
@@ -1019,7 +1021,6 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3103-006")]
-    [Requirement("SHARED-FIX-003")]
     public async Task DottedNullableGenericAsNameofArgumentDoesNotOfferFix()
     {
         const string testCode = """
@@ -1043,7 +1044,6 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3103-006")]
-    [Requirement("SHARED-FIX-003")]
     public async Task GlobalDottedNullableGenericAsNameofArgumentDoesNotOfferFix()
     {
         const string testCode = """
@@ -1054,6 +1054,40 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
                                 """;
 
         await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a position whose grammar does not admit the shorthand: the unqualified
+    /// <c>Nullable&lt;int&gt;</c> as the argument of <c>nameof</c> is not reported, because <c>nameof(int?)</c> does not
+    /// parse, while the same type inside <c>typeof</c>, where <c>typeof(int?)</c> is valid, is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3103-002")]
+    [Requirement("SHARED-DIAG-011")]
+    public async Task ShorthandIsAskedForOnlyWhereTheGrammarAdmitsIt()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    string A() => nameof(Nullable<int>);
+                                    Type B() => typeof({|RH3103:Nullable<int>|});
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     string A() => nameof(Nullable<int>);
+                                     Type B() => typeof(int?);
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests

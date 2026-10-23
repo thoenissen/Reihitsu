@@ -1473,6 +1473,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     [DataRow("\n")]
     [DataRow("\r\n")]
     [Requirement("SHARED-DOC-004")]
+    [Requirement("SHARED-FIX-003")]
     [Requirement("SHARED-ORDER-002")]
     public async Task FixCarriesADocumentationCommentBehindCodeWithTheMovedDeclaration(string endOfLine)
     {
@@ -1530,6 +1531,142 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
 
         Assert.IsEmpty(commentsInRun, "No comment may stay behind the closing brace of Run.");
         Assert.AreEqual(fixedCode.IndexOf("Creates", StringComparison.Ordinal), fixedCode.LastIndexOf("Creates", StringComparison.Ordinal), "The fix must keep exactly one copy of the comment.");
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a documentation comment behind code, a conditional pair, and the
+    /// declaration a fix moves: with documentation comments parsed (documentation mode <c>Parse</c>), the <c>///</c>
+    /// comment behind the closing brace of <c>Run</c> and the <c>#if DEBUG</c>/<c>#endif</c> pair below it stand in the
+    /// leading trivia of <c>Create</c>; the static method is reported, and the fix carries the comment and the pair
+    /// with <c>Create</c> in front of <c>Run</c>, in their order, so the comment still documents <c>Create</c>. Where
+    /// the comment starts after the move and the layout of the rest of the type are not asserted
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-DOC-004")]
+    [Requirement("SHARED-FIX-003")]
+    [Requirement("SHARED-ORDER-006")]
+    public async Task FixCarriesADocumentationCommentBehindCodeAndAConditionalPairWithTheMovedDeclaration(string endOfLine)
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    public void Run()
+                                    {
+                                    } /// <summary>Creates</summary>
+                                #if DEBUG
+                                #endif
+                                    public static void {|RH7103:Create|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+
+        var plainCode = testCode.Replace("{|RH7103:", string.Empty)
+                                .Replace("|}", string.Empty)
+                                .Replace("\r\n", "\n")
+                                .Replace("\n", endOfLine);
+
+        var fixedCode = await ApplyCodeFixAsync(plainCode);
+
+        var syntaxTree = CSharpSyntaxTree.ParseText(fixedCode, new CSharpParseOptions(documentationMode: DocumentationMode.Parse), cancellationToken: CancellationToken.None);
+        var root = await syntaxTree.GetRootAsync(CancellationToken.None);
+        var methods = root.DescendantNodes()
+                          .OfType<MethodDeclarationSyntax>()
+                          .ToList();
+
+        Assert.HasCount(2, methods);
+        Assert.AreEqual("Create", methods[0].Identifier.ValueText, "The fix must move Create in front of Run.");
+        Assert.AreEqual("Run", methods[1].Identifier.ValueText, "The fix must move Create in front of Run.");
+
+        var createTrivia = methods[0].GetLeadingTrivia()
+                                     .Where(trivia => trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+                                                      || trivia.IsKind(SyntaxKind.IfDirectiveTrivia)
+                                                      || trivia.IsKind(SyntaxKind.EndIfDirectiveTrivia))
+                                     .Select(trivia => trivia.Kind())
+                                     .ToList();
+
+        Assert.AreSequenceEqual([SyntaxKind.SingleLineDocumentationCommentTrivia, SyntaxKind.IfDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia],
+                                createTrivia.ToArray(),
+                                "The comment and the conditional pair must travel with Create, in their order.");
+
+        var summary = methods[0].GetLeadingTrivia()
+                                .Single(trivia => trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
+                                .GetStructure()
+                                .DescendantNodes()
+                                .OfType<XmlElementSyntax>()
+                                .Single(element => element.StartTag.Name.LocalName.ValueText == "summary");
+        var summaryText = string.Concat(summary.Content.Select(content => content.ToString()))
+                                .Replace("///", string.Empty)
+                                .Trim();
+
+        Assert.AreEqual("Creates", summaryText, "The comment that travels must be the summary of Create.");
+
+        var triviaInRun = methods[1].DescendantTrivia(descendIntoTrivia: true)
+                                    .Where(trivia => trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+                                                     || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
+                                                     || trivia.IsDirective)
+                                    .ToList();
+
+        Assert.IsEmpty(triviaInRun, "No comment and no directive may stay with Run.");
+        Assert.AreEqual(fixedCode.IndexOf("Creates", StringComparison.Ordinal), fixedCode.LastIndexOf("Creates", StringComparison.Ordinal), "The fix must keep exactly one copy of the comment.");
+        Assert.AreEqual(fixedCode.IndexOf("#if DEBUG", StringComparison.Ordinal), fixedCode.LastIndexOf("#if DEBUG", StringComparison.Ordinal), "The fix must keep exactly one copy of the #if directive.");
+        Assert.AreEqual(fixedCode.IndexOf("#endif", StringComparison.Ordinal), fixedCode.LastIndexOf("#endif", StringComparison.Ordinal), "The fix must keep exactly one copy of the #endif directive.");
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a <c>///</c> comment behind code when documentation comments are not
+    /// parsed (documentation mode <c>None</c>): the comment is ordinary trailing trivia of the closing brace of
+    /// <c>Run</c>, the static method <c>Create</c> is reported, and the fix moves <c>Create</c> in front of <c>Run</c>
+    /// and leaves the comment behind the closing brace of <c>Run</c>, as it leaves a <c>//</c> comment there. The fix
+    /// runs under the documentation mode <c>None</c>, and the fixed code is compared in full, under LF and CRLF; the
+    /// input has no blank line between the two methods, and the move adds none, since the separators stay where they
+    /// were
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-DOC-004")]
+    [Requirement("SHARED-ORDER-002")]
+    public async Task FixLeavesACommentBehindCodeWhereItStandsWhenDocumentationCommentsAreNotParsed(string endOfLine)
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    public void Run()
+                                    {
+                                    } /// <summary>Creates</summary>
+                                    public static void {|RH7103:Create|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     public static void Create()
+                                     {
+                                     }
+                                     public void Run()
+                                     {
+                                     } /// <summary>Creates</summary>
+                                 }
+                                 """;
+
+        await Verify(testCode.Replace("\r\n", "\n").Replace("\n", endOfLine),
+                     fixedCode.Replace("\r\n", "\n").Replace("\n", endOfLine),
+                     test =>
+                     {
+                         test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject);
+                     });
     }
 
     #endregion // Tests

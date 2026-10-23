@@ -496,6 +496,7 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
     [Requirement("SHARED-CASING-009")]
     [Requirement("RH4106-006")]
     [Requirement("SHARED-FIX-003")]
+    [Requirement("SHARED-DIAG-011")]
     public async Task NoFixIsOfferedWhenTheNewNameIsTaken()
     {
         const string testCode = """
