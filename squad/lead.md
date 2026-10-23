@@ -80,7 +80,7 @@ Stop all role work — in a run of several issues, for every issue, not only the
 
 ## Follow-ups
 
-A follow-up candidate from any handover is first searched among open and closed issues; reuse an exact match. Otherwise draft it in English from the matching `.github/ISSUE_TEMPLATE/` form and show it to the maintainer. Create it through the GitHub MCP server only after the maintainer approved that exact text, and link it under `Follow-up work` in the PR. A follow-up never joins the run: the run implements exactly the issues the prompt names, and two separable concerns in one issue become two PRs.
+A follow-up candidate from any handover is first searched among open and closed issues; reuse an exact match. Otherwise draft it in English from the matching `.github/ISSUE_TEMPLATE/` form and show it to the maintainer. Create it through the GitHub MCP server only after the maintainer approved that exact text, and link it under `Follow-up work` in the PR. A new-rule candidate ([P11](../sdd/README.md#the-formatter-may-do-more-than-the-analyzers-p11)) that a handover names is a follow-up candidate like any other: you present it, and the maintainer decides whether it becomes an issue. A follow-up never joins the run: the run implements exactly the issues the prompt names, and two separable concerns in one issue become two PRs.
 
 ## Never
 
