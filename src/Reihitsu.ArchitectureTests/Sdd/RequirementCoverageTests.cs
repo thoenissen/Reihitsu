@@ -606,7 +606,8 @@ public sealed class RequirementCoverageTests
     }
 
     /// <summary>
-    /// Finds every active requirement of an enforced spec that no test method covers
+    /// Finds every active requirement that no test method covers and that is enforced: its spec is not exempted, or it
+    /// belongs to an exempted <c>shared/</c> spec and a spec that is not exempted lists it under <c>Uses</c>
     /// </summary>
     /// <param name="repositoryRoot">Repository root containing <c>sdd/specs</c> and <c>src</c></param>
     /// <param name="exemptedSpecs">Exempted spec files, relative to <c>sdd/specs</c>, mapped to their reasons</param>
