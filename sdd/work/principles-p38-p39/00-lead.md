@@ -37,3 +37,7 @@ The skeptic (02-skeptic.md) raised four blocking questions. The maintainer's ans
 - Q3 (SHARED-FIX-008 scope): reading (b). Only the line breaks in the span the fix replaces, rewrites, or moves count, its trailing trivia included. A line break ending the line outside that span is not in the fix's scope.
 - Q4 (examples): reading (b). Examples use only shapes that conform today, and the requirement text states the principles in full. Where no conforming shape exists, the follow-up adds the example together with its fix and tests.
 - Follow-up candidates: the maintainer agrees they are filed. The lead drafts them for approval of the exact text.
+
+## Lane widening to tooling
+
+The decisions entries under `squad/decisions/` classify as tooling: `scripts/lane-check.sh tests --head worktree` reports `mismatch — claimed tests, diff needs tooling`. No implementer has started, so the run widens to tooling along tests → tooling, as thoenissen/Reihitsu#1404 did for the same reason. Roles: spec author (done), skeptic (done), test implementer, cleaner, spec checker, auditor, validator. The auditor is added by the widening. The implementer is skipped because the run changes no production or tooling code; the tests only add or remove requirement tags and add tests of existing behavior.
