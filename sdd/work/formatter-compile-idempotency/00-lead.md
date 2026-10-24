@@ -47,3 +47,11 @@ A role that finds it needs one of these files stops and reports it in its handov
 - Q2 → A. Fix in this run: the blank line between a comment and `#region` directly after `{` (SHARED-BLANK-005, FMT-BLANK-013); the #954 `// c` variant test asserts the full spec output.
 - Q3 → A. `int B() =>` / `/* c */ 42;` converts to `return /* c */ 42;`.
 - The playbook records answers in `squad/decisions/`; this run must not touch `squad/`, so the answers are recorded here and in the PR's run report instead.
+
+# Escalation (questions from 02-skeptic.md), answered by the maintainer
+
+- Q1 → B. FMT-STRUCT-025 looks through a nullable annotation: `Task?` / `ValueTask?` convert to an expression statement, `Task<T>?` / `ValueTask<T>?` to `return`.
+- Q2 → A. The blank line between two comments in front of the terminal `break` that is lost when the section is braced (FMT-PIPE-013) is fixed in this run, with its own test, as part of #949.
+- Q3 → A. Escalation 5 approved in advance: the implementer may change `TokenGapNormalizer`, limited to the #954 blank line after `{` and the #1390 `with` initializer.
+
+Routed without asking (clarifications within the run's issues, from 02-skeptic.md): FMT-SWITCH-014's list of directly-declared forms is widened to every form C# scopes to the whole switch (the skeptic's compiled evidence); FMT-BREAK-019 "a later call" reads "a later link".
