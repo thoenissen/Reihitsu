@@ -401,7 +401,7 @@ class C
 }
 ```
 
-A comment at the start of a text that begins with a byte order mark: `U+FEFF/// <summary>S</summary>`, `class C`, `{`, `}` becomes `U+FEFF/// <summary>`, `/// S`, `/// </summary>`, `class C`, `{`, `}` — only the first line starts with the byte order mark.
+A comment at the start of a text that begins with a byte order mark: the lines `U+FEFF/// <summary>S</summary>`, `class C`, `{`, `    int A;`, `}` become `U+FEFF/// <summary>`, `/// S`, `/// </summary>`, `class C`, `{`, `    int A;`, `}` — only the first line starts with the byte order mark.
 
 Inline XML and a paragraph break:
 
