@@ -33,7 +33,7 @@ sdd/
 - `Reihitsu.Tooling` is internal and gets no spec.
 - Every spec file is listed in `specs/README.md`. Add the row when you add the spec.
 - Analyzer rules without a spec get one in planned batches, grouped by the behavior they share, in the squad's *specs and tests for existing behavior* lane. A bug fix on a rule without a spec does not have to write it.
-- A follow-up issue for a spec bug, a clarification, or internal work is written in the format of [`templates/follow-up-issue.md`](templates/follow-up-issue.md). Behavior changes and new rules use the public feature-request forms under `.github/ISSUE_TEMPLATE/`.
+- A follow-up issue is drafted in the format that [`templates/follow-up-issue.md`](templates/follow-up-issue.md) picks for it. That file also names the cases that use a public form under `.github/ISSUE_TEMPLATE/` instead.
 
 ## Specs and user documentation
 

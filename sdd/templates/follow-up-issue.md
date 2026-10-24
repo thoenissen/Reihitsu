@@ -23,7 +23,7 @@ This format is not a public issue template and does not go under `.github/ISSUE_
 
 ## Spec bug
 
-The fields correspond to the public bug-report forms: the requirement replaces the description, the three code blocks are the reproducible example, the expected behavior, and the actual behavior.
+The fields correspond to those of the public bug-report forms: *Requirement* takes the place of the description, *Input* is the minimal reproducible example (the formatter form's input code), *Today's output* is the actual behavior, and *Required output* is the expected behavior.
 
 ````markdown
 Lane: bug-fix
