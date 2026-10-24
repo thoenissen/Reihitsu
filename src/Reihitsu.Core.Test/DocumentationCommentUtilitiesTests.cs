@@ -144,7 +144,7 @@ public class DocumentationCommentUtilitiesTests
     public void GetContinuationPrefixExcludesByteOrderMarkInFrontOfTheExterior()
     {
         // Arrange
-        var sourceText = ParseLine("﻿/// <summary>S</summary>");
+        var sourceText = ParseLine("\uFEFF/// <summary>S</summary>");
 
         // Act
         var result = DocumentationCommentUtilities.GetContinuationPrefix(sourceText, sourceText.Lines[0]);

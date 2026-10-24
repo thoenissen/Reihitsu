@@ -438,5 +438,69 @@ public class DocumentationCommentWithoutOwnEndTagTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies the specification example: a comment with a summary without an end tag that shares its line with an
+    /// earlier block comment is moved onto its own line, and its text is left as written
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-DOC-013")]
+    [Requirement("FMT-DOC-002")]
+    public void CommentWithoutEndTagSeparatedFromEarlierBlockCommentIsLeftAsWritten()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int A;
+
+                                 /* c */ /// <summary>S
+                                 int B;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int A;
+
+                                    /* c */
+                                    /// <summary>S
+                                    int B;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a comment with a summary without an end tag behind a banner comment at the start of the file is
+    /// moved below the banner, and its text is left as written
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-DOC-013")]
+    [Requirement("FMT-DOC-002")]
+    public void CommentWithoutEndTagBehindBannerAtStartOfFileIsLeftAsWritten()
+    {
+        // Arrange
+        const string input = """
+                             /* banner */ /// <summary>S
+                             class C
+                             {
+                                 int A;
+                             }
+                             """;
+        const string expected = """
+                                /* banner */
+                                /// <summary>S
+                                class C
+                                {
+                                    int A;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

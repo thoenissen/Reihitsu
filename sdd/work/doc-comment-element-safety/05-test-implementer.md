@@ -323,3 +323,62 @@ All tests are in `RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyze
 - **Unchanged test.** `VerifyNoCodeFixForEntityReferenceBetweenTheElements` keeps its `RH8309-005` tag and its expectation, as `10-spec-author.md` says.
 
 Command: `scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTests"`. Result: 44 passed, 0 failed.
+
+## Repair round 2
+
+This round covers findings F1 to F4 of `13-auditor.md` (audited `9161d75`) and the F4 spec text of `14-spec-author.md` (`0b23f86`). I ran everything on head `0b23f86`. Only test files changed.
+
+### F1 and F2 — `ByteOrderMarkTests.cs` and `CleanupPhaseTests.cs`
+
+Which side is which comes from FMT-CLEAN-009 and maintainer answer 4:
+- **Start of the text:** the BOM is kept, and the result must be stable on the second pass (FMT-PIPE-004).
+- **Anywhere else:** `U+FEFF` is not the encoding signature. It is white space, as on base. On a blank line it goes with that line, and between two statements the blank line stays without it.
+
+| Test | Requirement / failure class | Helper | Result on head |
+|---|---|---|---|
+| `ByteOrderMarkBeforeLineBreakAndIndentedFirstTokenIsKeptInOnePass` (F1a) | FMT-CLEAN-009, FMT-PIPE-004 | FmtBase | red, as the auditor says: `U+FEFF    class C…` (old indentation kept) |
+| `ByteOrderMarkBeforeBlankLineAndIndentedCommentIsKeptInOnePass` (F1a) | FMT-CLEAN-009, FMT-PIPE-004 | FmtBase | red, same defect: `U+FEFF    // c` |
+| `ByteOrderMarkBeforeIndentedDocumentationCommentIsKeptInOnePass` (F1a) | FMT-CLEAN-009, FMT-PIPE-004, FMT-DOC-011 | FmtBase | red, same defect: `U+FEFF    /// <summary>` |
+| `ByteOrderMarkBeforeIndentedUsingDirectiveIsKeptInOnePass` (F1a) | FMT-CLEAN-009, FMT-PIPE-004 | FmtBase | red, same defect: `U+FEFF    using System;` |
+| `ByteOrderMarkCharacterOnBlankLineBeforeElseIsRemoved` (F1b, F2) | FMT-CLEAN-009, FMT-PIPE-004 | FmtBase | red: `U+FEFF                else` |
+| `ByteOrderMarkCharacterOnBlankLineBeforeFinallyIsRemoved` (F1b, F2) | FMT-CLEAN-009, FMT-PIPE-004 | FmtBase | red: `U+FEFF                finally` |
+| `ByteOrderMarkCharacterOnBlankLineBeforeOpeningBraceIsRemoved` (F2) | FMT-CLEAN-009 | FmtBase | red: `U+FEFF{` |
+| `ByteOrderMarkCharacterOnBlankLineBeforeClosingBraceIsRemoved` (F2) | FMT-CLEAN-009 | FmtBase | red: `U+FEFF}` |
+| `ByteOrderMarkCharacterOnBlankLineBeforeStatementIsRemoved` (F2) | FMT-CLEAN-009 | FmtBase | green (the base behavior, which the head keeps) |
+| `CleanupPhaseTests.RemovesByteOrderMarkCharacterOnBlankLineInTheMiddleOfTheText` (F2, Cleanup alone) | FMT-CLEAN-009, FMT-CLEAN-001 | `CleanupPhase.Execute` | green |
+
+- **F1a oracle.** Each expected output is `U+FEFF` followed by the formatter's output for the same text without the BOM. `scripts/trace.sh` shows those BOM-free texts stable after pass 2.
+- **F2 oracle.** Each expected output is the input without the `U+FEFF` line, or, between two statements, with that line left empty. That is the formatter's output for the input with a plain blank line in that place, also stable under the trace. None of these oracle inputs reaches the BOM branch, so the expected values do not come from the changed code (FC-035).
+- **Runs.** Every new test runs LF and CRLF, plus a second pass, through `AssertRuleResult`.
+
+### F3 — invisible `U+FEFF` characters in my test literals (FC-033)
+
+Every `U+FEFF` character inside a test literal is now the escape `\uFEFF`:
+- `ByteOrderMarkTests.cs` (the constant);
+- `CleanupPhaseTests.cs` (3 sites);
+- `DocumentationCommentUtilitiesTests.cs` (1 site);
+- `RH8304…AnalyzerTests.cs` (2 sites).
+
+- **New tests.** The tests added in this round use the escape too.
+- **Check.** A scan of all 18 test files this run touched finds no `U+FEFF` character except the encoding signature that some files start with.
+- **Not mine.** The Core production constant goes to the implementer.
+- **Results.** Core `DocumentationCommentUtilitiesTests`: 44 passed. RH8304 class: 27 passed.
+
+### F4 — `DocumentationCommentWithoutOwnEndTagTests.cs`
+
+| Test | Requirement / failure class | Helper | Result on head |
+|---|---|---|---|
+| `CommentWithoutEndTagSeparatedFromEarlierBlockCommentIsLeftAsWritten` (the new FMT-DOC-013 example) | FMT-DOC-013, FMT-DOC-002 | FmtBase | green |
+| `CommentWithoutEndTagBehindBannerAtStartOfFileIsLeftAsWritten` (the `/* banner */` form from `14-spec-author.md`) | FMT-DOC-013, FMT-DOC-002 | FmtBase | green |
+
+Both are green because the code already produces this outcome. The auditor reported F4 as a gap in the spec and tests, not in the code.
+
+### Commands
+
+```shell
+scripts/test.sh --project formatter --filter "FullyQualifiedName~ByteOrderMarkTests|FullyQualifiedName~CleanupPhaseTests|FullyQualifiedName~DocumentationCommentWithoutOwnEndTagTests"
+scripts/test.sh --project core --filter "FullyQualifiedName~DocumentationCommentUtilitiesTests"
+scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzerTests"
+```
+
+On head, the formatter filter above gives 8 red, all listed above; the rest are green.

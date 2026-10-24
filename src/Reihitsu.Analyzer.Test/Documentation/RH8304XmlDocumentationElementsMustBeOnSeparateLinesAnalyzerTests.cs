@@ -597,8 +597,8 @@ public class RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzerTests : 
     [Requirement("RH8304-004")]
     public async Task VerifyFixDoesNotRepeatTheByteOrderMark()
     {
-        const string testData = "﻿/// <summary>S</summary><remarks>R</remarks>\nclass C\n{\n}";
-        const string fixedData = "﻿/// <summary>S</summary>\n/// <remarks>R</remarks>\nclass C\n{\n}";
+        const string testData = "\uFEFF/// <summary>S</summary><remarks>R</remarks>\nclass C\n{\n}";
+        const string fixedData = "\uFEFF/// <summary>S</summary>\n/// <remarks>R</remarks>\nclass C\n{\n}";
 
         var actual = await ApplyCodeFixAsync(testData);
 
