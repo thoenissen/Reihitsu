@@ -92,11 +92,11 @@ class C
 }
 ```
 
-### FMT-DOC-003 — Stranded documentation stays where it was written
+### FMT-DOC-003 — Stranded documentation stays as it was written
 
-The formatter MUST NOT move a documentation comment written behind code when the token that follows it does not open the syntax node it belongs to — a `;`, `)`, `]`, or `}`.
+The formatter MUST NOT move a documentation comment written behind code when the token that follows it does not open the syntax node it belongs to — a `;`, `)`, `]`, or `}` — and MUST leave the text of every line of that comment as written: FMT-DOC-005 to FMT-DOC-011 do not apply to it.
 
-Why: Such a comment documents nothing; the compiler reports CS1587 wherever it stands. Moving it would change the author's layout without giving the comment a meaning, so the formatter keeps it in place and leaves the decision to the author.
+Why: Such a comment documents nothing; the compiler reports CS1587 wherever it stands and does not read it as documentation, so it is an ordinary comment whose text the formatter keeps (FMT-PIPE-002). Moving it would change the author's layout without giving the comment a meaning, and laying out its elements would rewrite text that documents nothing, so the formatter keeps it as it is and leaves the decision to the author.
 
 Example:
 
@@ -119,6 +119,25 @@ class C
         ;
 }
 ```
+
+Its elements are not laid out, and its separators are not normalized:
+
+```csharp
+class C
+{
+    int A; /// <summary>end</summary>
+}
+```
+
+```csharp
+class C
+{
+    int A; ///<remarks>a
+    /// b</remarks>
+}
+```
+
+are left unchanged.
 
 ### FMT-DOC-004 — Relocated documentation is normalized in the same run
 
@@ -151,6 +170,8 @@ class C
 ### FMT-DOC-005 — One space separates `///` from its content
 
 On every line of a single-line documentation comment whose `///` exterior is followed by content, the formatter MUST make the first character after the exterior a single space: a missing separator MUST be inserted, and a separator that is another whitespace character, such as a tab, MUST be replaced by a space. Whitespace after that first character belongs to the content and MUST be kept.
+
+This requirement does not apply to a comment that FMT-DOC-003 or FMT-DOC-013 leaves as written.
 
 Why: One space is the canonical separator. Anything beyond it is indentation the author chose inside the content — for example in a `<code>` block or a continued list item — and must not be flattened.
 
@@ -189,6 +210,8 @@ class C
 
 On a documentation line that carries only whitespace after `///`, the formatter MUST remove that whitespace, except that a single space MUST be kept.
 
+This requirement does not apply to a comment that FMT-DOC-003 or FMT-DOC-013 leaves as written.
+
 Why: A line made of `///` and whitespace has no content to separate, so the separator rule of FMT-DOC-005 has nothing to apply to; the formatter drops what cannot be a separator.
 
 Example — not shown as blocks because the difference is trailing whitespace: in a comment with the lines `///` followed by three spaces and `///` followed by one space, the first becomes `///` and the second is left unchanged.
@@ -216,6 +239,8 @@ is left unchanged.
 ### FMT-DOC-008 — A summary spans at least three lines
 
 The formatter MUST rewrite a `<summary>` element (the name is matched case-insensitively) whose start and end tags are less than two lines apart so that the start tag, the content, and the end tag each start a `///` line of their own. A summary is never collapsed to one line.
+
+This requirement does not apply to a comment that FMT-DOC-003 or FMT-DOC-013 leaves as written.
 
 Why: The repository style puts summary text on its own lines, so a summary reads the same however short it is and grows by adding lines rather than by rewrapping the tags.
 
@@ -256,7 +281,7 @@ When an XML element's first content starts on the line of its start tag and the 
 
 Why: Content that begins beside the start tag but ends below it is the half-wrapped shape that appears when a one-line element grows. The formatter picks the nearest canonical form: a single line when everything fits on one, otherwise the expanded block form.
 
-This requirement does not yet decide inline formatting elements such as `<b>` or `<i>` whose content wraps across lines.
+This requirement does not yet decide inline formatting elements such as `<b>` or `<i>` whose content wraps across lines, and it does not apply to a comment that FMT-DOC-003 or FMT-DOC-013 leaves as written.
 
 Example — more than one content line:
 
@@ -417,3 +442,28 @@ class C
 ```
 
 is left unchanged.
+
+### FMT-DOC-013 — Documentation with an element without an end tag is left as written
+
+When an XML element of a single-line documentation comment has no end tag — at the top level or nested inside another element — the formatter MUST leave the text of every line of that comment as written: FMT-DOC-005 to FMT-DOC-011 do not apply to it, not even to its complete elements. The code that follows the comment MUST stay code.
+
+This requirement covers a documentation comment that starts its own line. An element that the parser closes with an end tag of another name, such as `<summary>S</returns>`, has an end tag here, and a comment written behind code that FMT-DOC-001 moves is not covered.
+
+Why: The parser lets an element without an end tag run to the end of the comment, so where the author meant it to end is unknown. Laying it out would either guess that end or take the code that follows into the comment, and laying out only the rest of the comment would leave half-normalized documentation. Incomplete documentation is corrected by hand.
+
+Example:
+
+```csharp
+class C
+{
+    /// <summary>S
+    int A;
+
+    /// <summary>Gets the value.</summary>
+    /// <remarks>Text
+    /// more
+    int B;
+}
+```
+
+is left unchanged, including the one-line `<summary>` of `B`.

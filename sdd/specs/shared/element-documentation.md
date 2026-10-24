@@ -1307,11 +1307,9 @@ public class C<T>
 
 ### SHARED-DOC-017 — An end tag with another name is no end tag of its own
 
-An XML element of a documentation comment that is written with a start tag MUST count as having an end tag of its own only when the parser closes it with an end tag that carries the name of its start tag. Such an element without an end tag, and one that the parser closes with an end tag of another name — `<returns>` in `<remarks><returns>Nothing</remarks>`, which `</remarks>` closes — has no end tag of its own. The code fixes of RH8107, RH8202, RH8204, RH8305, and RH8307 MUST NOT be offered for a reported element that has no end tag of its own, and the code fix of RH8309 MUST NOT be offered when a top-level element that it would move — the reported element always among them — has no end tag of its own; the diagnostic is still reported. An empty element, such as `<returns/>`, `<value/>`, or `<placeholder/>`, needs no end tag, and this requirement does not withhold a fix for it.
+An XML element of a documentation comment that is written with a start tag MUST count as having an end tag of its own only when the parser closes it with an end tag that carries the name of its start tag. Such an element without an end tag, and one that the parser closes with an end tag of another name — `<returns>` in `<remarks><returns>Nothing</remarks>`, which `</remarks>` closes — has no end tag of its own. The code fixes of RH8107, RH8202, RH8204, RH8305, and RH8307 MUST NOT be offered for a reported element that has no end tag of its own, and the code fix of RH8309 MUST NOT be offered when any top-level element of the reported comment has no end tag of its own, whether or not the fix would move it; the diagnostic is still reported. An empty element, such as `<returns/>`, `<value/>`, or `<placeholder/>`, needs no end tag, and this requirement does not withhold a fix for it.
 
-For RH8309, this requirement covers the elements the fix would move; a comment in which only a top-level element that keeps its position has no end tag of its own is not covered.
-
-Why: An end tag with another name belongs to an element around the reported one, and an element without an end tag runs to the end of the comment. An empty element ends where it is written, so removing it touches nothing else. Removing or unwrapping the reported element up to where the parser ends it would also remove the end tag of the element around it, or the documentation and the code that follow it. Laying the element out or moving it up to where the parser ends it would treat an end tag of another name as the element's own, or take the documentation and the declaration that follow it into the element, so the declaration would become comment text. Where such an element was meant to end is the author's decision.
+Why: An end tag with another name belongs to an element around the reported one, and an element without an end tag runs to the end of the comment. An empty element ends where it is written, so removing it touches nothing else. Removing or unwrapping the reported element up to where the parser ends it would also remove the end tag of the element around it, or the documentation and the code that follow it. Laying the element out or moving it up to where the parser ends it would treat an end tag of another name as the element's own, or take the documentation and the declaration that follow it into the element, so the declaration would become comment text. Where such an element was meant to end is the author's decision, and the RH8309 fix sorts and lays out the whole comment, so an element without an end tag of its own anywhere in it is rewritten even when it keeps its position.
 
 Example — RH8107 reports the `<returns>` element of the `void` method, which `</remarks>` closes:
 
@@ -1399,7 +1397,7 @@ class C
 
 and no code fix is offered.
 
-Example — RH8309 reports the `<summary>` element after `<returns>` in both comments:
+Example — RH8309 reports the `<summary>` element after `<returns>` in all three comments:
 
 ```csharp
 class C
@@ -1414,10 +1412,17 @@ class C
     /// </summary>
     /// <param name="a">P
     int M(int a) => a;
+
+    /// <returns>R</returns>
+    /// <summary>
+    /// S
+    /// </summary>
+    /// <seealso cref="C">X
+    int N() => 0;
 }
 ```
 
-In the first comment, the reported element has no end tag; in the second, the `<param>` element, which the fix would move in front of `<returns>`, has none. No code fix is offered for either.
+In the first comment, the reported element has no end tag; in the second, the `<param>` element, which the fix would move in front of `<returns>`, has none; in the third, the `<seealso>` element, which keeps its position, has none. No code fix is offered for any of them.
 
 Example — an empty `<returns/>` element ends where it is written, so the RH8107 fix is offered and removes its line:
 
