@@ -14,7 +14,7 @@ This spec covers the indentation phase: the column at which every line that star
 - Where lines break — FMT-BREAK. This phase never adds or removes a line break.
 - Spacing between tokens on the same line — FMT-SPACE. The rest of a line keeps its spacing and moves with its first token.
 - Blank lines — FMT-BLANK.
-- The content lines, the lines of its interpolation holes, and the closing marker of a multi-line raw string literal — FMT-RAW.
+- The content lines and the closing marker of a multi-line raw string literal, and the lines inside its interpolation holes that no alignment requirement places — FMT-RAW.
 - The text of documentation comments other than the column of their `///` markers — FMT-DOC.
 - The column of a continuation line that no requirement below owns — for example the right operand of a wrapped binary expression, the expression after `=>` or `=` that stays on its own line, or the content of a parenthesized pattern that is not a property pattern. Such lines currently take the block column of the enclosing statement or declaration; indenting them one level deeper is a decided behavior change, tracked in thoenissen/Reihitsu#953.
 - Configuration. The indentation unit is fixed; no option or `.editorconfig` setting is read.
@@ -441,9 +441,9 @@ class C
 
 ### FMT-INDENT-011 — Disabled text and literal content are never re-indented
 
-The formatter MUST NOT change the whitespace inside disabled text or inside the text of a string or character literal, including the continuation lines of a verbatim string, and MUST NOT re-indent any line after the opening line of a multi-line raw string literal, the lines that start inside its interpolation holes included (FMT-RAW-007). Only the other lines that start with a token, a comment, or a directive are re-indented.
+The formatter MUST NOT change the whitespace inside disabled text or inside the text of a string or character literal, including the continuation lines of a verbatim string, and MUST NOT re-indent a content line or the closing line of a multi-line raw string literal, nor a line inside one of its interpolation holes that would take the block column of FMT-INDENT-002 (FMT-RAW-007). Only the other lines that start with a token, a comment, or a directive are re-indented; a line inside a hole that an alignment requirement places keeps that alignment.
 
-Why: Disabled text is not parsed, so its structure is unknown; re-indenting it would half-format code nobody compiles. The whitespace inside a literal is part of its value (FMT-PIPE-002). Multi-line raw strings are aligned by their own phase (FMT-RAW-001), which moves the lines of their holes with them; indenting those lines here as well would add a second move to the same lines.
+Why: Disabled text is not parsed, so its structure is unknown; re-indenting it would half-format code nobody compiles. The whitespace inside a literal is part of its value (FMT-PIPE-002). Multi-line raw strings are aligned by their own phase (FMT-RAW-001), which moves the lines of their holes with them; giving a hole line the block column here as well would add a second move that does not depend on where the literal sits.
 
 Example:
 
