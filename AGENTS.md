@@ -96,9 +96,9 @@ Agents implement issues as a squad: the maintainer talks only to a lead, and the
 
 ## Spec Driven Development
 
-The intended behavior of every shipped surface is specified under `sdd/specs/`, and decisions that change it are recorded as change docs under `sdd/changes/`. [`sdd/README.md`](sdd/README.md) is the rulebook: layout, spec format, requirement IDs, when a change doc is required, temporary working docs under `sdd/work/`, and how an open question about intended behavior is filed. Read it before changing behavior a spec covers.
+The intended behavior of every shipped surface is specified under `sdd/specs/`, and decisions that change it are recorded as change docs under `sdd/changes/`. [`sdd/README.md`](sdd/README.md) is the rulebook: layout, spec format, requirement IDs, when a change doc is required, temporary working docs under `sdd/work/`, and how an open question about intended behavior reaches the maintainer. Read it before changing behavior a spec covers.
 
-In short: a bug is a difference between the code and a spec. Behavior that looks wrong while a spec is being written is not specified as it stands and not silently fixed — it is filed as an open question for the maintainer, as [`sdd/README.md`](sdd/README.md#open-questions) describes, and never recorded only in a pull-request description.
+In short: a bug is a difference between the code and a spec. Behavior that looks wrong while a spec is being written is not specified as it stands and not silently fixed — it is escalated to the maintainer as an open question, as [`sdd/README.md`](sdd/README.md#open-questions) describes, and never recorded only in a pull-request description.
 
 ## High-level architecture
 

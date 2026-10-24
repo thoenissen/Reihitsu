@@ -12,7 +12,7 @@ Reihitsu works by a lightweight form of Spec Driven Development (SDD), carried o
 
 - The intended behavior of every shipped surface — analyzer rules, formatter, CLI, Playground, and the policies they share — is written down as specs under `sdd/specs/`. A bug is a difference between the code and a spec.
 - Every requirement has an immutable ID, recorded in a ledger. Tests name the requirements they cover, and the architecture tests fail the build when an active requirement has no covering test.
-- Behavior that looks wrong while a spec is written is not specified and not silently fixed: it is filed as an open question in one tracker issue per spec, and the maintainer decides it.
+- Behavior that looks wrong while a spec is written is not specified and not silently fixed: it is escalated to the maintainer as an open question, and only the outcome of the decision is recorded.
 - A decision that changes intended behavior is recorded as a change doc under `sdd/changes/`. Plans and handovers of a run are temporary working docs under `sdd/work/`, never merged.
 - Agents implement issues as a squad: the maintainer talks only to a lead, and the lead delegates every stage to a role with a narrow job, along a lane that the diff's paths confirm.
 - The decisions that recur across many rules are recorded once as principles, written as requirements of the shared specs and as sections of `sdd/README.md`.
@@ -65,9 +65,9 @@ Specs are written for agent work: grep-able, unambiguous, and small enough to lo
 - A header table names the `ID prefix`, `Status`, `Code owners`, and `Uses`. An analyzer spec adds `Category`, `Severity`, `Enabled by default`, and `Code fix`, which must match the rule's descriptor and code-fix provider.
 - Code owners are type names only, never paths or line numbers, and a type owns at most one spec. What decides is the behavior a type implements, not who calls it.
 - `Uses` lists exactly the requirement IDs of other specs the spec relies on, so a reader sees the dependencies and the checks can enforce them.
-- `Non-goals` state what the spec deliberately does not cover, so nobody extends behavior into them without a change doc.
+- `Non-goals` list only deliberate exclusions — what the spec does not cover by decision, never a case whose intended behavior is undecided or a known defect — so extending behavior into one is a behavior change that needs a change doc.
 - One requirement per heading, `### <ID> — <short title>`: one decision with its own reason. The normative sentence comes first (MUST, MUST NOT, SHOULD), then `Why:`, which decides the edge cases the requirement does not spell out, then concrete before/after examples, which seed the tests. Analyzer examples mark reported spans with the verifier markup `{|RH####:…|}`.
-- A requirement claims only what is verified. It states the inputs it decides, and claims that no other input behaves otherwise only when the code that dispatches on the input shows the list is complete. Where the set of inputs is open-ended, it names the decided ones and states its reach in a coverage sentence; a form left out that looks wrong is filed as an open question. An exhaustive or negative claim that the code does not bear out is broken again by every review round.
+- A requirement claims only what is verified. It states the inputs it decides, and claims that no other input behaves otherwise only when the code that dispatches on the input shows the list is complete. Where the set of inputs is open-ended, it names the decided ones and states its reach in a coverage sentence; a form left out that looks wrong is an open question for the maintainer. An exhaustive or negative claim that the code does not bear out is broken again by every review round.
 - An analyzer spec states only what is the rule's own — what is reported, what is not, where, what the fix produces, and when it is withheld — and references the shared behavior every rule or fix has.
 - A rule already stated by a shared spec is referenced by ID, never restated. The diagnostic message and the code-fix title belong to the resources and the rule page, not to requirements.
 
@@ -92,17 +92,18 @@ The rules that can be checked mechanically are checked by the architecture tests
 - `SpecStructureTests`: IDs carry their spec's prefix; the index lists every spec with its prefix and owners; `Uses` is exact; the ledger is sorted; a type owns at most one spec; analyzer spec headers match the rule's descriptor and code-fix provider.
 - `RequirementCoverageTests`: every tag names an active requirement as one string literal on a test method; every enforced requirement is covered; every exemption states its reason.
 
-### Open questions and the question tracker
+### Open questions
 
-A spec describes current behavior. When the real output looks wrong while a spec is written or extended, the case is left out of the spec — no requirement, no non-goal, no note — and the behavior is not changed in the same PR. It is filed as an open question:
+A spec describes current behavior. When the real output looks wrong while a spec is written or extended, the intended behavior is an open question that only the maintainer answers, and it is an escalation to the maintainer, never a GitHub issue:
 
-- Each spec with open questions has one GitHub issue, titled `SDD open questions: <spec path>`. A question about shared behavior goes to the shared spec's issue. Later questions are added to the existing issue.
-- Each question stands on its own: input, real output, why it looks wrong, and the requirement IDs it touches. Filing the questions is part of the run that writes or extends the spec; in the squad workflow, the squad files them.
-- The maintainer decides each question: a bug fix brings the code in line with the spec, a clarification adds the current behavior as a requirement, and a different intended behavior needs a change doc first.
-- A question is never recorded only in a PR description, which nobody reads after the merge; the PR may link the issue.
-- A rule that stays silent where the formatter rewrites is not an open question about the formatter; it is filed as the rulebook's section *The formatter may do more than the analyzers (P11)* describes.
+- A question that blocks the run — an issue's own behavior depends on the answer, or two readings give different output for the same input — stops the run at once.
+- A question found in passing does not stop the run: the spec author leaves the case out of the spec and lists the question in its handover, and the lead asks all questions of the run in one chat message before the auditor runs, then waits.
+- Each question stands on its own: input, real output, why it looks wrong, the requirement IDs it touches, the competing readings, and a recommendation.
+- The answer decides: a bug fix or a clarification within the run's issues is done in this run, a clarification adding the current behavior as a requirement; a different intended behavior needs a change doc first; a case outside the run's issues becomes a follow-up issue whose text the maintainer approves; "leave it unspecified" records nothing.
+- While a question is undecided, the case never goes into a spec — no requirement, no non-goal, no note — and a question is never recorded only in a PR description, which nobody reads after the merge.
+- A rule that stays silent where the formatter rewrites is not an open question about the formatter; the rulebook's section *The formatter may do more than the analyzers (P11)* says what it is instead.
 
-Before a run starts, the lead names the undecided questions of the specs it touches, since they may change what the run should do.
+The maintainer decides in the chat, and only the outcome is recorded — a spec change, a change doc, or an approved follow-up issue. A tracker of questions that nobody reads after the decision would only duplicate the escalation path.
 
 ### Principles
 
@@ -192,7 +193,7 @@ Every role writes its result to `sdd/work/<slug>/<nn>-<role>.md`, starting with 
 
 The lead stops all role work and asks the maintainer when a decision belongs to the maintainer:
 
-1. the spec author has an open question that blocks the run;
+1. the spec author has an open question about intended behavior: a blocking one stops the run at once, the ones found in passing are asked together before the auditor;
 2. a change doc is required — the maintainer approves What and Why before tests are written;
 3. the skeptic says the change should not be made;
 4. a test turns out to be wrong, so the spec would have to change mid-run;
@@ -246,6 +247,7 @@ Every rule of the earlier agent workflow was sorted into knowledge about the cod
 - **Formatter specs by user-visible topic instead of by phase** — rejected: specs per phase match the code; cross-phase behavior goes into the pipeline spec.
 - **Working docs kept local or only in the PR description** — rejected: later sessions cannot rely on local files, and a PR description is not versioned with the code.
 - **Open questions recorded in PR descriptions or written into specs as non-goals** — rejected: nobody reads a PR description after the merge, and a non-goal would turn a suspected defect into specified behavior.
+- **One GitHub issue per spec that collects its open questions** — rejected: such an issue duplicates the escalation path, collects questions nobody reads once they are decided, and splits one decision across an issue and a run; the maintainer decides in the chat, and only the outcome — a spec change, a change doc, or an approved follow-up issue — is recorded.
 - **Opt-in coverage, enforcing only listed spec paths** — rejected: a new spec would stay unenforced until someone remembered to add it; an exemption with a reason makes leaving a spec out visible.
 - **Requiring every test to carry a tag or an exemption** — rejected: many tests verify a requirement only incidentally or none at all; tagging them with the nearest requirement would claim coverage they do not give.
 - **Tagging architecture and tooling tests against a repository-conventions spec** — rejected: conventions and internal tools have no spec, and untagged tests are allowed.

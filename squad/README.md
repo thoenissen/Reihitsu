@@ -64,7 +64,7 @@ A run of several issues splits every handover by issue ([below](#several-issues-
 
 The lead stops and asks the maintainer when:
 
-1. the spec author has an open question about intended behavior that blocks the run (one found in passing is filed instead, see [`roles/spec-author.md`](roles/spec-author.md));
+1. the spec author has an open question about intended behavior: a blocking one stops the run at once; the ones found in passing are asked together before the auditor (see [`roles/spec-author.md`](roles/spec-author.md));
 2. a change doc is required — the maintainer approves What and Why before tests are written;
 3. the skeptic says the change should not be made;
 4. a test turns out to be wrong, i.e. the spec would have to change mid-run;
