@@ -19,7 +19,9 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
   4A D -> vNext + `enhancement`; issues already on 1.3.0/1.4.0 keep milestone.
   5A E+F -> Maintenance; close #1034; #1055 close if covering test exists else Maintenance; trim comments.
   6A split: issue keeps bug part + milestone; each extension part -> new vNext issue (feature-request format), linked both ways (approved).
-  7 open: maintainer asked whether new templates would be public (yes, every ISSUE_TEMPLATE file is in the public chooser) -> P5-2 question; body reformatting waits.
+  7A (asked again, decided 2026-10-24): NO public templates. Follow-up issue format as a repo document `sdd/templates/follow-up-issue.md` (variants: spec bug, clarification, internal), used by squad agents and coordinators; one docs-lane squad run; afterwards an agent reformats the non-conforming bodies (user-shaped ones into the public bug/feature templates).
+  #1384 -> 1.2.1 (not critical).
+  Milestones 1.2.1 and 1.2.2 created by the maintainer 2026-10-24.
   8A labels on all 215: bug / enhancement / maintenance + analyzer / formatter.
   9 NO tracking issue, no summary comments: the state lives in this file only.
 - Bookkeeping P5-1 (agents): (a) milestones/labels/titles/closing/trims, log `inventory/phase5-bookkeeping-1.md`; (b) split issues, mapping `inventory/phase5-splits.md`. Bug-pool milestones wait for 1.2.1. Round P5-2 planned: the 20 spec contradictions (J) + remaining doubts (M).
