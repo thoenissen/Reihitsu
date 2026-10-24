@@ -62,7 +62,7 @@ public class RH8202ValueTagMustNotBeUsedCodeFixProvider : CodeFixProvider
 
         foreach (var diagnostic in context.Diagnostics)
         {
-            if (DocumentationCommentCodeFixUtilities.CanRemoveElement(root, diagnostic.Location.SourceSpan) == false)
+            if (DocumentationCommentCodeFixUtilities.CanRewriteElement(root, diagnostic.Location.SourceSpan) == false)
             {
                 continue;
             }

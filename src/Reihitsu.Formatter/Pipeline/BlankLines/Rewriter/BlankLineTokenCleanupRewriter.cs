@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
+using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.BlankLines.Rewriter;
 
@@ -130,7 +131,9 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Collapses a leading run of blank-line trivia to zero or one line break
+    /// Collapses a leading run of blank-line trivia to zero or one line break. A byte order mark that starts the run is
+    /// kept in front of what remains, because the parser reads it as white space although it is the encoding signature
+    /// of the text
     /// </summary>
     /// <param name="token">The token to update</param>
     /// <param name="keepSingleLineBreak">Whether one line break should be preserved</param>
@@ -177,7 +180,12 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
             return token;
         }
 
-        var newTrivia = new List<SyntaxTrivia>(trivia.Count - runEnd + indentationTrivia.Count + (keepSingleLineBreak ? 1 : 0));
+        var newTrivia = new List<SyntaxTrivia>(trivia.Count - runEnd + indentationTrivia.Count + 2);
+
+        if (ReihitsuFormatterHelpers.StartsWithByteOrderMark(trivia[0]))
+        {
+            newTrivia.Add(ReihitsuFormatterHelpers.CreateByteOrderMarkTrivia());
+        }
 
         if (keepSingleLineBreak)
         {

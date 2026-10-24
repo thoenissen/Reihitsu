@@ -13,7 +13,39 @@ namespace Reihitsu.Formatter.Utilities;
 /// </summary>
 internal static class ReihitsuFormatterHelpers
 {
+    #region Constants
+
+    /// <summary>
+    /// The byte order mark, which the parser reads as white-space trivia at the start of the text
+    /// </summary>
+    private const string ByteOrderMark = "\uFEFF";
+
+    #endregion // Constants
+
     #region Methods
+
+    /// <summary>
+    /// Determines whether a trivia is white space that starts with the byte order mark. The parser reads the byte order
+    /// mark as white space, together with any spaces or tabs that follow it on the first line, so a step that removes
+    /// white space by trivia kind would drop the encoding signature of the text with it
+    /// </summary>
+    /// <param name="trivia">The trivia to check</param>
+    /// <returns><see langword="true"/> if the trivia is white space whose text starts with the byte order mark</returns>
+    internal static bool StartsWithByteOrderMark(SyntaxTrivia trivia)
+    {
+        return trivia.IsKind(SyntaxKind.WhitespaceTrivia)
+               && trivia.ToFullString().StartsWith(ByteOrderMark, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Creates a white-space trivia that holds only the byte order mark, which a step that removes the white space it
+    /// was read with puts back in its place
+    /// </summary>
+    /// <returns>The byte order mark trivia</returns>
+    internal static SyntaxTrivia CreateByteOrderMarkTrivia()
+    {
+        return SyntaxFactory.Whitespace(ByteOrderMark);
+    }
 
     /// <summary>
     /// Detects the predominant end-of-line sequence in the syntax node.
@@ -155,17 +187,13 @@ internal static class ReihitsuFormatterHelpers
     /// <param name="owningToken">The token whose leading trivia holds the documentation comment</param>
     /// <returns><see langword="true"/> if the documentation comment documents what follows; otherwise, <see langword="false"/></returns>
     /// <remarks>
-    /// Roslyn files a documentation comment as the leading trivia of the next token whatever that token is, so the
-    /// owning token decides whether the comment documents anything. When it opens the node it belongs to - the
-    /// <c>public</c> of a property, the identifier of a declarator - the comment documents that node. When it does
-    /// not, the comment is stranded before a <c>;</c>, <c>]</c> or <c>}</c>, where the compiler reports CS1587.
-    /// The phases that relocate or separate documentation comments share this predicate so they cannot disagree
-    /// about which comments carry documentation
+    /// The decision belongs to <see cref="DocumentationCommentUtilities.DocumentsFollowingCode"/>, which the layout rules
+    /// share with the formatter. The phases that relocate or separate documentation comments call it through this
+    /// method so they cannot disagree about which comments carry documentation
     /// </remarks>
     internal static bool DocumentsFollowingCode(SyntaxToken owningToken)
     {
-        return owningToken.Parent != null
-               && owningToken.Parent.GetFirstToken() == owningToken;
+        return DocumentationCommentUtilities.DocumentsFollowingCode(owningToken);
     }
 
     /// <summary>

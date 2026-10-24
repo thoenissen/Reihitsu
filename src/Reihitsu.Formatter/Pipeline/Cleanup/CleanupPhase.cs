@@ -48,7 +48,6 @@ internal sealed class CleanupPhase : IFormattingPhase
         var leading = CleanLeadingTrivia(rewritten.LeadingTrivia, original);
         var trailing = CleanTrailingTrivia(rewritten.TrailingTrivia, original);
 
-        // BOM is preserved automatically because only WhitespaceTrivia and EndOfLineTrivia are removed.
         return rewritten.WithLeadingTrivia(leading)
                         .WithTrailingTrivia(trailing);
     }
@@ -62,7 +61,7 @@ internal sealed class CleanupPhase : IFormattingPhase
     /// <returns>The cleaned leading trivia list</returns>
     private static SyntaxTriviaList CleanLeadingTrivia(SyntaxTriviaList leading, SyntaxToken original)
     {
-        leading = CleanWhitespaceBeforeEndOfLine(leading);
+        leading = CleanWhitespaceBeforeEndOfLine(leading, startsText: original.FullSpan.Start == 0);
         leading = NormalizeWhitespaceTabs(leading);
 
         if (original.IsKind(SyntaxKind.EndOfFileToken))
@@ -82,7 +81,7 @@ internal sealed class CleanupPhase : IFormattingPhase
     /// <returns>The cleaned trailing trivia list</returns>
     private static SyntaxTriviaList CleanTrailingTrivia(SyntaxTriviaList trailing, SyntaxToken original)
     {
-        trailing = CleanWhitespaceBeforeEndOfLine(trailing);
+        trailing = CleanWhitespaceBeforeEndOfLine(trailing, startsText: false);
         trailing = NormalizeWhitespaceTabs(trailing);
         trailing = StripTrailingWhitespaceAtEndOfLine(trailing, original);
 
@@ -115,11 +114,14 @@ internal sealed class CleanupPhase : IFormattingPhase
 
     /// <summary>
     /// Removes whitespace trivia that immediately precedes end-of-line trivia,
-    /// eliminating trailing whitespace and whitespace on blank lines
+    /// eliminating trailing whitespace and whitespace on blank lines. The parser reads a byte order mark at the start
+    /// of the text as whitespace, so when the list starts the text, a byte order mark that starts its first trivia is
+    /// kept and only the whitespace after it is removed
     /// </summary>
     /// <param name="triviaList">The trivia list to clean</param>
+    /// <param name="startsText">Whether the trivia list starts the text, so its first trivia may hold the byte order mark</param>
     /// <returns>The cleaned trivia list</returns>
-    private static SyntaxTriviaList CleanWhitespaceBeforeEndOfLine(SyntaxTriviaList triviaList)
+    private static SyntaxTriviaList CleanWhitespaceBeforeEndOfLine(SyntaxTriviaList triviaList, bool startsText)
     {
         if (triviaList.Count == 0)
         {
@@ -135,6 +137,22 @@ internal sealed class CleanupPhase : IFormattingPhase
                 && triviaIndex + 1 < triviaList.Count
                 && triviaList[triviaIndex + 1].IsKind(SyntaxKind.EndOfLineTrivia))
             {
+                if (startsText
+                    && triviaIndex == 0
+                    && ReihitsuFormatterHelpers.StartsWithByteOrderMark(triviaList[triviaIndex]))
+                {
+                    var byteOrderMark = ReihitsuFormatterHelpers.CreateByteOrderMarkTrivia();
+
+                    if (triviaList[triviaIndex].ToFullString() == byteOrderMark.ToFullString())
+                    {
+                        result.Add(triviaList[triviaIndex]);
+
+                        continue;
+                    }
+
+                    result.Add(byteOrderMark);
+                }
+
                 changed = true;
 
                 continue;
