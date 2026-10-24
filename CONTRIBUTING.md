@@ -43,6 +43,7 @@ Run a single test project or filter with `scripts/test.sh --project analyzer --f
 - Everything is in English: code, comments, documentation, commit messages, issues, and pull requests.
 - A new or renamed analyzer rule comes with its page under `documentation/rules/RH####.md`.
 - Source carries no `TODO` comments and no references to issue or pull request numbers. Unfinished work is a follow-up issue.
+- Do not commit changes to the `binaries/` folder. It holds the prebuilt analyzer assemblies that the repository uses on itself, and the maintainer refreshes them at each version bump.
 - Prefer small, focused tests over one large test with many cases.
 
 [`AGENTS.md`](AGENTS.md) holds the complete repository instructions. It is written for coding agents, and the `squad/` folder describes how agents implement issues; as a human contributor you do not need to use either.
