@@ -33,3 +33,14 @@ All roles of the bug-fix lane run: spec author (needed: the #1242 owner move, an
 ## Read first (given by the maintainer)
 
 AGENTS.md, sdd/README.md, squad/README.md, sdd/specs/formatter/documentation-comments.md, cleanup.md, pipeline.md, sdd/specs/shared/element-documentation.md, sdd/specs/shared/code-fixes.md (SHARED-FIX-003, read only), rule specs RH8107, RH8202, RH8204, RH8304, RH8305, RH8307, RH8309, and every issue with its comments.
+
+## Maintainer answers to the spec author's questions (escalation 1, 2026-10-24)
+
+Recorded here rather than in `squad/decisions/`, because the maintainer put `squad/` off-limits for this run.
+
+1. #1329 — **C**: a documentation comment that holds an element without an end tag is not laid out at all; incomplete documentation is left as written and corrected by hand. Both shapes of the issue stay unchanged, including a complete one-line `<summary>` in the same comment; the declaration stays code.
+2. #1389 — **(ii)**: a documentation comment the compiler does not read as documentation (stranded behind code, FMT-DOC-003) is an ordinary comment and is left as written, byte for byte. The maintainer points to the existing rule that such comments are treated as ordinary comments (SHARED-COMMENT-001 / FMT-DOC-003); consequently FMT-DOC-005 does not apply to them either. The BOM part (FMT-CLEAN-009) is unaffected.
+3. #1344, RH8304 — **A**: with code in front of `///`, the fix inserts only the line's indentation; RH8304-004's coverage widens to that input; no withhold, no rule-page note.
+4. #1241 — **A**: the RH8107 and RH8202 instances (an end tag with another name, e.g. `<remarks><returns>Nothing</remarks>`) are in this run; both fixes are withheld for them, with tests.
+5. RH8309, text before the first or after the last top-level element — **B**: the fix is withheld, as RH8309-005 does for text between elements.
+6. RH8309, an element without an end tag of its own that the fix would not move — **B** (follows from 1C): the fix is withheld whenever any top-level element lacks an end tag of its own.
