@@ -7,14 +7,13 @@
 | Code owners | `RawStringAlignmentPhase`, `RawStringLiteralUtilities` |
 | Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004 |
 
-This spec covers the raw-string phase: after indentation has placed every token, the content lines and the closing marker of each multi-line raw string literal are moved so the closing marker starts in the column of the opening quotes. The literal's value never changes.
+This spec covers the raw-string phase: after indentation has placed every token, the content lines, the lines of its interpolation holes, and the closing marker of each multi-line raw string literal are moved so the closing marker starts in the column of the opening quotes. The literal's value never changes.
 
 ## Non-goals
 
 - The position of the opening quotes — they move with the statement, decided by FMT-BREAK, FMT-SPACE, and FMT-INDENT.
 - Single-line raw strings, regular strings, and verbatim (`@"…"`) strings, whose line starts are part of the value.
-- The layout of interpolation holes that span several lines, and of raw strings nested inside an interpolation hole. Their intended layout is decided as a bug, tracked in thoenissen/Reihitsu#951.
-- Raw strings whose indentation uses tab characters. Their intended alignment is decided as a bug, tracked in thoenissen/Reihitsu#951.
+- Raw strings whose indentation uses tab characters. Their alignment is a planned extension, tracked in thoenissen/Reihitsu#1432.
 
 ## Requirements
 
@@ -241,7 +240,7 @@ class C
 
 ### FMT-RAW-006 — Aligned and single-line literals are left alone
 
-The formatter MUST NOT change a raw string literal that is on one line or whose closing marker already starts in the target column of FMT-RAW-001.
+The formatter MUST NOT change a raw string literal that is on one line or whose closing marker already starts in the target column of FMT-RAW-001, apart from a raw string literal nested in one of its interpolation holes, which is aligned on its own (FMT-RAW-008).
 
 Why: A single-line raw string has no content lines to align, and an aligned literal is already canonical; rewriting it would only risk churn (FMT-PIPE-004).
 
@@ -261,3 +260,128 @@ class C
 ```
 
 is left unchanged.
+
+### FMT-RAW-007 — The lines of an interpolation hole move with the literal
+
+For a multi-line interpolated raw string, the formatter MUST treat every line that starts inside one of its interpolation holes — whether a token of the hole's expression or the hole's closing `}` starts it — like a content line: it MUST move that line by the same number of columns as the closing marker (FMT-RAW-001, FMT-RAW-002), and it MUST NOT move it in any other way. When the closing marker already starts in the target column, these lines MUST stay as written (FMT-RAW-006).
+
+Why: A hole that spans lines is part of the block the literal forms; its lines have to stay where they are relative to the text around them, as the content lines do. A second, independent move of the same lines — indenting them like code in a block — adds up with the literal's shift and gives a different result on every pass (FMT-PIPE-004).
+
+This requirement does not specify the outcome for a hole line that is indented less than the number of columns the literal moves to the left.
+
+Example — the literal moves 13 columns to the right, and the lines of the hole move with it:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var name = "x";
+        var a = $"""
+    Hello {
+        name
+    }
+    """;
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var name = "x";
+        var a = $"""
+                 Hello {
+                     name
+                 }
+                 """;
+    }
+}
+```
+
+and in an aligned literal the lines of the hole keep their columns, wherever they start:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var name = "x";
+        var a = $"""
+                 Hello {
+                         name
+                 }
+                 """;
+    }
+}
+```
+
+is left unchanged.
+
+### FMT-RAW-008 — A raw string nested in a hole is aligned in the same pass
+
+When a multi-line raw string literal — plain, UTF-8, or interpolated — stands inside an interpolation hole of a multi-line interpolated raw string, the formatter MUST align both literals in the same pass: the outer literal as FMT-RAW-001 and FMT-RAW-007 state, and the inner literal under its opening quotes at the column they have after the outer literal moved (FMT-RAW-005). This holds at every depth of nesting.
+
+Why: The inner literal's opening quotes move with the outer literal's content lines, so its target column is known only after the outer shift. Aligning the inner literal only on the next pass leaves output that formatting changes again (FMT-PIPE-004).
+
+Example — the outer literal moves 13 columns to the right, and the inner literal, carried to column 21 by that shift, moves on to column 24 under its opening quotes:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = $"""
+    Outer {"""
+        inner
+        """}
+    """;
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = $"""
+                 Outer {"""
+                        inner
+                        """}
+                 """;
+    }
+}
+```
+
+and when the outer literal is already aligned, only the inner literal moves:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = $"""
+                 Outer {"""
+                     inner
+                     """}
+                 """;
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = $"""
+                 Outer {"""
+                        inner
+                        """}
+                 """;
+    }
+}
+```

@@ -5,7 +5,7 @@
 | ID prefix | FMT-INDENT |
 | Status | Active |
 | Code owners | `IndentationPhase`, `LayoutComputer`, `LayoutModel`, `TokenLayout`, `IndentationRewriter`, `ListElementAligner`, `SyntaxIndentationUtilities`, `ArgumentAlignmentContributor`, `AngleBracketListAlignmentContributor`, `AnonymousObjectContributor`, `BaseTypeListContributor`, `BinaryExpressionContributor`, `CaseWhenClauseContributor`, `CollectionExpressionContributor`, `CommentIndentationContributor`, `ConditionalExpressionContributor`, `ConstructorInitializerContributor`, `GenericConstraintContributor`, `LambdaAlignmentContributor`, `ListPatternContributor`, `MethodChainAlignmentContributor`, `ObjectInitializerContributor`, `ParenthesizedPatternContributor`, `PatternAnchor`, `RecursivePatternContributor`, `SwitchExpressionContributor` |
-| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, SHARED-BLANK-002, SHARED-CHAIN-007, FMT-DOC-012, FMT-RAW-001, FMT-SWITCH-001 |
+| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, SHARED-BLANK-002, SHARED-CHAIN-007, FMT-DOC-012, FMT-RAW-001, FMT-RAW-007, FMT-SWITCH-001 |
 
 This spec covers the indentation phase: the column at which every line that starts with a token begins — block indentation by scope depth, the alignment of wrapped constructs to an anchor token, and the re-indentation of comments and directives that start a line. Line breaks are already decided when this phase runs (FMT-PIPE-001); it only changes the whitespace in front of the first token or trivia of a line.
 
@@ -14,7 +14,7 @@ This spec covers the indentation phase: the column at which every line that star
 - Where lines break — FMT-BREAK. This phase never adds or removes a line break.
 - Spacing between tokens on the same line — FMT-SPACE. The rest of a line keeps its spacing and moves with its first token.
 - Blank lines — FMT-BLANK.
-- The content lines and the closing marker of a multi-line raw string literal — FMT-RAW. Lines inside a multi-line interpolation hole of such a literal are not specified yet; their intended layout is decided as a bug, tracked in thoenissen/Reihitsu#951.
+- The content lines, the lines of its interpolation holes, and the closing marker of a multi-line raw string literal — FMT-RAW.
 - The text of documentation comments other than the column of their `///` markers — FMT-DOC.
 - The column of a continuation line that no requirement below owns — for example the right operand of a wrapped binary expression, the expression after `=>` or `=` that stays on its own line, or the content of a parenthesized pattern that is not a property pattern. Such lines currently take the block column of the enclosing statement or declaration; indenting them one level deeper is a decided behavior change, tracked in thoenissen/Reihitsu#953.
 - Configuration. The indentation unit is fixed; no option or `.editorconfig` setting is read.
@@ -441,9 +441,9 @@ class C
 
 ### FMT-INDENT-011 — Disabled text and literal content are never re-indented
 
-The formatter MUST NOT change the whitespace inside disabled text or inside the text of a string or character literal, including the continuation lines of a verbatim string. Only lines that start with a token, a comment, or a directive are re-indented.
+The formatter MUST NOT change the whitespace inside disabled text or inside the text of a string or character literal, including the continuation lines of a verbatim string, and MUST NOT re-indent any line after the opening line of a multi-line raw string literal, the lines that start inside its interpolation holes included (FMT-RAW-007). Only the other lines that start with a token, a comment, or a directive are re-indented.
 
-Why: Disabled text is not parsed, so its structure is unknown; re-indenting it would half-format code nobody compiles. The whitespace inside a literal is part of its value (FMT-PIPE-002). Multi-line raw strings are aligned by their own phase (FMT-RAW-001).
+Why: Disabled text is not parsed, so its structure is unknown; re-indenting it would half-format code nobody compiles. The whitespace inside a literal is part of its value (FMT-PIPE-002). Multi-line raw strings are aligned by their own phase (FMT-RAW-001), which moves the lines of their holes with them; indenting those lines here as well would add a second move to the same lines.
 
 Example:
 

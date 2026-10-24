@@ -1,0 +1,119 @@
+Role: spec author
+Commit: 9501a4b
+Verdict: #951: spec written; #1133: spec written; #1146: spec written
+
+Inputs: thoenissen/Reihitsu#951, thoenissen/Reihitsu#1133, thoenissen/Reihitsu#1146 and their comments (read through the GitHub MCP server), `00-lead.md`, the specs named below. The #951 body names a suspected cause and an intended mechanism (the indentation phase skipping tokens, `ReplaceNodes` dropping the inner literal); the #1146 body proposes RH5104 rewordings for Q3, Q5, and Q6. I did not use either: the specs state observable output only, and Q3, Q5, and Q6 are out of scope (thoenissen/Reihitsu#1433). `sdd/specs/shared/code-fixes.md` is referenced and was not edited. No change doc.
+
+Check run: `scripts/test.sh --project architecture` filtered to `SpecConsistencyTests`, `SpecStructureTests`, `RuleDocumentationConventionTests`, and `RequirementCoverageTests`. 50 passed, 1 failed. The failure is `EveryRequirementOfAnEnforcedSpecIsCovered`, for the three new IDs FMT-RAW-007, FMT-RAW-008, and RH5104-006. The test implementer adds those tests.
+
+## thoenissen/Reihitsu#951
+
+### Changed requirements
+
+- FMT-RAW-007: the lines of an interpolation hole move with the literal. Added. In a multi-line interpolated raw string, a line that starts inside a hole moves by the closing marker's delta and is not moved any other way. In an aligned literal it stays as written. A coverage sentence leaves out hole lines indented less than a leftward shift.
+- FMT-RAW-008: a raw string nested in a hole is aligned in the same pass. Added. This holds at every depth.
+- FMT-RAW-006: aligned and single-line literals are left alone. Clarified with an exception for a literal nested in a hole, which is aligned on its own (FMT-RAW-008). Without it, FMT-RAW-008's second example would contradict FMT-RAW-006.
+- FMT-INDENT-011: disabled text and literal content are never re-indented. Clarified. The indentation phase must not re-indent any line after the opening line of a multi-line raw string, hole lines included (FMT-RAW-007). FMT-RAW-007 was added to `Uses`.
+- Non-goals:
+  - The FMT-RAW non-goal on holes and nested literals is removed; FMT-RAW-007 and FMT-RAW-008 now specify that behavior.
+  - The FMT-RAW non-goal on tab indentation now points to thoenissen/Reihitsu#1432 (out of scope; no tab normalization).
+  - The FMT-INDENT non-goal on raw strings now lists hole lines as FMT-RAW's.
+  - The intro sentence of `raw-string-alignment.md` names hole lines.
+
+### Examples for the tests
+
+- FMT-RAW-007: the issue's case 1 (the hole moves 13 columns), plus an aligned literal with a hole line at an unusual column, which is left unchanged. Both should be checked over two passes (FMT-PIPE-004), as the maintainer asked.
+- FMT-RAW-008: the issue's case 2 (both literals misaligned, one pass), plus an aligned outer literal around a misaligned inner one.
+- FMT-RAW-006: the nested exception, covered by FMT-RAW-008's second example.
+- FMT-INDENT-011: hole lines are not re-indented, using the same inputs as FMT-RAW-007.
+
+### Open questions for the maintainer
+
+_None._
+
+Note, not a question: today `RawStringAlignmentPhase` clamps a line that would move left of column 0 to column 0. FMT-RAW-007 leaves that case unspecified on purpose, through its coverage sentence.
+
+## thoenissen/Reihitsu#1133
+
+### Changed requirements
+
+- RH5601-001: every tab in the code is reported. Changed (clarified per J4). It is aligned to SHARED-DIAG-003:
+  - The two conditions that exempted a tab next to a string or character literal are removed. A tab in front of or behind a literal, including one indenting a line that starts with a literal, is code and is reported.
+  - Hole expressions and alignment clauses are now named.
+  - The `///` and `/** */` documentation-comment conditions are unchanged.
+  - SHARED-DIAG-003 was added to `Uses`.
+- RH5601-002: tabs in literals, comments, and disabled text are not reported. Clarified. The indentation of a multi-line raw string's content lines and closing line, interpolated or not, is the literal's text. This covers the issue's input (`$"""`, `→→a`, `→→"""`). The non-interpolated twin is in the same example.
+- RH5602-001: whitespace before a line break is reported. Changed (clarified per J4).
+  - "No string literal touches the line" and "a line an interpolated string spans, its holes included, counts as touched" are replaced by "the run is not part of the text of a literal".
+  - Whitespace behind a literal, on the last line of a multi-line literal, and in hole code is reported.
+  - SHARED-DIAG-003 was added to `Uses`.
+- RH5602-002: whitespace inside a multi-line string literal is not reported. Clarified to "part of the text of" a multi-line literal, holes excluded. The example gains `{1}··` inside an interpolated raw string, which is text and is not reported.
+- Rule pages: `documentation/rules/RH5601.md` and `documentation/rules/RH5602.md` each gain one sentence. A raw string's line indentation, closing line included, belongs to the literal; whitespace next to a literal and in an interpolation's expression is code.
+
+### Examples for the tests
+
+- RH5601-001: the new lines of its example, each a small test:
+  - `string s =→"a"→;`
+  - `char c = 'a'→;`
+  - `string t =` followed by `→"b";` on the next line
+  - a tab indenting a hole line (`→+ 2}`) in an interpolated raw string
+- RH5601-002: `string w` and `string x`, the tab-indented raw and interpolated raw literals. `string x` is the issue's reproduction: today it is reported and its fix breaks compilation.
+- RH5602-001: `string s = "a";··`, `b";··` at the end of a verbatim literal, and `{1··` inside a hole.
+- RH5602-002: `{1}··` inside an interpolated raw string.
+
+### Scope note for the lead (blocking if J4 says otherwise)
+
+`00-lead.md` summarizes J4 as "whitespace inside a literal or inside interpolation-hole content is code and is not reported". I could not find J4's original text. I applied J4's stated rule (SHARED-DIAG-003 takes precedence over RH5601-001 and RH5602-001) in full, following SHARED-DIAG-003's own text: "the whitespace before and after a literal is code, so the spaces at the end of the line `string s = "a";` are trailing whitespace", and "an interpolation hole is code".
+
+This reaches beyond the issue's raw-string example:
+
+- RH5601 newly reports tabs directly before or after literals.
+- RH5602 newly reports trailing whitespace behind a literal, on the closing line of a multi-line literal, and in hole code.
+
+Today `RH5602CodeMustNotContainTrailingWhitespaceAnalyzer` skips every line returned by `FormattingTextAnalysisUtilities.GetStringLineIndices`. RH5204 uses the same helper and must not change in this run (the #1146 body; R8 owns the helper later). Please check J4's original text. If it limits the precedence to the raw-string indentation alone, RH5601-001 and RH5602-001 must be narrowed before tests are written, and the two readings would give different output for `string s = "a";··`.
+
+### Open questions for the maintainer
+
+_None, apart from the scope check above._
+
+## thoenissen/Reihitsu#1146
+
+### Changed requirements
+
+- RH5104-002 (heading now "Comments on lines without code, of directives, and in multi-line interpolations are not reported"): clarified for Q4. A comment that shares none of its lines with a token (only whitespace or other comments around it) is not reported. RH5104-001 already implied this. Examples: `/* a */ /* b */` and `/* c */ // d`, each on a line of its own above `M();`.
+- RH5104-005 (title now "No blank line is inserted above the moved comment"): reworded per J1. The fix inserts no blank line and keeps the existing blank lines above the line (SHARED-FIX-006). The old insertion and exemption list is gone.
+- RH5104-006 (the fix is withheld when the line starts inside a literal or a comment): added for Q1.
+  - The fix is withheld when the comment's starting line begins inside the text of a literal or inside a multi-line comment: verbatim, raw, or interpolated raw string, or a `/** */` documentation comment (SHARED-FIX-003).
+  - When that line begins outside them, the fix is offered as RH5104-004 states, even if such a literal starts on that line.
+  - SHARED-FIX-003 and SHARED-FIX-006 were added to `Uses`.
+- Rule page: `documentation/rules/RH5104.md` gains an `## Exceptions` bullet. No fix is offered when the comment's line begins inside a multi-line string literal or a multi-line comment. The `### Correction` block is unchanged, because the J1 change does not affect it: every blank line in it was already in the violation.
+
+### Examples for the tests
+
+- RH5104-002: `/* a */ /* b */` and `/* c */ // d` on code-free lines are not reported (Q4; both are reported today).
+- RH5104-005: the full before/after. `// second` gets no blank line, and `// fourth` keeps the blank line written above its line.
+- RH5104-006:
+  - Each of the four withheld forms is reported with no code fix offered: `/** … */ void M() { } // c`, a verbatim string, a raw string, and an interpolated raw string, each with `+ /* c */ x` on its last line.
+  - The other side of the condition: `var a = /* c */ @"a` followed by `b" + x;` is fixed to `/* c */` above `var a = @"a`.
+
+### Open questions for the maintainer
+
+_None._
+
+Follow-up candidate, not run and derived only from the wording of RH5104-004: two inline comments on one code line, as in `M(); /* a */ // b`. Fixing `// b` first and then `/* a */` would give `// b` above `/* a */`, a reordering. This is outside Q1 and Q4. It is for the skeptic or the test implementer to check before anyone raises it.
+
+## Whole run
+
+Files written, all under `/home/user/Reihitsu`:
+
+- `sdd/specs/formatter/raw-string-alignment.md`
+- `sdd/specs/formatter/indentation.md`
+- `sdd/specs/analyzer/RH5601.md`
+- `sdd/specs/analyzer/RH5602.md`
+- `sdd/specs/analyzer/RH5104.md`
+- `sdd/specs/requirement-ids.txt` (sorted inserts FMT-RAW-007, FMT-RAW-008, RH5104-006)
+- `documentation/rules/RH5601.md`
+- `documentation/rules/RH5602.md`
+- `documentation/rules/RH5104.md`
+
+No code owners changed, so `sdd/specs/README.md` is untouched. None of the files owned by concurrent runs were touched.
