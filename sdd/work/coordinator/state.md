@@ -216,6 +216,8 @@ Round 10 bookkeeping DONE (agent): #1415 (SDD P38/P39 + P29/P35 clar.), #1416 (b
 
 ## Waiting for maintainer
 
+- 2026-10-24: maintainer: spec format stays as it is for now (no per-requirement files, no index change). Final cleanup session running (prompt-cleanup.md). Restart prompt for Phase 5 written: `restart-prompt-phase5.md`.
+
 - 2026-10-23: #998 merged (PR #1426, scope narrowed by maintainer: coverage opt-out per requirement, untagged tests allowed, no exemption attribute); #1423+#1424 merged (PR #1425). ALL SDD BATCHES DONE. Maintainer decisions for the final cleanup: delete ALL squad/decisions entries (new rules derived from them presented to maintainer first; README stays with rule 'entry deleted when it becomes a rule' as proposal); ONE change doc only (introduce-sdd.md describing SDD + squad as they are now; establish-squad.md and requirement-coverage-opt-out.md folded in). Cleanup = dedicated non-squad session, prompt `prompt-cleanup.md`; 14 retired requirements in 8 specs, 1445 ledger lines, 65 decisions. Afterwards: update open issues citing renumbered IDs (coordinator), ask about closing #899/#912, then Phase 5.
 
 - 2026-10-23 (round 11): #1415 (PR #1418) and #1419 (PR #1421) merged; no open-question issues filed. New: #1422 (P38 follow-up RH3104/RH5417, behavior change, phase 5; no milestone), #1423 + #1424 (squad instructions, tooling). Prompts `prompts-round11.md`: #998 (with coordinator recommendations for its two open decisions: incidental tests exempted visibly; architecture/tooling tests exempted as a class) and #1423+#1424 in parallel. Then final cleanup PR.
