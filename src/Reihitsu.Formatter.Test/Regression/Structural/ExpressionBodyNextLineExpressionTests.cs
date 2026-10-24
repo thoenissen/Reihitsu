@@ -510,9 +510,11 @@ public class ExpressionBodyNextLineExpressionTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a block comment leading the next-line expression keeps its own line below the return keyword
+    /// Verifies that a block comment leading the next-line expression on its line stays directly in front of the
+    /// expression, which joins the return keyword together with it
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
     public void BlockCommentLeadingNextLineExpressionKeepsOwnLine()
     {
         // Arrange
@@ -528,9 +530,7 @@ public class ExpressionBodyNextLineExpressionTests : FormatterTestsBase
                                 {
                                     int M()
                                     {
-                                        return
-
-                                        /* c */ 42;
+                                        return /* c */ 42;
                                     }
                                 }
                                 """;

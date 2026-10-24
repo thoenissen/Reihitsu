@@ -178,6 +178,7 @@ Corrected existing tests whose expected values contradicted the clarified FMT-ST
 - `src/Reihitsu.Formatter.Test/Regression/Structural/ExpressionBodiedMethodTests.cs` `PreservesCommentBeforeArrow` — was `int M()` / blank / `// note` / `{`; now `{` / `// note` / `return 42;`.
 - `src/Reihitsu.Formatter.Test/Regression/Structural/ExpressionBodiedConstructorTests.cs` `PreservesCommentBeforeArrow` — same correction with `_x = 1;`.
 - `src/Reihitsu.Formatter.Test/Regression/Structural/ExpressionBodyNextLineExpressionTests.cs` `LineCommentBeforeNextLineExpressionKeepsOwnLine` — was `return` / blank / `// c` / `42;`; now `// c` / `return 42;`.
+- (revision 2) Same file, `BlockCommentLeadingNextLineExpressionKeepsOwnLine` — was `return` / blank / `/* c */ 42;`; now `return /* c */ 42;` (FMT-STRUCT-006 as answered by the maintainer, Q3 → A). Missed in revision 1.
 
 Code-fix tests added to `src/Reihitsu.Analyzer.Test/Formatting/RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests.cs` and `RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests.cs` (both `BatchCodeFixTestsBase`).
 
@@ -214,6 +215,7 @@ Code-fix tests added to `src/Reihitsu.Analyzer.Test/Formatting/RH3202ExpressionS
 | `ExpressionBodiedMethodTests.PreservesCommentBeforeArrow` (corrected) | FMT-STRUCT-006 | `AssertRuleResult(input, expected)` | fails |
 | `ExpressionBodiedConstructorTests.PreservesCommentBeforeArrow` (corrected) | FMT-STRUCT-006; FC-025 | `AssertRuleResult(input, expected)` | fails |
 | `ExpressionBodyNextLineExpressionTests.LineCommentBeforeNextLineExpressionKeepsOwnLine` (corrected) | FMT-STRUCT-006 | `AssertRuleResult(input, expected)` | fails |
+| `ExpressionBodyNextLineExpressionTests.BlockCommentLeadingNextLineExpressionKeepsOwnLine` (corrected, revision 2) | FMT-STRUCT-006 | `AssertRuleResult(input, expected)` | fails on 69e28ac, passes on 2dea131 |
 | `WithInitializersAreLaidOutOverSeveralLinesInTheFirstPass` (spec example) | FMT-BREAK-021, FMT-PIPE-004 | `AssertRuleResult(input, expected)` | fails |
 | `WithInitializerOfExpressionBodiedPropertyIsLaidOutInTheFirstPass` (issue input) | FMT-BREAK-021, FMT-PIPE-004; FC-034 | `AssertRuleResult(input, expected)` | fails |
 | `WithInitializerOfReturnStatementIsLaidOutInTheFirstPass` | FMT-BREAK-021, FMT-PIPE-004; FC-027 | `AssertRuleResult(input, expected)` | fails |
@@ -224,7 +226,7 @@ Code-fix tests added to `src/Reihitsu.Analyzer.Test/Formatting/RH3202ExpressionS
 | `RH3202…VerifyAsyncMethodReturningTaskAliasIsReportedWithoutCodeFix` (SHARED-BODY-004 example) | SHARED-BODY-004; FC-009 | `VerifyNoCodeFixIsOffered` | fails |
 | `RH3202…VerifyAsyncMethodReturningGenericTaskAliasIsReportedWithoutCodeFix` | SHARED-BODY-004; FC-009 | `VerifyNoCodeFixIsOffered` | fails |
 | `RH3202…VerifyAsyncMethodsReturningNullableTaskTypesAreFixed` | SHARED-BODY-004, SHARED-BODY-003; FC-006 | `Verify(source, fixed, …)` | fails |
-| `RH3202…VerifyFixLeavesAsyncMethodReturningTaskAliasNextToConvertedMethods` (two convertible members and one kept member; incremental and Fix All) | SHARED-BODY-004; FC-008 | `Verify(source, fixed, config)` with the kept diagnostic marked in the fixed code | fails |
+| `RH3202…VerifyFixLeavesAsyncMethodReturningTaskAliasNextToConvertedMethods` (two convertible members and one kept member; incremental and Fix All) | SHARED-BODY-004; FC-008 | `Verify(source, fixed, config)` with the kept diagnostic marked in the fixed code and counted (`FixedState` / `BatchFixedState.MarkupHandling = MarkupMode.Allow`, revision 2) | fails |
 | `RH3202…VerifyCommentAfterArrowLeadsTheCreatedStatement` | SHARED-BODY-003; FC-032 | `Verify(source, fixed, …)` | fails |
 | `RH3202…VerifyCommentBeforeArrowLeadsTheCreatedStatement` | SHARED-BODY-003; FC-032 | `Verify(source, fixed, …)` | fails |
 | `RH3208…VerifyAsyncLocalFunctionReturningTaskAliasIsReportedWithoutCodeFix` (SHARED-BODY-004 example) | SHARED-BODY-004; FC-009 | `VerifyNoCodeFixIsOffered` | fails |
@@ -336,3 +338,25 @@ scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH5201MethodChai
 ### Follow-up candidates (outside the run)
 
 - The skeptic's follow-ups stand (RH7501 fix output, FMT-PIPE-013 for the first moved statement, start-of-file comment above `#region`, nested `Inner = { … }` initializer, `RH5201.md` `Uses`).
+
+## Revision 2
+
+Commit: 2dea131 (production), routed by the lead from the implementer's "Disputed tests" (`04-implementer.md`, #1390). The implementer's suggested changes were treated as suggestions; each test was re-derived from the specs on this branch.
+
+1. `ExpressionBodyNextLineExpressionTests.BlockCommentLeadingNextLineExpressionKeepsOwnLine` (existing test, untagged). Input `int M() =>` / `/* c */ 42;`. FMT-STRUCT-006 states that a comment that starts the line after the arrow and is followed on that line by the expression stays directly in front of the expression, which joins `return` with it (`return /* c */ 42;`). This is the maintainer's Q3 → A answer (`00-lead.md`). The test still asserted the old output `return` / blank / `/* c */ 42;`, so the test was wrong. I missed it in revision 1 because I searched by the skeptic's list only. Corrected expected output to `return /* c */ 42;`, tagged FMT-STRUCT-006, summary updated. It now passes on 2dea131.
+2. `RH3202…AnalyzerTests.VerifyFixLeavesAsyncMethodReturningTaskAliasNextToConvertedMethods`. SHARED-BODY-004 requires the kept member to stay reported, and the fixed source marks it with `{|RH3202:…|}`. The verifier's default markup handling for the fixed state did not count that markup as an expected diagnostic, so it reported "expected 0, actual 1" although the fixed text matched. The assertion was right; the verifier configuration was wrong. Added `FixedState.MarkupHandling = MarkupMode.Allow` and `BatchFixedState.MarkupHandling = MarkupMode.Allow` (as `RH4107ProtectedFieldCasingAnalyzerTests` does) and `using Microsoft.CodeAnalysis.Testing;`. The expected text, the iteration counts, and the marked diagnostic are unchanged.
+
+Search for further existing tests that pin behavior this run's specs contradict:
+
+- Full formatter suite on 2dea131 plus these corrections: 2778 passed, 0 failed.
+- Full analyzer suite on 2dea131 plus these corrections: 6066 passed, 0 failed.
+- Static `rg` over the test projects for the pre-fix shapes: `return` followed by a blank line and a comment; a signature, a blank line, a comment, then `{`; `with {` at a line end; `{`, a blank line, then `#region`; `}` directly followed by a comment and `break;`; `/* c */` in front of an expression on the line after `=>`; `async` with a task-type alias or `AsyncMethodBuilder`. There are two hits outside this run's tests, and neither is contradicted:
+  - `ExpressionBodiedAccessorTests.CommentBeforeReturnedExpressionKeepsBlock`, FMT-STRUCT-012: block-bodied accessor input that is kept, not an expression body that gets converted.
+  - `RH5025…AnalyzerTests.VerifyBlankLineSeparatedByCommentOrBraceOutsideCodeIsNotReported`: analyzer-only input, no formatter involved.
+
+Commands:
+
+```shell
+scripts/test.sh --project formatter --filter "FullyQualifiedName~BlockCommentLeadingNextLineExpressionKeepsOwnLine"
+scripts/test.sh --project analyzer --filter "FullyQualifiedName~VerifyFixLeavesAsyncMethodReturningTaskAliasNextToConvertedMethods"
+```

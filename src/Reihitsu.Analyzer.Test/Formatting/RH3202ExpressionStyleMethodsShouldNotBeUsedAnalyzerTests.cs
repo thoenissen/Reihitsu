@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
@@ -458,6 +459,9 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
                      resultData.Replace("\r\n", "\n"),
                      static config =>
                             {
+                                // The diagnostic that keeps no fix is marked in the fixed source
+                                config.FixedState.MarkupHandling = MarkupMode.Allow;
+                                config.BatchFixedState.MarkupHandling = MarkupMode.Allow;
                                 config.NumberOfIncrementalIterations = 2;
                                 config.NumberOfFixAllIterations = 1;
                             });
