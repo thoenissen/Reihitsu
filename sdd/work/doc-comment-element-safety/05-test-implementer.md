@@ -289,3 +289,18 @@ scripts/test.sh --project core --filter "FullyQualifiedName~DocumentationComment
 scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH8107|FullyQualifiedName~RH8202|FullyQualifiedName~RH8204|FullyQualifiedName~RH8301|FullyQualifiedName~RH8304|FullyQualifiedName~RH8305|FullyQualifiedName~RH8307|FullyQualifiedName~RH8309"
 scripts/test.sh --project architecture --filter "FullyQualifiedName~RequirementCoverage|FullyQualifiedName~Spec"
 ```
+
+## Repair
+
+Round 1. The finding came from `07-implementer.md` (commit `2d810b9`). I checked it on `2d810b9` and it holds.
+
+**The finding.** Three Fix All tests failed on `Diagnostics of fixed state`, with "expected 0, actual 1" (or 2):
+- `RH8107….VerifyFixAllLeavesReturnsElementWithoutEndTagOfItsOwnUnchanged`
+- `RH8204….VerifyFixAllLeavesPlaceholderWithoutEndTagUnchanged`
+- `RH8309….VerifyFixAllLeavesCommentsWithWithheldFixUnchanged`
+
+In each, the actual diagnostics were the withheld ones at exactly the spans the fixed source marks, and the fixed text already matched. The cause is the verifier's default, `MarkupMode.IgnoreFixable`: it drops the `{|RH####:…|}` markup in the fixed states, so the remaining diagnostic was never expected.
+
+**The repair.** Each of the three tests now sets `test.FixedState.MarkupHandling` and `test.BatchFixedState.MarkupHandling` to `MarkupMode.Allow`, as `RH4107ProtectedFieldCasingAnalyzerTests` does. The RH8107 and RH8204 files gain `using Microsoft.CodeAnalysis.Testing;`. No source, fixed source, markup, or tag changed. The assertion still requires what SHARED-DOC-017, SHARED-FIX-002, and RH8309-005 specify: the fixable diagnostics are fixed, and the withheld diagnostics stay, unchanged, at their spans.
+
+**Result.** `scripts/test.sh --project analyzer --filter "FullyQualifiedName~VerifyFixAllLeaves"`: 3 passed, 0 failed.
