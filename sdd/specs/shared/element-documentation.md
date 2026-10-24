@@ -5,9 +5,9 @@
 | ID prefix | SHARED-DOC |
 | Status | Active |
 | Code owners | `SplitElementDocumentationAnalyzerBase`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `XmlDocumentationExpander`, `DocumentationModeAnalysisContextExtensions`, `DocumentationCommentCodeFixUtilities` |
-| Uses | SHARED-FIX-003, SHARED-FIX-006, SHARED-ORDER-002, SHARED-ORDER-006 |
+| Uses | FMT-DOC-013, SHARED-FIX-003, SHARED-FIX-006, SHARED-ORDER-002, SHARED-ORDER-006 |
 
-This spec covers the rules that require one kind of element to be documented. It defines which declarations such a rule checks, the private and non-private groups that split each kind between two rules, the declarations it exempts, and when a declaration counts as documented. It also defines what every documentation rule relies on: which documentation comments belong to a declaration, when a summary has text, when the parameters and type parameters of an element count as documented, and in which documentation modes documentation rules run. For the rules that check the descriptions of parameters, type parameters, and return values, it defines when such a description has text, how the descriptions are paired with the parameters, and when a description lacks a name. For the code fixes that remove, unwrap, lay out, or reorder documentation elements, it defines when an element has an end tag of its own and withholds them for one that has none; for the code fixes that remove an element, it defines which lines go with it. Each rule that uses this spec states which element kind it checks, which group, and where its diagnostic is located.
+This spec covers the rules that require one kind of element to be documented. It defines which declarations such a rule checks, the private and non-private groups that split each kind between two rules, the declarations it exempts, and when a declaration counts as documented. It also defines what every documentation rule relies on: which documentation comments belong to a declaration, when a summary has text, when the parameters and type parameters of an element count as documented, and in which documentation modes documentation rules run. For the rules that check the descriptions of parameters, type parameters, and return values, it defines when such a description has text, how the descriptions are paired with the parameters, and when a description lacks a name. For the code fixes that remove, unwrap, or reorder documentation elements, it defines when an element has an end tag of its own and withholds them for one that has none; for the code fixes that remove an element, it defines which lines go with it. Each rule that uses this spec states which element kind it checks, which group, and where its diagnostic is located.
 
 ## Non-goals
 
@@ -1307,9 +1307,9 @@ public class C<T>
 
 ### SHARED-DOC-017 — An end tag with another name is no end tag of its own
 
-An XML element of a documentation comment that is written with a start tag MUST count as having an end tag of its own only when the parser closes it with an end tag that carries the name of its start tag. Such an element without an end tag, and one that the parser closes with an end tag of another name — `<returns>` in `<remarks><returns>Nothing</remarks>`, which `</remarks>` closes — has no end tag of its own. The code fixes of RH8107, RH8202, RH8204, RH8305, and RH8307 MUST NOT be offered for a reported element that has no end tag of its own, and the code fix of RH8309 MUST NOT be offered when any top-level element of the reported comment has no end tag of its own, whether or not the fix would move it; the diagnostic is still reported. An empty element, such as `<returns/>`, `<value/>`, or `<placeholder/>`, needs no end tag, and this requirement does not withhold a fix for it.
+An XML element of a documentation comment that is written with a start tag MUST count as having an end tag of its own only when the parser closes it with an end tag that carries the name of its start tag. Such an element without an end tag, and one that the parser closes with an end tag of another name — `<returns>` in `<remarks><returns>Nothing</remarks>`, which `</remarks>` closes — has no end tag of its own. The names MUST be compared as the compiler reads XML: exactly, prefix and local name, character by character, so `</returns>` is no end tag of its own for `<Returns>`. The code fixes of RH8107, RH8202, and RH8204 MUST NOT be offered for a reported element that has no end tag of its own, and the code fix of RH8309 MUST NOT be offered when any top-level element of the reported comment has no end tag of its own, whether or not the fix would move it; the diagnostic is still reported. An empty element, such as `<returns/>`, `<value/>`, or `<placeholder/>`, needs no end tag, and this requirement does not withhold a fix for it.
 
-Why: An end tag with another name belongs to an element around the reported one, and an element without an end tag runs to the end of the comment. An empty element ends where it is written, so removing it touches nothing else. Removing or unwrapping the reported element up to where the parser ends it would also remove the end tag of the element around it, or the documentation and the code that follow it. Laying the element out or moving it up to where the parser ends it would treat an end tag of another name as the element's own, or take the documentation and the declaration that follow it into the element, so the declaration would become comment text. Where such an element was meant to end is the author's decision, and the RH8309 fix sorts and lays out the whole comment, so an element without an end tag of its own anywhere in it is rewritten even when it keeps its position.
+Why: An end tag with another name belongs to an element around the reported one, and an element without an end tag runs to the end of the comment. An empty element ends where it is written, so removing it touches nothing else. Removing or unwrapping the reported element up to where the parser ends it would also remove the end tag of the element around it, or the documentation and the code that follow it. Moving the element up to where the parser ends it would carry an end tag of another name with it, or take the documentation and the declaration that follow it into the element. A comment with a top-level element that has no end tag of its own is incomplete documentation, which the author corrects by hand and the formatter leaves as written (FMT-DOC-013), so the RH8309 fix is withheld for it even when that element would keep its position. Documentation XML is read the way the compiler reads it, and XML names are case-sensitive.
 
 Example — RH8107 reports the `<returns>` element of the `void` method, which `</remarks>` closes:
 
@@ -1320,6 +1320,23 @@ public class C
     /// Runs
     /// </summary>
     /// <remarks><returns>Nothing</remarks>
+    public void Run()
+    {
+    }
+}
+```
+
+and no code fix is offered.
+
+Example — RH8107 reports the `<Returns>` element, which `</returns>` closes, because the names differ in case:
+
+```csharp
+public class C
+{
+    /// <summary>
+    /// Runs
+    /// </summary>
+    /// <Returns>Nothing</returns>
     public void Run()
     {
     }
@@ -1354,44 +1371,6 @@ public class C
     public void Run()
     {
     }
-}
-```
-
-and no code fix is offered.
-
-Example — RH8305 reports the `<summary>` element, which has no end tag, and the one that `</returns>` closes:
-
-```csharp
-class C
-{
-    /// <summary>S
-    int A;
-
-    /// <summary>S</returns>
-    int B;
-}
-```
-
-and no code fix is offered.
-
-Example — RH8307 reports the `<remarks>` element, which has no end tag, and the one that `</returns>` closes:
-
-```csharp
-class C
-{
-    /// <summary>
-    /// Gets A
-    /// </summary>
-    /// <remarks>Text
-    /// more
-    int A;
-
-    /// <summary>
-    /// Gets B
-    /// </summary>
-    /// <remarks>Text
-    /// more</returns>
-    int B;
 }
 ```
 

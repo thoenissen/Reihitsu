@@ -5,7 +5,7 @@
 | ID prefix | FMT-CLEAN |
 | Status | Active |
 | Code owners | `CleanupPhase`, `EndOfLineWhitespace` |
-| Uses | FMT-PIPE-002, FMT-PIPE-010, FMT-PIPE-012 |
+| Uses | FMT-BLANK-007, FMT-PIPE-002, FMT-PIPE-010, FMT-PIPE-012 |
 
 This spec covers `CleanupPhase`: the removal of whitespace that ends a line, the replacement of tabs that earlier phases left in whitespace and inside directives, and the removal of the line breaks at the end of a file — including the cases where a file's final directive keeps its line break.
 
@@ -199,6 +199,8 @@ Why: A detached node has no following token, so it is treated like the end of a 
 
 ### FMT-CLEAN-009 — The byte order mark is kept
 
-The formatter MUST keep a byte order mark at the start of the text.
+The formatter MUST keep a byte order mark at the start of the text. This holds also when the first line holds nothing but the byte order mark and white space: the blank lines before the first line are removed (FMT-BLANK-007), and the byte order mark stays at the start of the text.
 
-Why: Removing or adding a byte order mark changes the file's encoding signature, which tools and compilers may depend on; cleanup only removes whitespace and line breaks.
+Why: Removing or adding a byte order mark changes the file's encoding signature, which tools and compilers may depend on; cleanup only removes whitespace and line breaks. The byte order mark is not white space of the first line, even where the parser reads it as white-space trivia.
+
+Example — the text `U+FEFF`, a line break, and `class C{int x;}` becomes `U+FEFF` followed directly by `class C`, then `{`, `    int x;`, and `}` on lines of their own. The same holds when white space follows the byte order mark on the first line or further blank lines follow that line, and a text that holds nothing but the byte order mark and a line break keeps the byte order mark.

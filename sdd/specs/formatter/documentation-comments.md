@@ -5,7 +5,7 @@
 | ID prefix | FMT-DOC |
 | Status | Active |
 | Code owners | `DocumentationCommentFormattingPhase`, `DocCommentElementNormalizer`, `DocumentationCommentUtilities` |
-| Uses | FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-010 |
+| Uses | FMT-CLEAN-009, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-010, SHARED-DOC-017 |
 
 This spec covers what the documentation-comment phase decides about single-line documentation comments (`///`): moving a comment written behind code onto its own line, the separator after each `///` exterior, and the line layout of the XML elements inside the comment. It is the normalization of documentation-comment text that FMT-PIPE-002 allows.
 
@@ -94,7 +94,7 @@ class C
 
 ### FMT-DOC-003 — Stranded documentation stays as it was written
 
-The formatter MUST NOT move a documentation comment written behind code when the token that follows it does not open the syntax node it belongs to — a `;`, `)`, `]`, or `}` — and MUST leave the text of every line of that comment as written: FMT-DOC-005 to FMT-DOC-011 do not apply to it.
+The formatter MUST NOT move a documentation comment written behind code when the token that follows it does not open the syntax node it belongs to — such as a `;`, `)`, `]`, or `}`, a binary operator such as `+`, or the `.` of a member access — and MUST leave the text of every line of that comment as written: FMT-DOC-005 to FMT-DOC-011 do not apply to it.
 
 Why: Such a comment documents nothing; the compiler reports CS1587 wherever it stands and does not read it as documentation, so it is an ordinary comment whose text the formatter keeps (FMT-PIPE-002). Moving it would change the author's layout without giving the comment a meaning, and laying out its elements would rewrite text that documents nothing, so the formatter keeps it as it is and leaves the decision to the author.
 
@@ -141,7 +141,7 @@ are left unchanged.
 
 ### FMT-DOC-004 — Relocated documentation is normalized in the same run
 
-A documentation comment that FMT-DOC-001 or FMT-DOC-002 moves MUST also receive the element and exterior normalization of FMT-DOC-005 to FMT-DOC-011 in the same run.
+A documentation comment that FMT-DOC-001 or FMT-DOC-002 moves MUST also receive the element and exterior normalization of FMT-DOC-005 to FMT-DOC-011 in the same run, unless FMT-DOC-013 leaves its text as written.
 
 Why: A single run must produce the final shape (FMT-PIPE-004); a moved comment that is normalized only on the next run would make the formatter non-idempotent.
 
@@ -364,9 +364,9 @@ is left unchanged.
 
 ### FMT-DOC-011 — Rebuilding keeps the content
 
-When the formatter rebuilds an element under FMT-DOC-008 or FMT-DOC-009, it MUST keep the content's text, its inline XML, and the indentation of every content line relative to the `///` separator; it MUST drop only leading and trailing content lines that are empty, and MUST write an empty interior content line as a bare `///`. Nested elements that need rebuilding MUST be rebuilt in the same run.
+When the formatter rebuilds an element under FMT-DOC-008 or FMT-DOC-009, it MUST keep the content's text, its inline XML, and the indentation of every content line relative to the `///` separator; it MUST drop only leading and trailing content lines that are empty, and MUST write an empty interior content line as a bare `///`. Nested elements that need rebuilding MUST be rebuilt in the same run. A line the rebuild adds MUST start with the spaces and tabs in front of the comment's first `///` and nothing else: code, a delimited comment, or a byte order mark in front of that `///` is not repeated.
 
-Why: The rebuild changes only where the tags sit. Significant indentation inside `<code>` or a continued `<param>` description, inline elements such as `<see>` and `<c>`, and paragraph breaks are part of what the author wrote (FMT-PIPE-002). Rebuilding nested elements in one run keeps the formatter idempotent (FMT-PIPE-004).
+Why: The rebuild changes only where the tags sit. A byte order mark is the encoding signature of the text, not indentation, so it stays once at the start of the text (FMT-CLEAN-009). Significant indentation inside `<code>` or a continued `<param>` description, inline elements such as `<see>` and `<c>`, and paragraph breaks are part of what the author wrote (FMT-PIPE-002). Rebuilding nested elements in one run keeps the formatter idempotent (FMT-PIPE-004).
 
 Example — nested elements and code indentation:
 
@@ -400,6 +400,8 @@ class C
     int A;
 }
 ```
+
+A comment at the start of a text that begins with a byte order mark: `U+FEFF/// <summary>S</summary>`, `class C`, `{`, `}` becomes `U+FEFF/// <summary>`, `/// S`, `/// </summary>`, `class C`, `{`, `}` — only the first line starts with the byte order mark.
 
 Inline XML and a paragraph break:
 
@@ -443,13 +445,15 @@ class C
 
 is left unchanged.
 
-### FMT-DOC-013 — Documentation with an element without an end tag is left as written
+### FMT-DOC-013 — Documentation with an element without an end tag of its own is left as written
 
-When an XML element of a single-line documentation comment has no end tag — at the top level or nested inside another element — the formatter MUST leave the text of every line of that comment as written: FMT-DOC-005 to FMT-DOC-011 do not apply to it, not even to its complete elements. The code that follows the comment MUST stay code.
+When an XML element of a single-line documentation comment has no end tag of its own, as SHARED-DOC-017 defines it — no end tag at all, or one with another name — at the top level or nested inside another element, the formatter MUST leave the text of every line of that comment as written: FMT-DOC-005 to FMT-DOC-011 do not apply to it, not even to its complete elements. The code that follows the comment MUST stay code. When FMT-DOC-001 moves such a comment from behind code onto a line of its own, it MUST move the comment and leave its text as written.
 
-This requirement covers a documentation comment that starts its own line. An element that the parser closes with an end tag of another name, such as `<summary>S</returns>`, has an end tag here, and a comment written behind code that FMT-DOC-001 moves is not covered.
+End-tag names are compared as the compiler reads XML: exactly, prefix and local name, so `</returns>` is no end tag of its own for `<Returns>`. The text is what follows the indentation of each line; the column of each line is FMT-INDENT's, as for an ordinary comment.
 
-Why: The parser lets an element without an end tag run to the end of the comment, so where the author meant it to end is unknown. Laying it out would either guess that end or take the code that follows into the comment, and laying out only the rest of the comment would leave half-normalized documentation. Incomplete documentation is corrected by hand.
+This requirement covers a documentation comment that starts its own line and one that FMT-DOC-001 moves; a comment that FMT-DOC-003 keeps behind code is left as written by FMT-DOC-003.
+
+Why: The parser lets an element without an end tag run to the end of the comment, and an end tag with another name is not the element's end, so the comment is not well-formed and where the author meant the element to end is unknown. Laying it out would either guess that end or take the code that follows into the comment, and laying out only the rest of the comment would leave half-normalized documentation. Incomplete documentation is corrected by hand. Moving the comment changes none of its text and keeps it documenting the declaration below it.
 
 Example:
 
@@ -463,7 +467,35 @@ class C
     /// <remarks>Text
     /// more
     int B;
+
+    /// <summary>S</returns>
+    int D;
+
+    /// <Returns>Nothing</returns>
+    void E()
+    {
+    }
 }
 ```
 
 is left unchanged, including the one-line `<summary>` of `B`.
+
+A comment behind code that FMT-DOC-001 moves:
+
+```csharp
+class C
+{
+    int A; /// <summary>S
+    int B;
+}
+```
+
+```csharp
+class C
+{
+    int A;
+
+    /// <summary>S
+    int B;
+}
+```
