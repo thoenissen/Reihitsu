@@ -51,5 +51,39 @@ public class RH5031RegionDirectivesShouldBePrecededByABlankLineFormatterTests : 
                               Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter inserts a blank line between a comment that is the first content after an opening
+    /// brace and the region directive below it, so the output is clean and stable under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BLANK-013")]
+    [Requirement("SHARED-BLANK-005")]
+    public async Task VerifyFormatterSeparatesCommentFirstAfterBraceFromRegion()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 // c
+                                 {|#0:#region A|}
+                                 {|#1:#endregion // A|}
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     // c
+
+                                     #region A
+
+                                     #endregion // A
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat, 2));
+    }
+
     #endregion // Tests
 }

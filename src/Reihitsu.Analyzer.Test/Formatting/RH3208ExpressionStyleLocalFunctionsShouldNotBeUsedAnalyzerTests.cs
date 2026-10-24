@@ -1474,6 +1474,104 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
         await Verify(testData, resultData);
     }
 
+    /// <summary>
+    /// Verifies the specified example: an async local function returning an alias of <c>Task</c> is reported, and no
+    /// code fix is offered for it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-004")]
+    public async Task VerifyAsyncLocalFunctionReturningTaskAliasIsReportedWithoutCodeFix()
+    {
+        const string source = """
+                              using T = System.Threading.Tasks.Task;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      async T RunAsync() {|RH3208:=> await T.Delay(1)|};
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a static async local function returning an alias of <c>Task</c> is reported, and no code fix is
+    /// offered for it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-004")]
+    public async Task VerifyStaticAsyncLocalFunctionReturningTaskAliasIsReportedWithoutCodeFix()
+    {
+        const string source = """
+                              using T = System.Threading.Tasks.Task;
+
+                              class C
+                              {
+                                  T M()
+                                  {
+                                      return RunAsync();
+
+                                      static async T RunAsync() {|RH3208:=> await T.Delay(1)|};
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that an async local function returning a nullable-annotated <c>Task</c> is fixed to an expression
+    /// statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-004")]
+    [Requirement("SHARED-BODY-003")]
+    public async Task VerifyAsyncLocalFunctionReturningNullableTaskIsFixed()
+    {
+        const string testData = """
+                                #nullable enable
+
+                                using System.Threading.Tasks;
+
+                                internal class RH3208
+                                {
+                                    public Task? RunAsync()
+                                    {
+                                        return WaitAsync();
+
+                                        async Task? WaitAsync() {|#0:=> await Task.Delay(1)|};
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  #nullable enable
+
+                                  using System.Threading.Tasks;
+
+                                  internal class RH3208
+                                  {
+                                      public Task? RunAsync()
+                                      {
+                                          return WaitAsync();
+
+                                          async Task? WaitAsync()
+                                          {
+                                              await Task.Delay(1);
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

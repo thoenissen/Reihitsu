@@ -540,9 +540,11 @@ public class ExpressionBodyNextLineExpressionTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a line comment between the arrow and the expression keeps its own line below the return keyword
+    /// Verifies that a line comment between the arrow and the expression keeps its own line in front of the
+    /// created statement, and the expression joins the return keyword
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
     public void LineCommentBeforeNextLineExpressionKeepsOwnLine()
     {
         // Arrange
@@ -559,10 +561,8 @@ public class ExpressionBodyNextLineExpressionTests : FormatterTestsBase
                                 {
                                     int M()
                                     {
-                                        return
-
                                         // c
-                                        42;
+                                        return 42;
                                     }
                                 }
                                 """;

@@ -322,6 +322,215 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
         await Verify(testData, resultData);
     }
 
+    /// <summary>
+    /// Verifies the specified example: an async method returning an alias of <c>Task</c> is reported, and no code
+    /// fix is offered for it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-004")]
+    public async Task VerifyAsyncMethodReturningTaskAliasIsReportedWithoutCodeFix()
+    {
+        const string source = """
+                              using T = System.Threading.Tasks.Task;
+
+                              class C
+                              {
+                                  async T RunAsync() {|RH3202:=> await T.Delay(1)|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that an async method returning an alias of a generic task type is reported, and no code fix is
+    /// offered for it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-004")]
+    public async Task VerifyAsyncMethodReturningGenericTaskAliasIsReportedWithoutCodeFix()
+    {
+        const string source = """
+                              using V = System.Threading.Tasks.ValueTask<int>;
+
+                              class C
+                              {
+                                  async V GetAsync() {|RH3202:=> await System.Threading.Tasks.Task.FromResult(1)|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that async methods returning nullable-annotated task types are fixed: <c>Task?</c> to an expression
+    /// statement and <c>Task&lt;int&gt;?</c> to a return statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-004")]
+    [Requirement("SHARED-BODY-003")]
+    public async Task VerifyAsyncMethodsReturningNullableTaskTypesAreFixed()
+    {
+        const string testData = """
+                                #nullable enable
+
+                                using System.Threading.Tasks;
+
+                                internal class RH3202
+                                {
+                                    public async Task? RunAsync() {|#0:=> await Task.Delay(1)|};
+
+                                    public async Task<int>? GetAsync() {|#1:=> await Task.FromResult(1)|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  #nullable enable
+
+                                  using System.Threading.Tasks;
+
+                                  internal class RH3202
+                                  {
+                                      public async Task? RunAsync()
+                                      {
+                                          await Task.Delay(1);
+                                      }
+
+                                      public async Task<int>? GetAsync()
+                                      {
+                                          return await Task.FromResult(1);
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData.Replace("\r\n", "\n"),
+                     resultData.Replace("\r\n", "\n"),
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that fixing a document converts the methods with a recognized task type and leaves the method
+    /// returning a task alias reported and unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-004")]
+    public async Task VerifyFixLeavesAsyncMethodReturningTaskAliasNextToConvertedMethods()
+    {
+        const string testData = """
+                                using System.Threading.Tasks;
+                                using T = System.Threading.Tasks.Task;
+
+                                internal class RH3202
+                                {
+                                    public async T KeptAsync() {|RH3202:=> await T.Delay(1)|};
+
+                                    public async Task FirstAsync() {|RH3202:=> await Task.Delay(1)|};
+
+                                    public async Task<int> SecondAsync() {|RH3202:=> await Task.FromResult(1)|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System.Threading.Tasks;
+                                  using T = System.Threading.Tasks.Task;
+
+                                  internal class RH3202
+                                  {
+                                      public async T KeptAsync() {|RH3202:=> await T.Delay(1)|};
+
+                                      public async Task FirstAsync()
+                                      {
+                                          await Task.Delay(1);
+                                      }
+
+                                      public async Task<int> SecondAsync()
+                                      {
+                                          return await Task.FromResult(1);
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData.Replace("\r\n", "\n"),
+                     resultData.Replace("\r\n", "\n"),
+                     static config =>
+                            {
+                                config.NumberOfIncrementalIterations = 2;
+                                config.NumberOfFixAllIterations = 1;
+                            });
+    }
+
+    /// <summary>
+    /// Verifies that the fix carries a comment on its own line after the arrow into the block, in front of the created
+    /// statement, as the formatter does
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-003")]
+    public async Task VerifyCommentAfterArrowLeadsTheCreatedStatement()
+    {
+        const string testData = """
+                                internal class RH3202
+                                {
+                                    public int GetValue() {|#0:=>
+                                        // why
+                                        42|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3202
+                                  {
+                                      public int GetValue()
+                                      {
+                                          // why
+                                          return 42;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData.Replace("\r\n", "\n"),
+                     resultData.Replace("\r\n", "\n"),
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix carries a comment on its own line before the arrow into the block, in front of the
+    /// created statement, as the formatter does
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-003")]
+    public async Task VerifyCommentBeforeArrowLeadsTheCreatedStatement()
+    {
+        const string testData = """
+                                internal class RH3202
+                                {
+                                    public int GetValue()
+                                        // why
+                                        {|#0:=> 42|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3202
+                                  {
+                                      public int GetValue()
+                                      {
+                                          // why
+                                          return 42;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData.Replace("\r\n", "\n"),
+                     resultData.Replace("\r\n", "\n"),
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
