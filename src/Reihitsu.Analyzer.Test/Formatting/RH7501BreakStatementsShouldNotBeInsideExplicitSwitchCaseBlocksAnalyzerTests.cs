@@ -992,8 +992,8 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
 
     /// <summary>
     /// Characterizes the fix when code that #if excludes lies in front of the break: the fix is offered and moves the
-    /// directives and the excluded code behind the block together with the break. The case is an open question about
-    /// intended behavior, so this test pins today's behavior without stating it as intended
+    /// directives and the excluded code behind the block together with the break. This test pins today's behavior
+    /// without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1052,8 +1052,8 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
 
     /// <summary>
     /// Characterizes the fix when a region encloses the break inside the block: the fix is offered, moves the region
-    /// directive behind the block with the break, and leaves the end of the region inside the block. The case is an open
-    /// question about intended behavior, so this test pins today's behavior without stating it as intended
+    /// directive behind the block with the break, and leaves the end of the region inside the block. This test pins
+    /// today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1110,8 +1110,8 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
 
     /// <summary>
     /// Characterizes the fix when conditional code follows the break inside the block: the fix is offered, moves the break
-    /// behind the block, and leaves the conditional code inside it. The case is an open question about intended behavior,
-    /// so this test pins today's behavior without stating it as intended
+    /// behind the block, and leaves the conditional code inside it. This test pins today's behavior without stating it as
+    /// intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1170,8 +1170,8 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
 
     /// <summary>
     /// Characterizes the fix when a pragma pair encloses the break inside the block: the fix is offered, moves the
-    /// disabling pragma behind the block with the break, and leaves the restoring pragma inside the block. The case is an
-    /// open question about intended behavior, so this test pins today's behavior without stating it as intended
+    /// disabling pragma behind the block with the break, and leaves the restoring pragma inside the block. This test pins
+    /// today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1228,8 +1228,8 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
 
     /// <summary>
     /// Characterizes the fix when the whole section block shares the line of its case label: the fix is offered and
-    /// duplicates text of the line in front of the brace. The case is an open question about intended behavior, so this
-    /// test pins today's behavior without stating it as intended
+    /// duplicates text of the line in front of the brace. This test pins today's behavior without stating it as
+    /// intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1276,8 +1276,7 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
 
     /// <summary>
     /// Characterizes the fix when the break shares its line with the block's closing brace: the fix is offered and writes a
-    /// second break the user did not write. The case is an open question about intended behavior, so this test pins today's
-    /// behavior without stating it as intended
+    /// second break the user did not write. This test pins today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1328,8 +1327,7 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
 
     /// <summary>
     /// Characterizes the fix when the break shares its line with the statement in front of it: the fix is offered and joins
-    /// the block's closing brace onto that statement's line. The case is an open question about intended behavior, so this
-    /// test pins today's behavior without stating it as intended
+    /// the block's closing brace onto that statement's line. This test pins today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1380,8 +1378,7 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
 
     /// <summary>
     /// Characterizes the fix when the break is the only statement of the section block: the fix is offered and leaves an
-    /// empty block in front of the break. The case is an open question about intended behavior, so this test pins today's
-    /// behavior without stating it as intended
+    /// empty block in front of the break. This test pins today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1424,8 +1421,8 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
 
     /// <summary>
     /// Characterizes the fix when a blank line separates the break from the statement in front of it: the blank line moves
-    /// with the break, so it lies between the closing brace and the break. The case is an open question about intended
-    /// behavior, so this test pins today's behavior without stating it as intended
+    /// with the break, so it lies between the closing brace and the break. This test pins today's behavior without stating
+    /// it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

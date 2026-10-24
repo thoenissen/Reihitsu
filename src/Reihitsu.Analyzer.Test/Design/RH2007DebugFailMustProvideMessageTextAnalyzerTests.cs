@@ -236,8 +236,8 @@ public class RH2007DebugFailMustProvideMessageTextAnalyzerTests : AnalyzerTestsB
 
     /// <summary>
     /// Characterizes <see cref="string.Empty"/> and a conditional expression whose every result is a constant without
-    /// text: neither is reported, because only compile-time constants are judged. These cases are an open question
-    /// about intended behavior, so this test pins today's behavior without stating it as intended
+    /// text: neither is reported, because only compile-time constants are judged. This test pins today's behavior
+    /// without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

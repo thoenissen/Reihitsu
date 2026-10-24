@@ -221,8 +221,8 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
 
     /// <summary>
     /// Characterizes code-block text inside an HTML comment, a Razor comment, a C# block comment, and a C# string of a
-    /// <c>.razor</c> file: each occurrence is reported like the real directive. These cases are an open question about
-    /// intended behavior, so this test pins today's behavior without stating it as intended
+    /// <c>.razor</c> file: each occurrence is reported like the real directive. This test pins today's behavior
+    /// without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -250,8 +250,8 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
 
     /// <summary>
     /// Characterizes code-block text inside a C# block comment, a C# string literal, and a C# raw string literal of a
-    /// <c>.razor</c> code block: each occurrence is reported like the real directive. The case is an open question
-    /// decided by principle, so this test pins today's behavior without stating it as intended
+    /// <c>.razor</c> code block: each occurrence is reported like the real directive. This test pins today's behavior
+    /// without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -278,8 +278,8 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
-    /// Characterizes an escaped <c>@@code {</c> and email-like text <c>user@code{</c>: both are reported. These cases
-    /// are an open question about intended behavior, so this test pins today's behavior without stating it as intended
+    /// Characterizes an escaped <c>@@code {</c> and email-like text <c>user@code{</c>: both are reported. This test
+    /// pins today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -297,8 +297,8 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
-    /// Characterizes a <c>@functions</c> block: it is not reported. The case is an open question about intended
-    /// behavior, so this test pins today's behavior without stating it as intended
+    /// Characterizes a <c>@functions</c> block: it is not reported. This test pins today's behavior without
+    /// stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

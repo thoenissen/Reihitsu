@@ -341,8 +341,7 @@ public class RH2002AsyncVoidShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH2
 
     /// <summary>
     /// Characterizes an async void explicit interface implementation: it is not reported, while the implicit
-    /// implementation is. The case is an open question about intended behavior, so this test pins today's behavior
-    /// without stating it as intended
+    /// implementation is. This test pins today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
