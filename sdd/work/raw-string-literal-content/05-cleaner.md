@@ -1,0 +1,33 @@
+Role: cleaner
+Commit: 69ceb7a
+Verdict: clean
+
+## thoenissen/Reihitsu#951
+
+No formatter finding. `scripts/format.sh` changed none of the run's C# files.
+
+## thoenissen/Reihitsu#1133
+
+No warning in the RH5601 files.
+
+## thoenissen/Reihitsu#1146
+
+### Warnings resolved
+| Warning | Location | Form-only change |
+|---|---|---|
+| S3267 (error under TreatWarningsAsErrors) | `src/Reihitsu.Analyzer/Rules/Layout/RH5104CommentsMustBeOnTheirOwnLineAnalyzer.cs`, `IsInlineComment` | The loop now iterates `DescendantTokens(lineSpan).Select(token => token.Span)` and tests the span; same condition, same result. |
+
+## Whole run
+
+### Formatted
+_None._ (`scripts/format.sh` on the 17 changed `.cs` files: `Formatted 0 of 17 file(s).`; 0 of 1 after the fix.)
+
+### Unresolved
+_None._
+
+### Checks
+- `scripts/build.sh`: `0 Warning(s)`, `0 Error(s)`.
+- Analyzer filter RH5104|RH5601|RH5602|RH5202: `Passed!  - Failed: 0, Passed: 125, Total: 125`.
+- Formatter filter RawStringAlignment|Indentation: `Passed!  - Failed: 0, Passed: 658, Total: 658`.
+- Text-only proof: not applicable (no comment fix).
+- Note: the implementer handover reported one disputed RH5104 test; it passes on the current tree (69ceb7a fixed it).

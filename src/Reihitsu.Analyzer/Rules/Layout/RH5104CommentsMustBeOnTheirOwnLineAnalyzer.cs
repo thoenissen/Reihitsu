@@ -89,10 +89,10 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzer : DiagnosticAnalyzerBase
         {
             var lineSpan = sourceText.Lines[lineIndex].Span;
 
-            foreach (var token in syntaxRoot.DescendantTokens(lineSpan))
+            foreach (var tokenSpan in syntaxRoot.DescendantTokens(lineSpan).Select(token => token.Span))
             {
-                if (token.Span.Length > 0
-                    && token.Span.OverlapsWith(lineSpan))
+                if (tokenSpan.Length > 0
+                    && tokenSpan.OverlapsWith(lineSpan))
                 {
                     return true;
                 }
