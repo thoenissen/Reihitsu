@@ -42,3 +42,4 @@ SwitchCaseBraces, BlankLines, LineBreaks, StructuralTransforms phases and RH5201
    - Q3 (#1133) **3A**: whitespace after the opening quotes of an interpolated multi-line raw string is part of the literal's text and is not reported, like the plain raw string. Maintainer's reason: the content of a string is program logic and is never changed.
    - Q4 (#1146) **4B**: when the comment's line begins inside an interpolation hole, RH5104 still reports the comment but withholds the fix; RH5104-006 names the hole case.
    Recorded here and in the PR run report only, not in `squad/decisions/`.
+3. Escalation 1 (after the second spec-author revision; #951, FMT-RAW-007 comment lines). Maintainer chose **A**: a comment that starts a line inside a hole takes the column of the token it precedes, measured at that token's final column after FMT-RAW-007 (FMT-INDENT-006), e.g. `// c` above `name` both at the same column. Recorded here and in the PR run report only.
