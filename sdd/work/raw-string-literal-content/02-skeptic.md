@@ -437,3 +437,140 @@ Commands, all over scratch fixtures outside the repository, which were deleted a
 `scripts/trace.sh` has no execute bit in this checkout (`-rw-r--r--`; the other scripts are executable), so I ran it through `bash`. Follow-up candidate (tooling, outside this run): restore its execute bit.
 
 No repository file other than this handover was changed.
+
+# Re-check
+
+Role: skeptic
+Commit: f649b88
+Verdict: #951: proceed after spec-author repairs R1–R3; #1133: proceed; #1146: proceed after spec-author repair R4
+
+Inputs: the escalation answers in `00-lead.md` (items 2 and 3: 1B, 2A, 3A, 4B, and A for comment lines), `01-spec-author.md` at f649b88, and `git diff origin/main -- sdd/ documentation/`. I traced the new shapes with `bash scripts/trace.sh <fixture> --passes 3 --no-install` over fixtures outside the repository, which I deleted afterwards. None of the repairs below needs a new maintainer decision. R1, however, narrows the wording the maintainer used in the 1B answer, so the lead may want to confirm it.
+
+## thoenissen/Reihitsu#951
+
+### Answers carried out
+
+1B, 2A, and escalation 3 (A) are in FMT-RAW-007, FMT-RAW-009, FMT-RAW-006, and FMT-INDENT-011, as `00-lead.md` states them. My earlier findings — the conflict with FMT-RAW-008, the clause starters `,` and `:`, the FMT-CLEAN-002 tab replacement, and the inclusive reading — are resolved.
+
+### Shapes classified on the current tree (misaligned literal, two passes)
+
+1B's split matches what the code does for the shapes below.
+
+**Stable today: anchored, condition 2.** In each, the anchor is inside the hole or on a content line of the literal:
+
+- a conditional's `?` and `:` on their own lines (FMT-INDENT-020);
+- a binary operator line (FMT-INDENT-018);
+- the braces and elements of `new[]⏎{⏎1,⏎2⏎}` (FMT-INDENT-022 and 023);
+- a wrapped argument (FMT-INDENT-012);
+- a lambda block body (FMT-INDENT-028);
+- a switch expression (FMT-INDENT-027).
+
+**Changes on pass 2 today: block column, condition 1:**
+
+- `name` and `}` (case 1);
+- the `,` and `:` clause lines;
+- the body of an anonymous method in a hole (`delegate (int y)⏎{⏎return y;⏎}`): the body ends at 17, 21, 17 after pass 1, then goes back to 8, 12, 8;
+- the hole lines of a literal that is an argument.
+
+**Comment lines, condition 3.** `// c` in front of the hole's `}` takes `}`'s column plus 4; it changes today because `}` does. `// c` in front of `name` takes `name`'s column.
+
+### R1 — "through the construct around it" must stop at the hole (FMT-PIPE-004)
+
+Condition 2 keeps the alignment of a line "that an alignment requirement places relative to a token, directly or through the construct around it (FMT-INDENT-012 to FMT-INDENT-029)". That wording does not say the construct has to lie inside the hole.
+
+Input: a literal inside a lambda body, which FMT-INDENT-028 aligns:
+
+```csharp
+        M(() =>
+          {
+              var a = $"""
+          Hello {
+              name
+          }
+          """;
+          });
+```
+
+The lines `name` and `}` take the block column inside the lambda body (column 14). Pass 1 shifts them to 27. Pass 2 puts them back at 14. This is case 1's mechanism.
+
+Two readings of condition 2 give different output for this input:
+
+- **Inclusive reading:** the lambda body around the line is aligned to a token, so condition 2 keeps column 14. The output then changes on every misaligned pass, which breaks FMT-PIPE-004.
+- **Bounded reading:** condition 1 applies, and the lines move only with the literal.
+
+Only the bounded reading satisfies FMT-PIPE-004. It is also what 1B was meant to do: stop the double move.
+
+The same question arises for a literal inside an initializer (FMT-INDENT-022 and 023), and for one inside a list element (FMT-INDENT-013). FMT-INDENT-013 reads literally as placing the hole lines of a raw literal that is an argument at the argument's first token. The code instead leaves them to the interpolation, because `ListElementInteriorUtilities.IsOwningConstruct` includes `InterpolationSyntax`. The earlier trace confirmed this: the hole lines of the argument took the block column.
+
+Repairs:
+
+- Condition 2 needs the bound: only an alignment requirement whose construct lies inside the hole, and whose anchor is a token inside the literal (in the hole or on a content line).
+- Condition 1 should then cover every other hole line that is started by a token, including lines whose column an enclosing construct outside the literal would set.
+- FMT-INDENT-011's exemption needs the same bound. As written ("would take the block column of FMT-INDENT-002"), it does not exempt a hole line that FMT-INDENT-028 would shift together with the lambda body ("every line between them").
+- FMT-INDENT-013's list of constructs that lay out their own lines should name the interpolation hole, as the code does.
+
+The maintainer's 1B answer uses the phrase "through the construct around it". The bound makes that phrase more precise, without contradicting it.
+
+### R2 — FMT-RAW-006's "MUST NOT change" contradicts condition 3
+
+FMT-RAW-006 exempts only anchored hole lines and nested raw literals.
+
+Aligned input: `H {⏎// c` at 25, `x` at 21, `}` at 17. Condition 3 moves `// c` to 21; FMT-RAW-006 forbids any change. Two more cases contradict the sentence as written:
+
+- FMT-RAW-007's own FMT-CLEAN-002 sentence (a tab in a hole line's indentation is replaced);
+- FMT-SPACE inside a hole: `G {1+2}` becomes `G {1 + 2}` in an aligned literal, observed today. This contradiction already exists on `main`.
+
+Repair: limit FMT-RAW-006 to what the raw-string phase moves — the content lines, the closing marker, and the hole lines of FMT-RAW-007's first condition — instead of adding one more exception.
+
+### R3 — Scope-depth columns other than FMT-INDENT-002
+
+Condition 1 names only the block column of FMT-INDENT-002. Inside an anonymous-method body in a hole, two kinds of line also get a column that comes only from scope depth:
+
+- a switch section (FMT-INDENT-003);
+- an unbraced embedded statement (FMT-INDENT-004).
+
+Neither condition covers them, and they change on pass 2 by the same mechanism as that body. I did not trace FMT-INDENT-003 or FMT-INDENT-004 separately; the anonymous-method body itself was traced.
+
+Repair: condition 1 and FMT-INDENT-011 should say "a column that comes from the scope depth (FMT-INDENT-002 to FMT-INDENT-004)". This is rare, but it keeps the two conditions together covering every token-started hole line.
+
+### Notes for the test implementer
+
+- **Stability still applies to unspecified lines.** The coverage sentence of FMT-RAW-007 does not lift FMT-PIPE-004. Lines that an earlier phase breaks inside a hole and that no alignment requirement places must still be stable from pass 1 to pass 2. Example: `{M(delegate { return 1; })}` on one line in a misaligned literal. Assert only that pass 2 leaves pass 1's output unchanged, not the column.
+- **Blank line before a comment in a hole.** `BlankLinePhase` inserts a blank line before a comment that follows code inside a hole: `F {x⏎// c⏎}` gets one before `// c`. An expected output for a comment in front of the hole's `}` has to contain it, or the input has to avoid that shape. FMT-RAW-007's comment example (`// c` directly after `{`) gets no blank line.
+- **Joins inside a hole.** `LineBreakPhase` joins `y =>⏎y + 1` inside a hole. Continuation-line tests must use shapes it keeps, such as `(c⏎? 1⏎: 2)` or `x⏎+ 1`.
+- **R1 regression test:** the lambda-body input above, misaligned, over two passes.
+- **FMT-RAW-009** shows no conflict with FMT-INDENT-007, FMT-CLEAN-004, or FMT-PIPE-002. Its outputs parse: hole lines are not bound by the raw indentation rule, and `b"}` at column 0 already parsed in the input.
+- **Condition 2 against FMT-INDENT-030.** "Measured after the literal moved" and FMT-INDENT-030 give the same final columns, because an anchored line and its anchor move by the same delta. No contradiction.
+
+### Surfaces (changes from my first pass)
+
+| Surface | Must change / must stay / not involved |
+|---|---|
+| RH5203, RH5205, RH5206 | Must stay (1B keeps today's anchored output) |
+| `ListElementInteriorUtilities` / `ListElementAligner` (FMT-INDENT-013) | Must stay; the spec is brought in line with them (R1) |
+| `LambdaAlignmentContributor` and the initializer contributors | In reach of R1: they shift hole lines of a literal inside their construct today |
+
+The rest of the first pass's table stands.
+
+## thoenissen/Reihitsu#1133
+
+3A is carried out in RH5601-002, its example (`string y`, `string z`), and the rule page. The inputs that must stay reported, given that `FindToken` also returns a token for the whitespace around it (FC-001) — `→$"""` at the start of a line, and `"""→;` after an interpolated raw end token — are in the spec author's test list. No contradiction with RH5601-001, SHARED-DIAG-003, SHARED-DIAG-010, or FMT-CLEAN-004.
+
+## thoenissen/Reihitsu#1146
+
+4B is carried out in RH5104-006, its example, the condition of RH5104-004, and the rule page. RH5104-004 and RH5104-006 now agree. The kinds the earlier list was missing are named.
+
+### R4 — A line that begins at the opening brace of a hole in `$@"` (FC-003)
+
+RH5104-006's own example `var e = $@"a⏎{x}b" + /* c */ x;` is listed as withheld, but its second line begins with the hole's `{`.
+
+- That position is not inside text: the text token ends at the line break.
+- It is not inside a hole that began on an earlier line: the hole starts on this line.
+
+Under the main clause ("begins inside … any of which began on an earlier line") and the clause "also when … a hole that spans several lines starts on it", the fix is offered. The example says it is withheld. The earlier apply-fix run shows the result of offering it: the inserted comment lands in the verbatim text before `{x}`, which changes the string's value (SHARED-FIX-003).
+
+Repair: the test should ask whether the line begins inside an interpolated string — its text or a hole — that began on an earlier line, whatever token starts the line. This boundary arises only in `$@"` and `@$"`. A raw string's closing line starts inside its end token, and a regular `$"` line can only begin inside a hole.
+
+Test: the spec example, plus the same shape with `@$"`.
+
+No other contradiction with SHARED-FIX-003, SHARED-FIX-006, or SHARED-COMMENT-002.
