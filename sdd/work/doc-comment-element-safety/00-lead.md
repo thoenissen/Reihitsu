@@ -56,3 +56,8 @@ Recorded here, not in `squad/decisions/` (off-limits for this run).
 5. **A** — end-tag names are compared exactly (prefix and local name, ordinal), as the compiler reads XML; the maintainer states the general principle that documentation XML is read the way the compiler reads it. `<Returns>Nothing</returns>` has no end tag of its own: the fixes are withheld and, under answer 3, the formatter leaves the comment as written.
 6. **A** — the RH8309 fix is also withheld when a CDATA section or a processing instruction stands at the top level of the comment (RH8309-005 widened beyond text and XML comments).
 7. **A** — fix the shared helper `DocumentationCommentUtilities.GetContinuationPrefix` (Reihitsu.Core) so it yields only the indentation in front of `///`; this covers RH8304 and the formatter's copying of a BOM (or other non-white-space prefix) into rebuilt documentation lines, with tests for both consumers. Approved scope growth (escalation 5).
+
+## Maintainer answers to the spec author's round-3 open questions (2026-10-24)
+
+1. RH8304 joins answer 1 (skeptic round): it does not report inside a `///` comment that the formatter leaves as written (FMT-DOC-003, FMT-DOC-013), including a comment stranded behind code (SHARED-DIAG-010).
+2. RH8308 is unchanged: it keeps reporting as today.
