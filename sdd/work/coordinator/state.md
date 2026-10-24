@@ -2,6 +2,16 @@
 
 Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays out of PRs to main).
 
+
+## Phase 5 (current — read this first)
+
+- **SDD established 2026-10-24**: cleanup PR #1429 merged (retired requirements dropped, IDs renumbered, decisions folded into rules, one change doc `sdd/changes/2026-10/introduce-sdd.md`). #899 and #912 closed by the maintainer 2026-10-24. No open `SDD open questions: …` issue. No open PRs.
+- Decision (maintainer 2026-10-24): spec format stays as it is for now — no split per requirement, no index change.
+- Decisions not to reopen: P11; P16-style widenings are extensions; #998's narrowed scope; `squad/decisions/` entries are deleted when they become rules.
+- Step 1 (running): agent updates open issues citing IDs renumbered by #1429 -> log `inventory/phase5-renumber-log.md`.
+- Step 2 (running): index of all open issues -> `inventory/phase5-index.md`; then per-family inventories `inventory/phase5-*.md`.
+- Next: classification rounds per "Phase 5 plan" below (1.2 critical / vNext extension / Maintenance internal / remaining bugs prioritized); check every `bug` label.
+
 ## Working agreement
 
 - Several questions per round are fine.
