@@ -399,6 +399,25 @@ namespace N;
 namespace N;
 ```
 
+Directly after an opening brace that a region directive follows; the blank line between the two directives stays (SHARED-BLANK-006):
+
+```csharp
+class C
+{
+    #region A
+    #endregion // A
+}
+```
+
+```csharp
+class C
+{
+    #region A
+
+    #endregion // A
+}
+```
+
 ### FMT-BLANK-008 — No blank line before an opening brace or a chained keyword
 
 The formatter MUST remove the blank lines directly before an opening brace and before the `else`, `catch`, `finally`, and do-statement `while` keywords.
