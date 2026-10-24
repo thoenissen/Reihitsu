@@ -109,6 +109,10 @@ internal sealed class ReportBuilder
 }
 ```
 
+## Contributing
+
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the setup and workflow, and note the [Code of Conduct](CODE_OF_CONDUCT.md). Security problems are reported privately, see [SECURITY.md](SECURITY.md).
+
 ## License
 
 This project is licensed under the terms of the [LICENSE](LICENSE) file.
