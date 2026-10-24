@@ -447,11 +447,11 @@ is left unchanged.
 
 ### FMT-DOC-013 — Documentation with an element without an end tag of its own is left as written
 
-When an XML element of a single-line documentation comment has no end tag of its own, as SHARED-DOC-017 defines it — no end tag at all, or one with another name — at the top level or nested inside another element, the formatter MUST leave the text of every line of that comment as written: FMT-DOC-005 to FMT-DOC-011 do not apply to it, not even to its complete elements. The code that follows the comment MUST stay code. When FMT-DOC-001 moves such a comment from behind code onto a line of its own, it MUST move the comment and leave its text as written.
+When an XML element of a single-line documentation comment has no end tag of its own, as SHARED-DOC-017 defines it — no end tag at all, or one with another name — at the top level or nested inside another element, the formatter MUST leave the text of every line of that comment as written: FMT-DOC-005 to FMT-DOC-011 do not apply to it, not even to its complete elements. The code that follows the comment MUST stay code. When FMT-DOC-001 moves such a comment from behind code onto a line of its own, or FMT-DOC-002 puts a line break between it and an earlier comment on its line, the formatter MUST move the comment and leave its text as written.
 
 End-tag names are compared as the compiler reads XML: exactly, prefix and local name, so `</returns>` is no end tag of its own for `<Returns>`. The text is what follows the indentation of each line; the column of each line is FMT-INDENT's, as for an ordinary comment.
 
-This requirement covers a documentation comment that starts its own line and one that FMT-DOC-001 moves; a comment that FMT-DOC-003 keeps behind code is left as written by FMT-DOC-003.
+This requirement covers a documentation comment that starts its own line and one that FMT-DOC-001 or FMT-DOC-002 moves; a comment that FMT-DOC-003 keeps behind code is left as written by FMT-DOC-003.
 
 Why: The parser lets an element without an end tag run to the end of the comment, and an end tag with another name is not the element's end, so the comment is not well-formed and where the author meant the element to end is unknown. Laying it out would either guess that end or take the code that follows into the comment, and laying out only the rest of the comment would leave half-normalized documentation. Incomplete documentation is corrected by hand. Moving the comment changes none of its text and keeps it documenting the declaration below it.
 
@@ -495,6 +495,29 @@ class C
 {
     int A;
 
+    /// <summary>S
+    int B;
+}
+```
+
+A comment that FMT-DOC-002 separates from an earlier comment on its line:
+
+```csharp
+class C
+{
+    int A;
+
+    /* c */ /// <summary>S
+    int B;
+}
+```
+
+```csharp
+class C
+{
+    int A;
+
+    /* c */
     /// <summary>S
     int B;
 }
