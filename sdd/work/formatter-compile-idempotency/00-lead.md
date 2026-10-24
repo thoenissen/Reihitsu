@@ -40,3 +40,10 @@ Roles: spec author (clarifications only — see below), skeptic, test implemente
 - Also: `sdd/README.md`, `sdd/templates/`, `squad/`.
 
 A role that finds it needs one of these files stops and reports it in its handover.
+
+# Escalation 1 (open questions from 01-spec-author.md), answered by the maintainer
+
+- Q1 → B. The RH3202/RH3208 report on an `async` member that FMT-STRUCT-025 keeps is correct and stays; only the code fix is withheld for that input while it cannot work. Run R7 starts after this run, so the RH3xxx expression-body fix base and its shared files may be changed here. This widens the run's production paths into the RH3xxx code-fix base (escalation 5, approved by this answer).
+- Q2 → A. Fix in this run: the blank line between a comment and `#region` directly after `{` (SHARED-BLANK-005, FMT-BLANK-013); the #954 `// c` variant test asserts the full spec output.
+- Q3 → A. `int B() =>` / `/* c */ 42;` converts to `return /* c */ 42;`.
+- The playbook records answers in `squad/decisions/`; this run must not touch `squad/`, so the answers are recorded here and in the PR's run report instead.
