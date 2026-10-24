@@ -1,5 +1,8 @@
 # Reihitsu
 
+[![Build](https://github.com/thoenissen/Reihitsu/actions/workflows/build.yml/badge.svg)](https://github.com/thoenissen/Reihitsu/actions/workflows/build.yml)
+[![License: MIT](https://img.shields.io/github/license/thoenissen/Reihitsu)](LICENSE)
+
 > 麗筆 (reihitsu, [ɾeːçitsɯ]) — beautiful brushwork
 
 A collection of C# development tools built on the Roslyn compiler platform, including a code analyzer with code fixes and a standalone formatting CLI tool.
