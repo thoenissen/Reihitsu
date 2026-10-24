@@ -32,3 +32,7 @@ Roles: spec author (clarifications only, see below) → skeptic → test impleme
 SwitchCaseBraces, BlankLines, LineBreaks, StructuralTransforms phases and RH5201 (R1); DocumentationComments, CleanupPhase, doc fixes (R2); ordering/modifier/region fix bases, RH7xxx, `sdd/specs/shared/code-fixes.md` (R4); casing (R5); RH3xxx and RH5417 (R7); `sdd/README.md`, `sdd/templates/`, `squad/`. `requirement-ids.txt`: sorted insert only. `Core/FormattingTextAnalysisUtilities.cs` is touched by a later run (R8) — any change there must be minimal and named in the handover.
 
 # Lane checks
+
+# Escalations
+
+1. Escalation 1 (#1133, after 01-spec-author): how far RH5601-001/RH5602-001 move toward SHARED-DIAG-003. Maintainer chose **A — narrow**: only whitespace that is part of a literal's text (raw-string line indentation, the closing line included, interpolated or not; hole content) is exempt from reporting. Whitespace next to a literal keeps its existing exemption; no new diagnostics for whitespace before/after a literal or in a hole's expression. `FormattingTextAnalysisUtilities.cs` is not touched for this. The remaining gap against SHARED-DIAG-003 becomes a follow-up candidate (text shown to the maintainer before creation). Answer is recorded here and in the PR run report only, not in `squad/decisions/` (maintainer's instruction).
