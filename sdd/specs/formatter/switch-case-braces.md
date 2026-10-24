@@ -420,9 +420,9 @@ class C
 
 When the formatter braces a section, a comment trailing the last label MUST stay on the label's line, a comment leading the first statement MUST move with that statement into the block, and a comment trailing the last statement in the block MUST stay on that statement's line (FMT-PIPE-002). The layout of these comments is kept as FMT-PIPE-013 states.
 
-A comment that leads the terminal `break`, which stays outside the block (FMT-SWITCH-002), MUST stay in front of that `break`, behind the closing brace of the new block, and MUST be preceded by the blank line FMT-BLANK-011 requires for it already in the output of the pass that inserts the braces.
+A comment that leads the terminal `break`, which stays outside the block (FMT-SWITCH-002), MUST stay in front of that `break`, behind the closing brace of the new block, and MUST be preceded by the blank line FMT-BLANK-011 requires for it already in the output of the pass that inserts the braces. When several comments lead that `break`, the blank lines between them MUST be kept, as FMT-PIPE-013 keeps them for the comments of wrapped code.
 
-Why: Brace insertion rebuilds the trivia around the labels, the new braces, and the statements it moves. Comments are user-authored content and must keep their position relative to the code they describe. A comment in front of the terminal `break` describes the `break`, so it stays with it outside the block; once the block is there, the comment is no longer the first content of its section, and FMT-BLANK-011 asks for the blank line in front of it. Leaving that line to a second pass would make the formatter change its own output (FMT-PIPE-004).
+Why: Brace insertion rebuilds the trivia around the labels, the new braces, and the statements it moves. Comments are user-authored content and must keep their position relative to the code they describe. A comment in front of the terminal `break` describes the `break`, so it stays with it outside the block; once the block is there, the comment is no longer the first content of its section, and FMT-BLANK-011 asks for the blank line in front of it. Leaving that line to a second pass would make the formatter change its own output (FMT-PIPE-004). A blank line between the comments groups them as the author wrote them, and no later pass restores it once it is lost.
 
 Example:
 
@@ -509,6 +509,59 @@ class C
                 }
 
                 // before break
+                break;
+
+            case 2:
+                {
+                    C();
+                }
+                break;
+        }
+    }
+}
+```
+
+A blank line between two comments in front of the terminal `break` is kept:
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                A();
+                B();
+                // one
+
+                // two
+                break;
+
+            case 2:
+                C();
+                break;
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                {
+                    A();
+                    B();
+                }
+
+                // one
+
+                // two
                 break;
 
             case 2:
@@ -864,11 +917,17 @@ class C
 
 ### FMT-SWITCH-014 — A local used by another section leaves the switch alone
 
-The formatter MUST NOT brace any section of a switch in which a local declared directly in one section is used in another section of the same switch (FMT-PIPE-003). A local is declared directly in a section when a statement that the section owns directly declares it: a local declaration, a local function, or a variable that `out var` or a pattern declares, outside any lambda or anonymous method, in a local declaration, an expression statement, or the condition of an `if` statement, such as `F(out var o);` or `if (p is int n)`. A use anywhere in the other section counts, before or after the declaring section. A local that is declared inside a nested block, lambda, anonymous method, or local function of a section, and a local that is used only in the section that declares it, MUST NOT trigger this guard.
+The formatter MUST NOT brace any section of a switch in which a local declared directly in one section is used in another section of the same switch (FMT-PIPE-003). A local is declared directly in a section when a statement that the section owns directly, or such a statement behind a label, declares it outside any lambda, anonymous method, or local-function body:
 
-This requirement specifies the outcome only for the declaration forms it names and for uses by simple name; it leaves other forms unspecified, such as a variable declared in another kind of statement, whose scope C# may limit to that statement, and a member name behind `.` that only looks like the local's name.
+- a local declaration, `const` included, or a deconstruction declaration (`var (a, b) = …;`, `(var a, var b) = …;`);
+- a local function;
+- a variable that `out var` or a pattern declares in an expression statement, a `return`, `throw`, or `yield return` statement, the condition of an `if` statement, the governing expression of a nested `switch` statement, or the expression of a `lock` statement, such as `F(out var o);` or `if (p is int n)`.
 
-Why: C# scopes a local declared directly in a switch section to the whole switch block, so another section may assign and read it, and a local function may be called from a section above the one that declares it. A block around the declaring section limits the local to that block, and the code in the other section no longer compiles (CS0103). Like a `goto` into another section (FMT-SWITCH-011), the shared local ties the sections together, so the whole switch keeps the shape the author wrote. A local declared in a nested block, a lambda, or a local function is already scoped to that body, and a local no other section uses loses nothing in a block.
+A use anywhere in the other section counts — in its statements, its nested blocks and lambdas, a nested switch, and its labels, such as a constant in `case K:` or a call in a `when` clause — before or after the declaring section. A local that is declared inside a nested block, lambda, anonymous method, or local-function body of a section, in a section of a nested switch, in the condition of an `else if`, in an embedded statement of an `if` or `else`, or in the header of a `while`, `do`, `for`, `foreach`, `using`, or `fixed` statement, and a local that is used only in the section that declares it, MUST NOT trigger this guard.
+
+This requirement specifies the outcome only for uses by simple name; it leaves a member name behind `.` that only looks like the local's name unspecified.
+
+Why: C# scopes a local declared directly in a switch section to the whole switch block, so another section may assign and read it, use a constant in its `case` label, and call a local function declared in a section below it. C# scopes a variable in a loop, `using`, `fixed`, or `else if` header, or in an embedded statement, to that statement, so it never reaches another section. A block around the declaring section limits the local to that block, and the code in the other section no longer compiles (CS0103). Like a `goto` into another section (FMT-SWITCH-011), the shared local ties the sections together, so the whole switch keeps the shape the author wrote. A local declared in a nested block, a lambda, or a local function is already scoped to that body, and a local no other section uses loses nothing in a block.
 
 Example — the local `y` of section 1 is assigned and read in section 2:
 
@@ -948,6 +1007,29 @@ class C
 }
 ```
 
+and one whose constant is the label of another section:
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                const int K = 2;
+
+                F(K);
+                break;
+
+            case K:
+                F(x);
+                break;
+        }
+    }
+}
+```
+
 A local used only in the section that declares it does not block the braces:
 
 ```csharp
@@ -996,14 +1078,14 @@ class C
 }
 ```
 
-Neither does a local declared in a nested block, even when another section uses a field of the same name:
+Neither does a local declared in a nested block or in a `foreach` header, even when another section uses a field of the same name:
 
 ```csharp
 class C
 {
     int y;
 
-    void M(int x)
+    void M(int x, int[] ys)
     {
         switch (x)
         {
@@ -1015,7 +1097,11 @@ class C
                     F(y);
                 }
 
-                G();
+                foreach (var y in ys)
+                {
+                    F(y);
+                }
+
                 break;
 
             case 2:
@@ -1031,7 +1117,7 @@ class C
 {
     int y;
 
-    void M(int x)
+    void M(int x, int[] ys)
     {
         switch (x)
         {
@@ -1044,7 +1130,10 @@ class C
                         F(y);
                     }
 
-                    G();
+                    foreach (var y in ys)
+                    {
+                        F(y);
+                    }
                 }
                 break;
 

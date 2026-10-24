@@ -134,9 +134,9 @@ is left unchanged.
 
 The formatter MUST convert an expression-bodied method or local function to a block body with a single statement:
 
-- an expression statement when the return type is `void`, or when the function is `async` and returns the non-generic `Task` or `ValueTask`;
+- an expression statement when the return type is `void`, or when the function is `async` and returns the non-generic `Task` or `ValueTask`, with or without a nullable annotation (`Task?`);
 - a `throw` statement when the expression is a throw expression;
-- a `return` statement otherwise, including `async` functions that return `Task<T>` or `ValueTask<T>` and non-`async` functions that return `Task`.
+- a `return` statement otherwise, including `async` functions that return `Task<T>` or `ValueTask<T>`, with or without a nullable annotation, and non-`async` functions that return `Task`.
 
 An `async` function whose return type is neither `void` nor written as `Task`, `ValueTask`, `Task<…>`, or `ValueTask<…>` keeps its expression body instead (FMT-STRUCT-025). This applies under every language version.
 
@@ -256,7 +256,7 @@ class C
 
 When the formatter converts an expression body under FMT-STRUCT-004 or FMT-STRUCT-005, an expression written on the line after the arrow MUST join the created `return` keyword, a comment between the expression and the semicolon MUST stay in front of the statement's semicolon, and a comment or directive in the trivia of the removed arrow or semicolon MUST be carried into the block rather than dropped. The layout of the comments the converted body carries is kept as FMT-PIPE-013 states.
 
-A comment that stands on a line of its own — nothing but whitespace in front of it on its line, and a line break behind it — between the token in front of the arrow and the arrow, or between the arrow and the expression, MUST be carried into the block as a comment on a line of its own in front of the created statement, in the order the comments were written. An expression behind such a comment MUST still join the created `return` keyword, so that the statement stays on one line as it would without the comment. A comment that starts the line after the arrow and is followed on that line by the expression MUST stay directly in front of the expression, which joins the created `return` keyword together with it (`return /* c */ 42;`). This paragraph specifies the placement only for these comments; it leaves a comment on the arrow's line, and a comment in front of an expression that becomes an expression statement or a `throw` statement, unspecified.
+A comment that stands on a line of its own — nothing but whitespace in front of it on its line, and a line break behind it — between the token in front of the arrow and the arrow, or between the arrow and the expression, MUST be carried into the block as a comment on a line of its own in front of the created statement, in the order the comments were written. An expression behind such a comment MUST still join the created `return` keyword, so that the statement stays on one line as it would without the comment. A comment that starts the line after the arrow and is followed on that line by the expression MUST stay directly in front of the expression, which joins the created `return` keyword together with it (`return /* c */ 42;`). This paragraph specifies the placement only for these comments; it leaves a documentation comment (`///`), a comment on the arrow's line, and a comment in front of an expression that becomes an expression statement or a `throw` statement, unspecified.
 
 Why: The arrow and the semicolon disappear, so whatever trivia they carried needs a new owner. The line break after the arrow is layout only and has no meaning inside a `return` statement; a comment does, and FMT-PIPE-002 forbids losing it. A comment written on its own line next to the arrow introduces the body; in front of the created statement it keeps introducing it, while a place between the signature and the brace, or on a line of its own between `return` and its value, would put it next to other code (FMT-STRUCT-024). A comment written in front of the expression on the expression's line belongs to the expression and moves with it.
 
@@ -1083,9 +1083,9 @@ is left unchanged.
 
 ### FMT-STRUCT-025 — An `async` function of an unknown task type keeps its expression body
 
-The formatter MUST keep the expression body of an `async` method or local function whose return type is neither `void` nor written as `Task`, `ValueTask`, `Task<…>`, or `ValueTask<…>`, either as a simple name or as the last part of a qualified name. This covers an alias of a task type and a custom task-like type alike. An `async` function whose return type is written in one of these forms MUST be converted as FMT-STRUCT-004 states.
+The formatter MUST keep the expression body of an `async` method or local function whose return type is neither `void` nor written as `Task`, `ValueTask`, `Task<…>`, or `ValueTask<…>`, either as a simple name or as the last part of a qualified name, with or without a nullable annotation (`Task?`, `Task<int>?`). This covers an alias of a task type and a custom task-like type alike. An `async` function whose return type is written in one of these forms MUST be converted as FMT-STRUCT-004 states.
 
-Why: Under `async`, the statement form depends on whether the task type carries a result: an expression statement for a task without one, a `return` statement for a task with one, and the wrong choice does not compile (CS1997 for a `return` with a value in an `async` function whose task has no result). The formatter sees only syntax, so behind an alias or a custom task-like type it cannot tell which form compiles, and a rewrite it cannot prove equivalent is not applied (FMT-PIPE-003, FMT-STRUCT-024).
+Why: Under `async`, the statement form depends on whether the task type carries a result, which a nullable annotation does not change: an expression statement for a task without one, a `return` statement for a task with one, and the wrong choice does not compile (CS1997 for a `return` with a value in an `async` function whose task has no result). The formatter sees only syntax, so behind an alias or a custom task-like type it cannot tell which form compiles, and a rewrite it cannot prove equivalent is not applied (FMT-PIPE-003, FMT-STRUCT-024).
 
 Example:
 
@@ -1125,6 +1125,36 @@ class C
     async System.Threading.Tasks.Task<int> GetAsync()
     {
         return await Compute();
+    }
+}
+```
+
+A nullable annotation does not hide the task type:
+
+```csharp
+using System.Threading.Tasks;
+
+class C
+{
+    async Task? RunAsync() => await Task.Delay(1);
+
+    async Task<int>? GetAsync() => await Task.FromResult(1);
+}
+```
+
+```csharp
+using System.Threading.Tasks;
+
+class C
+{
+    async Task? RunAsync()
+    {
+        await Task.Delay(1);
+    }
+
+    async Task<int>? GetAsync()
+    {
+        return await Task.FromResult(1);
     }
 }
 ```

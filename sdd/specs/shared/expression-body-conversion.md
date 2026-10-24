@@ -170,7 +170,7 @@ class C
 
 ### SHARED-BODY-004 — No fix for an `async` member of an unknown task type
 
-The rule MUST report an `async` member whose expression body the formatter keeps under FMT-STRUCT-025, and its code fix MUST NOT be offered for it.
+The rule MUST report an `async` member whose expression body the formatter keeps under FMT-STRUCT-025, and its code fix MUST NOT be offered for it. A member whose return type FMT-STRUCT-025 recognizes, a nullable-annotated `Task?` or `Task<int>?` included, is converted by the fix as SHARED-BODY-003 states.
 
 Why: The member still has the expression body the rule asks to replace, so the report is correct, and the author, who knows what the alias or the custom task type stands for, can write the block body by hand. The fix produces the formatter's block body (SHARED-BODY-003), and the formatter cannot tell which statement compiles behind such a return type; a fix offered there would change nothing. Unlike FMT-STRUCT-007, the obstacle is not in the code the fix rewrites but in what the return type means, which is why the member is still reported.
 
