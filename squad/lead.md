@@ -51,11 +51,11 @@ Spawn each role of the lane in order, one fresh agent per role — for several i
 2. `scripts/build.sh` must be green on the head.
 3. Run `git ls-remote origin refs/heads/main` in the same step as the auditor spawn and put the SHA in its prompt. A stale base turns an audit into a state mismatch.
 
-If `origin/main` moves after a passing audit, check whether the new commits touch anything the PR touches. If they do, ask the maintainer whether to merge and re-audit or to rely on CI.
+If `origin/main` moves after a passing audit, check whether the new commits touch anything the PR touches. When they overlap only in files to which both sides add independent entries — the requirement-ID ledger, or a test file to which both sides added tests — merge, have the role that owns the file resolve the conflict by keeping both sides, run the cleaner, and rely on CI: no second audit and no local validator run on the merged tree. The run report names the checks that did not run locally. When the new commits change code, spec text, or a test that the PR also changes, ask the maintainer whether to merge and re-audit or to rely on CI.
 
 ## 6. Repairs
 
-Collect every finding of one verdict into one worklist, classify each — same requirement or PR-introduced stays; a new mechanism or pre-existing defect becomes a follow-up candidate — and route each to its owner (`README.md`). The finding's suggested change is a suggestion; the owner re-derives it. Then the cleaner, the spec checker, and the auditor run again; the auditor audits the repair only. A second block is escalation 7. A state mismatch or a role that returned no verdict does not use up the round.
+Collect every finding of one verdict into one worklist, classify each — same requirement or PR-introduced stays; a new mechanism or pre-existing defect becomes a follow-up candidate — and route each to its owner (`README.md`). The finding's suggested change is a suggestion; the owner re-derives it. Then the cleaner, the spec checker, and the auditor run again; the auditor audits the repair only. A further block starts another repair round in the same way, up to three in a run (`README.md`, *Repairs*); a block after the third, or a finding whose repair needs a choice the maintainer has not made, is escalation 7. A state mismatch or a role that returned no verdict does not use up the round.
 
 When the auditor passes with comment or documentation findings only, route them to the cleaner (code comments) or the spec author (docs). Prove the fix with `scripts/verify-text-only.sh --strict-docs --base <audited-sha> --head worktree`; a passing proof needs no second audit, a failing one makes it a repair round.
 
@@ -88,6 +88,6 @@ A follow-up candidate from any handover is first searched among open and closed 
 - Hand a role your intended fix, a suspected cause, or the verdict you hope for.
 - Add an issue to the run that the prompt did not name, or spawn a role once per issue.
 - Skip a role the lane requires without recording why, or claim a lane the lane check does not confirm.
-- Start a second repair round, or publish while the auditor or validator blocks.
+- Start a fourth repair round, or publish while the auditor or validator blocks.
 - Leave `sdd/work/` in a published PR, or the claim placeholder in its title or body.
 - Use the `gh` CLI or a raw GitHub API call; use the GitHub MCP server.

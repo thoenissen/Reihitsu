@@ -48,6 +48,7 @@ Start from [`templates/spec.md`](templates/spec.md), or from [`templates/analyze
 - **Code owners** are type names only — never file paths or line numbers. Every named type must exist; `—` when no single type implements the behavior. A type is a code owner of at most one spec: a rule's analyzer and code-fix provider belong to the rule's spec, a type that implements shared behavior to that shared spec, and a general-purpose utility to none. What decides is the behavior a type implements, not who calls it: a type whose behavior a spec specifies belongs to that spec even when code outside that spec calls it, and the spec of each such caller lists the requirement IDs it relies on under `Uses`. A general-purpose utility is a type whose behavior no spec specifies, such as a syntax or trivia helper.
 - **Non-goals** list what the spec deliberately does not cover. Do not extend behavior into a non-goal without a change doc. An open question is never written into a spec, neither as a requirement nor as a non-goal (see [Open questions](#open-questions)).
 - **One requirement per heading:** `### <ID> — <short title>`. A requirement is one decision with its own `Why:`. Two decisions with different reasons are two requirements; the qualifiers of one decision stay in it, each with an example on either side.
+- **Claim only what is verified.** A requirement states the inputs it decides. It does not claim that no other input behaves otherwise — "only", "no other", "every form", "adds no parentheses anywhere else" — unless the code that dispatches on the input shows the list is complete. Where the set of inputs is open-ended, the requirement names the decided ones and states its reach in a coverage sentence, such as "This requirement specifies the outcome only for the forms it names and leaves every other form unspecified."; a form left out that looks wrong is filed as an open question.
 - The **normative sentence comes first** and uses MUST, MUST NOT, or SHOULD.
 - **`Why:`** follows — short, but always present. It is what decides an edge case the requirement does not spell out.
 - **`Example:`** gives concrete before/after C# blocks where behavior is visible. Examples are the seed for tests.
@@ -103,7 +104,7 @@ Start from [`templates/change.md`](templates/change.md).
 - Status is `Draft` while under discussion and `Accepted` once the maintainer has approved it. Set `Accepted` before the PR is marked ready for review.
 - File: `changes/yyyy-mm/<slug>.md`, by the month the change is merged.
 - No task lists and no implementation plan — they are noise once the change is merged.
-- Change docs are history. Once merged, they are not edited to track later changes; a later change gets its own doc. While SDD itself is being set up, the change docs that introduce SDD and the squad are amended in place instead.
+- Change docs are history. Once merged, they are not edited to track later changes; a later change gets its own doc.
 
 ## Open questions
 

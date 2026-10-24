@@ -24,4 +24,4 @@ One file per escalation the maintainer answered: `yyyy-mm-dd-<slug>.md`, dated b
 <the short reason given, or "none given">
 ```
 
-Entries are history and are not edited afterwards. When several entries show the same kind of question getting the same answer, the maintainer turns it into a rule — in a spec, `squad/failure-classes.md`, or the playbook — and the escalation goes away. A new rule names the entry that motivated it.
+Entries are history and are not edited afterwards. When several entries show the same kind of question getting the same answer, the maintainer turns it into a rule — in a spec, `squad/failure-classes.md`, or the playbook — and the escalation goes away. An entry whose content becomes a rule is deleted in the PR that adds the rule; the PR names the entries it folds in.
