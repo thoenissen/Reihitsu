@@ -39,12 +39,23 @@ public class RH5601UseTabsCorrectlyAnalyzer : DiagnosticAnalyzerBase
     #region Methods
 
     /// <summary>
-    /// Determines whether the token holds string or character content whose tabs are semantic and must not be altered
+    /// Determines whether the position lies in string or character content whose tabs are semantic and must not be altered.
+    /// A string or character literal token, including its surrounding trivia, and the text of an interpolated string are
+    /// content. The start and end tokens of an interpolated multi-line raw string are content only within their own text:
+    /// the whitespace after the opening quotes and the indentation of the closing line spell the literal's value, while
+    /// the trivia around those tokens is code
     /// </summary>
-    /// <param name="token">Token</param>
-    /// <returns><see langword="true"/> if the token holds string or character content; otherwise, <see langword="false"/></returns>
-    public static bool IsStringContentToken(SyntaxToken token)
+    /// <param name="token">Token whose full span contains <paramref name="position"/></param>
+    /// <param name="position">Position of the tab</param>
+    /// <returns><see langword="true"/> if the position lies in string or character content; otherwise, <see langword="false"/></returns>
+    public static bool IsStringContentToken(SyntaxToken token, int position)
     {
+        if (token.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken)
+            || token.IsKind(SyntaxKind.InterpolatedRawStringEndToken))
+        {
+            return token.Span.Contains(position);
+        }
+
         return token.IsKind(SyntaxKind.StringLiteralToken)
                || token.IsKind(SyntaxKind.CharacterLiteralToken)
                || token.IsKind(SyntaxKind.InterpolatedStringTextToken)
@@ -75,7 +86,7 @@ public class RH5601UseTabsCorrectlyAnalyzer : DiagnosticAnalyzerBase
 
                 var token = root.FindToken(index);
 
-                if (IsStringContentToken(token))
+                if (IsStringContentToken(token, index))
                 {
                     continue;
                 }

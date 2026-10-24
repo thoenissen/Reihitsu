@@ -70,12 +70,15 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzer : DiagnosticAnalyzerBase
     }
 
     /// <summary>
-    /// Determines whether a comment shares any of its occupied lines with code
+    /// Determines whether a comment shares any of its occupied lines with code. A line is shared with code when a
+    /// token overlaps it; whitespace and other comments around the comment do not count, so several comments on a
+    /// line without code are all on their own line
     /// </summary>
     /// <param name="commentTrivia">Comment trivia</param>
+    /// <param name="syntaxRoot">Syntax root</param>
     /// <param name="sourceText">Source text</param>
     /// <returns><see langword="true"/> if the comment is not on its own line</returns>
-    private static bool IsInlineComment(SyntaxTrivia commentTrivia, SourceText sourceText)
+    private static bool IsInlineComment(SyntaxTrivia commentTrivia, SyntaxNode syntaxRoot, SourceText sourceText)
     {
         var commentSpan = commentTrivia.Span;
         var startLineIndex = sourceText.Lines.GetLineFromPosition(commentSpan.Start).LineNumber;
@@ -84,20 +87,15 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzer : DiagnosticAnalyzerBase
 
         for (var lineIndex = startLineIndex; lineIndex <= endLineIndex; lineIndex++)
         {
-            var line = sourceText.Lines[lineIndex];
-            var prefixEnd = Math.Min(commentSpan.Start, line.End);
-            var suffixStart = Math.Max(commentSpan.End, line.Start);
+            var lineSpan = sourceText.Lines[lineIndex].Span;
 
-            if (prefixEnd > line.Start
-                && string.IsNullOrWhiteSpace(sourceText.ToString(TextSpan.FromBounds(line.Start, prefixEnd))) == false)
+            foreach (var token in syntaxRoot.DescendantTokens(lineSpan))
             {
-                return true;
-            }
-
-            if (suffixStart < line.End
-                && string.IsNullOrWhiteSpace(sourceText.ToString(TextSpan.FromBounds(suffixStart, line.End))) == false)
-            {
-                return true;
+                if (token.Span.Length > 0
+                    && token.Span.OverlapsWith(lineSpan))
+                {
+                    return true;
+                }
             }
         }
 
@@ -131,7 +129,7 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzer : DiagnosticAnalyzerBase
                 continue;
             }
 
-            if (IsInlineComment(trivia, sourceText))
+            if (IsInlineComment(trivia, syntaxRoot, sourceText))
             {
                 context.ReportDiagnostic(CreateDiagnostic(trivia.GetLocation()));
             }

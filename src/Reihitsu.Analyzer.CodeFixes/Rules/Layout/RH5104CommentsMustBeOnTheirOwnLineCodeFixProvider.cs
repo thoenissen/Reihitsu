@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Core;
-using Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
 using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -48,8 +49,7 @@ public class RH5104CommentsMustBeOnTheirOwnLineCodeFixProvider : CodeFixProvider
         var (spanToRemove, removalReplacement) = GetCommentRemoval(sourceText, diagnosticSpan, indentation, endOfLine);
 
         var updatedText = sourceText.Replace(spanToRemove, removalReplacement);
-        var blankLinePrefix = RequiresBlankLineBeforeRelocatedComment(root, sourceText, affectedLine) ? endOfLine : string.Empty;
-        var insertionText = $"{blankLinePrefix}{indentation}{commentText}{endOfLine}";
+        var insertionText = $"{indentation}{commentText}{endOfLine}";
 
         return document.WithText(updatedText.Replace(new TextSpan(affectedLine.Start, 0), insertionText));
     }
@@ -101,40 +101,36 @@ public class RH5104CommentsMustBeOnTheirOwnLineCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Determines whether the relocated comment needs a preceding blank line to satisfy the RH5020
-    /// policy
+    /// Determines whether the line on which the comment starts begins inside a literal, an interpolated string, or a
+    /// comment that began on an earlier line. Inserting the comment above such a line would put it inside that literal
+    /// or comment, so the fix is withheld for it
     /// </summary>
     /// <param name="root">Syntax root</param>
-    /// <param name="sourceText">Source text</param>
-    /// <param name="insertionLine">The line the comment is inserted above</param>
-    /// <returns><see langword="true"/> if a blank line must be inserted before the relocated comment</returns>
-    private static bool RequiresBlankLineBeforeRelocatedComment(SyntaxNode root, SourceText sourceText, TextLine insertionLine)
+    /// <param name="lineStart">Start position of the line on which the comment starts</param>
+    /// <returns><see langword="true"/> if the line begins inside a literal, an interpolated string, or a comment</returns>
+    private static bool StartsInsideLiteralOrComment(SyntaxNode root, int lineStart)
     {
-        var lineIndex = insertionLine.LineNumber;
+        var trivia = root.FindTrivia(lineStart);
 
-        if (lineIndex == 0)
+        if (trivia.Span.Start < lineStart
+            && trivia.Span.End > lineStart
+            && trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false
+            && trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false)
         {
-            return false;
+            return true;
         }
 
-        var previousLineIndex = FormattingTextAnalysisUtilities.FindPreviousNonBlankLineIndex(sourceText, lineIndex);
+        var token = root.FindToken(lineStart);
 
-        if (previousLineIndex < 0 || lineIndex - previousLineIndex > 1)
+        if (token.SpanStart < lineStart
+            && token.Span.End > lineStart)
         {
-            return false;
+            return true;
         }
 
-        var previousLineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[previousLineIndex]).TrimStart();
-
-        if (previousLineText.StartsWith("//", StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        var anchorToken = root.FindToken(insertionLine.Start);
-
-        return BlankLineEditor.IsFirstInBlock(anchorToken.GetPreviousToken()) == false
-               && SyntaxTriviaUtilities.IsPrecededByDirective(anchorToken.LeadingTrivia) == false;
+        return token.Parent?.AncestorsAndSelf()
+                           .OfType<InterpolatedStringExpressionSyntax>()
+                           .Any(interpolatedString => interpolatedString.SpanStart < lineStart) == true;
     }
 
     /// <summary>
@@ -219,17 +215,30 @@ public class RH5104CommentsMustBeOnTheirOwnLineCodeFixProvider : CodeFixProvider
     }
 
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
+        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+        var sourceText = await context.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
+
+        if (root == null)
+        {
+            return;
+        }
+
         foreach (var diagnostic in context.Diagnostics)
         {
+            var lineStart = sourceText.Lines.GetLineFromPosition(diagnostic.Location.SourceSpan.Start).Start;
+
+            if (StartsInsideLiteralOrComment(root, lineStart))
+            {
+                continue;
+            }
+
             context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5104Title,
                                                       token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
                                                       nameof(RH5104CommentsMustBeOnTheirOwnLineCodeFixProvider)),
                                     diagnostic);
         }
-
-        return Task.CompletedTask;
     }
 
     #endregion // CodeFixProvider

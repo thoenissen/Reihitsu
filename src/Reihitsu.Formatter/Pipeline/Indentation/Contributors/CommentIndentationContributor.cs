@@ -43,7 +43,8 @@ internal sealed class CommentIndentationContributor : ILayoutContributor
     /// is aligned: a documentation comment that Roslyn files as leading trivia of the token but that is written behind the
     /// preceding code shares that code's line, whose indentation belongs to the code rather than to the comment. The first
     /// token of a node formatted on its own has no previous token in its tree, so its preceding token in the document is read
-    /// from <see cref="FormattingContext.RootPrecedingToken"/>
+    /// from <see cref="FormattingContext.RootPrecedingToken"/>. The token's column is the one it will have after indentation,
+    /// which for a line of an interpolation hole that keeps its column is the column it already has
     /// </summary>
     /// <param name="token">The token whose leading trivia to inspect</param>
     /// <param name="model">The layout model</param>
@@ -52,12 +53,10 @@ internal sealed class CommentIndentationContributor : ILayoutContributor
     {
         var tokenLine = LayoutComputer.GetLine(token);
 
-        if (model.TryGetLayout(tokenLine, out var tokenLayout) == false)
+        if (model.TryGetPlacedColumn(tokenLine, out var alignColumn) == false)
         {
             return;
         }
-
-        var alignColumn = tokenLayout.Column;
 
         // Comments before a closing brace should be indented inside the block
         if (token.IsKind(SyntaxKind.CloseBraceToken))

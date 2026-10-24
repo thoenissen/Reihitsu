@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Text;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
@@ -12,7 +14,9 @@ namespace Reihitsu.Formatter.Pipeline.RawStringAlignment;
 /// <summary>
 /// Aligns raw string literal content and closing markers after indentation changes.
 /// This phase runs after the indentation phase to correct raw string content that
-/// becomes misaligned when the containing statement's indentation changes
+/// becomes misaligned when the containing statement's indentation changes. The lines of
+/// an interpolation hole move with the literal, and a raw string nested in a hole is
+/// aligned in the same pass as the literal around it
 /// </summary>
 internal sealed class RawStringAlignmentPhase : IFormattingPhase
 {
@@ -42,7 +46,9 @@ internal sealed class RawStringAlignmentPhase : IFormattingPhase
     #region Private methods
 
     /// <summary>
-    /// Collects replacement nodes for misaligned raw string literals
+    /// Collects replacement nodes for misaligned raw string literals. Only literals that are not nested in an
+    /// interpolation hole of another multi-line interpolated raw string are replaced; a nested literal is aligned
+    /// within the replacement of the outermost literal around it, so both move in the same pass
     /// </summary>
     /// <param name="root">The syntax root to scan</param>
     /// <param name="options">Parse options used to reparse adjusted raw strings</param>
@@ -51,24 +57,25 @@ internal sealed class RawStringAlignmentPhase : IFormattingPhase
     private static Dictionary<SyntaxNode, SyntaxNode> CollectReplacements(SyntaxNode root, CSharpParseOptions options, CancellationToken cancellationToken)
     {
         var replacements = new Dictionary<SyntaxNode, SyntaxNode>();
+        var text = root.SyntaxTree.GetText(cancellationToken);
+        var lineShifts = ComputeLineShifts(root, text, cancellationToken);
+
+        if (lineShifts.Count == 0)
+        {
+            return replacements;
+        }
 
         foreach (var node in root.DescendantNodesAndSelf())
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            SyntaxNode replacement = null;
+            if (IsMultiLineRawStringLiteral(node) == false
+                || IsNestedInRawStringHole(node))
+            {
+                continue;
+            }
 
-            if (node is LiteralExpressionSyntax literal
-                && (literal.Token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken)
-                    || literal.Token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken)))
-            {
-                replacement = ComputeNonInterpolatedReplacement(literal, options);
-            }
-            else if (node is InterpolatedStringExpressionSyntax interpolated
-                     && interpolated.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken))
-            {
-                replacement = ComputeInterpolatedReplacement(interpolated, options);
-            }
+            var replacement = ComputeReplacement(node, text, lineShifts, options);
 
             if (replacement != null)
             {
@@ -80,138 +87,247 @@ internal sealed class RawStringAlignmentPhase : IFormattingPhase
     }
 
     /// <summary>
-    /// Computes the replacement for a non-interpolated multiline raw string literal
+    /// Computes how many columns each line of every multi-line raw string literal moves. The literals are visited
+    /// outermost first, so a literal nested in an interpolation hole measures its opening quotes and its closing
+    /// marker after the literals around it moved them. A line that starts inside the text of a nested literal other
+    /// than a raw string, or inside a nested comment, never moves, because its start is part of that text
     /// </summary>
-    /// <param name="literal">The literal expression containing the raw string token</param>
+    /// <param name="root">The syntax root to scan</param>
+    /// <param name="text">The text of the syntax tree</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A mapping from line numbers to the number of columns the line moves; lines that do not move are absent</returns>
+    private static Dictionary<int, int> ComputeLineShifts(SyntaxNode root, SourceText text, CancellationToken cancellationToken)
+    {
+        var lineShifts = new Dictionary<int, int>();
+
+        foreach (var node in root.DescendantNodesAndSelf())
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (IsMultiLineRawStringLiteral(node) == false)
+            {
+                continue;
+            }
+
+            var openingLine = text.Lines.GetLineFromPosition(node.SpanStart);
+            var closingLine = text.Lines.GetLineFromPosition(node.Span.End);
+
+            if (openingLine.LineNumber == closingLine.LineNumber)
+            {
+                continue;
+            }
+
+            var openingColumn = GetOpeningQuoteColumn(node, openingLine) + GetShift(lineShifts, openingLine.LineNumber);
+            var closingColumn = GetLeadingSpaceCount(text, closingLine) + GetShift(lineShifts, closingLine.LineNumber);
+            var delta = openingColumn - closingColumn;
+
+            if (delta == 0)
+            {
+                continue;
+            }
+
+            for (var lineNumber = openingLine.LineNumber + 1; lineNumber <= closingLine.LineNumber; lineNumber++)
+            {
+                if (StartsInsideNestedText(root, text.Lines[lineNumber].Start))
+                {
+                    continue;
+                }
+
+                lineShifts[lineNumber] = GetShift(lineShifts, lineNumber) + delta;
+            }
+        }
+
+        return lineShifts;
+    }
+
+    /// <summary>
+    /// Computes the replacement for a multi-line raw string literal by moving each of its lines after the first by
+    /// the number of columns <see cref="ComputeLineShifts"/> determined for it
+    /// </summary>
+    /// <param name="node">The literal expression or interpolated string expression</param>
+    /// <param name="text">The text of the syntax tree</param>
+    /// <param name="lineShifts">The number of columns each line moves</param>
     /// <param name="options">Parse options used to reparse the adjusted raw string</param>
-    /// <returns>A replacement node if the raw string is misaligned; otherwise <see langword="null"/></returns>
-    private static LiteralExpressionSyntax ComputeNonInterpolatedReplacement(LiteralExpressionSyntax literal, CSharpParseOptions options)
+    /// <returns>A replacement node if any line of the literal moves; otherwise <see langword="null"/></returns>
+    private static SyntaxNode ComputeReplacement(SyntaxNode node, SourceText text, Dictionary<int, int> lineShifts, CSharpParseOptions options)
     {
-        var token = literal.Token;
-        var tokenText = token.Text;
+        var openingLineNumber = text.Lines.GetLineFromPosition(node.SpanStart).LineNumber;
+        var closingLineNumber = text.Lines.GetLineFromPosition(node.Span.End).LineNumber;
+        var builder = new StringBuilder();
+        var position = node.SpanStart;
+        var changed = false;
 
-        if (tokenText.IndexOf('\n') < 0)
+        for (var lineNumber = openingLineNumber + 1; lineNumber <= closingLineNumber; lineNumber++)
+        {
+            var shift = GetShift(lineShifts, lineNumber);
+            var line = text.Lines[lineNumber];
+
+            if (shift == 0
+                || line.Span.Length == 0)
+            {
+                continue;
+            }
+
+            var currentSpaces = GetLeadingSpaceCount(text, line);
+            var newSpaces = Math.Max(0, currentSpaces + shift);
+
+            if (newSpaces == currentSpaces)
+            {
+                continue;
+            }
+
+            builder.Append(text.ToString(TextSpan.FromBounds(position, line.Start)));
+            builder.Append(' ', newSpaces);
+            position = line.Start + currentSpaces;
+            changed = true;
+        }
+
+        if (changed == false)
         {
             return null;
         }
 
-        var openingColumn = token.GetLocation().GetLineSpan().StartLinePosition.Character;
-        var closingColumn = GetClosingColumnFromLastLine(tokenText);
+        builder.Append(text.ToString(TextSpan.FromBounds(position, node.Span.End)));
 
-        if (openingColumn == closingColumn)
-        {
-            return null;
-        }
+        var replacement = SyntaxFactory.ParseExpression(builder.ToString(), 0, options, true);
 
-        var delta = openingColumn - closingColumn;
-        var adjustedText = AdjustContentLines(tokenText, delta);
-
-        return (SyntaxFactory.ParseExpression(adjustedText, 0, options, true) as LiteralExpressionSyntax)?.WithTriviaFrom(literal);
+        return replacement.RawKind == node.RawKind
+                   ? replacement.WithTriviaFrom(node)
+                   : null;
     }
 
     /// <summary>
-    /// Computes the replacement for an interpolated multiline raw string literal
+    /// Determines whether the node is a multi-line raw string literal: plain, UTF-8, or interpolated
     /// </summary>
-    /// <param name="interpolated">The interpolated string expression</param>
-    /// <param name="options">Parse options used to reparse the adjusted raw string</param>
-    /// <returns>A replacement node if the raw string is misaligned; otherwise <see langword="null"/></returns>
-    private static InterpolatedStringExpressionSyntax ComputeInterpolatedReplacement(InterpolatedStringExpressionSyntax interpolated, CSharpParseOptions options)
+    /// <param name="node">The node to inspect</param>
+    /// <returns><see langword="true"/> if the node is a multi-line raw string literal</returns>
+    private static bool IsMultiLineRawStringLiteral(SyntaxNode node)
     {
-        var startToken = interpolated.StringStartToken;
-        var endToken = interpolated.StringEndToken;
-
-        var quoteOffset = RawStringLiteralUtilities.GetQuoteOffset(startToken.Text);
-        var openingColumn = startToken.GetLocation().GetLineSpan().StartLinePosition.Character + quoteOffset;
-        var closingColumn = GetClosingColumnFromLastLine(endToken.Text);
-
-        if (openingColumn == closingColumn)
-        {
-            return null;
-        }
-
-        var delta = openingColumn - closingColumn;
-        var expressionText = interpolated.ToString();
-        var adjustedText = AdjustContentLines(expressionText, delta);
-
-        return (SyntaxFactory.ParseExpression(adjustedText, 0, options, true) as InterpolatedStringExpressionSyntax)?.WithTriviaFrom(interpolated);
+        return node switch
+               {
+                   LiteralExpressionSyntax literal => literal.Token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken)
+                                                      || literal.Token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken),
+                   InterpolatedStringExpressionSyntax interpolated => interpolated.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken),
+                   _ => false
+               };
     }
 
     /// <summary>
-    /// Adjusts the indentation of all content lines (all lines after the first) by the given delta
+    /// Determines whether the node lies inside an interpolation hole of a multi-line interpolated raw string
     /// </summary>
-    /// <param name="text">The text to adjust</param>
-    /// <param name="delta">The number of spaces to add (positive) or remove (negative)</param>
-    /// <returns>The text with adjusted content line indentation</returns>
-    private static string AdjustContentLines(string text, int delta)
+    /// <param name="node">The node to inspect</param>
+    /// <returns><see langword="true"/> if a multi-line interpolated raw string encloses the node</returns>
+    private static bool IsNestedInRawStringHole(SyntaxNode node)
     {
-        var lines = text.Split('\n');
-
-        for (var lineIndex = 1; lineIndex < lines.Length; lineIndex++)
-        {
-            lines[lineIndex] = AdjustLineIndentation(lines[lineIndex], delta);
-        }
-
-        return string.Join("\n", lines);
+        return node.Ancestors()
+                   .Any(IsMultiLineRawStringLiteral);
     }
 
     /// <summary>
-    /// Adjusts the indentation of a single line by the given delta
+    /// Gets the column of the first quote of the literal's opening marker, so an interpolated literal is measured
+    /// under its quotes rather than under its <c>$</c> characters
     /// </summary>
-    /// <param name="line">The line to adjust</param>
-    /// <param name="delta">The number of spaces to add (positive) or remove (negative)</param>
-    /// <returns>The line with adjusted indentation</returns>
-    private static string AdjustLineIndentation(string line, int delta)
+    /// <param name="node">The literal expression or interpolated string expression</param>
+    /// <param name="openingLine">The line on which the literal starts</param>
+    /// <returns>The column of the first opening quote</returns>
+    private static int GetOpeningQuoteColumn(SyntaxNode node, TextLine openingLine)
     {
-        var trimmed = line.TrimEnd('\r');
+        var column = node.SpanStart - openingLine.Start;
 
-        if (trimmed.Length == 0)
+        if (node is InterpolatedStringExpressionSyntax interpolated)
         {
-            return line;
+            column += RawStringLiteralUtilities.GetQuoteOffset(interpolated.StringStartToken.Text);
         }
 
-        var currentSpaces = GetLeadingSpaceCount(line);
-        var newSpaces = Math.Max(0, currentSpaces + delta);
-
-        if (newSpaces == currentSpaces)
-        {
-            return line;
-        }
-
-        return new string(' ', newSpaces) + line.Substring(currentSpaces);
+        return column;
     }
 
     /// <summary>
-    /// Counts the number of leading space characters in a string
+    /// Determines whether a line that starts at the given position starts inside the text of a literal other than a
+    /// raw string, or inside a comment, that began on an earlier line. Moving the start of such a line would change
+    /// the literal's value or the comment's text
     /// </summary>
-    /// <param name="line">The string to examine</param>
+    /// <param name="root">The syntax root</param>
+    /// <param name="lineStart">The position at which the line starts</param>
+    /// <returns><see langword="true"/> if the line starts inside such text</returns>
+    private static bool StartsInsideNestedText(SyntaxNode root, int lineStart)
+    {
+        var trivia = root.FindTrivia(lineStart);
+
+        if (trivia.Span.Start < lineStart
+            && trivia.Span.End > lineStart
+            && SyntaxTriviaUtilities.IsCommentTrivia(trivia))
+        {
+            return true;
+        }
+
+        var token = root.FindToken(lineStart);
+
+        if (token.SpanStart > lineStart)
+        {
+            return false;
+        }
+
+        if (token.SpanStart < lineStart)
+        {
+            return IsNonRawStringText(token);
+        }
+
+        var previousToken = token.GetPreviousToken();
+
+        return token.LeadingTrivia.Count == 0
+               && previousToken.Span.End == lineStart
+               && IsNonRawStringText(previousToken);
+    }
+
+    /// <summary>
+    /// Determines whether the token holds the text of a string literal other than a raw string: a regular or verbatim
+    /// string, or the text of an interpolated string that is not raw
+    /// </summary>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if the token holds such text</returns>
+    private static bool IsNonRawStringText(SyntaxToken token)
+    {
+        if (token.IsKind(SyntaxKind.StringLiteralToken)
+            || token.IsKind(SyntaxKind.Utf8StringLiteralToken))
+        {
+            return true;
+        }
+
+        return token.IsKind(SyntaxKind.InterpolatedStringTextToken)
+               && token.Parent?.Parent is InterpolatedStringExpressionSyntax interpolated
+               && interpolated.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken) == false
+               && interpolated.StringStartToken.IsKind(SyntaxKind.InterpolatedSingleLineRawStringStartToken) == false;
+    }
+
+    /// <summary>
+    /// Gets the number of columns the given line moves
+    /// </summary>
+    /// <param name="lineShifts">The number of columns each line moves</param>
+    /// <param name="lineNumber">The line number</param>
+    /// <returns>The number of columns, or zero for a line that does not move</returns>
+    private static int GetShift(Dictionary<int, int> lineShifts, int lineNumber)
+    {
+        return lineShifts.TryGetValue(lineNumber, out var shift) ? shift : 0;
+    }
+
+    /// <summary>
+    /// Counts the number of leading space characters of a line
+    /// </summary>
+    /// <param name="text">The text of the syntax tree</param>
+    /// <param name="line">The line to examine</param>
     /// <returns>The number of leading space characters</returns>
-    private static int GetLeadingSpaceCount(string line)
+    private static int GetLeadingSpaceCount(SourceText text, TextLine line)
     {
         var count = 0;
 
-        while (count < line.Length && line[count] == ' ')
+        while (line.Start + count < line.End
+               && text[line.Start + count] == ' ')
         {
             count++;
         }
 
         return count;
-    }
-
-    /// <summary>
-    /// Extracts the closing column from the last line of a token's text
-    /// </summary>
-    /// <param name="tokenText">The token text to examine</param>
-    /// <returns>The number of leading spaces on the last line, representing the closing marker column</returns>
-    private static int GetClosingColumnFromLastLine(string tokenText)
-    {
-        var lastNewlineIndex = tokenText.LastIndexOf('\n');
-
-        if (lastNewlineIndex < 0)
-        {
-            return GetLeadingSpaceCount(tokenText);
-        }
-
-        return GetLeadingSpaceCount(tokenText.Substring(lastNewlineIndex + 1));
     }
 
     #endregion // Private methods

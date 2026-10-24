@@ -57,7 +57,7 @@ public class RH5601UseTabsCorrectlyCodeFixProvider : CodeFixProvider
         foreach (var diagnostic in context.Diagnostics)
         {
             if (root?.FindToken(diagnostic.Location.SourceSpan.Start) is { } token
-                && RH5601UseTabsCorrectlyAnalyzer.IsStringContentToken(token))
+                && RH5601UseTabsCorrectlyAnalyzer.IsStringContentToken(token, diagnostic.Location.SourceSpan.Start))
             {
                 continue;
             }
