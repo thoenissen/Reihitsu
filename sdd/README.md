@@ -46,8 +46,9 @@ Start from [`templates/spec.md`](templates/spec.md), or from [`templates/analyze
 
 - **Header table:** `ID prefix`, `Status` (`Active`), `Code owners`, and `Uses` — exactly the requirement IDs of other specs that the spec references outside its header and its non-goals, `—` when none. A pointer in a non-goal is not a use, and a range such as "SHARED-STMT-001 to SHARED-STMT-003" names only its ends; name every ID the spec relies on.
 - **Code owners** are type names only — never file paths or line numbers. Every named type must exist; `—` when no single type implements the behavior. A type is a code owner of at most one spec: a rule's analyzer and code-fix provider belong to the rule's spec, a type that implements shared behavior to that shared spec, and a general-purpose utility to none. What decides is the behavior a type implements, not who calls it: a type whose behavior a spec specifies belongs to that spec even when code outside that spec calls it, and the spec of each such caller lists the requirement IDs it relies on under `Uses`. A general-purpose utility is a type whose behavior no spec specifies, such as a syntax or trivia helper.
-- **Non-goals** list what the spec deliberately does not cover. Do not extend behavior into a non-goal without a change doc. An open question is never written into a spec, neither as a requirement nor as a non-goal (see [Open questions](#open-questions)).
+- **Non-goals** list only deliberate exclusions — what the spec does not cover by decision, never a case whose intended behavior is undecided or a known defect. Extending behavior into a non-goal is a behavior change and needs a change doc. An open question is never written into a spec, neither as a requirement nor as a non-goal (see [Open questions](#open-questions)).
 - **One requirement per heading:** `### <ID> — <short title>`. A requirement is one decision with its own `Why:`. Two decisions with different reasons are two requirements; the qualifiers of one decision stay in it, each with an example on either side.
+- **Claim only what is verified.** A requirement states the inputs it decides. It does not claim that no other input behaves otherwise — "only", "no other", "every form", "adds no parentheses anywhere else" — unless the code that dispatches on the input shows the list is complete. Where the set of inputs is open-ended, the requirement names the decided ones and states its reach in a coverage sentence, such as "This requirement specifies the outcome only for the forms it names and leaves every other form unspecified."; a form left out that looks wrong is an open question for the maintainer (see [Open questions](#open-questions)).
 - The **normative sentence comes first** and uses MUST, MUST NOT, or SHOULD.
 - **`Why:`** follows — short, but always present. It is what decides an edge case the requirement does not spell out.
 - **`Example:`** gives concrete before/after C# blocks where behavior is visible. Examples are the seed for tests.
@@ -103,22 +104,22 @@ Start from [`templates/change.md`](templates/change.md).
 - Status is `Draft` while under discussion and `Accepted` once the maintainer has approved it. Set `Accepted` before the PR is marked ready for review.
 - File: `changes/yyyy-mm/<slug>.md`, by the month the change is merged.
 - No task lists and no implementation plan — they are noise once the change is merged.
-- Change docs are history. Once merged, they are not edited to track later changes; a later change gets its own doc. While SDD itself is being set up, the change docs that introduce SDD and the squad are amended in place instead.
+- Change docs are history. Once merged, they are not edited to track later changes; a later change gets its own doc.
 
 ## Open questions
 
-A spec describes current behavior. When the real output looks wrong while a spec is written or extended, leave the case out of the spec — no requirement, no non-goal, no note — and do not change the behavior in the same PR. File it as an open question:
+A spec describes current behavior. When the real output looks wrong while a spec is written or extended, the intended behavior is an open question, and only the maintainer answers it. No GitHub issue is filed for it; it is an escalation to the maintainer:
 
-- Each spec with open questions gets one GitHub issue, titled `SDD open questions: <spec path>`. A question about shared behavior belongs to the shared spec's issue, not to the rule where it was found. Add later questions to the existing issue for that spec; open one only when none exists.
-- Filing them is part of the run that writes or extends the spec. In the squad workflow, the squad files them.
-- Each question stands on its own: input, real output, why it looks wrong, and the requirement IDs it touches.
-- The maintainer decides each question: a bug fix brings the code in line with the spec, a clarification adds the current behavior as a requirement, and a different intended behavior needs a change doc first (see [When a change doc is required](#when-a-change-doc-is-required)).
-- A question is never recorded only in a PR description, which nobody reads after the merge. The PR may link the issue.
-- A rule that stays silent where the formatter rewrites is not an open question about the formatter; [The formatter may do more than the analyzers (P11)](#the-formatter-may-do-more-than-the-analyzers-p11) says how it is filed.
+- A question that blocks the run — an issue's own behavior depends on the answer, or two readings give different output for the same input — stops the run at once.
+- A question found in passing does not stop the run. The case is left out of the spec and the question is collected; all questions of a run are asked together in one chat message before the run's final audit, and the run waits for the answer. In the squad workflow, the spec author lists them and the lead asks them.
+- Each question stands on its own: input, real output, why it looks wrong, the requirement IDs it touches, the competing readings, and a recommendation.
+- The answer decides what happens. A bug fix or a clarification within the run's issues is done in this run: a bug fix brings the code in line with the spec, a clarification adds the current behavior as a requirement. A different intended behavior needs a change doc first (see [When a change doc is required](#when-a-change-doc-is-required)). A case outside the run's issues becomes a follow-up issue whose text the maintainer approves. "Leave it unspecified" records nothing.
+- While a question is undecided, the case never goes into a spec — no requirement, no non-goal, no note — and its behavior is not changed. A question or its answer is never recorded only in a PR description, which nobody reads after the merge; what is recorded is the outcome: a spec change, a change doc, or an approved follow-up issue.
+- A rule that stays silent where the formatter rewrites is not an open question about the formatter; [The formatter may do more than the analyzers (P11)](#the-formatter-may-do-more-than-the-analyzers-p11) says what it is instead.
 
 ## The formatter may do more than the analyzers (P11)
 
-The formatter may do more than the sum of the analyzer rules. When a run finds the formatter rewriting a construct that no rule reports, the formatter's behavior is intended, and the case is not filed as an open question about the formatter. It is filed as one of two kinds, decided by the construct:
+The formatter may do more than the sum of the analyzer rules. When a run finds the formatter rewriting a construct that no rule reports, the formatter's behavior is intended, and the case is not an open question about the formatter. It is one of two kinds, decided by the construct, and a case outside the run's issues becomes a follow-up issue whose text the maintainer approves:
 
 - **The rule's own gap.** The construct is the one the rule names, and the rule skips only a form of it. That gap belongs to the rule: a bug against the rule's spec when the spec already covers that form, otherwise a behavior change of the rule, which adds diagnostics and needs a change doc. Example: RH5110 names generic type constraints, yet it does not report the constraint below, which the formatter moves to its own line — a behavior change of RH5110.
 
@@ -136,7 +137,7 @@ The formatter may do more than the sum of the analyzer rules. When a run finds t
   }
   ```
 
-This section settles only the direction in which the formatter does more than the analyzers. A layout rule that does not report a shape the formatter deliberately keeps is not a gap of either kind: that silence is what [SHARED-DIAG-010](specs/shared/diagnostics.md) (P31) asks for. Any other disagreement between a rule and the formatter is filed as described under [Open questions](#open-questions).
+This section settles only the direction in which the formatter does more than the analyzers. A layout rule that does not report a shape the formatter deliberately keeps is not a gap of either kind: that silence is what [SHARED-DIAG-010](specs/shared/diagnostics.md) (P31) asks for. Any other disagreement between a rule and the formatter is an open question, handled as described under [Open questions](#open-questions).
 
 ## Temporary working docs
 

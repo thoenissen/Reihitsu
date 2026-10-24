@@ -15,7 +15,6 @@ This spec covers how the code fixes of the ordering rules move one declaration i
 - Layout of the moved code after the move — SHARED-FIX-007. This spec only fixes which trivia travels and which stays.
 - Reordering of using directives (SHARED-USING) and of whole regions (RH7309).
 - Rules that report an ordering problem without offering a fix, such as RH7110, apart from the region scope of SHARED-ORDER-004.
-- A balanced `#pragma` or `#nullable` pair inside the body of a crossed or moved declaration. The guard currently refuses such a move; whether it should allow it as it allows balanced conditional pairs (SHARED-ORDER-006) is an open question.
 
 ## Requirements
 

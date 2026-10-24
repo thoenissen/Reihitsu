@@ -15,7 +15,6 @@ This spec covers the `reihitsu-format` .NET tool: its arguments, which files it 
 - The pipeline trace (`scripts/trace.sh`), which reuses internal CLI types but is a repository tool, not part of `reihitsu-format`.
 - Reading `LangVersion`, `.editorconfig`, or `reihitsu.json` from the project. The tool takes the language version only from its argument.
 - The exact layout of the usage text and the version string beyond what the requirements quote.
-- The header of the `--dry-run` diff, which currently prefixes the full path with `a/` and `b/` (`--- a//work/src/A.cs`); whether that is intended is an open question.
 
 ## Requirements
 

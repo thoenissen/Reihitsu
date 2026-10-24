@@ -813,9 +813,8 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
     }
 
     /// <summary>
-    /// Characterizes the fix on an operator, which must be <see langword="public"/>: it adds
-    /// <see langword="private"/>. The case is an open question about intended behavior, so this test pins today's
-    /// behavior without stating it as intended
+    /// Characterizes the fix on an operator, which must be <see langword="public"/>: it adds <see
+    /// langword="private"/>. This test pins today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -835,8 +834,8 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
 
     /// <summary>
     /// Characterizes explicit interface implementations of an operator and a conversion operator: both are reported, and
-    /// the fix adds <see langword="private"/>, which does not compile. These cases are open questions about intended
-    /// behavior, so this test pins today's behavior without stating it as intended
+    /// the fix adds <see langword="private"/>, which does not compile. This test pins today's behavior without stating
+    /// it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

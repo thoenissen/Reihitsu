@@ -623,8 +623,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
 
     /// <summary>
     /// Characterizes a property whose accessors use the <see langword="field"/> keyword with logic of their own: it is
-    /// reported and no fix is offered. The case is an open question about intended behavior, so this test pins today's
-    /// behavior without stating it as intended
+    /// reported and no fix is offered. This test pins today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -642,8 +641,8 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
 
     /// <summary>
     /// Characterizes properties that use the <see langword="field"/> keyword without logic of their own, in an accessor
-    /// body and in an expression body: both are reported and no fix is offered. These cases are an open question about
-    /// intended behavior, so this test pins today's behavior without stating it as intended
+    /// body and in an expression body: both are reported and no fix is offered. This test pins today's behavior without
+    /// stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -663,8 +662,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
 
     /// <summary>
     /// Characterizes properties with a <c>field:</c>-targeted attribute or an accessor attribute: both are reported and
-    /// no fix is offered. These cases are an open question about intended behavior, so this test pins today's behavior
-    /// without stating it as intended
+    /// no fix is offered. This test pins today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -688,8 +686,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
 
     /// <summary>
     /// Characterizes the fix on a property with comments inside its declaration: the comments inside are dropped and
-    /// only the trailing comment is kept. The case is an open question decided by principle, so this test pins today's
-    /// behavior without stating it as intended
+    /// only the trailing comment is kept. This test pins today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -718,8 +715,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
 
     /// <summary>
     /// Characterizes the fix on a property that code excluded by <c>#if</c> refers to: the fix is offered and the
-    /// excluded reference keeps the property name. The case is an open question decided by principle, so this test
-    /// pins today's behavior without stating it as intended
+    /// excluded reference keeps the property name. This test pins today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -762,8 +758,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
 
     /// <summary>
     /// Characterizes the fix on a property of a mutable struct type: the property becomes a field, so a mutating call
-    /// that changed a copy now changes the field. The case is an open question decided by principle, so this test pins
-    /// today's behavior without stating it as intended
+    /// that changed a copy now changes the field. This test pins today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -816,8 +811,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
 
     /// <summary>
     /// Characterizes the fix on a get-only property that already carries <see langword="readonly"/>: the field gets
-    /// <see langword="readonly"/> twice. The case is an open question decided by principle, so this test pins today's
-    /// behavior without stating it as intended
+    /// <see langword="readonly"/> twice. This test pins today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

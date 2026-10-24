@@ -34,10 +34,10 @@ Read [`../README.md`](../README.md) and [`sdd/README.md`](../../sdd/README.md) f
 
 ## Open questions about intended behavior
 
-Specs describe current behavior. When the real output looks wrong, do not write it into a requirement and do not change it. Two cases:
+Specs describe current behavior. When the real output looks wrong, do not write it into the spec — no requirement, no non-goal, no note — and do not change it. No GitHub issue is filed for it; every question goes to the maintainer through the lead. Two cases:
 
 - **It blocks this run** — an issue's own behavior depends on the answer. Stop and put the question in your handover with `Verdict: open question`: the input, the real output, why it looks wrong, the competing readings with the output each produces, and your recommendation. The lead asks the maintainer and records the answer in `squad/decisions/`.
-- **Found in passing, not blocking** — leave the case out of the spec, put the question in your handover under `Open questions to file` with input, real output, why it looks wrong, and the requirement IDs it touches, and name the `SDD open questions: <spec path>` issue it belongs to (or that a new one is needed). The lead files it. The run continues; a PR description is never the only record.
+- **Found in passing, not blocking** — leave the case out of the spec and put the question in your handover under `Open questions for the maintainer`: the input, the real output, why it looks wrong, the requirement IDs it touches, the competing readings, and your recommendation. The run continues; the lead asks all of them in one message before the auditor runs, and the answer decides what the run does. A PR description is never the only record.
 
 Two readings that would produce different output for the same input are always a blocking question, never a choice you make.
 
@@ -62,8 +62,8 @@ Verdict: spec written | change doc written | text written | open question | not 
 ## Examples for the tests
 <the requirement IDs whose examples the test implementer derives tests from>
 
-## Open questions to file
-<one block per question, or _None._>
+## Open questions for the maintainer
+<one block per question found in passing — input, real output, why it looks wrong, requirement IDs, competing readings, recommendation — or _None._>
 
 ## Decisions needed
 <only with Verdict: open question>

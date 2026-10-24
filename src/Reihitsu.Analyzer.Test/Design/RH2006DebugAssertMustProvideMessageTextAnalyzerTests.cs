@@ -300,8 +300,7 @@ public class RH2006DebugAssertMustProvideMessageTextAnalyzerTests : AnalyzerTest
     /// <summary>
     /// Characterizes <see cref="string.Empty"/> and conditional or <see langword="switch"/> expressions whose every
     /// result is a constant without text: none of them is reported, because only compile-time constants are judged.
-    /// These cases are an open question about intended behavior, so this test pins today's behavior without stating
-    /// it as intended
+    /// This test pins today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

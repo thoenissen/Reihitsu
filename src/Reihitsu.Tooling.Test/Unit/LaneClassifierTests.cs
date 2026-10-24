@@ -18,7 +18,7 @@ public sealed class LaneClassifierTests
     /// <param name="path">Changed path</param>
     /// <param name="expected">Expected category</param>
     [TestMethod]
-    [DataRow("sdd/changes/2026-10/establish-squad.md", PathCategory.ChangeDoc)]
+    [DataRow("sdd/changes/2026-10/introduce-sdd.md", PathCategory.ChangeDoc)]
     [DataRow("sdd/specs/formatter/pipeline.md", PathCategory.Text)]
     [DataRow("sdd/work/run/01-spec-author.md", PathCategory.Text)]
     [DataRow("documentation/rules/RH3202.md", PathCategory.Text)]

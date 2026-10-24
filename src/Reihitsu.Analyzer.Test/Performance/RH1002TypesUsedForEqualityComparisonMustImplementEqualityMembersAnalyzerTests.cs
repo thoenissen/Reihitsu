@@ -1834,8 +1834,8 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
 
     /// <summary>
     /// Characterizes a comparer passed for the value type of <c>ToImmutableDictionary</c>: it counts as a custom
-    /// comparer for the struct key, so the call is not reported, while the call without comparers is. The case is an
-    /// open question about intended behavior, so this test pins today's behavior without stating it as intended
+    /// comparer for the struct key, so the call is not reported, while the call without comparers is. This test pins
+    /// today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1866,8 +1866,8 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// <summary>
     /// Characterizes equality-based methods and factories outside the rule's fixed list of names: <c>CountBy</c>,
     /// <c>AggregateBy</c>, <c>ImmutableHashSet.Create</c>, <c>ImmutableHashSet.CreateRange</c>, and
-    /// <c>ImmutableDictionary.CreateRange</c> are not reported, while <c>GroupBy</c> is. These cases are an open
-    /// question about intended behavior, so this test pins today's behavior without stating it as intended
+    /// <c>ImmutableDictionary.CreateRange</c> are not reported, while <c>GroupBy</c> is. This test pins today's
+    /// behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -2056,8 +2056,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
 
     /// <summary>
     /// Characterizes the <c>group … by</c>, <c>join</c>, and <c>join … into</c> clauses of a query expression: they are not
-    /// reported, while the <c>GroupBy</c> call is. The case is an open question about intended behavior, so this test
-    /// pins today's behavior without stating it as intended
+    /// reported, while the <c>GroupBy</c> call is. This test pins today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -2165,8 +2164,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// Characterizes <see langword="default"/> of a type parameter constrained to the comparer interface as a comparer
     /// argument: the calls with <c>default(TC)</c>, <c>default(TN)</c>, and <c>default(TR)</c> are reported, while the
     /// call with <c>default(TV)</c>, whose type parameter is constrained to a value type, counts as custom and is not.
-    /// The case is an open question about intended behavior, so this test pins today's behavior without stating it as
-    /// intended
+    /// This test pins today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

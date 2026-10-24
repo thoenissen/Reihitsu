@@ -244,8 +244,7 @@ public class RH7406NonOverridePropertiesShouldNotBePlacedInOverrideRegionsAnalyz
 
     /// <summary>
     /// Characterizes a region that only an override method names: it is not an override region of properties, so a property
-    /// that overrides nothing in it is not reported. The case is an open question about intended behavior, so this test
-    /// pins today's behavior without stating it as intended
+    /// that overrides nothing in it is not reported. This test pins today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
