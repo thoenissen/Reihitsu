@@ -304,3 +304,22 @@ In each, the actual diagnostics were the withheld ones at exactly the spans the 
 **The repair.** Each of the three tests now sets `test.FixedState.MarkupHandling` and `test.BatchFixedState.MarkupHandling` to `MarkupMode.Allow`, as `RH4107ProtectedFieldCasingAnalyzerTests` does. The RH8107 and RH8204 files gain `using Microsoft.CodeAnalysis.Testing;`. No source, fixed source, markup, or tag changed. The assertion still requires what SHARED-DOC-017, SHARED-FIX-002, and RH8309-005 specify: the fixable diagnostics are fixed, and the withheld diagnostics stay, unchanged, at their spans.
 
 **Result.** `scripts/test.sh --project analyzer --filter "FullyQualifiedName~VerifyFixAllLeaves"`: 3 passed, 0 failed.
+
+## Repair round 1
+
+Finding F2 of `09-spec-checker.md`. The spec change is in `10-spec-author.md` (commit `dc0a37f`): RH8309-005 now reads text the way the compiler does, so a character or entity reference counts as the character it stands for. I ran everything on head `dc0a37f`, with the implementer's code from `2d810b9` in place.
+
+All tests are in `RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTests.cs`.
+
+| Test | Requirement / failure class | Helper | Result |
+|---|---|---|---|
+| `VerifyCodeFixIsOfferedWhenACharacterReferenceForASpaceStandsBetweenTheElements` (new; the spec's `&#32;`, other side of the boundary, FC-003) | RH8309-005, RH8309-004 | Verify | green |
+| `VerifyCodeFixIsOfferedWhenAHexadecimalCharacterReferenceForATabStandsBetweenTheElements` (new; `&#x9;`, the hexadecimal form of a white-space reference) | RH8309-005, RH8309-004 | Verify | green |
+| `VerifyNoCodeFixForCharacterReferenceForALetterBetweenTheElements` (new; `&#65;`, a character reference to a character that is not white space) | RH8309-005 | NoFix | green |
+| `VerifySpecificationExampleWithholdsFixForTextAndNodesBesideTheElements` (changed) | RH8309-005 | NoFix | green |
+
+- **Fix-offered tests.** In both, the reference stays in its slot: the sorted elements fill the element positions around it (RH8309-004), and the reference's text is kept as written.
+- **Changed spec-example test.** It gains the spec example's seventh comment (`/// &amp;` before `int H;`), so it again holds the spec example in full. Its summary now names the entity reference. No other assertion changed.
+- **Unchanged test.** `VerifyNoCodeFixForEntityReferenceBetweenTheElements` keeps its `RH8309-005` tag and its expectation, as `10-spec-author.md` says.
+
+Command: `scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTests"`. Result: 44 passed, 0 failed.

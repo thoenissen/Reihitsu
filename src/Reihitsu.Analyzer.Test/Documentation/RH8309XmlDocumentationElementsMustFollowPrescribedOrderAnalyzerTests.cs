@@ -958,8 +958,9 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     }
 
     /// <summary>
-    /// Verifies the specification example: no code fix is offered when text, an XML comment, a CDATA section, or a
-    /// processing instruction stands at the top level of the reported comment, between, before, or after the elements
+    /// Verifies the specification example: no code fix is offered when text, an XML comment, a CDATA section, a
+    /// processing instruction, or an entity reference for a character that is not white space stands at the top level of
+    /// the reported comment, between, before, or after the elements
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1010,6 +1011,13 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                   /// S
                                   /// </summary>|}
                                   int G;
+
+                                  /// <remarks>R</remarks>
+                                  /// &amp;
+                                  /// {|RH8309:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  int H;
                               }
                               """;
 
@@ -1323,6 +1331,102 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                               """;
 
         await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(source));
+    }
+
+    /// <summary>
+    /// Verifies the other side of the boundary: a decimal character reference that stands for a space is white space,
+    /// so it does not withhold the fix and stays where it is written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-005")]
+    [Requirement("RH8309-004")]
+    public async Task VerifyCodeFixIsOfferedWhenACharacterReferenceForASpaceStandsBetweenTheElements()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <remarks>R</remarks>
+                                  /// &#32;
+                                  /// {|#0:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  int A;
+                              }
+                              """;
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       /// <summary>
+                                       /// S
+                                       /// </summary>
+                                       /// &#32;
+                                       /// <remarks>R</remarks>
+                                       int A;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the other side of the boundary: a hexadecimal character reference that stands for a tab is white space,
+    /// so it does not withhold the fix and stays where it is written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-005")]
+    [Requirement("RH8309-004")]
+    public async Task VerifyCodeFixIsOfferedWhenAHexadecimalCharacterReferenceForATabStandsBetweenTheElements()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <remarks>R</remarks>
+                                  /// &#x9;
+                                  /// {|#0:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  int A;
+                              }
+                              """;
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       /// <summary>
+                                       /// S
+                                       /// </summary>
+                                       /// &#x9;
+                                       /// <remarks>R</remarks>
+                                       int A;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a character reference for a character that is not white space withholds the fix, as the entity
+    /// reference does
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-005")]
+    public async Task VerifyNoCodeFixForCharacterReferenceForALetterBetweenTheElements()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <remarks>R</remarks>
+                                  /// &#65;
+                                  /// {|RH8309:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  int A;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     #endregion // Tests
