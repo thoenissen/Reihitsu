@@ -90,6 +90,102 @@ public class DocumentationCommentUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that code in front of the exterior is not part of the continuation prefix, while the indentation is
+    /// </summary>
+    [TestMethod]
+    public void GetContinuationPrefixExcludesCodeInFrontOfTheExterior()
+    {
+        // Arrange
+        var sourceText = ParseLine("    int A; /// <summary>S</summary>");
+
+        // Act
+        var result = DocumentationCommentUtilities.GetContinuationPrefix(sourceText, sourceText.Lines[0]);
+
+        // Assert
+        Assert.AreEqual("    /// ", result);
+    }
+
+    /// <summary>
+    /// Verifies that an opening brace at the start of the line is not part of the continuation prefix
+    /// </summary>
+    [TestMethod]
+    public void GetContinuationPrefixExcludesOpeningBraceInFrontOfTheExterior()
+    {
+        // Arrange
+        var sourceText = ParseLine("{ /// <summary>S</summary>");
+
+        // Act
+        var result = DocumentationCommentUtilities.GetContinuationPrefix(sourceText, sourceText.Lines[0]);
+
+        // Assert
+        Assert.AreEqual("/// ", result);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited comment in front of the exterior is not part of the continuation prefix
+    /// </summary>
+    [TestMethod]
+    public void GetContinuationPrefixExcludesDelimitedCommentInFrontOfTheExterior()
+    {
+        // Arrange
+        var sourceText = ParseLine("    /* c */ /// <summary>S</summary>");
+
+        // Act
+        var result = DocumentationCommentUtilities.GetContinuationPrefix(sourceText, sourceText.Lines[0]);
+
+        // Assert
+        Assert.AreEqual("    /// ", result);
+    }
+
+    /// <summary>
+    /// Verifies that a byte order mark in front of the exterior is not part of the continuation prefix
+    /// </summary>
+    [TestMethod]
+    public void GetContinuationPrefixExcludesByteOrderMarkInFrontOfTheExterior()
+    {
+        // Arrange
+        var sourceText = ParseLine("﻿/// <summary>S</summary>");
+
+        // Act
+        var result = DocumentationCommentUtilities.GetContinuationPrefix(sourceText, sourceText.Lines[0]);
+
+        // Assert
+        Assert.AreEqual("/// ", result);
+    }
+
+    /// <summary>
+    /// Verifies that tab indentation in front of code before the exterior is kept, while the code is not
+    /// </summary>
+    [TestMethod]
+    public void GetContinuationPrefixKeepsTabIndentationInFrontOfCode()
+    {
+        // Arrange
+        var sourceText = ParseLine("\tint A; /// <summary>S</summary>");
+
+        // Act
+        var result = DocumentationCommentUtilities.GetContinuationPrefix(sourceText, sourceText.Lines[0]);
+
+        // Assert
+        Assert.AreEqual("\t/// ", result);
+    }
+
+    /// <summary>
+    /// Verifies that mixed tab and space indentation directly in front of the exterior is kept as written
+    /// </summary>
+    [TestMethod]
+    public void GetContinuationPrefixKeepsMixedIndentationInFrontOfTheExterior()
+    {
+        // Arrange
+        var sourceText = ParseLine("\t  /// <summary>S</summary>");
+
+        // Act
+        var result = DocumentationCommentUtilities.GetContinuationPrefix(sourceText, sourceText.Lines[0]);
+
+        // Assert
+        Assert.AreEqual("\t  /// ", result);
+    }
+
+    /// <summary>
     /// Verifies that a missing exterior separator is inserted without changing the content
     /// </summary>
     [TestMethod]

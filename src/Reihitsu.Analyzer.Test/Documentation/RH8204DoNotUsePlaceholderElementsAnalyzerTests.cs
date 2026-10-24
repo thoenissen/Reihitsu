@@ -251,6 +251,199 @@ public class RH8204DoNotUsePlaceholderElementsAnalyzerTests : BatchCodeFixTestsB
         await Verify(source, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH8204MessageFormat, 3));
     }
 
+    /// <summary>
+    /// Verifies the specification example: a placeholder element without an end tag is reported up to the end of the
+    /// documentation comment, and no code fix is offered, so the method that follows the comment stays code
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-017")]
+    [Requirement("RH8204-002")]
+    [Requirement("RH8204-003")]
+    public async Task VerifyNoCodeFixForPlaceholderWithoutEndTag()
+    {
+        const string source = """
+                              /// <summary>C</summary>
+                              public class C
+                              {
+                                  /// <remarks>Fast</remarks>
+                                  /// {|RH8204:<placeholder>Later text
+                              |}    public void Run()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered for a placeholder element closed by the end tag of the element around it,
+    /// so that end tag is kept
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-017")]
+    [Requirement("RH8204-002")]
+    [Requirement("RH8204-003")]
+    public async Task VerifyNoCodeFixForPlaceholderClosedByEndTagOfTheEnclosingElement()
+    {
+        const string source = """
+                              /// <summary>C</summary>
+                              public class C
+                              {
+                                  /// <remarks>{|RH8204:<placeholder>Later text</remarks>|}
+                                  public void Stop()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that end-tag names are compared exactly: no code fix is offered for a placeholder element whose end tag
+    /// differs only in case
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-017")]
+    [Requirement("RH8204-003")]
+    public async Task VerifyNoCodeFixForPlaceholderClosedByEndTagDifferingOnlyInCase()
+    {
+        const string source = """
+                              /// <summary>C</summary>
+                              public class C
+                              {
+                                  /// <remarks>{|RH8204:<Placeholder>Later text</placeholder>|}</remarks>
+                                  public void Stop()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of the locations: a placeholder without an end tag is reported through the
+    /// line break where the documentation comment ends, one closed by another element's end tag through that end tag,
+    /// and no code fix is offered for either
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8204-002")]
+    [Requirement("SHARED-DOC-017")]
+    public async Task VerifySpecificationExampleLocatesPlaceholdersWithoutEndTagOfTheirOwn()
+    {
+        const string source = """
+                              /// <summary>C</summary>
+                              public class C
+                              {
+                                  /// <remarks>Fast</remarks>
+                                  /// {|RH8204:<placeholder>Later text
+                              |}    public void Run()
+                                  {
+                                  }
+
+                                  /// <remarks>{|RH8204:<placeholder>Later text</remarks>|}
+                                  public void Stop()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix is still offered for a placeholder element closed by its own end tag when another
+    /// element of the same comment has no end tag of its own, and that the other element is kept as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-017")]
+    [Requirement("RH8204-003")]
+    public async Task VerifyCodeFixReplacesPlaceholderBesideElementWithoutEndTagOfItsOwn()
+    {
+        const string source = """
+                              /// <summary>{|#0:<placeholder>A</placeholder>|} <see>b</x></summary>
+                              public class C
+                              {
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   /// <summary>A <see>b</x></summary>
+                                   public class C
+                                   {
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH8204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that fixing every diagnostic of a document replaces the placeholder closed by its own end tag and leaves
+    /// the placeholder without an end tag reported and unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-017")]
+    public async Task VerifyFixAllLeavesPlaceholderWithoutEndTagUnchanged()
+    {
+        const string source = """
+                              /// <summary>{|RH8204:<placeholder>C</placeholder>|}</summary>
+                              public class C
+                              {
+                                  /// <remarks>Fast</remarks>
+                                  /// {|RH8204:<placeholder>Later text
+                              |}    public void Run()
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   /// <summary>C</summary>
+                                   public class C
+                                   {
+                                       /// <remarks>Fast</remarks>
+                                       /// {|RH8204:<placeholder>Later text
+                                   |}    public void Run()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered for a placeholder element without an end tag in a CRLF document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-017")]
+    [Requirement("RH8204-003")]
+    public async Task VerifyNoCodeFixForPlaceholderWithoutEndTagWithCarriageReturnLineFeed()
+    {
+        const string source = """
+                              /// <summary>C</summary>
+                              public class C
+                              {
+                                  /// <remarks>Fast</remarks>
+                                  /// {|RH8204:<placeholder>Later text
+                              |}    public void Run()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(source));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
