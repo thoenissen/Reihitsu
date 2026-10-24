@@ -7,11 +7,22 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 - **SDD established 2026-10-24**: cleanup PR #1429 merged (retired requirements dropped, IDs renumbered, decisions folded into rules, one change doc `sdd/changes/2026-10/introduce-sdd.md`). #899 and #912 closed by the maintainer 2026-10-24. No open `SDD open questions: …` issue. No open PRs.
 - Decision (maintainer 2026-10-24): spec format stays as it is for now — no split per requirement, no index change.
+- Working agreement P5: no tracking issue and no GitHub summary comments for triage rounds (maintainer 2026-10-24); state.md is the record.
 - Decisions not to reopen: P11; P16-style widenings are extensions; #998's narrowed scope; `squad/decisions/` entries are deleted when they become rules.
 - Step 1 DONE: #1429 renumbered RH3202-005 -> RH3202-002 and RH5002-004 -> RH5002-002 and removed 14 retired IDs (successors named). No open issue (bodies, comments, titles of all 215) cites an old ID; #1284 and #972 were already updated at merge. 0 edits. Log `inventory/phase5-renumber-log.md`.
 - Step 2: index DONE `inventory/phase5-index.md`: 215 open issues (milestones SDD 139, Triage 32, Maintenance 12, vNext 10, 1.2.0 9, 1.3.0 5, 1.4.0 3, none 5; 33 labeled bug). Families F1-F8 (25-31 each). Per-family inventories running -> `inventory/phase5-f1.md` ... `phase5-f8.md` (instructions incl. classification rules copied in each file's header).
 - Step 3 DONE: all 8 family inventories + `inventory/phase5-consolidated.md` (buckets A critical 28, B bugs 46, C already-specified 18 (4 critical), D extensions 83, E clarification 7, F internal 17, G close 2, H split 14; J 20 spec contradictions; L templates yes 49/partly 43/no 123).
-- Step 4: triage round P5-1 asked 2026-10-24 (bulk milestones, C lane, splits, templates, tracking issue) -> waiting for maintainer. Round P5-2 planned: the 20 spec contradictions (J) + remaining doubts (M).
+- Step 4: round P5-1 DECIDED (maintainer 2026-10-24; message text = chat):
+  1. Maintainer moved the 1.2.0 extensions (#892-#894, #897) to 1.3.0 himself. #946, #888, #1016 STAY in 1.2.0. All critical -> 1.2.0: bucket A (28) + critical of C (#1340, #1417, #1422). Borderline (#1384, #1348, #965, #1146 Q4) -> ask in P5-2.
+  2. Non-critical bugs -> new bug-fix release milestone 1.2.1 (maybe also 1.2.2, grouped). Maintainer creates milestones (no MCP tool). Grouping 1.2.1 vs 1.2.2 -> propose in P5-2.
+  3A C issues run in bug lane, no change doc; rule texts aligned as clarification in same PR; titles/labels corrected.
+  4A D -> vNext + `enhancement`; issues already on 1.3.0/1.4.0 keep milestone.
+  5A E+F -> Maintenance; close #1034; #1055 close if covering test exists else Maintenance; trim comments.
+  6A split: issue keeps bug part + milestone; each extension part -> new vNext issue (feature-request format), linked both ways (approved).
+  7 open: maintainer asked whether new templates would be public (yes, every ISSUE_TEMPLATE file is in the public chooser) -> P5-2 question; body reformatting waits.
+  8A labels on all 215: bug / enhancement / maintenance + analyzer / formatter.
+  9 NO tracking issue, no summary comments: the state lives in this file only.
+- Bookkeeping P5-1 (agents): (a) milestones/labels/titles/closing/trims, log `inventory/phase5-bookkeeping-1.md`; (b) split issues, mapping `inventory/phase5-splits.md`. Bug-pool milestones wait for 1.2.1. Round P5-2 planned: the 20 spec contradictions (J) + remaining doubts (M).
 - Next: classification rounds per "Phase 5 plan" below (1.2 critical / vNext extension / Maintenance internal / remaining bugs prioritized); check every `bug` label.
 
 ## Working agreement
