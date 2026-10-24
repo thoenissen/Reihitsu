@@ -1017,9 +1017,9 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     }
 
     /// <summary>
-    /// Characterizes a struct that implements <see cref="System.IEquatable{T}"/> of itself without overriding
-    /// <see cref="object.GetHashCode"/>: it counts as having equality members and is not reported. The case is an open
-    /// question about intended behavior, so this test pins today's behavior without stating it as intended
+    /// Characterizes a struct that implements <see cref="System.IEquatable{T}"/> of itself without overriding <see
+    /// cref="object.GetHashCode"/>: it counts as having equality members and is not reported. This test pins today's
+    /// behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1047,8 +1047,8 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
 
     /// <summary>
     /// Characterizes generic structs with their own equality members constructed with a struct that lacks them:
-    /// <c>S?</c> and <c>(int, S)</c> are not reported, while <c>S</c> is. These cases are an open question about
-    /// intended behavior, so this test pins today's behavior without stating it as intended
+    /// <c>S?</c> and <c>(int, S)</c> are not reported, while <c>S</c> is. This test pins today's behavior
+    /// without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1210,9 +1210,8 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
 
     /// <summary>
     /// Characterizes a collection expression that passes a custom comparer through <c>with(…)</c>: the declared type of
-    /// <c>set</c> is reported, while <c>other</c>, created with <see langword="new"/> and the same comparer, is not. The
-    /// case is an open question about intended behavior, so this test pins today's behavior without stating it as
-    /// intended
+    /// <c>set</c> is reported, while <c>other</c>, created with <see langword="new"/> and the same comparer, is not.
+    /// This test pins today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1257,8 +1256,8 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
 
     /// <summary>
     /// Characterizes a collection expression that creates the collection as an argument: the parameter type and the
-    /// target-typed <c>new()</c> of <c>Take(new())</c> are reported, while <c>[_item]</c> is not. The case is an open
-    /// question about intended behavior, so this test pins today's behavior without stating it as intended
+    /// target-typed <c>new()</c> of <c>Take(new())</c> are reported, while <c>[_item]</c> is not. This test pins
+    /// today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1362,8 +1361,7 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     /// Characterizes a creation whose comparer argument is <see langword="default"/> of a type parameter constrained to
     /// the comparer interface: the declared type of <c>map</c>, which passes <c>default(TC)</c>, is reported, while
     /// <c>other</c>, which passes <c>default(TV)</c> of a type parameter constrained to a value type, counts as passing
-    /// a custom comparer and is not. The case is an open question about intended behavior, so this test pins today's
-    /// behavior without stating it as intended
+    /// a custom comparer and is not. This test pins today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

@@ -678,8 +678,8 @@ public class RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzerTests 
 
     /// <summary>
     /// Characterizes a base type whose name starts with a lower-case letter: only the region with the exact name matches,
-    /// not the capitalized name the region formatting produces. The case is an open question about intended behavior, so
-    /// this test pins today's behavior without stating it as intended
+    /// not the capitalized name the region formatting produces. This test pins today's behavior without stating it as
+    /// intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

@@ -22,7 +22,7 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5002-001")]
-    [Requirement("RH5002-004")]
+    [Requirement("RH5002-002")]
     [Requirement("SHARED-STMT-004")]
     [Requirement("SHARED-STMT-001")]
     public async Task VerifyDiagnosticForIfStatementWithoutPrecedingBlankLine()
