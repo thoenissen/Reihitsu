@@ -48,6 +48,17 @@ internal static class ReihitsuFormatterHelpers
     }
 
     /// <summary>
+    /// Creates one white-space trivia that holds the byte order mark followed by the given white space, the shape the
+    /// parser gives a byte order mark that the indentation of the first line follows
+    /// </summary>
+    /// <param name="followingWhitespace">White-space trivia that follows the byte order mark on its line</param>
+    /// <returns>The byte order mark trivia, joined with the following white space</returns>
+    internal static SyntaxTrivia CreateByteOrderMarkTrivia(IEnumerable<SyntaxTrivia> followingWhitespace)
+    {
+        return SyntaxFactory.Whitespace(string.Concat(ByteOrderMark, string.Concat(followingWhitespace.Select(static trivia => trivia.ToFullString()))));
+    }
+
+    /// <summary>
     /// Detects the predominant end-of-line sequence in the syntax node.
     /// Falls back to <see cref="Environment.NewLine"/> if no end-of-line trivia is found
     /// </summary>

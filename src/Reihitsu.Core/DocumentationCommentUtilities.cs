@@ -30,7 +30,7 @@ public static class DocumentationCommentUtilities
     /// <summary>
     /// The byte order mark, which the parser reads as white space at the start of the text
     /// </summary>
-    private const char ByteOrderMark = '﻿';
+    private const char ByteOrderMark = '\uFEFF';
 
     #endregion // Constants
 

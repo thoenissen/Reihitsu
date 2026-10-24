@@ -131,14 +131,17 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Collapses a leading run of blank-line trivia to zero or one line break. A byte order mark that starts the run is
-    /// kept in front of what remains, because the parser reads it as white space although it is the encoding signature
-    /// of the text
+    /// Collapses a leading run of blank-line trivia to zero or one line break. When the token starts the text, a byte
+    /// order mark that starts the run is kept at the start of what remains, because the parser reads it as white space
+    /// although it is the encoding signature of the text. It is joined with the indentation that follows it into one
+    /// white-space trivia, the shape the parser gives the same text, so the indentation phase sees one line-start white
+    /// space and the next run reads the same trivia
     /// </summary>
     /// <param name="token">The token to update</param>
     /// <param name="keepSingleLineBreak">Whether one line break should be preserved</param>
+    /// <param name="startsText">Whether the token starts the text, the only place where a byte order mark is kept</param>
     /// <returns>The updated token</returns>
-    private static SyntaxToken CollapseLeadingBlankLines(SyntaxToken token, bool keepSingleLineBreak)
+    private static SyntaxToken CollapseLeadingBlankLines(SyntaxToken token, bool keepSingleLineBreak, bool startsText = false)
     {
         var trivia = token.LeadingTrivia;
         var endOfLineCount = 0;
@@ -181,8 +184,9 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
         }
 
         var newTrivia = new List<SyntaxTrivia>(trivia.Count - runEnd + indentationTrivia.Count + 2);
+        var keepByteOrderMark = startsText && ReihitsuFormatterHelpers.StartsWithByteOrderMark(trivia[0]);
 
-        if (ReihitsuFormatterHelpers.StartsWithByteOrderMark(trivia[0]))
+        if (keepByteOrderMark && keepSingleLineBreak)
         {
             newTrivia.Add(ReihitsuFormatterHelpers.CreateByteOrderMarkTrivia());
         }
@@ -192,7 +196,14 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
             newTrivia.Add(SyntaxFactory.EndOfLine(endOfLineText));
         }
 
-        newTrivia.AddRange(indentationTrivia);
+        if (keepByteOrderMark && keepSingleLineBreak == false)
+        {
+            newTrivia.Add(ReihitsuFormatterHelpers.CreateByteOrderMarkTrivia(indentationTrivia));
+        }
+        else
+        {
+            newTrivia.AddRange(indentationTrivia);
+        }
 
         for (var triviaIndex = runEnd; triviaIndex < trivia.Count; triviaIndex++)
         {
@@ -456,6 +467,9 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     {
         _cancellationToken.ThrowIfCancellationRequested();
 
+        // Read before the base visit: a token it rewrites is detached and no longer knows its position in the text
+        var startsText = token.FullSpan.Start == 0;
+
         token = base.VisitToken(token);
 
         var previousToken = PrecedingTokenFacts.Resolve(token.GetPreviousToken(), _context);
@@ -468,7 +482,7 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
             var keepDocumentationBoundary = _context.PreserveRootDocumentationBoundary
                                             && StartsWithSingleLineDocumentationCommentAfterLineBreak(token);
 
-            token = CollapseLeadingBlankLines(token, keepDocumentationBoundary);
+            token = CollapseLeadingBlankLines(token, keepDocumentationBoundary, startsText);
         }
 
         if (previousToken.Kind == SyntaxKind.OpenBraceToken)
