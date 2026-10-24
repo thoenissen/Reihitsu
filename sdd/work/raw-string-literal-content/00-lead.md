@@ -43,3 +43,7 @@ SwitchCaseBraces, BlankLines, LineBreaks, StructuralTransforms phases and RH5201
    - Q4 (#1146) **4B**: when the comment's line begins inside an interpolation hole, RH5104 still reports the comment but withholds the fix; RH5104-006 names the hole case.
    Recorded here and in the PR run report only, not in `squad/decisions/`.
 3. Escalation 1 (after the second spec-author revision; #951, FMT-RAW-007 comment lines). Maintainer chose **A**: a comment that starts a line inside a hole takes the column of the token it precedes, measured at that token's final column after FMT-RAW-007 (FMT-INDENT-006), e.g. `// c` above `name` both at the same column. Recorded here and in the PR run report only.
+
+# Lead notes
+
+- Skeptic re-check (12b09f9): R1–R4 routed to the spec author without a new escalation. R1 narrows "through the construct around it" (wording from the 1B option, not the maintainer's own) to constructs inside the hole; this serves the maintainer's stated goal of 1B — remove exactly the non-idempotent shape, keep stable layouts — and restores FMT-PIPE-004 for a raw literal inside a lambda body. To be named in the run report.
