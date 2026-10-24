@@ -1,5 +1,5 @@
 Role: spec author
-Commit: e5a319b
+Commit: 73f8e39
 Verdict: #951: spec written; #1133: spec written; #1146: spec written
 
 Inputs: thoenissen/Reihitsu#951, thoenissen/Reihitsu#1133, thoenissen/Reihitsu#1146 and their comments (read through the GitHub MCP server), `00-lead.md` with its two "Escalations" entries, `02-skeptic.md`, and the specs named below. The #951 body names a suspected cause and an intended mechanism, and the #1146 body proposes RH5104 rewordings for Q3, Q5, and Q6. I did not use either: the specs state observable output only, and Q3, Q5, and Q6 are out of scope (thoenissen/Reihitsu#1433). `sdd/specs/shared/code-fixes.md` is referenced and was not edited. No change doc.
@@ -11,7 +11,25 @@ Check run on the current tree: `scripts/test.sh --project architecture` filtered
 - **5572ea1.** First spec diff.
 - **2178115.** Escalation 1, A (narrow): RH5601-001 and RH5602-001 are back to their `9501a4b` text; the RH5601-002 and RH5602-002 clarifications are kept.
 - **3e6dd08.** Escalation 2 (Q1 1B, Q2 2A, Q3 3A, Q4 4B) and the skeptic's findings that needed no maintainer decision. I re-derived each finding; each one is listed below under its issue, with how I checked it.
-- **This revision.** Escalation 3, answer A: a comment that starts a hole line takes the FMT-INDENT-006 column of the token it precedes, measured after FMT-RAW-007. FMT-RAW-007 gains this as a third condition, with an example, and the case is removed from its coverage sentence (see #951).
+- **f649b88.** Escalation 3, answer A: a comment that starts a hole line takes the FMT-INDENT-006 column of the token it precedes, measured after FMT-RAW-007. FMT-RAW-007 gains this as a third condition, with an example, and the case is removed from its coverage sentence (see #951).
+
+- **This revision.** The skeptic's re-check (`02-skeptic.md`, "Re-check", 12b09f9) listed repairs R1 to R4 in the spec. None needed a maintainer decision (`00-lead.md`, "Lead notes"). I re-derived each one:
+  - **R1, confirmed.** I traced a literal inside a lambda body on the current tree, a misaligned literal over passes 1 to 3. Pass 1 puts `name` and `}` at 27 and 27. Pass 2 puts them back at 14, the block column inside the body. That is case 1's double move.
+    - Under the old wording "directly or through the construct around it", this input reads two ways. Only the bounded reading is idempotent, and it matches 1B's "measured after the literal's shift", which implies that the anchor moves with the literal.
+    - FMT-RAW-007's alignment condition now requires both an anchor inside the literal (in the same hole or on a content line) and an aligned construct inside the hole.
+    - The other conditions of FMT-RAW-007 now cover every other token-started hole line, whatever column the indentation phase would give it. That includes scope-depth columns and columns that a construct outside the hole sets.
+    - A new example shows the lambda-body input. The surrounding output is the trace's output, with the input's blank line before `M(` that BlankLinePhase would otherwise insert.
+    - FMT-INDENT-011 now defers to FMT-RAW-007. The FMT-INDENT non-goal says "no alignment inside the hole".
+    - FMT-INDENT-013's list of constructs that lay out their own lines now names the interpolation hole. The skeptic reports that `ListElementInteriorUtilities.IsOwningConstruct` includes `InterpolationSyntax`. I did not re-read that code; the spec now matches the skeptic's observed traces.
+    - FMT-RAW-007's title is now "Hole lines move only with the literal unless aligned within it".
+  - **R2, confirmed.** In an aligned literal, the comment condition moves `// c`, FMT-CLEAN-002 replaces tabs, and FMT-SPACE spaces `1+2` inside holes. The old FMT-RAW-006, "MUST NOT change", contradicted all three. FMT-RAW-006 now forbids moving only what the raw-string phase moves: the content lines, the closing marker, and the hole lines that FMT-RAW-007 moves only with the literal. Its explicit exceptions are gone; nested raw literals and nested text need none.
+  - **R3, confirmed by reading.** FMT-INDENT-003 (switch sections) and FMT-INDENT-004 (unbraced embedded statements) also give scope-depth columns. The last condition of FMT-RAW-007 names FMT-INDENT-002 to FMT-INDENT-004, and FMT-INDENT-004 is added to `Uses`.
+  - **Coverage sentence.** FMT-RAW-007 no longer leaves lines broken inside a hole unspecified as a whole; the last condition now places them. Only the column that the earlier phase gives such a line stays unspecified. Hole lines indented less than a leftward shift stay unspecified, as before.
+  - **R4, confirmed.** In `$@"a⏎{x}b"`, the second line begins at the hole's `{`. That position is neither in text nor in a hole that began earlier, yet the example says the fix is withheld.
+    - RH5104-006 now tests whether the line begins inside a literal or a comment that began on an earlier line, whatever starts the line. An interpolated string counts with its text, its holes, and the brace that opens a hole.
+    - The example gains the `@$"` twin.
+    - RH5104-004's condition now reads "inside a literal, an interpolated string included, or a comment (RH5104-006)".
+    - The bullet on the rule page `documentation/rules/RH5104.md` now says "a multi-line string literal, interpolated strings included, or a multi-line comment".
 
 ## thoenissen/Reihitsu#951
 
@@ -38,11 +56,12 @@ Check run on the current tree: `scripts/test.sh --project architecture` filtered
 
 ### Changed requirements (cumulative)
 
-- FMT-RAW-006 — Aligned and single-line literals are left alone — clarified (two exceptions).
-- FMT-RAW-007 — Hole lines at the block column move only with the literal — added.
+- FMT-RAW-006 — Aligned and single-line literals are left alone — clarified (limited to what the raw-string phase moves; R2).
+- FMT-RAW-007 — Hole lines move only with the literal unless aligned within it — added (bounded by R1, R3).
 - FMT-RAW-008 — A raw string nested in a hole is aligned in the same pass — added, unchanged in this revision.
 - FMT-RAW-009 — Text nested in a hole keeps its lines — added.
-- FMT-INDENT-011 — Disabled text and literal content are never re-indented — clarified.
+- FMT-INDENT-011 — Disabled text and literal content are never re-indented — clarified (defers to FMT-RAW-007).
+- FMT-INDENT-013 — A line inside a list element aligns with the element — clarified (the interpolation hole lays out its own lines; R1).
 - Non-goals:
   - FMT-RAW: the non-goal on holes and nested literals is removed; the tab non-goal now points to thoenissen/Reihitsu#1432.
   - FMT-INDENT: the raw-string non-goal now excludes the hole lines that an alignment requirement places.
@@ -57,7 +76,7 @@ The coverage sentence of FMT-RAW-007 leaves two cases unspecified:
 All of these are formatter tests over two passes, under LF and CRLF.
 
 - **FMT-RAW-007.**
-  - The four spec examples: case 1, the aligned literal with `name` at column 25 (fails today), the wrapped `string.Concat` (a characterization test), and the comment line `// c` above `name` (fails today).
+  - The five spec examples: case 1, the aligned literal with `name` at column 25 (fails today), the wrapped `string.Concat` (a characterization test), the literal inside a lambda body (fails today), and the comment line `// c` above `name` (fails today).
   - A comment in front of the hole's `}`: it ends one level deeper than that `}`.
   - Also from the skeptic's inputs:
     - `$$"""` with `{{⏎name⏎}}}`;
@@ -135,7 +154,7 @@ Bringing them in line means that RH5602 can no longer skip whole lines through `
 - RH5104-002 — Comments on lines without code, of directives, and in multi-line interpolations are not reported — clarified (Q4).
 - RH5104-004 — The fix moves the comment above its line — clarified (condition tied to RH5104-006).
 - RH5104-005 — No blank line is inserted above the moved comment — reworded (J1, SHARED-FIX-006).
-- RH5104-006 — The fix is withheld when the line starts inside a literal, a comment, or a hole — added.
+- RH5104-006 — The fix is withheld when the line starts inside a literal or a comment — added (interpolated strings included, R4).
 - `Uses`: SHARED-COMMENT-002, SHARED-FIX-003, SHARED-FIX-006.
 
 ### Examples for the tests
