@@ -65,14 +65,14 @@ When the auditor passes with comment or documentation findings only, route them 
 2. Run `scripts/lane-check.sh <lane>` on the head and keep its `LANE CHECK:` line.
 3. Delete `sdd/work/<slug>/` in a commit with `[skip ci]`. Prove that nothing else changed since the audit: `git diff --exit-code <audited-sha> HEAD -- . ':(exclude)sdd/work'`.
 4. `git commit --allow-empty -m "Ready for CI (#<N>)"` (several: `"Ready for CI (#<a>, #<b>, #<c>)"`) and push. This is the run's only commit without `[skip ci]`.
-5. Rewrite the PR title and body from the change, using `.github/PULL_REQUEST_TEMPLATE.md`: a fresh title, never the placeholder or the issue title; one `Closes #<N>` (or `Refs #<N>`) line per issue; no list of executed tests. `Review notes` carries the run report: the lane and its `LANE CHECK:` line, each role run or skipped with the reason, every escalation with its answer, and whether the repair round was used.
+5. Rewrite the PR title and body from the change, using `.github/PULL_REQUEST_TEMPLATE.md`: a fresh title, never the placeholder or the issue title; one `Closes #<N>` (or `Refs #<N>`) line per issue; no list of executed tests. `Review notes` carries the run report: the lane and its `LANE CHECK:` line, each role run or skipped with the reason, every escalation with its answer, and how many repair rounds were used.
 6. Mark the PR ready for review.
 
 If the maintainer asks to skip local validation and rely on CI, do so and say in the run report which checks did not run.
 
 ## 8. Watch CI
 
-Watch the published PR until its CI is green. A failure caused by the PR is a finding: route it as in step 6 with its handovers in a fresh `sdd/work/<slug>/`, re-run the cleaner and the validator, delete `sdd/work/<slug>/` again, and push; the last commit of the push carries no `[skip ci]`. A failure that also exists on `main` is escalation 9. A second CI failure after a repair is escalation 7.
+Watch the published PR until its CI is green. A failure caused by the PR is a finding: route it as in step 6 with its handovers in a fresh `sdd/work/<slug>/`, re-run the cleaner and the validator, delete `sdd/work/<slug>/` again, and push; the last commit of the push carries no `[skip ci]`. A failure that also exists on `main` is escalation 9. A CI repair counts as one of the run's repair rounds; a CI failure after the third is escalation 7.
 
 ## Escalating
 
