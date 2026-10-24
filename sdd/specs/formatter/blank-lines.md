@@ -856,6 +856,28 @@ class C
 }
 ```
 
+A comment that is the first content after an opening brace needs no blank line above it (FMT-BLANK-011), but it does not stand in for the blank line above a region directive below it:
+
+```csharp
+class C
+{
+    // c
+    #region A
+    #endregion // A
+}
+```
+
+```csharp
+class C
+{
+    // c
+
+    #region A
+
+    #endregion // A
+}
+```
+
 ### FMT-BLANK-014 — Runs of blank lines collapse to one
 
 The formatter MUST replace two or more consecutive blank lines with a single blank line wherever they occur between tokens, including after a directive or a documentation comment.

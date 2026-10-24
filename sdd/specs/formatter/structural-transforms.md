@@ -256,9 +256,9 @@ class C
 
 When the formatter converts an expression body under FMT-STRUCT-004 or FMT-STRUCT-005, an expression written on the line after the arrow MUST join the created `return` keyword, a comment between the expression and the semicolon MUST stay in front of the statement's semicolon, and a comment or directive in the trivia of the removed arrow or semicolon MUST be carried into the block rather than dropped. The layout of the comments the converted body carries is kept as FMT-PIPE-013 states.
 
-A comment that stands on a line of its own — nothing but whitespace in front of it on its line, and a line break behind it — between the token in front of the arrow and the arrow, or between the arrow and the expression, MUST be carried into the block as a comment on a line of its own in front of the created statement, in the order the comments were written. An expression behind such a comment MUST still join the created `return` keyword, so that the statement stays on one line as it would without the comment. This paragraph specifies the placement only for comments on lines of their own; it leaves a comment that shares its line with the arrow or with the expression unspecified.
+A comment that stands on a line of its own — nothing but whitespace in front of it on its line, and a line break behind it — between the token in front of the arrow and the arrow, or between the arrow and the expression, MUST be carried into the block as a comment on a line of its own in front of the created statement, in the order the comments were written. An expression behind such a comment MUST still join the created `return` keyword, so that the statement stays on one line as it would without the comment. A comment that starts the line after the arrow and is followed on that line by the expression MUST stay directly in front of the expression, which joins the created `return` keyword together with it (`return /* c */ 42;`). This paragraph specifies the placement only for these comments; it leaves a comment on the arrow's line, and a comment in front of an expression that becomes an expression statement or a `throw` statement, unspecified.
 
-Why: The arrow and the semicolon disappear, so whatever trivia they carried needs a new owner. The line break after the arrow is layout only and has no meaning inside a `return` statement; a comment does, and FMT-PIPE-002 forbids losing it. A comment written on its own line next to the arrow introduces the body; in front of the created statement it keeps introducing it, while a place between the signature and the brace, or between `return` and its value, would put it next to other code (FMT-STRUCT-024).
+Why: The arrow and the semicolon disappear, so whatever trivia they carried needs a new owner. The line break after the arrow is layout only and has no meaning inside a `return` statement; a comment does, and FMT-PIPE-002 forbids losing it. A comment written on its own line next to the arrow introduces the body; in front of the created statement it keeps introducing it, while a place between the signature and the brace, or on a line of its own between `return` and its value, would put it next to other code (FMT-STRUCT-024). A comment written in front of the expression on the expression's line belongs to the expression and moves with it.
 
 Example:
 
@@ -287,7 +287,7 @@ class C
 }
 ```
 
-Comments on lines of their own around the arrow lead the created statement:
+Comments on lines of their own around the arrow lead the created statement; a comment in front of the expression on its line stays in front of it:
 
 ```csharp
 class C
@@ -303,6 +303,9 @@ class C
     void Run() =>
         // run
         Foo();
+
+    int Value() =>
+        /* c */ 42;
 }
 ```
 
@@ -325,6 +328,11 @@ class C
     {
         // run
         Foo();
+    }
+
+    int Value()
+    {
+        return /* c */ 42;
     }
 }
 ```

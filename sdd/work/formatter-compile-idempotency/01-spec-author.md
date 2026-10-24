@@ -1,10 +1,12 @@
 Role: spec author
-Commit: 5a58686
+Commit: d099e34 (revision 2; revision 1 was derived from 5a58686)
 Verdict: #948: spec written; #949: spec written; #954: spec written; #1390: spec written; #888: spec written
 
-Clarifications only, no change doc (bug-fix lane). New IDs: FMT-SWITCH-014, FMT-STRUCT-025, both inserted into `sdd/specs/requirement-ids.txt` at their sorted positions. The lead prompt carried no intended fix or verdict; the issue texts' own cause hypotheses (#949, #954) were not taken over — see the facts below.
+Clarifications only, no change doc (bug-fix lane). New IDs: FMT-SWITCH-014, FMT-STRUCT-025, SHARED-BODY-004, all inserted into `sdd/specs/requirement-ids.txt` at their sorted positions. The lead prompt carried no intended fix or verdict; the issue texts' own cause hypotheses (#949, #954) were not taken over — see the facts below.
 
-How the statements were established: `scripts/trace.sh` over each issue input and its variants at `5a58686`, `scripts/format.sh` for converged outputs, `scripts/apply-fix.sh` for RH5031 and RH3202, and a scratch `net10.0` library compiled with `dotnet build` for the C# scope claims of FMT-SWITCH-014. `SpecStructureTests` and `SpecConsistencyTests` pass on the spec diff; `RequirementCoverageTests.EveryRequirementOfAnEnforcedSpecIsCovered` fails only for FMT-SWITCH-014 and FMT-STRUCT-025 (no covering test yet — the test implementer's part).
+How the statements were established: `scripts/trace.sh` over each issue input and its variants at `5a58686`, `scripts/format.sh` for converged outputs, `scripts/apply-fix.sh` for RH5031 and RH3202, and a scratch `net10.0` library compiled with `dotnet build` for the C# scope claims of FMT-SWITCH-014. `SpecStructureTests` and `SpecConsistencyTests` pass on the spec diff; `RequirementCoverageTests.EveryRequirementOfAnEnforcedSpecIsCovered` fails only for FMT-SWITCH-014, FMT-STRUCT-025, and SHARED-BODY-004 (no covering test yet — the test implementer's part). The analyzer project's `RuleDocumentation` tests pass on the changed rule pages.
+
+Revision 2 carries the maintainer's answers to Q1–Q3 (summarized in `00-lead.md`, "Escalation 1"); the questions are closed and recorded under "Maintainer answers" in the `Whole run` section.
 
 ## thoenissen/Reihitsu#948
 
@@ -59,6 +61,7 @@ _None._
 ### Changed requirements
 
 - FMT-BLANK-007 — No blank lines inside braces or at the start of a file — clarified with an example: an empty region directly after `{` (the issue input and expected output).
+- FMT-BLANK-013 — Region directives are framed by blank lines — clarified with an example (maintainer answer Q2 → A): a comment that is the first content after `{` gets no blank line above it, but a blank line between it and the `#region` below (SHARED-BLANK-005).
 
 ### Facts
 
@@ -66,14 +69,15 @@ _None._
 - Same in a method body with a blank line already between the directives, and with `// c` above the region (all three verified). `#if X` / `#endif` directly inside braces: no change (verified).
 - `line-breaks.md` already states in its non-goals: "Where this phase moves a token onto a new line it inserts no blank line."
 - The issue's sentence "No phase undoes another phase's edit in any pass" is not a requirement of any spec and was not added; the observable requirement is FMT-BLANK-007.
+- Comment variant (Q2): today the formatter leaves `// c` directly above `#region A` there, and `scripts/apply-fix.sh RH5031` reports that output; with a member above the comment the line is inserted today.
 
 ### Examples for the tests
 
-FMT-BLANK-007 (new region example). Reproduction tags FMT-BLANK-007 (SHARED-BLANK-005 for the brace exemption, SHARED-BLANK-006 for the kept line between the directives).
+FMT-BLANK-007 (new region example), FMT-BLANK-013 (new comment example — the #954 `// c` variant asserts the full spec output). Reproduction tags FMT-BLANK-007 (SHARED-BLANK-005 for the brace exemption, SHARED-BLANK-006 for the kept line between the directives); the `// c` variant also tags FMT-BLANK-013 and SHARED-BLANK-005.
 
 ### Open questions for the maintainer
 
-Q2 below concerns the issue's own `// c` variant.
+_None._ (Q2 answered: A.)
 
 ## thoenissen/Reihitsu#1390
 
@@ -82,6 +86,9 @@ Q2 below concerns the issue's own `// c` variant.
 - FMT-STRUCT-025 — An `async` function of an unknown task type keeps its expression body — added (`structural-transforms.md`). Instance of FMT-STRUCT-024 / FMT-PIPE-003 as decided in #1371 Q-S1 (P36).
 - FMT-STRUCT-004 — Expression-bodied methods and local functions get a block body — clarified: the `return … otherwise` bullet no longer covers an `async` function of an unrecognized return type; one sentence points to FMT-STRUCT-025.
 - FMT-STRUCT-006 — The converted body keeps the expression's trivia — clarified: a comment on a line of its own between the token before the arrow and the arrow, or between the arrow and the expression, leads the created statement on a line of its own, in source order; the expression still joins `return`. Coverage sentence leaves comments sharing a line with the arrow or the expression unspecified. New example (before-arrow, after-arrow with `return`, after-arrow with an expression statement).
+- FMT-STRUCT-006, further (maintainer answer Q3 → A): a comment that starts the line after the arrow and is followed on that line by the expression stays directly in front of the expression, which joins `return` with it: `int Value() =>` / `/* c */ 42;` becomes `return /* c */ 42;`. Added to the example. The coverage sentence now leaves unspecified only a comment on the arrow's line (#963) and such a comment in front of an expression that becomes an expression statement or a `throw` statement (the answer covered the `return` form).
+- SHARED-BODY-004 — No fix for an `async` member of an unknown task type — added (`sdd/specs/shared/expression-body-conversion.md`, maintainer answer Q1 → B): RH3202/RH3208 keep reporting the member FMT-STRUCT-025 keeps, and no code fix is offered for it. SHARED-BODY-003 points to it; the shared spec's `Uses` gains FMT-STRUCT-025. `sdd/specs/analyzer/RH3202.md` and `RH3208.md` name SHARED-BODY-004 in their introduction and `Uses`. RH3203/RH3205/RH3206/RH3207 are unaffected: constructors, finalizers, operators, and conversion operators cannot be `async`.
+- `documentation/rules/RH3202.md`, `documentation/rules/RH3208.md` — new `## Exceptions` section: the code fix is not offered for an `async` method / local function whose return type is not written as `Task`, `ValueTask`, `Task<T>`, or `ValueTask<T>` (alias, custom task type); convert it by hand (AGENTS.md, Code-fix coverage). Examples unchanged.
 - FMT-BREAK-021 — Object initializers are always laid out over several lines — clarified: names the `with` initializer; new example (the issue's expression-bodied property and a local). The `Why` notes no rule reports a `with` initializer (RH5301 lists it as a non-goal).
 
 ### Facts
@@ -94,17 +101,17 @@ Q2 below concerns the issue's own `// c` variant.
 
 ### Examples for the tests
 
-FMT-STRUCT-025, FMT-STRUCT-006 (new example), FMT-BREAK-021 (new `with` example). Reproductions tag FMT-STRUCT-025 + FMT-PIPE-003 (alias), FMT-STRUCT-006 (comments), FMT-BREAK-021 + FMT-PIPE-004 (`with`).
+FMT-STRUCT-025, FMT-STRUCT-006 (new example, four members), FMT-BREAK-021 (new `with` example), SHARED-BODY-004 (RH3202 and RH3208 blocks: reported, no code fix offered). Reproductions tag FMT-STRUCT-025 + FMT-PIPE-003 (alias), FMT-STRUCT-006 (comments), FMT-BREAK-021 + FMT-PIPE-004 (`with`), SHARED-BODY-004 (RH3202/RH3208 fix withheld; today `scripts/apply-fix.sh RH3202` applies a fix that yields CS1997).
 
 ### Non-goals
 
 - A comment behind `=>` on the arrow's line (`int Get() => // why`), which is thoenissen/Reihitsu#963 (milestone 1.2.1), and field splitting from the same issue.
-- Analyzer side of FMT-STRUCT-025 — see Q1.
+- Changing what RH3202/RH3208 report: the `async` member stays reported (Q1 → B); only the fix is withheld.
 - Other FMT-BREAK-021 text changes asked by thoenissen/Reihitsu#1291 (another issue edits the same requirement; expect a textual merge there).
 
 ### Open questions for the maintainer
 
-Q1 and Q3 below.
+_None._ (Q1 answered: B; Q3 answered: A.)
 
 ## thoenissen/Reihitsu#888
 
@@ -131,52 +138,13 @@ _None._
 
 ### Open questions for the maintainer
 
-**Q1 — #1390: RH3202 / RH3208 on an `async` member the formatter now keeps.** Found in passing; it does not change any formatter output of the run, but answer A adds production paths outside the formatter (escalation 5), so it is worth asking before the implementer finishes.
+_None._
 
-Input: `using T = System.Threading.Tasks.Task;` and `async T RunAsync() => await T.Delay(1);`. Real output today (`scripts/apply-fix.sh RH3202`): reported, "fixed" in one iteration into `{ return await T.Delay(1); }`, which does not compile. `ExpressionBodyToBlockCodeFixProviderBase` delegates to `ReihitsuFormatter.FormatNodeInDocumentAsync`, and `ExpressionBodyAnalyzerBase` skips only what `ExpressionBodyRewriteUtilities.BlocksRewrite` (FMT-STRUCT-007) refuses. Once FMT-STRUCT-025 holds, the diagnostic stays and its fix changes nothing. Touches SHARED-BODY-001, SHARED-BODY-003, SHARED-FIX-001, FMT-STRUCT-025. RH3xxx analyzers and fixes are owned by concurrent run R7.
+### Maintainer answers (Escalation 1, recorded in `00-lead.md`)
 
-- **A** — The rules do not report such a member: SHARED-BODY-001 also names FMT-STRUCT-025 (as its `Why` already argues for FMT-STRUCT-007). RH3202 is silent on the input above. Changes the shared analyzer predicate and `shared/expression-body-conversion.md`; must be coordinated with R7, or done as a follow-up issue.
-- **B** — The rules keep reporting, and the code fix is withheld for that input (no fix offered, a supported end state). Changes the code-fix base; same R7 overlap.
-- **C** — Leave both as they are in this run: the fix makes no progress (violates SHARED-FIX-001) until a follow-up issue settles A or B.
-
-Recommendation: **A** — a diagnostic the formatter will never satisfy is the case SHARED-BODY-001 exists for; do it in this run if R7 does not touch `ExpressionBodyAnalyzerBase` / `ExpressionBodyRewriteUtilities`, otherwise as an approved follow-up issue with A.
-
-**Q2 — #954 variant: no blank line between a comment and `#region` directly after `{`.** Found in passing; the spec already decides the intended output, so this is a scope question.
-
-```csharp
-class C
-{
-    // c
-    #region A
-    int _b;
-    #endregion // A
-}
-```
-
-Real output: blank lines are added inside the region, but none between `// c` and `#region A`. `scripts/apply-fix.sh RH5031` reports `#region A` on that output and inserts the line. SHARED-BLANK-005 ("a comment there does not satisfy the requirement") and FMT-BLANK-013 require it. With a member above the comment (`int _a;`, `// c`, `#region A`) the formatter inserts it. It occurs without the #954 defect (input above has no empty region and gets no blank line after `{`), but the issue's own `// c` variant of #954 shows both.
-
-- **A** — Fix it in this run; the #954 regression test of the `// c` variant asserts the full spec output (`{`, `// c`, blank, `#region A`, blank, `#endregion // A`, `}`).
-- **B** — Follow-up issue; this run's #954 tests use the inputs without a comment above the region.
-
-Recommendation: **B** — it is a separate defect that shows without #954's, and the run must not change behavior beyond its issues.
-
-**Q3 — #1390: a delimited comment that starts its line followed by the expression on the same line.** Found in passing; left out of FMT-STRUCT-006 by its coverage sentence.
-
-```csharp
-class C
-{
-    int B() =>
-        /* c */ 42;
-}
-```
-
-Real output: `return`, a blank line, then `/* c */ 42;` inside the block — the statement is split by a blank line, like the issue's `//` instance. Touches FMT-STRUCT-006, FMT-PIPE-013, FMT-STRUCT-024. Readings:
-
-- **A** — `return /* c */ 42;` — the expression joins `return` (FMT-STRUCT-006) and the comment stays directly in front of the code it was written next to.
-- **B** — `/* c */ return 42;` — the comment keeps its place at the start of the statement's line (FMT-PIPE-013 "in front of the statement").
-- **C** — `/* c */` on a line of its own, then `return 42;` — treated like the `//` instance.
-
-Recommendation: **A** — it keeps the comment next to `42` and the statement on one line, and needs no new layout rule; C would move a comment off its line.
+- Q1 (#1390, RH3202/RH3208 on an `async` member FMT-STRUCT-025 keeps) → B: the report stays, the code fix is withheld for that input. Run R7 starts after this run, so the RH3xxx expression-body fix base and its shared files may change here (escalation 5 approved by the answer). Carried into SHARED-BODY-004, SHARED-BODY-003, the RH3202/RH3208 specs and rule pages.
+- Q2 (#954 variant, no blank line between a comment first after `{` and `#region`) → A: fixed in this run. Carried into the FMT-BLANK-013 example.
+- Q3 (#1390, `int B() =>` / `/* c */ 42;`) → A: `return /* c */ 42;`. Carried into FMT-STRUCT-006.
 
 ### Follow-up candidates
 
