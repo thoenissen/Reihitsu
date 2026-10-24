@@ -189,3 +189,30 @@ Results on `8d5a762` plus these tests:
 - Architecture project: 84 passed, including `EveryRequirementOfAnEnforcedSpecIsCovered` (FMT-RAW-007, FMT-RAW-008, FMT-RAW-009, RH5104-006 now covered).
 
 `scripts/format.sh` over all changed test files reports no further change.
+
+# Repair round 1
+
+Role: test implementer
+Commit: 4c985a2
+Verdict: #1146: test repaired (harness configuration); #951, #1133: nothing to repair
+
+Input: the "Disputed tests or scope" entry of `04-implementer.md` for thoenissen/Reihitsu#1146. I reproduced it myself instead of relying on the probe it describes.
+
+## thoenissen/Reihitsu#1146
+
+- **Reproduced the dispute.** On `4c985a2`, `VerifyFixAllMovesFixableCommentAndLeavesWithheldCommentReported` fails with `Context: Diagnostics of fixed state — Mismatch between number of diagnostics returned, expected "0" actual "1"`, `WithSpan(6, 6, 6, 13)`. That span is the withheld `/* c */`, and the expected fixed text (`{|RH5104:/* c */|}`) requires it to stay reported. The verifier's default fixed-state markup handling ignores markup for an ID the provider lists as fixable, so the fixed markup never became an expected diagnostic. This is a fault in the harness configuration, not in the assertion.
+- **Repair.** The call is now `Verify(testData, fixedData, static test => test.FixedState.MarkupHandling = MarkupMode.Allow)`, with `using Microsoft.CodeAnalysis.Testing;`. That is the pattern of `RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzerTests` and `RH4107ProtectedFieldCasingAnalyzerTests`. The input, the expected fixed text, and the withheld diagnostic are unchanged: the fixed state must still hold exactly that one RH5104 diagnostic, so a fix that is offered, or a comment that stops being reported, still fails the test. `BatchFixedState` is not set; with no `BatchFixedCode`, the Fix All check uses the fixed state.
+- **Still falsifiable.** I ran the repaired test against the production code of `493f956` (before the implementation, in a temporary worktree outside the repository, since removed). It is red for the original reason: `Iterative code fix application … did not match`, with `/* c */` written into the verbatim string (`@"a⏎⏎/* c */⏎b" + x;`).
+- **Passes on the implementation.** On `4c985a2` plus this repair: `RH5104CommentsMustBeOnTheirOwnLineAnalyzerTests` 45/45.
+
+| Test | Requirement / failure class | Helper | Expected now |
+|---|---|---|---|
+| `VerifyFixAllMovesFixableCommentAndLeavesWithheldCommentReported` | RH5104-006; FC-008 | `Verify(source, fixed, FixedState.MarkupHandling = Allow)` | green on `4c985a2`; red on `493f956` |
+
+Release configuration does not build on `4c985a2`, because of `RH5104CommentsMustBeOnTheirOwnLineAnalyzer.cs(92,35): error S3267`. That is the cleaner's concern, so I ran these checks with `--configuration Debug`.
+
+## Commands
+
+```shell
+scripts/test.sh --project analyzer --configuration Debug --filter "FullyQualifiedName~RH5104CommentsMustBeOnTheirOwnLineAnalyzerTests"
+```

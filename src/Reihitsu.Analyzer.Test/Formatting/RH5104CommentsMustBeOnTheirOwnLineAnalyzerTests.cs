@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -1253,7 +1254,9 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzerTests : BatchCodeFixTests
                                  }
                                  """";
 
-        await Verify(testData, fixedData);
+        // The withheld diagnostic stays in the fixed code and is marked there; the verifier ignores markup of a fixable
+        // diagnostic ID in the fixed state unless it is told to read it
+        await Verify(testData, fixedData, static test => test.FixedState.MarkupHandling = MarkupMode.Allow);
     }
 
     #endregion // Tests
