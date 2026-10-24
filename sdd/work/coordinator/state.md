@@ -26,6 +26,7 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
   9 NO tracking issue, no summary comments: the state lives in this file only.
 - 7A issue created: #1441 (tooling lane run; prompt in `prompts-phase5.md`). After its merge: agent reformats non-conforming bodies.
 - Planning agents running: `inventory/phase5-runs.md` (runs/waves for 1.2.0, 1.2.1, 1.2.2) and `inventory/phase5-round2-draft.md` (J contradictions + remaining doubts) -> round P5-2.
+- Splits DONE: 20 vNext issues #1432-#1452 (not #1441), mapping `inventory/phase5-splits.md`; #1074 not split (waits P5-2). After bookkeeping agent (a) finishes, fix: #958 (keeps arrow bug, FMT-PIPE-014) -> `bug`, drop `enhancement`, 1.2.x; #1353 (keeps Q1/Q2 clarification) -> `maintenance`, Maintenance; #1070 body states only the moved part -> rewrite in body-reformat step.
 - Bookkeeping P5-1 (agents): (a) milestones/labels/titles/closing/trims, log `inventory/phase5-bookkeeping-1.md`; (b) split issues, mapping `inventory/phase5-splits.md`. Bug-pool milestones wait for 1.2.1. Round P5-2 planned: the 20 spec contradictions (J) + remaining doubts (M).
 - Next: classification rounds per "Phase 5 plan" below (1.2 critical / vNext extension / Maintenance internal / remaining bugs prioritized); check every `bug` label.
 
