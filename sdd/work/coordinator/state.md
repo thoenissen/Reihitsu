@@ -31,6 +31,19 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 - Bookkeeping P5-1 (agents): (a) milestones/labels/titles/closing/trims, log `inventory/phase5-bookkeeping-1.md`; (b) split issues, mapping `inventory/phase5-splits.md`. Bug-pool milestones wait for 1.2.1. Round P5-2 planned: the 20 spec contradictions (J) + remaining doubts (M).
 - Round P5-2 DECIDED (maintainer 2026-10-24): 1A G1 lagging texts aligned in bug-lane PR, no change doc; 2A G2 bugs, coverage sentence widened as clarification; 3A SHARED-COMMENT-012 binds every line-start rule + formatter now (RH5204/SHARED-INIT-001 parts of #1382 return from split issue to #1382 as bugs; #888 = formatter bug); 4A RH6001-001 gains `fixed` (clarification, Maintenance); 5A #1136 clarification, runs before #1332/#1336/#1146 Q4 relocation parts; 6A #1149 bug (FMT-PIPE-014), joins R12; 7A strip `global::` from sort key (bug + clarification); 8C (after more context: Q6 was already decided in round 8 item 1/P25; exclusion text from #1302 has no decision behind it) #1334 Q6 stays a bug under SHARED-DIAG-009/-004, R19 removes 'that is not `partial`' from RH7401-001..RH7412-001 as clarification; 9A DocumentationCommentCodeFixUtilities owner -> shared/element-documentation.md, moved in R2, #1242 closes with R2; 10A run plan + 1.2.1/1.2.2 split + waves approved.
 - Round P5-2 asked 2026-10-24 (draft `inventory/phase5-round2-draft.md`, runs `inventory/phase5-runs.md`): 1 G1 (12 lagging texts), 2 G2 (6 no-contradiction), 3 G3 SHARED-COMMENT-012 scope, 4 G4 RH6001 fixed, 5 M1 #1136, 6 M2 #1149, 7 M3 global::, 8 M4 #1334 Q6, 9 #1242 owner, 10 run plan + 1.2.1/1.2.2 split + waves. Waiting.
+- P5-2 bookkeeping agent running -> `inventory/phase5-bookkeeping-2.md`. W1 prompts (R1 R2 R3 R4 R5 R7) written in `prompts-phase5.md`; #1136 put into R4 (owns shared/code-fixes.md in W1); #1242 into R2.
+
+| Run | Issues | Wave | Milestone | Status |
+|---|---|---|---|---|
+| #1441 | template doc | any | Maintenance | prompt given |
+| R1 | #948 #949 #954 #1390 #888 | W1 | 1.2.0 | prompt given |
+| R2 | #1329 #1389 #1241 #1344 #1242 | W1 | 1.2.0 | prompt given |
+| R3 | #951 #1133 #1146 | W1 | 1.2.0 | prompt given |
+| R4 | #1136 #1134 #1135 #1262 #1332 #1336 #1340 | W1 | 1.2.0 | prompt given |
+| R5 | #1016 #1070 #1073 | W1 | 1.2.0 | prompt given |
+| R7 | #1257 #1279 #1281 #1282 #1417 #1422 | W1 | 1.2.0 | prompt given |
+| R6, R8, R10-R13 | see phase5-runs.md | W2 | | open |
+
 - Next: classification rounds per "Phase 5 plan" below (1.2 critical / vNext extension / Maintenance internal / remaining bugs prioritized); check every `bug` label.
 
 ## Working agreement
