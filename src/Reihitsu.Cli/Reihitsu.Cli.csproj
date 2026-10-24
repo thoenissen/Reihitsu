@@ -19,7 +19,7 @@
     <RepositoryUrl>https://github.com/thoenissen/Reihitsu</RepositoryUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageReadmeFile>README.MD</PackageReadmeFile>
-    <PackageTags>reihitsu, formatter, cli, csharp</PackageTags>
+    <PackageTags>reihitsu, roslyn, formatter, cli, dotnet-tool, csharp, code-style</PackageTags>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 

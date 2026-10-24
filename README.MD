@@ -1,5 +1,8 @@
 # Reihitsu
 
+[![Build](https://github.com/thoenissen/Reihitsu/actions/workflows/build.yml/badge.svg)](https://github.com/thoenissen/Reihitsu/actions/workflows/build.yml)
+[![License: MIT](https://img.shields.io/github/license/thoenissen/Reihitsu)](LICENSE)
+
 > 麗筆 (reihitsu, [ɾeːçitsɯ]) — beautiful brushwork
 
 A collection of C# development tools built on the Roslyn compiler platform, including a code analyzer with code fixes and a standalone formatting CLI tool.
@@ -108,6 +111,10 @@ internal sealed class ReportBuilder
     #endregion // Methods
 }
 ```
+
+## Contributing
+
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the setup and workflow, and note the [Code of Conduct](CODE_OF_CONDUCT.md). Security problems are reported privately, see [SECURITY.md](SECURITY.md).
 
 ## License
 
