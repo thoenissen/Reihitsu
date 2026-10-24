@@ -9,7 +9,7 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 - Decision (maintainer 2026-10-24): spec format stays as it is for now — no split per requirement, no index change.
 - Decisions not to reopen: P11; P16-style widenings are extensions; #998's narrowed scope; `squad/decisions/` entries are deleted when they become rules.
 - Step 1 (running): agent updates open issues citing IDs renumbered by #1429 -> log `inventory/phase5-renumber-log.md`.
-- Step 2 (running): index of all open issues -> `inventory/phase5-index.md`; then per-family inventories `inventory/phase5-*.md`.
+- Step 2: index DONE `inventory/phase5-index.md`: 215 open issues (milestones SDD 139, Triage 32, Maintenance 12, vNext 10, 1.2.0 9, 1.3.0 5, 1.4.0 3, none 5; 33 labeled bug). Families F1-F8 (25-31 each). Per-family inventories running -> `inventory/phase5-f1.md` ... `phase5-f8.md` (instructions incl. classification rules copied in each file's header).
 - Next: classification rounds per "Phase 5 plan" below (1.2 critical / vNext extension / Maintenance internal / remaining bugs prioritized); check every `bug` label.
 
 ## Working agreement
