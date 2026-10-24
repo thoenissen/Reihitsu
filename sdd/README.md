@@ -9,7 +9,7 @@ Specs under `specs/` describe the intended behavior of every shipped surface —
 ```
 sdd/
   README.md              this rulebook
-  templates/             templates for a spec, an analyzer spec, and a change doc
+  templates/             templates for a spec, an analyzer spec, a change doc, and a follow-up issue
   specs/
     README.md            index: spec → ID prefix → code owners
     requirement-ids.txt  ledger of every requirement ID ever issued
@@ -33,6 +33,7 @@ sdd/
 - `Reihitsu.Tooling` is internal and gets no spec.
 - Every spec file is listed in `specs/README.md`. Add the row when you add the spec.
 - Analyzer rules without a spec get one in planned batches, grouped by the behavior they share, in the squad's *specs and tests for existing behavior* lane. A bug fix on a rule without a spec does not have to write it.
+- A follow-up issue for a spec bug, a clarification, or internal work is written in the format of [`templates/follow-up-issue.md`](templates/follow-up-issue.md). Behavior changes and new rules use the public feature-request forms under `.github/ISSUE_TEMPLATE/`.
 
 ## Specs and user documentation
 
