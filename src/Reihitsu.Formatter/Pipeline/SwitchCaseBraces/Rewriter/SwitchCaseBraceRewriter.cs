@@ -162,6 +162,172 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Determines whether a local declared directly in one section of the switch is used by simple
+    /// name in another section. C# scopes such a local to the whole switch block, so a block around
+    /// the declaring section would hide it from the other section
+    /// </summary>
+    /// <param name="node">The switch statement to check</param>
+    /// <returns><see langword="true"/> if another section uses a directly declared local; otherwise, <see langword="false"/></returns>
+    private static bool HasCrossSectionLocalUse(SwitchStatementSyntax node)
+    {
+        var declaringSections = new Dictionary<string, List<SwitchSectionSyntax>>();
+
+        foreach (var section in node.Sections)
+        {
+            foreach (var name in GetDirectlyDeclaredLocalNames(section))
+            {
+                if (declaringSections.TryGetValue(name, out var sections) == false)
+                {
+                    sections = [];
+                    declaringSections[name] = sections;
+                }
+
+                sections.Add(section);
+            }
+        }
+
+        if (declaringSections.Count == 0)
+        {
+            return false;
+        }
+
+        foreach (var section in node.Sections)
+        {
+            foreach (var simpleName in section.DescendantNodes().OfType<SimpleNameSyntax>())
+            {
+                if (declaringSections.TryGetValue(simpleName.Identifier.ValueText, out var sections)
+                    && sections.Any(declaringSection => declaringSection != section))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Gets the names of the locals that a switch section declares directly: through a statement the
+    /// section owns, or such a statement behind a label, outside any nested body. Statements whose
+    /// header variables C# scopes to the statement itself (loops, <c>using</c>, <c>fixed</c>, nested
+    /// blocks, and the embedded statements and <c>else</c> branch of an <c>if</c>) declare nothing here
+    /// </summary>
+    /// <param name="section">The switch section to inspect</param>
+    /// <returns>The names of the directly declared locals</returns>
+    private static IEnumerable<string> GetDirectlyDeclaredLocalNames(SwitchSectionSyntax section)
+    {
+        foreach (var sectionStatement in section.Statements)
+        {
+            var statement = sectionStatement;
+
+            while (statement is LabeledStatementSyntax labeledStatement)
+            {
+                statement = labeledStatement.Statement;
+            }
+
+            switch (statement)
+            {
+                case LocalDeclarationStatementSyntax localDeclaration:
+                    {
+                        foreach (var variable in localDeclaration.Declaration.Variables)
+                        {
+                            yield return variable.Identifier.ValueText;
+                        }
+
+                        foreach (var name in GetDesignatedNames(localDeclaration.Declaration))
+                        {
+                            yield return name;
+                        }
+                    }
+                    break;
+
+                case LocalFunctionStatementSyntax localFunction:
+                    {
+                        yield return localFunction.Identifier.ValueText;
+                    }
+                    break;
+
+                case ExpressionStatementSyntax expressionStatement:
+                    {
+                        foreach (var name in GetDesignatedNames(expressionStatement.Expression))
+                        {
+                            yield return name;
+                        }
+                    }
+                    break;
+
+                case ReturnStatementSyntax { Expression: not null } returnStatement:
+                    {
+                        foreach (var name in GetDesignatedNames(returnStatement.Expression))
+                        {
+                            yield return name;
+                        }
+                    }
+                    break;
+
+                case ThrowStatementSyntax { Expression: not null } throwStatement:
+                    {
+                        foreach (var name in GetDesignatedNames(throwStatement.Expression))
+                        {
+                            yield return name;
+                        }
+                    }
+                    break;
+
+                case YieldStatementSyntax { Expression: not null } yieldStatement:
+                    {
+                        foreach (var name in GetDesignatedNames(yieldStatement.Expression))
+                        {
+                            yield return name;
+                        }
+                    }
+                    break;
+
+                case IfStatementSyntax ifStatement:
+                    {
+                        foreach (var name in GetDesignatedNames(ifStatement.Condition))
+                        {
+                            yield return name;
+                        }
+                    }
+                    break;
+
+                case SwitchStatementSyntax switchStatement:
+                    {
+                        foreach (var name in GetDesignatedNames(switchStatement.Expression))
+                        {
+                            yield return name;
+                        }
+                    }
+                    break;
+
+                case LockStatementSyntax lockStatement:
+                    {
+                        foreach (var name in GetDesignatedNames(lockStatement.Expression))
+                        {
+                            yield return name;
+                        }
+                    }
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the names that <c>out var</c>, deconstruction, and pattern designations declare in a node,
+    /// skipping lambda and anonymous-method bodies and switch-expression arms, which scope their
+    /// designations to themselves
+    /// </summary>
+    /// <param name="node">The node to inspect</param>
+    /// <returns>The designated names</returns>
+    private static IEnumerable<string> GetDesignatedNames(SyntaxNode node)
+    {
+        return node.DescendantNodesAndSelf(static descendant => descendant is not AnonymousFunctionExpressionSyntax and not SwitchExpressionArmSyntax)
+                   .OfType<SingleVariableDesignationSyntax>()
+                   .Select(static designation => designation.Identifier.ValueText);
+    }
+
+    /// <summary>
     /// Gets descendants that belong to a switch section's executable scope. Local functions and
     /// anonymous functions own independent label scopes and are not traversed
     /// </summary>
@@ -295,6 +461,54 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
         {
             result.Add(comment);
             result.Add(eolTrivia);
+        }
+
+        return SyntaxFactory.TriviaList(result);
+    }
+
+    /// <summary>
+    /// Builds the leading trivia of a terminal <c>break</c> that moves behind the new block: the line
+    /// break that ends the block's closing-brace line, then each comment on a line of its own. The blank
+    /// lines in front of a comment — above the first one and between two of them — are kept as the
+    /// blank-line phase placed them; blank lines that no comment follows are dropped
+    /// </summary>
+    /// <param name="original">The original leading trivia of the break</param>
+    /// <param name="eolTrivia">The end-of-line trivia to use</param>
+    /// <returns>The rebuilt leading trivia</returns>
+    private static SyntaxTriviaList BuildTerminalBreakLeadingTrivia(SyntaxTriviaList original, SyntaxTrivia eolTrivia)
+    {
+        var result = new List<SyntaxTrivia>
+                     {
+                         eolTrivia
+                     };
+
+        var pendingBlankLines = 0;
+        var lineHasContent = false;
+
+        foreach (var trivia in original)
+        {
+            if (ReihitsuFormatterHelpers.IsCommentTrivia(trivia))
+            {
+                for (var blankLineIndex = 0; blankLineIndex < pendingBlankLines; blankLineIndex++)
+                {
+                    result.Add(eolTrivia);
+                }
+
+                pendingBlankLines = 0;
+                lineHasContent = true;
+
+                result.Add(trivia);
+                result.Add(eolTrivia);
+            }
+            else if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                if (lineHasContent == false)
+                {
+                    pendingBlankLines++;
+                }
+
+                lineHasContent = false;
+            }
         }
 
         return SyntaxFactory.TriviaList(result);
@@ -521,7 +735,7 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
         if (trailingBreak != null)
         {
-            trailingBreak = trailingBreak.WithLeadingTrivia(BuildLeadingTrivia(trailingBreak.GetLeadingTrivia(), eolTrivia));
+            trailingBreak = trailingBreak.WithLeadingTrivia(BuildTerminalBreakLeadingTrivia(trailingBreak.GetLeadingTrivia(), eolTrivia));
 
             var lastBreakToken = trailingBreak.GetLastToken();
             trailingBreak = trailingBreak.ReplaceToken(lastBreakToken, lastBreakToken.WithTrailingTrivia(BuildTrailingTrivia(lastBreakToken.TrailingTrivia, eolTrivia)));
@@ -596,7 +810,11 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
         var anyMultiLine = HasAnyMultiLineSection(sections);
 
-        if (anyMultiLine && HasCrossSectionGotoTarget(node))
+        // A goto into another section, or a local shared between sections, ties the sections
+        // together: braces would hide the target or the local, so the whole switch stays as written
+        if (anyMultiLine
+            && (HasCrossSectionGotoTarget(node)
+                || HasCrossSectionLocalUse(node)))
         {
             return node;
         }

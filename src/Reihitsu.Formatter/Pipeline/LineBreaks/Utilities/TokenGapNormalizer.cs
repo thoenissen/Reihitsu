@@ -485,11 +485,12 @@ internal sealed class TokenGapNormalizer
     /// placed above a documentation comment written behind code — is not part of it and stays untouched. Behind a
     /// documentation comment and its comments, only the run up to the token is normalized, and only when no blank line may
     /// separate the two; comments that start their own line and are glued to the token stay glued, while the token behind
-    /// comments glued to it behind other code is moved onto its own line. Behind a region directive that follows a documentation comment, the gap is left alone, because region
-    /// blank lines have a dedicated owner and the regular normalization would delete the blank line above that comment.
-    /// Every other gap — another directive, a region directive with no documentation comment in front of it or with a
-    /// comment behind it, or a documentation comment followed by anything but ordinary comments — is left to the regular
-    /// gap normalization
+    /// comments glued to it behind other code is moved onto its own line. Behind a region directive that follows a documentation comment, or
+    /// that ends a gap directly behind an opening brace, the gap is left alone, because region blank lines have a dedicated
+    /// owner and the regular normalization would delete the blank line above that comment or add a blank line directly after
+    /// that brace. Every other gap — another directive, a region directive with neither a documentation comment in front of
+    /// it nor an opening brace in front of the gap, a region directive with a comment behind it, or a documentation comment
+    /// followed by anything but ordinary comments — is left to the regular gap normalization
     /// </summary>
     /// <param name="token">The token whose preceding gap should be normalized</param>
     /// <param name="blankLineCount">The number of blank lines to preserve before the token</param>
@@ -540,10 +541,13 @@ internal sealed class TokenGapNormalizer
 
         if (isRegionDirective)
         {
-            // Region blank lines have a dedicated owner. Only a documentation comment in front of the region needs this
-            // guard, because the regular normalization rewrites the run in front of the first content of the gap and
-            // would delete the blank line above that comment; every other region gap keeps the regular normalization
-            return HasLeadingDocumentationComment(token.LeadingTrivia, structuredTriviaIndex);
+            // Region blank lines have a dedicated owner. The regular normalization rewrites the run in front of the first
+            // content of the gap as if the token before that run were the directive's own end token, so two gaps need this
+            // guard: behind a documentation comment it would delete the blank line above that comment, and behind an opening
+            // brace it would add a line break the brace already supplies, leaving a blank line directly after the brace. A
+            // region directive always ends its own line, so the token behind it already starts a line either way
+            return HasLeadingDocumentationComment(token.LeadingTrivia, structuredTriviaIndex)
+                   || token.GetPreviousToken(includeZeroWidth: true).IsKind(SyntaxKind.OpenBraceToken);
         }
 
         // A requested blank-line count of one or more is a statement-separation budget, not an adjacency requirement,

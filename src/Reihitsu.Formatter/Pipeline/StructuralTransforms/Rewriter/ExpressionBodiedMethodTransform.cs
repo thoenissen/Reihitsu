@@ -11,7 +11,8 @@ namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
 /// <summary>
 /// Converts expression-bodied methods to block body.
 /// Value-returning methods wrap the expression in a <see cref="ReturnStatementSyntax"/>.
-/// Void and non-generic async task methods wrap it in an <see cref="ExpressionStatementSyntax"/>
+/// Void and non-generic async task methods wrap it in an <see cref="ExpressionStatementSyntax"/>.
+/// An async method whose return type is not written as a task type keeps its expression body
 /// </summary>
 internal sealed class ExpressionBodiedMethodTransform : CSharpSyntaxRewriter
 {
@@ -51,7 +52,8 @@ internal sealed class ExpressionBodiedMethodTransform : CSharpSyntaxRewriter
             return node;
         }
 
-        if (ExpressionBodiedTransformUtilities.RequiresExpressionBodyPreservation(node, node.ExpressionBody, node.SemicolonToken))
+        if (ExpressionBodiedTransformUtilities.RequiresExpressionBodyPreservation(node, node.ExpressionBody, node.SemicolonToken)
+            || ExpressionBodiedTransformUtilities.RequiresAsyncExpressionBodyPreservation(node))
         {
             return node;
         }

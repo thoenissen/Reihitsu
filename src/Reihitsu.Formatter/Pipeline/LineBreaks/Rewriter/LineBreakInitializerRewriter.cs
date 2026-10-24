@@ -274,6 +274,28 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
     }
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// The initializer's own visit cannot reach the <c>with</c> keyword in front of its brace once an earlier edit of that
+    /// visit has replaced the initializer, so the brace is placed here as well, from the expression that owns both
+    /// </remarks>
+    public override SyntaxNode VisitWithExpression(WithExpressionSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (WithExpressionSyntax)base.VisitWithExpression(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, node.Initializer.OpenBraceToken, static (owner, token) => owner.WithInitializer(owner.Initializer.WithOpenBraceToken(token)), blankLineCount: 0);
+        node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.Initializer.OpenBraceToken);
+
+        return CleanupTrailingWhitespaceBeforeToken(node, node.Initializer.OpenBraceToken);
+    }
+
+    /// <inheritdoc/>
     public override SyntaxNode VisitAnonymousObjectCreationExpression(AnonymousObjectCreationExpressionSyntax node)
     {
         _cancellationToken.ThrowIfCancellationRequested();

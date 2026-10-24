@@ -10,7 +10,8 @@ namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
 /// <summary>
 /// Converts expression-bodied local functions to block body.
 /// Value-returning functions wrap the expression in a <see cref="ReturnStatementSyntax"/>.
-/// Void and non-generic async task functions wrap it in an <see cref="ExpressionStatementSyntax"/>
+/// Void and non-generic async task functions wrap it in an <see cref="ExpressionStatementSyntax"/>.
+/// An async function whose return type is not written as a task type keeps its expression body
 /// </summary>
 internal sealed class ExpressionBodiedLocalFunctionTransform : CSharpSyntaxRewriter
 {
@@ -50,7 +51,8 @@ internal sealed class ExpressionBodiedLocalFunctionTransform : CSharpSyntaxRewri
             return node;
         }
 
-        if (ExpressionBodiedTransformUtilities.RequiresExpressionBodyPreservation(node, node.ExpressionBody, node.SemicolonToken))
+        if (ExpressionBodiedTransformUtilities.RequiresExpressionBodyPreservation(node, node.ExpressionBody, node.SemicolonToken)
+            || ExpressionBodiedTransformUtilities.RequiresAsyncExpressionBodyPreservation(node))
         {
             return node;
         }

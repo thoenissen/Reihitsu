@@ -106,6 +106,54 @@ internal sealed class BlankLineEditor
     }
 
     /// <summary>
+    /// Determines whether a region or end region directive in a token's leading trivia is exempt from requiring a blank
+    /// line before it. Only the single line directly above the directive counts: an opening brace exempts the directive
+    /// (see <see cref="IsExemptFromPrecedingBlankLineBeforeRegionDirective(PrecedingTokenFacts)"/>) only when no comment and
+    /// no directive other than a conditional-compilation directive stands between the brace and the directive, so a comment
+    /// or a directive such as <c>#pragma</c> first after the brace is separated from the region directive below it. A
+    /// conditional-compilation directive (<c>#if</c>, <c>#elif</c>, <c>#else</c>, <c>#endif</c>) and the disabled text of a
+    /// branch not taken keep the brace exemption
+    /// </summary>
+    /// <param name="previousToken">
+    /// The facts about the token that precedes the token being evaluated. A token without a known preceding token is exempt
+    /// </param>
+    /// <param name="leadingTrivia">The leading trivia that holds the directive</param>
+    /// <param name="directiveIndex">The index of the directive in <paramref name="leadingTrivia"/></param>
+    /// <returns><see langword="true"/> if no blank line is required before the directive</returns>
+    public static bool IsExemptFromPrecedingBlankLineBeforeRegionDirective(PrecedingTokenFacts previousToken, SyntaxTriviaList leadingTrivia, int directiveIndex)
+    {
+        if (IsExemptFromPrecedingBlankLineBeforeRegionDirective(previousToken) == false)
+        {
+            return false;
+        }
+
+        if (previousToken.Exists == false)
+        {
+            return true;
+        }
+
+        for (var triviaIndex = 0; triviaIndex < directiveIndex; triviaIndex++)
+        {
+            switch (leadingTrivia[triviaIndex].Kind())
+            {
+                case SyntaxKind.WhitespaceTrivia:
+                case SyntaxKind.EndOfLineTrivia:
+                case SyntaxKind.IfDirectiveTrivia:
+                case SyntaxKind.ElifDirectiveTrivia:
+                case SyntaxKind.ElseDirectiveTrivia:
+                case SyntaxKind.EndIfDirectiveTrivia:
+                case SyntaxKind.DisabledTextTrivia:
+                    break;
+
+                default:
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// Determines whether the single line immediately preceding a leading-trivia index is blank
     /// </summary>
     /// <param name="token">The token whose leading trivia should be inspected</param>
@@ -218,9 +266,11 @@ internal sealed class BlankLineEditor
     }
 
     /// <summary>
-    /// Ensures a blank line exists before the first directive of the specified kind in the token's leading
-    /// trivia. Directives inside a branch the compiler skipped are passed over, so the first match is the
-    /// first directive that is actually part of the build
+    /// Ensures a blank line exists before the first region or end region directive of the specified kind in the token's
+    /// leading trivia, unless the directive is exempt because the line directly above it is the opening brace line or
+    /// the start of the file (<see cref="IsExemptFromPrecedingBlankLineBeforeRegionDirective(PrecedingTokenFacts, SyntaxTriviaList, int)"/>).
+    /// Directives inside a branch the compiler skipped are passed over, so the first match is the first directive that is
+    /// actually part of the build
     /// </summary>
     /// <param name="token">The token whose leading trivia should be checked</param>
     /// <param name="directiveKind">Kind of the directive that requires a preceding blank line</param>
@@ -258,7 +308,8 @@ internal sealed class BlankLineEditor
             }
         }
 
-        if (directiveIndex < 0)
+        if (directiveIndex < 0
+            || IsExemptFromPrecedingBlankLineBeforeRegionDirective(previousToken, trivia, directiveIndex))
         {
             return token;
         }

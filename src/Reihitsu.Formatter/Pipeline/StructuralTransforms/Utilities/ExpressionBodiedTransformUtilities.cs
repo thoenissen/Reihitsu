@@ -35,20 +35,70 @@ internal static class ExpressionBodiedTransformUtilities
     }
 
     /// <summary>
-    /// Determines whether the converted body should use an expression statement
+    /// Determines whether an expression-bodied method or local function must keep its expression body because it is
+    /// <see langword="async"/> and its return type is neither <see langword="void"/> nor written as <c>Task</c>,
+    /// <c>ValueTask</c>, <c>Task&lt;…&gt;</c>, or <c>ValueTask&lt;…&gt;</c>, with or without a nullable annotation. Behind
+    /// an alias or a custom task-like type the syntax does not tell whether the task carries a result, so neither an
+    /// expression statement nor a <c>return</c> statement is known to compile
+    /// </summary>
+    /// <param name="member">The member that owns the expression body</param>
+    /// <returns><see langword="true"/> if the conversion must be refused; otherwise, <see langword="false"/></returns>
+    /// <remarks>
+    /// The expression-body code fixes consult this guard as well, so they offer no fix for a member the formatter keeps.
+    /// The analyzers do not: such a member is still reported, unlike one that <see cref="RequiresExpressionBodyPreservation"/>
+    /// keeps, because the obstacle is what the return type means and not the code the rewrite touches
+    /// </remarks>
+    internal static bool RequiresAsyncExpressionBodyPreservation(SyntaxNode member)
+    {
+        return member switch
+               {
+                   MethodDeclarationSyntax method => RequiresAsyncExpressionBodyPreservation(method.ReturnType, method.Modifiers),
+                   LocalFunctionStatementSyntax localFunction => RequiresAsyncExpressionBodyPreservation(localFunction.ReturnType, localFunction.Modifiers),
+                   _ => false,
+               };
+    }
+
+    /// <summary>
+    /// Determines whether the converted body should use an expression statement: for a <see langword="void"/> return type,
+    /// and for an <see langword="async"/> function whose return type is written as the non-generic <c>Task</c> or
+    /// <c>ValueTask</c>, with or without a nullable annotation
     /// </summary>
     /// <param name="returnType">Return type</param>
     /// <param name="modifiers">Member modifiers</param>
     /// <returns><see langword="true"/> when an expression statement should be used; otherwise <see langword="false"/></returns>
     internal static bool UsesExpressionStatement(TypeSyntax returnType, SyntaxTokenList modifiers)
     {
-        if (returnType is PredefinedTypeSyntax predefined
-            && predefined.Keyword.IsKind(SyntaxKind.VoidKeyword))
+        if (IsVoid(returnType))
         {
             return true;
         }
 
-        return HasAsyncModifier(modifiers) && IsNonGenericTaskLikeReturnType(returnType);
+        return HasAsyncModifier(modifiers)
+               && GetWrittenTaskTypeName(returnType) is IdentifierNameSyntax;
+    }
+
+    /// <summary>
+    /// Determines whether an <see langword="async"/> function with the given return type keeps its expression body
+    /// </summary>
+    /// <param name="returnType">Return type</param>
+    /// <param name="modifiers">Member modifiers</param>
+    /// <returns><see langword="true"/> if the conversion must be refused; otherwise, <see langword="false"/></returns>
+    private static bool RequiresAsyncExpressionBodyPreservation(TypeSyntax returnType, SyntaxTokenList modifiers)
+    {
+        return HasAsyncModifier(modifiers)
+               && IsVoid(returnType) == false
+               && GetWrittenTaskTypeName(returnType) == null;
+    }
+
+    /// <summary>
+    /// Determines whether the return type is <see langword="void"/>
+    /// </summary>
+    /// <param name="returnType">Return type</param>
+    /// <returns><see langword="true"/> if the return type is <see langword="void"/>; otherwise, <see langword="false"/></returns>
+    private static bool IsVoid(TypeSyntax returnType)
+    {
+        return returnType is PredefinedTypeSyntax predefined
+               && predefined.Keyword.IsKind(SyntaxKind.VoidKeyword);
     }
 
     /// <summary>
@@ -62,20 +112,31 @@ internal static class ExpressionBodiedTransformUtilities
     }
 
     /// <summary>
-    /// Determines whether the given return type represents a non-generic task-like type
-    /// (<see cref="System.Threading.Tasks.Task"/> or <see cref="System.Threading.Tasks.ValueTask"/>)
+    /// Gets the name of a return type written as <c>Task</c>, <c>ValueTask</c>, <c>Task&lt;…&gt;</c>, or
+    /// <c>ValueTask&lt;…&gt;</c> — as a simple name or as the last part of a qualified or alias-qualified name, with or
+    /// without a nullable annotation. The result is an <see cref="IdentifierNameSyntax"/> for a non-generic task type and
+    /// a <see cref="GenericNameSyntax"/> for a generic one
     /// </summary>
     /// <param name="returnType">The return type syntax to check</param>
-    /// <returns><see langword="true"/> if the return type is a non-generic task-like type; otherwise, <see langword="false"/></returns>
-    private static bool IsNonGenericTaskLikeReturnType(TypeSyntax returnType)
+    /// <returns>The task type's name, or <see langword="null"/> when the return type is not written as a task type</returns>
+    private static SimpleNameSyntax GetWrittenTaskTypeName(TypeSyntax returnType)
     {
-        return returnType switch
-               {
-                   IdentifierNameSyntax identifier => IsTaskLikeName(identifier.Identifier.ValueText),
-                   QualifiedNameSyntax qualified => IsTaskLikeName(qualified.Right.Identifier.ValueText) && qualified.Right is GenericNameSyntax == false,
-                   AliasQualifiedNameSyntax aliasQualified => IsTaskLikeName(aliasQualified.Name.Identifier.ValueText) && aliasQualified.Name is GenericNameSyntax == false,
-                   _ => false,
-               };
+        if (returnType is NullableTypeSyntax nullableType)
+        {
+            returnType = nullableType.ElementType;
+        }
+
+        var name = returnType switch
+                   {
+                       SimpleNameSyntax simpleName => simpleName,
+                       QualifiedNameSyntax qualified => qualified.Right,
+                       AliasQualifiedNameSyntax aliasQualified => aliasQualified.Name,
+                       _ => null,
+                   };
+
+        return name != null && IsTaskLikeName(name.Identifier.ValueText)
+                   ? name
+                   : null;
     }
 
     /// <summary>
