@@ -44,3 +44,13 @@ Recorded here rather than in `squad/decisions/`, because the maintainer put `squ
 4. #1241 — **A**: the RH8107 and RH8202 instances (an end tag with another name, e.g. `<remarks><returns>Nothing</remarks>`) are in this run; both fixes are withheld for them, with tests.
 5. RH8309, text before the first or after the last top-level element — **B**: the fix is withheld, as RH8309-005 does for text between elements.
 6. RH8309, an element without an end tag of its own that the fix would not move — **B** (follows from 1C): the fix is withheld whenever any top-level element lacks an end tag of its own.
+
+## Maintainer answers to the skeptic's questions (escalations 1, 3, 5; 2026-10-24)
+
+Recorded here, not in `squad/decisions/` (off-limits for this run).
+
+1. **A** — RH8301, RH8305 and RH8307 do not report inside a comment that FMT-DOC-003 or FMT-DOC-013 leaves as written (SHARED-DIAG-010). The content rules RH8107, RH8202, RH8204, RH8309 keep reporting.
+2. **A** — a comment behind code that FMT-DOC-001 relocates and that holds an element without an end tag is moved, and its text is left as written; the following declaration stays code.
+3. **B** — the maintainer's reasoning: an end tag with another name is not the element's end, so the comment is not well formed and is not laid out. FMT-DOC-013 therefore covers "no end tag of its own" (none at all, or one with another name), consistent with P19 / SHARED-DOC-017. (The maintainer asked whether FMT-DOC-013 is new: yes, the spec author added it in this run from answer 1C.)
+4. **A** — this run may make the one narrow change in the BlankLines phase (`CollapseLeadingBlankLines`) needed to keep a BOM on a first line that holds only the BOM and white space; the maintainer coordinates with the run that owns the phase. #1389 closes.
+5, 6, 7 — not yet answered; asked back.
