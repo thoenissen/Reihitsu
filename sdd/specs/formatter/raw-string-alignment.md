@@ -5,7 +5,7 @@
 | ID prefix | FMT-RAW |
 | Status | Active |
 | Code owners | `RawStringAlignmentPhase`, `RawStringLiteralUtilities` |
-| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-INDENT-002, FMT-INDENT-007, FMT-INDENT-011, FMT-INDENT-012, FMT-INDENT-029, FMT-CLEAN-002 |
+| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-INDENT-002, FMT-INDENT-006, FMT-INDENT-007, FMT-INDENT-011, FMT-INDENT-012, FMT-INDENT-029, FMT-CLEAN-002 |
 
 This spec covers the raw-string phase: after indentation has placed every token, the content lines, the lines of its interpolation holes, and the closing marker of each multi-line raw string literal are moved so the closing marker starts in the column of the opening quotes. The literal's value never changes.
 
@@ -263,16 +263,17 @@ is left unchanged.
 
 ### FMT-RAW-007 — Hole lines at the block column move only with the literal
 
-For a multi-line interpolated raw string, a line that starts inside one of its interpolation holes with a token is placed by one of two conditions:
+For a multi-line interpolated raw string, a line that starts inside one of its interpolation holes with a token or a comment is placed by one of three conditions:
 
 - When the indentation phase would give the line the block column of FMT-INDENT-002 — such as a line started by a token of the hole's expression that no alignment requirement places, by the `,` of an alignment clause, by the `:` of a format clause, or by the hole's closing `}` — the formatter MUST NOT give it that column: it MUST move the line by the same number of columns as the closing marker (FMT-RAW-001, FMT-RAW-002), and, when the closing marker already starts in the target column, MUST leave the line where it is (FMT-RAW-006).
 - When an alignment requirement places the line relative to a token, directly or through the construct around it (FMT-INDENT-012 to FMT-INDENT-029), the formatter MUST keep that alignment, measured at the token's column after the literal moved.
+- When a comment starts the line, the formatter MUST give it the column FMT-INDENT-006 gives it — the column of the token it precedes, or one level deeper than a closing brace it precedes — measured at that token's column after this requirement placed it.
 
 The tab replacement of FMT-CLEAN-002 still applies to the whitespace in front of such a line. The lines of a raw string literal nested in a hole are aligned as FMT-RAW-008 states, and the lines that start inside the text of another nested literal or inside a nested comment as FMT-RAW-009 states.
 
-Why: A block column depends only on the scope depth, not on where the literal sits, while the literal's shift moves the same line again. The two moves add up in one pass, and the next pass, with the literal aligned and no shift left, puts the line back at the block column: the output changes on every pass (FMT-PIPE-004). A column measured from a token on the literal's lines moves with that token, so an aligned line already lands in the same place on every pass, and it stays the column the alignment rules check.
+Why: A block column depends only on the scope depth, not on where the literal sits, while the literal's shift moves the same line again. The two moves add up in one pass, and the next pass, with the literal aligned and no shift left, puts the line back at the block column: the output changes on every pass (FMT-PIPE-004). A column measured from a token on the literal's lines moves with that token, so an aligned line already lands in the same place on every pass, and it stays the column the alignment rules check. A comment on its own line describes the code below it and sits in that code's column, wherever that code ends up.
 
-This requirement does not specify a comment that starts a line inside a hole, a line that an earlier phase of the same pass breaks inside a hole and that no alignment requirement places, or a hole line that is indented less than the number of columns the literal moves to the left.
+This requirement does not specify a line that an earlier phase of the same pass breaks inside a hole and that no alignment requirement places, or a hole line that is indented less than the number of columns the literal moves to the left.
 
 Example — the literal moves 13 columns to the right, and the lines at the block column move with it:
 
@@ -346,6 +347,40 @@ class C
         var a = $"""
                  Hello {string.Concat("a",
                                       "b")}
+                 """;
+    }
+}
+```
+
+A comment that starts a hole line takes the column of the token below it, after that token moved with the literal:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var name = "x";
+        var a = $"""
+    Hello {
+    // c
+        name
+    }
+    """;
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var name = "x";
+        var a = $"""
+                 Hello {
+                     // c
+                     name
+                 }
                  """;
     }
 }

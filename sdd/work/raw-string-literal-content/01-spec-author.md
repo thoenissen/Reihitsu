@@ -1,6 +1,6 @@
 Role: spec author
-Commit: 746f04b
-Verdict: #951: open question (one case only: a comment that starts a line inside a hole); #1133: spec written; #1146: spec written
+Commit: e5a319b
+Verdict: #951: spec written; #1133: spec written; #1146: spec written
 
 Inputs: thoenissen/Reihitsu#951, thoenissen/Reihitsu#1133, thoenissen/Reihitsu#1146 and their comments (read through the GitHub MCP server), `00-lead.md` with its two "Escalations" entries, `02-skeptic.md`, and the specs named below. The #951 body names a suspected cause and an intended mechanism, and the #1146 body proposes RH5104 rewordings for Q3, Q5, and Q6. I did not use either: the specs state observable output only, and Q3, Q5, and Q6 are out of scope (thoenissen/Reihitsu#1433). `sdd/specs/shared/code-fixes.md` is referenced and was not edited. No change doc.
 
@@ -10,18 +10,23 @@ Check run on the current tree: `scripts/test.sh --project architecture` filtered
 
 - **5572ea1.** First spec diff.
 - **2178115.** Escalation 1, A (narrow): RH5601-001 and RH5602-001 are back to their `9501a4b` text; the RH5601-002 and RH5602-002 clarifications are kept.
-- **This revision.** Escalation 2 (Q1 1B, Q2 2A, Q3 3A, Q4 4B) and the skeptic's findings that needed no maintainer decision. I re-derived each finding; each one is listed below under its issue, with how I checked it.
+- **3e6dd08.** Escalation 2 (Q1 1B, Q2 2A, Q3 3A, Q4 4B) and the skeptic's findings that needed no maintainer decision. I re-derived each finding; each one is listed below under its issue, with how I checked it.
+- **This revision.** Escalation 3, answer A: a comment that starts a hole line takes the FMT-INDENT-006 column of the token it precedes, measured after FMT-RAW-007. FMT-RAW-007 gains this as a third condition, with an example, and the case is removed from its coverage sentence (see #951).
 
 ## thoenissen/Reihitsu#951
 
 ### What changed in this revision
 
+- **Escalation 3 (A), latest revision.** FMT-RAW-007 has a third condition: a comment that starts a hole line takes the column FMT-INDENT-006 gives it, which is the column of the token it precedes, or one level deeper than a closing brace it precedes. That column is measured at the token's position after FMT-RAW-007 placed it.
+  - The fourth example is the question's input: `// c` and `name` both end at column 21, and `}` at 17.
+  - The coverage sentence no longer names comment lines.
+  - FMT-INDENT-006 is added to `Uses`.
 - **1B.** FMT-RAW-007 is rewritten, under the new title "Hole lines at the block column move only with the literal". It has two conditions, each with examples:
   - A line inside a hole that the indentation phase would give the block column of FMT-INDENT-002 is not given that column. It moves only by the closing marker's shift, and stays where it is in an aligned literal. Named starters: an expression token that no alignment requirement places, the `,` of an alignment clause, the `:` of a format clause, and the hole's closing `}`.
   - A line that an alignment requirement places relative to a token (FMT-INDENT-012 to FMT-INDENT-029, directly or through the construct around it) keeps that alignment, measured after the shift.
   - The new third example is a wrapped `string.Concat("a",⏎"b")` in a hole. I traced it on the current tree: `"b"` ends at column 38 in pass 1, and pass 2 is stable. So the expected output is today's output, as 1B requires.
 - **Skeptic: FMT-RAW-007 vs FMT-RAW-008.** Confirmed. The old "stay as written" clause contradicted FMT-RAW-008's second example. FMT-RAW-007 now hands nested raw literals to FMT-RAW-008, and nested non-raw text and comments to FMT-RAW-009.
-- **Skeptic: line starters.** The `,` and `:` clause starters are added. The skeptic observed that they flip like `name`, which means the indentation phase gives them the block column. For comment lines, see the open question below; the case is left out of the spec.
+- **Skeptic: line starters.** The `,` and `:` clause starters are added. The skeptic observed that they flip like `name`, which means the indentation phase gives them the block column. Comment lines are now specified (escalation 3, above).
 - **Skeptic: conflict with FMT-CLEAN-002.** Confirmed: a tab in front of a hole line is whitespace trivia. FMT-RAW-007 now states that the tab replacement of FMT-CLEAN-002 still applies to that whitespace, and the old "MUST NOT move it in any other way" is gone.
 - **2A.** New FMT-RAW-009, "Text nested in a hole keeps its lines". A line that starts inside the text of a nested non-raw literal (`@"…"`, `$@"…"`), or inside a nested `/* */` comment, that began on an earlier line in a hole stays as written, also when the outer literal moves. I traced both examples on the current tree:
   - `b"}` moves from column 0 to 13 today, which changes the string's value;
@@ -42,9 +47,8 @@ Check run on the current tree: `scripts/test.sh --project architecture` filtered
   - FMT-RAW: the non-goal on holes and nested literals is removed; the tab non-goal now points to thoenissen/Reihitsu#1432.
   - FMT-INDENT: the raw-string non-goal now excludes the hole lines that an alignment requirement places.
 
-The coverage sentence of FMT-RAW-007 leaves three cases unspecified:
+The coverage sentence of FMT-RAW-007 leaves two cases unspecified:
 
-- comment lines in a hole (pending the question below);
 - lines that an earlier phase breaks inside a hole and that no alignment requirement places, such as the braces of `delegate { return 1; }` — the 1B consequence the skeptic named and the maintainer accepted;
 - hole lines indented less than a leftward shift.
 
@@ -53,7 +57,8 @@ The coverage sentence of FMT-RAW-007 leaves three cases unspecified:
 All of these are formatter tests over two passes, under LF and CRLF.
 
 - **FMT-RAW-007.**
-  - The three spec examples: case 1, the aligned literal with `name` at column 25 (fails today), and the wrapped `string.Concat` (a characterization test).
+  - The four spec examples: case 1, the aligned literal with `name` at column 25 (fails today), the wrapped `string.Concat` (a characterization test), and the comment line `// c` above `name` (fails today).
+  - A comment in front of the hole's `}`: it ends one level deeper than that `}`.
   - Also from the skeptic's inputs:
     - `$$"""` with `{{⏎name⏎}}}`;
     - `Hello {⏎name}`;
@@ -66,28 +71,7 @@ All of these are formatter tests over two passes, under LF and CRLF.
 
 ### Open questions for the maintainer
 
-**Blocking for this one case only.** It decides the output of FMT-RAW-007 for comment lines. Everything else in the spec diff is independent of it.
-
-**Context.** Under 1B, a comment that starts a line inside a hole is neither a block-column token nor placed by FMT-INDENT-012 to FMT-INDENT-029. FMT-INDENT-006 gives such a comment the column of the token it precedes, or one level deeper than a closing brace it precedes. Today the comment flips like `name`. I traced a `/* a⏎  b */` comment that starts a hole line: on the current tree, pass 1 ends it at column 21 and pass 2 puts it back at column 8, the block column of the `name` below it. The skeptic observed the same with `//`. Input:
-
-```csharp
-        var name = "x";
-        var a = $"""
-    Hello {
-    // c
-        name
-    }
-    """;
-```
-
-`name` and `}` are block-column lines and move only with the literal (13 columns to the right).
-
-**Question.** Which column does `// c` take?
-
-- **A — It follows the token it precedes, at that token's final column** (FMT-INDENT-006 measured after FMT-RAW-007). Output: `// c` at 21, `name` at 21, `}` at 17. A comment in front of the hole's `}` is placed one level deeper than that `}`. The behavior is the same as for comments everywhere else.
-- **B — It is frozen like a block-column line.** Output: `// c` at 17 (as written plus 13), `name` at 21, `}` at 17. The author's layout of the hole is kept completely, but the comment and the code below it can end up in different columns.
-
-**Recommendation: A.** It keeps FMT-INDENT-006's invariant (a comment on its own line sits at the column of the code it describes). It is idempotent, because the comment follows a token whose column no longer changes between passes. B would be the pick if the maintainer wants a hole's layout to be the author's in full, comments included.
+_None._ The comment-line question is answered by escalation 3 (A) and carried out in FMT-RAW-007.
 
 Note, not a question: today `RawStringAlignmentPhase` clamps a line that would move left of column 0 to column 0. FMT-RAW-007 leaves that case unspecified, through its coverage sentence.
 
