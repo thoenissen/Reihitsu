@@ -31,3 +31,14 @@ _None._
 - Formatter filter RawStringAlignment|Indentation: `Passed!  - Failed: 0, Passed: 658, Total: 658`.
 - Text-only proof: not applicable (no comment fix).
 - Note: the implementer handover reported one disputed RH5104 test; it passes on the current tree (69ceb7a fixed it).
+
+## Repair round 1
+
+Commit: 67a46d3
+
+- Formatted: _None._ (`Formatted 0 of 24 file(s).`)
+- Warnings: none; `scripts/build.sh`: `0 Warning(s)`, `0 Error(s)`.
+- Unresolved: _None._
+- Analyzer filter RH5104|RH5601|RH5602|RH5202: `Passed!  - Failed: 0, Passed: 129, Total: 129`.
+- Formatter filter RawStringAlignment|Indentation: `Passed!  - Failed: 0, Passed: 667, Total: 667`.
+- Verdict: clean.
