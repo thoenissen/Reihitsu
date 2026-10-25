@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
@@ -25,6 +26,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
     [Requirement("RH8107-001")]
     [Requirement("RH8107-005")]
     [Requirement("RH8107-006")]
+    [Requirement("SHARED-DOC-018")]
     public async Task VerifyDiagnosticAndCodeFixForVoidReturnsDocumentation()
     {
         const string source = """
@@ -63,6 +65,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH8107-006")]
+    [Requirement("SHARED-DOC-018")]
     public async Task VerifyCodeFixKeepsSummaryTagSharingTheLine()
     {
         const string source = """
@@ -100,6 +103,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH8107-006")]
+    [Requirement("SHARED-DOC-018")]
     public async Task VerifyCodeFixKeepsPrecedingEndTagSharingTheLine()
     {
         const string source = """
@@ -141,6 +145,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH8107-006")]
+    [Requirement("SHARED-DOC-018")]
     public async Task VerifyCodeFixKeepsFollowingTagSharingTheLastLine()
     {
         const string source = """
@@ -182,6 +187,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH8107-006")]
+    [Requirement("SHARED-DOC-018")]
     public async Task VerifyCodeFixRemovesMultiLineReturnsTagCompletely()
     {
         const string source = """
@@ -222,6 +228,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH8107-006")]
+    [Requirement("SHARED-DOC-018")]
     public async Task VerifyCodeFixKeepsSurroundingTagsSharingTheLine()
     {
         const string source = """
@@ -260,6 +267,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
     [TestMethod]
     [Requirement("RH8107-001")]
     [Requirement("RH8107-006")]
+    [Requirement("SHARED-DOC-018")]
     public async Task VerifyCodeFixRemovesReturnsTagFromDelimitedDocumentationComment()
     {
         const string source = """
@@ -646,6 +654,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
     [TestMethod]
     [Requirement("SHARED-DOC-017")]
     [Requirement("RH8107-006")]
+    [Requirement("SHARED-DOC-018")]
     public async Task VerifyCodeFixRemovesEmptyReturnsElement()
     {
         const string source = """
@@ -676,6 +685,238 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
         await Verify(source,
                      fixedSource,
                      Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: no code fix is offered for a <c>returns</c> element that the end tag of the
+    /// enclosing <c>remarks</c> element closes, so that end tag is kept
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-017")]
+    [Requirement("RH8107-007")]
+    public async Task VerifyNoCodeFixForReturnsElementClosedByEndTagOfTheEnclosingElement()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  /// <remarks>{|RH8107:<returns>Nothing</remarks>|}
+                                  public void Run()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: end-tag names are compared exactly, so no code fix is offered for a
+    /// <c>Returns</c> element that <c>&lt;/returns&gt;</c> closes
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-017")]
+    [Requirement("RH8107-007")]
+    public async Task VerifyNoCodeFixForReturnsElementClosedByEndTagDifferingOnlyInCase()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  /// {|RH8107:<Returns>Nothing</returns>|}
+                                  public void Run()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: no code fix is offered for a <c>returns</c> element without an end tag,
+    /// which is reported through the line break at the end of its line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8107-007")]
+    public async Task VerifySpecificationExampleWithholdsFixForReturnsElementWithoutEndTag()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  /// {|RH8107:<returns>Nothing
+                              |}    public void Run()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix is still offered for a <c>returns</c> element closed by its own end tag when another
+    /// element of the comment has no end tag of its own, and that the other element is kept as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-017")]
+    [Requirement("RH8107-006")]
+    [Requirement("SHARED-DOC-018")]
+    public async Task VerifyCodeFixRemovesReturnsElementBesideElementWithoutEndTagOfItsOwn()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  /// <summary>
+                                  /// Runs <see>x</y>
+                                  /// </summary>
+                                  /// {|#0:<returns>Nothing</returns>|}
+                                  public void Run()
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       /// <summary>
+                                       /// Runs <see>x</y>
+                                       /// </summary>
+                                       public void Run()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that fixing every diagnostic of a document removes the <c>returns</c> element closed by its own end tag
+    /// and leaves the one closed by another element's end tag reported and unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-017")]
+    public async Task VerifyFixAllLeavesReturnsElementWithoutEndTagOfItsOwnUnchanged()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  /// {|RH8107:<returns>Nothing</returns>|}
+                                  public void Run()
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Stops
+                                  /// </summary>
+                                  /// <remarks>{|RH8107:<returns>Nothing</remarks>|}
+                                  public void Stop()
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       /// <summary>
+                                       /// Runs
+                                       /// </summary>
+                                       public void Run()
+                                       {
+                                       }
+
+                                       /// <summary>
+                                       /// Stops
+                                       /// </summary>
+                                       /// <remarks>{|RH8107:<returns>Nothing</remarks>|}
+                                       public void Stop()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies the specification example of the shared element removal: an element on lines of its own is removed with
+    /// those lines, and an element sharing its line with a summary is removed with the white space before it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-018")]
+    [Requirement("RH8107-006")]
+    public async Task VerifySpecificationExampleRemovesReturnsElementWithTheLinesItOwns()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  /// {|#0:<returns>
+                                  /// Nothing
+                                  /// </returns>|}
+                                  /// <param name="a">A</param>
+                                  public void Run(int a)
+                                  {
+                                  }
+
+                                  /// <summary>Runs</summary> {|#1:<returns>Nothing</returns>|}
+                                  public void Run2()
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       /// <summary>
+                                       /// Runs
+                                       /// </summary>
+                                       /// <param name="a">A</param>
+                                       public void Run(int a)
+                                       {
+                                       }
+
+                                       /// <summary>Runs</summary>
+                                       public void Run2()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat, 2));
     }
 
     #endregion // Tests

@@ -9,7 +9,6 @@ using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.DocumentationComments.Utilities;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
-using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.DocumentationComments;
 
@@ -17,7 +16,8 @@ namespace Reihitsu.Formatter.Pipeline.DocumentationComments;
 /// Normalizes XML documentation comments to repository-specific layout rules. Element-level layout
 /// decisions live in <see cref="DocCommentElementNormalizer"/>; this phase locates the candidate
 /// elements, splices in their normalized text — repeating until no candidate is left, because only
-/// the outermost ones can be rebuilt per round — and fixes the <c>///</c> line prefixes
+/// the outermost ones can be rebuilt per round — and fixes the <c>///</c> line prefixes. A comment stranded behind
+/// code, or one that holds an element without an end tag of its own, keeps its text as written
 /// </summary>
 internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
 {
@@ -33,20 +33,6 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     #endregion // Constants
 
     #region Methods
-
-    /// <summary>
-    /// Determines whether a documentation exterior follows non-whitespace source on the same line
-    /// </summary>
-    /// <param name="documentationCommentTrivia">Documentation comment trivia</param>
-    /// <param name="sourceText">Source text</param>
-    /// <returns><see langword="true"/> when the documentation comment starts after other source text</returns>
-    private static bool IsAfterSourceOnSameLine(SyntaxTrivia documentationCommentTrivia, SourceText sourceText)
-    {
-        var line = sourceText.Lines.GetLineFromPosition(documentationCommentTrivia.FullSpan.Start);
-        var prefix = sourceText.ToString(TextSpan.FromBounds(line.Start, documentationCommentTrivia.FullSpan.Start));
-
-        return prefix.Any(character => char.IsWhiteSpace(character) == false && character != '\uFEFF');
-    }
 
     /// <summary>
     /// Determines whether significant trivia owned by the following token precedes documentation on its physical line
@@ -174,21 +160,21 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
                                            Dictionary<SyntaxToken, int> previousTokenRelocationCounts)
     {
         if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) == false
-            || IsAfterSourceOnSameLine(trivia, sourceText) == false)
+            || DocumentationCommentUtilities.IsWrittenBehindSource(trivia, sourceText) == false)
         {
             return;
         }
-
-        var owningToken = trivia.Token;
 
         // Relocating the comment above its owning token is what makes it document that token. When the owner
         // does not open a node there is nothing to document - the comment is stranded before a ';' or a closing
         // '}' - so moving it changes the author's layout without making the comment mean anything, and the
         // compiler reports CS1587 either way. Leave it where it was written.
-        if (ReihitsuFormatterHelpers.DocumentsFollowingCode(owningToken) == false)
+        if (DocumentationCommentUtilities.IsStrandedBehindCode(trivia, sourceText))
         {
             return;
         }
+
+        var owningToken = trivia.Token;
 
         var previousToken = GetPreviousPresentToken(owningToken);
 
@@ -412,6 +398,15 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
 
             if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) == false
                 || trivia.GetStructure() is not DocumentationCommentTriviaSyntax documentationComment)
+            {
+                continue;
+            }
+
+            // A comment stranded behind code is an ordinary comment to the compiler, and one that holds an element
+            // without an end tag of its own is incomplete documentation whose intended element end is unknown:
+            // rebuilding it would guess that end or pull the code that follows into the comment. Both keep their
+            // text as written, every line of it, including their complete elements and their separators
+            if (DocumentationCommentUtilities.IsLeftAsWritten(trivia, sourceText))
             {
                 continue;
             }

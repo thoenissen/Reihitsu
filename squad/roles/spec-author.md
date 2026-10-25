@@ -29,7 +29,7 @@ Read [`../README.md`](../README.md) and [`sdd/README.md`](../../sdd/README.md) f
    - a retired requirement keeps its heading and gets `Status: Retired` with the reason;
    - code owners are type names that exist — never paths or line numbers; keep `sdd/specs/README.md` in sync.
 3. State every qualifier of the requirement ("terminal", "direct", "inside", "trailing") as an explicit condition with an example on each side of it (FC-002).
-4. Update the rule page under `documentation/rules/` when the documented behavior changes, following [`create-rule-doc`](../../.claude/commands/create-rule-doc.md). The spec changes first; the page is derived from it.
+4. Update the rule page under `documentation/rules/` only when what is reported, or how to fix it, changes for the user in the normal case — never for a withheld fix, a narrowed report in a corner case, or an exception. When in doubt, leave the page alone and say so in the handover. Follow [`create-rule-doc`](../../.claude/commands/create-rule-doc.md). The spec changes first; the page is derived from it.
 5. Write non-goals for what the issues do not ask for, so nobody broadens it.
 
 ## Open questions about intended behavior
