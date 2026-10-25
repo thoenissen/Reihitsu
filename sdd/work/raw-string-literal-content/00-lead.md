@@ -63,3 +63,11 @@ Worklist, all `same requirement` or `PR-introduced`:
 - Test implementer: regression tests for auditor findings 1–4 and 6 (and the `M(); /* a */ // b` order).
 - Implementer: findings 1–7.
 Then cleaner, spec checker, auditor (repair only), validator.
+5. Escalation 5 (after 07-auditor repair round 1): repair round 1 introduced a shared owner of the raw-string line shift (`RawStringLineShifts`), now read by `LayoutComputer.GetAdjustedColumn` / `LayoutModel` for every indentation contributor. Maintainer chose **A**: keep the shared mechanism and use repair round 2 for auditor findings 2 (tab before a comment on a hole line), 8 (tab before a nested literal's opening quotes on a hole line), and 9 (stale XML summaries). The duplicated "tab = four columns" rule becomes a follow-up candidate (text shown to the maintainer first; `CleanupPhase` belongs to run R2). Recorded here and in the PR run report only.
+
+# Repair round 2 (from 07-auditor "Repair round 1")
+
+Worklist, all `PR-introduced`:
+- Test implementer: regression tests for findings 2 and 8 (second pass, LF and CRLF).
+- Implementer: findings 2, 8, 9.
+Then cleaner, spec checker, auditor (repair only), validator.
