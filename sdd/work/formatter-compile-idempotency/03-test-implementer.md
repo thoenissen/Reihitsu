@@ -215,7 +215,7 @@ Code-fix tests added to `src/Reihitsu.Analyzer.Test/Formatting/RH3202ExpressionS
 | `ExpressionBodiedMethodTests.PreservesCommentBeforeArrow` (corrected) | FMT-STRUCT-006 | `AssertRuleResult(input, expected)` | fails |
 | `ExpressionBodiedConstructorTests.PreservesCommentBeforeArrow` (corrected) | FMT-STRUCT-006; FC-025 | `AssertRuleResult(input, expected)` | fails |
 | `ExpressionBodyNextLineExpressionTests.LineCommentBeforeNextLineExpressionKeepsOwnLine` (corrected) | FMT-STRUCT-006 | `AssertRuleResult(input, expected)` | fails |
-| `ExpressionBodyNextLineExpressionTests.BlockCommentLeadingNextLineExpressionKeepsOwnLine` (corrected, revision 2) | FMT-STRUCT-006 | `AssertRuleResult(input, expected)` | fails on 69e28ac, passes on 2dea131 |
+| `ExpressionBodyNextLineExpressionTests.BlockCommentLeadingNextLineExpressionJoinsReturnKeyword` (corrected, revision 2; renamed in revision 3) | FMT-STRUCT-006 | `AssertRuleResult(input, expected)` | fails on 69e28ac, passes on 2dea131 |
 | `WithInitializersAreLaidOutOverSeveralLinesInTheFirstPass` (spec example) | FMT-BREAK-021, FMT-PIPE-004 | `AssertRuleResult(input, expected)` | fails |
 | `WithInitializerOfExpressionBodiedPropertyIsLaidOutInTheFirstPass` (issue input) | FMT-BREAK-021, FMT-PIPE-004; FC-034 | `AssertRuleResult(input, expected)` | fails |
 | `WithInitializerOfReturnStatementIsLaidOutInTheFirstPass` | FMT-BREAK-021, FMT-PIPE-004; FC-027 | `AssertRuleResult(input, expected)` | fails |
@@ -357,6 +357,95 @@ Search for further existing tests that pin behavior this run's specs contradict:
 Commands:
 
 ```shell
-scripts/test.sh --project formatter --filter "FullyQualifiedName~BlockCommentLeadingNextLineExpressionKeepsOwnLine"
+scripts/test.sh --project formatter --filter "FullyQualifiedName~BlockCommentLeadingNextLineExpressionJoinsReturnKeyword"
 scripts/test.sh --project analyzer --filter "FullyQualifiedName~VerifyFixLeavesAsyncMethodReturningTaskAliasNextToConvertedMethods"
 ```
+
+## Revision 3 — repair round 1
+
+Commit: 1199b0c (tests; production 2dea131; specs at 18b4688, spec author revision 4). Items A1, A2, A3, A5, A6, A7 of `07-auditor.md`, routed by the lead (`00-lead.md`, "Repair round 1"). Each test was re-derived from the specs on this branch; the auditor's suggestions were treated as suggestions. Every formatter test runs under LF and CRLF with a second pass unless stated otherwise.
+
+### thoenissen/Reihitsu#949 — A1
+
+| Test | Requirement / failure class | Helper | Expected now |
+|---|---|---|---|
+| `TerminalBreakCommentTests.DocumentationCommentBeforeTerminalBreakIsLaidOutInThePassThatInsertsTheBraces` | FMT-SWITCH-007, FMT-BLANK-011, FMT-PIPE-004; FC-016, FC-017 | `AssertRuleResult(input, expected)` | fails |
+
+Derivation: FMT-SWITCH-007 covers every comment that leads the terminal `break`, and FMT-BLANK-011 applies "to ordinary and documentation comments alike". So pass 1 must give `}` / blank / `/// doc` / `break;`.
+
+Observed on 2dea131 (LF): `}` / blank / `/// doc` / **blank** / `break;`. Pass 1 therefore does not match the final layout, and the first-pass assertion fails on the extra blank line below `/// doc`.
+
+### thoenissen/Reihitsu#948 — A2, A3
+
+| Test | Requirement / failure class | Helper | Expected now |
+|---|---|---|---|
+| `SwitchSectionSharedLocalTests.LambdaParameterShadowingTheLocalInAnotherSectionDoesNotBlockTheBraces` | FMT-SWITCH-014; FC-002 | `AssertRuleResult(input, expected)` | fails |
+| `SwitchSectionSharedLocalTests.LocalFunctionParameterShadowingTheLocalInAnotherSectionDoesNotBlockTheBraces` | FMT-SWITCH-014; FC-002 | `AssertRuleResult(input, expected)` | fails |
+| `SwitchSectionSharedLocalTests.PatternVariableInQueryClauseDoesNotBlockTheBraces` | FMT-SWITCH-014; FC-002 | `AssertRuleResult(input, expected)` | fails |
+| `SwitchSectionSharedLocalTests.OutVariableOfLocalDeclarationInitializerUsedInAnotherSectionLeavesTheSwitchUnchanged` | FMT-SWITCH-014; FC-016 | `AssertRuleResult(input)` | passes |
+| `SwitchSectionSharedLocalTests.PatternVariableOfLocalDeclarationInitializerUsedInAnotherSectionLeavesTheSwitchUnchanged` | FMT-SWITCH-014; FC-016 | `AssertRuleResult(input)` | passes |
+
+Derivations:
+
+- **A2, shadowing parameters.** Section 2's `y` is bound by the lambda's (or the local function's) own parameter, so it is not a use of section 1's local. FMT-SWITCH-014 says "a local that is used only in the section that declares it MUST NOT trigger this guard". Expected: both sections braced (FMT-SWITCH-001/003). Observed on 2dea131: the whole switch is left unbraced. That is the only difference.
+- **A2, query clause.** C# scopes a pattern variable in a query clause to that clause, not to the switch block. The `n` used in section 2 is the field. FMT-SWITCH-014's `Why:` bases the guard on switch-block scoping, so the switch is braced. Observed: left unbraced.
+  - Spec note for the lead: read literally, the third bullet ("a variable that … a pattern declares in the initializer of a local declaration") also covers `var q = from a in xs where a is int n select n;`, and the "MUST NOT trigger" list does not name query clauses. If the lead reads the bullet literally, this test asserts against the spec and goes back as escalation 4. I recommend that the spec author name query-clause bodies next to lambda bodies.
+- **A3.** The local-declaration initializer form is now named in FMT-SWITCH-014's third bullet (revision 4). These two tests pin the branch the auditor found untested. Both pass on 2dea131.
+
+### thoenissen/Reihitsu#1390 — A5, A6
+
+| Test | Requirement / failure class | Helper | Expected now |
+|---|---|---|---|
+| `ExpressionBodyArrowCommentTests.OwnLineCommentStaysOutOfTheBlockWhenTheArrowLineCarriesALineComment` (`int A2()` / `// a` / `=> // b` / `42;`) | FMT-STRUCT-006; FC-004, FC-021 | `AssertCommentsKeepOrderOutsideTheBlock` (LF, CRLF, two passes) | fails |
+| `ExpressionBodyArrowCommentTests.OwnLineCommentStaysOutOfTheBlockWhenADelimitedCommentIsGluedBehindTheArrow` (`int Get3()` / `// own` / `=> /* glued */ 3;`) | FMT-STRUCT-006; FC-004, FC-021 | same | fails |
+| `ExpressionBodyArrowCommentTests.OwnLineCommentStaysOutOfTheBlockWhenACommentStandsInFrontOfTheArrow` (`int A4()` / `// a` / `/* c */ => 42;`) | FMT-STRUCT-006; FC-003 | same | passes |
+| `RH3202…AnalyzerTests.VerifyFixKeepsCommentOrderWhenTheArrowLineCarriesAComment` (`// a` / `=> // b` / `42;`) | SHARED-BODY-003; FC-004, FC-032 | `ApplyCodeFixAsync`, LF and CRLF, same assertions | fails |
+| `ExpressionBodyNextLineExpressionTests.BlockCommentLeadingNextLineExpressionJoinsReturnKeyword` (A6, renamed from `…KeepsOwnLine`; assertion unchanged) | FMT-STRUCT-006; FC-031 | `AssertRuleResult(input, expected)` | passes |
+
+Derivation (A5): FMT-STRUCT-006 (revision 4) says that when the arrow's line holds a comment, the conversion must not move the own-line comments in front of the created statement, and all comments must keep their source order. The placements themselves are unspecified (#963), so these tests assert no layout. The private helper `AssertCommentsKeepOrderOutsideTheBlock` formats with `ReihitsuFormatter.FormatSyntaxTree` and asserts:
+
+- the member is converted (no `=>` left);
+- each comment appears exactly once;
+- own-line comment < arrow-line comment < statement, by text position;
+- the own-line comment does not stand between the block's opening brace and the statement;
+- a second pass changes nothing.
+
+Observed on 2dea131:
+
+- `{// b` / `// a` / `return 42;` and `{/* glued */` / `// own` / `return 3;`. The order assertion fails because `// b` comes before `// a`.
+- The RH3202 fix produces the same reversal.
+- The variant with the comment in front of the arrow already keeps the order.
+
+### thoenissen/Reihitsu#888 — A7
+
+| Test | Requirement / failure class | Helper | Expected now |
+|---|---|---|---|
+| `ChainLinkBehindMultiLineCommentTests.NullForgivingLinkBehindMultiLineCommentTailStartsItsOwnLine` (`*/ !.D()`) | FMT-BREAK-019, SHARED-COMMENT-012; FC-016 | `AssertRuleResult(input, expected)` | passes |
+| `ChainLinkBehindMultiLineCommentTests.LinkBehindMultiLineDocumentationStyleCommentTailStartsItsOwnLine` (`/** x` / `*/ .D()`) | FMT-BREAK-019, SHARED-COMMENT-012; FC-016 | `AssertRuleResult(input, expected)` | passes |
+
+Not written, and why: two cases have no test.
+
+- A **prefix link** behind a comment tail (`var r = a.B` / `/* x` / `*/ .B` / `.C()` / `.D();`).
+- A **first invoked link** behind a comment tail (`var r = a.B` / `/* x` / `*/ .C()` / `.D();`).
+
+The specs do not decide either output, and the requirements that touch them point in opposite directions:
+
+- **Leave the link behind `*/`.**
+  - FMT-BREAK-019's new sentence and SHARED-CHAIN-005 ask for a break only in front of a *later* link, one after the first invoked link.
+  - SHARED-CHAIN-005 says prefix links "MUST keep the line the author put them on", and no requirement asks the first invoked link to start a line.
+  - SHARED-COMMENT-012 lets the formatter break only "where a requirement of the formatter asks that token to start its own line".
+- **Break in front of the link.**
+  - SHARED-COMMENT-012's analyzer bullet requires a rule such as RH5201-002 to report such a token whatever its column.
+  - SHARED-DIAG-010 requires the formatter's output to be free of such reports.
+
+Observed on 2dea131: the formatter breaks in front of `.B` and in front of `.C()`, and aligns each at the anchor column.
+
+This is a spec question for the lead (escalation 4 / spec author); a test can only be written once it is decided. The `!.` and `/** */` tests are at the later-link site, where the spec is clear.
+
+### Runs
+
+- `scripts/test.sh --project formatter --filter "FullyQualifiedName~TerminalBreakCommentTests|FullyQualifiedName~SwitchSectionSharedLocalTests|FullyQualifiedName~ExpressionBodyArrowCommentTests|FullyQualifiedName~ExpressionBodyNextLineExpressionTests|FullyQualifiedName~ChainLinkBehindMultiLineCommentTests"`: 86 tests; 6 failed, 80 passed. The 6 failures are A1 ×1, A2 ×3, A5 ×2.
+- `scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests"`: 18 tests; 1 failed (`VerifyFixKeepsCommentOrderWhenTheArrowLineCarriesAComment`, A5).
+- `scripts/test.sh --project architecture`: 84 passed.
+
+Expected to fail until the implementer repairs: A1 (1 test), A2 (3 tests), A5 (2 formatter tests and 1 RH3202 test). The A2 query-clause test is subject to the spec note above.
