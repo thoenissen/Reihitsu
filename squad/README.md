@@ -74,13 +74,32 @@ The lead stops and asks the maintainer when:
 8. a bug does not reproduce, or the report carries no scenario concrete enough to test;
 9. a failure also exists on `main`, independent of the change;
 10. no lane admits the diff, or the lane must widen after the implementer has started — or, before the claim, the issues a prompt names for one run do not share a lane;
-11. the prompt names more than eight issues for one run.
+11. the prompt names more than eight issues for one run;
+12. a role reports an architecture finding, or an audit finding repeats the class of an earlier audit finding of the same run ([below](#architecture-findings)) — asked at once, before the next role starts.
 
 Every answer is recorded in `squad/decisions/` (see [`decisions/README.md`](decisions/README.md)). When the same kind of question keeps getting the same answer, the maintainer turns it into a rule and the escalation goes away. When something slipped through that should have reached the maintainer, a new escalation is added. The squad never tunes its own escalations, and a new rule is added only together with a decisions entry naming the failure it prevents.
 
+## Architecture findings
+
+A defect whose cause is structural rather than local is an **architecture finding**:
+
+- two components own the same decision — two pipeline phases, an analyzer and its code fix, a shared helper and a private copy of it;
+- a component predicts or copies another's behavior — a formatter phase computes the column a later phase will produce, or replays a rule that another component applies;
+- one rule is stated in more than one place, so the statements can drift apart.
+
+A disagreement between an analyzer and the formatter (FC-013) is not by itself an architecture finding: [P11](../sdd/README.md#the-formatter-may-do-more-than-the-analyzers-p11) and [SHARED-DIAG-010](../sdd/specs/shared/diagnostics.md) define how the two surfaces relate. It stays an ordinary finding and reaches escalation 12 only when it repeats the class of an earlier audit finding.
+
+The escalation covers the defects that reach the run: a defect of one of the run's issues, a defect the change introduces, and a pre-existing defect the change newly depends on or exposes — the defects an audit finding may block on ([`roles/auditor.md`](roles/auditor.md), *Severity*). A structural defect unrelated to the run is not an architecture finding of the run; it is a follow-up candidate that names its structural cause. This section is the one statement of what an architecture finding is; the role files point here.
+
+A role that finds one reports it in its handover under `## Architecture findings`: the components, the decision they share, and the input that shows them disagreeing or the places that state the rule. It finishes its own job without changing the structure. The lead asks the maintainer at once, before the next role starts (escalation 12), with three options: fix narrowly in this run and file the structural change as a follow-up issue; change the structure first and continue the run on top of it; or stop the run. Whether a structural defect gets a narrow fix is the maintainer's choice, never a role's.
+
+**Failure classes, not instances.** When the skeptic or the auditor finds a defect, it enumerates the defect's class: the axes along which the failing shape can vary, and every member they span — for a column that two phases compute, the direction of the shift, what the varying character stands in front of, and whether another line is aligned to it. It traces or constructs every member and reports all failing members together in one finding, naming the members that hold. Where [`failure-classes.md`](failure-classes.md) carries a matrix for the class, the enumeration starts from it.
+
+**A repeated class is an architecture signal.** Two findings are of the same class when they share their mechanism — the same decision, failing between the same components — and differ only in the input shape; a shared catalog ID alone does not make two findings one class. An audit finding of the same class as a finding of an earlier audit of the same run is escalation 12 instead of another repair round: one enumeration already missed a member, and repairing one member per round only finds the next.
+
 ## Repairs
 
-The lead routes each finding — from the spec checker, the auditor, the validator, or CI — to the role that owns it: code to the implementer, a missing or weak test to the test implementer, a spec gap to the spec author, formatting or warnings to the cleaner. All findings of one verdict form one worklist and one repair round. A block after a repair round starts another round in the same way when every finding is `same requirement` or `PR-introduced`: the owners repair, then the cleaner, the spec checker, the auditor on the repair only, and the validator run. A run has at most three repair rounds; a block after the third is escalation 7.
+The lead routes each finding — from the spec checker, the auditor, the validator, or CI — to the role that owns it: code to the implementer, a missing or weak test to the test implementer, a spec gap to the spec author, formatting or warnings to the cleaner. All findings of one verdict form one worklist and one repair round. A block after a repair round starts another round in the same way when every finding is `same requirement` or `PR-introduced` and none repeats the class of an earlier audit finding (that is escalation 12, [above](#architecture-findings)): the owners repair, then the cleaner, the spec checker, the auditor on the repair only, and the validator run. A run has at most three repair rounds; a structural change the maintainer chose under escalation 12 is not one of them. A block after the third is escalation 7.
 
 ## Several issues in one run
 
