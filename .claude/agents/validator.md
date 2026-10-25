@@ -1,6 +1,6 @@
 ---
 name: validator
-description: Reihitsu squad role — builds the solution and runs every test project, and reports. Never diagnoses or fixes. Spawned by the lead (`squad/lead.md`) as one fresh agent per stage; it reads its handovers under `sdd/work/<slug>/` and writes its own.
+description: Reihitsu squad role — builds the solution, runs every test project except the self-hosting scans (which CI runs), and reports. Never diagnoses or fixes. Spawned by the lead (`squad/lead.md`) as one fresh agent per stage; it reads its handovers under `sdd/work/<slug>/` and writes its own.
 model: haiku
 effort: low
 disallowedTools: Edit, NotebookEdit
