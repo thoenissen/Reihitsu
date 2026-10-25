@@ -111,3 +111,28 @@ Repair-round changes checked: spec author revisions 4–5 (`18b4688`, `ce7abdd`)
 ### For the lead
 1. **Q4 (spec author rev 5, #888, not blocking): the chain's first link behind a multi-line comment tail** (`var t = a /* x` / `*/ .C()` / `.D();`). The spec author recommends B (keep today's behavior, follow-up issue if wanted). `00-lead.md` has no answer. SHARED-CHAIN-005's exception says it "does not decide the chain's first link", so the spec stays correct either way, but the question must reach the maintainer (in the lead's message before the next stage or as a maintainer-approved follow-up issue), not only the PR. The same sentence leaves open whether a chain whose only breaks lie inside such a comment counts as wrapped (skeptic's #888 follow-up).
 2. My first-pass items still stand: SHARED-BODY-004 as a bug fix rather than a changed behavior (confirm in the lead's message), and the follow-up candidates (FMT-BLANK-016 pragma/region gap; start-of-file comment above `#region`; `BuildLeadingTrivia` appending a line break behind `///` for the first moved statement; RH3202 provider duplication; `RH5201.md` `Uses`). The conditional-directive case under SHARED-BLANK-005 is now the maintainer's A4 follow-up.
+
+## Revision 2 (after merge of origin/main, 7a040e2)
+
+Commit: edeb12e (diff `origin/main..edeb12e`; delta since my revision 1: `3642dd8..edeb12e`)
+Verdict: consistent (no findings); revision 1's item 1 (Q4) is closed
+
+My prompt carried no intended fix or verdict. I changed no file other than this handover.
+
+Delta checked: `origin/main` merged (7a040e2; brings thoenissen/Reihitsu#1462 and #1456), spec author revision 6 (`4253cc4`, `35a852c`), the maintainer's answer to Q4 in `00-lead.md`, the cleaner's revision 2. The run's own production files under `src/` (switch, chain, expression-body, blank-line, `TokenGapNormalizer`, initializer rewriters) did not change since revision 1. `origin/main` is the merge base (3973631), so `git diff origin/main` is the run's own diff.
+
+- `scripts/test.sh --project architecture`: `Passed!  - Failed:     0, Passed:    84, Skipped:     0, Total:    84`.
+- `scripts/test.sh --project analyzer --filter "FullyQualifiedName~RuleDocumentation"`: `Passed!  - Failed:     0, Passed:     7, Skipped:     0, Total:     7`.
+
+### Findings
+| # | Check | Location | What does not match | Owner |
+|---|---|---|---|---|
+| _None._ | | | | |
+
+### What changed against revision 1
+- **Check 5 (user documentation), now with the amended rule.** `git diff origin/main -- documentation` is empty: the `## Exceptions` sections I accepted in revision 0 on `documentation/rules/RH3202.md` and `RH3208.md` are gone, and both pages equal `origin/main`. Under the amended check ("a page note about a withheld fix, an exception, or a corner case is a finding") that was the right move; no page of this run carries one now. The withheld fix is recorded where #1462 says: `sdd/specs/analyzer/RH3202.md` and `RH3208.md` state in their introductions that the fix is deliberately withheld for an `async` member whose return type is not written as a task type, that the member stays reported, and that the author converts it by hand, naming SHARED-BODY-004; both already list SHARED-BODY-004 under `Uses`. This agrees with SHARED-BODY-004 and with the code (provider guards unchanged). `general-notes.md` ("A diagnostic without a code fix") covers the user-facing side.
+- **Check 6 (open questions).** Q4 (the chain's first link behind a multi-line comment tail) is answered B in `00-lead.md` ("Escalation 1 before the auditor"): today's behavior stays, unspecified in this run, follow-up candidate. SHARED-CHAIN-005's exception ("does not decide the chain's first link") already says exactly that, and the spec author's revision 6 marks it answered. No spec text change is owed. The same answer records that SHARED-BODY-004 is treated as part of the bug fix with no change doc, which closes my revision 1 item 2 (first part).
+- **Checks 1-4, 7-9 re-run on the delta.** Change doc: none, none required. Ledger: `git diff origin/main -- sdd/specs/requirement-ids.txt` still adds only FMT-STRUCT-025, FMT-SWITCH-014, SHARED-BODY-004 at their sorted positions (the merge brought other runs' IDs, not touched). Code owners: no type added or renamed by this run; `SpecConsistencyTests` pass. Coverage and tags: the test files of this run are unchanged since revision 1, so the tag comparison against `03-test-implementer.md` stands (no mismatch). `sdd/work/` holds only this run's directory; `git status` clean before this note.
+
+### For the lead
+Still open from earlier passes, unchanged, for the run report / maintainer-approved follow-up issues: FMT-BLANK-016 pragma/region gap in `LineBreaksEndingPragmaAndRegionDirectivesAreRewritten`; the conditional directive between `{` and `#region` under SHARED-BLANK-005 (maintainer's A4 follow-up); a comment above `#region` at the start of a file; `BuildLeadingTrivia` appending a line break behind `///` for the first moved statement; the chain's first link behind a comment tail (Q4, B); RH3202 provider duplicating the base's registration loop; `RH5201.md` `Uses` could list SHARED-COMMENT-012. The `sdd/work/` directory of this run must be deleted by the lead before publishing.
