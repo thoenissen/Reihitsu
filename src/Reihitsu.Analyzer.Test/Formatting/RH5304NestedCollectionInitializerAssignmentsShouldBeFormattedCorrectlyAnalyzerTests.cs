@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -1033,6 +1034,10 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
                             {
                                 config.NumberOfIncrementalIterations = 1;
                                 config.NumberOfFixAllIterations = 1;
+
+                                // The diagnostic whose fix is withheld stays and is marked in the expected source
+                                config.FixedState.MarkupHandling = MarkupMode.Allow;
+                                config.BatchFixedState.MarkupHandling = MarkupMode.Allow;
                             },
                      Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat, 2));
     }
