@@ -5,7 +5,7 @@
 | ID prefix | SHARED-FIX |
 | Status | Active |
 | Code owners | — |
-| Uses | FMT-PIPE-007, SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, SHARED-DOC-004, SHARED-JOIN-001, SHARED-ORDER-002 |
+| Uses | FMT-PIPE-007, FMT-PIPE-017, SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, SHARED-DOC-004, SHARED-JOIN-001, SHARED-ORDER-002 |
 
 This spec covers what holds for every code fix of an analyzer rule, so a rule spec states only what its own fix produces and when it is withheld. It applies to every rule whose header names a code fix, without being listed under `Uses`; SHARED-FIX-002 applies to the rules whose header says `Fix All`.
 
@@ -582,6 +582,8 @@ The fix replaces the expression body and its semicolon with a block, indented fr
 ### SHARED-FIX-007 — The changed code is laid out as the formatter lays it out
 
 The code a fix changes MUST be laid out as the formatter lays it out, in one application, so that formatting the result changes nothing in that code. Code that the fix only moves is laid out as the moved-code bullet states. In particular:
+
+- **Whitespace in front of the changed code.** A tab in the whitespace in front of the changed code on its first line is not part of the changed code, and the fix does not replace it. The changed code is laid out from the column its first token has with that tab counted as one column, as the rules count it (FMT-PIPE-017). When formatting the result later replaces that tab and moves the changed code with its line, that move is not a difference this requirement counts.
 
 - **Moved code.** Code that a fix moves to another position or into another block without changing it — a member moved in front of another, a region block moved with its members, the statements a fix wraps into a new block — MUST keep its own layout: its braces, the spacing between its tokens, its line breaks, and the blank lines inside it stay as written, also where formatting the result would change them. Only the indentation of its lines MUST follow its new nesting. The separators in front of and behind it, at its old and at its new position, follow SHARED-ORDER-002. Code the fix creates around the moved code, such as the header and the braces of a new block, is laid out as the formatter lays it out. The bullet covers members, accessors, and region blocks that a fix moves, and statements that a fix wraps into a new block, such as the following statements of a `using` declaration (RH7004) or the embedded statement of an `if`, `else`, or loop that a brace fix encloses. It does not cover an expression that a fix turns into a new statement, such as the `return` statement of an expression body converted to a block, which is the node the fix replaces, nor a using block that a fix rewrites, whose group separators are the subject of the using-directive rules.
 - **Shared line.** When the member a fix changes shares its line with another member after the fix, the changed member MUST get its own line and the other member MUST start on the next line; the lines the fix edits are laid out as the formatter lays them out. When the other member comes first on the line, the changed member starts on the next line. Around a member that has its line to itself after the fix, the line breaks and blank lines stay as SHARED-FIX-006 states.
