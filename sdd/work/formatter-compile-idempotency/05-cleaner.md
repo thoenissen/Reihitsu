@@ -39,3 +39,10 @@ Verdict: clean
 - Formatted: _None._ ("Formatted 0 of 31 file(s)").
 - Warnings: _None._ scripts/build.sh: 0 Warning(s) 0 Error(s).
 - Formatter regression and switch-case tests: Passed, 2009 of 2009.
+
+## Revision 4 (after repair round 3)
+Commit: 51b654b
+Verdict: clean
+- Formatted: _None._ ("Formatted 0 of 31 file(s)").
+- Warnings: _None._ scripts/build.sh: 0 Warning(s) 0 Error(s).
+- Formatter regression and switch-case tests: Passed, 2015 of 2015.
