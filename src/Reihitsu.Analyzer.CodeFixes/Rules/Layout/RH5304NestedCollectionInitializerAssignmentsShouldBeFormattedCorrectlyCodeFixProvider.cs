@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Formatter;
 
@@ -82,7 +83,10 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
             {
                 var formatTarget = TryGetFormatTarget(root, diagnostic);
 
-                if (formatTarget != null)
+                // The node-level formatting cannot move a line that starts inside a comment, so a complex element whose
+                // brace stands behind a multi-line comment's last line would end up out of place; the fix is withheld
+                if (formatTarget != null
+                    && InitializerLayoutAnalysisUtilities.ContainsComplexElementBehindMultiLineCommentTail(formatTarget) == false)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5304Title,
                                                               cancellationToken => ApplyCodeFixAsync(context.Document, formatTarget, cancellationToken),
