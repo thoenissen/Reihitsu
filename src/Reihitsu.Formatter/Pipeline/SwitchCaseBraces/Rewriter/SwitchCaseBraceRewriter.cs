@@ -211,10 +211,18 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Determines whether a simple name in a switch section is bound by a declaration of that section
-    /// that encloses it: a parameter of an enclosing lambda, anonymous method, or local function, a
-    /// variable that an enclosing lambda's expression body declares, or a local that an enclosing block
-    /// declares directly. Such a name does not refer to a local of another section, which C# 8 and later
-    /// let a lambda or local function shadow
+    /// that encloses it, in the part of the enclosing construct that the declaration's scope covers:
+    /// <list type="bullet">
+    /// <item><description>a parameter of a lambda, anonymous method, or local function, or a variable that the function's expression body designates, for a name in the function's body — not in its attribute lists, parameter list, return type, or constraint clauses;</description></item>
+    /// <item><description>a local that a block or a section of a nested switch declares directly, for a name in that block or switch;</description></item>
+    /// <item><description>the variable of a <c>foreach</c>, <c>using</c>, or <c>fixed</c> statement, for a name in its embedded statement;</description></item>
+    /// <item><description>the variable of a <c>for</c> statement, for a name in its condition, incrementors, or embedded statement;</description></item>
+    /// <item><description>the variable of a <c>catch</c> clause, for a name in its filter or block;</description></item>
+    /// <item><description>a variable that the condition of a <c>while</c> statement designates, for a name in that condition or its embedded statement, and one that the condition of a <c>do</c> statement designates, for a name in that condition;</description></item>
+    /// <item><description>a variable that the pattern of a switch-expression arm designates, for a name in that arm.</description></item>
+    /// </list>
+    /// Such a name does not refer to a local of another section, which C# lets a lambda or local function
+    /// shadow. A shadowing form not listed here still counts as a use, which leaves the switch unbraced
     /// </summary>
     /// <param name="simpleName">The simple name to inspect</param>
     /// <param name="section">The switch section that holds the name</param>
@@ -222,34 +230,64 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     private static bool IsBoundInsideSection(SimpleNameSyntax simpleName, SwitchSectionSyntax section)
     {
         var name = simpleName.Identifier.ValueText;
+        SyntaxNode child = simpleName;
 
-        foreach (var ancestor in simpleName.Ancestors())
+        for (var ancestor = simpleName.Parent; ancestor != null && ancestor != section; child = ancestor, ancestor = ancestor.Parent)
         {
-            if (ancestor == section)
-            {
-                return false;
-            }
-
-            var isBound = ancestor switch
-                          {
-                              SimpleLambdaExpressionSyntax simpleLambda => simpleLambda.Parameter.Identifier.ValueText == name
-                                                                           || IsDesignatedIn(simpleLambda.ExpressionBody, name),
-                              ParenthesizedLambdaExpressionSyntax parenthesizedLambda => HasParameter(parenthesizedLambda.ParameterList, name)
-                                                                                         || IsDesignatedIn(parenthesizedLambda.ExpressionBody, name),
-                              AnonymousMethodExpressionSyntax anonymousMethod => HasParameter(anonymousMethod.ParameterList, name),
-                              LocalFunctionStatementSyntax localFunction => HasParameter(localFunction.ParameterList, name)
-                                                                            || IsDesignatedIn(localFunction.ExpressionBody?.Expression, name),
-                              BlockSyntax block => GetDirectlyDeclaredLocalNames(block.Statements).Contains(name),
-                              _ => false,
-                          };
-
-            if (isBound)
+            if (IsBoundByAncestor(ancestor, child, name))
             {
                 return true;
             }
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Determines whether a declaration of an ancestor binds a name that stands in the given child of the ancestor
+    /// </summary>
+    /// <param name="ancestor">The ancestor whose declarations are inspected</param>
+    /// <param name="child">The child of <paramref name="ancestor"/> that holds the name</param>
+    /// <param name="name">The name</param>
+    /// <returns><see langword="true"/> if a declaration of the ancestor binds the name there; otherwise, <see langword="false"/></returns>
+    private static bool IsBoundByAncestor(SyntaxNode ancestor, SyntaxNode child, string name)
+    {
+        return ancestor switch
+               {
+                   SimpleLambdaExpressionSyntax simpleLambda => (child == simpleLambda.Body)
+                                                                && (simpleLambda.Parameter.Identifier.ValueText == name
+                                                                    || IsDesignatedIn(simpleLambda.ExpressionBody, name)),
+                   ParenthesizedLambdaExpressionSyntax parenthesizedLambda => (child == parenthesizedLambda.Body)
+                                                                              && (HasParameter(parenthesizedLambda.ParameterList, name)
+                                                                                  || IsDesignatedIn(parenthesizedLambda.ExpressionBody, name)),
+                   AnonymousMethodExpressionSyntax anonymousMethod => (child == anonymousMethod.Body)
+                                                                      && HasParameter(anonymousMethod.ParameterList, name),
+                   LocalFunctionStatementSyntax localFunction => (child == localFunction.Body || child == localFunction.ExpressionBody)
+                                                                 && (HasParameter(localFunction.ParameterList, name)
+                                                                     || IsDesignatedIn(localFunction.ExpressionBody?.Expression, name)),
+                   BlockSyntax block => GetDirectlyDeclaredLocalNames(block.Statements).Contains(name),
+                   SwitchStatementSyntax switchStatement => child is SwitchSectionSyntax
+                                                            && switchStatement.Sections.Any(nestedSection => GetDirectlyDeclaredLocalNames(nestedSection).Contains(name)),
+                   ForEachStatementSyntax forEachStatement => child == forEachStatement.Statement
+                                                              && forEachStatement.Identifier.ValueText == name,
+                   ForEachVariableStatementSyntax forEachVariableStatement => child == forEachVariableStatement.Statement
+                                                                              && IsDesignatedIn(forEachVariableStatement.Variable, name),
+                   ForStatementSyntax forStatement => (child == forStatement.Statement || child == forStatement.Condition || forStatement.Incrementors.Contains(child))
+                                                      && forStatement.Declaration?.Variables.Any(variable => variable.Identifier.ValueText == name) == true,
+                   UsingStatementSyntax usingStatement => child == usingStatement.Statement
+                                                          && usingStatement.Declaration?.Variables.Any(variable => variable.Identifier.ValueText == name) == true,
+                   FixedStatementSyntax fixedStatement => child == fixedStatement.Statement
+                                                          && fixedStatement.Declaration.Variables.Any(variable => variable.Identifier.ValueText == name),
+                   CatchClauseSyntax catchClause => (child == catchClause.Block || child == catchClause.Filter)
+                                                    && catchClause.Declaration?.Identifier.ValueText == name,
+                   WhileStatementSyntax whileStatement => (child == whileStatement.Condition || child == whileStatement.Statement)
+                                                          && IsDesignatedIn(whileStatement.Condition, name),
+                   DoStatementSyntax doStatement => child == doStatement.Condition
+                                                    && IsDesignatedIn(doStatement.Condition, name),
+                   SwitchExpressionArmSyntax switchExpressionArm => IsDesignatedIn(switchExpressionArm.Pattern, name)
+                                                                    || IsDesignatedIn(switchExpressionArm.WhenClause, name),
+                   _ => false,
+               };
     }
 
     /// <summary>
