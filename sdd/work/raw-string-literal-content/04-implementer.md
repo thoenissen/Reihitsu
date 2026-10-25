@@ -303,3 +303,88 @@ No finding; nothing changed.
 ## thoenissen/Reihitsu#1146
 
 No finding; nothing changed.
+
+# Repair round 3
+
+Role: implementer
+Commit: c6d9a2c
+Verdict: #951: tests pass (finding 10); #1133: nothing to repair; #1146: nothing to repair
+
+Inputs:
+- The "Repair round 2" section of `07-auditor.md` (finding 10).
+- The "Repair round 3" worklist in `00-lead.md`.
+- The "Repair round 3" section of `03-test-implementer.md` (f625786): two red tests and two green boundary tests.
+
+No test was changed, and `CleanupPhase` was not touched.
+
+## thoenissen/Reihitsu#951
+
+### Changes
+
+| File | What changed | Finding / requirement |
+|---|---|---|
+| `src/Reihitsu.Formatter/Pipeline/RawStringAlignment/RawStringAlignmentPhase.cs` | `ComputeReplacement` takes the root and asks the new `GetIndentation(root, text, line)` what to rewrite. **Hole line or comment line in a hole** (a whitespace trivia starts the line): the whole whitespace is replaced with `max(0, width + shift)` spaces, where `width` counts its tabs as cleanup will expand them. **Content or closing line** (the indentation is the literal's text): only the leading spaces are rewritten, as before. Tabs there are out of scope (thoenissen/Reihitsu#1432). | 10 (FC-012, FC-015), FMT-RAW-007 condition 3, FMT-PIPE-004 |
+| `.../RawStringAlignment/Utilities/RawStringLineShifts.cs` | `GetColumnAfterTabReplacement` gained a position-based overload `(root, text, position)`, and the token overload calls it. There is still one statement of the measuring rule. The phase's writer now uses that same rule, so the writer and both measurers agree. | 10, hint A (no new copy) |
+
+Re-derivation: the auditor suggested rewriting a hole line's whole leading whitespace at its tab-expanded width. I re-derived that from FMT-RAW-007 condition 3: such a line moves by the closing marker's shift, measured with FMT-CLEAN-002's tab replacement. Rewriting only the spaces in front of the first tab cannot move a line left past that tab, so I applied the suggestion.
+
+A rightward or zero shift gives the same text after cleanup as before:
+- A shift of 0 still skips the line, so `TabInFrontOfHoleLineOfAlignedLiteralBecomesFourSpaces` still sees the tab replaced by cleanup.
+- A rightward shift now writes spaces in place of the tab. Before, it inserted spaces in front of the tab, which cleanup then expanded to the same width.
+
+### Probes of neighboring shapes
+
+These are fixtures in the session scratchpad. Each was run with `bash scripts/trace.sh <f> --passes 3 --no-install`, then formatted with `bash scripts/format.sh <copy> --no-install` to read the columns.
+
+In each fixture the outer `$"""` quotes are at 17. The literal moves 4 columns left (closing marker at 21) unless noted. `→` is a tab.
+
+All nine are stable after pass 1 ("Stable after pass 2 (0 phase changes observed)"). The columns are those FMT-RAW-007, FMT-RAW-008, and FMT-RAW-009 require:
+
+| Fixture | Shape | Result |
+|---|---|---|
+| p1 | `··→// c` above `··→name` | `// c` and `name` both at 2 (6 − 4) |
+| p2 | `··→/* c */ name` (tab in front of a comment) | Line at 2 |
+| p3 | Nested plain literal opening `··→"""`, content and closing at 6 | `"""`, `inner`, and `"""}` all at 2 |
+| p4 | ` →name` (width 5) | `name` at 1 |
+| p5 | Rightward shift (+13), `··→string.Concat("a",` and `"b")}` | `string` at 19, `"a"` and `"b"` both at 33 |
+| p6 | Frozen continuation ` → b */` of a `/* */` comment in a hole (FMT-RAW-009) | Kept byte for byte |
+| p7 | `→··name` (tab before the spaces) | `name` at 2 |
+| p8 | The anchored counterexample under CRLF | `string` at 2, `"a"` and `"b"` both at 16 |
+| p9 | Nested interpolated literal opening `··→$"""`, with its own tab-indented hole line `··→name}` | `$` at 2, so the quotes are at 3. `B {`, `name}`, and `"""}` are at 3: outer −4, inner +1 |
+
+Not probed: tabs on content or closing lines (thoenissen/Reihitsu#1432), and a hole line indented less than a leftward shift, which the FMT-RAW-007 coverage sentence leaves unspecified. p4's line keeps column 1, because its width 5 is more than the shift.
+
+### Policy owners
+
+`rg -n "GetColumnAfterTabReplacement|GetLeadingSpaceCount|Math.Max\(0" src/Reihitsu.Formatter` finds these:
+- **Measuring and writing a hole line's width.** `RawStringLineShifts.GetColumnAfterTabReplacement` is used by `LayoutComputer.RegisterRawStringHoleLines`, by the raw-string phase's opening-column provider, and now by `RawStringAlignmentPhase.GetIndentation`.
+- **Counting a literal's own leading spaces.** `RawStringLineShifts.GetLeadingSpaceCount`, used for closing columns and for content and closing lines.
+- **Rewriting tabs.** `CleanupPhase.NormalizeWhitespaceTabs` remains the only rewriter. It is a concurrent run's file, and the duplicated tab rule is the escalation-5 follow-up (hint A).
+
+### Tests run
+
+- `scripts/test.sh --configuration Debug --project formatter --filter "FullyQualifiedName~Reihitsu.Formatter.Test.Unit.RawStringAlignment"`: `Passed: 59, Failed: 0`. This includes the 2 red tests and the 2 boundary tests.
+- Full Debug runs on the tree of `c6d9a2c`:
+  - formatter `2779/2779`, `SelfHostingTests` included;
+  - analyzer `6160/6160`;
+  - core `533/533`;
+  - cli `250/250`;
+  - architecture `84/84`;
+  - tooling `120/120`.
+- `scripts/format.sh` over the 2 changed files reformatted `RawStringAlignmentPhase.cs` once, before the commit. The Debug build shows no warnings in them.
+
+### Disputed tests or scope
+
+_None._
+
+### Follow-up candidates
+
+_None_ beyond hint A (escalation 5) and hint B (no memoization in `GetDistance`).
+
+## thoenissen/Reihitsu#1133
+
+No finding; nothing changed.
+
+## thoenissen/Reihitsu#1146
+
+No finding; nothing changed.
