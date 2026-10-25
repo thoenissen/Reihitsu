@@ -91,3 +91,11 @@ Hints in 07-auditor.md are follow-up candidates for the run report, not repairs.
 | A8 parameter of a lambda / local function binds names in its attribute lists and default values, so the switch is braced and fails with CS0103 | PR-introduced (FMT-SWITCH-014, FMT-PIPE-003) | test implementer, implementer |
 | A2 (narrowed) shadowing forms inside a lambda or local function (`foreach`/`for`/`using`/`fixed`/`catch` variables, `while`/`do` designations, switch-expression arms, nested switch sections) still leave the switch unbraced | PR-introduced (FMT-SWITCH-014) | test implementer, implementer |
 | A9 FMT-STRUCT-006 wording ("the arrow's line holds a comment") is wider than the behavior (comment directly at the arrow) | same requirement, spec text | spec author |
+
+# Repair round 3 (07-auditor.md, revision note after repair round 2) — last allowed round
+
+| Finding | Class | Owner(s) |
+|---|---|---|
+| A9 (narrowed) FMT-STRUCT-006 "in front of the arrow" also covers a comment behind a token on the arrow's line (`int M() /* c */ =>`), which the code does not treat as stopping the move | same requirement, spec text | spec author |
+| A10 no test for a use just outside a child binder's scope (`foreach` collection expression; nested switch's governing expression) | PR-introduced (FMT-SWITCH-014, FMT-PIPE-003) | test implementer |
+| A11 `IsBoundInsideSection` summary does not match the code | PR-introduced, comment only | implementer |
