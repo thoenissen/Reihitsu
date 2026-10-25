@@ -1,5 +1,5 @@
 Role: spec author
-Commit: 9b561b1
+Commit: 78766ed
 Verdict: #951: spec written; #1133: spec written; #1146: spec written
 
 Inputs: thoenissen/Reihitsu#951, thoenissen/Reihitsu#1133, thoenissen/Reihitsu#1146 and their comments (read through the GitHub MCP server), `00-lead.md` with its two "Escalations" entries, `02-skeptic.md`, and the specs named below. The #951 body names a suspected cause and an intended mechanism, and the #1146 body proposes RH5104 rewordings for Q3, Q5, and Q6. I did not use either: the specs state observable output only, and Q3, Q5, and Q6 are out of scope (thoenissen/Reihitsu#1433). `sdd/specs/shared/code-fixes.md` is referenced and was not edited. No change doc.
@@ -31,7 +31,7 @@ Check run on the current tree: `scripts/test.sh --project architecture` filtered
     - RH5104-004's condition now reads "inside a literal, an interpolated string included, or a comment (RH5104-006)".
     - The bullet on the rule page `documentation/rules/RH5104.md` now says "a multi-line string literal, interpolated strings included, or a multi-line comment".
 
-- **This revision (repair round 1).** Auditor finding 6 (`07-auditor.md`) and escalation 4, answer A (`00-lead.md`): the RH5104 fix is withheld for a reported comment that has another comment before it on the line where it starts.
+- **193b3a5 (repair round 1).** Auditor finding 6 (`07-auditor.md`) and escalation 4, answer A (`00-lead.md`): the RH5104 fix is withheld for a reported comment that has another comment before it on the line where it starts.
   - **New RH5104-007**, "The fix is withheld behind another comment on the comment's line" (SHARED-FIX-003). Its example holds both shapes:
     - `M(); /* a */ // b`: only `/* a */` is offered a fix. Once that fix has run, `// b` is offered its fix, and the order stays `/* a */`, `// b`.
     - `/* c */ /* d⏎   e */ M();`: `/* d … e */` stays reported without a fix, because `/* c */` is not reported and so nothing moves it off the line.
@@ -39,6 +39,11 @@ Check run on the current tree: `scripts/test.sh --project architecture` filtered
   - **RH5104-007 is in the ledger**, in sorted position.
   - **The rule page is unchanged.** Per AGENTS.md, "Code-fix coverage": a gap caused only by a comment is the general limitation stated in `general-notes.md`, and it is not repeated on the rule page.
   - **Checks.** The architecture spec checks give 50 passed and 1 failed. The failure is only the expected missing coverage for RH5104-007; the test implementer adds that test.
+
+- **This revision (repair round 1, code owners).** The implementer's repair round 1 (`04-implementer.md`, 78766ed) adds `RawStringLineShifts` and `RawStringLiteral` under `Reihitsu.Formatter.Pipeline.RawStringAlignment.Utilities`. I checked them against `sdd/README.md` ("Code owners"):
+  - **They belong to FMT-RAW.** `RawStringLineShifts` is the single owner of the per-line shift of FMT-RAW-001, FMT-RAW-007, FMT-RAW-008, and FMT-RAW-009, including the lines that FMT-RAW-009 keeps. `RawStringLiteral` is the record that describes one literal for it. Under `sdd/README.md`, a type whose behavior a spec specifies belongs to that spec even when code outside it calls the type. Both are added to the `Code owners` row of `sdd/specs/formatter/raw-string-alignment.md` and to its row in `sdd/specs/README.md`.
+  - **`indentation.md` needs no change.** `LayoutComputer` and `LayoutModel` call `RawStringLineShifts`, so a type can be an owner of only one spec and FMT-INDENT does not take it. Under `sdd/README.md`, the caller's spec lists the requirement IDs it relies on under `Uses`. `indentation.md` already lists FMT-RAW-001 and FMT-RAW-007, which are the only FMT-RAW IDs its text references. `SpecStructureTests` requires `Uses` to match the references exactly, so I added nothing.
+  - **Checks.** The architecture spec checks (`SpecConsistencyTests`, `SpecStructureTests`, `RequirementCoverageTests`) now give 51 passed and 0 failed. Every new requirement is covered, RH5104-007 included.
 
 ## thoenissen/Reihitsu#951
 
@@ -196,6 +201,7 @@ _None._
 Files written, all under `/home/user/Reihitsu`:
 
 - `sdd/specs/formatter/raw-string-alignment.md`
+- `sdd/specs/README.md`
 - `sdd/specs/formatter/indentation.md`
 - `sdd/specs/analyzer/RH5601.md`
 - `sdd/specs/analyzer/RH5602.md`
@@ -204,6 +210,6 @@ Files written, all under `/home/user/Reihitsu`:
 - `documentation/rules/RH5601.md`
 - `documentation/rules/RH5104.md`
 
-`documentation/rules/RH5602.md` is net unchanged. No code owners changed, so `sdd/specs/README.md` is untouched. None of the files owned by concurrent runs were touched.
+`documentation/rules/RH5602.md` is net unchanged. `sdd/specs/README.md` gains the two new FMT-RAW code owners (`RawStringLineShifts`, `RawStringLiteral`). None of the files owned by concurrent runs were touched.
 
 The traces in this revision ran with `bash scripts/trace.sh <fixture> --passes 3 --no-install` over fixtures in the session scratchpad, outside the repository: a wrapped argument in a hole, a nested verbatim string, a comment starting a hole line, and a comment continuation line.

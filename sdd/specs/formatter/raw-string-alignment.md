@@ -4,7 +4,7 @@
 |---|---|
 | ID prefix | FMT-RAW |
 | Status | Active |
-| Code owners | `RawStringAlignmentPhase`, `RawStringLiteralUtilities` |
+| Code owners | `RawStringAlignmentPhase`, `RawStringLineShifts`, `RawStringLiteral`, `RawStringLiteralUtilities` |
 | Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-INDENT-002, FMT-INDENT-004, FMT-INDENT-006, FMT-INDENT-007, FMT-INDENT-011, FMT-INDENT-012, FMT-INDENT-029, FMT-CLEAN-002 |
 
 This spec covers the raw-string phase: after indentation has placed every token, the content lines, the lines of its interpolation holes, and the closing marker of each multi-line raw string literal are moved so the closing marker starts in the column of the opening quotes. The literal's value never changes.
