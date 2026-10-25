@@ -32,3 +32,10 @@ Verdict: clean
 - Formatted: _None._ ("Formatted 0 of 31 file(s)").
 - Warnings: _None._ scripts/build.sh: 0 Warning(s) 0 Error(s).
 - Formatter regression tests: Passed, 1974 of 1974. Analyzer RH3202/RH3208/RH5201/RH5020/RH5022/RH5031 tests: Passed, 197 of 197.
+
+## Revision 3 (after repair round 2)
+Commit: b8610ff
+Verdict: clean
+- Formatted: _None._ ("Formatted 0 of 31 file(s)").
+- Warnings: _None._ scripts/build.sh: 0 Warning(s) 0 Error(s).
+- Formatter regression and switch-case tests: Passed, 2009 of 2009.
