@@ -56,11 +56,10 @@ internal static class IndentationRewriter
 
         var tokenLine = original.GetLocation().GetLineSpan().StartLinePosition.Line;
 
-        if (model.TryGetLayout(tokenLine, out _) == false)
-        {
-            return rewritten;
-        }
-
+        // A line without a layout keeps its whitespace, which is how a line of an interpolation hole that keeps its
+        // column is left alone. The leading trivia is still rebuilt, because a comment line in it can have a layout
+        // of its own.
+        //
         // The token opens its own line, but its leading trivia need not: a comment the previous line ends with is
         // filed here, and indenting it as though it began the line inserts indentation in the middle of that line.
         // The previous token's trailing trivia is what says which of the two cases this is.

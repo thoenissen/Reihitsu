@@ -53,5 +53,27 @@ public class RH5104CommentsMustBeOnTheirOwnLineFormatterTests : FormatterTestsBa
                               Diagnostics(RH5104CommentsMustBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5104MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that two comments sharing a line without code, which the formatter keeps, are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5104-002")]
+    public async Task VerifyFormatterKeepsTwoCommentsOnALineWithoutCodeAndTheyAreNotReported()
+    {
+        const string testData = """"
+                                internal class Example
+                                {
+                                    void Method()
+                                    {
+                                        /* a */ /* b */
+                                        Method();
+                                    }
+                                }
+                                """";
+
+        await VerifyFormatter(testData);
+    }
+
     #endregion // Tests
 }

@@ -58,5 +58,25 @@ public class RH5601UseTabsCorrectlyFormatterTests : FormatterTestsBase<RH5601Use
         await VerifyFormatter(testData, fixedData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the tab in the closing line of an aligned interpolated multi-line raw string, which the formatter keeps, is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-002")]
+    public async Task VerifyFormatterKeepsTheClosingLineTabOfAnInterpolatedRawStringAndItIsNotReported()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    string s = $"""
+                                                →a
+                                                →""";
+                                }
+                                """";
+
+        await VerifyFormatter(testData.Replace("→", "\t"));
+    }
+
     #endregion // Tests
 }

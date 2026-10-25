@@ -1,16 +1,19 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.Indentation.Contributors;
+using Reihitsu.Formatter.Pipeline.RawStringAlignment.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 
 /// <summary>
 /// Computes the indentation layout model for a syntax tree.
 /// Applies block indentation, then repeats an alignment sweep until the columns settle, then
-/// aligns comments to the code they precede
+/// aligns comments to the code they precede. A line that a token starts inside an interpolation hole
+/// of a multi-line interpolated raw string keeps its column unless a construct inside the hole places it
 /// </summary>
 internal static class LayoutComputer
 {
@@ -45,6 +48,11 @@ internal static class LayoutComputer
         var model = new LayoutModel();
         var baseColumn = context.BaseIndentLevel * FormattingContext.IndentSize;
 
+        model.UseRawStringLineShifts(new RawStringLineShifts(root, root.SyntaxTree.GetText(cancellationToken), cancellationToken),
+                                     token => GetColumnBeforeRawStringShift(token, model));
+
+        RegisterRawStringHoleLines(root, model);
+
         // Pass 1: Block indentation — recursive descent over the tree
         ComputeBlockIndentation(root, 0, model, baseColumn, cancellationToken);
 
@@ -57,6 +65,9 @@ internal static class LayoutComputer
         var commentContributor = new CommentIndentationContributor(cancellationToken);
 
         commentContributor.Contribute(root, model, context);
+
+        // The hole lines no construct inside their hole placed keep their whitespace; the raw-string phase moves them with the literal
+        model.ReleaseUnplacedRawStringHoleLines();
 
         return model;
     }
@@ -104,7 +115,9 @@ internal static class LayoutComputer
     /// owned by a construct nested inside the chain root (a multi-line initializer closed by "2 }"),
     /// which the pre-order walk reaches after the chain, while an argument list or lambda nested under a
     /// continuation line depends on the chain's own column and is reached before it is final. Sweeping
-    /// once leaves whichever side runs last measuring against a stale column
+    /// once leaves whichever side runs last measuring against a stale column. The model is told which
+    /// node's contributors are writing, so a line of an interpolation hole takes only the columns of
+    /// constructs inside that hole
     /// </summary>
     /// <param name="root">The root syntax node</param>
     /// <param name="model">The layout model to update</param>
@@ -127,11 +140,15 @@ internal static class LayoutComputer
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                model.Contributor = node;
+
                 foreach (var contributor in contributors)
                 {
                     contributor.Contribute(node, model, context);
                 }
             }
+
+            model.Contributor = null;
 
             if (model.MatchesColumns(columns))
             {
@@ -177,20 +194,34 @@ internal static class LayoutComputer
     }
 
     /// <summary>
-    /// Gets the column of a token as it will be after indentation is applied.
-    /// For tokens that are first on their line, this returns the layout model's column.
-    /// For tokens that are not first on their line, this computes the offset from the
-    /// first token's adjusted position
+    /// Gets the column of a token as it will be after formatting: after indentation is applied, and after the
+    /// raw-string phase moved the lines of multi-line raw string literals, so a token inside such a literal's
+    /// interpolation hole, or behind its closing marker, is measured where that phase puts it
     /// </summary>
     /// <param name="token">The token to get the adjusted column for</param>
     /// <param name="model">The layout model from Pass 1</param>
     /// <returns>The adjusted column position</returns>
     internal static int GetAdjustedColumn(SyntaxToken token, LayoutModel model)
     {
+        return GetColumnBeforeRawStringShift(token, model) + model.GetRawStringShift(GetLine(token));
+    }
+
+    /// <summary>
+    /// Gets the column of a token as it will be after indentation is applied, before the raw-string phase moves
+    /// any line. For tokens that are first on their line, this returns the layout model's column.
+    /// For tokens that are not first on their line, this computes the offset from the
+    /// first token's adjusted position. A line of an interpolation hole that no construct inside the
+    /// hole placed keeps its column
+    /// </summary>
+    /// <param name="token">The token to get the column for</param>
+    /// <param name="model">The layout model</param>
+    /// <returns>The column after indentation</returns>
+    internal static int GetColumnBeforeRawStringShift(SyntaxToken token, LayoutModel model)
+    {
         var originalColumn = GetColumn(token);
         var line = GetLine(token);
 
-        if (model.TryGetLayout(line, out var layout) == false)
+        if (model.TryGetPlacedColumnBeforeRawStringShift(line, out var lineColumn) == false)
         {
             return originalColumn;
         }
@@ -198,7 +229,7 @@ internal static class LayoutComputer
         var firstTokenOnLine = FindFirstTokenOnLine(token);
         var originalLineStart = GetColumn(firstTokenOnLine);
 
-        return layout.Column + (originalColumn - originalLineStart);
+        return lineColumn + (originalColumn - originalLineStart);
     }
 
     /// <summary>
@@ -242,6 +273,35 @@ internal static class LayoutComputer
                    new AnonymousObjectContributor(),
                    new LambdaAlignmentContributor()
                ];
+    }
+
+    /// <summary>
+    /// Registers every line that a token starts inside an interpolation hole of a multi-line interpolated raw
+    /// string with the innermost such hole. The column the indentation phase would give such a line from the
+    /// scope depth, or from a construct outside the hole, does not depend on where the literal sits, while the
+    /// raw-string phase moves the line with the literal; giving it both would move it twice (FMT-RAW-007).
+    /// The line keeps its whitespace, whose tabs the cleanup phase replaces with four spaces each (FMT-CLEAN-002),
+    /// so the column registered for it counts each tab of that whitespace as four columns
+    /// </summary>
+    /// <param name="root">The root syntax node</param>
+    /// <param name="model">The layout model to register the lines with</param>
+    private static void RegisterRawStringHoleLines(SyntaxNode root, LayoutModel model)
+    {
+        foreach (var interpolatedString in root.DescendantNodesAndSelf().OfType<InterpolatedStringExpressionSyntax>())
+        {
+            if (interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken) == false)
+            {
+                continue;
+            }
+
+            foreach (var hole in interpolatedString.Contents.OfType<InterpolationSyntax>())
+            {
+                foreach (var token in hole.DescendantTokens().Where(IsFirstOnLine))
+                {
+                    model.RegisterRawStringHoleLine(GetLine(token), hole, RawStringLineShifts.GetColumnAfterTabReplacement(token));
+                }
+            }
+        }
     }
 
     /// <summary>

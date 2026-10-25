@@ -43,6 +43,28 @@ public abstract class FormatterTestsBase
     }
 
     /// <summary>
+    /// Formats the input once and verifies, under both LF and CRLF line endings, that a second pass leaves the output
+    /// of the first pass unchanged. Used where a requirement leaves the exact output open but the result must still be
+    /// a fixed point of the formatter
+    /// </summary>
+    /// <param name="input">The input source text</param>
+    /// <param name="parseOptions">The parse options to use, or <see langword="null"/> for the defaults</param>
+    protected static void AssertSecondPassIsStable(string input, CSharpParseOptions parseOptions = null)
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var endingName = DescribeLineEnding(endOfLine);
+            var firstPass = ApplyRule(NormalizeLineEndings(input, endOfLine), endOfLine, parseOptions);
+
+            AssertUsesLineEnding(firstPass, endOfLine);
+
+            var secondPass = ApplyRule(firstPass, endOfLine, parseOptions);
+
+            Assert.AreEqual(firstPass, secondPass, $"Formatter is not idempotent under {endingName} line endings.");
+        }
+    }
+
+    /// <summary>
     /// Rewrites every line break in the given text to the requested end-of-line sequence
     /// </summary>
     /// <param name="text">The text to normalize</param>

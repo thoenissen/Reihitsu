@@ -88,12 +88,12 @@ internal sealed class LambdaAlignmentContributor : ILayoutContributor
 
         var anchorColumn = LayoutComputer.GetAdjustedColumn(anchorToken, model);
 
-        if (model.TryGetLayout(block.OpenBraceToken, out var currentLayout) == false)
+        if (model.TryGetLayoutColumn(LayoutComputer.GetLine(block.OpenBraceToken), out var currentColumn) == false)
         {
             return;
         }
 
-        var delta = anchorColumn - currentLayout.Column;
+        var delta = anchorColumn - currentColumn;
 
         if (delta == 0)
         {
