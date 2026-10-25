@@ -22,6 +22,19 @@ This is repair round 1 for thoenissen/Reihitsu#1464, worked from `04-auditor.md`
 - **D**: not addressed. Whether FC-013 analyzer–formatter disagreements count as "two components own the same decision" is the maintainer's call, as the auditor says. P11 and SHARED-DIAG-010 already define that relation.
 - **E**: already listed as a follow-up candidate in `01-implementer.md`.
 
+## Clarifications
+
+I carried out the maintainer's answers recorded in `00-lead.md`, section *Maintainer answers* (commit `a7dde33`):
+
+| Answer | File | What changed |
+|---|---|---|
+| 1 — scope stays as written | – | Nothing; the README scope statement from finding 3 already matches. |
+| 2 — option B does not use up a repair round | `squad/README.md` (*Repairs*), `squad/lead.md` (section 4, *Architecture finding*, option B) | *Repairs*: "a structural change the maintainer chose under escalation 12 is not one of them". Option B: "the structural change does not use up one of the run's repair rounds". |
+| 3 — FC-013 is not by itself an architecture finding | `squad/README.md` (*Architecture findings*) | New paragraph after the list of causes: an analyzer–formatter disagreement (FC-013) is not by itself an architecture finding, because P11 and SHARED-DIAG-010 define how the two surfaces relate. It stays an ordinary finding and reaches escalation 12 only through the repeated-class trigger. The role files point to this section, so they need no change. |
+| 4 — tab-rule duplication already tracked | – | Nothing. The squad files cite no tracker number. |
+
+Since this round's commit, the hints C (repair-round part) and D are settled by answers 2 and 3. `scripts/lane-check.sh tooling --head worktree` still reports `LANE CHECK: confirmed — claimed tooling, diff needs tooling`.
+
 ## Policy owners
 
 - Architecture-finding definition and scope: `grep -n 'structural\|Architecture findings\|architecture finding' squad/roles/*.md squad/lead.md`. The owner is now `squad/README.md`, *Architecture findings*. Skeptic Q9, auditor check 10 and implementer *Scope* point to it without restating the causes. The lead routes by the handover section only.
