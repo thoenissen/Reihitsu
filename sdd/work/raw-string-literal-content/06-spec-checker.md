@@ -201,3 +201,77 @@ None.
 
 ### Checked
 1 to 9: ok. Before publishing, the lead still shows the maintainer the follow-up texts (RH5601/RH5602 gap against SHARED-DIAG-003, the shared tab helper, auditor hint 3), updates thoenissen/Reihitsu#1433, and deletes `sdd/work/`.
+
+# Main merge
+
+Role: spec checker
+Commit: c12845c
+Verdict: #951: consistent; #1133: consistent; #1146: consistent
+
+Inputs: the merged tree at `c12845c` (`origin/main` at `3973631` is an ancestor), the diff against `origin/main`, `00-lead.md` ("Merge of origin/main"), the latest revision of `01-spec-author.md`, and the new policy as it now stands in `AGENTS.md` ("Code-fix coverage"), `documentation/rules/general-notes.md`, `.claude/commands/create-rule-doc.md`, and `squad/roles/spec-checker.md` (check 5: a page note about a withheld fix, an exception, or a corner case is a finding). The prompt carried no intended fix or hoped-for verdict. I changed nothing except this file.
+
+Results on `c12845c`:
+
+- `scripts/test.sh --project architecture`: `Passed! - Failed: 0, Passed: 84, Skipped: 0, Total: 84`.
+- Formatter filter `RawStringAlignment|Indentation|SelfHosting|Cleanup`: `Passed: 747, Total: 747`. This includes the cleanup and documentation-comment tests that main brought in.
+- Analyzer filter `RH5104|RH5601|RH5602|RH5202`: `Passed: 129, Total: 129`.
+- `git diff origin/main --stat -- documentation squad AGENTS.md .claude` is empty: the run changes no rule page and none of the policy files.
+- The ledger diff against `origin/main` is exactly the five additions FMT-RAW-007, FMT-RAW-008, FMT-RAW-009, RH5104-006, RH5104-007, in sorted position (`LC_ALL=C sort -c` clean earlier; the merge adds no ID of this run's prefixes).
+
+## thoenissen/Reihitsu#951
+
+### Findings
+None.
+
+### Checked
+1. Change doc: none required, unchanged by the merge.
+2. Specs match the diff: ok. The merge touched none of this run's formatter code; main's cleanup and documentation-comment changes leave FMT-CLEAN-002 (the spec FMT-RAW-007 and FMT-INDENT-011 use) unchanged in meaning, and the cleanup tests pass with this run's code.
+3. IDs: ok.
+4. Code owners: ok. `SpecConsistencyTests` and `SpecStructureTests` pass on the merged tree, including `Uses` against the merged specs and the `sdd/specs/README.md` rows that the merge combined.
+5. User documentation: no rule page of this run's #951 exists or changes.
+6. Open questions: none new.
+7. Coverage: FMT-RAW-007, -008, -009 covered; architecture result above.
+8. Tags: unchanged by the merge.
+9. No `sdd/work/` other than this run's.
+
+## thoenissen/Reihitsu#1133
+
+### Findings
+None.
+
+### Checked
+1. Change doc: none required.
+2. Specs match the diff: ok. RH5601-002 and RH5602-002 hold the decision that the rule page no longer carries.
+3. IDs: none added.
+4. Code owners: ok.
+5. User documentation: `documentation/rules/RH5601.md` is identical to `origin/main`'s (the clause about the whitespace after a raw string's opening quotes is gone). `RH5602.md` was never changed. The merged policy asks for nothing else: the page's existing sentence "Tabs inside literal content are treated as semantic content and are left untouched" covers the normal case, and the corner case lives in RH5601-002.
+6. Open questions: none new; the follow-up text for the RH5601/RH5602 gap against SHARED-DIAG-003 is still for the lead to show the maintainer.
+7. Coverage: no new ID.
+8. Tags: unchanged.
+9. Nothing left behind.
+
+## thoenissen/Reihitsu#1146
+
+### Findings
+None.
+
+### Checked
+1. Change doc: none required.
+2. Specs match the diff: ok. The withheld fixes are recorded in the rule's spec, as the new "Code-fix coverage" rule asks: RH5104-006 (line begins inside a literal, an interpolated string, or a comment) and RH5104-007 (another comment before the comment on its line), with RH5104-004's condition pointing to both.
+3. IDs: RH5104-006 and RH5104-007 in sorted position.
+4. Code owners: unchanged and existing.
+5. User documentation: `documentation/rules/RH5104.md` is identical to `origin/main`'s: the `## Exceptions` bullet is removed, so the page lists no withheld fix, exception, or corner case. `general-notes.md` already covers "A diagnostic without a code fix". The page's Violation and Correction blocks are unchanged, and the Correction equals the fix output.
+6. Open questions: none new; the update of thoenissen/Reihitsu#1433 (Q6 superseded by J1) is still for the lead.
+7. Coverage: RH5104-006 and RH5104-007 covered; architecture result above.
+8. Tags: unchanged.
+9. Nothing left behind.
+
+## Whole run
+
+### Findings
+| # | Check | Location | What does not match | Owner |
+|---|---|---|---|---|
+| — | — | — | None | — |
+
+### Checked
+1 to 9: ok on the merged tree. Before publishing, the lead shows the maintainer the follow-up texts (RH5601/RH5602 gap against SHARED-DIAG-003, the shared tab helper, auditor hint 3), updates thoenissen/Reihitsu#1433, and deletes `sdd/work/`.
