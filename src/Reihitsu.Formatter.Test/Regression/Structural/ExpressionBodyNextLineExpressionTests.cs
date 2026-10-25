@@ -515,7 +515,7 @@ public class ExpressionBodyNextLineExpressionTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-006")]
-    public void BlockCommentLeadingNextLineExpressionKeepsOwnLine()
+    public void BlockCommentLeadingNextLineExpressionJoinsReturnKeyword()
     {
         // Arrange
         const string input = """

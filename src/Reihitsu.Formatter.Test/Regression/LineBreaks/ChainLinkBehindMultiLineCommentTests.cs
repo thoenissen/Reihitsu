@@ -241,6 +241,97 @@ public class ChainLinkBehindMultiLineCommentTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a <c>!.</c> link behind a multi-line comment tail starts its own line too
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-019")]
+    [Requirement("SHARED-COMMENT-012")]
+    public void NullForgivingLinkBehindMultiLineCommentTailStartsItsOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 object M(dynamic a)
+                                 {
+                                     var r = a.B()
+                                              .C()
+
+                                              /* x
+                                     */ !.D();
+
+                                     return r;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    object M(dynamic a)
+                                    {
+                                        var r = a.B()
+                                                 .C()
+
+                                                 /* x
+                                        */
+                                                 !.D();
+
+                                        return r;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a link behind the tail of a <c>/** */</c> comment that spans several lines starts its own line
+    /// too
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-019")]
+    [Requirement("SHARED-COMMENT-012")]
+    public void LinkBehindMultiLineDocumentationStyleCommentTailStartsItsOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 object M(dynamic a)
+                                 {
+                                     var r = a.B()
+                                              .C()
+
+                                              /** x
+                                     */ .D();
+
+                                     return r;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    object M(dynamic a)
+                                    {
+                                        var r = a.B()
+                                                 .C()
+
+                                                 /** x
+                                        */
+                                                 .D();
+
+                                        return r;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a multi-line comment that starts on the previous link's line already gets the break
     /// in front of the next link
     /// </summary>

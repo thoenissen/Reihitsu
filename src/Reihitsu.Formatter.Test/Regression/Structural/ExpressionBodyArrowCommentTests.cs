@@ -1,4 +1,8 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using System.Threading;
+
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
 
@@ -537,5 +541,129 @@ public class ExpressionBodyArrowCommentTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that an own-line comment before the arrow is not moved in front of the created statement
+    /// when the arrow's line carries a comment behind the arrow, and both comments keep their order
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
+    public void OwnLineCommentStaysOutOfTheBlockWhenTheArrowLineCarriesALineComment()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int A2()
+                                 // a
+                                 => // b
+                                 42;
+                             }
+                             """;
+
+        // Act & Assert
+        AssertCommentsKeepOrderOutsideTheBlock(input, "// a", "// b", "return 42;");
+    }
+
+    /// <summary>
+    /// Verifies that an own-line comment before the arrow is not moved in front of the created statement
+    /// when a delimited comment is glued behind the arrow, and both comments keep their order
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
+    public void OwnLineCommentStaysOutOfTheBlockWhenADelimitedCommentIsGluedBehindTheArrow()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int Get3()
+                                 // own
+                                 => /* glued */ 3;
+                             }
+                             """;
+
+        // Act & Assert
+        AssertCommentsKeepOrderOutsideTheBlock(input, "// own", "/* glued */", "3;");
+    }
+
+    /// <summary>
+    /// Verifies that an own-line comment before the arrow is not moved in front of the created statement
+    /// when a comment stands in front of the arrow on the arrow's line, and both comments keep their order
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
+    public void OwnLineCommentStaysOutOfTheBlockWhenACommentStandsInFrontOfTheArrow()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int A4()
+                                 // a
+                                 /* c */ => 42;
+                             }
+                             """;
+
+        // Act & Assert
+        AssertCommentsKeepOrderOutsideTheBlock(input, "// a", "/* c */", "42;");
+    }
+
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Formats the input under LF and CRLF and asserts what FMT-STRUCT-006 specifies for a member whose arrow
+    /// line carries a comment: the member is converted, every comment survives once, the comments keep the
+    /// order in which they were written, the own-line comment is not moved between the block's opening brace
+    /// and the created statement, and a second pass changes nothing. The placement of the comments is left
+    /// unspecified, so the exact layout is not asserted
+    /// </summary>
+    /// <param name="input">The source text to format</param>
+    /// <param name="ownLineComment">The comment written on a line of its own before the arrow</param>
+    /// <param name="arrowLineComment">The comment written on the arrow's line</param>
+    /// <param name="statementText">Text of the created statement that follows both comments</param>
+    private static void AssertCommentsKeepOrderOutsideTheBlock(string input, string ownLineComment, string arrowLineComment, string statementText)
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var endingName = DescribeLineEnding(endOfLine);
+            var formatted = Format(NormalizeLineEndings(input, endOfLine));
+            var secondPass = Format(formatted);
+
+            Assert.AreEqual(formatted, secondPass, $"Formatter is not idempotent under {endingName} line endings.");
+            AssertUsesLineEnding(formatted, endOfLine);
+
+            var ownLineIndex = formatted.IndexOf(ownLineComment, StringComparison.Ordinal);
+            var arrowLineIndex = formatted.IndexOf(arrowLineComment, StringComparison.Ordinal);
+            var statementIndex = formatted.IndexOf(statementText, StringComparison.Ordinal);
+
+            Assert.DoesNotContain("=>", formatted, $"The member must be converted to a block body under {endingName} line endings.");
+            Assert.IsGreaterThanOrEqualTo(0, ownLineIndex, $"The own-line comment must survive under {endingName} line endings.");
+            Assert.AreEqual(ownLineIndex, formatted.LastIndexOf(ownLineComment, StringComparison.Ordinal), $"The own-line comment must appear once under {endingName} line endings.");
+            Assert.AreEqual(arrowLineIndex, formatted.LastIndexOf(arrowLineComment, StringComparison.Ordinal), $"The arrow-line comment must appear once under {endingName} line endings.");
+            Assert.IsLessThan(arrowLineIndex, ownLineIndex, $"The comments must keep their source order under {endingName} line endings.");
+            Assert.IsLessThan(statementIndex, arrowLineIndex, $"The arrow-line comment must stay in front of the statement under {endingName} line endings.");
+
+            var openBraceIndex = formatted.LastIndexOf('{', statementIndex);
+
+            Assert.IsLessThanOrEqualTo(openBraceIndex,
+                                       ownLineIndex,
+                                       $"The own-line comment must not be moved between the opening brace and the created statement under {endingName} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Formats the source text with the whole formatter
+    /// </summary>
+    /// <param name="input">The source text to format</param>
+    /// <returns>The formatted source text</returns>
+    private static string Format(string input)
+    {
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: CancellationToken.None);
+
+        return ReihitsuFormatter.FormatSyntaxTree(tree, CancellationToken.None).GetRoot(CancellationToken.None).ToFullString();
+    }
+
+    #endregion // Methods
 }

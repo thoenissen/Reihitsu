@@ -324,6 +324,68 @@ public class TerminalBreakCommentTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a documentation comment in front of the terminal <c>break</c> stays in front of it
+    /// behind the new block, with a blank line above it and none below it, in the pass that inserts the
+    /// braces
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-007")]
+    [Requirement("FMT-BLANK-011")]
+    [Requirement("FMT-PIPE-004")]
+    public void DocumentationCommentBeforeTerminalBreakIsLaidOutInThePassThatInsertsTheBraces()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             A();
+                                             A();
+                                             /// doc
+                                             break;
+
+                                         case 2:
+                                             A();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    A();
+                                                    A();
+                                                }
+
+                                                /// doc
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    A();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a comment in front of the terminal <c>break</c> of a switch that stays unbraced
     /// gets its blank line, and the result is stable
     /// </summary>

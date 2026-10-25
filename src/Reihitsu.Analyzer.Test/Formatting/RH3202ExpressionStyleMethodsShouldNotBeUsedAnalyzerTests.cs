@@ -535,6 +535,40 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
                      Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the fix keeps the own-line comment before the arrow out of the block, and both comments in their
+    /// source order, when the arrow's line carries a comment, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-003")]
+    public async Task VerifyFixKeepsCommentOrderWhenTheArrowLineCarriesAComment()
+    {
+        const string source = """
+                              internal class RH3202
+                              {
+                                  public int GetValue()
+                                      // a
+                                      => // b
+                                      42;
+                              }
+                              """;
+
+        foreach (var text in new[] { source.Replace("\r\n", "\n"), NormalizeToCarriageReturnLineFeed(source) })
+        {
+            var actual = await ApplyCodeFixAsync(text);
+            var ownLineIndex = actual.IndexOf("// a", System.StringComparison.Ordinal);
+            var arrowLineIndex = actual.IndexOf("// b", System.StringComparison.Ordinal);
+            var statementIndex = actual.IndexOf("return 42;", System.StringComparison.Ordinal);
+
+            Assert.IsGreaterThanOrEqualTo(0, statementIndex, "The fix must convert the method.");
+            Assert.IsGreaterThanOrEqualTo(0, ownLineIndex, "The own-line comment must survive the fix.");
+            Assert.IsLessThan(arrowLineIndex, ownLineIndex, "The comments must keep their source order.");
+            Assert.IsLessThan(statementIndex, arrowLineIndex, "The arrow-line comment must stay in front of the statement.");
+            Assert.IsLessThanOrEqualTo(actual.LastIndexOf('{', statementIndex), ownLineIndex, "The own-line comment must not be moved between the opening brace and the created statement.");
+        }
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
