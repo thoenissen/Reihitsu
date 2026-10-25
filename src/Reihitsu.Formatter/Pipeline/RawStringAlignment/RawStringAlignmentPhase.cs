@@ -3,11 +3,10 @@ using System.Text;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.RawStringAlignment.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.RawStringAlignment;
 
@@ -58,24 +57,27 @@ internal sealed class RawStringAlignmentPhase : IFormattingPhase
     {
         var replacements = new Dictionary<SyntaxNode, SyntaxNode>();
         var text = root.SyntaxTree.GetText(cancellationToken);
-        var lineShifts = ComputeLineShifts(root, text, cancellationToken);
+        var lineShifts = new RawStringLineShifts(root, text, cancellationToken);
 
-        if (lineShifts.Count == 0)
+        if (lineShifts.IsEmpty)
         {
             return replacements;
         }
+
+        // Nothing has moved yet, so a token's column before the shift is the column it has in the text
+        Func<SyntaxToken, int> getColumnBeforeShift = token => token.SpanStart - text.Lines.GetLineFromPosition(token.SpanStart).Start;
 
         foreach (var node in root.DescendantNodesAndSelf())
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (IsMultiLineRawStringLiteral(node) == false
+            if (RawStringLineShifts.IsMultiLineRawStringLiteral(node) == false
                 || IsNestedInRawStringHole(node))
             {
                 continue;
             }
 
-            var replacement = ComputeReplacement(node, text, lineShifts, options);
+            var replacement = ComputeReplacement(node, text, lineNumber => lineShifts.GetShift(lineNumber, getColumnBeforeShift), options);
 
             if (replacement != null)
             {
@@ -87,69 +89,15 @@ internal sealed class RawStringAlignmentPhase : IFormattingPhase
     }
 
     /// <summary>
-    /// Computes how many columns each line of every multi-line raw string literal moves. The literals are visited
-    /// outermost first, so a literal nested in an interpolation hole measures its opening quotes and its closing
-    /// marker after the literals around it moved them. A line that starts inside the text of a nested literal other
-    /// than a raw string, or inside a nested comment, never moves, because its start is part of that text
-    /// </summary>
-    /// <param name="root">The syntax root to scan</param>
-    /// <param name="text">The text of the syntax tree</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>A mapping from line numbers to the number of columns the line moves; lines that do not move are absent</returns>
-    private static Dictionary<int, int> ComputeLineShifts(SyntaxNode root, SourceText text, CancellationToken cancellationToken)
-    {
-        var lineShifts = new Dictionary<int, int>();
-
-        foreach (var node in root.DescendantNodesAndSelf())
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (IsMultiLineRawStringLiteral(node) == false)
-            {
-                continue;
-            }
-
-            var openingLine = text.Lines.GetLineFromPosition(node.SpanStart);
-            var closingLine = text.Lines.GetLineFromPosition(node.Span.End);
-
-            if (openingLine.LineNumber == closingLine.LineNumber)
-            {
-                continue;
-            }
-
-            var openingColumn = GetOpeningQuoteColumn(node, openingLine) + GetShift(lineShifts, openingLine.LineNumber);
-            var closingColumn = GetLeadingSpaceCount(text, closingLine) + GetShift(lineShifts, closingLine.LineNumber);
-            var delta = openingColumn - closingColumn;
-
-            if (delta == 0)
-            {
-                continue;
-            }
-
-            for (var lineNumber = openingLine.LineNumber + 1; lineNumber <= closingLine.LineNumber; lineNumber++)
-            {
-                if (StartsInsideNestedText(root, text.Lines[lineNumber].Start))
-                {
-                    continue;
-                }
-
-                lineShifts[lineNumber] = GetShift(lineShifts, lineNumber) + delta;
-            }
-        }
-
-        return lineShifts;
-    }
-
-    /// <summary>
     /// Computes the replacement for a multi-line raw string literal by moving each of its lines after the first by
-    /// the number of columns <see cref="ComputeLineShifts"/> determined for it
+    /// the number of columns <see cref="RawStringLineShifts"/> determines for it
     /// </summary>
     /// <param name="node">The literal expression or interpolated string expression</param>
     /// <param name="text">The text of the syntax tree</param>
-    /// <param name="lineShifts">The number of columns each line moves</param>
+    /// <param name="getShift">Gets the number of columns a line moves</param>
     /// <param name="options">Parse options used to reparse the adjusted raw string</param>
     /// <returns>A replacement node if any line of the literal moves; otherwise <see langword="null"/></returns>
-    private static SyntaxNode ComputeReplacement(SyntaxNode node, SourceText text, Dictionary<int, int> lineShifts, CSharpParseOptions options)
+    private static SyntaxNode ComputeReplacement(SyntaxNode node, SourceText text, Func<int, int> getShift, CSharpParseOptions options)
     {
         var openingLineNumber = text.Lines.GetLineFromPosition(node.SpanStart).LineNumber;
         var closingLineNumber = text.Lines.GetLineFromPosition(node.Span.End).LineNumber;
@@ -159,7 +107,7 @@ internal sealed class RawStringAlignmentPhase : IFormattingPhase
 
         for (var lineNumber = openingLineNumber + 1; lineNumber <= closingLineNumber; lineNumber++)
         {
-            var shift = GetShift(lineShifts, lineNumber);
+            var shift = getShift(lineNumber);
             var line = text.Lines[lineNumber];
 
             if (shift == 0
@@ -168,7 +116,7 @@ internal sealed class RawStringAlignmentPhase : IFormattingPhase
                 continue;
             }
 
-            var currentSpaces = GetLeadingSpaceCount(text, line);
+            var currentSpaces = RawStringLineShifts.GetLeadingSpaceCount(text, line);
             var newSpaces = Math.Max(0, currentSpaces + shift);
 
             if (newSpaces == currentSpaces)
@@ -197,22 +145,6 @@ internal sealed class RawStringAlignmentPhase : IFormattingPhase
     }
 
     /// <summary>
-    /// Determines whether the node is a multi-line raw string literal: plain, UTF-8, or interpolated
-    /// </summary>
-    /// <param name="node">The node to inspect</param>
-    /// <returns><see langword="true"/> if the node is a multi-line raw string literal</returns>
-    private static bool IsMultiLineRawStringLiteral(SyntaxNode node)
-    {
-        return node switch
-               {
-                   LiteralExpressionSyntax literal => literal.Token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken)
-                                                      || literal.Token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken),
-                   InterpolatedStringExpressionSyntax interpolated => interpolated.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken),
-                   _ => false
-               };
-    }
-
-    /// <summary>
     /// Determines whether the node lies inside an interpolation hole of a multi-line interpolated raw string
     /// </summary>
     /// <param name="node">The node to inspect</param>
@@ -220,114 +152,7 @@ internal sealed class RawStringAlignmentPhase : IFormattingPhase
     private static bool IsNestedInRawStringHole(SyntaxNode node)
     {
         return node.Ancestors()
-                   .Any(IsMultiLineRawStringLiteral);
-    }
-
-    /// <summary>
-    /// Gets the column of the first quote of the literal's opening marker, so an interpolated literal is measured
-    /// under its quotes rather than under its <c>$</c> characters
-    /// </summary>
-    /// <param name="node">The literal expression or interpolated string expression</param>
-    /// <param name="openingLine">The line on which the literal starts</param>
-    /// <returns>The column of the first opening quote</returns>
-    private static int GetOpeningQuoteColumn(SyntaxNode node, TextLine openingLine)
-    {
-        var column = node.SpanStart - openingLine.Start;
-
-        if (node is InterpolatedStringExpressionSyntax interpolated)
-        {
-            column += RawStringLiteralUtilities.GetQuoteOffset(interpolated.StringStartToken.Text);
-        }
-
-        return column;
-    }
-
-    /// <summary>
-    /// Determines whether a line that starts at the given position starts inside the text of a literal other than a
-    /// raw string, or inside a comment, that began on an earlier line. Moving the start of such a line would change
-    /// the literal's value or the comment's text
-    /// </summary>
-    /// <param name="root">The syntax root</param>
-    /// <param name="lineStart">The position at which the line starts</param>
-    /// <returns><see langword="true"/> if the line starts inside such text</returns>
-    private static bool StartsInsideNestedText(SyntaxNode root, int lineStart)
-    {
-        var trivia = root.FindTrivia(lineStart);
-
-        if (trivia.Span.Start < lineStart
-            && trivia.Span.End > lineStart
-            && SyntaxTriviaUtilities.IsCommentTrivia(trivia))
-        {
-            return true;
-        }
-
-        var token = root.FindToken(lineStart);
-
-        if (token.SpanStart > lineStart)
-        {
-            return false;
-        }
-
-        if (token.SpanStart < lineStart)
-        {
-            return IsNonRawStringText(token);
-        }
-
-        var previousToken = token.GetPreviousToken();
-
-        return token.LeadingTrivia.Count == 0
-               && previousToken.Span.End == lineStart
-               && IsNonRawStringText(previousToken);
-    }
-
-    /// <summary>
-    /// Determines whether the token holds the text of a string literal other than a raw string: a regular or verbatim
-    /// string, or the text of an interpolated string that is not raw
-    /// </summary>
-    /// <param name="token">The token to inspect</param>
-    /// <returns><see langword="true"/> if the token holds such text</returns>
-    private static bool IsNonRawStringText(SyntaxToken token)
-    {
-        if (token.IsKind(SyntaxKind.StringLiteralToken)
-            || token.IsKind(SyntaxKind.Utf8StringLiteralToken))
-        {
-            return true;
-        }
-
-        return token.IsKind(SyntaxKind.InterpolatedStringTextToken)
-               && token.Parent?.Parent is InterpolatedStringExpressionSyntax interpolated
-               && interpolated.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken) == false
-               && interpolated.StringStartToken.IsKind(SyntaxKind.InterpolatedSingleLineRawStringStartToken) == false;
-    }
-
-    /// <summary>
-    /// Gets the number of columns the given line moves
-    /// </summary>
-    /// <param name="lineShifts">The number of columns each line moves</param>
-    /// <param name="lineNumber">The line number</param>
-    /// <returns>The number of columns, or zero for a line that does not move</returns>
-    private static int GetShift(Dictionary<int, int> lineShifts, int lineNumber)
-    {
-        return lineShifts.TryGetValue(lineNumber, out var shift) ? shift : 0;
-    }
-
-    /// <summary>
-    /// Counts the number of leading space characters of a line
-    /// </summary>
-    /// <param name="text">The text of the syntax tree</param>
-    /// <param name="line">The line to examine</param>
-    /// <returns>The number of leading space characters</returns>
-    private static int GetLeadingSpaceCount(SourceText text, TextLine line)
-    {
-        var count = 0;
-
-        while (line.Start + count < line.End
-               && text[line.Start + count] == ' ')
-        {
-            count++;
-        }
-
-        return count;
+                   .Any(RawStringLineShifts.IsMultiLineRawStringLiteral);
     }
 
     #endregion // Private methods

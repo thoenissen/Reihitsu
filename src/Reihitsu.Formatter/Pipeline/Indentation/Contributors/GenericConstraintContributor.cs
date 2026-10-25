@@ -31,12 +31,12 @@ internal sealed class GenericConstraintContributor : ILayoutContributor
         var parentFirstToken = parent.GetFirstToken();
         var parentLine = LayoutComputer.GetLine(parentFirstToken);
 
-        if (model.TryGetLayout(parentLine, out var parentLayout) == false)
+        if (model.TryGetPlacedColumn(parentLine, out var parentColumn) == false)
         {
             return;
         }
 
-        var whereColumn = parentLayout.Column + FormattingContext.IndentSize;
+        var whereColumn = parentColumn + FormattingContext.IndentSize;
 
         LayoutComputer.SetIfFirstOnLine(constraint.WhereKeyword, whereColumn, "GenericConstraint", model);
     }

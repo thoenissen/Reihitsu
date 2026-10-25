@@ -134,6 +134,28 @@ public class RH5104CommentsMustBeOnTheirOwnLineCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
+    /// Determines whether another comment stands before the comment on the line where the comment starts. Moving the
+    /// comment above that line would put it in front of the other comment and reverse the order the author wrote them
+    /// in, so the fix is withheld until the other comment has left the line
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="lineStart">Start position of the line on which the comment starts</param>
+    /// <param name="commentStart">Start position of the comment</param>
+    /// <returns><see langword="true"/> if another comment stands before the comment on its line</returns>
+    private static bool HasCommentBeforeOnLine(SyntaxNode root, int lineStart, int commentStart)
+    {
+        if (commentStart <= lineStart)
+        {
+            return false;
+        }
+
+        return root.DescendantTrivia(TextSpan.FromBounds(lineStart, commentStart))
+                   .Any(trivia => SyntaxTriviaUtilities.IsCommentTrivia(trivia)
+                                  && trivia.Span.Start >= lineStart
+                                  && trivia.Span.End <= commentStart);
+    }
+
+    /// <summary>
     /// Gets the leading whitespace for the specified line
     /// </summary>
     /// <param name="lineText">Line text</param>
@@ -227,9 +249,11 @@ public class RH5104CommentsMustBeOnTheirOwnLineCodeFixProvider : CodeFixProvider
 
         foreach (var diagnostic in context.Diagnostics)
         {
-            var lineStart = sourceText.Lines.GetLineFromPosition(diagnostic.Location.SourceSpan.Start).Start;
+            var commentStart = diagnostic.Location.SourceSpan.Start;
+            var lineStart = sourceText.Lines.GetLineFromPosition(commentStart).Start;
 
-            if (StartsInsideLiteralOrComment(root, lineStart))
+            if (StartsInsideLiteralOrComment(root, lineStart)
+                || HasCommentBeforeOnLine(root, lineStart, commentStart))
             {
                 continue;
             }
