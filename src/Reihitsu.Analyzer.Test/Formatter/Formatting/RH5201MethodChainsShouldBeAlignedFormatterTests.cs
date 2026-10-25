@@ -346,5 +346,54 @@ public class RH5201MethodChainsShouldBeAlignedFormatterTests : FormatterTestsBas
                               ExpectedDiagnostic(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, 8, 12, 8, 13, AnalyzerResources.RH5201MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter breaks the line in front of a prefix link whose operator stands behind the closing
+    /// <c>*/</c> of a comment that spans several lines, so its output is clean and stable under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CHAIN-005")]
+    [Requirement("SHARED-COMMENT-012")]
+    public async Task VerifyFormatterBreaksPrefixLinkBehindMultiLineCommentTail()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal object Run(dynamic a)
+                                 {
+                                     var r = a.B
+
+                                              /* x
+                                     */ .B
+                                              .C()
+                                              .D();
+
+                                     return r;
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal object Run(dynamic a)
+                                     {
+                                         var r = a.B
+
+                                                  /* x
+                                         */
+                                                  .B
+                                                  .C()
+                                                  .D();
+
+                                         return r;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, 8, 12, 8, 13, AnalyzerResources.RH5201MessageFormat));
+    }
+
     #endregion // Tests
 }

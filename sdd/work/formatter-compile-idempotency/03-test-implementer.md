@@ -449,3 +449,36 @@ This is a spec question for the lead (escalation 4 / spec author); a test can on
 - `scripts/test.sh --project architecture`: 84 passed.
 
 Expected to fail until the implementer repairs: A1 (1 test), A2 (3 tests), A5 (2 formatter tests and 1 RH3202 test). The A2 query-clause test is subject to the spec note above.
+
+## Revision 4 — maintainer answer on chain links behind a comment tail
+
+Tests written against production 2dea131 and specs at ce7abdd (`01-spec-author.md` revision 5). Sources: the maintainer's answer A, and the routed query-clause clarification, in `00-lead.md`, last section. The expected values come from the new SHARED-CHAIN-005 exception, its example, and FMT-BREAK-019.
+
+### thoenissen/Reihitsu#888 — A7, prefix link and first invoked link
+
+| Test | Requirement / failure class | Helper | Expected now |
+|---|---|---|---|
+| `ChainLinkBehindMultiLineCommentTests.PrefixAndFirstInvokedLinksBehindMultiLineCommentTailStartTheirOwnLines` (SHARED-CHAIN-005 example, verbatim) | SHARED-CHAIN-005, FMT-BREAK-019 | `AssertRuleResult(input, expected)` | passes |
+| `ChainLinkBehindMultiLineCommentTests.PrefixLinkBehindMultiLineCommentTailStartsItsOwnLine` (`var r = a.B` / `/* x` / `*/ .B` / `.C()` / `.D();`) | SHARED-CHAIN-005, FMT-BREAK-019, SHARED-COMMENT-012; FC-016 | `AssertRuleResult(input, expected)` | passes |
+| `ChainLinkBehindMultiLineCommentTests.FirstInvokedLinkBehindMultiLineCommentTailStartsItsOwnLine` (`var r = a.B` / `/* x` / `*/ .C()` / `.D();`) | SHARED-CHAIN-005, FMT-BREAK-019, SHARED-COMMENT-012; FC-016 | `AssertRuleResult(input, expected)` | passes |
+| `ChainLinkBehindMultiLineCommentTests.LinkOfChainWithoutInvokedLinkBehindMultiLineCommentTailStartsItsOwnLine` (`*/ .C` / `.D;`; the exception names this case, and the anchor is the chain's first link `.B`, SHARED-CHAIN-007) | SHARED-CHAIN-005, SHARED-COMMENT-012; FC-016 | `AssertRuleResult(input, expected)` | passes |
+| `RH5201…FormatterTests.VerifyFormatterBreaksPrefixLinkBehindMultiLineCommentTail` (RH5201 reports `.B` behind `*/` at 8:12; the formatter output is clean and stable, LF and CRLF) | SHARED-CHAIN-005, SHARED-COMMENT-012; FC-013 | `VerifyFormatter(input, fixed, diagnostic)` | passes |
+
+All five pass on 2dea131: the implementation already breaks at these call sites, as the auditor's probes showed. They now pin behavior that the spec decides.
+
+Not pinned:
+- The chain's **first** link behind a comment tail. The exception leaves it to SHARED-CHAIN-003/004, and the spec author's Q4 (revision 5) is open.
+- A chain whose only line breaks lie inside such a comment. The exception leaves this unspecified.
+
+### thoenissen/Reihitsu#948 — A2 query clause
+
+`SwitchSectionSharedLocalTests.PatternVariableInQueryClauseDoesNotBlockTheBraces` matches the revised FMT-SWITCH-014. The requirement now names query clauses next to lambda bodies, and its "MUST NOT trigger" list includes "query clause (`from a in xs where a is int n select n`)". So the expected output (both sections braced) stands, unchanged. It still fails on 2dea131 until the implementer repairs A2. The note on this test in revision 3 is resolved.
+
+### Commands
+
+```shell
+scripts/test.sh --project formatter --filter "FullyQualifiedName~ChainLinkBehindMultiLineCommentTests|FullyQualifiedName~PatternVariableInQueryClauseDoesNotBlockTheBraces"
+scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH5201MethodChainsShouldBeAlignedFormatterTests"
+```
+
+Results: formatter 14 tests, 13 passed, 1 failed (the query-clause test, awaiting the A2 repair). Analyzer 8 passed.

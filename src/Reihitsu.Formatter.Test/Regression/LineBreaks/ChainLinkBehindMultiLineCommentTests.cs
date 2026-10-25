@@ -332,6 +332,201 @@ public class ChainLinkBehindMultiLineCommentTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies the specified example: a prefix link and a first invoked link behind the last line of a
+    /// multi-line comment each start their own line and align with the anchor
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-CHAIN-005")]
+    [Requirement("FMT-BREAK-019")]
+    public void PrefixAndFirstInvokedLinksBehindMultiLineCommentTailStartTheirOwnLines()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(dynamic a)
+                                 {
+                                     var r = a.B
+
+                                              /* x
+                                     */ .B
+                                              .C()
+                                              .D();
+                                     var s = a.B
+
+                                              /* x
+                                     */ .C()
+                                              .D();
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(dynamic a)
+                                    {
+                                        var r = a.B
+
+                                                 /* x
+                                        */
+                                                 .B
+                                                 .C()
+                                                 .D();
+                                        var s = a.B
+
+                                                 /* x
+                                        */
+                                                 .C()
+                                                 .D();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a prefix link behind the last line of a multi-line comment starts its own line
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-CHAIN-005")]
+    [Requirement("FMT-BREAK-019")]
+    [Requirement("SHARED-COMMENT-012")]
+    public void PrefixLinkBehindMultiLineCommentTailStartsItsOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 object M(dynamic a)
+                                 {
+                                     var r = a.B
+
+                                              /* x
+                                     */ .B
+                                              .C()
+                                              .D();
+
+                                     return r;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    object M(dynamic a)
+                                    {
+                                        var r = a.B
+
+                                                 /* x
+                                        */
+                                                 .B
+                                                 .C()
+                                                 .D();
+
+                                        return r;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the first invoked link behind the last line of a multi-line comment starts its own line
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-CHAIN-005")]
+    [Requirement("FMT-BREAK-019")]
+    [Requirement("SHARED-COMMENT-012")]
+    public void FirstInvokedLinkBehindMultiLineCommentTailStartsItsOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 object M(dynamic a)
+                                 {
+                                     var r = a.B
+
+                                              /* x
+                                     */ .C()
+                                              .D();
+
+                                     return r;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    object M(dynamic a)
+                                    {
+                                        var r = a.B
+
+                                                 /* x
+                                        */
+                                                 .C()
+                                                 .D();
+
+                                        return r;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a link of a wrapped chain without an invoked link behind the last line of a multi-line
+    /// comment starts its own line and aligns with the chain's first link
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-CHAIN-005")]
+    [Requirement("SHARED-COMMENT-012")]
+    public void LinkOfChainWithoutInvokedLinkBehindMultiLineCommentTailStartsItsOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 object M(dynamic a)
+                                 {
+                                     var r = a.B
+
+                                              /* x
+                                     */ .C
+                                              .D;
+
+                                     return r;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    object M(dynamic a)
+                                    {
+                                        var r = a.B
+
+                                                 /* x
+                                        */
+                                                 .C
+                                                 .D;
+
+                                        return r;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a multi-line comment that starts on the previous link's line already gets the break
     /// in front of the next link
     /// </summary>
