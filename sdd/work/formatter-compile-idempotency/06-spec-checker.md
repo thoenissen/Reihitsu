@@ -161,3 +161,28 @@ My prompt carried no intended fix or verdict. I changed no file other than this 
 ### For the lead
 1. **Untested sentence (not a finding under checks 7 or 8, since FMT-STRUCT-006 is covered and tagged).** A9 added a normative sentence that a comment behind the expression or the semicolon (`=> 42 /* t */;`, `=> 42; // t`) does not stop the move of own-line comments. No test in the diff pins it: `ExpressionBodyArrowCommentTests` covers comments before and after the arrow and the three arrow-line cases from repair round 1, none of the trailing-position cases. I confirmed the behavior by hand (above), so it is a coverage gap, not a defect. A short test pair tagged FMT-STRUCT-006 would close it; the lead may route it to the test implementer or leave it for the run report.
 2. All earlier follow-up candidates stand unchanged (see revision 2). The lead deletes this run's `sdd/work/` directory before publishing.
+
+## Revision 4 (after repair round 3)
+
+Commit: a5d568c (diff `origin/main..a5d568c`; delta since revision 3: `15aefa2..a5d568c`, which is `structural-transforms.md`, `ExpressionBodyArrowCommentTests.cs`, `SwitchSectionSharedLocalTests.cs`, and a comment-only change in `SwitchCaseBraceRewriter.cs`)
+Verdict: consistent (no findings); one untested sentence noted for the lead
+
+My prompt carried no intended fix or verdict. I changed no file other than this handover.
+
+- `scripts/test.sh --project architecture`: `Passed!  - Failed:     0, Passed:    84, Skipped:     0, Total:    84`. No rule page, ledger line, or code-owner list changed in this round.
+
+### Findings
+| # | Check | Location | What does not match | Owner |
+|---|---|---|---|---|
+| _None._ | | | | |
+
+### Delta checked
+- **A9 narrowed, FMT-STRUCT-006 (spec author revision 8, `51b654b`).** A comment "in front of the arrow" now counts as directly at the arrow only on a line on which no token stands in front of the arrow (a line `/* c */ => 42;`); a comment behind the token in front of the arrow on the same line (`int M() /* c */ =>`) belongs to that token and does not stop the move. Format ok (the change is one added sentence plus a narrowed clause, in the same requirement; no `Why:` change owed, the existing one covers it). I ran `scripts/format.sh` on a scratch file outside the repository: `int M() /* c */` / `// a` / `=> 42;` gives `int M() /* c */` / `{` / `// a` / `return 42;` / `}` (the own-line comment still leads the statement), and `int N() /* c */ => 42;` gives `int N() /* c */` / `{` / `return 42;` / `}`. Both match the spec; the production code in `ExpressionBodyToBlockConverter.cs` is unchanged in this round and agrees. No ID, owner, or change doc.
+- **A10 (FMT-SWITCH-014), test implementer revision 7.** Two tests added to `SwitchSectionSharedLocalTests`: a use in a `foreach` collection expression and a use in a nested switch's governing expression, each just outside a same-named child binder's scope. Both carry `[Requirement("FMT-SWITCH-014")]` and `[Requirement("FMT-PIPE-003")]`, as the revision 7 note states. The requirement text covers them (use "anywhere in the other section"; a binder counts only for names inside its scope). No spec change owed.
+- **A11.** `SwitchCaseBraceRewriter.IsBoundInsideSection` summary now lists the nested-switch exception (governing expression) and the `when` clause of a switch-expression arm; comment-only change, no code or spec impact. `git diff 15aefa2 HEAD -- src/Reihitsu.Formatter` shows only those two summary lines.
+- **Repair round 2 gap closed.** My revision 3 note (untested trailing-comment sentence of A9) is addressed: `6dbf045` adds four tests tagged `FMT-STRUCT-006` (`CommentBehindTheExpressionOnTheArrowLineDoesNotStopTheMove`, `CommentBehindTheExpressionDoesNotStopTheMoveOfACommentAfterTheArrow`, `CommentBehindTheSemicolonOnTheArrowLineDoesNotStopTheMove`, `CommentBehindTheSemicolonDoesNotStopTheMoveOfACommentAfterTheArrow`). The tags equal the revision 6 note of `03-test-implementer.md`.
+- **Checks 1-5, 7, 9.** No change doc (a clarifying sentence, a test addition, a comment edit); no ledger or owner change; `documentation/` unchanged; `sdd/work/` holds only this run's directory; `git status` clean before this note. Check 6: no new question in this round.
+
+### For the lead
+1. **Untested sentence again (not a finding under checks 7 or 8; FMT-STRUCT-006 is covered and tagged).** The new sentence "a comment behind the token in front of the arrow on the same line (`int M() /* c */ =>`) ... MUST NOT stop the move" has no test: the added `ExpressionBodyArrowCommentTests` cover comments behind the expression and behind the semicolon only. I confirmed the behavior by hand (above), so it is a coverage gap, not a defect. As this was the last allowed repair round, the lead may leave it for the run report or add a test directly.
+2. All earlier follow-up candidates stand (see revision 2). The lead deletes this run's `sdd/work/` directory before publishing.
