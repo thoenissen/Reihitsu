@@ -34,3 +34,7 @@ The maintainer approved the amended change doc as of `03-spec-author.md`. Its st
 # Escalations 4 and 5 (first-on-line anchor) — answered 2026-10-25
 
 On the implementer's disputed tests (`05-implementer.md`), the maintainer chose option A: an anchor on a comment-led line is always measured at its real column behind the comment, also when it is the first code on its line (for example a complex element initializer's opening brace led by `/* Keep element. */`). The two disputed RH5303/RH5304 formatter tests change to the new output, the RH5303 and RH5304 analyzers must agree with that anchor so they do not report formatter output, and the change doc is amended and approved again (escalation 2). Recorded in `squad/decisions/2026-10-25-phase-prediction-removal-first-on-line-anchor.md`.
+
+# Escalation 2 (second amendment) — answered 2026-10-25
+
+The maintainer approved the change doc as of `06-spec-author.md`. Recorded in `squad/decisions/2026-10-25-phase-prediction-removal-second-amendment.md`. Status `Accepted` is still to be set by the spec author before the PR is marked ready.
