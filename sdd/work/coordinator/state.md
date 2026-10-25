@@ -34,16 +34,39 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 - Round P5-2 asked 2026-10-24 (draft `inventory/phase5-round2-draft.md`, runs `inventory/phase5-runs.md`): 1 G1 (12 lagging texts), 2 G2 (6 no-contradiction), 3 G3 SHARED-COMMENT-012 scope, 4 G4 RH6001 fixed, 5 M1 #1136, 6 M2 #1149, 7 M3 global::, 8 M4 #1334 Q6, 9 #1242 owner, 10 run plan + 1.2.1/1.2.2 split + waves. Waiting.
 - P5-2 bookkeeping DONE (`inventory/phase5-bookkeeping-2.md`): 43 issues -> 1.2.1 (milestone #12), 29 -> 1.2.2 (#13) incl. #958, #1149 (now bug), #1074; split #1438 closed, parts back in #1382; new #1453 (RH6001 `fixed` clarification, Maintenance); 30 'Triage P5-2' comments. Milestone numbers: vNext 2, Maintenance 4, 1.2.1 12, 1.2.2 13. W1 prompts (R1 R2 R3 R4 R5 R7) written in `prompts-phase5.md`; #1136 put into R4 (owns shared/code-fixes.md in W1); #1242 into R2.
 
-| Run | Issues | Wave | Milestone | Status |
+Prompts are plain `/squad #a #b …` (maintainer 2026-10-25): every decision lives on the issues (triage comments), never in a prompt. Added 2026-10-25: #1458 (RH5202 fix changes verbatim value, 1.2.0, alone, after R3), #1463 (formatter phases must not predict later phases; behavior change, Maintenance; after R1, R3, #1458; before R10, R11), #1464 (squad architecture escalation, tooling; after #1441; body edited: no decisions entry). R3 = PR #1457.
+
+| Wave | Run | Issues | Starts after | Status |
 |---|---|---|---|---|
-| #1441 | template doc | any | Maintenance | prompt given |
-| R1 | #948 #949 #954 #1390 #888 | W1 | 1.2.0 | prompt given |
-| R2 | #1329 #1389 #1241 #1344 #1242 | W1 | 1.2.0 | prompt given |
-| R3 | #951 #1133 #1146 | W1 | 1.2.0 | prompt given |
-| R4 | #1136 #1134 #1135 #1262 #1332 #1336 #1340 | W1 | 1.2.0 | prompt given |
-| R5 | #1016 #1070 #1073 | W1 | 1.2.0 | prompt given |
-| R7 | #1257 #1279 #1281 #1282 #1417 #1422 | W1 | 1.2.0 | prompt given |
-| R6, R8, R10-R13 | see phase5-runs.md | W2 | | open |
+| W1 | R1 | #948 #949 #954 #1390 #888 | — | started |
+| W1 | R2 | #1329 #1389 #1241 #1344 (#1242 if listed) | — | started |
+| W1 | R3 | #951 #1133 #1146 | — | started (PR #1457) |
+| W1 | R4 | #1136 #1134 #1135 #1262 #1332 #1336 #1340 | — | ? |
+| W1 | R5 | #1016 #1070 #1073 | — | ? |
+| W1 | R7 | #1257 #1279 #1281 #1282 #1417 #1422 | — | ? |
+| W1 | T1 | #1441 | — | prompt given |
+| W2 | R6 | #967 #1286 #1287 #1288 | R4 | open |
+| W2 | R8 | #946 #1075 #1261 | R3, R7 | open |
+| W2 | R12 | #1382 #1383 #958 #1397 #1243 #1093 #1149 | R1 | open |
+| W2 | R13 | #1140 #1144 #1145 #1393 | R3 | open |
+| W2 | R9 | #1458 | R3 | open |
+| W2 | T2 | #1464 | #1441 | open |
+| W3 | F1 | #1463 | R1, R3, #1458 | open |
+| W3 | R15 | #972 #1096 #1076 #1416 | R8 | open |
+| W3 | R18 | #969 #1335 #1263 #1151 | R4 | open |
+| W3 | R20 | #966 #1105 #1266 #1267 | — | open |
+| W3 | R21 | #1269 #1342 #1343 (+#1242 if not in R2) | R2 | open |
+| W3 | R23 | #1283 #1284 #1285 | R7, R8 | open |
+| W4 | R10 | #1384 #1395 #963 #1381 #1398 | #1463 | open |
+| W4 | R11 | #1392 #1385 #952 #1391 #1239 | #1463 | open |
+| W4 | R14 | #1147 #1152 #1386 #1387 | R12 | open |
+| W4 | R17 | #1094 #1141 #1142 #1388 | R15, R21, R23 | open |
+| W4 | R19 | #1264 #1333 #1334 #1339 #1337 #1412 | R6, R18 | open |
+| W4 | R24 | #1071 #1268 #1084 #1289 #974 | R5, R20 | open |
+| W5 | R16 | #1150 #1274 #1015 #1143 | R13, R17 | open |
+| W5 | R22 | #1345 #1346 #1347 #1348 #1270 #1092 #1153 | R19 | open |
+| W5 | R25 | #1074 #1079 #1276 | R3 | open |
+| W5 | M1 | #1453 | — | open (optional) |
 
 - Next: classification rounds per "Phase 5 plan" below (1.2 critical / vNext extension / Maintenance internal / remaining bugs prioritized); check every `bug` label.
 
