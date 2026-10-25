@@ -1,5 +1,5 @@
 Role: auditor
-Commit: 2f5432b931881d400e2dfbe818c729c2670b27c4 (revision 1, repair round 1; revision 0 was 6555cd10b2d84a3798073660100c21a867a62543)
+Commit: 6dbf0451d1020057a69e117936b755adb0e2e768 (revision 2, repair round 2; revision 1 was 2f5432b931881d400e2dfbe818c729c2670b27c4, revision 0 was 6555cd10b2d84a3798073660100c21a867a62543)
 Verdict: findings
 
 My prompt carried no intended fix, suspected cause, or hoped-for verdict. I changed nothing except this handover.
@@ -384,3 +384,87 @@ No production change. The SHARED-CHAIN-005 exception and FMT-BREAK-019's sentenc
 - Routing: A8 to the implementer and the test implementer. A2 to the implementer, or to the maintainer for a spec change. A9 to the spec author (text only).
 - Not a finding (hint): revision 0's hints stand. `int A4()` / `// a` / `/* c */ => 42;` now keeps `origin/main`'s `/* c */ {` layout. It is in order and stable, but odd, and it belongs to thoenissen/Reihitsu#963 by the A5 answer.
 - I re-ran no repository test. The implementer's full formatter and analyzer runs (`780162b`) and the cleaner's runs after the merge stand. Every finding rests on a probe or a scratch build named in its row.
+
+## Revision 2 — repair round 2
+
+Commit: 6dbf0451d1020057a69e117936b755adb0e2e768
+Verdict: findings (#948: findings; #949: pass; #954: pass; #1390: findings; #888: pass)
+
+My prompt carried no intended fix, suspected cause, or hoped-for verdict. I changed nothing except this handover.
+
+### Scope
+
+This revision audits the repair only, against revision 1 (`2f5432b`).
+
+- State: the head is `6dbf045`. `origin/main` and `git ls-remote origin refs/heads/main` are both `3973631` and already merged; nothing was merged since revision 1.
+- The repair is:
+  - `SwitchCaseBraceRewriter.cs`: `IsBoundInsideSection` now hands each ancestor and the child it was reached from to the new `IsBoundByAncestor`;
+  - FMT-STRUCT-006 wording (spec author revision 7);
+  - 14 new or changed tests in `SwitchSectionSharedLocalTests`;
+  - 4 new tests in `ExpressionBodyArrowCommentTests`.
+- Every other production file is byte-identical to revision 1, and so is its evidence.
+- How I checked: static reading. I compiled probes in a scratch `net10.0` library, unbraced and as the head formats them, and ran `format.sh` twice. I re-ran no repository test.
+
+### Previous findings
+
+| # | Issue | Status | Evidence |
+|---|---|---|---|
+| A8 | #948 | closed | A parameter or expression-body designation of a lambda, anonymous method, or local function now binds only names in that function's `Body` or `ExpressionBody`. On the head, revision 1's two inputs (`[My(y)] int L(int y)` and `int L(int y, int b = y)`) leave the switch unchanged, and the output compiles. So does a parameter attribute, `([My(y)] int y) => y` (probe). Four tests pin the attribute and default-value shapes of a lambda and a local function. |
+| A2 | #948 | closed | `foreach`, `for`, `using`, `fixed`, `catch`, `while`, `do`, switch-expression arms, and nested switch sections now bind inside their C# scope. Revision 1's counterexamples (a `foreach` variable and a switch-expression arm, both in a lambda) are now braced, and the output compiles. Nine tests pin these binders, plus one already-passing nested-switch test. Unrecognized forms still err toward leaving the switch unbraced, which the implementer documents. The narrower `do` scope (the condition only, although C# reports CS0841 for a body use as well, so the scope covers the body too) is on the safe side. |
+| A9 | #1390 | open (narrowed, text only) | See A9 below. |
+
+### thoenissen/Reihitsu#948
+
+#### Findings
+
+| # | Severity | Location | Failure class | Scope relation | What goes wrong | Suggested change |
+|---|---|---|---|---|---|---|
+| A10 | medium | `SwitchSectionSharedLocalTests.cs`; the child conditions at `SwitchCaseBraceRewriter.cs:269` (nested `switch`) and `:271` (`foreach`) | FC-003, FC-017 | PR-introduced (repair round 2) | The new scope checks are tested on one side only, except for lambdas and local functions. The tests cover names inside each binder's scope; none covers a same-named use just outside it within the same construct. Two such uses are load-bearing. (1) A `foreach` collection expression: section 1 `const int y = 2;` / `Use(y);`, and in section 2's lambda `foreach (var y in new[] { y }) { Use(y); }`. (2) A nested switch's governing expression: section 2's local function `switch (w + y) { case 1: int y = 3; Use(y); break; }`. Both compile unbraced, and C# binds the outer `y` to section 1's const. The head handles both correctly: the outer switch stays unbraced, and the output compiles. But deleting `child == forEachStatement.Statement` or `child is SwitchSectionSyntax` would keep the suite green while the formatter braces both into CS0103, which is the A8 failure for these binders. | Test implementer: two fixed-point tests (`AssertRuleResult(input)`), one for each input above. The `for`, `using`, `fixed`, `catch`, `while`, and `do` conditions have no compiling outside-scope use (CS0841, compiled for `for` and `do`), so they need none. |
+| A11 | low | `SwitchCaseBraceRewriter.cs:217` and `:222` (`IsBoundInsideSection` summary) | FC-031 | PR-introduced (repair round 2) | Two items of the summary do not match the code. The nested-switch item says "for a name in that block or switch", but the code binds only names in the switch's sections, not in its governing expression; that is exactly the A10 input (2). The arm item names only "the pattern", but `IsBoundByAncestor` also binds the `when` clause's designations. | Name "a section of that switch", and add the arm's `when` clause. Comment only; it does not reach compiled behavior. |
+
+#### Guard scope
+
+| Decision | Inspected span | Counterpart predicate | Agreement | Verdict |
+|---|---|---|---|---|
+| A declaration of an ancestor binds the name (`IsBoundByAncestor`) | The ancestor, plus the child it was reached from. Functions: `Body`/`ExpressionBody`. `foreach`/`using`/`fixed`: the embedded statement. `for`: condition, incrementors, statement. `catch`: block and filter. `while`: condition and statement. `do`: condition. A block or a nested switch's sections: the whole block or the sections. An arm: the whole arm | C# scope (compiled probes) | Agrees, or is narrower, for every binder probed. Narrower means the switch stays unbraced and compiles: `for` declaration, `do` body, using-expression and `for`-condition designations, arm-expression designations, query range variables. No false negative found. Compiled probes: the `foreach` collection, an arm expression using the local, a nested switch governing expression, a lambda parameter attribute, the A8 inputs, and the revision-1 A2 inputs | Agrees; the outside side is untested (A10) |
+
+#### Assertion adequacy
+
+| Test | Invariant | Falsifying observation | Helper | Verdict |
+|---|---|---|---|---|
+| A8 tests: attribute and default value on a local function, default value on a lambda | Fixed point | A brace inserted | `AssertRuleResult(input)` | Adequate |
+| `AttributeArgumentOfLambdaUsesTheLocalAndLeavesTheSwitchUnchanged` | No section braced, idempotent, LF and CRLF | `{` on the line after a `case …:` line, or a pass-2 change | `AssertSwitchSectionsStayUnbraced` (regex with `Regex.InfiniteMatchTimeout`) | Adequate for the invariant; the lambda's attribute layout is unspecified |
+| A2 tests (10) | Exact braced output, two passes | The switch left unbraced | `AssertRuleResult(input, expected)` | Adequate; the outside side is missing (A10) |
+
+#### Failure classes dismissed
+
+- FC-011: the ancestor loop ends at the section or the root.
+- FC-015: the binder walk reuses `GetDirectlyDeclaredLocalNames` and `GetDesignatedNames`, and no second owner exists.
+- FC-026: children are compared by reference within one red tree, and Roslyn caches the child nodes, so the comparison is stable.
+- FC-006: every probe output compiles.
+
+### thoenissen/Reihitsu#1390
+
+#### Findings
+
+| # | Severity | Location | Failure class | Scope relation | What goes wrong | Suggested change |
+|---|---|---|---|---|---|---|
+| A9 | low | `sdd/specs/formatter/structural-transforms.md:259` (FMT-STRUCT-006) | FC-002 | same requirement | The new definition counts a comment that "precedes the arrow on the arrow's line, behind the last line break in front of the arrow" as standing at the arrow. Read literally, that includes a comment in the trailing trivia of the token in front of the arrow on the same line: `int M() /* c */ =>` / `// a` / `42;`. In that case the spec says `// a` MUST NOT move. `ArrowLineHoldsComment` looks only at the arrow's own trivia, so the head moves it: `int M() /* c */` / `{` / `// a` / `return 42;` / `}`. The output keeps source order and is stable in two passes, which matches the `Why:`. The spec author's revision 7 notes this input as "not decided by the text (unverified)", but the text does decide it. | Spec author: define "in front of the arrow" as on a line that holds no token in front of the arrow, as the example `/* c */ => 42;` shows and the code checks. Text only. |
+
+#### Assertion adequacy
+
+| Test | Invariant | Falsifying observation | Helper | Verdict |
+|---|---|---|---|---|
+| `CommentBehindTheExpression…DoesNotStopTheMove…` (2) | Exact output, two passes | `// a` left outside the block | `AssertRuleResult` | Adequate |
+| `CommentBehindTheSemicolon…DoesNotStopTheMove…` (2) | The own-line comment sits between `{` and the statement; the trailing comment appears once, behind the statement; idempotent; LF and CRLF | Comment not moved, duplicated, or reordered | `AssertOwnLineCommentLeadsStatementAndTrailingCommentFollows` | Adequate for the part the spec decides |
+
+### thoenissen/Reihitsu#949, #954, #888
+
+No change since revision 1. No new finding.
+
+### Whole run
+
+- Blocking: A10 (medium).
+- Text only: A11 (a source comment) and A9 (spec wording). Neither reaches compiled behavior.
+- Routing: A10 to the test implementer. A11 to the implementer, as a comment-only edit. A9 to the spec author.
+- Hints: revision 0's and revision 1's hints stand. `int K()` / `// a` / `/* c */ =>` / `// b` / `42;` keeps `origin/main`'s `/* c */ {` and `return` / blank / `// b` / `42;` layout. It is in order and stable, and per the A5 answer it belongs to thoenissen/Reihitsu#963.
