@@ -1887,6 +1887,94 @@ public class SwitchSectionSharedLocalTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a name in the collection expression of a <c>foreach</c> statement whose variable has the same
+    /// name is a use of the shared local, not of the variable, so the switch is left unchanged
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-014")]
+    [Requirement("FMT-PIPE-003")]
+    public void ForeachCollectionExpressionUsesTheLocalAndLeavesTheSwitchUnchanged()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             const int y = 2;
+
+                                             Use(y);
+                                             break;
+
+                                         case 2:
+                                             Action a = () =>
+                                                        {
+                                                            foreach (var y in new[] { y })
+                                                            {
+                                                                Use(y);
+                                                            }
+                                                        };
+
+                                             a();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a name in the governing expression of a nested switch whose section declares a local of the
+    /// same name is a use of the shared local, not of that section's local, so the switch is left unchanged
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-014")]
+    [Requirement("FMT-PIPE-003")]
+    public void NestedSwitchGoverningExpressionUsesTheLocalAndLeavesTheSwitchUnchanged()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             const int y = 2;
+
+                                             Use(y);
+                                             break;
+
+                                         case 2:
+                                             void L(int w)
+                                             {
+                                                 switch (w + y)
+                                                 {
+                                                     case 1:
+                                                         int y = 3;
+                                                         break;
+                                                 }
+                                             }
+
+                                             L(1);
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
     /// Verifies that a local used only in the section that declares it does not block the braces
     /// </summary>
     [TestMethod]

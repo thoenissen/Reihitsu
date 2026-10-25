@@ -565,3 +565,30 @@ scripts/test.sh --project formatter --filter "FullyQualifiedName~ExpressionBodyA
 ```
 
 Result: 22 passed.
+
+## Revision 7 — repair round 3
+
+Head 9079a22. Finding A10 from `07-auditor.md` (revision note after repair round 2), routed in `00-lead.md` under "Repair round 3". Both tests are in `SwitchSectionSharedLocalTests` and tagged FMT-SWITCH-014 and FMT-PIPE-003. Each uses `AssertRuleResult(input)`: the input must be a fixed point under LF and CRLF. In both, section 1 is `const int y = 2;` / `Use(y);`.
+
+| Test | Section 2 | Failure class | Expected now |
+|---|---|---|---|
+| `ForeachCollectionExpressionUsesTheLocalAndLeavesTheSwitchUnchanged` | `Action a = () => { foreach (var y in new[] { y }) { Use(y); } };` / `a();` | FC-003, FC-017 | passes |
+| `NestedSwitchGoverningExpressionUsesTheLocalAndLeavesTheSwitchUnchanged` | `void L(int w) { switch (w + y) { case 1: int y = 3; break; } }` / `L(1);` | FC-003, FC-017 | passes |
+
+Derivation: in each input, the `y` in the `foreach` collection expression or in the nested switch's governing expression lies outside the scope of the same-named child declaration. That child declaration is the `foreach` variable, or the local declared directly in the nested section. So C# binds that `y` to section 1's `const`. That makes it a use of the shared local in another section, and FMT-SWITCH-014 requires the whole switch to stay unchanged.
+
+The nested section holds a single statement, so the inner switch is not braced on its own (FMT-SWITCH-001). The input stays a fixed point, and the local stays declared directly in that section.
+
+Compile check, in a scratch `net10.0` library:
+- Both inputs compile unbraced.
+- With both outer sections braced, both fail with CS0103: at the `y` in `new[] { y }`, and at the `y` in `w + y`.
+
+Both tests pass on this head. They are the outside-scope side of the checks that the auditor named at `SwitchCaseBraceRewriter.cs:269` (`child is SwitchSectionSyntax`) and `:271` (`child == forEachStatement.Statement`). I did not run a mutation of production code to show that these tests fail without those conditions, because this role does not touch production code. The derivation above is the evidence that the tests depend on those conditions.
+
+As the auditor states, `for`, `using`, `fixed`, `catch`, `while`, and `do` have no compiling use outside the scope (CS0841). So they get no outside-scope test.
+
+```shell
+scripts/test.sh --project formatter --filter "FullyQualifiedName~SwitchSectionSharedLocalTests"
+```
+
+Result: 48 passed.
