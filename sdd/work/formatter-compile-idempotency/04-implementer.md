@@ -1,5 +1,5 @@
 Role: implementer
-Commit: 9ba0bc3 (revision 3, repair round 2; revision 2 was 780162b, revision 1 2dea131)
+Commit: 1d2f53b (revision 4, repair round 3; revision 3 was 9ba0bc3, revision 2 780162b, revision 1 2dea131)
 Verdict: #948: tests pass; #949: tests pass; #954: tests pass; #1390: tests pass; #888: tests pass
 
 My prompt carried no intended fix, suspected cause, or hoped-for verdict. The skeptic's mechanism readings (`02-skeptic.md`) were treated as claims: each one named below was checked by running the code (instrumented trace or a failing test) before it was used. Every handed-over test assertion, input, and expected output is unchanged. No file of a concurrent run was touched. The RH3202 code-fix provider sits in R7's RH3xxx area, which the maintainer released to this run (00-lead.md, Escalation 1, Q1).
@@ -268,3 +268,26 @@ _None._
 ### Follow-up candidates
 
 _None new._ The earlier revisions' follow-ups stand. I staged only `SwitchCaseBraceRewriter.cs`; the A9 spec text is the spec author's (54d2743).
+
+## Revision 4 — repair round 3
+
+Commit: 1d2f53b. Finding A11 of `07-auditor.md` (the note after repair round 2), as routed in `00-lead.md` under "Repair round 3". This is a comment-only change.
+
+### thoenissen/Reihitsu#948 — A11
+
+| File | What changed | Requirement |
+|---|---|---|
+| `src/Reihitsu.Formatter/Pipeline/SwitchCaseBraces/Rewriter/SwitchCaseBraceRewriter.cs` | The `IsBoundInsideSection` summary now matches `IsBoundByAncestor`. A nested switch section's direct locals bind a name only in a section of that switch, not in its governing expression. A switch-expression arm binds the variables of its pattern and of its `when` clause. No code changed. | FC-031 |
+
+### Tests run
+
+- `scripts/verify-text-only.sh --base HEAD --head worktree`, before the commit: "TEXT-ONLY PROOF: PASS". 3214 tokens are identical, and only documentation trivia changed. The suites of revision 3 (formatter 2859 passed, analyzer 6133 passed) therefore still apply to the compiled code.
+- `scripts/format.sh` over the file: no change.
+
+### Disputed tests or scope
+
+_None._ I did not touch or stage `SwitchSectionSharedLocalTests.cs`, which the test implementer is editing.
+
+### Follow-up candidates
+
+_None new._
