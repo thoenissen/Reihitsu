@@ -74,3 +74,8 @@ Routed without asking (clarifications within the run's issues, from 02-skeptic.m
 | A7 untested #888 behavior (`!.`, `/** */`, prefix link) | same requirement (FMT-BREAK-019) | test implementer |
 
 Hints in 07-auditor.md are follow-up candidates for the run report, not repairs.
+
+# Escalation (03-test-implementer.md revision 3, decision 1), answered by the maintainer
+
+- A7 prefix / first invoked link behind a multi-line comment tail → A. Any chain link that stands behind the closing `*/` of a multi-line delimited comment starts its own line (SHARED-COMMENT-012), also a prefix link and the first invoked link; FMT-BREAK-019 and SHARED-CHAIN-005 get that exception, and tests pin both cases.
+- Routed without asking (clarification within FMT-SWITCH-014, decision 2): a pattern variable inside a query clause stays in its clause; the requirement names query-clause bodies next to lambda bodies.
