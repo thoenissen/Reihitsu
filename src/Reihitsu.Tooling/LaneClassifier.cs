@@ -22,7 +22,7 @@ public static class LaneClassifier
     /// <summary>
     /// Individual files that are text
     /// </summary>
-    private static readonly string[] _textFiles = ["README.MD", "LICENSE", ".github/PULL_REQUEST_TEMPLATE.md"];
+    private static readonly string[] _textFiles = ["README.MD", "CONTRIBUTING.md", "LICENSE", ".github/PULL_REQUEST_TEMPLATE.md"];
 
     /// <summary>
     /// Root files that are tooling: agent instructions and solution-wide build settings

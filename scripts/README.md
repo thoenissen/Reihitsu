@@ -109,7 +109,7 @@ It first runs the text-only proof over the same range and prints its line, becau
 | Category | Paths |
 |---|---|
 | Change doc | `sdd/changes/**` |
-| Text | the rest of `sdd/**`, `documentation/**`, issue and PR templates, `README.MD`, `LICENSE`, Markdown under `src/`, and C# under `src/` when the proof passed |
+| Text | the rest of `sdd/**`, `documentation/**`, issue and PR templates, `README.MD`, `CONTRIBUTING.md`, `LICENSE`, Markdown under `src/`, and C# under `src/` when the proof passed |
 | Tooling | `.claude/**`, `squad/**`, `scripts/**`, `.github/**`, `binaries/**`, `src/Reihitsu.Tooling/**`, `AGENTS.md`, `CLAUDE.md`, the solution files, `.gitignore`, `.gitattributes`, and every `*.csproj`, `*.props`, `*.targets`, `*.ruleset`, `.editorconfig` |
 | Test | files of test projects (`src/*.Test/**`, `src/Reihitsu.ArchitectureTests/**`) |
 | Production | every other file under `src/` |
