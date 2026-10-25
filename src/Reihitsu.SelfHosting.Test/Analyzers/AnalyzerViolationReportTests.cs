@@ -41,7 +41,7 @@ public sealed class AnalyzerViolationReportTests
     #region Methods
 
     /// <summary>
-    /// Verifies that there is one row per analyzer, each named by the analyzer type, so a row name identifies exactly one analyzer
+    /// Verifies that the analyzer row names are distinct, so a row name identifies exactly one analyzer, and that a known analyzer has a row
     /// </summary>
     [TestMethod]
     public void AnalyzerRowsNameEachAnalyzerTypeExactlyOnce()
