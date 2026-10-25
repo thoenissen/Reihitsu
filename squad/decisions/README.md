@@ -8,7 +8,7 @@ One file per escalation the maintainer answered: `yyyy-mm-dd-<slug>.md`, dated b
 | | |
 |---|---|
 | Date | yyyy-mm-dd |
-| Escalation | <1–11, from squad/README.md> |
+| Escalation | <1–12, from squad/README.md> |
 | Run | issue #<N> (several: issues #<a>, #<b>) |
 
 ## Question
