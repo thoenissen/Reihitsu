@@ -482,3 +482,59 @@ scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH5201MethodChai
 ```
 
 Results: formatter 14 tests, 13 passed, 1 failed (the query-clause test, awaiting the A2 repair). Analyzer 8 passed.
+
+## Revision 5 — repair round 2
+
+These tests ran against the production code at 27c08b3, the head of the auditor's repair-round-1 revision (`07-auditor.md`, the note at the end). They cover findings A8 and A2 (narrowed), routed in `00-lead.md` under "Repair round 2". Expected values come from FMT-SWITCH-014 and FMT-PIPE-003. The auditor's suggestions were treated as suggestions.
+
+**Compile check.** Every input of the tests below compiles in its unbraced form, and every braced expected output compiles too. I checked this with a scratch `net10.0` library (`AllowUnsafeBlocks` for the `fixed` case), with helper stubs for `Use`, `A`, `F`, `Next`, `Open`, and `MyAttribute`.
+
+I also compiled the braced form of each A8 input. All four fail with CS0103, at the attribute argument or the default value. So the name there binds to the switch-scoped `const y`, not to the parameter, and the switch must stay unbraced.
+
+### thoenissen/Reihitsu#948 — A8 (switch must stay unchanged)
+
+All four tests are in `SwitchSectionSharedLocalTests`. In each, section 1 is `const int y = 2;` / `Use(y);`.
+
+| Test | Section 2 | Requirement / failure class | Helper | Expected now |
+|---|---|---|---|---|
+| `AttributeArgumentOfLocalFunctionUsesTheLocalAndLeavesTheSwitchUnchanged` | `[My(y)]` / `int L(int y) { return y; }` / `Use(L(1));` | FMT-SWITCH-014, FMT-PIPE-003; FC-001, FC-006 | `AssertRuleResult(input)` | fails |
+| `DefaultValueOfLocalFunctionParameterUsesTheLocalAndLeavesTheSwitchUnchanged` | `int L(int y, int b = y) { return b; }` / `Use(L(1));` | FMT-SWITCH-014, FMT-PIPE-003; FC-001, FC-006 | `AssertRuleResult(input)` | fails |
+| `AttributeArgumentOfLambdaUsesTheLocalAndLeavesTheSwitchUnchanged` | `Func<int, int> f = [My(y)] (int y) => y;` / `Use(f(1));` | FMT-SWITCH-014, FMT-PIPE-003; FC-001, FC-006 | `AssertSwitchSectionsStayUnbraced` (LF, CRLF, second pass, no `{` directly after a `case …:` line) | fails |
+| `DefaultValueOfLambdaParameterUsesTheLocalAndLeavesTheSwitchUnchanged` | `var f = (int y, int b = y) => b;` / `Use(f(1, 2));` | FMT-SWITCH-014, FMT-PIPE-003; FC-001, FC-006 | `AssertRuleResult(input)` | fails |
+
+Observed at 27c08b3:
+
+- All four switches are braced, which makes the output fail with CS0103.
+- For the three exact-output tests, the bracing is the only difference.
+- The attributed lambda is checked by sections only, because the layout of a lambda's attribute list is not specified: FMT-BREAK-027 names declarations, not lambdas. Inside the braced output the formatter puts `[My(y)]` and `(int y) => y;` on separate lines. That layout is outside this run and is not pinned.
+
+### thoenissen/Reihitsu#948 — A2 narrowed (both sections braced)
+
+All ten tests are in `SwitchSectionSharedLocalTests`, tagged FMT-SWITCH-014, using `AssertRuleResult(input, expected)`. In each, section 1 is `int y = 1;` / `Use(y);`, and section 2 declares `y` inside a function. The failure classes are FC-002 and FC-016.
+
+| Test | Binder in section 2 | Expected now |
+|---|---|---|
+| `ForeachVariableInLambdaShadowingTheLocalDoesNotBlockTheBraces` | `Action a = () => { foreach (var y in ys) { Use(y); } };` (the auditor's counterexample) | fails |
+| `ForeachVariableInLocalFunctionShadowingTheLocalDoesNotBlockTheBraces` | `foreach (var y in ys)` in a local function | fails |
+| `ForVariableInLocalFunctionShadowingTheLocalDoesNotBlockTheBraces` | `for (var y = 0; …)` | fails |
+| `UsingVariableInLocalFunctionShadowingTheLocalDoesNotBlockTheBraces` | `using (var y = Open())` | fails |
+| `FixedVariableInLocalFunctionShadowingTheLocalDoesNotBlockTheBraces` | `fixed (int* y = ys)` in an `unsafe` local function | fails |
+| `CatchVariableInLocalFunctionShadowingTheLocalDoesNotBlockTheBraces` | `catch (Exception y)` | fails |
+| `WhileConditionDesignationInLocalFunctionShadowingTheLocalDoesNotBlockTheBraces` | `while (o is int y && y > 0)` | fails |
+| `DoConditionDesignationInLocalFunctionShadowingTheLocalDoesNotBlockTheBraces` | `do { … } while (F(out var y) && y > 0);` | fails |
+| `SwitchExpressionArmDesignationInLambdaShadowingTheLocalDoesNotBlockTheBraces` | `o => o switch { int y => y, _ => 0 }` (the auditor's counterexample) | fails |
+| `NestedSwitchSectionLocalInLocalFunctionShadowingTheLocalDoesNotBlockTheBraces` | `case 1: int y = 2; break;` of a switch inside a local function | passes |
+
+Derivation: in each case the `y` in section 2 is bound by a declaration inside a lambda or local function of that section, so the shared local is used only in section 1. FMT-SWITCH-014 says such a local "MUST NOT trigger this guard", so both multi-line sections are braced (FMT-SWITCH-001/003).
+
+Observed at 27c08b3 for the nine failing tests: the switch is left unbraced, and that is the only difference from the expected output (a diff of expected against actual for each). The nested-switch-section form is already handled and is pinned as passing.
+
+### Commands
+
+```shell
+scripts/test.sh --project formatter --filter "FullyQualifiedName~SwitchSectionSharedLocalTests"
+```
+
+Result: 46 tests, 13 failed (A8 ×4, A2 ×9), 33 passed.
+
+`sdd/specs/formatter/structural-transforms.md` has an uncommitted change in the worktree that is not mine (A9 belongs to the spec author). It was not staged.

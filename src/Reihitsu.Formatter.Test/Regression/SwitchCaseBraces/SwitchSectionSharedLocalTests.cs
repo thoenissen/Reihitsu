@@ -1,4 +1,8 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Text.RegularExpressions;
+using System.Threading;
+
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
 
@@ -977,6 +981,912 @@ public class SwitchSectionSharedLocalTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a name in the attribute list of a local function whose parameter has the same name is a
+    /// use of the shared local, not of the parameter, so the switch is left unchanged
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-014")]
+    [Requirement("FMT-PIPE-003")]
+    public void AttributeArgumentOfLocalFunctionUsesTheLocalAndLeavesTheSwitchUnchanged()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             const int y = 2;
+
+                                             Use(y);
+                                             break;
+
+                                         case 2:
+                                             [My(y)]
+                                             int L(int y)
+                                             {
+                                                 return y;
+                                             }
+
+                                             Use(L(1));
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a name in a parameter default value of a local function that has a parameter of the same
+    /// name is a use of the shared local, so the switch is left unchanged
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-014")]
+    [Requirement("FMT-PIPE-003")]
+    public void DefaultValueOfLocalFunctionParameterUsesTheLocalAndLeavesTheSwitchUnchanged()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             const int y = 2;
+
+                                             Use(y);
+                                             break;
+
+                                         case 2:
+                                             int L(int y, int b = y)
+                                             {
+                                                 return b;
+                                             }
+
+                                             Use(L(1));
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a name in the attribute list of a lambda whose parameter has the same name is a use of the
+    /// shared local, so no section of the switch is braced. The layout of a lambda's attribute list is not
+    /// specified, so only the sections are asserted
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-014")]
+    [Requirement("FMT-PIPE-003")]
+    public void AttributeArgumentOfLambdaUsesTheLocalAndLeavesTheSwitchUnchanged()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             const int y = 2;
+
+                                             Use(y);
+                                             break;
+
+                                         case 2:
+                                             Func<int, int> f = [My(y)] (int y) => y;
+
+                                             Use(f(1));
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertSwitchSectionsStayUnbraced(input);
+    }
+
+    /// <summary>
+    /// Verifies that a name in a parameter default value of a lambda that has a parameter of the same name is a
+    /// use of the shared local, so the switch is left unchanged
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-014")]
+    [Requirement("FMT-PIPE-003")]
+    public void DefaultValueOfLambdaParameterUsesTheLocalAndLeavesTheSwitchUnchanged()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             const int y = 2;
+
+                                             Use(y);
+                                             break;
+
+                                         case 2:
+                                             var f = (int y, int b = y) => b;
+
+                                             Use(f(1, 2));
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>foreach</c> variable in a lambda in another section that shadows the local is not a use of the local, so a
+    /// local used only in its own section does not block the braces
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-014")]
+    public void ForeachVariableInLambdaShadowingTheLocalDoesNotBlockTheBraces()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x, int[] ys)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             int y = 1;
+
+                                             Use(y);
+                                             break;
+
+                                         case 2:
+                                             Action a = () =>
+                                                        {
+                                                            foreach (var y in ys)
+                                                            {
+                                                                Use(y);
+                                                            }
+                                                        };
+
+                                             a();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x, int[] ys)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    int y = 1;
+
+                                                    Use(y);
+                                                }
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    Action a = () =>
+                                                               {
+                                                                   foreach (var y in ys)
+                                                                   {
+                                                                       Use(y);
+                                                                   }
+                                                               };
+
+                                                    a();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>foreach</c> variable in a local function in another section that shadows the local is not a use of the local, so a
+    /// local used only in its own section does not block the braces
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-014")]
+    public void ForeachVariableInLocalFunctionShadowingTheLocalDoesNotBlockTheBraces()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x, int[] ys)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             int y = 1;
+
+                                             Use(y);
+                                             break;
+
+                                         case 2:
+                                             void L()
+                                             {
+                                                 foreach (var y in ys)
+                                                 {
+                                                     Use(y);
+                                                 }
+                                             }
+
+                                             L();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x, int[] ys)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    int y = 1;
+
+                                                    Use(y);
+                                                }
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    void L()
+                                                    {
+                                                        foreach (var y in ys)
+                                                        {
+                                                            Use(y);
+                                                        }
+                                                    }
+
+                                                    L();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>for</c> variable in a local function in another section that shadows the local is not a use of the local, so a
+    /// local used only in its own section does not block the braces
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-014")]
+    public void ForVariableInLocalFunctionShadowingTheLocalDoesNotBlockTheBraces()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             int y = 1;
+
+                                             Use(y);
+                                             break;
+
+                                         case 2:
+                                             void L()
+                                             {
+                                                 for (var y = 0; y < 2; y++)
+                                                 {
+                                                     Use(y);
+                                                 }
+                                             }
+
+                                             L();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    int y = 1;
+
+                                                    Use(y);
+                                                }
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    void L()
+                                                    {
+                                                        for (var y = 0; y < 2; y++)
+                                                        {
+                                                            Use(y);
+                                                        }
+                                                    }
+
+                                                    L();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>using</c> variable in a local function in another section that shadows the local is not a use of the local, so a
+    /// local used only in its own section does not block the braces
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-014")]
+    public void UsingVariableInLocalFunctionShadowingTheLocalDoesNotBlockTheBraces()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             int y = 1;
+
+                                             Use(y);
+                                             break;
+
+                                         case 2:
+                                             void L()
+                                             {
+                                                 using (var y = Open())
+                                                 {
+                                                     Use(y);
+                                                 }
+                                             }
+
+                                             L();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    int y = 1;
+
+                                                    Use(y);
+                                                }
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    void L()
+                                                    {
+                                                        using (var y = Open())
+                                                        {
+                                                            Use(y);
+                                                        }
+                                                    }
+
+                                                    L();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>fixed</c> variable in a local function in another section that shadows the local is not a use of the local, so a
+    /// local used only in its own section does not block the braces
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-014")]
+    public void FixedVariableInLocalFunctionShadowingTheLocalDoesNotBlockTheBraces()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x, int[] ys)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             int y = 1;
+
+                                             Use(y);
+                                             break;
+
+                                         case 2:
+                                             unsafe void L()
+                                             {
+                                                 fixed (int* y = ys)
+                                                 {
+                                                     Use(*y);
+                                                 }
+                                             }
+
+                                             L();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x, int[] ys)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    int y = 1;
+
+                                                    Use(y);
+                                                }
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    unsafe void L()
+                                                    {
+                                                        fixed (int* y = ys)
+                                                        {
+                                                            Use(*y);
+                                                        }
+                                                    }
+
+                                                    L();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>catch</c> variable in a local function in another section that shadows the local is not a use of the local, so a
+    /// local used only in its own section does not block the braces
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-014")]
+    public void CatchVariableInLocalFunctionShadowingTheLocalDoesNotBlockTheBraces()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             int y = 1;
+
+                                             Use(y);
+                                             break;
+
+                                         case 2:
+                                             void L()
+                                             {
+                                                 try
+                                                 {
+                                                     A();
+                                                 }
+                                                 catch (Exception y)
+                                                 {
+                                                     Use(y);
+                                                 }
+                                             }
+
+                                             L();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    int y = 1;
+
+                                                    Use(y);
+                                                }
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    void L()
+                                                    {
+                                                        try
+                                                        {
+                                                            A();
+                                                        }
+                                                        catch (Exception y)
+                                                        {
+                                                            Use(y);
+                                                        }
+                                                    }
+
+                                                    L();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a pattern variable in a <c>while</c> condition in a local function in another section that shadows the local is not a use of the local, so a
+    /// local used only in its own section does not block the braces
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-014")]
+    public void WhileConditionDesignationInLocalFunctionShadowingTheLocalDoesNotBlockTheBraces()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             int y = 1;
+
+                                             Use(y);
+                                             break;
+
+                                         case 2:
+                                             void L(object o)
+                                             {
+                                                 while (o is int y && y > 0)
+                                                 {
+                                                     o = Next(y);
+                                                 }
+                                             }
+
+                                             L(1);
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    int y = 1;
+
+                                                    Use(y);
+                                                }
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    void L(object o)
+                                                    {
+                                                        while (o is int y && y > 0)
+                                                        {
+                                                            o = Next(y);
+                                                        }
+                                                    }
+
+                                                    L(1);
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an <c>out var</c> in a <c>do</c> condition in a local function in another section that shadows the local is not a use of the local, so a
+    /// local used only in its own section does not block the braces
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-014")]
+    public void DoConditionDesignationInLocalFunctionShadowingTheLocalDoesNotBlockTheBraces()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             int y = 1;
+
+                                             Use(y);
+                                             break;
+
+                                         case 2:
+                                             void L()
+                                             {
+                                                 do
+                                                 {
+                                                     A();
+                                                 }
+                                                 while (F(out var y) && y > 0);
+                                             }
+
+                                             L();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    int y = 1;
+
+                                                    Use(y);
+                                                }
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    void L()
+                                                    {
+                                                        do
+                                                        {
+                                                            A();
+                                                        }
+                                                        while (F(out var y) && y > 0);
+                                                    }
+
+                                                    L();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a pattern variable of a switch-expression arm in a lambda in another section that shadows the local is not a use of the local, so a
+    /// local used only in its own section does not block the braces
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-014")]
+    public void SwitchExpressionArmDesignationInLambdaShadowingTheLocalDoesNotBlockTheBraces()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             int y = 1;
+
+                                             Use(y);
+                                             break;
+
+                                         case 2:
+                                             Func<object, int> f = o => o switch
+                                                                        {
+                                                                            int y => y,
+                                                                            _ => 0
+                                                                        };
+
+                                             Use(f(1));
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    int y = 1;
+
+                                                    Use(y);
+                                                }
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    Func<object, int> f = o => o switch
+                                                                               {
+                                                                                   int y => y,
+                                                                                   _ => 0
+                                                                               };
+
+                                                    Use(f(1));
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a local of a nested switch section in a local function in another section that shadows the local is not a use of the local, so a
+    /// local used only in its own section does not block the braces
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-014")]
+    public void NestedSwitchSectionLocalInLocalFunctionShadowingTheLocalDoesNotBlockTheBraces()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             int y = 1;
+
+                                             Use(y);
+                                             break;
+
+                                         case 2:
+                                             void L(int z)
+                                             {
+                                                 switch (z)
+                                                 {
+                                                     case 1:
+                                                         int y = 2;
+                                                         break;
+                                                 }
+                                             }
+
+                                             L(1);
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    int y = 1;
+
+                                                    Use(y);
+                                                }
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    void L(int z)
+                                                    {
+                                                        switch (z)
+                                                        {
+                                                            case 1:
+                                                                int y = 2;
+                                                                break;
+                                                        }
+                                                    }
+
+                                                    L(1);
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a local used only in the section that declares it does not block the braces
     /// </summary>
     [TestMethod]
@@ -1574,4 +2484,40 @@ public class SwitchSectionSharedLocalTests : FormatterTestsBase
     }
 
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Formats the input under LF and CRLF and asserts that no section of the switch is braced and that a second
+    /// pass changes nothing, without asserting the layout of anything else
+    /// </summary>
+    /// <param name="input">The source text to format</param>
+    private static void AssertSwitchSectionsStayUnbraced(string input)
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var endingName = DescribeLineEnding(endOfLine);
+            var formatted = Format(NormalizeLineEndings(input, endOfLine));
+
+            Assert.AreEqual(formatted, Format(formatted), $"Formatter is not idempotent under {endingName} line endings.");
+            AssertUsesLineEnding(formatted, endOfLine);
+            Assert.DoesNotMatchRegex(new Regex(@"case [^\r\n]*:\r?\n[ ]*\{", RegexOptions.None, Regex.InfiniteMatchTimeout),
+                                     formatted,
+                                     $"No switch section may be braced under {endingName} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Formats the source text with the whole formatter
+    /// </summary>
+    /// <param name="input">The source text to format</param>
+    /// <returns>The formatted source text</returns>
+    private static string Format(string input)
+    {
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: CancellationToken.None);
+
+        return ReihitsuFormatter.FormatSyntaxTree(tree, CancellationToken.None).GetRoot(CancellationToken.None).ToFullString();
+    }
+
+    #endregion // Methods
 }
