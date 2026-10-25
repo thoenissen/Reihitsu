@@ -468,6 +468,87 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Bat
         await Verify(testData, fixedData, Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat, 2));
     }
 
+    /// <summary>
+    /// Verifies the specification example: lines of a comment that holds an element without an end tag, and of a
+    /// comment kept behind code, are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8301-002")]
+    public async Task VerifySpecificationExampleCommentsLeftAsWrittenDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    ///<summary>S
+                                    int A;
+
+                                    int B; ///<remarks>a
+                                    ///b</remarks>
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the line of a summary without an end tag is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8301-002")]
+    public async Task VerifyCommentWithElementWithoutEndTagDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    ///<summary>S
+                                    int A;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the lines of a comment whose element is closed by an end tag of another name are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8301-002")]
+    public async Task VerifyCommentWithElementClosedByEndTagOfAnotherNameDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    ///<summary>
+                                    ///S</returns>
+                                    int A;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the lines of a comment kept behind the last field of a type are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8301-002")]
+    public async Task VerifyCommentKeptBehindCodeDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int B; ///<remarks>a
+                                    ///b</remarks>
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

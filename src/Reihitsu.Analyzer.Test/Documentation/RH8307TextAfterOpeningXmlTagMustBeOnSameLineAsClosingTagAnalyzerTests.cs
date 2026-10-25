@@ -411,6 +411,132 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTes
         await Verify(testData, fixedData, Diagnostics(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, AnalyzerResources.RH8307MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the specification example: elements of comments that the formatter leaves as written are not reported,
+    /// also when the element itself is complete
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-002")]
+    public async Task VerifySpecificationExampleElementsInCommentsLeftAsWrittenDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>
+                                    /// Gets A
+                                    /// </summary>
+                                    /// <remarks>Text
+                                    /// more
+                                    int A;
+
+                                    /// <summary>
+                                    /// Gets B
+                                    /// </summary>
+                                    /// <remarks>Text
+                                    /// more</returns>
+                                    int B;
+
+                                    /// <summary>Gets D
+                                    /// now</summary>
+                                    /// <remarks>Text
+                                    int D;
+
+                                    int E; /// <remarks>a
+                                    /// b</remarks>
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a remarks element without an end tag whose content starts beside its start tag is not reported, so
+    /// no fix can turn the field into comment text
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-002")]
+    public async Task VerifyElementWithoutEndTagDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>
+                                    /// Gets A
+                                    /// </summary>
+                                    /// <remarks>Text
+                                    /// more
+                                    int A;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an element closed by an end tag of another name is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-002")]
+    public async Task VerifyElementClosedByEndTagOfAnotherNameDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>
+                                    /// Gets B
+                                    /// </summary>
+                                    /// <remarks>Text
+                                    /// more</returns>
+                                    int B;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a complete half-wrapped element is not reported when another element of its comment has no end tag
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-002")]
+    public async Task VerifyCompleteElementBesideElementWithoutEndTagDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>Gets D
+                                    /// now</summary>
+                                    /// <remarks>Text
+                                    int D;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a half-wrapped element kept behind the last field of a type is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-002")]
+    public async Task VerifyElementKeptBehindCodeDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int E; /// <remarks>a
+                                    /// b</remarks>
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

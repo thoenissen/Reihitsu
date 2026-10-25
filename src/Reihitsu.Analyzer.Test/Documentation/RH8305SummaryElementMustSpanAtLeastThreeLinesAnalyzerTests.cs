@@ -405,6 +405,112 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
         await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
     }
 
+    /// <summary>
+    /// Verifies the specification example: summaries in comments that the formatter leaves as written are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-002")]
+    public async Task VerifySpecificationExampleSummariesInCommentsLeftAsWrittenDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>S
+                                    int A;
+
+                                    /// <summary>S</returns>
+                                    int B;
+
+                                    /// <summary>Gets the value.</summary>
+                                    /// <remarks>Text
+                                    /// more
+                                    int D;
+
+                                    int E; /// <summary>end</summary>
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a summary without an end tag is not reported, so no fix can turn the field into comment text
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-002")]
+    public async Task VerifySummaryWithoutEndTagDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>S
+                                    int A;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a summary closed by an end tag of another name is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-002")]
+    public async Task VerifySummaryClosedByEndTagOfAnotherNameDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>S</returns>
+                                    int A;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a complete one-line summary is not reported when another element of its comment has no end tag
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-002")]
+    public async Task VerifyCompleteSummaryBesideElementWithoutEndTagDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>Gets the value.</summary>
+                                    /// <remarks>Text
+                                    /// more
+                                    int A;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a one-line summary kept behind the last field of a type is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-002")]
+    public async Task VerifySummaryKeptBehindCodeDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int E; /// <summary>end</summary>
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

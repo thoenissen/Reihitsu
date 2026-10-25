@@ -26,7 +26,7 @@ Generated code is not analyzed. This covers files with names such as `*.g.cs` or
 
 ## A diagnostic without a code fix
 
-Some violations can only be corrected by hand. A diagnostic that is reported without a code fix is intended behavior, not an error in the rule. The rule page names the cases that are always left to you.
+Some violations can only be corrected by hand. A diagnostic that is reported without a code fix is intended behavior, not an error in the rule.
 
 ## Turning a rule off
 

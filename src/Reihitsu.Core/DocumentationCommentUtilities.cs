@@ -27,6 +27,11 @@ public static class DocumentationCommentUtilities
     /// </summary>
     public const string SingleLineCommentExterior = "//";
 
+    /// <summary>
+    /// The byte order mark, which the parser reads as white space at the start of the text
+    /// </summary>
+    private const char ByteOrderMark = '\uFEFF';
+
     #endregion // Constants
 
     #region Methods
@@ -183,9 +188,12 @@ public static class DocumentationCommentUtilities
 
     /// <summary>
     /// Gets the continuation prefix for the specified documentation comment line. The prefix consists of
-    /// the leading indentation, the <c>///</c> exterior marker and a single trailing space. Any sentence
-    /// text that follows the exterior on the line is intentionally excluded so that rebuilt continuation
-    /// lines never duplicate it
+    /// the spaces and tabs that indent the line, the <c>///</c> exterior marker and a single trailing space.
+    /// Anything else in front of the exterior — code the comment is written behind, a delimited comment, or the
+    /// byte order mark at the start of the text — is excluded, because a continuation line that repeated it would
+    /// declare the code a second time, duplicate the comment, or repeat the encoding signature. Any sentence
+    /// text that follows the exterior on the line is excluded as well so that rebuilt continuation lines never
+    /// duplicate it
     /// </summary>
     /// <param name="sourceText">Source text</param>
     /// <param name="line">Line</param>
@@ -205,7 +213,134 @@ public static class DocumentationCommentUtilities
             return string.Empty;
         }
 
-        return string.Concat(lineText.Substring(0, exteriorIndex + DocumentationExterior.Length), " ");
+        var indentationStart = lineText.Length > 0 && lineText[0] == ByteOrderMark ? 1 : 0;
+        var indentationEnd = indentationStart;
+
+        while (indentationEnd < exteriorIndex
+               && lineText[indentationEnd] is ' ' or '\t')
+        {
+            indentationEnd++;
+        }
+
+        return string.Concat(lineText.Substring(indentationStart, indentationEnd - indentationStart), DocumentationExterior, " ");
+    }
+
+    /// <summary>
+    /// Determines whether an XML element of a documentation comment is closed by an end tag of its own. The parser
+    /// closes an element with the first end tag that follows its content, whatever that tag's name, and lets an element
+    /// without an end tag run to the end of the comment; only an end tag that carries the name of the start tag ends the
+    /// element where the author wrote it. The names are compared as the compiler reads XML: exactly, prefix and local
+    /// name, ordinal
+    /// </summary>
+    /// <param name="element">XML element</param>
+    /// <returns><see langword="true"/> when the element is closed by an end tag that carries the name of its start tag</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="element"/> is <see langword="null"/></exception>
+    public static bool HasOwnEndTag(XmlElementSyntax element)
+    {
+        if (element == null)
+        {
+            throw new ArgumentNullException(nameof(element));
+        }
+
+        var endTag = element.EndTag;
+
+        return endTag != null
+               && endTag.IsMissing == false
+               && string.Equals(element.StartTag.Name.ToString(), endTag.Name.ToString(), StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Determines whether a documentation comment holds an XML element, at the top level or nested inside another
+    /// element, that has no end tag of its own (see <see cref="HasOwnEndTag"/>)
+    /// </summary>
+    /// <param name="documentationComment">Structured documentation comment</param>
+    /// <returns><see langword="true"/> when at least one element of the comment has no end tag of its own</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="documentationComment"/> is <see langword="null"/></exception>
+    public static bool ContainsElementWithoutOwnEndTag(DocumentationCommentTriviaSyntax documentationComment)
+    {
+        if (documentationComment == null)
+        {
+            throw new ArgumentNullException(nameof(documentationComment));
+        }
+
+        return documentationComment.DescendantNodes()
+                                   .OfType<XmlElementSyntax>()
+                                   .Any(element => HasOwnEndTag(element) == false);
+    }
+
+    /// <summary>
+    /// Determines whether a documentation comment starts behind other source text on its line. White space and the
+    /// byte order mark at the start of the text are not source text
+    /// </summary>
+    /// <param name="documentationCommentTrivia">Documentation comment trivia</param>
+    /// <param name="sourceText">Source text the trivia belongs to</param>
+    /// <returns><see langword="true"/> when the documentation comment starts after other source text on its line</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="sourceText"/> is <see langword="null"/></exception>
+    public static bool IsWrittenBehindSource(SyntaxTrivia documentationCommentTrivia, SourceText sourceText)
+    {
+        if (sourceText == null)
+        {
+            throw new ArgumentNullException(nameof(sourceText));
+        }
+
+        var line = sourceText.Lines.GetLineFromPosition(documentationCommentTrivia.FullSpan.Start);
+        var prefix = sourceText.ToString(TextSpan.FromBounds(line.Start, documentationCommentTrivia.FullSpan.Start));
+
+        return prefix.Any(character => char.IsWhiteSpace(character) == false && character != ByteOrderMark);
+    }
+
+    /// <summary>
+    /// Determines whether a documentation comment in the leading trivia of a token documents the code that follows it.
+    /// That holds only when the token opens the syntax node it belongs to; a comment in front of a <c>;</c>, a closing
+    /// <c>)</c> or <c>}</c>, a binary operator or the <c>.</c> of a member access documents nothing
+    /// </summary>
+    /// <param name="owningToken">Token whose leading trivia holds the documentation comment</param>
+    /// <returns><see langword="true"/> when the token is the first token of its parent node</returns>
+    /// <remarks>
+    /// Roslyn files a documentation comment as the leading trivia of the next token whatever that token is, so the
+    /// owning token decides whether the comment documents anything. When it opens the node it belongs to - the
+    /// <c>public</c> of a property, the identifier of a declarator - the comment documents that node. When it does
+    /// not, the comment is stranded, and the compiler reports CS1587
+    /// </remarks>
+    public static bool DocumentsFollowingCode(SyntaxToken owningToken)
+    {
+        return owningToken.Parent != null
+               && owningToken.Parent.GetFirstToken() == owningToken;
+    }
+
+    /// <summary>
+    /// Determines whether a documentation comment is stranded behind code: it starts behind other source text on its
+    /// line and the token that follows it does not open the node it belongs to, so the compiler does not read it as
+    /// documentation and the formatter neither moves it nor lays it out
+    /// </summary>
+    /// <param name="documentationCommentTrivia">Documentation comment trivia</param>
+    /// <param name="sourceText">Source text the trivia belongs to</param>
+    /// <returns><see langword="true"/> when the documentation comment is stranded behind code</returns>
+    public static bool IsStrandedBehindCode(SyntaxTrivia documentationCommentTrivia, SourceText sourceText)
+    {
+        return IsWrittenBehindSource(documentationCommentTrivia, sourceText)
+               && DocumentsFollowingCode(documentationCommentTrivia.Token) == false;
+    }
+
+    /// <summary>
+    /// Determines whether the formatter leaves the text of a single-line documentation comment as written: the comment
+    /// holds an element without an end tag of its own, or it is stranded behind code (see
+    /// <see cref="IsStrandedBehindCode"/>). Layout rules and the formatter share this decision, so a rule does not ask
+    /// for a layout the formatter has decided against
+    /// </summary>
+    /// <param name="documentationCommentTrivia">Documentation comment trivia</param>
+    /// <param name="sourceText">Source text the trivia belongs to</param>
+    /// <returns><see langword="true"/> when the trivia is a single-line documentation comment whose text is left as written</returns>
+    public static bool IsLeftAsWritten(SyntaxTrivia documentationCommentTrivia, SourceText sourceText)
+    {
+        if (documentationCommentTrivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) == false)
+        {
+            return false;
+        }
+
+        return IsStrandedBehindCode(documentationCommentTrivia, sourceText)
+               || (documentationCommentTrivia.GetStructure() is DocumentationCommentTriviaSyntax documentationComment
+                   && ContainsElementWithoutOwnEndTag(documentationComment));
     }
 
     /// <summary>

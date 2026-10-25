@@ -1,4 +1,7 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Threading;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -39,6 +42,39 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer : Diagnost
     #region Methods
 
     /// <summary>
+    /// Gets the indices of the lines of every <c>///</c> comment that the formatter leaves as written, so their
+    /// separators are not judged
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The line indices of the comments left as written</returns>
+    private static HashSet<int> GetLineIndicesOfCommentsLeftAsWritten(SyntaxNode root, SourceText sourceText, CancellationToken cancellationToken)
+    {
+        var lineIndices = new HashSet<int>();
+
+        foreach (var trivia in root.DescendantTrivia())
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (DocumentationCommentUtilities.IsLeftAsWritten(trivia, sourceText) == false)
+            {
+                continue;
+            }
+
+            var firstLine = sourceText.Lines.GetLineFromPosition(trivia.Span.Start).LineNumber;
+            var lastLine = sourceText.Lines.GetLineFromPosition(Math.Max(trivia.Span.Start, trivia.Span.End - 1)).LineNumber;
+
+            for (var lineIndex = firstLine; lineIndex <= lastLine; lineIndex++)
+            {
+                lineIndices.Add(lineIndex);
+            }
+        }
+
+        return lineIndices;
+    }
+
+    /// <summary>
     /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
@@ -47,10 +83,12 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer : Diagnost
         var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
         var nonFormattableLineIndices = FormattingTextAnalysisUtilities.GetNonFormattableLineIndices(root, sourceText);
+        var lineIndicesLeftAsWritten = GetLineIndicesOfCommentsLeftAsWritten(root, sourceText, context.CancellationToken);
 
         for (var lineIndex = 0; lineIndex < sourceText.Lines.Count; lineIndex++)
         {
-            if (nonFormattableLineIndices.Contains(lineIndex))
+            if (nonFormattableLineIndices.Contains(lineIndex)
+                || lineIndicesLeftAsWritten.Contains(lineIndex))
             {
                 continue;
             }
