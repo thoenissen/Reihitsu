@@ -102,7 +102,7 @@ In short: a bug is a difference between the code and a spec. Behavior that looks
 
 ## High-level architecture
 
-- `Reihitsu.Formatter` is the shared formatting engine. `ReihitsuFormatter` is the public entry point, and `Pipeline/FormattingPipeline` applies phases in this order: structural transforms, region formatting, documentation comments, using directives, blank lines, line breaks, switch-case braces, horizontal spacing, indentation/alignment, raw-string alignment, cleanup, line-ending normalization.
+- `Reihitsu.Formatter` is the shared formatting engine. `ReihitsuFormatter` is the public entry point, and `Pipeline/FormattingPipeline` applies phases in this order: tab replacement, structural transforms, region formatting, documentation comments, using directives, blank lines, line breaks, switch-case braces, horizontal spacing, indentation/alignment (including raw-string alignment), cleanup, line-ending normalization. No phase computes a column from a move or replacement that a later phase applies; a column that two steps depend on belongs to one phase.
 - `Reihitsu.Cli` packages the `reihitsu-format` .NET tool. `Program` parses arguments and hands execution to `FormatCommandHandler`, which walks files/directories, skips `bin/`, `obj/`, and generated files, then formats through the shared formatter. `--check` and `--dry-run` are first-class modes, not wrappers around shell diff tools.
 - `Reihitsu.Core` contains shared Roslyn syntax and ordering utilities that are reused by analyzers, code fixes, and the formatter.
 - `Reihitsu.Analyzer` contains Roslyn analyzers grouped by RH rule IDs and categories. `Reihitsu.Analyzer.CodeFixes` contains the matching code fixes and depends on both the analyzer project and the formatter project.
@@ -118,6 +118,7 @@ Formatter transformations are non-destructive: they may rewrite syntax and trivi
 
 | Phase | Decisions it owns | Primary policy/guards |
 |---|---|---|
+| `TabReplacementPhase` | Replacement of every tab in whitespace trivia and between directive tokens with four spaces, before any other phase, so no later phase sees or counts a tab | Whitespace trivia and directive-token trivia only; comments, literals, disabled text, and a directive's free text are never touched |
 | `StructuralTransformPhase` | Syntax-shape rewrites and trivia transfer when replacing tokens or nodes, including field splitting | Ordered `CreateRewriters`; per-rewriter guards such as `CanRewrite`, `RequiresExpressionBodyPreservation`, `CarriesDirective`, and the field-terminator trivia mapping |
 | `RegionFormattingPhase` | Region-name capitalization and matching `#endregion` comments while preserving every directive | `RegionNamingRewriter.Rewrite` |
 | `DocumentationCommentFormattingPhase` | Relocation of off-position `///` comments and XML/exterior normalization | `IsAfterSourceOnSameLine`; `HasOwningLeadingSourceOnSameLine`; `DocumentsFollowingCode`; `DocCommentElementNormalizer.RequiresNormalization` |
@@ -126,9 +127,8 @@ Formatter transformations are non-destructive: they may rewrite syntax and trivi
 | `LineBreakPhase` | Vertical layout for braces, one member per line in member declaration lists, lists, assignments, operators, chains, ternaries, constraints and attributes, including the join of wraps inside argument-, parameter-, attribute-, tuple- and type-argument-like list elements | Ordered `CreateRewriters`; `LineBreakDetection`; `TokenGapNormalizer`; `BracePlacer`; `ListElementInteriorJoinRewriter.CanJoin`/`IsOwnedGap`; `MemberLineStartRewriter.EnsureMembersStartOnSeparateLines`; syntax-specific rewriter guards |
 | `SwitchCaseBracePhase` | Whether switch sections are uniformly braced or unbraced and whether trivia makes rewriting unsafe | `IsMultiLineSection`; `IsFallThroughSection`; `HasCrossSectionGotoTarget`; `SectionCarriesDirectives`; `BraceTokensCarryCommentsOrDirectives` |
 | `HorizontalSpacingPhase` | Same-line token spacing and the two-sided gaps split by comments | `SpacingPolicy.GetDesiredSpacesAfter`; `AreSeparatedByEndOfLine`; the next-token leading-comment guard; `TrimGapBeforeToken` |
-| `IndentationPhase` | Desired token columns, alignment, and indentation of trivia that genuinely starts a line | `LayoutComputer.Compute`; `IndentationRewriter.Apply`; previous-token trailing-EOL detection; `RebuildLeadingTrivia` |
-| `RawStringAlignmentPhase` | Alignment of multiline raw-string content and closing markers after indentation | Raw-string token-kind checks and `openingColumn != closingColumn` in the replacement methods |
-| `CleanupPhase` | Trailing whitespace, whitespace tabs, directive-interior tabs, and final-newline removal | `CleanWhitespaceBeforeEndOfLine`; `StripTrailingWhitespaceAtEndOfLine`; `NormalizeDirectiveTriviaTabs`; `RemoveTrailingEndOfLineTrivia` |
+| `IndentationPhase` | The final column of every line: desired token columns, alignment, indentation of trivia that genuinely starts a line, and the move of multi-line raw-string content lines, hole lines, and closing markers under their opening quotes, with every anchor measured after that move | `LayoutComputer.Compute`; `IndentationRewriter.Apply`; previous-token trailing-EOL detection; `RebuildLeadingTrivia`; `RawStringLineShifts` |
+| `CleanupPhase` | Trailing whitespace and final-newline removal; it moves no token within its line | `CleanWhitespaceBeforeEndOfLine`; `StripTrailingWhitespaceAtEndOfLine`; `RemoveTrailingEndOfLineTrivia` |
 | `LineEndingNormalizationPhase` | Final normalization of ordinary and XML-documentation newline tokens | `EndOfLineTrivia`/`XmlTextLiteralNewLineToken` whose text differs from `FormattingContext.EndOfLine` |
 <!-- formatter-phase-ownership:end -->
 

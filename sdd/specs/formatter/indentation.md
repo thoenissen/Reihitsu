@@ -5,16 +5,16 @@
 | ID prefix | FMT-INDENT |
 | Status | Active |
 | Code owners | `IndentationPhase`, `LayoutComputer`, `LayoutModel`, `TokenLayout`, `IndentationRewriter`, `ListElementAligner`, `SyntaxIndentationUtilities`, `ArgumentAlignmentContributor`, `AngleBracketListAlignmentContributor`, `AnonymousObjectContributor`, `BaseTypeListContributor`, `BinaryExpressionContributor`, `CaseWhenClauseContributor`, `CollectionExpressionContributor`, `CommentIndentationContributor`, `ConditionalExpressionContributor`, `ConstructorInitializerContributor`, `GenericConstraintContributor`, `LambdaAlignmentContributor`, `ListPatternContributor`, `MethodChainAlignmentContributor`, `ObjectInitializerContributor`, `ParenthesizedPatternContributor`, `PatternAnchor`, `RecursivePatternContributor`, `SwitchExpressionContributor` |
-| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, SHARED-BLANK-002, SHARED-CHAIN-007, FMT-DOC-012, FMT-RAW-001, FMT-RAW-007, FMT-SWITCH-001 |
+| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-015, SHARED-BLANK-002, SHARED-CHAIN-007, FMT-DOC-012, FMT-RAW-001, FMT-RAW-007, FMT-SWITCH-001 |
 
-This spec covers the indentation phase: the column at which every line that starts with a token begins — block indentation by scope depth, the alignment of wrapped constructs to an anchor token, and the re-indentation of comments and directives that start a line. Line breaks are already decided when this phase runs (FMT-PIPE-001); it only changes the whitespace in front of the first token or trivia of a line.
+This spec covers the indentation phase: the column at which every line that starts with a token begins — block indentation by scope depth, the alignment of wrapped constructs to an anchor token, and the re-indentation of comments and directives that start a line. Line breaks are already decided when this phase runs (FMT-PIPE-001); it only changes the whitespace in front of the first token or trivia of a line. The same phase moves the lines of multi-line raw string literals as FMT-RAW specifies, so the column it gives a line is final (FMT-PIPE-015).
 
 ## Non-goals
 
 - Where lines break — FMT-BREAK. This phase never adds or removes a line break.
 - Spacing between tokens on the same line — FMT-SPACE. The rest of a line keeps its spacing and moves with its first token.
 - Blank lines — FMT-BLANK.
-- The content lines and the closing marker of a multi-line raw string literal, and the lines inside its interpolation holes that no alignment inside the hole places — FMT-RAW.
+- How the content lines and the closing marker of a multi-line raw string literal, and the lines inside its interpolation holes that no alignment inside the hole places, are moved — FMT-RAW, which specifies that part of this phase.
 - The text of documentation comments other than the column of their `///` markers — FMT-DOC.
 - The column of a continuation line that no requirement below owns — for example the right operand of a wrapped binary expression, the expression after `=>` or `=` that stays on its own line, or the content of a parenthesized pattern that is not a property pattern. Such lines currently take the block column of the enclosing statement or declaration; indenting them one level deeper is a decided behavior change, tracked in thoenissen/Reihitsu#953.
 - Configuration. The indentation unit is fixed; no option or `.editorconfig` setting is read.
@@ -441,9 +441,9 @@ class C
 
 ### FMT-INDENT-011 — Disabled text and literal content are never re-indented
 
-The formatter MUST NOT change the whitespace inside disabled text or inside the text of a string or character literal, including the continuation lines of a verbatim string, and MUST NOT re-indent a content line or the closing line of a multi-line raw string literal, nor a line inside one of its interpolation holes that FMT-RAW-007 moves only with the literal. Only the other lines that start with a token, a comment, or a directive are re-indented; a line inside a hole that an alignment inside the hole places keeps that alignment.
+The formatter MUST NOT change the whitespace inside disabled text or inside the text of a string or character literal, including the continuation lines of a verbatim string, and MUST NOT give a content line or the closing line of a multi-line raw string literal, nor a line inside one of its interpolation holes that FMT-RAW-007 moves only with the literal, a column from the requirements of this spec: such a line moves only as FMT-RAW-001 and FMT-RAW-007 move it. Only the other lines that start with a token, a comment, or a directive are re-indented; a line inside a hole that an alignment inside the hole places keeps that alignment.
 
-Why: Disabled text is not parsed, so its structure is unknown; re-indenting it would half-format code nobody compiles. The whitespace inside a literal is part of its value (FMT-PIPE-002). Multi-line raw strings are aligned by their own phase (FMT-RAW-001), which moves the lines of their holes with them; giving a hole line a column here as well, from the scope depth or from a construct outside the hole, would add a second move that does not depend on where the literal sits.
+Why: Disabled text is not parsed, so its structure is unknown; re-indenting it would half-format code nobody compiles. The whitespace inside a literal is part of its value (FMT-PIPE-002). Multi-line raw strings are aligned as FMT-RAW-001 states, which moves the lines of their holes with them; giving a hole line a column from the scope depth or from a construct outside the hole as well would add a second move that does not depend on where the literal sits.
 
 Example:
 
@@ -1336,9 +1336,9 @@ class C
 
 ### FMT-INDENT-030 — Anchors are measured at their final column
 
-Every alignment above MUST be computed from the column its anchor token has after this phase, not from the column it had in the input: when the line of an anchor moves, everything aligned to it MUST move with it, through any number of nested constructs.
+Every alignment above MUST be computed from the column its anchor token has after this phase, not from the column it had in the input: when the line of an anchor moves, everything aligned to it MUST move with it, through any number of nested constructs. This holds also when the anchor's line is a line that a multi-line raw string literal moves — its closing line, or a line inside one of its interpolation holes: the anchor is measured after the literal moved (FMT-RAW-001, FMT-RAW-007), which happens in this phase.
 
-Why: Alignment against the input's columns would leave a wrapped list or initializer misaligned as soon as its owner is re-indented, and a second run would then move it again (FMT-PIPE-004).
+Why: Alignment against the input's columns would leave a wrapped list or initializer misaligned as soon as its owner is re-indented, and a second run would then move it again (FMT-PIPE-004). Because the raw string's lines move in this phase too, the anchor's final column is this phase's own result; no column has to be predicted from a phase that runs later.
 
 Example:
 
@@ -1371,3 +1371,33 @@ class C
     }
 }
 ```
+
+Example — the anchor link `.Trim` stands behind the closing marker of a raw string literal that moves 12 columns to the right; `.ToUpper` aligns to the anchor where the move puts it:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var s = """
+    a
+    """.Trim()
+    .ToUpper();
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var s = """
+                a
+                """.Trim()
+                   .ToUpper();
+    }
+}
+```
+
+When the literal is not moved, because its closing marker already starts under its opening quotes, the link aligns to the same column, and the output is left unchanged.
