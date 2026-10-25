@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
+using Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 using Reihitsu.Formatter.Pipeline.StructuralTransforms.Enumerations;
 
@@ -21,7 +22,9 @@ internal static class ExpressionBodyToBlockConverter
 
     /// <summary>
     /// Creates a block body that wraps the given expression. Comments on lines of their own in front of the arrow and
-    /// between the arrow and the expression lead the created statement on lines of their own, in source order
+    /// between the arrow and the expression lead the created statement on lines of their own, in source order. When the
+    /// arrow's line holds a comment, no comment is moved, because the arrow's comment stays with the open brace and the
+    /// moved comments would end up behind it, in reverse of the order they were written
     /// </summary>
     /// <param name="expression">The arrow expression to wrap</param>
     /// <param name="statementForm">The statement form the expression should take</param>
@@ -35,8 +38,10 @@ internal static class ExpressionBodyToBlockConverter
     {
         var commentLinesTrivia = new List<SyntaxTrivia>();
         var openBraceLeadingTrivia = arrowToken.LeadingTrivia;
+        var moveComments = ArrowLineHoldsComment(arrowToken) == false;
 
-        if (TrySplitOwnLineComments(arrowToken.LeadingTrivia, out var arrowCommentLinesTrivia, out var arrowLineTrivia)
+        if (moveComments
+            && TrySplitOwnLineComments(arrowToken.LeadingTrivia, out var arrowCommentLinesTrivia, out var arrowLineTrivia)
             && arrowCommentLinesTrivia.Count > 0
             && arrowLineTrivia.All(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)))
         {
@@ -44,7 +49,8 @@ internal static class ExpressionBodyToBlockConverter
             openBraceLeadingTrivia = default;
         }
 
-        if (TrySplitOwnLineComments(expression.GetLeadingTrivia(), out var expressionCommentLinesTrivia, out var expressionLineTrivia)
+        if (moveComments
+            && TrySplitOwnLineComments(expression.GetLeadingTrivia(), out var expressionCommentLinesTrivia, out var expressionLineTrivia)
             && expressionCommentLinesTrivia.Count > 0)
         {
             commentLinesTrivia.AddRange(expressionCommentLinesTrivia);
@@ -52,7 +58,7 @@ internal static class ExpressionBodyToBlockConverter
         }
 
         var openBraceTrailingTrivia = ExtractSignificantTrivia(arrowToken.TrailingTrivia);
-        var statement = CreateStatement(expression, statementForm, semicolonToken);
+        var statement = CreateStatement(expression, statementForm, semicolonToken, moveComments);
 
         if (commentLinesTrivia.Count > 0)
         {
@@ -73,6 +79,38 @@ internal static class ExpressionBodyToBlockConverter
         return SyntaxFactory.Block(openBrace,
                                    SyntaxFactory.SingletonList(statement),
                                    SyntaxFactory.Token(SyntaxKind.CloseBraceToken).WithTrailingTrivia(semicolonToken.TrailingTrivia));
+    }
+
+    /// <summary>
+    /// Determines whether the arrow's line holds a comment: behind the arrow, in its trailing trivia, or in front of it on
+    /// its line, behind the last line break of its leading trivia
+    /// </summary>
+    /// <param name="arrowToken">The arrow token</param>
+    /// <returns><see langword="true"/> if the arrow's line holds a comment; otherwise, <see langword="false"/></returns>
+    private static bool ArrowLineHoldsComment(SyntaxToken arrowToken)
+    {
+        if (arrowToken.TrailingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia))
+        {
+            return true;
+        }
+
+        for (var triviaIndex = arrowToken.LeadingTrivia.Count - 1; triviaIndex >= 0; triviaIndex--)
+        {
+            var trivia = arrowToken.LeadingTrivia[triviaIndex];
+
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia)
+                || BlankLineTriviaUtilities.EndsWithLineBreak(trivia))
+            {
+                return false;
+            }
+
+            if (SyntaxTriviaUtilities.IsCommentTrivia(trivia))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -150,15 +188,17 @@ internal static class ExpressionBodyToBlockConverter
     /// front of the newly created semicolon token instead. A <c>return</c> statement drops the
     /// expression's leading indentation when no line break is left in front of the expression, so an
     /// expression written on the line after the arrow joins the keyword exactly like one written on the
-    /// arrow's line, together with a comment written in front of it on that line
+    /// arrow's line, together with a comment written in front of it on that line unless comments must not move
     /// </summary>
     /// <param name="expression">The expression to wrap</param>
     /// <param name="statementForm">The statement form</param>
     /// <param name="semicolonToken">The semicolon token being replaced</param>
+    /// <param name="moveComments">Whether a comment in front of the expression on its line may join the <c>return</c> keyword</param>
     /// <returns>The wrapping statement</returns>
     private static StatementSyntax CreateStatement(ExpressionSyntax expression,
                                                    ExpressionBodyStatementForm statementForm,
-                                                   SyntaxToken semicolonToken)
+                                                   SyntaxToken semicolonToken,
+                                                   bool moveComments)
     {
         var newSemicolonToken = SyntaxFactory.Token(SyntaxKind.SemicolonToken)
                                              .WithLeadingTrivia(ExtractSignificantTrivia(semicolonToken.LeadingTrivia));
@@ -173,7 +213,7 @@ internal static class ExpressionBodyToBlockConverter
             return SyntaxFactory.ExpressionStatement(expression, newSemicolonToken);
         }
 
-        return CreateReturnStatement(expression, newSemicolonToken);
+        return CreateReturnStatement(expression, newSemicolonToken, moveComments);
     }
 
     /// <summary>
@@ -181,20 +221,22 @@ internal static class ExpressionBodyToBlockConverter
     /// expression's leading trivia holds no line break, it is the indentation of an expression that started its own line
     /// after the arrow, possibly with comments written in front of the expression on that line: the line break itself
     /// belonged to the discarded arrow token, so the indentation is dropped, and the comments move behind the keyword,
-    /// where the parser places a comment written between <c>return</c> and its value. Leading trivia that carries a line
-    /// break is kept, because the layout it describes is then the author's
+    /// where the parser places a comment written between <c>return</c> and its value. When comments must not move, only
+    /// leading trivia of whitespace alone is dropped. Leading trivia that carries a line break is kept, because the layout
+    /// it describes is then the author's
     /// </summary>
     /// <param name="expression">The expression to wrap</param>
     /// <param name="semicolonToken">The semicolon token of the created statement</param>
+    /// <param name="moveComments">Whether a comment in front of the expression on its line may join the <c>return</c> keyword</param>
     /// <returns>The <c>return</c> statement</returns>
-    private static ReturnStatementSyntax CreateReturnStatement(ExpressionSyntax expression, SyntaxToken semicolonToken)
+    private static ReturnStatementSyntax CreateReturnStatement(ExpressionSyntax expression, SyntaxToken semicolonToken, bool moveComments)
     {
         var returnKeyword = SyntaxFactory.Token(SyntaxKind.ReturnKeyword);
         var leadingTrivia = expression.GetLeadingTrivia();
 
         if (leadingTrivia.Count > 0
-            && leadingTrivia.All(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)
-                                                  || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)))
+            && leadingTrivia.All(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)
+                                           || (moveComments && trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))))
         {
             var comments = leadingTrivia.SkipWhile(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia))
                                         .Reverse()

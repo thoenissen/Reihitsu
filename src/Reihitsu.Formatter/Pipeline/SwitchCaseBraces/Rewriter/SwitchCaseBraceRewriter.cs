@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
 using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.SwitchCaseBraces.Rewriter;
@@ -164,7 +165,8 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Determines whether a local declared directly in one section of the switch is used by simple
     /// name in another section. C# scopes such a local to the whole switch block, so a block around
-    /// the declaring section would hide it from the other section
+    /// the declaring section would hide it from the other section. A name that a declaration inside the
+    /// other section binds, such as a lambda parameter that shadows the local, is not a use of it
     /// </summary>
     /// <param name="node">The switch statement to check</param>
     /// <returns><see langword="true"/> if another section uses a directly declared local; otherwise, <see langword="false"/></returns>
@@ -196,7 +198,8 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
             foreach (var simpleName in section.DescendantNodes().OfType<SimpleNameSyntax>())
             {
                 if (declaringSections.TryGetValue(simpleName.Identifier.ValueText, out var sections)
-                    && sections.Any(declaringSection => declaringSection != section))
+                    && sections.Any(declaringSection => declaringSection != section)
+                    && IsBoundInsideSection(simpleName, section) == false)
                 {
                     return true;
                 }
@@ -207,16 +210,94 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Determines whether a simple name in a switch section is bound by a declaration of that section
+    /// that encloses it: a parameter of an enclosing lambda, anonymous method, or local function, a
+    /// variable that an enclosing lambda's expression body declares, or a local that an enclosing block
+    /// declares directly. Such a name does not refer to a local of another section, which C# 8 and later
+    /// let a lambda or local function shadow
+    /// </summary>
+    /// <param name="simpleName">The simple name to inspect</param>
+    /// <param name="section">The switch section that holds the name</param>
+    /// <returns><see langword="true"/> if a declaration inside the section binds the name; otherwise, <see langword="false"/></returns>
+    private static bool IsBoundInsideSection(SimpleNameSyntax simpleName, SwitchSectionSyntax section)
+    {
+        var name = simpleName.Identifier.ValueText;
+
+        foreach (var ancestor in simpleName.Ancestors())
+        {
+            if (ancestor == section)
+            {
+                return false;
+            }
+
+            var isBound = ancestor switch
+                          {
+                              SimpleLambdaExpressionSyntax simpleLambda => simpleLambda.Parameter.Identifier.ValueText == name
+                                                                           || IsDesignatedIn(simpleLambda.ExpressionBody, name),
+                              ParenthesizedLambdaExpressionSyntax parenthesizedLambda => HasParameter(parenthesizedLambda.ParameterList, name)
+                                                                                         || IsDesignatedIn(parenthesizedLambda.ExpressionBody, name),
+                              AnonymousMethodExpressionSyntax anonymousMethod => HasParameter(anonymousMethod.ParameterList, name),
+                              LocalFunctionStatementSyntax localFunction => HasParameter(localFunction.ParameterList, name)
+                                                                            || IsDesignatedIn(localFunction.ExpressionBody?.Expression, name),
+                              BlockSyntax block => GetDirectlyDeclaredLocalNames(block.Statements).Contains(name),
+                              _ => false,
+                          };
+
+            if (isBound)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether a parameter list declares a parameter of the given name
+    /// </summary>
+    /// <param name="parameterList">The parameter list, or <see langword="null"/></param>
+    /// <param name="name">The name to look for</param>
+    /// <returns><see langword="true"/> if the list declares the name; otherwise, <see langword="false"/></returns>
+    private static bool HasParameter(ParameterListSyntax parameterList, string name)
+    {
+        return parameterList?.Parameters.Any(parameter => parameter.Identifier.ValueText == name) == true;
+    }
+
+    /// <summary>
+    /// Determines whether an expression body declares a variable of the given name
+    /// </summary>
+    /// <param name="expressionBody">The expression body, or <see langword="null"/></param>
+    /// <param name="name">The name to look for</param>
+    /// <returns><see langword="true"/> if the expression body declares the name; otherwise, <see langword="false"/></returns>
+    private static bool IsDesignatedIn(SyntaxNode expressionBody, string name)
+    {
+        return expressionBody != null
+               && GetDesignatedNames(expressionBody).Contains(name);
+    }
+
+    /// <summary>
     /// Gets the names of the locals that a switch section declares directly: through a statement the
-    /// section owns, or such a statement behind a label, outside any nested body. Statements whose
-    /// header variables C# scopes to the statement itself (loops, <c>using</c>, <c>fixed</c>, nested
-    /// blocks, and the embedded statements and <c>else</c> branch of an <c>if</c>) declare nothing here
+    /// section owns, or such a statement behind a label, outside any nested body
     /// </summary>
     /// <param name="section">The switch section to inspect</param>
     /// <returns>The names of the directly declared locals</returns>
     private static IEnumerable<string> GetDirectlyDeclaredLocalNames(SwitchSectionSyntax section)
     {
-        foreach (var sectionStatement in section.Statements)
+        return GetDirectlyDeclaredLocalNames(section.Statements);
+    }
+
+    /// <summary>
+    /// Gets the names of the locals that a list of statements declares directly, in the scope that owns
+    /// the list: through a statement of the list, or such a statement behind a label, outside any nested
+    /// body. Statements whose header variables C# scopes to the statement itself (loops, <c>using</c>,
+    /// <c>fixed</c>, nested blocks, and the embedded statements and <c>else</c> branch of an <c>if</c>)
+    /// declare nothing here
+    /// </summary>
+    /// <param name="statements">The statements to inspect</param>
+    /// <returns>The names of the directly declared locals</returns>
+    private static IEnumerable<string> GetDirectlyDeclaredLocalNames(SyntaxList<StatementSyntax> statements)
+    {
+        foreach (var sectionStatement in statements)
         {
             var statement = sectionStatement;
 
@@ -315,14 +396,14 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Gets the names that <c>out var</c>, deconstruction, and pattern designations declare in a node,
-    /// skipping lambda and anonymous-method bodies and switch-expression arms, which scope their
-    /// designations to themselves
+    /// skipping lambda and anonymous-method bodies, switch-expression arms, and the clauses of a query
+    /// behind its first <c>from</c> expression, which scope their designations to themselves
     /// </summary>
     /// <param name="node">The node to inspect</param>
     /// <returns>The designated names</returns>
     private static IEnumerable<string> GetDesignatedNames(SyntaxNode node)
     {
-        return node.DescendantNodesAndSelf(static descendant => descendant is not AnonymousFunctionExpressionSyntax and not SwitchExpressionArmSyntax)
+        return node.DescendantNodesAndSelf(static descendant => descendant is not AnonymousFunctionExpressionSyntax and not SwitchExpressionArmSyntax and not QueryBodySyntax)
                    .OfType<SingleVariableDesignationSyntax>()
                    .Select(static designation => designation.Identifier.ValueText);
     }
@@ -468,7 +549,8 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Builds the leading trivia of a terminal <c>break</c> that moves behind the new block: the line
-    /// break that ends the block's closing-brace line, then each comment on a line of its own. The blank
+    /// break that ends the block's closing-brace line, then each comment on a line of its own, ended by a
+    /// line break unless the comment carries its own, as a documentation comment does. The blank
     /// lines in front of a comment — above the first one and between two of them — are kept as the
     /// blank-line phase placed them; blank lines that no comment follows are dropped
     /// </summary>
@@ -495,10 +577,20 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
                 }
 
                 pendingBlankLines = 0;
-                lineHasContent = true;
 
                 result.Add(trivia);
-                result.Add(eolTrivia);
+
+                // A documentation comment carries the line break that ends its last line, so the next line starts behind it
+                if (BlankLineTriviaUtilities.EndsWithLineBreak(trivia))
+                {
+                    lineHasContent = false;
+                }
+                else
+                {
+                    lineHasContent = true;
+
+                    result.Add(eolTrivia);
+                }
             }
             else if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
             {

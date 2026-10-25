@@ -107,12 +107,13 @@ internal sealed class BlankLineEditor
 
     /// <summary>
     /// Determines whether a region or end region directive in a token's leading trivia is exempt from requiring a blank
-    /// line before it. Only the single line directly above the directive counts: an opening brace exempts the directive
-    /// (see <see cref="IsExemptFromPrecedingBlankLineBeforeRegionDirective(PrecedingTokenFacts)"/>) only when no comment and
-    /// no directive other than a conditional-compilation directive stands between the brace and the directive, so a comment
-    /// or a directive such as <c>#pragma</c> first after the brace is separated from the region directive below it. A
-    /// conditional-compilation directive (<c>#if</c>, <c>#elif</c>, <c>#else</c>, <c>#endif</c>) and the disabled text of a
-    /// branch not taken keep the brace exemption
+    /// line before it. A token without a known preceding token — the start of the file — is exempt whatever trivia stands
+    /// in front of the directive. An opening brace (see <see cref="IsExemptFromPrecedingBlankLineBeforeRegionDirective(PrecedingTokenFacts)"/>)
+    /// exempts the directive when nothing but whitespace, line breaks, conditional-compilation directives (<c>#if</c>,
+    /// <c>#elif</c>, <c>#else</c>, <c>#endif</c>), and the disabled text of a branch not taken stands between the brace and
+    /// the directive. A comment or any other directive there, such as <c>#pragma</c>, ends the exemption, so it is
+    /// separated from the region directive below it. Conditional-compilation directives keep the exemption even when one
+    /// of them is the line directly above the region directive, so such a directive is not separated from it
     /// </summary>
     /// <param name="previousToken">
     /// The facts about the token that precedes the token being evaluated. A token without a known preceding token is exempt
@@ -267,8 +268,9 @@ internal sealed class BlankLineEditor
 
     /// <summary>
     /// Ensures a blank line exists before the first region or end region directive of the specified kind in the token's
-    /// leading trivia, unless the directive is exempt because the line directly above it is the opening brace line or
-    /// the start of the file (<see cref="IsExemptFromPrecedingBlankLineBeforeRegionDirective(PrecedingTokenFacts, SyntaxTriviaList, int)"/>).
+    /// leading trivia, unless the directive is exempt (<see cref="IsExemptFromPrecedingBlankLineBeforeRegionDirective(PrecedingTokenFacts, SyntaxTriviaList, int)"/>):
+    /// at the start of the file, or behind an opening brace with nothing but whitespace, line breaks, conditional-compilation
+    /// directives, and disabled text in between.
     /// Directives inside a branch the compiler skipped are passed over, so the first match is the first directive that is
     /// actually part of the build
     /// </summary>
