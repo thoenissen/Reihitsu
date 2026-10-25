@@ -1,6 +1,6 @@
 Role: auditor
-Commit: 6dbf0451d1020057a69e117936b755adb0e2e768 (revision 2, repair round 2; revision 1 was 2f5432b931881d400e2dfbe818c729c2670b27c4, revision 0 was 6555cd10b2d84a3798073660100c21a867a62543)
-Verdict: findings
+Commit: e50d719e214e93f957242bb75a712179a106bb11 (revision 3, repair round 3; revision 2 was 6dbf0451d1020057a69e117936b755adb0e2e768, revision 1 2f5432b931881d400e2dfbe818c729c2670b27c4, revision 0 6555cd10b2d84a3798073660100c21a867a62543)
+Verdict: pass
 
 My prompt carried no intended fix, suspected cause, or hoped-for verdict. I changed nothing except this handover.
 
@@ -468,3 +468,73 @@ No change since revision 1. No new finding.
 - Text only: A11 (a source comment) and A9 (spec wording). Neither reaches compiled behavior.
 - Routing: A10 to the test implementer. A11 to the implementer, as a comment-only edit. A9 to the spec author.
 - Hints: revision 0's and revision 1's hints stand. `int K()` / `// a` / `/* c */ =>` / `// b` / `42;` keeps `origin/main`'s `/* c */ {` and `return` / blank / `// b` / `42;` layout. It is in order and stable, and per the A5 answer it belongs to thoenissen/Reihitsu#963.
+
+## Revision 3 — repair round 3
+
+Commit: e50d719e214e93f957242bb75a712179a106bb11
+Verdict: pass
+
+My prompt carried no intended fix, suspected cause, or hoped-for verdict. I changed nothing except this handover.
+
+### Scope
+
+This revision audits the repair only, against revision 2 (`6dbf045`).
+
+- State: the head is `e50d719`. `origin/main` and `git ls-remote origin refs/heads/main` are both `3973631` and already merged; nothing was merged since revision 2. The worktree is clean.
+- The repair is:
+  - the `IsBoundInsideSection` summary in `SwitchCaseBraceRewriter.cs` (comments only);
+  - the FMT-STRUCT-006 wording (spec author revision 8);
+  - two tests in `SwitchSectionSharedLocalTests` (test implementer revision 7);
+  - two tests and one private helper in `ExpressionBodyArrowCommentTests` (revision 8).
+- `scripts/verify-text-only.sh --base 6dbf045 --head HEAD` shows `SwitchCaseBraceRewriter.cs` text-only: all 3214 tokens are identical, and only documentation trivia changed. The only files that carry compiled code are the two test files. So the round changed no shipped behavior, and revision 2's probe evidence stands.
+- `scripts/format.sh --check` over the three changed C# files: "0 of 3 file(s) need formatting".
+
+### Previous findings
+
+| # | Issue | Status | Evidence |
+|---|---|---|---|
+| A9 | #1390 | closed | FMT-STRUCT-006 now counts a comment "in front of the arrow" only on a line on which no token stands in front of the arrow. It also states the other side: a comment behind the token in front of the arrow on the same line (`int M() /* c */ =>`) does not stop the move. `ArrowLineHoldsComment` checks exactly this, because a same-line comment behind `)` is trailing trivia of `)` and the arrow's leading trivia is then empty. Revision 2's counterexample now matches the text. `CommentBehindTheTokenInFrontOfTheArrowDoesNotStopTheMove` and its before-arrow variant pin it, which also closes the spec checker's revision 4 note. |
+| A10 | #948 | closed | `ForeachCollectionExpressionUsesTheLocalAndLeavesTheSwitchUnchanged` and `NestedSwitchGoverningExpressionUsesTheLocalAndLeavesTheSwitchUnchanged` both assert a fixed point (`AssertRuleResult(input)`, LF and CRLF). Each depends on its condition. In the `foreach` input, the only unbound `y` of section 2 is the one in `new[] { y }`: the lambda declares no `y` and its block declares none directly. In the nested-switch input, the only `y` of section 2 outside a section is in `w + y`, and the inner section holds one single-line statement, so the inner switch stays unbraced and its `int y` stays directly in the section. Without `child == forEachStatement.Statement` or `child is SwitchSectionSyntax`, that `y` would be bound, the outer switch would be braced, and the fixed-point assertion would fail. These are the inputs I compiled in revision 2. |
+| A11 | #948 | closed | The summary now names "a section of that switch — not in its governing expression" and the `when` clause of an arm, which matches `IsBoundByAncestor`. Proven text-only. |
+
+### thoenissen/Reihitsu#948
+
+#### Findings
+
+_None._
+
+#### Assertion adequacy
+
+| Test | Invariant | Falsifying observation | Helper | Verdict |
+|---|---|---|---|---|
+| `ForeachCollectionExpressionUsesTheLocalAndLeavesTheSwitchUnchanged`, `NestedSwitchGoverningExpressionUsesTheLocalAndLeavesTheSwitchUnchanged` | Whole pipeline is a fixed point | Any brace inserted | `AssertRuleResult(input)` | Adequate; each falsifies its condition, as traced above |
+
+### thoenissen/Reihitsu#1390
+
+#### Findings
+
+_None._
+
+#### Assertion adequacy
+
+| Test | Invariant | Falsifying observation | Helper | Verdict |
+|---|---|---|---|---|
+| `CommentBehindTheTokenInFrontOfTheArrowDoesNotStopTheMove…` (2) | The own-line comment sits on the line after `{` and directly above `return 42;`; the other comment survives exactly once; idempotent; LF and CRLF | The move stopped, a comment lost or duplicated, a pass-2 change | `AssertOwnLineCommentLeadsStatementAndOtherCommentSurvives` (regex with `Regex.InfiniteMatchTimeout`) | Adequate for what the spec decides; the place of `/* c */` is unspecified and not pinned |
+
+### thoenissen/Reihitsu#949, #954, #888
+
+No change since revision 2. No new finding.
+
+### Whole run
+
+- Blocking: none. All findings A1–A11 are closed. The repair added no compiled change to shipped code, so it cannot have introduced a new behavioral defect.
+- Hints (not findings) for the run report, unchanged from earlier revisions:
+  - the `///` hazard in `BuildLeadingTrivia`;
+  - the conditional-directive and start-of-file divergences from RH5031 (the A4 answer);
+  - the FMT-BLANK-016 `#pragma` region gap;
+  - the chain's first link behind a comment tail (Q4 → B);
+  - the nested `Inner = { … }` initializer;
+  - the RH3202 provider's duplicated registration loop;
+  - the `/* c */ {` layout that belongs to thoenissen/Reihitsu#963.
+- One more hint: a comment that starts behind `)` and ends on the arrow's line (`int M() /* c` / `*/ =>`) belongs, by SHARED-COMMENT-012, to the line it starts on. So it is the "behind the token" case and does not stop the move, which is what the code does. Not pinned.
+- I re-ran no repository test. The implementer's full formatter and analyzer suites at `9ba0bc3`, and the role runs since, cover compiled code that this round did not change; the validator runs the full suite next.
