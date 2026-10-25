@@ -50,3 +50,7 @@ On the auditor's findings (`17-auditor.md`), the maintainer chose 1B and 2A. 1B:
 # Third amendment and spec author's Q1/Q2 — decided 2026-10-25 under the standing instruction
 
 The lead took its recommended options: the change doc as of `18-spec-author.md` is approved (set `Accepted`); Q1 (BOM-led raw string): B — restore the earlier output, the BOM counts as one column in the raw-string move; Q2 (tab in front of a node-level target): A — four columns, as FMT-PIPE-017 states. Checkpoint before: b40c2fb. Recorded in `squad/decisions/2026-10-25-phase-prediction-removal-third-amendment.md`.
+
+# Skeptic round 20 — decided 2026-10-25 under the standing instruction
+
+C1 (tab in front of a node-level target): B — for whatever lies outside the target, the node-level column counts characters (a whitespace tab outside the target is one column), so the fixes keep converging under SHARED-FIX-001/005; SHARED-FIX-007 is clarified not to reach whitespace tabs outside the code the fix changes. This reverses the earlier Q2 A. C2–C7 are spec wording with a single reading, for the spec author. Checkpoint before: 0e22387. Recorded in `squad/decisions/2026-10-25-phase-prediction-removal-tab-before-node-target.md`.
