@@ -44,3 +44,8 @@ None so far.
 - Auditor finding 2 (three stale text lines, PR-introduced) → spec author (docs owner in repairs, although the tooling lane skipped it initially).
 - Auditor finding 3 (FC-017, assertion that cannot fail, PR-introduced) → test implementer.
 - Escalation 10 (lane check: root `CONTRIBUTING.md` unclassified, "no lane"): maintainer chose B — keep the edit; the lane classifier treats `CONTRIBUTING.md` as text in this run, covered by a `Reihitsu.Tooling.Test` test. `squad/decisions/2026-10-25-lane-check-contributing-md-unclassified.md`. Lane stays tooling. Added to repair round 1: test implementer (test), then implementer (classifier).
+- Escalation 12 (audit of repair round 1): 1A — fix the stale `squad/roles/auditor.md` line now (spec author); 2A — lane-rule duplication and `CODE_OF_CONDUCT.md`/`SECURITY.md` become a follow-up; both follow-up issues approved. `squad/decisions/2026-10-25-repeated-default-run-statement-and-lane-rule.md`.
+
+## After the repair audit (passed with text findings)
+
+- Audit 12 finding 4 → spec author; finding 5 (test summary comment) → cleaner. Proof: `scripts/verify-text-only.sh --strict-docs --base 5459c5d --head worktree`.
