@@ -292,7 +292,7 @@ is left unchanged.
 For a multi-line interpolated raw string, a line that starts inside one of its interpolation holes with a token or a comment is placed by one of three conditions:
 
 - When an alignment requirement (FMT-INDENT-012 to FMT-INDENT-029) places the line relative to a token that lies inside the literal — in the same hole or on one of the literal's content lines — and the construct it aligns lies inside the hole, the formatter MUST keep that alignment, measured at the token's column after the literal moved.
-- When a comment starts the line, the formatter MUST give it the column FMT-INDENT-006 gives it — the column of the token it precedes, or one level deeper than a closing brace it precedes — measured at that token's column after this requirement placed it.
+- When a comment starts the line, the formatter MUST give it the column FMT-INDENT-006 gives it — the column of the token it precedes, or one level deeper than a closing brace it precedes — measured at that token's column after this requirement placed it. When another comment leads the line of that token, the token's line starts with that comment, and the comment above takes the column that line starts in, as on any other line (FMT-INDENT-006); the column of the token behind the leading comment does not decide it.
 - Any other line that a token starts, the formatter MUST NOT re-indent, whatever column the indentation requirements would give it: a column from the scope depth (FMT-INDENT-002 to FMT-INDENT-004), or a column that a construct outside the hole sets, such as the body of a lambda around the literal. It MUST move the line by the same number of columns as the closing marker (FMT-RAW-001, FMT-RAW-002), and, when the closing marker already starts in the target column, MUST leave the line where it is. Such lines are, for example, started by a token of the hole's expression that no alignment inside the hole places, by the `,` of an alignment clause, by the `:` of a format clause, or by the hole's closing `}`.
 
 The whitespace in front of such a line holds no tab: FMT-TAB-001 replaced each with four spaces before any layout was computed, so the line's column is the number of characters in front of its first token. The lines of a raw string literal nested in a hole are aligned as FMT-RAW-008 states, and the lines that start inside the text of another nested literal or inside a nested comment as FMT-RAW-009 states.
@@ -447,6 +447,40 @@ class C
                      // c
                      name
                  }
+                 """;
+    }
+}
+```
+
+A comment line above a hole line that another comment leads takes the column of that line's start, where the leading comment stands, not the column of `x` behind it:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var x = "x";
+        var a = $"""
+    a {
+    // above
+    /* c */ x
+    } b
+    """;
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var x = "x";
+        var a = $"""
+                 a {
+                 // above
+                 /* c */ x
+                 } b
                  """;
     }
 }

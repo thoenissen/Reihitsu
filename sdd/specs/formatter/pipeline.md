@@ -5,7 +5,7 @@
 | ID prefix | FMT-PIPE |
 | Status | Active |
 | Code owners | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `FormattingContext`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities` |
-| Uses | SHARED-FIX-006, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-CLEAN-001, FMT-CLEAN-005, FMT-EOL-001, FMT-INDENT-008, FMT-INDENT-030, FMT-RAW-001, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003 |
+| Uses | SHARED-FIX-006, SHARED-FIX-007, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-CLEAN-001, FMT-CLEAN-005, FMT-EOL-001, FMT-INDENT-008, FMT-INDENT-030, FMT-RAW-001, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003 |
 
 This spec covers what holds for the formatter as a whole: the public entry points, the fixed phase order, and the invariants every phase must keep. What an individual phase decides is specified in that phase's own spec.
 
@@ -425,3 +425,53 @@ class C
 ```
 
 when the indentation of every line is written with tabs, the output of the first phase holds four spaces for each of those tabs, every later phase receives that text without a tab, and the result is the block above.
+
+### FMT-PIPE-017 — Node-level targets take their columns from the indentation phase
+
+`FormatNodeInDocumentAsync` and `FormatNodeInDocumentWithContextAsync` MUST lay out the node they format — the target, or the context node — from the column its first token has in the document, and MUST NOT move a line of it after the last phase: every line of the formatted node MUST end in the column the indentation phase gives it (FMT-PIPE-015). The column of the first token is counted as the phases count columns, each tab in front of it on its line as four columns (FMT-TAB-001), and the first token stays in that column. This holds for every line of the node, also for a line that starts inside a comment that began on an earlier line, for the lines aligned to an anchor on such a line (FMT-INDENT-030), and for the content, hole, and closing lines of a multi-line raw string literal (FMT-RAW-001).
+
+Why: A code fix formats only the code its diagnostic is about (FMT-PIPE-010), and that code has to come out as document-level formatting lays it out (SHARED-FIX-007). When the node is formatted as if it started at another column and its lines are moved afterwards, the move reaches only lines that start with whitespace: the line behind a multi-line comment's last line and the lines of a raw string literal stay where the phases left them, while the lines aligned to them move, and a tab counted as one column by the move but as four by the phases puts the node a few columns off. Laying out the node at its own column leaves nothing to move, so the indentation phase is the only owner of a line's final column for node-level targets too, as it is for documents (FMT-PIPE-001).
+
+Example — `FormatNodeInDocumentAsync` with the `EqualsValueClauseSyntax` `= new Dictionary<int, int> …` as target, which starts in column 14 behind `var d`; the complex element's brace stands behind the last line of a multi-line comment, and its expressions and closing brace are laid out from the brace, as document-level formatting lays them out:
+
+```csharp
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var d = new Dictionary<int, int>
+                {
+                    /* a
+                       b */ {
+                        1,
+                        2
+                    }
+                };
+    }
+}
+```
+
+```csharp
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var d = new Dictionary<int, int>
+                {
+                    /* a
+                       b */ {
+                                1,
+                                2
+                            }
+                };
+    }
+}
+```
+
+Example — with the `EqualsValueClauseSyntax` `= """ …` of `        var s = """` / `    a` / `    """;` as target, the content line and the closing marker move under the opening quotes in column 16, as in document-level formatting.
+
+Example — not shown as an input block because the input contains tabs: the statement `Call(1,` / `2);` is indented with two tabs, as are the method around it, and is the target. Its first token counts as column 8, so the output is `        Call(1,` / `             2);`, with eight and thirteen spaces, while the lines of the method outside the target keep their tabs.
