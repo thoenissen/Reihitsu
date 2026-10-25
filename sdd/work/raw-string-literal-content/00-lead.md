@@ -47,3 +47,19 @@ SwitchCaseBraces, BlankLines, LineBreaks, StructuralTransforms phases and RH5201
 # Lead notes
 
 - Skeptic re-check (12b09f9): R1–R4 routed to the spec author without a new escalation. R1 narrows "through the construct around it" (wording from the 1B option, not the maintainer's own) to constructs inside the hole; this serves the maintainer's stated goal of 1B — remove exactly the non-idempotent shape, keep stable layouts — and restores FMT-PIPE-004 for a raw literal inside a lambda body. To be named in the run report.
+4. Escalation 7 (after 07-auditor, finding 6, #1146). Maintainer chose **A**: the RH5104 fix is withheld for a reported comment that has another comment before it on the line where it starts (the diagnostic stays without a fix, SHARED-FIX-003). Covers `/* a */ /* b⏎   c */ M();` and `M(); /* a */ // b` when `// b` would be fixed first; no comment is ever reordered by the fix. Recorded here and in the PR run report only.
+
+# Follow-ups (maintainer-approved)
+
+- thoenissen/Reihitsu#1074 — existing exact match for the RH5601/RH5602 gap against SHARED-DIAG-003 (reused, not created).
+- thoenissen/Reihitsu#1458 — created: RH5202 fix leaves nested verbatim strings and comments in a hole unchanged.
+- thoenissen/Reihitsu#1433 — commented: Q6 superseded by J1.
+- thoenissen/Reihitsu#1393 — its RH5104 half is delivered by this PR (J1); linked as `Refs`, stays open for RH5417.
+
+# Repair round 1 (from 07-auditor)
+
+Worklist, all `same requirement` or `PR-introduced`:
+- Spec author: RH5104 spec states maintainer answer A above (finding 6).
+- Test implementer: regression tests for auditor findings 1–4 and 6 (and the `M(); /* a */ // b` order).
+- Implementer: findings 1–7.
+Then cleaner, spec checker, auditor (repair only), validator.
