@@ -387,3 +387,93 @@ bash scripts/apply-fix.sh RH5205|RH3208 <dir> --no-install   # hint 3
 bash scripts/apply-fix.sh RH5104 <dir> --no-install          # finding 6
 bash scripts/format.sh <dir> --no-install                    # scratch copies, then apply-fix RH5202 to RH5206 (FC-013)
 ```
+
+# Repair round 2
+
+Role: auditor
+Commit: f8866f6
+Verdict: #951: findings; #1133: pass; #1146: pass
+
+## Scope
+
+This is a repair delta audit: `git diff 34745f8 f8866f6 -- src/ sdd/specs/ documentation/`, at head `f8866f6`. `git ls-remote origin refs/heads/main` returns `3973631c2c222ae484dd6039c3d6c89311959653`, the branch contains it, and the tree is clean. I read the "Repair round 2" sections of `00-lead.md`, `03-test-implementer.md`, `04-implementer.md`, `05-cleaner.md`, and `06-spec-checker.md`, plus the spec checker's "Main merge" section and the latest revision of `01-spec-author.md`. The prompt carried no intended fix or hoped-for verdict.
+
+The delta has three parts:
+
+- **This run's repair, `b8cc3e0..22ecca4`.**
+  - **Code.** `RawStringLineShifts.GetColumnAfterTabReplacement` is now shared and replaces the private copy in `LayoutComputer`. The raw-string phase uses it for every literal's first token.
+  - **Summaries and tests.** XML summaries in `LayoutModel` and `CommentIndentationContributor`, and 3 tests.
+- **The merge of `origin/main`, `4c8b98d`.** It is a clean merge: `git show --cc` has no resolution hunks. Main brings thoenissen/Reihitsu#1456 (byte-order mark handling in `CleanupPhase`, documentation-comment changes) and thoenissen/Reihitsu#1462 (the rule-page policy).
+- **The spec author's rule-page revert, `6894c38`.** `git diff origin/main -- documentation AGENTS.md squad .claude` is now empty.
+
+I audited main's changes only where they meet this run: `CleanupPhase` (the counterpart of the tab count) and the documentation-comment phase (the `///` lines in a hole, finding 3).
+
+## Previous findings
+
+| # | Status | Evidence |
+|---|---|---|
+| 2 | closed | The residual counterexample (a tab in front of a comment on a hole line) is stable after pass 1, with `"b"` at 43 under `"a"`. `ArgumentAnchoredBehindATabIndentedCommentOnAHoleLineAlignsAfterTheTabReplacement` pins it. `GetColumnAfterTabReplacement` now counts a tab as four exactly when `FindTrivia` returns a `WhitespaceTrivia`, which is the set `CleanupPhase.NormalizeWhitespaceTabs` rewrites (whitespace in the leading and trailing trivia of every token). |
+| 8 | closed | The aligned and the misaligned counterexample (nested opening quotes behind a tab) are stable after pass 1. Two tests pin them. Both phases now measure the opening column through the same method. |
+| 9 | closed | The summaries of `TryGetPlacedColumn`, `TryGetPlacedColumnBeforeRawStringShift`, `RegisterRawStringHoleLine(column)`, and `AlignCommentsBeforeToken` describe the post-shift, tab-expanded column. |
+| 1, 3–7 | closed (unchanged) | I re-traced the first-round counterexamples for findings 1, 3, and 4, and the hint-1 input, on `f8866f6`. All are stable after pass 1. |
+
+## Findings
+
+| # | Severity | Location | Failure class | Scope relation | What goes wrong | Suggested change |
+|---|---|---|---|---|---|---|
+| 10 | high | `RawStringAlignmentPhase.ComputeReplacement` (`RawStringAlignmentPhase.cs:120–121`: `GetLeadingSpaceCount` then `Math.Max(0, currentSpaces + shift)`), against the measuring side `RawStringLineShifts.GetColumnAfterTabReplacement` | FC-012, FC-015, FC-016, FC-003 | PR-introduced (a sibling of findings 2 and 8 that no earlier round constructed: on `origin/main` the indentation phase re-indents such a line, and the tab is gone) | The phase moves a line only by changing the spaces in front of its first tab, while both phases now measure the line with that tab counted as four. When a literal moves left by more columns than the spaces in front of the tab, the move is clamped at the tab. The line then moves less than FMT-RAW-007 condition 3 requires: the line is indented more than the shift, so the requirement covers it. Anything aligned to it was measured at the predicted column. Counterexamples are below the table. Every existing tab test shifts right or not at all (FC-003). | Move a hole line's whole leading whitespace: write `tab-expanded width + shift` spaces in place of the spaces and tabs, so the phase writes what both phases measure. Content and closing lines stay space-counted: their leading whitespace is literal text, which is the scope of thoenissen/Reihitsu#1432. Add a leftward-shift test with a tab, with and without an anchored line. |
+
+Counterexamples for finding 10, both with `var a = $"""` (quotes at 17) and the closing marker at 21, so the literal moves 4 columns left:
+
+- **Plain.** The hole line is 2 spaces and a tab, then `name`, which puts `name` at column 6. The output, stable after pass 1, puts `name` at 4. FMT-RAW-007 requires 2.
+- **Anchored.** The hole line is 2 spaces and a tab, then `string.Concat("a",`, and the next line is `"b")}`. Pass 1 puts `"b"` at 16, while `"a"` ends at 18 after cleanup. Pass 2 moves `"b"` to 18, so the result breaks FMT-PIPE-004.
+
+## Guard scope
+
+| Decision | Inspected span | Counterpart predicate | Agreement | Verdict |
+|---|---|---|---|---|
+| A tab counts four columns (`GetColumnAfterTabReplacement`) | Every character from line start to the token. A tab counts 4 when `root.FindTrivia(position)` is `WhitespaceTrivia`. Everything else counts 1: comment text, literal text, a tab inside a comment, the BOM character | `CleanupPhase.NormalizeWhitespaceTabs`, applied to `WhitespaceTrivia` in the leading and trailing trivia of every token. Directive trivia is normalized separately and cannot stand on a raw literal's line | They agree | agree |
+| How far a line actually moves (`ComputeReplacement`) | The leading spaces up to the first non-space character, clamped at 0 | The predicted shift, measured with tabs counted as four | They disagree when a leftward shift exceeds the spaces in front of a tab | mismatch, finding 10 |
+
+## Policy ownership
+
+| Policy | Owners found by rg | Verdict |
+|---|---|---|
+| A code-whitespace tab is four columns | Measuring: `RawStringLineShifts.GetColumnAfterTabReplacement`, the only measuring statement, used by both phases. Rewriting: `CleanupPhase.NormalizeWhitespaceTabs`, owned by run R2, a follow-up per escalation 5. Writing a moved hole line: `RawStringAlignmentPhase.ComputeReplacement`, which ignores tabs (`rg -n "GetLeadingSpaceCount\|Math.Max\(0\|GetColumnAfterTabReplacement" src/Reihitsu.Formatter`) | The measuring statement has one owner. The writer disagrees with it: finding 10 |
+| Per-line shift | `RawStringLineShifts` | single owner |
+
+## Assertion adequacy
+
+| Test | Invariant | Falsifying observation | Helper | Verdict |
+|---|---|---|---|---|
+| `ArgumentAnchoredBehindATabIndentedCommentOnAHoleLineAlignsAfterTheTabReplacement` | `"b"` is aligned under `"a"` at its post-cleanup column, on pass 1 and pass 2, under LF and CRLF | A column difference | `AssertRuleResult(source with tabs, expected)` | adequate |
+| `NestedLiteralOpeningATabIndentedHoleLineOf{Aligned,Misaligned}LiteralIsAlignedAfterTheTabReplacement` | The inner literal is aligned under its opening quotes after cleanup, on both passes | A column difference | `AssertRuleResult` | Adequate. Both shift right or not at all: finding 10 (FC-003) |
+
+## Merge interaction
+
+- **`CleanupPhase` (thoenissen/Reihitsu#1456).** The byte-order-mark change touches only whitespace that starts the text, which lies before line 0's first token. A hole line or a nested opening line is never line 0. `NormalizeWhitespaceTabs` is unchanged, so the parity under Guard scope holds.
+- **The documentation-comment phase (thoenissen/Reihitsu#1456).** The `///` lines in a hole (finding 3) are still stable after pass 1 on `f8866f6`. `DocumentationCommentLinesInHoleMoveWithTheTokenBelowThem` passes in the spec checker's merged-tree run.
+- **Rule pages (thoenissen/Reihitsu#1462).** `documentation/rules/RH5104.md` and `RH5601.md` equal `origin/main`. The withheld fixes live in RH5104-006, RH5104-007, and RH5601-002, as the new policy asks.
+
+## Failure classes dismissed (repair delta)
+
+- **FC-001.** The tab-count span now equals the cleanup span.
+- **FC-011.** The round adds no loop.
+- **FC-013.** The repair changes columns only for tab-indented hole lines. No layout analyzer reports hole lines (first-round apply-fix results).
+- **FC-031.** Closed with finding 9.
+- **FC-032.** The cleaner's and the spec checker's runs are on the final production code. The merge changed no file of this run's code.
+- **FC-033.** `AssertRuleResult` covers CRLF.
+- **FC-035.** The expected values follow from FMT-RAW-007, FMT-RAW-008, and FMT-CLEAN-002, and the tests were watched red on `d50b936`.
+- The remaining classes are as in the earlier rounds and have nothing new to reach.
+
+## Hints
+
+- **A, unchanged.** It is the follow-up from escalation 5. The repair of finding 10 makes the raw-string phase a third place that has to apply the tab rule, which strengthens the case for one shared helper.
+
+## Commands
+
+```shell
+bash scripts/trace.sh <fixture> --passes 3 --no-install   # 10 earlier counterexamples and 4 new probes on f8866f6
+```
+
+I re-ran no test project.
