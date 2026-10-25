@@ -166,6 +166,7 @@ public class FormattingPipelineTests
         var observedPhases = new List<string>();
         var expectedPhases = new[]
                              {
+                                 "TabReplacementPhase",
                                  "StructuralTransformPhase",
                                  "RegionFormattingPhase",
                                  "DocumentationCommentFormattingPhase",
@@ -175,7 +176,6 @@ public class FormattingPipelineTests
                                  "SwitchCaseBracePhase",
                                  "HorizontalSpacingPhase",
                                  "IndentationPhase",
-                                 "RawStringAlignmentPhase",
                                  "CleanupPhase",
                                  "LineEndingNormalizationPhase"
                              };
