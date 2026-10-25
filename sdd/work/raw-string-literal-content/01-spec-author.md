@@ -118,7 +118,7 @@ Note, not a question: today `RawStringAlignmentPhase` clamps a line that would m
 ### What changed in this revision
 
 - **3A.** RH5601-002 now also names the whitespace after the opening quotes of a multi-line raw string, interpolated or not, as the literal's text. The example gains `string y = """→` and `string z = $"""→`. The `$"""→` form is reported and fixed today (skeptic); the plain form is not reported.
-- **Rule page.** `documentation/rules/RH5601.md` now says that the whitespace after a raw string's opening quotes, and the indentation of its lines, belong to the literal.
+- **Rule page.** This revision added a clause to `documentation/rules/RH5601.md`. It was removed later under the #1462 policy (see the revision history); the page is unchanged.
 
 ### Changed requirements (cumulative)
 
@@ -126,7 +126,7 @@ Note, not a question: today `RawStringAlignmentPhase` clamps a line that would m
 - RH5601-002 — Tabs in literals, comments, and disabled text are not reported — clarified. The whitespace after the opening quotes, the content-line indentation, and the closing-line indentation of a multi-line raw string, interpolated or not, are the literal's text.
 - RH5602-001 — unchanged.
 - RH5602-002 — Whitespace inside a multi-line string literal is not reported — clarified to "part of the text of" the literal; the example gains `{1}··`. No RH5602 behavior changes.
-- Rule pages: `RH5601.md` has the clause above; `RH5602.md` is net unchanged against `9501a4b`.
+- Rule pages: `RH5601.md` and `RH5602.md` are net unchanged against `origin/main` (#1462 policy).
 
 ### Examples for the tests
 
@@ -166,7 +166,7 @@ Bringing them in line means that RH5602 can no longer skip whole lines through `
   - multi-line holes.
 
   The example gains `"""u8.Length + /* c */ x`, `$@"a⏎{x}b" + /* c */ x`, and `$"{⏎x}" + /* c */ x`. The plain `/* a⏎   b */ M(); // c` is not in the spec example, because `/* a…b */` is itself reported there and its fix is offered. It is for the test implementer, as the skeptic lists it.
-- **Rule page.** `documentation/rules/RH5104.md`'s Exceptions bullet now also names the braces of an interpolation that spans several lines.
+- **Rule page.** This revision widened the Exceptions bullet of `documentation/rules/RH5104.md`. The bullet was removed later under the #1462 policy; the page is unchanged.
 
 ### Changed requirements (cumulative)
 
