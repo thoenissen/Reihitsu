@@ -1,6 +1,6 @@
 # Failure classes
 
-Known ways a change in this repository goes wrong. The skeptic names the classes that can reach a change, the test implementer covers them, and the auditor checks every one. IDs are immutable; a class that no longer applies is marked retired, not removed. A new class is added only together with a `squad/decisions/` entry naming the failure it prevents.
+Known ways a change in this repository goes wrong. The skeptic names the classes that can reach a change, the test implementer covers them, and the auditor checks every one. IDs are immutable; a class that no longer applies is marked retired, not removed. A new class is added only together with a `squad/decisions/` entry naming the failure it prevents. Where the members of a class are known, a [matrix](#class-matrices) lists them: the skeptic and the auditor enumerate a defect's class from it and report all failing members together ([`README.md`](README.md#architecture-findings)).
 
 **Origin** says where the class was learned: *RC reviews* — the 1.0-RC review rounds, which traced nearly every critical finding to the trivia, semantics, convergence, idempotency, parity, and closure classes; *audits* — findings of the former preflight audit and Behavior Contract gate; *reproduction* — the former reproduction gate.
 
@@ -70,3 +70,30 @@ Known ways a change in this repository goes wrong. The skeptic names the classes
 | FC-034 | A regression test reproduces a simplified cousin of the reported shape instead of the shape itself | RC reviews |
 | FC-035 | Expected test values were taken from a patched copy of the code, so the test cannot falsify the implementation that produced them | audits |
 | FC-037 | A comment-only change is "proven" by a line-based `grep`, which cannot tell a comment from a directive or from comment-looking text inside a literal; only `scripts/verify-text-only.sh` proves it | audits |
+
+## Class matrices
+
+A matrix spans the neighboring shapes of a known class along its axes; every combination of one member per axis is a cell. A defect found in one cell is checked in every cell, and every failing cell is reported in the same finding. A cell is checked by formatting its input twice, under LF and CRLF: the second pass must not change the output. Each matrix names the components that share the decision, because a class whose members fail between two components is also an architecture finding.
+
+### Tab width across formatter phases
+
+Classes: FC-012, FC-015, FC-016. Learned in the run that aligned interpolation holes of multi-line raw strings, where each of three audit rounds found one more failing cell of this matrix.
+
+**Decision.** The column of a line in an interpolation hole of a multi-line raw string. `CleanupPhase` writes it last, replacing every tab in whitespace trivia with four spaces (FMT-CLEAN-002). `IndentationPhase` places other lines against that column, and `RawStringAlignmentPhase` measures the line and moves it, so both predict the cleanup phase's tab replacement. Wherever a tab is counted as one column, or only part of the whitespace is counted or rewritten, a token ends up three columns away from where the other components measured it, and the output is not stable after one pass (FMT-PIPE-004).
+
+| Axis | Members |
+|---|---|
+| Shift of the literal | right; none (aligned literal); left by at most the spaces in front of the tab; left by more than those spaces |
+| What the tab stands in front of | the line's first token; a comment in front of the token on the same line; the opening quotes of a nested raw string |
+| Anchoring | none; another line aligned to the line's column — a comment line above it that follows the token below, a wrapped argument, or the content and closing quotes of the nested raw string |
+
+The failing cells, in the order the run found them:
+
+| Found by | Shift | Tab in front of | Anchoring | What went wrong |
+|---|---|---|---|---|
+| first audit | none | the first token | comment line above; wrapped argument | A hole line that no construct places kept its tab, and its column was registered with the tab counted as one |
+| repair round 1 | none | a comment | wrapped argument | The tab count stopped at the first non-whitespace character, while the cleanup phase replaces tabs in every whitespace trivia in front of the token |
+| repair round 1 | none; right | the opening quotes of a nested raw string | content and closing quotes | The raw-string phase measured the opening quotes with the tab counted as one, the indentation phase with the tab counted as four |
+| repair round 2 | left by more than the spaces in front of the tab | the first token | none; wrapped argument | The raw-string phase moved the line by rewriting only the spaces in front of the tab, so a leftward move was clamped at the tab |
+
+Every tab test before the last round shifted right or not at all; the boundary between the two leftward members — a shift equal to the spaces in front of the tab — is a cell of its own (FC-003).

@@ -39,9 +39,13 @@ Spawn each role of the lane in order, one fresh agent per role — for several i
 | Test implementer: not reproduced, or no concrete scenario | Escalation 8 (below) |
 | Test implementer or implementer: a test or the spec is wrong | Escalation 4 |
 | Any role: scope grows beyond the change doc | Escalation 5 |
+| Any role: architecture finding | Escalation 12, at once, before the next role starts (below) |
 | Cleaner: only a suppression or ruleset change resolves a warning | Escalation 6 |
 | Spec checker or auditor: findings | Repair round (below) |
+| Auditor: a finding that repeats the class of an earlier audit finding | Escalation 12, instead of a repair round (below) |
 | Validator: a failure that also exists on `main` | Escalation 9 |
+
+**Architecture finding.** A handover that lists one under `Architecture findings` (`README.md`, *Architecture findings*) stops the run before the next role is spawned, whatever its verdict. Ask the maintainer with the components, the decision they share, and the role's evidence as context, and these options: **A** — fix narrowly in this run and draft the structural change as a follow-up (*Follow-ups*); **B** — change the structure first: route it to its owner like a repair, from the first role of the lane it affects, and continue the run on top of it, with a change doc or a wider scope it needs asked as escalations 2 and 5; **C** — stop the run, leaving the branch and the draft PR as they are and stating in the draft PR where the run stopped. Carry out the answer before the next role starts.
 
 **Not reproduced.** Keep the test as a characterization test, change the PR's `Closes #<N>` to `Refs #<N>`, and skip every remaining role except the spec checker and the validator. Then ask the maintainer, quoting the scenarios that ran green and the evidence that would change the verdict (exact input, line endings, surface, tool version): request that evidence from the author, accept the behavior and close the issue, or continue anyway. In a run of several issues, only the issue that did not reproduce changes to `Refs #<N>`, and only it skips the remaining roles; they run for the other issues once the maintainer has answered.
 
@@ -56,7 +60,7 @@ If `origin/main` moves after a passing audit, check whether the new commits touc
 
 ## 6. Repairs
 
-Collect every finding of one verdict into one worklist, classify each — same requirement or PR-introduced stays; a new mechanism or pre-existing defect becomes a follow-up candidate — and route each to its owner (`README.md`). The finding's suggested change is a suggestion; the owner re-derives it. Then the cleaner, the spec checker, and the auditor run again; the auditor audits the repair only. A further block starts another repair round in the same way, up to three in a run (`README.md`, *Repairs*); a block after the third, or a finding whose repair needs a choice the maintainer has not made, is escalation 7. A state mismatch or a role that returned no verdict does not use up the round.
+Collect every finding of one verdict into one worklist, classify each — same requirement or PR-introduced stays; a new mechanism or pre-existing defect becomes a follow-up candidate — and route each to its owner (`README.md`). An auditor finding marked as repeating the class of an earlier audit finding of the run, and a finding the auditor lists under `Architecture findings`, are not routed: they are escalation 12 (section 4, *Architecture finding*), and the rest of the worklist waits for the answer. The finding's suggested change is a suggestion; the owner re-derives it. Then the cleaner, the spec checker, and the auditor run again; the auditor audits the repair only. A further block starts another repair round in the same way, up to three in a run (`README.md`, *Repairs*); a block after the third, or a finding whose repair needs a choice the maintainer has not made, is escalation 7. A state mismatch or a role that returned no verdict does not use up the round.
 
 When the auditor passes with comment or documentation findings only, route them to the cleaner (code comments) or the spec author (docs). Prove the fix with `scripts/verify-text-only.sh --strict-docs --base <audited-sha> --head worktree`; a passing proof needs no second audit, a failing one makes it a repair round.
 
@@ -90,5 +94,6 @@ A follow-up candidate from any handover is first searched among open and closed 
 - Add an issue to the run that the prompt did not name, or spawn a role once per issue.
 - Skip a role the lane requires without recording why, or claim a lane the lane check does not confirm.
 - Start a fourth repair round, or publish while the auditor or validator blocks.
+- Spawn the next role over an unanswered architecture finding, or start a repair round for a finding that repeats an earlier audit finding's class.
 - Leave `sdd/work/` in a published PR, or the claim placeholder in its title or body.
 - Use the `gh` CLI or a raw GitHub API call; use the GitHub MCP server.

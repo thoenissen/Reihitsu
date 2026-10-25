@@ -35,6 +35,8 @@ Do not change it. A test you believe asserts the wrong behavior goes back to the
 
 Stay inside the files the change needs. Stop and report in your handover — do not continue — when the change would add a public API or a dependency, change a shared helper with other consumers, or more than double the production paths the handovers name (escalation 5). An unrelated defect you notice goes into the handover as a follow-up candidate.
 
+Report an architecture finding (`README.md`, *Architecture findings*) when the defect you are fixing comes from two components owning the same decision, a component predicting or copying another's behavior, or a rule stated in more than one place — including when the tests could only pass by writing such a prediction or copy. Make the narrowest change the tests need without restructuring the components, and leave the structure to the maintainer's answer (escalation 12). In a repair round, a finding the auditor enumerated as a class is repaired for every failing member it lists.
+
 ## Must not
 
 - Change a test assertion, test input, or expected output.
@@ -62,6 +64,9 @@ Verdict: tests pass | test disputed | scope stop | blocked
 
 ## Disputed tests or scope
 <or _None._>
+
+## Architecture findings
+<the components, the decision they share, and the input or the places that show it; or _None._>
 
 ## Follow-up candidates
 <or _None._>

@@ -21,13 +21,15 @@ Defects here live in interactions: an analyzer and its formatter counterpart, a 
 ## Checks
 
 1. **Against the specs.** Every requirement the run names holds in the code, for every example and every input class the skeptic listed; every requirement of every issue of the run is addressed or explicitly out of scope.
-2. **Failure classes.** Walk the whole catalog. For each class that can reach the changed code, trace the code against it or construct the input; record every class you dismissed with the reason.
-3. **Guard scope.** For every predicate, guard, or exemption the diff adds or changes: the exact span it inspects, the counterpart predicate for the same decision, and whether their spans and boundaries agree (FC-001, FC-002). A mismatch is a finding even when every test passes.
-4. **Policy ownership.** `rg` every place that owns a changed policy, including private copies outside the diff; record paths and symbols. More than one owner is a finding unless the diff justifies the difference and proves parity (FC-015).
-5. **Assertion adequacy.** For every new or changed test: its invariant, the observation that would falsify it, and whether the assertion and helper are as strong as the guarantee (FC-017). A weaker test is a finding even when green.
-6. **Code quality.** Correctness and edge cases, a class gaining a responsibility that belongs elsewhere, logic duplicated from existing code, unnecessary coupling, error handling, obvious performance traps on hot paths, naming, and public XML documentation.
-7. **Comments.** Every changed method's summary and inline comments describe the new code (FC-031). No `TODO`, no commented-out code, and no reference to this repository's issue or PR numbers.
-8. **Scope.** No edit outside the run's scope.
+2. **Failure classes.** Walk the whole catalog, its class matrices included. For each class that can reach the changed code, trace the code against it or construct the input; record every class you dismissed with the reason.
+3. **Classes, not instances.** For every defect you confirm, enumerate its class (`README.md`, *Architecture findings*): the axes along which the failing shape can vary and every member they span, starting from the class's matrix in the catalog when it has one. Trace or construct every member, and report all failing members together in one finding, naming the members that hold.
+4. **Guard scope.** For every predicate, guard, or exemption the diff adds or changes: the exact span it inspects, the counterpart predicate for the same decision, and whether their spans and boundaries agree (FC-001, FC-002). A mismatch is a finding even when every test passes.
+5. **Policy ownership.** `rg` every place that owns a changed policy, including private copies outside the diff; record paths and symbols. More than one owner is a finding unless the diff justifies the difference and proves parity (FC-015).
+6. **Assertion adequacy.** For every new or changed test: its invariant, the observation that would falsify it, and whether the assertion and helper are as strong as the guarantee (FC-017). A weaker test is a finding even when green.
+7. **Code quality.** Correctness and edge cases, a class gaining a responsibility that belongs elsewhere, logic duplicated from existing code, unnecessary coupling, error handling, obvious performance traps on hot paths, naming, and public XML documentation.
+8. **Comments.** Every changed method's summary and inline comments describe the new code (FC-031). No `TODO`, no commented-out code, and no reference to this repository's issue or PR numbers.
+9. **Scope.** No edit outside the run's scope.
+10. **Structure.** A defect whose cause is two components owning the same decision, a component predicting or copying another's behavior, or a rule stated in more than one place is an architecture finding (`README.md`, *Architecture findings*). Report the structure in its own section and the defect in `Findings`.
 
 ## How to verify
 
@@ -46,7 +48,7 @@ Blocking findings are limited to defects the PR causes, missing requirements, te
 
 ## The repair round
 
-You are a fresh agent with the previous audit handover and the repair diff. Name every previous finding with its status — `closed`, `open`, or `superseded` — and audit what the repair moved: its changed guards, the counterparts those reach, and the tests it added. Reuse evidence that is byte-identical to the first audit; report the delta, not a second full audit. A repair that grew into an unrelated surface or changed the spec gets a full audit, and you say that scope grew.
+You are a fresh agent with the previous audit handover and the repair diff. Name every previous finding with its status — `closed`, `open`, or `superseded` — and mark every new finding that repeats the class of a finding of an earlier audit of the run: the same decision failing between the same components, not only the same catalog ID (`README.md`, *Architecture findings*). Audit what the repair moved: its changed guards, the counterparts those reach, and the tests it added. Reuse evidence that is byte-identical to the first audit; report the delta, not a second full audit. A repair that grew into an unrelated surface or changed the spec gets a full audit, and you say that scope grew.
 
 ## Must not
 
@@ -67,8 +69,8 @@ Verdict: pass | pass, text cleanup | findings | state mismatch
 <head and base SHAs; full audit or repair delta against <sha>>
 
 ## Findings
-| # | Severity | Location | Failure class | Scope relation | What goes wrong | Suggested change |
-|---|---|---|---|---|---|---|
+| # | Severity | Location | Failure class | Repeats | Scope relation | What goes wrong | Suggested change |
+|---|---|---|---|---|---|---|---|
 
 ## Guard scope
 | Decision | Inspected span | Counterpart predicate | Agreement | Verdict |
@@ -85,8 +87,11 @@ Verdict: pass | pass, text cleanup | findings | state mismatch
 ## Failure classes dismissed
 <FC-### — why it cannot reach the change>
 
+## Architecture findings
+<the components, the decision they share, and the input or the places that show it; or _None._>
+
 ## Hints
 <or _None._>
 ```
 
-An empty table gets an explicit `_N/A — <reason>._` line. `pass, text cleanup` means every finding is confined to comments or documentation and cannot reach compiled behavior, diagnostics, public API documentation, or rule metadata; add why for each. The suggested change is a suggestion — the owner re-derives it. Commit your handover with `[skip ci]`.
+An empty table gets an explicit `_N/A — <reason>._` line. `Repeats` names the earlier audit finding whose class the finding repeats (`#<n>`), or `–`; a repeat and an architecture finding are escalation 12, not a repair round. `pass, text cleanup` means every finding is confined to comments or documentation and cannot reach compiled behavior, diagnostics, public API documentation, or rule metadata; add why for each. The suggested change is a suggestion — the owner re-derives it. Commit your handover with `[skip ci]`.
