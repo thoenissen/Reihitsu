@@ -214,12 +214,12 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     /// that encloses it, in the part of the enclosing construct that the declaration's scope covers:
     /// <list type="bullet">
     /// <item><description>a parameter of a lambda, anonymous method, or local function, or a variable that the function's expression body designates, for a name in the function's body — not in its attribute lists, parameter list, return type, or constraint clauses;</description></item>
-    /// <item><description>a local that a block or a section of a nested switch declares directly, for a name in that block or switch;</description></item>
+    /// <item><description>a local that a block declares directly, for a name in that block, and one that a section of a nested switch declares directly, for a name in a section of that switch — not in its governing expression;</description></item>
     /// <item><description>the variable of a <c>foreach</c>, <c>using</c>, or <c>fixed</c> statement, for a name in its embedded statement;</description></item>
     /// <item><description>the variable of a <c>for</c> statement, for a name in its condition, incrementors, or embedded statement;</description></item>
     /// <item><description>the variable of a <c>catch</c> clause, for a name in its filter or block;</description></item>
     /// <item><description>a variable that the condition of a <c>while</c> statement designates, for a name in that condition or its embedded statement, and one that the condition of a <c>do</c> statement designates, for a name in that condition;</description></item>
-    /// <item><description>a variable that the pattern of a switch-expression arm designates, for a name in that arm.</description></item>
+    /// <item><description>a variable that the pattern or the <c>when</c> clause of a switch-expression arm designates, for a name in that arm.</description></item>
     /// </list>
     /// Such a name does not refer to a local of another section, which C# lets a lambda or local function
     /// shadow. A shadowing form not listed here still counts as a use, which leaves the switch unbraced
