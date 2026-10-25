@@ -592,3 +592,29 @@ scripts/test.sh --project formatter --filter "FullyQualifiedName~SwitchSectionSh
 ```
 
 Result: 48 passed.
+
+## Revision 8 — repair round 3, comment behind the token in front of the arrow
+
+Head 29236c7. This revision covers the FMT-STRUCT-006 sentence from spec author revision 8, which the spec checker (`06-spec-checker.md` revision 4) found untested. The sentence: a comment behind the token in front of the arrow on the same line (`int M() /* c */ =>`) belongs to that token, does not stand at the arrow, and MUST NOT stop the move.
+
+Both tests are in `ExpressionBodyArrowCommentTests` and tagged FMT-STRUCT-006. They run under LF and CRLF with a second pass.
+
+| Test | Input | Helper | Expected now |
+|---|---|---|---|
+| `CommentBehindTheTokenInFrontOfTheArrowDoesNotStopTheMove` | `int M() /* c */ =>` / `// a` / `42;` | `AssertOwnLineCommentLeadsStatementAndOtherCommentSurvives` | passes |
+| `CommentBehindTheTokenInFrontOfTheArrowDoesNotStopTheMoveOfACommentBeforeTheArrow` | `int M() /* c */` / `// a` / `=> 42;` | same | passes |
+
+What is pinned, and why:
+
+- **Decided by the spec, so asserted:**
+  - the own-line comment still moves: `// a` is on the line right after the block's `{` and directly above `return 42;`;
+  - the expression joins `return`.
+- **Not decided by the spec, so not asserted:** where `/* c */` ends up. It "belongs to that token", but no output position is stated. The new private helper only checks that `/* c */` survives exactly once (FMT-PIPE-002) and that a second pass changes nothing.
+
+Both tests pass on this head, which matches the spec author's `format.sh` observation in revision 8.
+
+```shell
+scripts/test.sh --project formatter --filter "FullyQualifiedName~ExpressionBodyArrowCommentTests"
+```
+
+Result: 24 passed.

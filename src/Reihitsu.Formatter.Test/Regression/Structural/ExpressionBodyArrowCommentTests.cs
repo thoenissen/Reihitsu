@@ -719,6 +719,51 @@ public class ExpressionBodyArrowCommentTests : FormatterTestsBase
         AssertOwnLineCommentLeadsStatementAndTrailingCommentFollows(input, "// b", "return 42;", "// t");
     }
 
+    /// <summary>
+    /// Verifies that a comment behind the token in front of the arrow on the arrow's line belongs to that token and
+    /// does not stand at the arrow, so an own-line comment after the arrow still leads the created statement. Where
+    /// the comment behind the token goes is not specified, so only that it survives is asserted
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
+    public void CommentBehindTheTokenInFrontOfTheArrowDoesNotStopTheMove()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int M() /* c */ =>
+                                     // a
+                                     42;
+                             }
+                             """;
+
+        // Act & Assert
+        AssertOwnLineCommentLeadsStatementAndOtherCommentSurvives(input, "// a", "return 42;", "/* c */");
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind the token in front of the arrow does not stop the move of an own-line comment
+    /// before the arrow either
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
+    public void CommentBehindTheTokenInFrontOfTheArrowDoesNotStopTheMoveOfACommentBeforeTheArrow()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int M() /* c */
+                                 // a
+                                 => 42;
+                             }
+                             """;
+
+        // Act & Assert
+        AssertOwnLineCommentLeadsStatementAndOtherCommentSurvives(input, "// a", "return 42;", "/* c */");
+    }
+
     #endregion // Tests
 
     #region Methods
@@ -791,6 +836,35 @@ public class ExpressionBodyArrowCommentTests : FormatterTestsBase
 
             Assert.AreEqual(trailingIndex, formatted.LastIndexOf(trailingComment, StringComparison.Ordinal), $"The comment behind the semicolon must appear once under {endingName} line endings.");
             Assert.IsGreaterThan(statementIndex, trailingIndex, $"The comment behind the semicolon must stay behind the statement under {endingName} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Formats the input under LF and CRLF and asserts that the own-line comment leads the created statement inside
+    /// the block, on the line directly after the opening brace and directly above the statement, that the other
+    /// comment survives exactly once, and that a second pass changes nothing
+    /// </summary>
+    /// <param name="input">The source text to format</param>
+    /// <param name="ownLineComment">The comment written on a line of its own next to the arrow</param>
+    /// <param name="statementText">Text of the created statement</param>
+    /// <param name="otherComment">A further comment of the member whose placement is not specified</param>
+    private static void AssertOwnLineCommentLeadsStatementAndOtherCommentSurvives(string input, string ownLineComment, string statementText, string otherComment)
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var endingName = DescribeLineEnding(endOfLine);
+            var formatted = Format(NormalizeLineEndings(input, endOfLine));
+
+            Assert.AreEqual(formatted, Format(formatted), $"Formatter is not idempotent under {endingName} line endings.");
+            AssertUsesLineEnding(formatted, endOfLine);
+            Assert.MatchesRegex(new Regex($@"\{{\r?\n[ ]*{Regex.Escape(ownLineComment)}\r?\n[ ]*{Regex.Escape(statementText)}", RegexOptions.None, Regex.InfiniteMatchTimeout),
+                                formatted,
+                                $"The own-line comment must lead the created statement inside the block under {endingName} line endings.");
+
+            var otherIndex = formatted.IndexOf(otherComment, StringComparison.Ordinal);
+
+            Assert.IsGreaterThanOrEqualTo(0, otherIndex, $"The other comment must survive under {endingName} line endings.");
+            Assert.AreEqual(otherIndex, formatted.LastIndexOf(otherComment, StringComparison.Ordinal), $"The other comment must appear once under {endingName} line endings.");
         }
     }
 
