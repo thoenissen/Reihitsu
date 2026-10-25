@@ -982,6 +982,8 @@ class C
 
 For a nested initializer assigned to a member (`Child = { … }`), the formatter MUST indent an opening brace that starts a line to the column of the assigned member, and the closing brace to the same column as the opening brace. For an array initializer of a declaration (`int[] a = { … }`) and for a complex element initializer (`{ 1, 2 }` inside a collection initializer), the closing brace MUST be indented to the column of the opening brace. In every case the members that start a line MUST be indented one level deeper than the opening brace's column.
 
+When a comment leads the line of the opening brace, the comment takes the column that line starts in — for a nested initializer assigned to a member, the column of the assigned member (FMT-INDENT-006) — and the column of the opening brace is the column it stands in behind the comment (FMT-INDENT-030): the closing brace and the members follow that column, not the comment's. When the comment stands on a line above the brace, the brace starts its line, and its column is the column of that line.
+
 Why: Without a `new` keyword the target of the assignment is the closest token that owns the initializer; when the brace stays on the line of `=`, the brace itself is the anchor.
 
 Example:
@@ -1036,6 +1038,54 @@ class C
                       1,
                       2
                   };
+    }
+}
+```
+
+Example — a comment leads the line of a nested initializer's opening brace; the comment takes the column of `Child`, 20, the brace stands in column 28, and the member and the closing brace follow the brace:
+
+```csharp
+class P
+{
+    public int X { get; set; }
+
+    public P Child { get; set; } = new P();
+}
+
+class C
+{
+    void M()
+    {
+        var p = new P
+                {
+                    Child =
+                    /* c */ {
+                        X = 2
+                    }
+                };
+    }
+}
+```
+
+```csharp
+class P
+{
+    public int X { get; set; }
+
+    public P Child { get; set; } = new P();
+}
+
+class C
+{
+    void M()
+    {
+        var p = new P
+                {
+                    Child =
+                    /* c */ {
+                                X = 2
+                            }
+                };
     }
 }
 ```
@@ -1404,6 +1454,8 @@ When the literal is not moved, because its closing marker already starts under i
 
 The column of an anchor is the column it has in this phase's output, counting everything that stands in front of it on its line. When a comment stands in front of a line's first token, on that token's line, the comment takes the column FMT-INDENT-006 gives it and the token keeps its gap behind the comment (FMT-INDENT-005): an anchor on that line is measured behind the comment, and so are the opening quotes of a raw string literal on it (FMT-RAW-005). The same holds for a token behind the last line of a multi-line comment, which this phase does not move (FMT-INDENT-007): the token is measured where that line puts it. A comment that ends with its line — a `//` comment, or a delimited comment followed by a line break — is not in front of the token on the token's line; the token then starts its line and is measured at the line's column.
 
+This holds also when the anchor is itself the first token of its line, such as the opening brace of a complex element initializer or of a nested initializer (FMT-INDENT-023), the opening bracket of a collection expression (FMT-INDENT-025), the `new` keyword of a creation expression (FMT-INDENT-022), the first token of a governing expression (FMT-INDENT-027), or the left operand of a wrapped binary expression (FMT-INDENT-018): the comment takes the column that the requirement placing the line gives its start, and the anchor is measured behind the comment, where it stands. A token that starts its line behind such a comment but anchors nothing — such as the opening brace of a creation initializer, whose members align to `new` (FMT-INDENT-022) — moves no other line.
+
 Example — a comment leads the line of the call; `1` stands behind it, in column 21, and `2` aligns there:
 
 ```csharp
@@ -1471,3 +1523,53 @@ class C
 ```
 
 The same holds for the alignment of every other requirement above, such as a chain link: behind `/* c */ a.B()`, a wrapped `.C()` aligns to `.B`, in column 17 when the line starts in column 8.
+
+Example — a comment leads the line of a complex element initializer's opening brace, which is the first token of its line; the comment takes the element's column, 20, the brace stands behind it in column 28, and the element's expressions and closing brace follow the brace (FMT-INDENT-023), while the second element, whose comment stands on the line above, keeps its brace at the line's column:
+
+```csharp
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var d = new Dictionary<int, int>
+                {
+                    /* e */ {
+                        1,
+                        2
+                    },
+
+                    // f
+                    {
+                        3,
+                        4
+                    }
+                };
+    }
+}
+```
+
+```csharp
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var d = new Dictionary<int, int>
+                {
+                    /* e */ {
+                                1,
+                                2
+                            },
+
+                    // f
+                    {
+                        3,
+                        4
+                    }
+                };
+    }
+}
+```
