@@ -83,3 +83,11 @@ Hints in 07-auditor.md are follow-up candidates for the run report, not repairs.
 # Escalation 1 before the auditor (Q4 in 01-spec-author.md), answered by the maintainer
 
 - Q4 → B. A chain's first link behind a multi-line comment tail keeps today's behavior and stays unspecified in this run; follow-up candidate. SHARED-BODY-004 is treated as part of the bug fix (no change doc); the maintainer did not object.
+
+# Repair round 2 (07-auditor.md, revision note after repair round 1)
+
+| Finding | Class | Owner(s) |
+|---|---|---|
+| A8 parameter of a lambda / local function binds names in its attribute lists and default values, so the switch is braced and fails with CS0103 | PR-introduced (FMT-SWITCH-014, FMT-PIPE-003) | test implementer, implementer |
+| A2 (narrowed) shadowing forms inside a lambda or local function (`foreach`/`for`/`using`/`fixed`/`catch` variables, `while`/`do` designations, switch-expression arms, nested switch sections) still leave the switch unbraced | PR-introduced (FMT-SWITCH-014) | test implementer, implementer |
+| A9 FMT-STRUCT-006 wording ("the arrow's line holds a comment") is wider than the behavior (comment directly at the arrow) | same requirement, spec text | spec author |
