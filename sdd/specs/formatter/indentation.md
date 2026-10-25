@@ -5,7 +5,7 @@
 | ID prefix | FMT-INDENT |
 | Status | Active |
 | Code owners | `IndentationPhase`, `LayoutComputer`, `LayoutModel`, `TokenLayout`, `IndentationRewriter`, `ListElementAligner`, `SyntaxIndentationUtilities`, `ArgumentAlignmentContributor`, `AngleBracketListAlignmentContributor`, `AnonymousObjectContributor`, `BaseTypeListContributor`, `BinaryExpressionContributor`, `CaseWhenClauseContributor`, `CollectionExpressionContributor`, `CommentIndentationContributor`, `ConditionalExpressionContributor`, `ConstructorInitializerContributor`, `GenericConstraintContributor`, `LambdaAlignmentContributor`, `ListPatternContributor`, `MethodChainAlignmentContributor`, `ObjectInitializerContributor`, `ParenthesizedPatternContributor`, `PatternAnchor`, `RecursivePatternContributor`, `SwitchExpressionContributor` |
-| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-015, SHARED-BLANK-002, SHARED-CHAIN-007, FMT-DOC-012, FMT-RAW-001, FMT-RAW-007, FMT-SWITCH-001 |
+| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-015, SHARED-BLANK-002, SHARED-CHAIN-007, FMT-DOC-012, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SWITCH-001 |
 
 This spec covers the indentation phase: the column at which every line that starts with a token begins — block indentation by scope depth, the alignment of wrapped constructs to an anchor token, and the re-indentation of comments and directives that start a line. Line breaks are already decided when this phase runs (FMT-PIPE-001); it only changes the whitespace in front of the first token or trivia of a line. The same phase moves the lines of multi-line raw string literals as FMT-RAW specifies, so the column it gives a line is final (FMT-PIPE-015).
 
@@ -1401,3 +1401,73 @@ class C
 ```
 
 When the literal is not moved, because its closing marker already starts under its opening quotes, the link aligns to the same column, and the output is left unchanged.
+
+The column of an anchor is the column it has in this phase's output, counting everything that stands in front of it on its line. When a comment stands in front of a line's first token, on that token's line, the comment takes the column FMT-INDENT-006 gives it and the token keeps its gap behind the comment (FMT-INDENT-005): an anchor on that line is measured behind the comment, and so are the opening quotes of a raw string literal on it (FMT-RAW-005). The same holds for a token behind the last line of a multi-line comment, which this phase does not move (FMT-INDENT-007): the token is measured where that line puts it. A comment that ends with its line — a `//` comment, or a delimited comment followed by a line break — is not in front of the token on the token's line; the token then starts its line and is measured at the line's column.
+
+Example — a comment leads the line of the call; `1` stands behind it, in column 21, and `2` aligns there:
+
+```csharp
+class C
+{
+    void M()
+    {
+        /* c */ Call(1,
+2);
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        /* c */ Call(1,
+                     2);
+    }
+}
+```
+
+while a comment on the line above the call leaves `Call` at the start of its line, and `2` aligns to column 13:
+
+```csharp
+class C
+{
+    void M()
+    {
+        // c
+        Call(1,
+             2);
+    }
+}
+```
+
+Example — a comment leads the line of a raw string literal whose closing line carries the anchor link `.Trim`; the opening quotes stand behind the comment, in column 24, the literal moves under them, and `.ToUpper` aligns to `.Trim` where that move puts it:
+
+```csharp
+class C
+{
+    void M()
+    {
+        /* c */ var s = """
+    a
+    """.Trim()
+    .ToUpper();
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        /* c */ var s = """
+                        a
+                        """.Trim()
+                           .ToUpper();
+    }
+}
+```
+
+The same holds for the alignment of every other requirement above, such as a chain link: behind `/* c */ a.B()`, a wrapped `.C()` aligns to `.B`, in column 17 when the line starts in column 8.

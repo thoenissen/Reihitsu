@@ -181,7 +181,7 @@ class C
 
 ### FMT-RAW-005 — Alignment follows the final position of the opening quotes
 
-The formatter MUST compute the target column from the column the indentation phase gives the opening quotes, in the same phase that moves the literal's lines, so a raw string whose statement was re-indented, joined onto the previous line, or passed as an argument is aligned to where its opening quotes end up.
+The formatter MUST compute the target column from the column the opening quotes have in the output of the indentation phase, the same phase that moves the literal's lines, so a raw string whose statement was re-indented, joined onto the previous line, or passed as an argument is aligned to where its opening quotes end up. That column counts everything in front of the opening quotes on their line, including a comment that leads the line (FMT-INDENT-030).
 
 Why: Placing a line moves only the token that starts it; the content lines of a raw string are part of the literal's token text and do not move with it. The indentation phase decides where the opening quotes go, so it is the phase that re-attaches the content to them; a later phase would have to wait for that decision, and every line the indentation phase aligns to a token on the literal's lines would then have to predict the move (FMT-INDENT-030).
 
@@ -234,6 +234,32 @@ class C
         var a = """
                 Hello
                 """;
+    }
+}
+```
+
+and on a line that a comment leads, the literal is aligned to the opening quotes behind the comment, in column 24, not to the column the line starts in:
+
+```csharp
+class C
+{
+    void M()
+    {
+    /* c */ var s = """
+    a
+    """;
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        /* c */ var s = """
+                        a
+                        """;
     }
 }
 ```

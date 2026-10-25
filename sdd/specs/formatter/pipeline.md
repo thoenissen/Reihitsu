@@ -5,7 +5,7 @@
 | ID prefix | FMT-PIPE |
 | Status | Active |
 | Code owners | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `FormattingContext`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities` |
-| Uses | SHARED-FIX-006, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-CLEAN-001, FMT-CLEAN-005, FMT-EOL-001, FMT-INDENT-030, FMT-RAW-001, FMT-TAB-001, FMT-TAB-002 |
+| Uses | SHARED-FIX-006, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-CLEAN-001, FMT-CLEAN-005, FMT-EOL-001, FMT-INDENT-008, FMT-INDENT-030, FMT-RAW-001, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003 |
 
 This spec covers what holds for the formatter as a whole: the public entry points, the fixed phase order, and the invariants every phase must keep. What an individual phase decides is specified in that phase's own spec.
 
@@ -407,7 +407,7 @@ When a line of the input ends in spaces, the cleanup phase removes them, and no 
 
 ### FMT-PIPE-016 — No phase after the first sees or writes a tab in whitespace
 
-The formatter MUST replace the tabs in whitespace and between directive tokens (FMT-TAB-001, FMT-TAB-002) in its first phase, and a later phase MUST NOT write a tab into whitespace trivia or between the tokens of a directive, so every phase after the first receives and returns whitespace without tabs and counts every character of it as one column.
+The formatter MUST replace the tabs in the whitespace of the code and between directive tokens (FMT-TAB-001, FMT-TAB-002) in its first phase, and a later phase MUST NOT write a tab into that whitespace, so every phase after the first receives and returns it without tabs and counts every character of it as one column. The whitespace inside a documentation comment, a comment, a literal, or disabled text, and a directive's free text, keep their tabs (FMT-TAB-003) and are outside this requirement: a tab in front of a continuation line's `///` reaches the indentation phase, which replaces that whitespace as a whole (FMT-INDENT-008).
 
 Why: All layout is computed in spaces. A tab that survives into a later phase has a width that each phase has to agree on, and a phase that counts it differently from the phase that finally replaces it places a token where the next pass moves it (FMT-PIPE-004). Replacing every tab first leaves no width to agree on.
 
