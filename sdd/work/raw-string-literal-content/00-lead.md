@@ -75,3 +75,10 @@ Then cleaner, spec checker, auditor (repair only), validator.
 # Merge of origin/main (before the round-2 audit)
 
 - Merged `origin/main` at 3973631 (no textual conflict; overlap only in `sdd/specs/README.md` and `requirement-ids.txt`, both merged cleanly). `main`'s thoenissen/Reihitsu#1462 changed the rule-page policy (AGENTS.md "Code-fix coverage" and "Key conventions"; `general-notes.md`): rule pages carry no list of withheld fixes, exceptions, or corner cases; a withheld fix is recorded in the rule's spec only. This run's rule-page edits (`documentation/rules/RH5104.md` `## Exceptions`, `documentation/rules/RH5601.md` clause) are routed to the spec author to be brought in line. Not a repair round.
+
+# Repair round 3 (from 07-auditor "Repair round 2") — last round
+
+Worklist, `PR-introduced`: auditor finding 10 (a tab-indented hole line in a literal that moves left by more columns than the spaces in front of the tab moves too little; FMT-RAW-007, FMT-PIPE-004).
+- Test implementer: second-pass regression tests (plain and anchored counterexamples, LF and CRLF).
+- Implementer: finding 10.
+Then cleaner, spec checker, auditor (repair only), validator. A block after this round is escalation 7.
