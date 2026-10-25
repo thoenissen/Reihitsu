@@ -997,6 +997,123 @@ public class RawStringInterpolationHoleTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a wrapped argument anchored on a hole line of an aligned literal, where a tab and a comment precede the anchor's call, is aligned to the column the anchor has after the tab becomes four spaces, and a second pass keeps it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-RAW-007")]
+    public void ArgumentAnchoredBehindATabIndentedCommentOnAHoleLineAlignsAfterTheTabReplacement()
+    {
+        const string source = """"
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      var a = $"""
+                                               Hello {
+                                               →/* c */ string.Concat("a",
+                                               "b")}
+                                               """;
+                                  }
+                              }
+                              """";
+        const string expected = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = $"""
+                                                 Hello {
+                                                     /* c */ string.Concat("a",
+                                                                           "b")}
+                                                 """;
+                                    }
+                                }
+                                """";
+
+        AssertRuleResult(source.Replace("→", "\t"), expected);
+    }
+
+    /// <summary>
+    /// Verifies that a nested raw string whose opening quotes start a tab-indented hole line of an aligned literal is aligned under the column those quotes have after the tab becomes four spaces, and a second pass keeps it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-RAW-007")]
+    [Requirement("FMT-RAW-008")]
+    public void NestedLiteralOpeningATabIndentedHoleLineOfAlignedLiteralIsAlignedAfterTheTabReplacement()
+    {
+        const string source = """"
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      var a = $"""
+                                               Outer {
+                                               →"""
+                                                   inner
+                                                   """}
+                                               """;
+                                  }
+                              }
+                              """";
+        const string expected = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = $"""
+                                                 Outer {
+                                                     """
+                                                     inner
+                                                     """}
+                                                 """;
+                                    }
+                                }
+                                """";
+
+        AssertRuleResult(source.Replace("→", "\t"), expected);
+    }
+
+    /// <summary>
+    /// Verifies that a nested raw string whose opening quotes start a tab-indented hole line of a misaligned literal moves with the outer literal and is aligned under the column those quotes have after the tab becomes four spaces, and a second pass keeps it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-RAW-007")]
+    [Requirement("FMT-RAW-008")]
+    public void NestedLiteralOpeningATabIndentedHoleLineOfMisalignedLiteralIsAlignedAfterTheTabReplacement()
+    {
+        const string source = """"
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      var a = $"""
+                                  Outer {
+                                  →"""
+                                      inner
+                                      """}
+                                  """;
+                                  }
+                              }
+                              """";
+        const string expected = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = $"""
+                                                 Outer {
+                                                     """
+                                                     inner
+                                                     """}
+                                                 """;
+                                    }
+                                }
+                                """";
+
+        AssertRuleResult(source.Replace("→", "\t"), expected);
+    }
+
     #endregion // Hole lines
 
     #region Nested raw strings

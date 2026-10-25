@@ -292,3 +292,34 @@ The expected output follows from the specs:
 ```shell
 scripts/test.sh --project formatter --configuration Debug --filter "FullyQualifiedName~RawStringAlignmentPipelineTests.WrappedArgumentAnchoredBehindTheClosingQuotesOfARawStringAlignsAfterTheLiteralMoved"
 ```
+
+# Repair round 2
+
+Role: test implementer
+Commit: d50b936
+Verdict: #951: findings 2 (narrowed) and 8 reproduced; #1133: nothing to do; #1146: nothing to do
+
+Inputs: the "Repair round 1" section of `07-auditor.md` (findings 2 and 8) and the "Repair round 2" worklist in `00-lead.md`. The inputs are the auditor's counterexamples. The expected values come from FMT-RAW-007, FMT-RAW-008, and FMT-CLEAN-002. A hole line that no construct inside the hole places is not re-indented. Its tabs become four spaces each, so the line's tokens end at that column, with the tab counted as four. A wrapped argument aligns to its anchor at that final column (FMT-INDENT-012, FMT-INDENT-030). A nested literal aligns under its opening quotes at their final column. FMT-PIPE-004 requires a second pass to keep the result.
+
+I ran the tests on the production code at d50b936, which is unchanged since f7ca92a, with `--configuration Debug`.
+
+## thoenissen/Reihitsu#951
+
+All three are in `RawStringInterpolationHoleTests`. Each uses `AssertRuleResult(source.Replace("→", "\t"), expected)`, which checks pass 1 and pass 2 under LF and CRLF.
+
+| Test | Finding | Requirement / failure class | Expected now | Observed vs expected (LF, pass 1) |
+|---|---|---|---|---|
+| `ArgumentAnchoredBehindATabIndentedCommentOnAHoleLineAlignsAfterTheTabReplacement`. Aligned literal at 17; hole line `→/* c */ string.Concat("a",` after 17 spaces; `"b")}` after 17 spaces | 2 (narrowed) | FMT-RAW-007; FC-001, FC-003, FC-012 | red | `"b"` at 40. Expected 43: the tab becomes four spaces, so `/* c */` is at 21 and `"a"` at 43 |
+| `NestedLiteralOpeningATabIndentedHoleLineOfAlignedLiteralIsAlignedAfterTheTabReplacement`. Aligned outer literal at 17; hole line `→"""` after 17 spaces | 8, aligned | FMT-RAW-007, FMT-RAW-008; FC-012, FC-016 | red | `inner` and `"""}` at 18. Expected 21, under the opening quotes after the tab became four spaces |
+| `NestedLiteralOpeningATabIndentedHoleLineOfMisalignedLiteralIsAlignedAfterTheTabReplacement`. Outer literal misaligned by 13; hole line `→"""` after 4 spaces | 8, misaligned | FMT-RAW-007, FMT-RAW-008; FC-012, FC-016 | red | `inner` and `"""}` at 18. Expected 21: the quotes move by 13 from column 8, with the tab counted as four |
+
+Each test fails at the LF pass-1 assertion, so I have not watched its CRLF half fail. The mechanism does not depend on the line ending (`07-auditor.md`). Findings 9 (stale XML summaries) and hint A (a shared tab helper) have no output behavior that a test could pin.
+
+## Whole run
+
+```shell
+scripts/test.sh --project formatter --configuration Debug --filter "FullyQualifiedName~Reihitsu.Formatter.Test.Unit.RawStringAlignment"
+```
+
+- 55 tests, 3 red, exactly the three above. Every earlier test passes.
+- `scripts/format.sh` reports no change to the test file.
