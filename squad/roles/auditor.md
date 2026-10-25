@@ -33,7 +33,7 @@ Defects here live in interactions: an analyzer and its formatter counterpart, a 
 
 ## How to verify
 
-Default to static tracing. Execute only when a specific suspicion is checkable and the answer changes a finding: a focused `scripts/test.sh --filter` run, `scripts/format.sh` twice over a fixture for idempotency, `scripts/apply-fix.sh` for convergence. Fixtures live in a temporary directory outside the repository. Never run the full suite — the validator does.
+Default to static tracing. Execute only when a specific suspicion is checkable and the answer changes a finding: a focused `scripts/test.sh --filter` run, `scripts/format.sh` twice over a fixture for idempotency, `scripts/apply-fix.sh` for convergence. Fixtures live in a temporary directory outside the repository. Never run the full suite — the validator runs the default set, and CI runs the self-hosting scans.
 
 Keep the breadth of input shapes flat however small the diff is; a narrow corpus on a small diff is how a boundary finding is missed. Sample a universal property until it is established or a counterexample appears, then stop. A constructed counterexample for a moved predicate beats volume.
 
