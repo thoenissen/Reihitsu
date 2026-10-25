@@ -6,7 +6,7 @@ using System.Xml.Linq;
 
 using Microsoft.CodeAnalysis;
 
-namespace Reihitsu.Analyzer.Test.SelfHosting.Utilities;
+namespace Reihitsu.SelfHosting.Test.Utilities;
 
 /// <summary>
 /// Metadata for a project participating in analyzer self-hosting

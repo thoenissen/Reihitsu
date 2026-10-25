@@ -101,6 +101,36 @@ public sealed class LaneCheckCommandTests
     }
 
     /// <summary>
+    /// Verifies that a diff changing only the root contributing guide is text and fits the docs lane
+    /// </summary>
+    [TestMethod]
+    public void ExecuteConfirmsTheDocsLaneForTheRootContributingGuide()
+    {
+        // Act
+        var (exitCode, output, _) = Run("M\tCONTRIBUTING.md\n", "--lane", "docs", "--text-only", "fail");
+
+        // Assert
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+        Assert.Contains("Text       CONTRIBUTING.md", output);
+        Assert.Contains("LANE CHECK: confirmed — claimed docs, diff needs docs", output);
+    }
+
+    /// <summary>
+    /// Verifies that the root contributing guide next to tooling paths leaves the tooling lane rather than no lane
+    /// </summary>
+    [TestMethod]
+    public void ExecuteConfirmsTheToolingLaneForTheRootContributingGuideNextToTooling()
+    {
+        // Act
+        var (exitCode, output, _) = Run("M\tAGENTS.md\nM\tCONTRIBUTING.md\nM\tscripts/test.sh\n", "--lane", "tooling", "--text-only", "fail");
+
+        // Assert
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+        Assert.Contains("Text       CONTRIBUTING.md", output);
+        Assert.Contains("LANE CHECK: confirmed — claimed tooling, diff needs tooling", output);
+    }
+
+    /// <summary>
     /// Verifies that an empty diff is reported as such and fits the docs lane
     /// </summary>
     [TestMethod]

@@ -50,7 +50,7 @@ Watch every new test fail for the right reason before handing over. A test for e
 | Analyzer ↔ formatter parity: the formatter clears the diagnostic, stays stable on a second pass, under LF and CRLF | `FormatterTestsBase<TAnalyzer>.VerifyFormatter(source, fixedSource, …)` |
 | Analyzer-clean code stays untouched and analyzer-clean after formatting, under LF and CRLF | `FormatterTestsBase<TAnalyzer>.VerifyFormatter(source)` |
 | Formatter phase per line ending | `Formatter.Test/Helpers/FormatterTestsBase.AssertRuleResult(input, expected, endOfLine)` |
-| Whole-repository formatter stability | `SelfHostingTests` already covers every file — do not duplicate it |
+| Whole-repository formatter stability | `FormatterSelfHostingTests` in `Reihitsu.SelfHosting.Test` already covers every file, run in CI — do not duplicate it |
 | Rule doc, README row, code-fix column | `AnalyzerPackageMetadataTests` — keep the docs in sync instead of adding a test |
 
 A code-fix test class derives from `BatchCodeFixTestsBase` or `SingleCodeFixTestsBase` (`AGENTS.md`). Test names describe the behavior; never reference tracker numbers.

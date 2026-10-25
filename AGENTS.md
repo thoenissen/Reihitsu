@@ -11,7 +11,7 @@ Each script resolves the .NET SDK itself: it probes `dotnet --list-sdks` and ins
 ```shell
 scripts/prepare.sh        # verify the toolchain, installing only if needed
 scripts/build.sh          # dotnet build Reihitsu.sln -c Release
-scripts/test.sh           # all test projects
+scripts/test.sh           # all test projects except the self-hosting scans, which CI runs (--project selfhosting)
 ```
 
 Focused runs:

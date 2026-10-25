@@ -16,7 +16,7 @@ This file is the process every role follows. The lead's playbook is [`lead.md`](
 | [Cleaner](roles/cleaner.md) | Runs `reihitsu-format`, makes the Release build warning-free | Change behavior, add suppressions or ruleset changes, change assertions |
 | [Spec checker](roles/spec-checker.md) | Verifies specs, change doc, user documentation, and the requirement tags of new tests against the diff | Change anything |
 | [Auditor](roles/auditor.md) | Final quality check of the finished tree against specs and the failure-class catalog | Change anything |
-| [Validator](roles/validator.md) | Builds the solution and runs all tests | Diagnose or fix |
+| [Validator](roles/validator.md) | Builds the solution and runs every test project except the self-hosting scans, which CI runs | Diagnose or fix |
 
 Roles are strictly separated. A role that has to re-read everything was given a poor handover; a lead that knows everything has done too much itself.
 

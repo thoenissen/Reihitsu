@@ -31,6 +31,7 @@ public sealed class LaneClassifierTests
     [DataRow(".claude/agents/auditor.md", PathCategory.Tooling)]
     [DataRow("squad/lead.md", PathCategory.Tooling)]
     [DataRow("AGENTS.md", PathCategory.Tooling)]
+    [DataRow("CLAUDE.md", PathCategory.Tooling)]
     [DataRow("Directory.Build.props", PathCategory.Tooling)]
     [DataRow("Release.ruleset", PathCategory.Tooling)]
     [DataRow(".editorconfig", PathCategory.Tooling)]
@@ -50,6 +51,22 @@ public sealed class LaneClassifierTests
 
         // Assert
         Assert.AreEqual(expected, category);
+    }
+
+    /// <summary>
+    /// Verifies that the repository's root contributing guide is text, whether or not the diff was proven text-only
+    /// </summary>
+    /// <param name="isTextOnlyProven">Whether the whole diff was proven text-only</param>
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void ClassifyPathTreatsTheRootContributingGuideAsText(bool isTextOnlyProven)
+    {
+        // Act
+        var category = LaneClassifier.ClassifyPath("CONTRIBUTING.md", isTextOnlyProven);
+
+        // Assert
+        Assert.AreEqual(PathCategory.Text, category);
     }
 
     /// <summary>

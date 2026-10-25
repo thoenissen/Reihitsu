@@ -103,14 +103,14 @@ internal static class AnalyzerMetadataDiscovery
     /// <returns>Analyzer test classes</returns>
     internal static IReadOnlyList<Type> DiscoverAnalyzerTestClasses()
     {
-        return typeof(SelfHostingTests).Assembly
-                                       .GetTypes()
-                                       .Where(type => type.IsAbstract is false
-                                                      && type.IsClass
-                                                      && type.Name.EndsWith("AnalyzerTests", StringComparison.Ordinal)
-                                                      && type.GetCustomAttribute<TestClassAttribute>() is not null)
-                                       .OrderBy(type => type.Name, StringComparer.Ordinal)
-                                       .ToArray();
+        return typeof(AnalyzerMetadataDiscovery).Assembly
+                                                .GetTypes()
+                                                .Where(type => type.IsAbstract is false
+                                                               && type.IsClass
+                                                               && type.Name.EndsWith("AnalyzerTests", StringComparison.Ordinal)
+                                                               && type.GetCustomAttribute<TestClassAttribute>() is not null)
+                                                .OrderBy(type => type.Name, StringComparer.Ordinal)
+                                                .ToArray();
     }
 
     /// <summary>
@@ -119,15 +119,15 @@ internal static class AnalyzerMetadataDiscovery
     /// <returns>Code-fix test classes</returns>
     internal static IReadOnlyList<DiscoveredCodeFixTestClass> DiscoverCodeFixTestClasses()
     {
-        return typeof(SelfHostingTests).Assembly
-                                       .GetTypes()
-                                       .Where(type => type.IsAbstract is false
-                                                      && type.IsClass
-                                                      && type.GetCustomAttribute<TestClassAttribute>() is not null
-                                                      && FindClosedGenericBase(type, typeof(AnalyzerTestsBase<,>)) is not null)
-                                       .Select(CreateCodeFixTestClassMetadata)
-                                       .OrderBy(testClass => testClass.TestClassType.FullName, StringComparer.Ordinal)
-                                       .ToArray();
+        return typeof(AnalyzerMetadataDiscovery).Assembly
+                                                .GetTypes()
+                                                .Where(type => type.IsAbstract is false
+                                                               && type.IsClass
+                                                               && type.GetCustomAttribute<TestClassAttribute>() is not null
+                                                               && FindClosedGenericBase(type, typeof(AnalyzerTestsBase<,>)) is not null)
+                                                .Select(CreateCodeFixTestClassMetadata)
+                                                .OrderBy(testClass => testClass.TestClassType.FullName, StringComparer.Ordinal)
+                                                .ToArray();
     }
 
     /// <summary>
@@ -136,16 +136,16 @@ internal static class AnalyzerMetadataDiscovery
     /// <returns>Diagnostic IDs covered by formatter tests</returns>
     internal static IReadOnlyList<string> DiscoverFormatterCoveredDiagnosticIds()
     {
-        return typeof(SelfHostingTests).Assembly
-                                       .GetTypes()
-                                       .Where(type => type.IsAbstract is false
-                                                      && type.IsClass
-                                                      && type.Namespace?.StartsWith("Reihitsu.Analyzer.Test.Formatter", StringComparison.Ordinal) is true
-                                                      && type.Name.EndsWith("FormatterTests", StringComparison.Ordinal)
-                                                      && type.GetCustomAttribute<TestClassAttribute>() is not null)
-                                       .Select(ParseDiagnosticIdFromFormatterTestClass)
-                                       .OrderBy(diagnosticId => diagnosticId, StringComparer.Ordinal)
-                                       .ToArray();
+        return typeof(AnalyzerMetadataDiscovery).Assembly
+                                                .GetTypes()
+                                                .Where(type => type.IsAbstract is false
+                                                               && type.IsClass
+                                                               && type.Namespace?.StartsWith("Reihitsu.Analyzer.Test.Formatter", StringComparison.Ordinal) is true
+                                                               && type.Name.EndsWith("FormatterTests", StringComparison.Ordinal)
+                                                               && type.GetCustomAttribute<TestClassAttribute>() is not null)
+                                                .Select(ParseDiagnosticIdFromFormatterTestClass)
+                                                .OrderBy(diagnosticId => diagnosticId, StringComparer.Ordinal)
+                                                .ToArray();
     }
 
     /// <summary>
