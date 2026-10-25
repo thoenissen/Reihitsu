@@ -1,12 +1,12 @@
 Role: spec author
-Commit: 707fc15 (revision 5; revision 4 was derived from 639e551, revision 3 from 1ef05b5, revision 2 from d099e34, revision 1 from 5a58686)
+Commit: 7a040e2 (revision 6; revision 5 was derived from 707fc15, revision 4 from 639e551, revision 3 from 1ef05b5, revision 2 from d099e34, revision 1 from 5a58686)
 Verdict: #948: spec written; #949: spec written; #954: spec written; #1390: spec written; #888: spec written
 
 Clarifications only, no change doc (bug-fix lane). New IDs: FMT-SWITCH-014, FMT-STRUCT-025, SHARED-BODY-004, all inserted into `sdd/specs/requirement-ids.txt` at their sorted positions. The lead prompt carried no intended fix or verdict; the issue texts' own cause hypotheses (#949, #954) were not taken over — see the facts below.
 
 How the statements were established: `scripts/trace.sh` over each issue input and its variants at `5a58686`, `scripts/format.sh` for converged outputs, `scripts/apply-fix.sh` for RH5031 and RH3202, and a scratch `net10.0` library compiled with `dotnet build` for the C# scope claims of FMT-SWITCH-014. `SpecStructureTests` and `SpecConsistencyTests` pass on the spec diff; `RequirementCoverageTests.EveryRequirementOfAnEnforcedSpecIsCovered` fails only for FMT-SWITCH-014, FMT-STRUCT-025, and SHARED-BODY-004 (no covering test yet — the test implementer's part). The analyzer project's `RuleDocumentation` tests pass on the changed rule pages.
 
-Revision 2 carries the maintainer's answers to Q1–Q3 (summarized in `00-lead.md`, "Escalation 1"); the questions are closed and recorded under "Maintainer answers" in the `Whole run` section. Revision 3 carries the skeptic's spec notes (`02-skeptic.md`) and the maintainer's answers to the skeptic's questions (`00-lead.md`, "Escalation (questions from 02-skeptic.md)"), each marked "(revision 3)" below. Revision 4 is repair round 1 (`07-auditor.md` findings A3 and A5; maintainer answer A5 → A in `00-lead.md`), marked "(revision 4)". Revision 5 carries the two spec items of `03-test-implementer.md` "Revision 3 — repair round 1" (maintainer answer A on chain links behind a comment tail, and the routed query-clause clarification, both in `00-lead.md`), marked "(revision 5)". The spec architecture tests (`Spec*`, `RequirementCoverage*`) pass at revision 5.
+Revision 2 carries the maintainer's answers to Q1–Q3 (summarized in `00-lead.md`, "Escalation 1"); the questions are closed and recorded under "Maintainer answers" in the `Whole run` section. Revision 3 carries the skeptic's spec notes (`02-skeptic.md`) and the maintainer's answers to the skeptic's questions (`00-lead.md`, "Escalation (questions from 02-skeptic.md)"), each marked "(revision 3)" below. Revision 4 is repair round 1 (`07-auditor.md` findings A3 and A5; maintainer answer A5 → A in `00-lead.md`), marked "(revision 4)". Revision 5 carries the two spec items of `03-test-implementer.md` "Revision 3 — repair round 1" (maintainer answer A on chain links behind a comment tail, and the routed query-clause clarification, both in `00-lead.md`), marked "(revision 5)". Revision 6 follows the merge of `origin/main` with thoenissen/Reihitsu#1462 (rule pages carry no withheld fixes or exceptions; the gap is recorded in the rule's spec) and records the maintainer's answer to Q4, marked "(revision 6)". The spec architecture tests (`Spec*`, `RequirementCoverage*`) pass at revision 6.
 
 ## thoenissen/Reihitsu#948
 
@@ -96,7 +96,8 @@ _None._ (Q2 answered: A.)
 - FMT-STRUCT-006 — The converted body keeps the expression's trivia — clarified: a comment on a line of its own between the token before the arrow and the arrow, or between the arrow and the expression, leads the created statement on a line of its own, in source order; the expression still joins `return`. Coverage sentence leaves comments sharing a line with the arrow or the expression unspecified. New example (before-arrow, after-arrow with `return`, after-arrow with an expression statement).
 - FMT-STRUCT-006, further (maintainer answer Q3 → A): a comment that starts the line after the arrow and is followed on that line by the expression stays directly in front of the expression, which joins `return` with it: `int Value() =>` / `/* c */ 42;` becomes `return /* c */ 42;`. Added to the example. The coverage sentence now leaves unspecified only a comment on the arrow's line (#963) and such a comment in front of an expression that becomes an expression statement or a `throw` statement (the answer covered the `return` form).
 - SHARED-BODY-004 — No fix for an `async` member of an unknown task type — added (`sdd/specs/shared/expression-body-conversion.md`, maintainer answer Q1 → B): RH3202/RH3208 keep reporting the member FMT-STRUCT-025 keeps, and no code fix is offered for it. SHARED-BODY-003 points to it; the shared spec's `Uses` gains FMT-STRUCT-025. `sdd/specs/analyzer/RH3202.md` and `RH3208.md` name SHARED-BODY-004 in their introduction and `Uses`. RH3203/RH3205/RH3206/RH3207 are unaffected: constructors, finalizers, operators, and conversion operators cannot be `async`.
-- `documentation/rules/RH3202.md`, `documentation/rules/RH3208.md` — new `## Exceptions` section: the code fix is not offered for an `async` method / local function whose return type is not written as `Task`, `ValueTask`, `Task<T>`, or `ValueTask<T>` (alias, custom task type); convert it by hand (AGENTS.md, Code-fix coverage). Examples unchanged.
+- (revision 6) The `## Exceptions` sections added in revisions 2–3 to `documentation/rules/RH3202.md` and `RH3208.md` are removed; both pages are identical to `origin/main` again. Under thoenissen/Reihitsu#1462 (`AGENTS.md` "Code-fix coverage", `create-rule-doc`, `squad/roles/spec-author.md` step 4) a withheld fix is covered by `general-notes.md` ("A diagnostic without a code fix") and recorded in the rule's spec. `sdd/specs/analyzer/RH3202.md` and `RH3208.md` now say in their introduction that the fix is deliberately withheld for an `async` member whose return type is not written as a task type, which stays reported and is converted by hand (SHARED-BODY-004); both already listed SHARED-BODY-004 under `Uses`.
+- (superseded in revision 6) `documentation/rules/RH3202.md`, `documentation/rules/RH3208.md` — new `## Exceptions` section: the code fix is not offered for an `async` method / local function whose return type is not written as `Task`, `ValueTask`, `Task<T>`, or `ValueTask<T>` (alias, custom task type); convert it by hand (AGENTS.md, Code-fix coverage). Examples unchanged.
 - (revision 3, maintainer answer to skeptic Q1 → B) FMT-STRUCT-025 and FMT-STRUCT-004 look through a nullable annotation: `Task?` / `ValueTask?` under `async` convert to an expression statement, `Task<T>?` / `ValueTask<T>?` to `return`. New FMT-STRUCT-025 example (`async Task? RunAsync()`, `async Task<int>? GetAsync()`). SHARED-BODY-004 states that such a member is converted by the fix (SHARED-BODY-003). The RH3202/RH3208 rule pages read "(with or without `?`)".
 - (revision 4, auditor A5, maintainer answer A) FMT-STRUCT-006: the move of own-line comments in front of the created statement now applies only when the arrow's line holds no comment. When it holds one, in front of the arrow or behind it (`=> // b`, `=> /* c */ 42`), the conversion moves no own-line comment in front of the created statement, and all comments of the member keep their source order. The placement of the arrow-line comment and of the other comments of such a member stays unspecified (thoenissen/Reihitsu#963); the answer's "output matches `origin/main`" is not pinned as a layout in the spec, because that layout is the #963 placement. The `Why:` explains the order reversal the move would cause. No example: the only output would pin the unspecified arrow-line layout; tests assert the source order and that the own-line comment is not inside the block in front of the statement (auditor inputs: `int A2()` / `// a` / `=> // b` / `42;` and `int Get3()` / `// own` / `=> /* glued */ 3;`).
 - (revision 3) FMT-STRUCT-006's coverage sentence also leaves a documentation comment (`///`) around the arrow unspecified (skeptic: do not pin it in this run).
@@ -155,28 +156,7 @@ _None._
 
 ### Open questions for the maintainer
 
-**Q4 (revision 5, #888, found in passing, not blocking) — the chain's first link behind a multi-line comment tail.** The maintainer's answer on the prefix link and the first invoked link says "any chain link". The cases asked about were links after the chain's first link; when the first invoked link is also the chain's first link, the answer and today's behavior part:
-
-```csharp
-class C
-{
-    object M(dynamic a)
-    {
-        var t = a /* x
-        */ .C()
-                 .D();
-
-        return t;
-    }
-}
-```
-
-Real output on this branch (`format.sh`): `var t = a /* x` / `*/.C()` / `  .D();` — `.C()` stays behind `*/`, `.D()` aligns to it. RH5201 reports nothing on that output. Touches SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-COMMENT-012, FMT-BREAK-019.
-
-- **A** — The first link behind a tail also starts its own line (`*/`, then `.C()` and `.D()` on lines of their own, aligned). Reads the answer literally; SHARED-CHAIN-004 already suspends SHARED-CHAIN-003 for this chain, so nothing contradicts it, but it is new formatter work and RH5112/RH5201 behavior on the result is unverified.
-- **B** — The first link keeps today's behavior; the exception covers only links after the chain's first link. No production change.
-
-Recommendation: **B** for this run, with a follow-up issue if the maintainer wants A — the asked cases are settled, the first link is governed by SHARED-CHAIN-003/-004 and RH5112, and A widens the run into the first-link layout.
+_None._ (Q4 answered in revision 6, see below.)
 
 ### Maintainer answers (Escalation 1, recorded in `00-lead.md`)
 
@@ -184,9 +164,13 @@ Recommendation: **B** for this run, with a follow-up issue if the maintainer wan
 - Q2 (#954 variant, no blank line between a comment first after `{` and `#region`) → A: fixed in this run. Carried into the FMT-BLANK-013 example.
 - Q3 (#1390, `int B() =>` / `/* c */ 42;`) → A: `return /* c */ 42;`. Carried into FMT-STRUCT-006.
 
+### Maintainer answer to Q4 (revision 6, recorded in `00-lead.md`, "Escalation 1 before the auditor")
+
+- Q4 (#888, the chain's first link behind a multi-line comment tail, `var t = a /* x` / `*/ .C()` / `.D();`) → B: it keeps today's behavior (`.C()` stays behind `*/`) and stays unspecified in this run; follow-up candidate. No spec change: the SHARED-CHAIN-005 exception already excludes the chain's first link, which SHARED-CHAIN-003 and SHARED-CHAIN-004 govern. The maintainer did not object to SHARED-BODY-004 being part of the bug fix without a change doc.
+
 ### Maintainer answers to the skeptic's questions (recorded in `00-lead.md`)
 
-- Skeptic Q1 (nullable task type) → B: carried into FMT-STRUCT-004, FMT-STRUCT-025, SHARED-BODY-004, and the RH3202/RH3208 rule pages.
+- Skeptic Q1 (nullable task type) → B: carried into FMT-STRUCT-004, FMT-STRUCT-025, and SHARED-BODY-004 (the rule-page wording of revision 3 was removed with the pages' `## Exceptions` sections in revision 6).
 - Skeptic Q2 (blank line between two comments before the terminal `break`) → A: carried into FMT-SWITCH-007.
 - Skeptic Q3 (`TokenGapNormalizer` change, escalation 5) → A: no spec change.
 - Routed clarifications: FMT-SWITCH-014 declaration forms, FMT-BREAK-019 "later link".
@@ -194,5 +178,7 @@ Recommendation: **B** for this run, with a follow-up issue if the maintainer wan
 Not taken: the skeptic's precision note on the title of SHARED-BODY-001 ("A member the formatter cannot convert is not reported"). Its normative sentence names only FMT-STRUCT-007 and stays correct next to SHARED-BODY-004; the title was left unchanged because renaming headings was not routed.
 
 ### Follow-up candidates
+
+- (revision 6) The chain's first link behind a multi-line comment tail (Q4 → B): whether it starts its own line, as the SHARED-CHAIN-005 exception asks for the other links.
 
 - `sdd/specs/analyzer/RH5201.md` could list SHARED-COMMENT-012 under `Uses` (RH5201 checks line starts); not requested in this run.
