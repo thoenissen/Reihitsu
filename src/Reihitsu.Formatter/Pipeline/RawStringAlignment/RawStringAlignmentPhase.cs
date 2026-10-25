@@ -64,8 +64,9 @@ internal sealed class RawStringAlignmentPhase : IFormattingPhase
             return replacements;
         }
 
-        // Nothing has moved yet, so a token's column before the shift is the column it has in the text
-        Func<SyntaxToken, int> getColumnBeforeShift = token => token.SpanStart - text.Lines.GetLineFromPosition(token.SpanStart).Start;
+        // Nothing has moved yet, so a token's column before the shift is the column it has in the text, with the tabs
+        // in front of it counted as the spaces the cleanup phase replaces them with
+        Func<SyntaxToken, int> getColumnBeforeShift = RawStringLineShifts.GetColumnAfterTabReplacement;
 
         foreach (var node in root.DescendantNodesAndSelf())
         {

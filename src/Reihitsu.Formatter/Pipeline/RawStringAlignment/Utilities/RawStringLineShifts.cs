@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Core;
+using Reihitsu.Formatter.Data;
 
 namespace Reihitsu.Formatter.Pipeline.RawStringAlignment.Utilities;
 
@@ -133,6 +134,38 @@ internal sealed class RawStringLineShifts
         }
 
         return count;
+    }
+
+    /// <summary>
+    /// Gets the column of a token after the cleanup phase replaced each tab of whitespace trivia with four spaces
+    /// (FMT-CLEAN-002). Both phases that place a line of a raw string literal measure a token this way: the
+    /// indentation phase for a line of an interpolation hole that keeps its whitespace, and the raw-string phase for
+    /// the opening quotes of a literal. A tab inside a comment or a literal is not replaced and counts as one column
+    /// </summary>
+    /// <param name="token">The token</param>
+    /// <returns>The column after tab replacement</returns>
+    public static int GetColumnAfterTabReplacement(SyntaxToken token)
+    {
+        var tree = token.SyntaxTree;
+
+        if (tree == null)
+        {
+            return token.GetLocation().GetLineSpan().StartLinePosition.Character;
+        }
+
+        var root = tree.GetRoot();
+        var text = tree.GetText();
+        var line = text.Lines.GetLineFromPosition(token.SpanStart);
+        var column = 0;
+
+        for (var position = line.Start; position < token.SpanStart; position++)
+        {
+            column += text[position] == '\t' && root.FindTrivia(position).IsKind(SyntaxKind.WhitespaceTrivia)
+                          ? FormattingContext.IndentSize
+                          : 1;
+        }
+
+        return column;
     }
 
     /// <summary>

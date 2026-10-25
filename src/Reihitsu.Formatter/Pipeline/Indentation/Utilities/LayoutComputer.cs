@@ -298,49 +298,10 @@ internal static class LayoutComputer
             {
                 foreach (var token in hole.DescendantTokens().Where(IsFirstOnLine))
                 {
-                    model.RegisterRawStringHoleLine(GetLine(token), hole, GetColumnAfterTabReplacement(token));
+                    model.RegisterRawStringHoleLine(GetLine(token), hole, RawStringLineShifts.GetColumnAfterTabReplacement(token));
                 }
             }
         }
-    }
-
-    /// <summary>
-    /// Gets the column of a token that starts its line, counting each tab in front of it as the four spaces the cleanup
-    /// phase replaces it with (FMT-CLEAN-002). Text in front of the token that is not whitespace, such as the end of a
-    /// comment, is counted as it stands
-    /// </summary>
-    /// <param name="token">The token</param>
-    /// <returns>The column after tab replacement</returns>
-    private static int GetColumnAfterTabReplacement(SyntaxToken token)
-    {
-        var text = token.SyntaxTree?.GetText();
-
-        if (text == null)
-        {
-            return GetColumn(token);
-        }
-
-        var line = text.Lines.GetLineFromPosition(token.SpanStart);
-        var column = 0;
-
-        for (var position = line.Start; position < token.SpanStart; position++)
-        {
-            switch (text[position])
-            {
-                case '\t':
-                    column += FormattingContext.IndentSize;
-                    break;
-
-                case ' ':
-                    column++;
-                    break;
-
-                default:
-                    return GetColumn(token);
-            }
-        }
-
-        return column;
     }
 
     /// <summary>

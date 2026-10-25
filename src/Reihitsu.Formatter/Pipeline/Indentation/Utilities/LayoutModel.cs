@@ -126,16 +126,17 @@ internal sealed class LayoutModel
     /// </summary>
     /// <param name="lineNumber">The 0-based line number</param>
     /// <param name="hole">The innermost interpolation hole of a multi-line interpolated raw string around the line</param>
-    /// <param name="column">The column of the line's first token before the raw-string phase moves it</param>
+    /// <param name="column">The column of the line's first token before the raw-string phase moves it, with the tabs in front of it counted as the spaces the cleanup phase replaces them with</param>
     public void RegisterRawStringHoleLine(int lineNumber, InterpolationSyntax hole, int column)
     {
         _rawStringHoleLines[lineNumber] = (hole, column);
     }
 
     /// <summary>
-    /// Gets the column the line's first token has after formatting: the layout's column, or, for a line of an
-    /// interpolation hole that no construct inside the hole placed, the column the token already has; both moved by
-    /// the raw-string phase
+    /// Gets the column the line's first token has after formatting, which is after the raw-string phase moved the
+    /// line: the layout's column, or, for a line of an interpolation hole that no construct inside the hole placed,
+    /// its registered column, which counts the tabs in front of the token as the spaces the cleanup phase replaces
+    /// them with
     /// </summary>
     /// <param name="lineNumber">The 0-based line number</param>
     /// <param name="column">The column if the line has one</param>
@@ -154,8 +155,9 @@ internal sealed class LayoutModel
 
     /// <summary>
     /// Gets the column the line's first token has after indentation, before the raw-string phase moves it: the
-    /// layout's column, or, for a line of an interpolation hole that no construct inside the hole placed, the column
-    /// the token already has
+    /// layout's column, or, for a line of an interpolation hole that no construct inside the hole placed, its
+    /// registered column, which counts the tabs in front of the token as the spaces the cleanup phase replaces them
+    /// with
     /// </summary>
     /// <param name="lineNumber">The 0-based line number</param>
     /// <param name="column">The column if the line has one</param>
