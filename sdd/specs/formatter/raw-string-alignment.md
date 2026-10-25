@@ -5,7 +5,7 @@
 | ID prefix | FMT-RAW |
 | Status | Active |
 | Code owners | `RawStringLineShifts`, `RawStringLiteral`, `RawStringLiteralUtilities` |
-| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-INDENT-002, FMT-INDENT-004, FMT-INDENT-006, FMT-INDENT-007, FMT-INDENT-011, FMT-INDENT-012, FMT-INDENT-029, FMT-INDENT-030, FMT-TAB-001 |
+| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-CLEAN-009, FMT-INDENT-002, FMT-INDENT-004, FMT-INDENT-006, FMT-INDENT-007, FMT-INDENT-011, FMT-INDENT-012, FMT-INDENT-029, FMT-INDENT-030, FMT-TAB-001 |
 
 This spec covers how the indentation phase moves the lines of a multi-line raw string literal: once the phase has placed the line of the opening quotes, it moves the literal's content lines, the lines of its interpolation holes, and its closing marker so the closing marker starts in the column of the opening quotes. The move belongs to the indentation phase (FMT-PIPE-001), so every alignment of that phase is measured after it (FMT-INDENT-030). The literal's value never changes.
 
@@ -181,7 +181,7 @@ class C
 
 ### FMT-RAW-005 — Alignment follows the final position of the opening quotes
 
-The formatter MUST compute the target column from the column the opening quotes have in the output of the indentation phase, the same phase that moves the literal's lines, so a raw string whose statement was re-indented, joined onto the previous line, or passed as an argument is aligned to where its opening quotes end up. That column counts everything in front of the opening quotes on their line, including a comment that leads the line (FMT-INDENT-030).
+The formatter MUST compute the target column from the column the opening quotes have in the output of the indentation phase, the same phase that moves the literal's lines, so a raw string whose statement was re-indented, joined onto the previous line, or passed as an argument is aligned to where its opening quotes end up. That column counts everything in front of the opening quotes on their line, including a comment that leads the line (FMT-INDENT-030), and, on the first line of a text that starts with a byte order mark, the byte order mark as one column.
 
 Why: Placing a line moves only the token that starts it; the content lines of a raw string are part of the literal's token text and do not move with it. The indentation phase decides where the opening quotes go, so it is the phase that re-attaches the content to them; a later phase would have to wait for that decision, and every line the indentation phase aligns to a token on the literal's lines would then have to predict the move (FMT-INDENT-030).
 
@@ -263,6 +263,8 @@ class C
     }
 }
 ```
+
+Example — not shown as a block because the byte order mark is invisible: the text `U+FEFF`, `var s = """`, then `    a` and `    """;` on lines of their own, given to the formatter as a string with the byte order mark kept, puts `a` and the closing marker in column 9, under the opening quotes counted with the byte order mark (`U+FEFF` in column 0, `var` in 1, the quotes in 9), as RH5202 counts them; the byte order mark itself stays at the start of the text (FMT-CLEAN-009).
 
 ### FMT-RAW-006 — Aligned and single-line literals are left alone
 

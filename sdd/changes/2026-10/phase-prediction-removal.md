@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-10 |
 | Affected requirements | FMT-PIPE-001, FMT-PIPE-015, FMT-PIPE-016, FMT-PIPE-017, FMT-CLEAN-002, FMT-CLEAN-003, FMT-CLEAN-004, FMT-RAW-005, FMT-RAW-007, FMT-INDENT-006, FMT-INDENT-011, FMT-INDENT-023, FMT-INDENT-030, SHARED-INIT-002, RH5303-003, RH5303-005, RH5304-002, RH5304-004, RH5303-006 and RH5304-005 (added and retired by this change), the spec `formatter/tab-replacement.md` (FMT-TAB-001 to FMT-TAB-003) |
 
@@ -38,7 +38,7 @@ The inputs below sit in `class C { void M() { ... } }`. `/` separates lines, `�
 | `        var x = a→/** c */.B()` / `.C();` | `.C()` in column 26 after one pass, 29 after the second | `.C()` in column 29 in one pass | FMT-PIPE-004, FMT-TAB-001 |
 | `        var s = x→/** d */.Foo(` / `"""` / `    a` / `    """.Trim()` / `.ToUpper());` | `.ToUpper` in column 34 after one pass, 37 after the second | `.ToUpper` in column 37 in one pass | FMT-PIPE-004, FMT-TAB-001 |
 
-In the sixth row the blank line FMT-BLANK-011 puts above the comment is unchanged. The seventh row is a line led by the last line of a multi-line comment; thoenissen/Reihitsu#1382 decides that the formatter breaks before such a token, which will later change that output again. Where a literal itself ends up does not change: `    /* c */ var s = """` / `    a` / `    """;` puts the literal under its opening quotes in column 24, today and after this change.
+In the sixth row the blank line FMT-BLANK-011 puts above the comment is unchanged. The seventh row is a line led by the last line of a multi-line comment; thoenissen/Reihitsu#1382 decides that the formatter breaks before such a token, which will later change that output again. Where a literal itself ends up does not change: `    /* c */ var s = """` / `    a` / `    """;` puts the literal under its opening quotes in column 24, today and after this change; and on the first line of a text that keeps its byte order mark, `var s = """` / `    a` / `    """;` puts the literal in column 9, under the quotes counted with the byte order mark, today and after this change (FMT-RAW-005).
 
 An anchor that is the first code on a line that a comment leads changes the same way. In the rows below `/* c */` stands in column 8 and the anchor behind it in column 16, except where a column is given; in the first two rows the comment stands at the element's or the member's column, 20, and the brace behind it in column 28:
 
