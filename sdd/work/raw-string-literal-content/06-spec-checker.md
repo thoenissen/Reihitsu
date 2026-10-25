@@ -143,3 +143,61 @@ None.
 
 ### Checked
 1 to 9: ok, as stated per issue. Items for the lead before the PR: the follow-up text for the RH5601/RH5602 gap, the update to thoenissen/Reihitsu#1433, the auditor hint 3 candidate, and the run-report notes already listed in the first section; `sdd/work/` is deleted before publishing.
+
+# Repair round 2
+
+Role: spec checker
+Commit: d645560
+Verdict: #951: consistent; #1133: consistent; #1146: consistent
+
+Inputs: the diff `71b17d2..d645560` and the full diff against `origin/main`, `00-lead.md` (escalation 5, Repair round 2), `03-test-implementer.md` and `04-implementer.md` (Repair round 2), `07-auditor.md`. The prompt carried no intended fix or hoped-for verdict. I changed nothing except this file.
+
+Results on `d645560`:
+
+- `scripts/test.sh --project architecture`: `Passed! - Failed: 0, Passed: 84, Skipped: 0, Total: 84`.
+- Formatter filter `RawStringAlignment|Indentation|SelfHosting`: `Passed: 672, Total: 672`.
+- The analyzer project was not re-run: `71b17d2..d645560` changes no analyzer, code-fix, or analyzer-test file (analyzer filter was 129 of 129 on `71b17d2`).
+- `scripts/lane-check.sh bug-fix`: `LANE CHECK: confirmed — claimed bug-fix, diff needs bug-fix`.
+- `LC_ALL=C sort -c sdd/specs/requirement-ids.txt`: sorted.
+
+## thoenissen/Reihitsu#951
+
+### Findings
+None.
+
+### Checked
+1. Change doc: still none required. The round changes no spec file and no documentation file (`git diff 71b17d2..d645560 -- sdd/specs documentation` is empty). The behavior it fixes, columns measured after the tab replacement of FMT-CLEAN-002 for a comment-led hole line and for a nested literal's opening quotes on a tab-indented hole line, is stated by FMT-RAW-007 (its FMT-CLEAN-002 sentence and conditions 1 and 2), FMT-RAW-008, FMT-INDENT-012 and FMT-INDENT-030.
+2. Specs match the diff: ok. Nothing the diff changes lacks a requirement, and no requirement contradicts it.
+3. IDs: none added or changed.
+4. Code owners: no type added, renamed, or removed in the round; `GetColumnAfterTabReplacement` is a method of the already listed `RawStringLineShifts`, and the private copy in `LayoutComputer` is gone. Both `sdd/specs/formatter/raw-string-alignment.md` and `sdd/specs/README.md` rows are unchanged and correct.
+5. User documentation: no rule page affected.
+6. Open questions: none. Escalation 5 is answered (A) in `00-lead.md`; the duplicated "tab = four columns" rule is a follow-up candidate whose text the lead still has to show the maintainer before creation (`CleanupPhase` belongs to run R2). The implementer's hint B (`GetDistance` not memoized) is a performance note, not a spec matter.
+7. Coverage: no new ID; FMT-RAW-007 and FMT-RAW-008 stay covered. Architecture result above.
+8. Tags: the three added tests in `RawStringInterpolationHoleTests` carry the tags `03-test-implementer.md` names: `ArgumentAnchoredBehindATabIndentedCommentOnAHoleLineAlignsAfterTheTabReplacement` FMT-RAW-007; `NestedLiteralOpeningATabIndentedHoleLineOfAlignedLiteralIsAlignedAfterTheTabReplacement` and `NestedLiteralOpeningATabIndentedHoleLineOfMisalignedLiteralIsAlignedAfterTheTabReplacement` FMT-RAW-007 and FMT-RAW-008.
+9. No `sdd/work/` other than this run's.
+
+## thoenissen/Reihitsu#1133
+
+### Findings
+None.
+
+### Checked
+1 to 9: ok, unchanged; the round touches no RH5601 or RH5602 file.
+
+## thoenissen/Reihitsu#1146
+
+### Findings
+None.
+
+### Checked
+1 to 9: ok, unchanged; the round touches no RH5104 file, spec, or documentation. RH5104-007 and its four tests stand as checked in Repair round 1.
+
+## Whole run
+
+### Findings
+| # | Check | Location | What does not match | Owner |
+|---|---|---|---|---|
+| — | — | — | None | — |
+
+### Checked
+1 to 9: ok. Before publishing, the lead still shows the maintainer the follow-up texts (RH5601/RH5602 gap against SHARED-DIAG-003, the shared tab helper, auditor hint 3), updates thoenissen/Reihitsu#1433, and deletes `sdd/work/`.
