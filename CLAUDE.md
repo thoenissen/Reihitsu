@@ -25,5 +25,6 @@ When the lead watches the published pull request's CI, it subscribes to the PR's
 | Command | Purpose |
 |---|---|
 | `/squad` | Run the squad on one or more GitHub issues, as its lead |
+| `/triage` | Assess open issues without a milestone and assign milestones and labels after the maintainer confirms |
 | `/create-rule-doc` | Write or update rule markdown under `documentation/rules/`; it owns the rule-page format |
 | `/add-resource-texts` | Add or update localized resource strings |
