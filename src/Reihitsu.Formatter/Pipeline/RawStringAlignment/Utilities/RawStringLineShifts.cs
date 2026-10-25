@@ -153,14 +153,25 @@ internal sealed class RawStringLineShifts
             return token.GetLocation().GetLineSpan().StartLinePosition.Character;
         }
 
-        var root = tree.GetRoot();
-        var text = tree.GetText();
-        var line = text.Lines.GetLineFromPosition(token.SpanStart);
+        return GetColumnAfterTabReplacement(tree.GetRoot(), tree.GetText(), token.SpanStart);
+    }
+
+    /// <summary>
+    /// Gets the column of a position after the cleanup phase replaced each tab of whitespace trivia with four spaces
+    /// (FMT-CLEAN-002). A tab inside a comment or a literal is not replaced and counts as one column
+    /// </summary>
+    /// <param name="root">The syntax root</param>
+    /// <param name="text">The text of the syntax tree</param>
+    /// <param name="position">The position to measure</param>
+    /// <returns>The column after tab replacement</returns>
+    public static int GetColumnAfterTabReplacement(SyntaxNode root, SourceText text, int position)
+    {
+        var line = text.Lines.GetLineFromPosition(position);
         var column = 0;
 
-        for (var position = line.Start; position < token.SpanStart; position++)
+        for (var current = line.Start; current < position; current++)
         {
-            column += text[position] == '\t' && root.FindTrivia(position).IsKind(SyntaxKind.WhitespaceTrivia)
+            column += text[current] == '\t' && root.FindTrivia(current).IsKind(SyntaxKind.WhitespaceTrivia)
                           ? FormattingContext.IndentSize
                           : 1;
         }

@@ -78,7 +78,7 @@ internal sealed class RawStringAlignmentPhase : IFormattingPhase
                 continue;
             }
 
-            var replacement = ComputeReplacement(node, text, lineNumber => lineShifts.GetShift(lineNumber, getColumnBeforeShift), options);
+            var replacement = ComputeReplacement(root, node, text, lineNumber => lineShifts.GetShift(lineNumber, getColumnBeforeShift), options);
 
             if (replacement != null)
             {
@@ -93,12 +93,13 @@ internal sealed class RawStringAlignmentPhase : IFormattingPhase
     /// Computes the replacement for a multi-line raw string literal by moving each of its lines after the first by
     /// the number of columns <see cref="RawStringLineShifts"/> determines for it
     /// </summary>
+    /// <param name="root">The syntax root</param>
     /// <param name="node">The literal expression or interpolated string expression</param>
     /// <param name="text">The text of the syntax tree</param>
     /// <param name="getShift">Gets the number of columns a line moves</param>
     /// <param name="options">Parse options used to reparse the adjusted raw string</param>
     /// <returns>A replacement node if any line of the literal moves; otherwise <see langword="null"/></returns>
-    private static SyntaxNode ComputeReplacement(SyntaxNode node, SourceText text, Func<int, int> getShift, CSharpParseOptions options)
+    private static SyntaxNode ComputeReplacement(SyntaxNode root, SyntaxNode node, SourceText text, Func<int, int> getShift, CSharpParseOptions options)
     {
         var openingLineNumber = text.Lines.GetLineFromPosition(node.SpanStart).LineNumber;
         var closingLineNumber = text.Lines.GetLineFromPosition(node.Span.End).LineNumber;
@@ -117,17 +118,19 @@ internal sealed class RawStringAlignmentPhase : IFormattingPhase
                 continue;
             }
 
-            var currentSpaces = RawStringLineShifts.GetLeadingSpaceCount(text, line);
-            var newSpaces = Math.Max(0, currentSpaces + shift);
+            var (indentationLength, indentationWidth) = GetIndentation(root, text, line);
 
-            if (newSpaces == currentSpaces)
+            var newSpaces = Math.Max(0, indentationWidth + shift);
+
+            if (newSpaces == indentationWidth
+                && indentationLength == indentationWidth)
             {
                 continue;
             }
 
             builder.Append(text.ToString(TextSpan.FromBounds(position, line.Start)));
             builder.Append(' ', newSpaces);
-            position = line.Start + currentSpaces;
+            position = line.Start + indentationLength;
             changed = true;
         }
 
@@ -143,6 +146,33 @@ internal sealed class RawStringAlignmentPhase : IFormattingPhase
         return replacement.RawKind == node.RawKind
                    ? replacement.WithTriviaFrom(node)
                    : null;
+    }
+
+    /// <summary>
+    /// Gets the indentation that moving a line rewrites. On a line of an interpolation hole, the indentation is
+    /// whitespace trivia, whose tabs the cleanup phase replaces with four spaces each; it is rewritten as a whole, as
+    /// spaces of the width both phases measure, so the line moves by the full shift. On a content or closing line,
+    /// the indentation is the literal's text, and only its leading spaces are rewritten
+    /// </summary>
+    /// <param name="root">The syntax root</param>
+    /// <param name="text">The text of the syntax tree</param>
+    /// <param name="line">The line to examine</param>
+    /// <returns>The number of characters the indentation takes, and its width in columns</returns>
+    private static (int Length, int Width) GetIndentation(SyntaxNode root, SourceText text, TextLine line)
+    {
+        var trivia = root.FindTrivia(line.Start);
+
+        if (trivia.IsKind(SyntaxKind.WhitespaceTrivia)
+            && trivia.SpanStart == line.Start)
+        {
+            var end = Math.Min(trivia.Span.End, line.End);
+
+            return (end - line.Start, RawStringLineShifts.GetColumnAfterTabReplacement(root, text, end));
+        }
+
+        var spaces = RawStringLineShifts.GetLeadingSpaceCount(text, line);
+
+        return (spaces, spaces);
     }
 
     /// <summary>
