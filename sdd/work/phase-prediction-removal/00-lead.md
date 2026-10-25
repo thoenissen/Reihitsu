@@ -18,3 +18,7 @@ Roles: spec author → skeptic → test implementer → implementer → cleaner 
 # Maintainer clarifications
 
 None so far. The issue has no comments.
+
+# Escalation 2 — answered 2026-10-25
+
+The maintainer approved the change doc's What and Why, chose a separate first `TabReplacementPhase`, chose folding raw-string alignment into `IndentationPhase`, and wants no follow-up for `RootListPosition`. On folding raw-string alignment into `IndentationPhase`, the maintainer asks whether the phase becomes too large and brings new problems of its own (complexity, new failure risks); this concern is open and the skeptic is to assess it. Recorded in `squad/decisions/2026-10-25-phase-prediction-removal-change-doc.md`. The change doc's status is still `Draft` and must become `Accepted` before the PR is marked ready.
