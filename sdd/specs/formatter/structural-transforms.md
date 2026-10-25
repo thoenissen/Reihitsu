@@ -134,11 +134,11 @@ is left unchanged.
 
 The formatter MUST convert an expression-bodied method or local function to a block body with a single statement:
 
-- an expression statement when the return type is `void`, or when the function is `async` and returns the non-generic `Task` or `ValueTask`;
+- an expression statement when the return type is `void`, or when the function is `async` and returns the non-generic `Task` or `ValueTask`, with or without a nullable annotation (`Task?`);
 - a `throw` statement when the expression is a throw expression;
-- a `return` statement otherwise, including `async` functions that return `Task<T>` or `ValueTask<T>` and non-`async` functions that return `Task`.
+- a `return` statement otherwise, including `async` functions that return `Task<T>` or `ValueTask<T>`, with or without a nullable annotation, and non-`async` functions that return `Task`.
 
-This applies under every language version.
+An `async` function whose return type is neither `void` nor written as `Task`, `ValueTask`, `Task<…>`, or `ValueTask<…>` keeps its expression body instead (FMT-STRUCT-025). This applies under every language version.
 
 Why: The house style uses expression bodies only for properties, indexers, and accessors; the analyzer rules RH3202 and RH3208 report expression-bodied methods and local functions. The statement form follows what the expression means in the function: an `async Task` body awaits and returns nothing, while a non-`async` `Task` method returns the task it computes. `return throw …;` does not compile, so a throw expression always becomes a `throw` statement.
 
@@ -256,7 +256,9 @@ class C
 
 When the formatter converts an expression body under FMT-STRUCT-004 or FMT-STRUCT-005, an expression written on the line after the arrow MUST join the created `return` keyword, a comment between the expression and the semicolon MUST stay in front of the statement's semicolon, and a comment or directive in the trivia of the removed arrow or semicolon MUST be carried into the block rather than dropped. The layout of the comments the converted body carries is kept as FMT-PIPE-013 states.
 
-Why: The arrow and the semicolon disappear, so whatever trivia they carried needs a new owner. The line break after the arrow is layout only and has no meaning inside a `return` statement; a comment does, and FMT-PIPE-002 forbids losing it.
+Unless a comment stands directly at the arrow, a comment that stands on a line of its own — nothing but whitespace in front of it on its line, and a line break behind it — between the token in front of the arrow and the arrow, or between the arrow and the expression, MUST be carried into the block as a comment on a line of its own in front of the created statement, in the order the comments were written. An expression behind such a comment MUST still join the created `return` keyword, so that the statement stays on one line as it would without the comment. A comment that starts the line after the arrow and is followed on that line by the expression MUST stay directly in front of the expression, which joins the created `return` keyword together with it (`return /* c */ 42;`). A comment stands directly at the arrow when it follows the arrow on the arrow's line, before the next token (`=> // b`, `=> /* c */ 42`), or precedes the arrow on a line on which no token stands in front of the arrow, behind the last line break in front of it (a line `/* c */ => 42;`). A comment behind the token in front of the arrow on the same line (`int M() /* c */ =>`) belongs to that token, does not stand at the arrow, and MUST NOT stop the move. When a comment stands directly at the arrow, the conversion MUST NOT move the comments on lines of their own in front of the created statement, and all comments of the member MUST keep the order in which they were written. A comment further along the arrow's line, behind the expression or behind the semicolon (`=> 42 /* t */;`, `=> 42; // t`), does not stand at the arrow and MUST NOT stop the move: the own-line comments still lead the created statement. This paragraph specifies the placement only for the comments it names; it leaves a documentation comment (`///`), the placement of a comment directly at the arrow and of the other comments of such a member, and a comment in front of an expression that becomes an expression statement or a `throw` statement, unspecified.
+
+Why: The arrow and the semicolon disappear, so whatever trivia they carried needs a new owner. The line break after the arrow is layout only and has no meaning inside a `return` statement; a comment does, and FMT-PIPE-002 forbids losing it. A comment written on its own line next to the arrow introduces the body; in front of the created statement it keeps introducing it, while a place between the signature and the brace, or on a line of its own between `return` and its value, would put it next to other code (FMT-STRUCT-024). A comment written in front of the expression on the expression's line belongs to the expression and moves with it. Where a comment stands directly at the arrow, it lands on or in front of the new opening brace, so moving the own-line comments into the block would put them behind it, in reverse of the order the author wrote them; they stay where they are, and where that comment belongs is a separate decision. A comment behind the expression or the semicolon ends up behind the created statement, so moving the own-line comments keeps the source order.
 
 Example:
 
@@ -281,6 +283,56 @@ class C
     int Other()
     {
         return Compute(1, 2);
+    }
+}
+```
+
+Comments on lines of their own around the arrow lead the created statement; a comment in front of the expression on its line stays in front of it:
+
+```csharp
+class C
+{
+    int Other()
+    // before arrow
+    => 1;
+
+    int Get() =>
+        // after arrow
+        42;
+
+    void Run() =>
+        // run
+        Foo();
+
+    int Value() =>
+        /* c */ 42;
+}
+```
+
+```csharp
+class C
+{
+    int Other()
+    {
+        // before arrow
+        return 1;
+    }
+
+    int Get()
+    {
+        // after arrow
+        return 42;
+    }
+
+    void Run()
+    {
+        // run
+        Foo();
+    }
+
+    int Value()
+    {
+        return /* c */ 42;
     }
 }
 ```
@@ -1028,3 +1080,81 @@ class C
 ```
 
 is left unchanged.
+
+### FMT-STRUCT-025 — An `async` function of an unknown task type keeps its expression body
+
+The formatter MUST keep the expression body of an `async` method or local function whose return type is neither `void` nor written as `Task`, `ValueTask`, `Task<…>`, or `ValueTask<…>`, either as a simple name or as the last part of a qualified name, with or without a nullable annotation (`Task?`, `Task<int>?`). This covers an alias of a task type and a custom task-like type alike. An `async` function whose return type is written in one of these forms MUST be converted as FMT-STRUCT-004 states.
+
+Why: Under `async`, the statement form depends on whether the task type carries a result, which a nullable annotation does not change: an expression statement for a task without one, a `return` statement for a task with one, and the wrong choice does not compile (CS1997 for a `return` with a value in an `async` function whose task has no result). The formatter sees only syntax, so behind an alias or a custom task-like type it cannot tell which form compiles, and a rewrite it cannot prove equivalent is not applied (FMT-PIPE-003, FMT-STRUCT-024).
+
+Example:
+
+```csharp
+using T = System.Threading.Tasks.Task;
+using V = System.Threading.Tasks.ValueTask<int>;
+
+class C
+{
+    async T RunAsync() => await T.Delay(1);
+
+    async V GetAsync() => await Compute();
+
+    async MyTask StartAsync() => await Prepare();
+}
+```
+
+is left unchanged. A task type written by its qualified name is converted:
+
+```csharp
+class C
+{
+    async System.Threading.Tasks.Task RunAsync() => await Prepare();
+
+    async System.Threading.Tasks.Task<int> GetAsync() => await Compute();
+}
+```
+
+```csharp
+class C
+{
+    async System.Threading.Tasks.Task RunAsync()
+    {
+        await Prepare();
+    }
+
+    async System.Threading.Tasks.Task<int> GetAsync()
+    {
+        return await Compute();
+    }
+}
+```
+
+A nullable annotation does not hide the task type:
+
+```csharp
+using System.Threading.Tasks;
+
+class C
+{
+    async Task? RunAsync() => await Task.Delay(1);
+
+    async Task<int>? GetAsync() => await Task.FromResult(1);
+}
+```
+
+```csharp
+using System.Threading.Tasks;
+
+class C
+{
+    async Task? RunAsync()
+    {
+        await Task.Delay(1);
+    }
+
+    async Task<int>? GetAsync()
+    {
+        return await Task.FromResult(1);
+    }
+}
+```

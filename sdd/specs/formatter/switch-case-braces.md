@@ -5,7 +5,7 @@
 | ID prefix | FMT-SWITCH |
 | Status | Active |
 | Code owners | `SwitchCaseBracePhase`, `SwitchCaseBraceRewriter` |
-| Uses | FMT-PIPE-002, FMT-PIPE-003, SHARED-BLANK-004, FMT-PIPE-013 |
+| Uses | FMT-PIPE-002, FMT-PIPE-003, SHARED-BLANK-004, FMT-PIPE-013, FMT-BLANK-011, FMT-PIPE-004 |
 
 This spec covers when the formatter wraps the statements of the sections of a `switch` statement in a `{ … }` block: which sections make a switch braced, what goes inside the block, and every guard that leaves a section or a whole switch as it is.
 
@@ -420,7 +420,9 @@ class C
 
 When the formatter braces a section, a comment trailing the last label MUST stay on the label's line, a comment leading the first statement MUST move with that statement into the block, and a comment trailing the last statement in the block MUST stay on that statement's line (FMT-PIPE-002). The layout of these comments is kept as FMT-PIPE-013 states.
 
-Why: Brace insertion rebuilds the trivia around the labels, the new braces, and the statements it moves. Comments are user-authored content and must keep their position relative to the code they describe.
+A comment that leads the terminal `break`, which stays outside the block (FMT-SWITCH-002), MUST stay in front of that `break`, behind the closing brace of the new block, and MUST be preceded by the blank line FMT-BLANK-011 requires for it already in the output of the pass that inserts the braces. When several comments lead that `break`, the blank lines between them MUST be kept, as FMT-PIPE-013 keeps them for the comments of wrapped code.
+
+Why: Brace insertion rebuilds the trivia around the labels, the new braces, and the statements it moves. Comments are user-authored content and must keep their position relative to the code they describe. A comment in front of the terminal `break` describes the `break`, so it stays with it outside the block; once the block is there, the comment is no longer the first content of its section, and FMT-BLANK-011 asks for the blank line in front of it. Leaving that line to a second pass would make the formatter change its own output (FMT-PIPE-004). A blank line between the comments groups them as the author wrote them, and no later pass restores it once it is lost.
 
 Example:
 
@@ -458,6 +460,108 @@ class C
                     A();
                     B(); // after b
                 }
+                break;
+
+            case 2:
+                {
+                    C();
+                }
+                break;
+        }
+    }
+}
+```
+
+A comment in front of the terminal `break` stays in front of it, behind the new block, with a blank line above it:
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                A();
+                B();
+                // before break
+                break;
+
+            case 2:
+                C();
+                break;
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                {
+                    A();
+                    B();
+                }
+
+                // before break
+                break;
+
+            case 2:
+                {
+                    C();
+                }
+                break;
+        }
+    }
+}
+```
+
+A blank line between two comments in front of the terminal `break` is kept:
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                A();
+                B();
+                // one
+
+                // two
+                break;
+
+            case 2:
+                C();
+                break;
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                {
+                    A();
+                    B();
+                }
+
+                // one
+
+                // two
                 break;
 
             case 2:
@@ -804,6 +908,238 @@ class C
             case 2:
                 {
                     C();
+                }
+                break;
+        }
+    }
+}
+```
+
+### FMT-SWITCH-014 — A local used by another section leaves the switch alone
+
+The formatter MUST NOT brace any section of a switch in which a local declared directly in one section is used in another section of the same switch (FMT-PIPE-003). A local is declared directly in a section when a statement that the section owns directly, or such a statement behind a label, declares it outside any lambda, anonymous method, local-function body, or query clause:
+
+- a local declaration, `const` included, or a deconstruction declaration (`var (a, b) = …;`, `(var a, var b) = …;`);
+- a local function;
+- a variable that `out var` or a pattern declares in the initializer of a local declaration, an expression statement, a `return`, `throw`, or `yield return` statement, the condition of an `if` statement, the governing expression of a nested `switch` statement, or the expression of a `lock` statement, such as `var b = F(out var o);`, `F(out var o);`, or `if (p is int n)`.
+
+A use anywhere in the other section counts — in its statements, its nested blocks and lambdas, a nested switch, and its labels, such as a constant in `case K:` or a call in a `when` clause — before or after the declaring section. A local that is declared inside a nested block, lambda, anonymous method, local-function body, or query clause (`from a in xs where a is int n select n`) of a section, in a section of a nested switch, in the condition of an `else if`, in an embedded statement of an `if` or `else`, or in the header of a `while`, `do`, `for`, `foreach`, `using`, or `fixed` statement, and a local that is used only in the section that declares it, MUST NOT trigger this guard.
+
+This requirement specifies the outcome only for uses by simple name; it leaves a member name behind `.` that only looks like the local's name unspecified.
+
+Why: C# scopes a local declared directly in a switch section to the whole switch block, so another section may assign and read it, use a constant in its `case` label, and call a local function declared in a section below it. C# scopes a variable in a loop, `using`, `fixed`, or `else if` header, or in an embedded statement, to that statement, and a pattern variable in a query clause to that clause, so it never reaches another section. A block around the declaring section limits the local to that block, and the code in the other section no longer compiles (CS0103). Like a `goto` into another section (FMT-SWITCH-011), the shared local ties the sections together, so the whole switch keeps the shape the author wrote. A local declared in a nested block, a lambda, or a local function is already scoped to that body, and a local no other section uses loses nothing in a block.
+
+Example — the local `y` of section 1 is assigned and read in section 2:
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                int y = 1;
+
+                F(y);
+                break;
+
+            case 2:
+                y = 2;
+                F(y);
+                break;
+        }
+    }
+}
+```
+
+is left unchanged. So is a switch whose pattern variable is used in another section:
+
+```csharp
+class C
+{
+    void M(int x, object p)
+    {
+        switch (x)
+        {
+            case 1:
+                if (p is int n)
+                {
+                    F(n);
+                }
+
+                break;
+
+            case 2:
+                n = 2;
+                F(n);
+                break;
+        }
+    }
+}
+```
+
+and one whose local function is called from a section above its declaration:
+
+```csharp
+class C
+{
+    int M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                return L();
+
+            case 2:
+                int L()
+                {
+                    return 1;
+                }
+
+                G();
+
+                return L();
+        }
+
+        return 0;
+    }
+}
+```
+
+and one whose constant is the label of another section:
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                const int K = 2;
+
+                F(K);
+                break;
+
+            case K:
+                F(x);
+                break;
+        }
+    }
+}
+```
+
+A local used only in the section that declares it does not block the braces:
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                int y = 1;
+
+                F(y);
+                break;
+
+            case 2:
+                F(2);
+                break;
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                {
+                    int y = 1;
+
+                    F(y);
+                }
+                break;
+
+            case 2:
+                {
+                    F(2);
+                }
+                break;
+        }
+    }
+}
+```
+
+Neither does a local declared in a nested block or in a `foreach` header, even when another section uses a field of the same name:
+
+```csharp
+class C
+{
+    int y;
+
+    void M(int x, int[] ys)
+    {
+        switch (x)
+        {
+            case 1:
+                if (x > 0)
+                {
+                    int y = 1;
+
+                    F(y);
+                }
+
+                foreach (var y in ys)
+                {
+                    F(y);
+                }
+
+                break;
+
+            case 2:
+                F(y);
+                break;
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    int y;
+
+    void M(int x, int[] ys)
+    {
+        switch (x)
+        {
+            case 1:
+                {
+                    if (x > 0)
+                    {
+                        int y = 1;
+
+                        F(y);
+                    }
+
+                    foreach (var y in ys)
+                    {
+                        F(y);
+                    }
+                }
+                break;
+
+            case 2:
+                {
+                    F(y);
                 }
                 break;
         }

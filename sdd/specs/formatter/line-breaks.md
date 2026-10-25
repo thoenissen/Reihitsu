@@ -5,7 +5,7 @@
 | ID prefix | FMT-BREAK |
 | Status | Active |
 | Code owners | `LineBreakPhase`, `LineBreakBlockRewriter`, `LineBreakInitializerRewriter`, `LineBreakContainedBlockRewriter`, `LineBreakAssignmentRewriter`, `DeclarationSemicolonLineBreakRewriter`, `ListElementInteriorJoinRewriter`, `ListElementInteriorUtilities`, `LineBreakListRewriter`, `PropertyLayoutLineBreakRewriter`, `GenericConstraintLineBreakRewriter`, `DeclarationBraceLineBreakRewriter`, `MemberLineStartRewriter`, `AttributeTargetFormattingRewriter`, `AttributeTargetFormattingShared`, `BinaryOperatorLineBreakRewriter`, `ChainLineBreakRewriter`, `TernaryLineBreakRewriter`, `SwitchCaseWhenLineBreakRewriter`, `BracePlacer`, `TokenGapNormalizer`, `AccessorListLayout`, `LineBreakDetection`, `LineBreakTriviaUtilities` |
-| Uses | FMT-PIPE-002, FMT-STRUCT-009, FMT-STRUCT-014, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006 |
+| Uses | FMT-PIPE-002, FMT-STRUCT-009, FMT-STRUCT-014, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012 |
 
 This spec covers the sixth phase of the pipeline, which decides where lines break: brace placement, one statement and one member per line, the layout of argument, parameter, attribute, and type-argument lists, initializers and patterns, assignments, operators, conditionals, chains, generic constraints, attribute lists, accessor lists, and `case … when` guards. The phase only adds and removes line breaks; the columns the resulting lines start in are decided later by FMT-INDENT, and the spaces between tokens on a line by FMT-SPACE.
 
@@ -731,7 +731,44 @@ class C
 
 The formatter MUST lay out member-access chains as the shared chain policy specifies: it never starts a wrap (SHARED-CHAIN-002), joins the first link to the root's line (SHARED-CHAIN-003) unless a comment, directive, or disabled text is in the way (SHARED-CHAIN-004), starts every later call of a wrapped chain on its own line (SHARED-CHAIN-005), and moves a line break out of a link operator (SHARED-CHAIN-006).
 
-Why: The analyzer rules RH5112, RH5201, and RH5048 report against the same policy; a formatter that laid out chains differently would produce code those rules report. The examples are in the shared spec.
+A link whose operator stands behind the closing `*/` of a comment that spans several lines does not start its line (SHARED-COMMENT-012). In a wrapped chain, the formatter MUST break the line in front of its operator as SHARED-CHAIN-005 asks, whatever column the comment's last line starts in — for a later link, and, by the exception SHARED-CHAIN-005 states, for a prefix link and for the first invoked link too.
+
+Why: The analyzer rules RH5112, RH5201, and RH5048 report against the same policy; a formatter that laid out chains differently would produce code those rules report. The other examples are in the shared spec.
+
+Example — `.D` stands behind the comment's last line, so the line breaks in front of it and `.D` aligns with the other calls:
+
+```csharp
+class C
+{
+    object M(dynamic a)
+    {
+        var r = a.B()
+                 .C()
+
+                 /* x
+        */ .D();
+
+        return r;
+    }
+}
+```
+
+```csharp
+class C
+{
+    object M(dynamic a)
+    {
+        var r = a.B()
+                 .C()
+
+                 /* x
+        */
+                 .D();
+
+        return r;
+    }
+}
+```
 
 ### FMT-BREAK-020 — Split member names and attached parts are rejoined
 
@@ -769,9 +806,9 @@ class C
 
 ### FMT-BREAK-021 — Object initializers are always laid out over several lines
 
-The initializer of an object creation (`new Foo { … }`, `new() { … }`), a collection initializer, and an anonymous object creation MUST put the opening brace, every element, and the closing brace on their own lines, also when the author wrote it on one line. A collection initializer assigned to a member inside an object initializer (`Items = { … }`) keeps its opening brace on the `=` line. Array initializers (`new int[] { 1, 2 }`, `int[] f = { 1, 2 }`) keep the author's layout.
+The initializer of an object creation (`new Foo { … }`, `new() { … }`), a collection initializer, an anonymous object creation, and the initializer of a `with` expression MUST put the opening brace, every element, and the closing brace on their own lines, also when the author wrote it on one line. A collection initializer assigned to a member inside an object initializer (`Items = { … }`) keeps its opening brace on the `=` line. Array initializers (`new int[] { 1, 2 }`, `int[] f = { 1, 2 }`) keep the author's layout.
 
-Why: An initializer sets several independent values; one per line makes each visible and gives each its own diff line. Array initializers are often long lists of literal data, for which one element per line would explode the file. RH5301 and RH5303 report the same shapes.
+Why: An initializer sets several independent values; one per line makes each visible and gives each its own diff line. A `with` initializer sets values the same way. Array initializers are often long lists of literal data, for which one element per line would explode the file. RH5301 and RH5303 report the same shapes, apart from the `with` initializer, which no rule reports.
 
 Example:
 
@@ -807,6 +844,40 @@ class C
                     A = 1
                 };
         var c = new int[] { 1, 2, 3 };
+    }
+}
+```
+
+A `with` initializer, also in an expression-bodied property:
+
+```csharp
+class C
+{
+    R P => _r with { A = 1, B = 2 };
+
+    void M()
+    {
+        var q = p with { X = 1, Y = 2 };
+    }
+}
+```
+
+```csharp
+class C
+{
+    R P => _r with
+              {
+                  A = 1,
+                  B = 2
+              };
+
+    void M()
+    {
+        var q = p with
+                  {
+                      X = 1,
+                      Y = 2
+                  };
     }
 }
 ```

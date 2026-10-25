@@ -146,5 +146,144 @@ public class RH5020CommentsShouldBePrecededByABlankLineFormatterTests : Formatte
                               Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a comment in front of the terminal <c>break</c> of a section the formatter braces gets its
+    /// blank line in the same pass, so the output is clean and stable under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-007")]
+    [Requirement("FMT-BLANK-011")]
+    public async Task VerifyFormatterSeparatesCommentBeforeTerminalBreakOfBracedSection()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal void Method(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             A();
+                                             B();
+                                             // before break
+                                             break;
+
+                                         case 2:
+                                             A();
+                                             break;
+                                     }
+                                 }
+
+                                 private void A()
+                                 {
+                                 }
+
+                                 private void B()
+                                 {
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void Method(int x)
+                                     {
+                                         switch (x)
+                                         {
+                                             case 1:
+                                                 {
+                                                     A();
+                                                     B();
+                                                 }
+
+                                                 // before break
+                                                 break;
+
+                                             case 2:
+                                                 {
+                                                     A();
+                                                 }
+                                                 break;
+                                         }
+                                     }
+
+                                     private void A()
+                                     {
+                                     }
+
+                                     private void B()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 10, 17, 10, 32, AnalyzerResources.RH5020MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment in front of the terminal <c>break</c> of a switch that stays unbraced gets its blank
+    /// line, so the output is clean and stable under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BLANK-011")]
+    public async Task VerifyFormatterSeparatesCommentBeforeTerminalBreakOfUnbracedSection()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal void Method(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             A();
+                                             // before break
+                                             break;
+
+                                         case 2:
+                                             A();
+                                             break;
+                                     }
+                                 }
+
+                                 private void A()
+                                 {
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void Method(int x)
+                                     {
+                                         switch (x)
+                                         {
+                                             case 1:
+                                                 A();
+
+                                                 // before break
+                                                 break;
+
+                                             case 2:
+                                                 A();
+                                                 break;
+                                         }
+                                     }
+
+                                     private void A()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 9, 17, 9, 32, AnalyzerResources.RH5020MessageFormat));
+    }
+
     #endregion // Tests
 }

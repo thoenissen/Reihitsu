@@ -19,6 +19,49 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsBase<RH5201MethodChainsShouldBeAlignedAnalyzer, RH5201MethodChainsShouldBeAlignedCodeFixProvider>
 {
+    #region Constants
+
+    /// <summary>
+    /// Source whose last chain link stands behind the closing line of a comment that spans several lines
+    /// </summary>
+    private const string LinkBehindMultiLineCommentTailTestData = """
+                                                                  internal class Example
+                                                                  {
+                                                                      internal object Run(dynamic a)
+                                                                      {
+                                                                          var r = a.B()
+                                                                                   .C()
+
+                                                                                   /* x
+                                                                          */ {|#0:.|}D();
+
+                                                                          return r;
+                                                                      }
+                                                                  }
+                                                                  """;
+
+    /// <summary>
+    /// Expected result of fixing <see cref="LinkBehindMultiLineCommentTailTestData"/>
+    /// </summary>
+    private const string LinkBehindMultiLineCommentTailResultData = """
+                                                                    internal class Example
+                                                                    {
+                                                                        internal object Run(dynamic a)
+                                                                        {
+                                                                            var r = a.B()
+                                                                                     .C()
+
+                                                                                     /* x
+                                                                            */
+                                                                                     .D();
+
+                                                                            return r;
+                                                                        }
+                                                                    }
+                                                                    """;
+
+    #endregion // Constants
+
     #region Tests
 
     /// <summary>
@@ -1874,6 +1917,46 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
                                 """;
 
         await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix breaks the line in front of a link whose operator stands behind the closing
+    /// <c>*/</c> of a comment that spans several lines, and converges in one application under LF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-012")]
+    [Requirement("SHARED-CHAIN-008")]
+    public async Task VerifyFixBreaksLinkBehindMultiLineCommentTailInOnePass()
+    {
+        await Verify(LinkBehindMultiLineCommentTailTestData.Replace("\r\n", "\n"),
+                     LinkBehindMultiLineCommentTailResultData.Replace("\r\n", "\n"),
+                     static config =>
+                            {
+                                config.NumberOfIncrementalIterations = 1;
+                                config.NumberOfFixAllIterations = 1;
+                            },
+                     Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix breaks the line in front of a link whose operator stands behind the closing
+    /// <c>*/</c> of a comment that spans several lines, and converges in one application under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-012")]
+    [Requirement("SHARED-CHAIN-008")]
+    public async Task VerifyFixBreaksLinkBehindMultiLineCommentTailInOnePassWithCarriageReturnLineFeed()
+    {
+        await Verify(NormalizeToCarriageReturnLineFeed(LinkBehindMultiLineCommentTailTestData),
+                     NormalizeToCarriageReturnLineFeed(LinkBehindMultiLineCommentTailResultData),
+                     static config =>
+                            {
+                                config.NumberOfIncrementalIterations = 1;
+                                config.NumberOfFixAllIterations = 1;
+                            },
+                     Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
     }
 
     /// <summary>

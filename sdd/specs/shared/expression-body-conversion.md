@@ -5,7 +5,7 @@
 | ID prefix | SHARED-BODY |
 | Status | Active |
 | Code owners | `ExpressionBodyAnalyzerBase<TNode>`, `ExpressionBodyToBlockCodeFixProviderBase<TNode>`, `ExpressionBodyRewriteUtilities` |
-| Uses | FMT-STRUCT-004, FMT-STRUCT-005, FMT-STRUCT-006, FMT-STRUCT-007 |
+| Uses | FMT-STRUCT-004, FMT-STRUCT-005, FMT-STRUCT-006, FMT-STRUCT-007, FMT-STRUCT-025 |
 
 This spec covers what the rules share that report an expression-bodied member so that it gets a block body — RH3202 (methods), RH3203 (constructors), RH3205 (operators), RH3206 (conversion operators), RH3207 (finalizers), and RH3208 (local functions): which members are left alone because the formatter cannot convert them, where the diagnostic is, and what the code fix produces. Each rule's spec states which kind of member it reports. "The member" below is the declaration the rule reports, a local function included.
 
@@ -102,7 +102,7 @@ class C
 
 ### SHARED-BODY-003 — The fix converts the body as the formatter does
 
-The code fix MUST replace the expression body and its semicolon with exactly the block body that FMT-STRUCT-004 or FMT-STRUCT-005 produces, with the trivia FMT-STRUCT-006 carries over, laid out as the formatter lays it out.
+The code fix MUST replace the expression body and its semicolon with exactly the block body that FMT-STRUCT-004 or FMT-STRUCT-005 produces, with the trivia FMT-STRUCT-006 carries over, laid out as the formatter lays it out. Where SHARED-BODY-004 applies, no code fix is offered instead.
 
 Why: One owner for the conversion keeps the fixes and the formatter from drifting apart. A fix that built the block itself would have to repeat the statement choice for `void`, `async`, conversion, and throw expressions and the transfer of the trivia of `=>` and `;`.
 
@@ -167,3 +167,36 @@ class C
     }
 }
 ```
+
+### SHARED-BODY-004 — No fix for an `async` member of an unknown task type
+
+The rule MUST report an `async` member whose expression body the formatter keeps under FMT-STRUCT-025, and its code fix MUST NOT be offered for it. A member whose return type FMT-STRUCT-025 recognizes, a nullable-annotated `Task?` or `Task<int>?` included, is converted by the fix as SHARED-BODY-003 states.
+
+Why: The member still has the expression body the rule asks to replace, so the report is correct, and the author, who knows what the alias or the custom task type stands for, can write the block body by hand. The fix produces the formatter's block body (SHARED-BODY-003), and the formatter cannot tell which statement compiles behind such a return type; a fix offered there would change nothing. Unlike FMT-STRUCT-007, the obstacle is not in the code the fix rewrites but in what the return type means, which is why the member is still reported.
+
+Example — RH3202, a type alias:
+
+```csharp
+using T = System.Threading.Tasks.Task;
+
+class C
+{
+    async T RunAsync() {|RH3202:=> await T.Delay(1)|};
+}
+```
+
+no code fix is offered. The same holds for RH3208:
+
+```csharp
+using T = System.Threading.Tasks.Task;
+
+class C
+{
+    void M()
+    {
+        async T RunAsync() {|RH3208:=> await T.Delay(1)|};
+    }
+}
+```
+
+no code fix is offered.

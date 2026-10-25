@@ -109,6 +109,34 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Determines whether a token stands behind the closing line of a delimited comment that spans several lines, on the
+    /// line that comment ends on. Such a comment belongs to the line it starts on, so the token does not start its line
+    /// even though a line break precedes it in the gap
+    /// </summary>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if the token stands behind a multi-line comment's closing line; otherwise, <see langword="false"/></returns>
+    private static bool IsBehindMultiLineCommentTail(SyntaxToken token)
+    {
+        for (var triviaIndex = token.LeadingTrivia.Count - 1; triviaIndex >= 0; triviaIndex--)
+        {
+            var trivia = token.LeadingTrivia[triviaIndex];
+
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                return false;
+            }
+
+            if ((trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+                && trivia.ToFullString().IndexOfAny(['\r', '\n']) >= 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Closes the gap between two adjacent tokens: their line breaks and the whitespace around them are removed. A gap
     /// that holds a comment, a preprocessor directive or disabled text is left untouched
     /// </summary>
@@ -201,7 +229,9 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Ensures a line break in front of a token. An existing line break in the gap is kept as it is; otherwise one is
-    /// appended to the previous token's trailing trivia, behind any block comment that sits there
+    /// appended to the previous token's trailing trivia, behind any block comment that sits there. A token behind the
+    /// closing line of a multi-line comment does not start its line although the gap holds a line break, so a line break
+    /// is appended to its leading trivia, behind that comment
     /// </summary>
     /// <param name="previousToken">The token in front of the gap</param>
     /// <param name="nextToken">The token that must start a line</param>
@@ -212,6 +242,14 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     {
         if (HasLineBreak(previousToken, nextToken))
         {
+            if (IsBehindMultiLineCommentTail(nextToken))
+            {
+                var pendingNext = GetPendingToken(nextToken, replacements);
+                var leadingTrivia = LineBreakTriviaUtilities.RemoveTrailingWhitespace(pendingNext.LeadingTrivia);
+
+                replacements[nextToken] = pendingNext.WithLeadingTrivia(LineBreakTriviaUtilities.AppendEndOfLine(leadingTrivia, _context.EndOfLine));
+            }
+
             return;
         }
 
