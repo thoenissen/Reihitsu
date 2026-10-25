@@ -71,3 +71,7 @@ Worklist, all `PR-introduced`:
 - Test implementer: regression tests for findings 2 and 8 (second pass, LF and CRLF).
 - Implementer: findings 2, 8, 9.
 Then cleaner, spec checker, auditor (repair only), validator.
+
+# Merge of origin/main (before the round-2 audit)
+
+- Merged `origin/main` at 3973631 (no textual conflict; overlap only in `sdd/specs/README.md` and `requirement-ids.txt`, both merged cleanly). `main`'s thoenissen/Reihitsu#1462 changed the rule-page policy (AGENTS.md "Code-fix coverage" and "Key conventions"; `general-notes.md`): rule pages carry no list of withheld fixes, exceptions, or corner cases; a withheld fix is recorded in the rule's spec only. This run's rule-page edits (`documentation/rules/RH5104.md` `## Exceptions`, `documentation/rules/RH5601.md` clause) are routed to the spec author to be brought in line. Not a repair round.
