@@ -1,5 +1,5 @@
 Role: implementer
-Commit: 780162b (revision 2, repair round 1; revision 1 was 2dea131)
+Commit: 9ba0bc3 (revision 3, repair round 2; revision 2 was 780162b, revision 1 2dea131)
 Verdict: #948: tests pass; #949: tests pass; #954: tests pass; #1390: tests pass; #888: tests pass
 
 My prompt carried no intended fix, suspected cause, or hoped-for verdict. The skeptic's mechanism readings (`02-skeptic.md`) were treated as claims: each one named below was checked by running the code (instrumented trace or a failing test) before it was used. Every handed-over test assertion, input, and expected output is unchanged. No file of a concurrent run was touched. The RH3202 code-fix provider sits in R7's RH3xxx area, which the maintainer released to this run (00-lead.md, Escalation 1, Q1).
@@ -227,3 +227,44 @@ _None._
 
 - `BuildLeadingTrivia` (the first statement moved into a braced section) appends a line break behind a `///` comment and drops blank lines between comments (auditor hint; skeptic follow-up).
 - Revision 1's follow-ups stand. The conditional-directive case under SHARED-BLANK-005 is now the maintainer's A4 follow-up.
+
+## Revision 3 — repair round 2
+
+Commit: 9ba0bc3. Findings A8 and A2 (narrowed) of `07-auditor.md` (the note after repair round 1), as routed in `00-lead.md` under "Repair round 2". Tests: `03-test-implementer.md` "Revision 5 — repair round 2". I changed no test assertion, input, or expected output. I took the auditor's suggestion as a suggestion only. I ran `scripts/format.sh` over the changed file (no change).
+
+### thoenissen/Reihitsu#948 — A8, A2
+
+| File | What changed | Requirement |
+|---|---|---|
+| `src/Reihitsu.Formatter/Pipeline/SwitchCaseBraces/Rewriter/SwitchCaseBraceRewriter.cs` | `IsBoundInsideSection` now walks the ancestors from the name up to its section, together with the child each step comes from. The new `IsBoundByAncestor` lets a declaration bind the name only when that child lies inside the declaration's C# scope. | FMT-SWITCH-014, FMT-PIPE-003 |
+
+Scopes `IsBoundByAncestor` recognizes:
+
+- Parameters, and expression-body designations, of a lambda, anonymous method, or local function: only for a name in the body. Names in the function's attribute lists, parameter list (default values included), return type, and constraint clauses stay uses (A8).
+- Locals that a block, or a section of a nested switch, declares directly.
+- A `foreach` or deconstructing `foreach` variable, and a `using` or `fixed` variable: in the embedded statement.
+- A `for` variable: in the condition, the incrementors, and the embedded statement.
+- A `catch` variable: in the filter and the block.
+- A `while` condition designation: in the condition and the embedded statement. A `do` condition designation: in the condition.
+- A switch-expression arm designation: in that arm (A2).
+
+A shadowing form not on this list still counts as a use, which leaves the switch unbraced, and the output still compiles. The `for` variable is not bound inside its own declaration, which takes the same conservative side. The summary lists each scope.
+
+### Policy owners
+
+- No new scope policy. `IsBoundByAncestor` reuses `GetDirectlyDeclaredLocalNames` (blocks and nested switch sections) and `GetDesignatedNames` (expression bodies, conditions, deconstruction variables, arm patterns), which stay the only owners in `SwitchCaseBraceRewriter`.
+- `rg -n "SingleVariableDesignationSyntax|DeclarationExpressionSyntax" src --glob '!*Test*'` finds no other scope owner, unchanged since revision 1.
+
+### Tests run
+
+- `scripts/test.sh --configuration Debug --project formatter --filter "FullyQualifiedName~SwitchSectionSharedLocalTests|FullyQualifiedName~SwitchCaseBrace|FullyQualifiedName~TerminalBreak"`: 101 passed, 0 failed. This includes the 13 failing tests named in revision 5: A8 ×4, A2 ×9.
+- `scripts/test.sh --configuration Debug --project formatter`: 2859 passed, 0 failed.
+- `scripts/test.sh --configuration Debug --project analyzer`: 6133 passed, 0 failed.
+
+### Disputed tests or scope
+
+_None._
+
+### Follow-up candidates
+
+_None new._ The earlier revisions' follow-ups stand. `sdd/specs/formatter/structural-transforms.md` has an uncommitted change in the worktree that is not mine (A9, the spec author's); I did not stage it.
