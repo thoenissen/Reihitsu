@@ -216,3 +216,58 @@ Release configuration does not build on `4c985a2`, because of `RH5104CommentsMus
 ```shell
 scripts/test.sh --project analyzer --configuration Debug --filter "FullyQualifiedName~RH5104CommentsMustBeOnTheirOwnLineAnalyzerTests"
 ```
+
+# Repair round 1 — auditor findings
+
+Role: test implementer
+Commit: 193b3a5
+Verdict: #951: findings 1–5 reproduced; #1133: nothing to do (no finding); #1146: finding 6 / RH5104-007 reproduced
+
+Inputs: `07-auditor.md` (findings 1–7), the "Repair round 1" section of `00-lead.md`, and RH5104-007 with the RH5104-004 change in `sdd/specs/analyzer/RH5104.md` (193b3a5). I took the inputs from the auditor's counterexamples. I took every expected value from the spec, not from the auditor's "suggested change". Finding 7 is a naming and side-effect concern of `LayoutModel`, so no output test can show it. All runs used `--configuration Debug`, on production code at 193b3a5, which is the implementation of f50a0ba plus 924eaa0.
+
+## thoenissen/Reihitsu#951
+
+| Test | Finding | Requirement / failure class | Helper | Expected now | Observed vs expected (LF, pass 1) |
+|---|---|---|---|---|---|
+| `RawStringInterpolationHoleTests.ArgumentAnchoredOnTheClosingLineOfANestedLiteralKeepsItsAlignment` | 1(a) | FMT-RAW-007, FMT-RAW-008; FC-012, FC-027 | `AssertRuleResult(input, expected)` | red | `"b"` at 41, expected 44 under `"a"` (outer +13, inner +3) |
+| `RawStringInterpolationHoleTests.ArgumentAnchoredOnTheContinuationLineOfAVerbatimStringKeepsItsAlignment` | 1(b) | FMT-RAW-007, FMT-RAW-009; FC-012, FC-022 | `AssertRuleResult(input, expected)` | red | `"b"` at 32, expected 19 under `"a"` on the kept `b"` line |
+| `RawStringInterpolationHoleTests.CommentAboveTabIndentedHoleLineTakesItsColumnAfterTheTabReplacement` | 2, comment | FMT-RAW-007; FC-003, FC-012 | `AssertRuleResult(source with tabs, expected)` | red | `// c` at 18, expected 21, the column of `name` after FMT-CLEAN-002 |
+| `RawStringInterpolationHoleTests.ArgumentAnchoredOnATabIndentedHoleLineAlignsAfterTheTabReplacement` | 2, anchor | FMT-RAW-007; FC-003, FC-012 | `AssertRuleResult(source with tabs, expected)` | red | `"b"` at 32, expected 35 under `"a"` after the tab became four spaces |
+| `RawStringInterpolationHoleTests.DocumentationCommentLinesInHoleMoveWithTheTokenBelowThem` | 3 | FMT-RAW-007; FC-001 | `AssertRuleResult(input, expected)` | red | `/// second` left at 8, expected 21 with `/// first` and `name` |
+| `RawStringInterpolationHoleTests.ConstraintClauseInHoleOfAlignedLiteralIsIndentedFromItsDeclaration` | 4, aligned | FMT-RAW-007, FMT-INDENT-017; FC-015, FC-016 | `AssertRuleResult(input, expected)` | red | `where` at 16 (scope depth), expected 25, one level deeper than `void` at 21 |
+| `RawStringInterpolationHoleTests.ConstraintClauseInHoleOfMisalignedLiteralIsIndentedFromItsDeclarationAfterTheShift` | 4, misaligned by 13 | FMT-RAW-007, FMT-INDENT-017; FC-015, FC-016 | `AssertRuleResult(input, expected)` | red | `where` at 29, expected 25 |
+| `RawStringAlignmentPipelineTests.ChainLinkBehindSecondRawStringOnASharedLineAlignsAfterBothLiteralsMoved` | 5 | FMT-INDENT-029, FMT-INDENT-030; FC-015 | `AssertRuleResult(input, expected)` | red | `.ToString()` at 13, expected 24 under `.Trim` (SHARED-CHAIN-007 anchor), after the first literal moved by 11 and the second by 17 |
+
+Every test asserts pass 1 equal to the expected output and pass 2 equal to it as well, under both LF and CRLF, through `AssertRuleResult`. Each one fails at the LF pass-1 assertion, so its CRLF half has not been watched failing. The auditor reports these mechanisms as independent of the line ending.
+
+Finding 5 is not inside a hole. The auditor reports that `origin/main` also needs three passes for that input, for a different reason. I did not re-run `origin/main`.
+
+## thoenissen/Reihitsu#1133
+
+No finding, so nothing changed.
+
+## thoenissen/Reihitsu#1146
+
+All in `RH5104CommentsMustBeOnTheirOwnLineAnalyzerTests`:
+
+| Test | Requirement / failure class | Helper | Expected now | Observed vs expected |
+|---|---|---|---|---|
+| `VerifyCodeFixIsOfferedOnlyForTheFirstCommentOfALine` (both shapes of the RH5104-007 example: `M(); /* a */ // b` and `/* c */ /* d⏎   e */ M();`) | RH5104-007; FC-004, FC-009 | `Verify(markup)` + `GetCodeFixActionsAsync` per diagnostic | red | All three are reported, as expected. `// b` gets 1 action, expected 0. The test also asserts that `/* a */` keeps an action and that `/* d…e */` gets 0 |
+| `VerifyNoCodeFixIsOfferedForACommentBehindAnUnreportedCommentOnItsLine` (`/* c */ /* d⏎   e */ M();` alone) | RH5104-007; FC-009 | `VerifyNoCodeFixIsOffered` | red | 1 action offered, expected none |
+| `VerifyFixAllKeepsTheOrderOfCommentsThatShareALine` (full example, incremental and Fix All, 2 iterations each) | RH5104-007; FC-004, FC-008 | `Verify(source, fixed, FixedState.MarkupHandling = Allow, NumberOfIncrementalIterations = 2, NumberOfFixAllIterations = 2)` | red | `/* d⏎   e */` is moved above `/* c */`, which reorders the comments. Expected: it stays reported in place, and the result is `/* a */`⏎`// b`⏎`M();` |
+| `VerifyCommentIsMovedOnceTheCommentBeforeItHasLeftItsLine` (the example's intermediate state) | RH5104-007; FC-003 | `Verify(source, fixed, FixedState.MarkupHandling = Allow)` | red | `// b` lands between `/* a */` and `M();` as expected. The test is red only because `/* d⏎   e */` is still moved above `/* c */` |
+
+The iteration counts are exact: the fix for `// b` exists only after `/* a */` has left the line. That makes one pass for `/* a */` and one for `// b`, both one by one and under Fix All. Whether the counts hold can only be seen once the fix exists.
+
+## Whole run
+
+```shell
+scripts/test.sh --project formatter --configuration Debug --filter "FullyQualifiedName~Reihitsu.Formatter.Test.Unit.RawStringAlignment"
+scripts/test.sh --project analyzer --configuration Debug --filter "FullyQualifiedName~RH5104CommentsMustBeOnTheirOwnLineAnalyzerTests"
+scripts/test.sh --project architecture --configuration Debug
+```
+
+- Formatter `Unit.RawStringAlignment`: 51 tests, 8 red. The red ones are exactly the 8 above; every earlier test passes.
+- RH5104 analyzer tests: 49 tests, 4 red. The red ones are exactly the 4 above.
+- Architecture: 84/84, including coverage of RH5104-007.
+- `scripts/format.sh` was run over the three changed test files.

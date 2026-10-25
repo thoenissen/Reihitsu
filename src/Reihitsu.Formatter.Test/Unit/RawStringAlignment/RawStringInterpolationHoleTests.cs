@@ -776,6 +776,227 @@ public class RawStringInterpolationHoleTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a comment above a tab-indented hole line of an aligned literal takes the column that line has after its tab becomes four spaces, and a second pass keeps it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-RAW-007")]
+    public void CommentAboveTabIndentedHoleLineTakesItsColumnAfterTheTabReplacement()
+    {
+        const string source = """"
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      var name = "x";
+                                      var a = $"""
+                                               Hello {
+                                               // c
+                                               →name
+                                               }
+                                               """;
+                                  }
+                              }
+                              """";
+        const string expected = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var name = "x";
+                                        var a = $"""
+                                                 Hello {
+                                                     // c
+                                                     name
+                                                 }
+                                                 """;
+                                    }
+                                }
+                                """";
+
+        AssertRuleResult(source.Replace("→", "\t"), expected);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped argument anchored on a tab-indented hole line of an aligned literal is aligned to the column the anchor has after its tab becomes four spaces, and a second pass keeps it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-RAW-007")]
+    public void ArgumentAnchoredOnATabIndentedHoleLineAlignsAfterTheTabReplacement()
+    {
+        const string source = """"
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      var a = $"""
+                                               Hello {
+                                               →string.Concat("a",
+                                               "b")}
+                                               """;
+                                  }
+                              }
+                              """";
+        const string expected = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = $"""
+                                                 Hello {
+                                                     string.Concat("a",
+                                                                   "b")}
+                                                 """;
+                                    }
+                                }
+                                """";
+
+        AssertRuleResult(source.Replace("→", "\t"), expected);
+    }
+
+    /// <summary>
+    /// Verifies that both lines of a two-line documentation comment that starts hole lines take the column of the token below them after it moved with the literal
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-RAW-007")]
+    public void DocumentationCommentLinesInHoleMoveWithTheTokenBelowThem()
+    {
+        const string input = """"
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var name = "x";
+                                     var a = $"""
+                                 Hello {
+                                     /// first
+                                     /// second
+                                     name
+                                 }
+                                 """;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var name = "x";
+                                        var a = $"""
+                                                 Hello {
+                                                     /// first
+                                                     /// second
+                                                     name
+                                                 }
+                                                 """;
+                                    }
+                                }
+                                """";
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a constraint clause of a local function in an anonymous-method body inside a hole of an aligned literal is indented one level deeper than its declaration's line, which keeps its column
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-RAW-007")]
+    [Requirement("FMT-INDENT-017")]
+    public void ConstraintClauseInHoleOfAlignedLiteralIsIndentedFromItsDeclaration()
+    {
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                              Hello {M(delegate
+                                              {
+                                                  void L<T>()
+                                                  where T : class
+                                                  {
+                                                  }
+
+                                                  return 1;
+                                              })}
+                                              """;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 Hello {M(delegate
+                                                 {
+                                                     void L<T>()
+                                                         where T : class
+                                                     {
+                                                     }
+
+                                                     return 1;
+                                                 })}
+                                                 """;
+                                    }
+                                }
+                                """";
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a constraint clause of a local function in an anonymous-method body inside a hole of a misaligned literal is indented one level deeper than its declaration's line after that line moved with the literal, and a second pass keeps it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-RAW-007")]
+    [Requirement("FMT-INDENT-017")]
+    public void ConstraintClauseInHoleOfMisalignedLiteralIsIndentedFromItsDeclarationAfterTheShift()
+    {
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                 Hello {M(delegate
+                                 {
+                                     void L<T>()
+                                         where T : class
+                                     {
+                                     }
+
+                                     return 1;
+                                 })}
+                                 """;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 Hello {M(delegate
+                                                 {
+                                                     void L<T>()
+                                                         where T : class
+                                                     {
+                                                     }
+
+                                                     return 1;
+                                                 })}
+                                                 """;
+                                    }
+                                }
+                                """";
+
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Hole lines
 
     #region Nested raw strings
@@ -932,6 +1153,46 @@ public class RawStringInterpolationHoleTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a wrapped argument whose opening parenthesis stands on the closing line of a raw string nested in the hole is aligned to it after both literals moved, and a second pass keeps it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-RAW-007")]
+    [Requirement("FMT-RAW-008")]
+    public void ArgumentAnchoredOnTheClosingLineOfANestedLiteralKeepsItsAlignment()
+    {
+        const string input = """"
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var a = $"""
+                                 Outer {"""
+                                     inner
+                                     """ + string.Concat("a",
+                                         "b")}
+                                 """;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = $"""
+                                                 Outer {"""
+                                                        inner
+                                                        """ + string.Concat("a",
+                                                                            "b")}
+                                                 """;
+                                    }
+                                }
+                                """";
+
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Nested raw strings
 
     #region Nested text
@@ -1039,6 +1300,44 @@ public class RawStringInterpolationHoleTests : FormatterTestsBase
                                         var a = $"""
                                                  Hello {$@"a
                                 b{name}"}
+                                                 """;
+                                    }
+                                }
+                                """";
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped argument whose opening parenthesis stands on the kept continuation line of a verbatim string nested in the hole is aligned to it, and a second pass keeps it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-RAW-007")]
+    [Requirement("FMT-RAW-009")]
+    public void ArgumentAnchoredOnTheContinuationLineOfAVerbatimStringKeepsItsAlignment()
+    {
+        const string input = """"
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var a = $"""
+                                 Hello {@"a
+                             b" + string.Concat("a",
+                                 "b")}
+                                 """;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = $"""
+                                                 Hello {@"a
+                                b" + string.Concat("a",
+                                                   "b")}
                                                  """;
                                     }
                                 }

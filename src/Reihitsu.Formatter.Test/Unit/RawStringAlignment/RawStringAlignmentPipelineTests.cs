@@ -117,5 +117,45 @@ public class RawStringAlignmentPipelineTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a wrapped chain link behind the closing quotes of a raw string, whose opening line is the closing line of an earlier raw string, aligns to its anchor after both literals moved, and a second pass keeps it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-029")]
+    [Requirement("FMT-INDENT-030")]
+    public void ChainLinkBehindSecondRawStringOnASharedLineAlignsAfterBothLiteralsMoved()
+    {
+        const string input = """"
+                             class C
+                             {
+                                 string M()
+                                 {
+                                     return """
+                                 a
+                                 """ + """
+                                 b
+                                 """.Trim()
+                                    .ToString();
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    string M()
+                                    {
+                                        return """
+                                               a
+                                               """ + """
+                                                     b
+                                                     """.Trim()
+                                                        .ToString();
+                                    }
+                                }
+                                """";
+
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

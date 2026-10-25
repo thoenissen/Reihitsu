@@ -1259,6 +1259,172 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzerTests : BatchCodeFixTests
         await Verify(testData, fixedData, static test => test.FixedState.MarkupHandling = MarkupMode.Allow);
     }
 
+    /// <summary>
+    /// Verifies the spec example: of the comments on a line, only one with no other comment before it on that line is offered a fix, while all reported ones stay reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5104-007")]
+    public async Task VerifyCodeFixIsOfferedOnlyForTheFirstCommentOfALine()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(); /* a */ // b
+                                        /* c */ /* d
+                                           e */ M();
+                                    }
+
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """";
+
+        await Verify(testData.Replace("/* a */", "{|RH5104:/* a */|}").Replace("// b", "{|RH5104:// b|}").Replace("/* d", "{|RH5104:/* d").Replace("e */", "e */|}"));
+
+        var firstCommentActions = await GetCodeFixActionsAsync(testData,
+                                                               RH5104CommentsMustBeOnTheirOwnLineAnalyzer.DiagnosticId,
+                                                               root => Location.Create(root.SyntaxTree, new TextSpan(testData.IndexOf("/* a */", StringComparison.Ordinal), 7)));
+        var lineCommentActions = await GetCodeFixActionsAsync(testData,
+                                                              RH5104CommentsMustBeOnTheirOwnLineAnalyzer.DiagnosticId,
+                                                              root => Location.Create(root.SyntaxTree, new TextSpan(testData.IndexOf("// b", StringComparison.Ordinal), 4)));
+        var multiLineCommentActions = await GetCodeFixActionsAsync(testData,
+                                                                   RH5104CommentsMustBeOnTheirOwnLineAnalyzer.DiagnosticId,
+                                                                   root => Location.Create(root.SyntaxTree, TextSpan.FromBounds(testData.IndexOf("/* d", StringComparison.Ordinal), testData.IndexOf("e */", StringComparison.Ordinal) + 4)));
+
+        Assert.IsNotEmpty(firstCommentActions, "The comment with no other comment before it on its line must keep its code fix.");
+        Assert.IsEmpty(lineCommentActions, "No code fix may be offered for the comment behind another comment on its line.");
+        Assert.IsEmpty(multiLineCommentActions, "No code fix may be offered for the comment behind an unreported comment on its line.");
+    }
+
+    /// <summary>
+    /// Verifies that a comment that starts behind a comment that shares no line with code is reported and offered no fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5104-007")]
+    public async Task VerifyNoCodeFixIsOfferedForACommentBehindAnUnreportedCommentOnItsLine()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        /* c */ {|RH5104:/* d
+                                           e */|} M();
+                                    }
+
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """";
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: applying the fixes one by one and through Fix All moves the first comment of the line before the one behind it, so their order stays as written, and leaves the comment behind an unreported comment reported in place
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5104-007")]
+    public async Task VerifyFixAllKeepsTheOrderOfCommentsThatShareALine()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(); {|RH5104:/* a */|} {|RH5104:// b|}
+                                        /* c */ {|RH5104:/* d
+                                           e */|} M();
+                                    }
+
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """";
+        const string fixedData = """"
+                                 class C
+                                 {
+                                     void N()
+                                     {
+                                         /* a */
+                                         // b
+                                         M();
+                                         /* c */ {|RH5104:/* d
+                                            e */|} M();
+                                     }
+
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """";
+
+        // The comment behind the unreported comment stays in the fixed code and is marked there, and the comment behind
+        // the first one is offered its fix only once the first one has left the line, so each way of applying the fixes
+        // needs two passes
+        await Verify(testData,
+                     fixedData,
+                     static test =>
+                            {
+                                test.FixedState.MarkupHandling = MarkupMode.Allow;
+                                test.NumberOfIncrementalIterations = 2;
+                                test.NumberOfFixAllIterations = 2;
+                            });
+    }
+
+    /// <summary>
+    /// Verifies the spec example: once the comment before it has been moved, the comment that was behind it is offered its fix and lands between the moved comment and the code
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5104-007")]
+    public async Task VerifyCommentIsMovedOnceTheCommentBeforeItHasLeftItsLine()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        /* a */
+                                        M(); {|RH5104:// b|}
+                                        /* c */ {|RH5104:/* d
+                                           e */|} M();
+                                    }
+
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """";
+        const string fixedData = """"
+                                 class C
+                                 {
+                                     void N()
+                                     {
+                                         /* a */
+                                         // b
+                                         M();
+                                         /* c */ {|RH5104:/* d
+                                            e */|} M();
+                                     }
+
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """";
+
+        await Verify(testData, fixedData, static test => test.FixedState.MarkupHandling = MarkupMode.Allow);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
