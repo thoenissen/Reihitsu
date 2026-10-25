@@ -921,7 +921,7 @@ The formatter MUST NOT brace any section of a switch in which a local declared d
 
 - a local declaration, `const` included, or a deconstruction declaration (`var (a, b) = …;`, `(var a, var b) = …;`);
 - a local function;
-- a variable that `out var` or a pattern declares in an expression statement, a `return`, `throw`, or `yield return` statement, the condition of an `if` statement, the governing expression of a nested `switch` statement, or the expression of a `lock` statement, such as `F(out var o);` or `if (p is int n)`.
+- a variable that `out var` or a pattern declares in the initializer of a local declaration, an expression statement, a `return`, `throw`, or `yield return` statement, the condition of an `if` statement, the governing expression of a nested `switch` statement, or the expression of a `lock` statement, such as `var b = F(out var o);`, `F(out var o);`, or `if (p is int n)`.
 
 A use anywhere in the other section counts — in its statements, its nested blocks and lambdas, a nested switch, and its labels, such as a constant in `case K:` or a call in a `when` clause — before or after the declaring section. A local that is declared inside a nested block, lambda, anonymous method, or local-function body of a section, in a section of a nested switch, in the condition of an `else if`, in an embedded statement of an `if` or `else`, or in the header of a `while`, `do`, `for`, `foreach`, `using`, or `fixed` statement, and a local that is used only in the section that declares it, MUST NOT trigger this guard.
 
