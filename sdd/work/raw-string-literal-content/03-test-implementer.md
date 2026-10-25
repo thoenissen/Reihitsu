@@ -323,3 +323,45 @@ scripts/test.sh --project formatter --configuration Debug --filter "FullyQualifi
 
 - 55 tests, 3 red, exactly the three above. Every earlier test passes.
 - `scripts/format.sh` reports no change to the test file.
+
+# Repair round 3
+
+Role: test implementer
+Commit: a666661
+Verdict: #951: finding 10 reproduced; #1133: nothing to do; #1146: nothing to do
+
+Inputs: the "Repair round 2" section of `07-auditor.md` (finding 10) and the "Repair round 3" worklist in `00-lead.md`. I used the auditor's counterexamples as inputs, without the suggested change.
+
+In every input, the quotes of `var a = $"""` are at column 17 and the closing marker is at 21, so the literal moves 4 columns left.
+
+How the expected values follow from the specs:
+
+- **FMT-RAW-007, third condition.** A hole line that no construct inside the hole places moves by the closing marker's shift. Its column is measured with its tab replaced by four spaces, as FMT-CLEAN-002 does. Every input line is indented more than the shift, so the coverage sentence's left-of-shift exemption does not apply.
+- **FMT-INDENT-012 and FMT-INDENT-030.** A wrapped argument aligns to its anchor's final column.
+- **FMT-PIPE-004.** A second pass must keep the output.
+
+Production code at a666661 is unchanged since 22ecca4. I ran with `--configuration Debug`.
+
+## thoenissen/Reihitsu#951
+
+All four tests are in `RawStringInterpolationHoleTests`. Each uses `AssertRuleResult(source.Replace("→", "\t"), expected)`, which checks pass 1 and pass 2 under LF and CRLF.
+
+| Test | Hole line(s) | Requirement / failure class | Expected now | Observed vs expected (LF, pass 1) |
+|---|---|---|---|---|
+| `LeftwardShiftBeyondTheSpacesInFrontOfATabMovesTheHoleLineByTheFullShift` (plain counterexample) | `··→name`, column 6 | FMT-RAW-007; FC-003, FC-012 | red | `name` at 4; expected 2 (6 − 4) |
+| `ArgumentAnchoredOnAHoleLineMovedLeftBeyondTheSpacesInFrontOfATabStaysAligned` (anchored counterexample) | `··→string.Concat("a",` and, after 21 spaces, `"b")}` | FMT-RAW-007; FC-003, FC-012, FC-015 | red | `string` at 4, so `"a"` at 18, while `"b"` is at 16. Expected: `string` at 2, with `"a"` and `"b"` both at 16 |
+| `LeftwardShiftEqualToTheSpacesInFrontOfATabMovesTheHoleLineByTheFullShift` (boundary: shift equals the spaces in front of the tab) | `····→name`, column 8 | FMT-RAW-007; FC-003 | green (characterization of the boundary) | `name` at 4, as expected (8 − 4) |
+| `ArgumentAnchoredOnAHoleLineMovedLeftByTheSpacesInFrontOfATabStaysAligned` (the same boundary, anchored) | `····→string.Concat("a",` and `"b")}` | FMT-RAW-007; FC-003 | green (characterization of the boundary) | `"a"` and `"b"` both at 18, as expected |
+
+- **Red tests.** The two red tests fail at the LF pass-1 assertion, so I have not watched their CRLF half fail. The auditor says the mechanism does not depend on the line ending.
+- **Boundary tests.** These pass on both passes, under LF and CRLF. They pin the side of the boundary that is correct today: the shift removes exactly the spaces in front of the tab.
+- **Not covered.** A shift smaller than the spaces in front of the tab is the same code path as the boundary. A rightward shift with a tab is already covered by `NestedLiteralOpeningATabIndentedHoleLineOfMisalignedLiteralIsAlignedAfterTheTabReplacement`.
+
+## Whole run
+
+```shell
+scripts/test.sh --project formatter --configuration Debug --filter "FullyQualifiedName~Reihitsu.Formatter.Test.Unit.RawStringAlignment"
+```
+
+- 59 tests ran; 2 failed, exactly the two red tests above. Every earlier test passes.
+- `scripts/format.sh` reports no change to the test file.

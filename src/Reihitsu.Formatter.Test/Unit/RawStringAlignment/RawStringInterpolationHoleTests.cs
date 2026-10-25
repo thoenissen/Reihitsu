@@ -1114,6 +1114,162 @@ public class RawStringInterpolationHoleTests : FormatterTestsBase
         AssertRuleResult(source.Replace("→", "\t"), expected);
     }
 
+    /// <summary>
+    /// Verifies that when the literal moves left by more columns than the spaces in front of the tab of a hole line, the line still moves by the full shift, measured with the tab as four spaces, and a second pass keeps it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-RAW-007")]
+    public void LeftwardShiftBeyondTheSpacesInFrontOfATabMovesTheHoleLineByTheFullShift()
+    {
+        const string source = """"
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      var name = "x";
+                                      var a = $"""
+                                                   Hello {
+                                →name
+                                                   }
+                                                   """;
+                                  }
+                              }
+                              """";
+        const string expected = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var name = "x";
+                                        var a = $"""
+                                                 Hello {
+                                  name
+                                                 }
+                                                 """;
+                                    }
+                                }
+                                """";
+
+        AssertRuleResult(source.Replace("→", "\t"), expected);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped argument anchored on a tab-indented hole line, which moves left by more columns than the spaces in front of its tab, is aligned to the anchor's final column, and a second pass keeps it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-RAW-007")]
+    public void ArgumentAnchoredOnAHoleLineMovedLeftBeyondTheSpacesInFrontOfATabStaysAligned()
+    {
+        const string source = """"
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      var name = "x";
+                                      var a = $"""
+                                                   Hello {
+                                →string.Concat("a",
+                                                   "b")}
+                                                   """;
+                                  }
+                              }
+                              """";
+        const string expected = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var name = "x";
+                                        var a = $"""
+                                                 Hello {
+                                  string.Concat("a",
+                                                "b")}
+                                                 """;
+                                    }
+                                }
+                                """";
+
+        AssertRuleResult(source.Replace("→", "\t"), expected);
+    }
+
+    /// <summary>
+    /// Verifies that when the literal moves left by exactly the spaces in front of the tab of a hole line, the line moves by the full shift, measured with the tab as four spaces, and a second pass keeps it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-RAW-007")]
+    public void LeftwardShiftEqualToTheSpacesInFrontOfATabMovesTheHoleLineByTheFullShift()
+    {
+        const string source = """"
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      var name = "x";
+                                      var a = $"""
+                                                   Hello {
+                                  →name
+                                                   }
+                                                   """;
+                                  }
+                              }
+                              """";
+        const string expected = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var name = "x";
+                                        var a = $"""
+                                                 Hello {
+                                    name
+                                                 }
+                                                 """;
+                                    }
+                                }
+                                """";
+
+        AssertRuleResult(source.Replace("→", "\t"), expected);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped argument anchored on a tab-indented hole line, which moves left by exactly the spaces in front of its tab, is aligned to the anchor's final column, and a second pass keeps it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-RAW-007")]
+    public void ArgumentAnchoredOnAHoleLineMovedLeftByTheSpacesInFrontOfATabStaysAligned()
+    {
+        const string source = """"
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      var name = "x";
+                                      var a = $"""
+                                                   Hello {
+                                  →string.Concat("a",
+                                                   "b")}
+                                                   """;
+                                  }
+                              }
+                              """";
+        const string expected = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var name = "x";
+                                        var a = $"""
+                                                 Hello {
+                                    string.Concat("a",
+                                                  "b")}
+                                                 """;
+                                    }
+                                }
+                                """";
+
+        AssertRuleResult(source.Replace("→", "\t"), expected);
+    }
+
     #endregion // Hole lines
 
     #region Nested raw strings
