@@ -233,3 +233,73 @@ _None._
   - formatter `RawStringAlignment|SelfHostingTests` `67/67`
 - `scripts/format.sh` over all 10 changed files: `Formatted 0 of 10`.
 - The Debug build shows no warnings in the changed files.
+
+# Repair round 2
+
+Role: implementer
+Commit: 22ecca4
+Verdict: #951: tests pass (findings 2 narrowed, 8, 9); #1133: nothing to repair; #1146: nothing to repair
+
+Inputs:
+- The "Repair round 1" section of `07-auditor.md`: findings 2 (narrowed), 8 and 9, and hint A.
+- Escalation 5 and the "Repair round 2" worklist in `00-lead.md`. The maintainer kept the shared shift mechanism; the duplicated tab rule becomes a follow-up candidate.
+- The "Repair round 2" section of `03-test-implementer.md` (b8cc3e0, three red tests).
+
+No test was changed, and `CleanupPhase` was not touched.
+
+## thoenissen/Reihitsu#951
+
+### Changes
+
+| File | What changed | Finding / requirement |
+|---|---|---|
+| `src/Reihitsu.Formatter/Pipeline/RawStringAlignment/Utilities/RawStringLineShifts.cs` | New `GetColumnAfterTabReplacement(SyntaxToken)`. It gives a token's column with every tab that lies in a whitespace trivia in front of it on its line counted as `FormattingContext.IndentSize` columns. Every other character counts as one: comment text, a tab inside a comment, literal text. This is the span `CleanupPhase.NormalizeWhitespaceTabs` rewrites (every whitespace trivia), so the count no longer stops at the first non-whitespace character. | 2 (FC-001), FMT-RAW-007's FMT-CLEAN-002 sentence |
+| `.../Indentation/Utilities/LayoutComputer.cs` | The private `GetColumnAfterTabReplacement` was removed. `RegisterRawStringHoleLines` calls the shared one. | 2, hint A |
+| `.../RawStringAlignment/RawStringAlignmentPhase.cs` | The raw-string phase measures a literal's first token with `RawStringLineShifts.GetColumnAfterTabReplacement` instead of the plain character column. So the opening quotes behind a tab are measured where they end up after cleanup, the same way the indentation phase predicts them. | 8 (FC-012, FC-015), FMT-RAW-008 |
+| `.../Indentation/Utilities/LayoutModel.cs` | Summaries of `TryGetPlacedColumn`, `TryGetPlacedColumnBeforeRawStringShift`, and the `column` parameter of `RegisterRawStringHoleLine`. They now say: after the raw-string shift (for `TryGetPlacedColumn`), and, for a kept line, the registered column with tabs counted as cleanup replaces them. | 9 (FC-031) |
+| `.../Indentation/Contributors/CommentIndentationContributor.cs` | Summary of `AlignCommentsBeforeToken`, in the same wording. | 9 (FC-031) |
+
+### Re-derivation
+
+- **Finding 2.** Confirmed by the red test `ArgumentAnchoredBehindATabIndentedCommentOnAHoleLineAlignsAfterTheTabReplacement`. The previous count gave up at `/* c */` and fell back to the character column.
+- **Finding 8.** Confirmed by the two red nested-literal tests.
+  - The indentation side already counted the tab as four, because the `"""` line is a registered hole line.
+  - The raw-string side used the character column. That is where the two owners of the opening column disagreed.
+  - The fix gives both sides one statement of the count. Closing columns stay plain space counts: the closing line's indentation is literal text, which cleanup does not change.
+
+### Policy owners
+
+- **Tab count.** `rg -n "GetColumnAfterTabReplacement|Replace\(\"\\\\t\"" src/Reihitsu.Formatter` finds two statements of the tab rule:
+  - `RawStringLineShifts.GetColumnAfterTabReplacement` is the only statement for measuring, and both formatter callers use it.
+  - `CleanupPhase.NormalizeWhitespaceTabs` is the statement for rewriting. It is owned by a concurrent run, and was left alone per the instruction.
+  - Escalation 5 records the duplication as a follow-up candidate (hint A).
+- **Per-line shift.** `RawStringLineShifts` remains the only owner.
+
+### Tests run
+
+- `scripts/test.sh --configuration Debug --project formatter --filter "FullyQualifiedName~Reihitsu.Formatter.Test.Unit.RawStringAlignment"`: `Passed: 55, Failed: 0`. The 3 new tests are included.
+- Full Debug runs on the tree of `22ecca4`:
+  - formatter `2723/2723`, with `SelfHostingTests` included;
+  - analyzer `6095/6095`;
+  - core `527/527`;
+  - cli `250/250`;
+  - architecture `84/84`;
+  - tooling `120/120`.
+- `scripts/format.sh` over the 5 changed files: `Formatted 0 of 5`. The Debug build shows no warnings in them.
+
+### Disputed tests or scope
+
+_None._
+
+### Follow-up candidates
+
+- **Hint A**, already recorded under escalation 5: one shared "whitespace tab becomes four spaces" helper for `CleanupPhase` and `RawStringLineShifts`, outside this run's files.
+- **Hint B.** `GetDistance` is still not memoized. The cost is harmless at the depths seen, and `SelfHostingTests` passes.
+
+## thoenissen/Reihitsu#1133
+
+No finding; nothing changed.
+
+## thoenissen/Reihitsu#1146
+
+No finding; nothing changed.
