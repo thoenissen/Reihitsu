@@ -30,3 +30,7 @@ On the skeptic's Q1 and architecture finding D2 (`02-skeptic.md`), the maintaine
 # Escalation 2 (amended change doc) — answered 2026-10-25
 
 The maintainer approved the amended change doc as of `03-spec-author.md`. Its status is to be set to `Accepted` by the spec author before the PR is marked ready. Recorded in `squad/decisions/2026-10-25-phase-prediction-removal-amended-change-doc.md`.
+
+# Escalations 4 and 5 (first-on-line anchor) — answered 2026-10-25
+
+On the implementer's disputed tests (`05-implementer.md`), the maintainer chose option A: an anchor on a comment-led line is always measured at its real column behind the comment, also when it is the first code on its line (for example a complex element initializer's opening brace led by `/* Keep element. */`). The two disputed RH5303/RH5304 formatter tests change to the new output, the RH5303 and RH5304 analyzers must agree with that anchor so they do not report formatter output, and the change doc is amended and approved again (escalation 2). Recorded in `squad/decisions/2026-10-25-phase-prediction-removal-first-on-line-anchor.md`.
