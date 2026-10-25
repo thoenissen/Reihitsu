@@ -26,3 +26,7 @@ The maintainer approved the change doc's What and Why, chose a separate first `T
 # Escalations 1, 12 and 5 — answered 2026-10-25
 
 On the skeptic's Q1 and architecture finding D2 (`02-skeptic.md`), the maintainer chose option B: fix D2 in this run, structure first, so that the layout model's column of a comment-led line matches the indented tree and the indentation phase moves a raw string's lines by the model's single shift. The wider scope (six currently stable outputs change; every alignment contributor reads the corrected column) is accepted. The change doc must list the changed outputs and be approved again (escalation 2). The skeptic's spec-precision points S1–S3 are to be applied. Follow-up candidates are discussed with the maintainer when the PR is ready; a follow-up to review (and possibly rewrite) `IndentationPhase` is to be drafted then. Recorded in `squad/decisions/2026-10-25-phase-prediction-removal-layout-model-column.md`.
+
+# Escalation 2 (amended change doc) — answered 2026-10-25
+
+The maintainer approved the amended change doc as of `03-spec-author.md`. Its status is to be set to `Accepted` by the spec author before the PR is marked ready. Recorded in `squad/decisions/2026-10-25-phase-prediction-removal-amended-change-doc.md`.
