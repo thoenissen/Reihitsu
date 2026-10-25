@@ -33,3 +33,13 @@ Test code (the scans being moved, their new projects) is test-implementer territ
 ## Maintainer clarifications
 
 None so far.
+
+## Escalations
+
+- Escalation 12 (auditor architecture finding, default-run coverage restated in eight places): maintainer chose A — fix the three stale lines narrowly, consolidation as a follow-up. `squad/decisions/2026-10-25-default-test-run-restated-in-several-places.md`.
+- Auditor finding 1 (analyzer scan wall-clock not lower): maintainer accepted it — the goal is the default local run, which no longer runs the scans; no repair. `squad/decisions/2026-10-25-self-hosting-analyzer-scan-wall-clock.md`.
+
+## Repair round 1
+
+- Auditor finding 2 (three stale text lines, PR-introduced) → spec author (docs owner in repairs, although the tooling lane skipped it initially).
+- Auditor finding 3 (FC-017, assertion that cannot fail, PR-introduced) → test implementer.
