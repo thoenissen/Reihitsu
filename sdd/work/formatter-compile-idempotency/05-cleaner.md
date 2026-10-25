@@ -25,3 +25,10 @@ Verdict: clean
 - Warnings resolved / unresolved: _None._
 - scripts/build.sh: Build succeeded. 0 Warning(s) 0 Error(s)
 - Formatter regression tests: Passed, 1925 of 1925. Analyzer RH3202/RH3208/RH5201/RH5020/RH5022/RH5031 tests: Passed, 197 of 197.
+
+## Revision 2 (after merge of origin/main, 7a040e2)
+Commit: 35a852c
+Verdict: clean
+- Formatted: _None._ ("Formatted 0 of 31 file(s)").
+- Warnings: _None._ scripts/build.sh: 0 Warning(s) 0 Error(s).
+- Formatter regression tests: Passed, 1974 of 1974. Analyzer RH3202/RH3208/RH5201/RH5020/RH5022/RH5031 tests: Passed, 197 of 197.
