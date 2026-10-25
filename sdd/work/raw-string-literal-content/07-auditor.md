@@ -281,3 +281,109 @@ bash scripts/apply-fix.sh <RH5202|RH5203|RH5204|RH5205|RH5206|RH5104|RH5601|RH56
 ```
 
 I re-ran no test project. The build and the focused results of `05-cleaner.md` and `06-spec-checker.md` stand, because no finding turns on them.
+
+# Repair round 1
+
+Role: auditor
+Commit: 3c390f4
+Verdict: #951: findings; #1133: pass; #1146: pass
+
+## Scope
+
+This is a repair delta audit: `git diff feb5ecc 3c390f4`. The head is `3c390f4`. `git ls-remote origin refs/heads/main` returns `f3d514d0b1cbd8b3e540f2b2c7243dcd21760929`, the branch contains it, and the tree is clean. I read the "Repair round 1" sections of `00-lead.md`, `01-spec-author.md`, `03-test-implementer.md`, `04-implementer.md`, `05-cleaner.md`, and `06-spec-checker.md`. The prompt carried no intended fix or hoped-for verdict.
+
+**Scope grew.** The repair changes more than the hole lines that findings 1 to 7 name:
+
+- **One shared shift.** A new shared mechanism, `RawStringLineShifts` (`Pipeline/RawStringAlignment/Utilities/`), now feeds both the raw-string phase and the indentation phase.
+- **A shared helper changed.** `LayoutComputer.GetAdjustedColumn` now adds the predicted raw-string shift for every anchor on a moved line, outside holes too. Every contributor calls it.
+- **Stored columns.** `LayoutModel.Set` now stores a column with the shift subtracted.
+- **One copy removed.** The private prediction in `MethodChainAlignmentContributor` is gone.
+
+Formatted code is unaffected: an aligned literal has a shift of 0, and a tree without raw literals takes a null shift table. For misaligned literals, anchors behind a raw literal's closing quotes now converge in one pass (auditor hint 1, now pinned by a test). The lead may want to weigh escalation 5 (a shared helper with other consumers) for the run report.
+
+Because of that growth, I audited the whole mechanism, not only the lines the findings name:
+
+- every reader and writer of `LayoutModel` (`rg -n "TryGetLayout\(|TryGetPlacedColumn|TryGetLayoutColumn|\.Set\(|ShiftRange" src/Reihitsu.Formatter`);
+- the recursion in `RawStringLineShifts.GetDistance`;
+- the tab handling.
+
+I re-ran no test project. The focused results of `05-cleaner.md` and `06-spec-checker.md` were taken on the final production code: no production file changed after `f7ca92a`.
+
+## Previous findings
+
+| # | Status | Evidence |
+|---|---|---|
+| 1 | closed | Both counterexamples (a nested literal's closing line, and a frozen verbatim line carrying the anchor) are stable after pass 1. `ArgumentAnchoredOnTheClosingLineOfANestedLiteralKeepsItsAlignment` and `ArgumentAnchoredOnTheContinuationLineOfAVerbatimStringKeepsItsAlignment` pin the output. The anchor and the anchored line now both go through `RawStringLineShifts.GetShift`. |
+| 2 | **open (narrowed)** | Closed when only whitespace stands in front of the token: both counterexamples are stable, and two tests pin them. Still open for a tab in front of a comment that precedes the token on the line. `LayoutComputer.GetColumnAfterTabReplacement` (`LayoutComputer.cs`, the `default:` branch) falls back to the character column at the first non-whitespace character. `CleanupPhase.NormalizeWhitespaceTabs` still expands that tab. Counterexample, an aligned literal: `Hello {` ⏎ 17 spaces `→/* c */ string.Concat("a",` ⏎ 17 spaces `"b")}`. Pass 1 puts `"b"` at 40, and pass 2 moves it to 43. FC-001: the predicate's span is the whitespace before the first non-whitespace character, while the counterpart replaces tabs in every whitespace trivia of the line. |
+| 3 | closed | `StartsInsideNestedText` now freezes only `MultiLineCommentTrivia` and `MultiLineDocumentationCommentTrivia`. The `///` counterexample is stable, and `/** */` in a hole is still kept (traced). `DocumentationCommentLinesInHoleMoveWithTheTokenBelowThem` pins the output. |
+| 4 | closed | `GenericConstraintContributor` reads `TryGetPlacedColumn`. Both constraint counterexamples are stable and pinned. |
+| 5 | closed | The private prediction is removed, and `RawStringLineShifts` is the formatter's only owner of the shift. The shared-line chain counterexample is stable after pass 1 and pinned by `ChainLinkBehindSecondRawStringOnASharedLineAlignsAfterBothLiteralsMoved`. The stale XML summary went with the method. |
+| 6 | closed | Escalation 4 has maintainer answer A. RH5104-007 and RH5104-004 are updated, and `HasCommentBeforeOnLine` implements the withholding. The finding's input now gets `no-fix-offered` from `apply-fix.sh RH5104`, so nothing is reordered. `M(); /* a */ // b` keeps its order over two iterations, and `/** x */ /* y */ M(); // z` offers no fix behind the documentation comment (traced). Four RH5104-007 tests pin this, with exact iteration counts. The fix's notion of code (`GetCommentRemoval`) is unchanged. I re-derived the implementer's argument and accept it: under RH5104-007 no comment precedes the moved one on its start line, so the remaining difference only keeps a following comment on its own line. |
+| 7 | closed | `AcceptsWrite` is now a pure check. `RecordPlacement` holds the side effect, and the summaries of `Contributor`, `Set`, and `ShiftRange` state it. |
+
+| Hint | Status | Evidence |
+|---|---|---|
+| 1 | closed | Fixed by the shared shift (the trace is stable after pass 1) and pinned by `WrappedArgumentAnchoredBehindTheClosingQuotesOfARawStringAlignsAfterTheLiteralMoved`. That test was watched red on `193b3a5`. |
+| 2 | superseded | It is the maintainer-approved follow-up thoenissen/Reihitsu#1458. |
+| 3 | closed: examined, no defect found | I used `scripts/apply-fix.sh` with fixes that format a node inside a hole: **RH5205** on a lambda whose brace is misaligned, in an aligned literal, and **RH3208** on an expression-bodied local function in an anonymous-method body, in an aligned literal and in a literal misaligned by 13. Each fix's output matches the document formatter's layout. Two fix outputs, traced, change only through `CleanupPhase`'s final-newline removal. The node entry points still register only holes inside the target, but no output I could construct differs. |
+
+## Findings
+
+| # | Severity | Location | Failure class | Scope relation | What goes wrong | Suggested change |
+|---|---|---|---|---|---|---|
+| 2 | high | `LayoutComputer.GetColumnAfterTabReplacement` | FC-001, FC-012 | same requirement (FMT-RAW-007, the FMT-CLEAN-002 sentence; FMT-PIPE-004) | See the table above: the count stops at the first non-whitespace character, so a tab in front of a comment on a hole line is counted as one column. | Count tabs the way `CleanupPhase` replaces them in every whitespace trivia in front of the token, not only up to the first non-whitespace character. Add the counterexample as a test. |
+| 8 | high | `RawStringAlignmentPhase.CollectReplacements` (`getColumnBeforeShift`, the character column in the text) feeding `RawStringLineShifts.GetDistance`; it disagrees with the indentation side's `GetColumnBeforeRawStringShift`, which counts that line's tabs as four | FC-012, FC-015, FC-016 | PR-introduced (a sibling of finding 2 that the first audit did not construct; it fails the same way on `ea03170` and is stable on `origin/main`) | The case is a nested raw literal whose opening quotes start a hole line indented with a tab. The raw-string phase measures the opening quotes with the tab counted as one column, and aligns the inner literal there. `CleanupPhase` then expands the tab, which moves the opening quotes 3 columns right of the content. The indentation phase predicted the same literal with the tab counted as four, so the two owners of that column now disagree. Counterexample, an aligned outer literal at 17: `Outer {` ⏎ 17 spaces `→"""` ⏎ 21 spaces `inner` ⏎ 21 spaces `"""}`. Pass 1 puts `inner` and `"""}` at 18 while the quotes end at 21; pass 2 moves them to 21. The same happens with a misaligned outer literal. | Measure the opening column in the raw-string phase as `CleanupPhase` will leave it: one statement of the tab rule, shared by both phases (see hint A). Add a test for the aligned and the misaligned case. |
+| 9 | low | `CommentIndentationContributor.AlignCommentsBeforeToken` summary ("the one it will have after indentation, which for a line of an interpolation hole that keeps its column is the column it already has"). `LayoutModel.TryGetPlacedColumn` summary ("the column the token already has") | FC-031 | PR-introduced | Both summaries describe the old value. `TryGetPlacedColumn` now returns the column after the raw-string phase moved the line, and for a kept hole line its column with tabs counted as four. Text only; it cannot reach compiled behavior. | Reword both to "the column after formatting: after the raw-string shift, with the tabs of a kept line counted as the cleanup phase replaces them". |
+
+## Guard scope
+
+| Decision | Inspected span | Counterpart predicate | Agreement | Verdict |
+|---|---|---|---|---|
+| A line is frozen (`RawStringLineShifts.StartsInsideNestedText`) | `MultiLineCommentTrivia` or `MultiLineDocumentationCommentTrivia` straddling the line start. A non-raw string token straddling it, or a token directly behind such text | FMT-INDENT-007 keeps the following lines of `/* */` and `/** */`. FMT-INDENT-008 re-indents `///` markers | They agree | agree |
+| Column of a kept hole line (`GetColumnAfterTabReplacement`) | From line start to the token: a tab counts 4 and a space 1. At any other character it falls back to the character column | `CleanupPhase.NormalizeWhitespaceTabs`: every whitespace trivia, `Replace("\t", "    ")` | They agree for whitespace-only prefixes and disagree when a comment precedes the token | mismatch, finding 2 |
+| Opening-quote column of a literal (`getColumnBeforeShift`) | Raw-string phase: character column in the text. Indentation phase: `GetColumnBeforeRawStringShift`, tab-expanded for kept hole lines | The column after `CleanupPhase` | They disagree for a tab-indented hole line that starts with a nested literal | mismatch, finding 8 |
+| Stored layout (`LayoutModel.Set`) | `layout.Column − GetRawStringShift(line)`, with the shift taken from the current model | The rewriter writes the stored value, and the raw-string phase adds its own shift | They agree once the sweep settles. A stale stored value changes the stored columns, so `MatchesColumns` forces another sweep. Stand-ins written in pass 1 are released or used only as the base of a relative `ShiftRange` | agree |
+| The fix is withheld behind another comment (`HasCommentBeforeOnLine`) | Comment trivia (`IsCommentTrivia`, documentation comments included) lying wholly inside [line start, comment start) | RH5104-007. A comment that began on an earlier line is covered by RH5104-006 | They agree | agree |
+
+## Policy ownership
+
+| Policy | Owners found by rg | Verdict |
+|---|---|---|
+| Per-line raw-string shift | `RawStringLineShifts`, the only owner in the formatter (`rg -n "GetShift\|ComputeLineShifts\|GetLeadingSpaceCountOfLastLine\|IsMultiLineRawStringEnd" src --glob '!*Test*'`). The RH5202 fix's `RealignContent` is the approved follow-up thoenissen/Reihitsu#1458 | single owner. Its column input differs between the two callers: finding 8 |
+| Tab replacement (FMT-CLEAN-002) | `CleanupPhase.NormalizeWhitespaceTabs` (`Replace("\t", "    ")`) and `LayoutComputer.GetColumnAfterTabReplacement` (`FormattingContext.IndentSize`) | Two statements of one rule. The diff justifies them: `CleanupPhase` belongs to a concurrent run. Parity holds for whitespace-only prefixes (checked by reading) and fails past a comment (finding 2). Hint A |
+| Column of a line for contributors | `TryGetPlacedColumn` (comment, generic constraint, constructor initializer, `GetAdjustedColumn`) and `TryGetLayoutColumn` (lambda, the base of a relative shift). `TryGetLayout` is read only by `IndentationRewriter` | consistent |
+| Another comment before the reported comment | `RH5104…CodeFixProvider.HasCommentBeforeOnLine` only (`rg -n "HasCommentBefore\|CommentBeforeOnLine" src --glob '!*Test*'`) | single owner |
+
+## Assertion adequacy
+
+| Test | Invariant | Falsifying observation | Helper | Verdict |
+|---|---|---|---|---|
+| The 7 new `RawStringInterpolationHoleTests` and the 2 new `RawStringAlignmentPipelineTests` | The spec's output on pass 1 and pass 2, under LF and CRLF | Any column difference | `AssertRuleResult(input, expected)` | Adequate. The expected values come from the specs and were watched red before the code (FC-035). The tab tests cover only whitespace-only prefixes and no nested literal: findings 2 and 8 (FC-003, FC-016) |
+| `VerifyCodeFixIsOfferedOnlyForTheFirstCommentOfALine` | All three comments are reported. Only `/* a */` has an action | An action for `// b` or `/* d…e */`, or none for `/* a */` | `Verify(markup)` plus `GetCodeFixActionsAsync` per diagnostic | adequate |
+| `VerifyNoCodeFixIsOfferedForACommentBehindAnUnreportedCommentOnItsLine` | Reported, with no action | One action | `VerifyNoCodeFixIsOffered` | adequate |
+| `VerifyFixAllKeepsTheOrderOfCommentsThatShareALine` | Order kept and the withheld comment still reported, after exactly 2 incremental iterations and 2 Fix All iterations | A reorder, a missing report, or another iteration count | `Verify(…, MarkupMode.Allow, exact iteration counts)` | adequate (FC-008, FC-017) |
+| `VerifyCommentIsMovedOnceTheCommentBeforeItHasLeftItsLine` | The other side of RH5104-007 | No fix offered | `Verify(source, fixed)` | adequate (FC-003) |
+
+## Failure classes dismissed (repair delta)
+
+- **FC-011.** `GetDistance` recurses only into literals with a smaller index, either enclosing literals or earlier literals on a shared line, so it terminates. The sweep bound is unchanged.
+- **FC-013.** `apply-fix.sh` for RH5202 to RH5206 over 7 formatted repair fixtures returned `no-diagnostic` in all 14 arms per rule. The fixtures were the hint-1 shape, a constraint clause, a nested anchor, a shared-line chain, a verbatim anchor, a three-literal chain with an argument, and a nested literal as an argument.
+- **FC-028.** Hint 3 is examined above.
+- **FC-032.** The cleaner's and the spec checker's runs are on the final production code.
+- **FC-033.** CRLF is covered by `AssertRuleResult`, and the RH5104 predicates work on positions.
+- **FC-035.** The test implementer derived the expected values from the specs and watched them red. The hint-1 test was watched red on `193b3a5`.
+- The remaining classes are the same as in the first audit and the repair adds nothing for them. Six more shapes, each stable after pass 1: a three-literal chain on shared lines with a wrapped argument, a nested interpolated literal as a wrapped argument with a wrapped argument in its hole, a raw literal in a lambda in a hole of a raw literal inside a lambda, and the three earlier-phase shapes (switch expression, block lambda, array initializer).
+
+## Hints
+
+- **A.** The rule "a tab in code whitespace becomes four spaces" now has two statements: `CleanupPhase` and `GetColumnAfterTabReplacement`. The repair of findings 2 and 8 needs a third use of it. One shared helper in a place both owners may use is a follow-up candidate, outside this run's files if `CleanupPhase` stays off-limits.
+- **B.** `RawStringLineShifts.GetDistance` is not memoized. Each nesting level evaluates the distances of the literals around it twice, once for the opening line and once for the closing line, so the cost grows with depth. That cost is harmless at the depths seen; `SelfHostingTests` passes.
+
+## Commands
+
+```shell
+bash scripts/trace.sh <fixture> --passes 3 --no-install      # 12 first-round fixtures and 8 repair probes on 3c390f4; one probe also on ea03170 and on origin/main (temporary worktrees, removed)
+bash scripts/apply-fix.sh RH5205|RH3208 <dir> --no-install   # hint 3
+bash scripts/apply-fix.sh RH5104 <dir> --no-install          # finding 6
+bash scripts/format.sh <dir> --no-install                    # scratch copies, then apply-fix RH5202 to RH5206 (FC-013)
+```
