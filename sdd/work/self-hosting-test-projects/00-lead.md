@@ -43,3 +43,4 @@ None so far.
 
 - Auditor finding 2 (three stale text lines, PR-introduced) → spec author (docs owner in repairs, although the tooling lane skipped it initially).
 - Auditor finding 3 (FC-017, assertion that cannot fail, PR-introduced) → test implementer.
+- Escalation 10 (lane check: root `CONTRIBUTING.md` unclassified, "no lane"): maintainer chose B — keep the edit; the lane classifier treats `CONTRIBUTING.md` as text in this run, covered by a `Reihitsu.Tooling.Test` test. `squad/decisions/2026-10-25-lane-check-contributing-md-unclassified.md`. Lane stays tooling. Added to repair round 1: test implementer (test), then implementer (classifier).
