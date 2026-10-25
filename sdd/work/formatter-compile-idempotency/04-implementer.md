@@ -267,4 +267,4 @@ _None._
 
 ### Follow-up candidates
 
-_None new._ The earlier revisions' follow-ups stand. `sdd/specs/formatter/structural-transforms.md` has an uncommitted change in the worktree that is not mine (A9, the spec author's); I did not stage it.
+_None new._ The earlier revisions' follow-ups stand. I staged only `SwitchCaseBraceRewriter.cs`; the A9 spec text is the spec author's (54d2743).
