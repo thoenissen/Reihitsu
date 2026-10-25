@@ -136,3 +136,28 @@ Delta checked: `origin/main` merged (7a040e2; brings thoenissen/Reihitsu#1462 an
 
 ### For the lead
 Still open from earlier passes, unchanged, for the run report / maintainer-approved follow-up issues: FMT-BLANK-016 pragma/region gap in `LineBreaksEndingPragmaAndRegionDirectivesAreRewritten`; the conditional directive between `{` and `#region` under SHARED-BLANK-005 (maintainer's A4 follow-up); a comment above `#region` at the start of a file; `BuildLeadingTrivia` appending a line break behind `///` for the first moved statement; the chain's first link behind a comment tail (Q4, B); RH3202 provider duplicating the base's registration loop; `RH5201.md` `Uses` could list SHARED-COMMENT-012. The `sdd/work/` directory of this run must be deleted by the lead before publishing.
+
+## Revision 3 (after repair round 2)
+
+Commit: 0a39eb7 (diff `origin/main..0a39eb7`; delta since revision 2: `2f5432b..0a39eb7`, which is `structural-transforms.md`, `SwitchCaseBraceRewriter.cs`, and `SwitchSectionSharedLocalTests.cs`)
+Verdict: consistent (no findings); one untested sentence noted for the lead
+
+My prompt carried no intended fix or verdict. I changed no file other than this handover.
+
+- `scripts/test.sh --project architecture`: `Passed!  - Failed:     0, Passed:    84, Skipped:     0, Total:    84`. No rule page, ledger line, or code-owner list changed in this round.
+
+### Findings
+| # | Check | Location | What does not match | Owner |
+|---|---|---|---|---|
+| _None._ | | | | |
+
+### Delta checked
+- **A9, FMT-STRUCT-006 (spec author revision 7, `54d2743`).** The condition "the arrow's line holds a comment" is now "a comment stands directly at the arrow": behind the arrow on its line before the next token (`=> // b`, `=> /* c */ 42`), or in front of it behind the last line break (`/* c */ => 42;`). A comment behind the expression or the semicolon (`=> 42 /* t */;`, `=> 42; // t`) explicitly does not stop the move. The `Why:` and the coverage sentence were updated to match. Against the code: `ArrowLineHoldsComment` looks at the arrow's trailing trivia and its leading trivia back to the last line break, which is the same set. I ran `scripts/format.sh` on a scratch file outside the repository: `// a` / `=> 42 /* t */;` gives `{` / `// a` / `return 42 /* t */;` / `}`; `// b` / `=> 42; // t` gives `{` / `// b` / `return 42;` / `} // t`; `// c` / `=> // d` / `42;` leaves `// c` in front of `{// d`. All three match the spec text. Format ok (one requirement, normative sentence first, `Why:`, examples unchanged). No ID, no owner, no change doc: the sentence narrows a clarification of behavior the code already has.
+- **A8, A2 narrowed (FMT-SWITCH-014).** The requirement text is unchanged in this round. The repaired guard (`IsBoundByAncestor`: a binder counts only for names inside its C# scope; attribute lists, parameter lists, default values, return type, and constraint clauses of a lambda or local function stay uses) matches the existing sentences "a local ... used only in the section that declares it" and "a local declared inside a nested block, lambda, ... local-function body ... MUST NOT trigger this guard". The `Why:` already states block scoping to the whole switch and CS0103 on bracing. Conservative on unlisted binders (still unbraced, still compiles), as `04-implementer.md` revision 3 states. `Uses` and owners of `switch-case-braces.md` unchanged.
+- **Tests (check 8).** The 13 new tests of `03-test-implementer.md` revision 5 (four A8, nine A2 narrowed, plus the passing nested-switch-section one) all carry `[Requirement("FMT-SWITCH-014")]`, and the four A8 tests also `FMT-PIPE-003`, as the revision 5 tables and prose state (my comparison script flagged them only because the revision 5 tables put the requirement in a differently placed column). The tag sets of all earlier tests are unchanged. The requirement the spec author names for these items (FMT-SWITCH-014) is tagged on tests the diff adds.
+- **Checks 1-5, 7, 9.** Change doc: none, none required (no new behavior, only spec wording and a narrower guard for FMT-SWITCH-014). `git diff origin/main --stat` shows no new type; ledger unchanged; `documentation/` unchanged; `sdd/work/` holds only this run's directory; `git status` clean before this note.
+- **Check 6.** No new question from the spec author in this round.
+
+### For the lead
+1. **Untested sentence (not a finding under checks 7 or 8, since FMT-STRUCT-006 is covered and tagged).** A9 added a normative sentence that a comment behind the expression or the semicolon (`=> 42 /* t */;`, `=> 42; // t`) does not stop the move of own-line comments. No test in the diff pins it: `ExpressionBodyArrowCommentTests` covers comments before and after the arrow and the three arrow-line cases from repair round 1, none of the trailing-position cases. I confirmed the behavior by hand (above), so it is a coverage gap, not a defect. A short test pair tagged FMT-STRUCT-006 would close it; the lead may route it to the test implementer or leave it for the run report.
+2. All earlier follow-up candidates stand unchanged (see revision 2). The lead deletes this run's `sdd/work/` directory before publishing.
