@@ -1,9 +1,9 @@
 ﻿using Microsoft.CodeAnalysis;
 
-namespace Reihitsu.Formatter.Pipeline.RawStringAlignment.Utilities;
+namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 
 /// <summary>
-/// Describes a multi-line raw string literal whose lines the raw-string phase moves
+/// Describes a multi-line raw string literal whose lines the indentation phase moves
 /// </summary>
 /// <param name="Node">The literal expression or interpolated string expression</param>
 /// <param name="OpeningLine">The 0-based line on which the literal starts</param>

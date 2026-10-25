@@ -6,7 +6,9 @@ using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 namespace Reihitsu.Formatter.Pipeline.Indentation;
 
 /// <summary>
-/// Indentation and alignment phase. Computes the layout model and applies it to the syntax tree
+/// Indentation and alignment phase. Computes the layout model and applies it to the syntax tree, including the move
+/// of the lines of multi-line raw string literals under their opening quotes, so the column of every line is final
+/// when the phase returns
 /// </summary>
 internal sealed class IndentationPhase : IFormattingPhase
 {

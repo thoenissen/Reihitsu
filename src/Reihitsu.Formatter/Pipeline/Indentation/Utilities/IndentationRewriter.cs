@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Core;
 
@@ -10,14 +11,18 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 
 /// <summary>
 /// Applies the computed layout model to a syntax tree by rewriting leading trivia
-/// on first-on-line tokens to produce the correct indentation
+/// on first-on-line tokens to produce the correct indentation, then moving the lines of
+/// multi-line raw string literals by the shifts the same model computed
 /// </summary>
 internal static class IndentationRewriter
 {
     #region Methods
 
     /// <summary>
-    /// Applies indentation from the layout model to the syntax tree
+    /// Applies indentation from the layout model to the syntax tree. Every line is placed first; then the content
+    /// lines, the hole lines, and the closing marker of each multi-line raw string literal move by the shift
+    /// <see cref="LayoutModel.GetRawStringShift"/> gives their line, which is the shift every anchor on those lines
+    /// was measured with, so the literal's closing marker ends up under its opening quotes (FMT-RAW-001)
     /// </summary>
     /// <param name="root">The syntax tree root</param>
     /// <param name="model">The computed layout model</param>
@@ -25,12 +30,29 @@ internal static class IndentationRewriter
     /// <returns>The syntax tree with corrected indentation</returns>
     public static SyntaxNode Apply(SyntaxNode root, LayoutModel model, CancellationToken cancellationToken)
     {
-        return root.ReplaceTokens(root.DescendantTokens(), (original, rewritten) => ApplyIndentation(original, rewritten, model, cancellationToken));
+        var indented = root.ReplaceTokens(root.DescendantTokens(), (original, rewritten) => ApplyIndentation(original, rewritten, model, cancellationToken));
+
+        // The model numbers the lines of the input's tree, which for a node formatted inside its document is the
+        // document; the rewritten node is the root of a tree of its own. Placing lines changes no line break, so the
+        // two numberings differ by the line on which each node starts
+        var lineOffset = GetFirstLine(root) - GetFirstLine(indented);
+
+        return RawStringLineShifts.MoveLines(indented, lineNumber => model.GetRawStringShift(lineNumber + lineOffset), cancellationToken);
     }
 
     #endregion // Methods
 
     #region Private methods
+
+    /// <summary>
+    /// Gets the 0-based line, in the node's own tree, on which the node's full span starts
+    /// </summary>
+    /// <param name="node">The node</param>
+    /// <returns>The line number</returns>
+    private static int GetFirstLine(SyntaxNode node)
+    {
+        return node.SyntaxTree.GetLineSpan(new TextSpan(node.FullSpan.Start, 0)).StartLinePosition.Line;
+    }
 
     /// <summary>
     /// Applies indentation to a single token based on the layout model

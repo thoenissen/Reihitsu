@@ -3,22 +3,21 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Reihitsu.Formatter.Pipeline.RawStringAlignment.Utilities;
-
 namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 
 /// <summary>
 /// Maps first-on-line tokens (identified by line number) to their desired indentation column.
 /// The layout model is the output of the compute phase and input to the apply phase.
 /// <para>
-/// The columns that contributors read and write are the columns a line has after formatting. The raw-string phase,
-/// which runs after indentation, moves the lines of multi-line raw string literals; the model stores each line's
-/// column before that move, which is the indentation the apply phase writes, and converts with the move that
-/// <see cref="RawStringLineShifts"/> predicts for the line. Outside such literals both columns are the same.
+/// The columns that contributors read and write are the columns a line has in the output of the indentation phase.
+/// After placing every line, the phase moves the lines of multi-line raw string literals by the shifts
+/// <see cref="RawStringLineShifts"/> computes from this model; the model stores each line's column before that move,
+/// which is the indentation the rewriter writes, and converts with the same shift the phase then applies to the line.
+/// Outside such literals both columns are the same.
 /// </para>
 /// <para>
 /// Lines that a token starts inside an interpolation hole of a multi-line interpolated raw string are placed only by
-/// constructs inside that hole; the others keep their column and move with the literal in the raw-string phase.
+/// constructs inside that hole; the others keep their column and move only with the literal.
 /// </para>
 /// </summary>
 internal sealed class LayoutModel
@@ -42,12 +41,13 @@ internal sealed class LayoutModel
     private readonly HashSet<int> _placedRawStringHoleLines = [];
 
     /// <summary>
-    /// The moves of the raw-string phase, or <see langword="null"/> when no line of the tree moves
+    /// The moves of the lines of multi-line raw string literals, or <see langword="null"/> when the tree holds no
+    /// such literal
     /// </summary>
     private RawStringLineShifts _rawStringLineShifts;
 
     /// <summary>
-    /// Gets the column a literal's first token has before the raw-string phase moves any line
+    /// Gets the column a literal's first token has once its line is placed, before any raw string literal's line moves
     /// </summary>
     private Func<SyntaxToken, int> _getColumnBeforeRawStringShift;
 
@@ -74,11 +74,11 @@ internal sealed class LayoutModel
     #region Methods
 
     /// <summary>
-    /// Uses the moves of the raw-string phase to convert between the column a line has after formatting and the
-    /// column the apply phase writes
+    /// Uses the moves of the lines of multi-line raw string literals to convert between the column a line has in the
+    /// output of the indentation phase and the indentation the rewriter writes before the move
     /// </summary>
-    /// <param name="rawStringLineShifts">The moves of the raw-string phase</param>
-    /// <param name="getColumnBeforeRawStringShift">Gets the column a token has before the raw-string phase moves any line</param>
+    /// <param name="rawStringLineShifts">The moves of the lines of multi-line raw string literals</param>
+    /// <param name="getColumnBeforeRawStringShift">Gets the column a token has once its line is placed, before any raw string literal's line moves</param>
     public void UseRawStringLineShifts(RawStringLineShifts rawStringLineShifts, Func<SyntaxToken, int> getColumnBeforeRawStringShift)
     {
         _rawStringLineShifts = rawStringLineShifts.IsEmpty ? null : rawStringLineShifts;
@@ -86,7 +86,8 @@ internal sealed class LayoutModel
     }
 
     /// <summary>
-    /// Gets the number of columns the raw-string phase will move the given line
+    /// Gets the number of columns the indentation phase moves the given line after placing it. The same shift converts
+    /// the columns of this model and moves the line, so the move is computed once
     /// </summary>
     /// <param name="lineNumber">The 0-based line number</param>
     /// <returns>The number of columns; zero for a line outside multi-line raw string literals</returns>
@@ -98,8 +99,9 @@ internal sealed class LayoutModel
     /// <summary>
     /// Sets the desired layout for a token on the given line.
     /// Later calls override earlier ones (alignment overrides block indentation). The layout's column is the column
-    /// the line has after formatting. A line of an interpolation hole is placed by the write of a contributor of a
-    /// node inside that hole, and ignores the write of a contributor of a node outside it (<see cref="Contributor"/>)
+    /// the line has in the output of the indentation phase. A line of an interpolation hole is placed by the write of a
+    /// contributor of a node inside that hole, and ignores the write of a contributor of a node outside it
+    /// (<see cref="Contributor"/>)
     /// </summary>
     /// <param name="lineNumber">The 0-based line number</param>
     /// <param name="layout">The desired layout</param>
@@ -126,17 +128,16 @@ internal sealed class LayoutModel
     /// </summary>
     /// <param name="lineNumber">The 0-based line number</param>
     /// <param name="hole">The innermost interpolation hole of a multi-line interpolated raw string around the line</param>
-    /// <param name="column">The column of the line's first token before the raw-string phase moves it, with the tabs in front of it counted as the spaces the cleanup phase replaces them with</param>
+    /// <param name="column">The column at which the line's text starts before the literal's lines move</param>
     public void RegisterRawStringHoleLine(int lineNumber, InterpolationSyntax hole, int column)
     {
         _rawStringHoleLines[lineNumber] = (hole, column);
     }
 
     /// <summary>
-    /// Gets the column the line's first token has after formatting, which is after the raw-string phase moved the
-    /// line: the layout's column, or, for a line of an interpolation hole that no construct inside the hole placed,
-    /// its registered column, which counts the tabs in front of the token as the spaces the cleanup phase replaces
-    /// them with
+    /// Gets the column the line has in the output of the indentation phase, after the phase moved the lines of
+    /// multi-line raw string literals: the layout's column, or, for a line of an interpolation hole that no construct
+    /// inside the hole placed, its registered column
     /// </summary>
     /// <param name="lineNumber">The 0-based line number</param>
     /// <param name="column">The column if the line has one</param>
@@ -154,10 +155,9 @@ internal sealed class LayoutModel
     }
 
     /// <summary>
-    /// Gets the column the line's first token has after indentation, before the raw-string phase moves it: the
+    /// Gets the column the line has once it is placed, before the lines of multi-line raw string literals move: the
     /// layout's column, or, for a line of an interpolation hole that no construct inside the hole placed, its
-    /// registered column, which counts the tabs in front of the token as the spaces the cleanup phase replaces them
-    /// with
+    /// registered column
     /// </summary>
     /// <param name="lineNumber">The 0-based line number</param>
     /// <param name="column">The column if the line has one</param>
@@ -184,9 +184,9 @@ internal sealed class LayoutModel
     }
 
     /// <summary>
-    /// Gets the column of the line's layout after formatting, also for a line of an interpolation hole whose layout
-    /// only stands in until a construct inside the hole places it. A contributor that moves a range of lines relative
-    /// to the layout of its first line reads that layout here
+    /// Gets the column of the line's layout in the output of the indentation phase, also for a line of an
+    /// interpolation hole whose layout only stands in until a construct inside the hole places it. A contributor that
+    /// moves a range of lines relative to the layout of its first line reads that layout here
     /// </summary>
     /// <param name="lineNumber">The 0-based line number</param>
     /// <param name="column">The column if the line has a layout</param>
@@ -218,8 +218,8 @@ internal sealed class LayoutModel
     }
 
     /// <summary>
-    /// Tries to get the layout for the given line number. Its column is the indentation the apply phase writes, before
-    /// the raw-string phase moves the line
+    /// Tries to get the layout for the given line number. Its column is the indentation the rewriter writes, before
+    /// the lines of multi-line raw string literals move
     /// </summary>
     /// <param name="lineNumber">The 0-based line number</param>
     /// <param name="layout">The layout if found</param>

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -6,18 +7,18 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Core;
-using Reihitsu.Formatter.Data;
 
-namespace Reihitsu.Formatter.Pipeline.RawStringAlignment.Utilities;
+namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 
 /// <summary>
-/// Determines how many columns the raw-string phase moves each line of a multi-line raw string literal: plain, UTF-8,
-/// or interpolated. A literal moves every line after its opening line by the distance between its opening quotes and
-/// its closing marker; a literal nested in an interpolation hole adds its own distance to the lines inside it, measured
-/// after the literals around it moved its opening quotes and its closing marker; and a line that starts inside the text
-/// of a nested literal other than a raw string, or inside a nested <c>/* */</c> or <c>/** */</c> comment, never moves.
-/// The raw-string phase applies these shifts, and the indentation phase predicts them, so a line that is aligned to a
-/// token or a comment that takes a token's column ends up where that token ends up
+/// Determines how many columns the indentation phase moves each line of a multi-line raw string literal: plain, UTF-8,
+/// or interpolated, and applies those moves. A literal moves every line after its opening line by the distance between
+/// its opening quotes and its closing marker; a literal nested in an interpolation hole adds its own distance to the
+/// lines inside it, measured after the literals around it moved its opening quotes and its closing marker; and a line
+/// that starts inside the text of a nested literal other than a raw string, or inside a nested <c>/* */</c> or
+/// <c>/** */</c> comment, never moves. The indentation phase measures every anchor after these moves and applies them
+/// itself, so a line that is aligned to a token or a comment that takes a token's column ends up where that token
+/// ends up, and the move is computed once
 /// </summary>
 internal sealed class RawStringLineShifts
 {
@@ -137,53 +138,54 @@ internal sealed class RawStringLineShifts
     }
 
     /// <summary>
-    /// Gets the column of a token after the cleanup phase replaced each tab of whitespace trivia with four spaces
-    /// (FMT-CLEAN-002). Both phases that place a line of a raw string literal measure a token this way: the
-    /// indentation phase for a line of an interpolation hole that keeps its whitespace, and the raw-string phase for
-    /// the opening quotes of a literal. A tab inside a comment or a literal is not replaced and counts as one column
+    /// Moves the lines of every multi-line raw string literal of an indented tree after its opening line by the number
+    /// of columns <paramref name="getShift"/> gives each line. Only literals that are not nested in an interpolation
+    /// hole of another multi-line interpolated raw string are replaced; a nested literal moves within the replacement
+    /// of the outermost literal around it, so both move together. Placing lines changes no line break, so the line
+    /// numbers of the indented tree are those the shifts were computed for
     /// </summary>
-    /// <param name="token">The token</param>
-    /// <returns>The column after tab replacement</returns>
-    public static int GetColumnAfterTabReplacement(SyntaxToken token)
+    /// <param name="root">The indented syntax root</param>
+    /// <param name="getShift">Gets the number of columns a line moves</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The syntax root with the lines of its raw string literals moved</returns>
+    public static SyntaxNode MoveLines(SyntaxNode root, Func<int, int> getShift, CancellationToken cancellationToken)
     {
-        var tree = token.SyntaxTree;
+        var replacements = new Dictionary<SyntaxNode, SyntaxNode>();
+        SourceText text = null;
+        CSharpParseOptions options = null;
 
-        if (tree == null)
+        foreach (var node in root.DescendantNodesAndSelf())
         {
-            return token.GetLocation().GetLineSpan().StartLinePosition.Character;
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (IsMultiLineRawStringLiteral(node) == false
+                || IsNestedInRawStringHole(node))
+            {
+                continue;
+            }
+
+            text ??= root.SyntaxTree.GetText(cancellationToken);
+            options ??= root.SyntaxTree.Options as CSharpParseOptions
+                            ?? CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
+
+            var replacement = ComputeMovedLiteral(root, node, text, getShift, options);
+
+            if (replacement != null)
+            {
+                replacements[node] = replacement;
+            }
         }
 
-        return GetColumnAfterTabReplacement(tree.GetRoot(), tree.GetText(), token.SpanStart);
+        return replacements.Count == 0
+                   ? root
+                   : root.ReplaceNodes(replacements.Keys, (originalNode, _) => replacements[originalNode]);
     }
 
     /// <summary>
-    /// Gets the column of a position after the cleanup phase replaced each tab of whitespace trivia with four spaces
-    /// (FMT-CLEAN-002). A tab inside a comment or a literal is not replaced and counts as one column
-    /// </summary>
-    /// <param name="root">The syntax root</param>
-    /// <param name="text">The text of the syntax tree</param>
-    /// <param name="position">The position to measure</param>
-    /// <returns>The column after tab replacement</returns>
-    public static int GetColumnAfterTabReplacement(SyntaxNode root, SourceText text, int position)
-    {
-        var line = text.Lines.GetLineFromPosition(position);
-        var column = 0;
-
-        for (var current = line.Start; current < position; current++)
-        {
-            column += text[current] == '\t' && root.FindTrivia(current).IsKind(SyntaxKind.WhitespaceTrivia)
-                          ? FormattingContext.IndentSize
-                          : 1;
-        }
-
-        return column;
-    }
-
-    /// <summary>
-    /// Gets the number of columns the raw-string phase moves the given line
+    /// Gets the number of columns the indentation phase moves the given line
     /// </summary>
     /// <param name="lineNumber">The 0-based line number</param>
-    /// <param name="getColumnBeforeShift">Gets the column a literal's first token has before the raw-string phase moves any line</param>
+    /// <param name="getColumnBeforeShift">Gets the column a literal's first token has once its line is placed, before any raw string literal's line moves</param>
     /// <returns>The number of columns; positive moves the line to the right, and zero leaves it in place</returns>
     public int GetShift(int lineNumber, Func<SyntaxToken, int> getColumnBeforeShift)
     {
@@ -200,6 +202,97 @@ internal sealed class RawStringLineShifts
         }
 
         return shift;
+    }
+
+    /// <summary>
+    /// Computes the replacement for a multi-line raw string literal by moving each of its lines after the first by
+    /// the number of columns <paramref name="getShift"/> gives it
+    /// </summary>
+    /// <param name="root">The indented syntax root</param>
+    /// <param name="node">The literal expression or interpolated string expression</param>
+    /// <param name="text">The text of the indented syntax tree</param>
+    /// <param name="getShift">Gets the number of columns a line moves</param>
+    /// <param name="options">Parse options used to reparse the moved literal</param>
+    /// <returns>A replacement node if any line of the literal moves; otherwise <see langword="null"/></returns>
+    private static SyntaxNode ComputeMovedLiteral(SyntaxNode root, SyntaxNode node, SourceText text, Func<int, int> getShift, CSharpParseOptions options)
+    {
+        var openingLineNumber = text.Lines.GetLineFromPosition(node.SpanStart).LineNumber;
+        var closingLineNumber = text.Lines.GetLineFromPosition(node.Span.End).LineNumber;
+        var builder = new StringBuilder();
+        var position = node.SpanStart;
+        var changed = false;
+
+        for (var lineNumber = openingLineNumber + 1; lineNumber <= closingLineNumber; lineNumber++)
+        {
+            var shift = getShift(lineNumber);
+            var line = text.Lines[lineNumber];
+
+            if (shift == 0
+                || line.Span.Length == 0)
+            {
+                continue;
+            }
+
+            var indentation = GetIndentationLength(root, text, line);
+            var newSpaces = Math.Max(0, indentation + shift);
+
+            if (newSpaces == indentation)
+            {
+                continue;
+            }
+
+            builder.Append(text.ToString(TextSpan.FromBounds(position, line.Start)));
+            builder.Append(' ', newSpaces);
+            position = line.Start + indentation;
+            changed = true;
+        }
+
+        if (changed == false)
+        {
+            return null;
+        }
+
+        builder.Append(text.ToString(TextSpan.FromBounds(position, node.Span.End)));
+
+        var replacement = SyntaxFactory.ParseExpression(builder.ToString(), 0, options, true);
+
+        return replacement.RawKind == node.RawKind
+                   ? replacement.WithTriviaFrom(node)
+                   : null;
+    }
+
+    /// <summary>
+    /// Gets the length of the indentation that moving a line rewrites. On a line of an interpolation hole, the
+    /// indentation is whitespace trivia, which holds no tab once the first phase ran; it is rewritten as a whole, so
+    /// the line moves by the full shift. On a content or closing line, the indentation is the literal's text, and only
+    /// its leading spaces are rewritten
+    /// </summary>
+    /// <param name="root">The indented syntax root</param>
+    /// <param name="text">The text of the indented syntax tree</param>
+    /// <param name="line">The line to examine</param>
+    /// <returns>The number of characters the indentation takes, each of them one column</returns>
+    private static int GetIndentationLength(SyntaxNode root, SourceText text, TextLine line)
+    {
+        var trivia = root.FindTrivia(line.Start);
+
+        if (trivia.IsKind(SyntaxKind.WhitespaceTrivia)
+            && trivia.SpanStart == line.Start)
+        {
+            return Math.Min(trivia.Span.End, line.End) - line.Start;
+        }
+
+        return GetLeadingSpaceCount(text, line);
+    }
+
+    /// <summary>
+    /// Determines whether the node lies inside an interpolation hole of a multi-line interpolated raw string
+    /// </summary>
+    /// <param name="node">The node to inspect</param>
+    /// <returns><see langword="true"/> if a multi-line interpolated raw string encloses the node</returns>
+    private static bool IsNestedInRawStringHole(SyntaxNode node)
+    {
+        return node.Ancestors()
+                   .Any(IsMultiLineRawStringLiteral);
     }
 
     /// <summary>
@@ -280,7 +373,7 @@ internal sealed class RawStringLineShifts
     /// before and around it moved them. The literal moves its lines by that distance
     /// </summary>
     /// <param name="literalIndex">The index of the literal</param>
-    /// <param name="getColumnBeforeShift">Gets the column a literal's first token has before the raw-string phase moves any line</param>
+    /// <param name="getColumnBeforeShift">Gets the column a literal's first token has once its line is placed, before any raw string literal's line moves</param>
     /// <returns>The distance in columns</returns>
     private int GetDistance(int literalIndex, Func<SyntaxToken, int> getColumnBeforeShift)
     {

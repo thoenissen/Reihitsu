@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.Indentation.Contributors;
-using Reihitsu.Formatter.Pipeline.RawStringAlignment.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 
@@ -13,7 +12,9 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 /// Computes the indentation layout model for a syntax tree.
 /// Applies block indentation, then repeats an alignment sweep until the columns settle, then
 /// aligns comments to the code they precede. A line that a token starts inside an interpolation hole
-/// of a multi-line interpolated raw string keeps its column unless a construct inside the hole places it
+/// of a multi-line interpolated raw string keeps its column unless a construct inside the hole places it.
+/// Every column is measured where the indentation phase puts the token: behind a comment that leads its line,
+/// and after the phase moved the lines of multi-line raw string literals
 /// </summary>
 internal static class LayoutComputer
 {
@@ -66,7 +67,7 @@ internal static class LayoutComputer
 
         commentContributor.Contribute(root, model, context);
 
-        // The hole lines no construct inside their hole placed keep their whitespace; the raw-string phase moves them with the literal
+        // The hole lines no construct inside their hole placed keep their whitespace and move only with the literal
         model.ReleaseUnplacedRawStringHoleLines();
 
         return model;
@@ -194,9 +195,9 @@ internal static class LayoutComputer
     }
 
     /// <summary>
-    /// Gets the column of a token as it will be after formatting: after indentation is applied, and after the
-    /// raw-string phase moved the lines of multi-line raw string literals, so a token inside such a literal's
-    /// interpolation hole, or behind its closing marker, is measured where that phase puts it
+    /// Gets the column of a token in the output of the indentation phase: after its line is placed, and after the
+    /// phase moved the lines of multi-line raw string literals, so a token inside such a literal's interpolation hole,
+    /// or behind its closing marker, is measured where the move puts it
     /// </summary>
     /// <param name="token">The token to get the adjusted column for</param>
     /// <param name="model">The layout model from Pass 1</param>
@@ -207,29 +208,28 @@ internal static class LayoutComputer
     }
 
     /// <summary>
-    /// Gets the column of a token as it will be after indentation is applied, before the raw-string phase moves
-    /// any line. For tokens that are first on their line, this returns the layout model's column.
-    /// For tokens that are not first on their line, this computes the offset from the
-    /// first token's adjusted position. A line of an interpolation hole that no construct inside the
-    /// hole placed keeps its column
+    /// Gets the column of a token once its line is placed, before any line of a multi-line raw string literal moves.
+    /// The indentation phase writes a line's column in front of the text that starts the line — the line's first
+    /// token, or a comment that stands in front of that token on its line — and the rest of the line keeps its gaps,
+    /// so a token is measured at the line's column plus its distance from the start of that text (FMT-INDENT-030).
+    /// A line that starts inside text that began on an earlier line, such as the last line of a multi-line comment or
+    /// the closing line of a raw string literal, is not placed, and its tokens keep their columns; so does a line of
+    /// an interpolation hole that no construct inside the hole placed
     /// </summary>
     /// <param name="token">The token to get the column for</param>
     /// <param name="model">The layout model</param>
-    /// <returns>The column after indentation</returns>
+    /// <returns>The column after its line is placed</returns>
     internal static int GetColumnBeforeRawStringShift(SyntaxToken token, LayoutModel model)
     {
         var originalColumn = GetColumn(token);
-        var line = GetLine(token);
 
-        if (model.TryGetPlacedColumnBeforeRawStringShift(line, out var lineColumn) == false)
+        if (model.TryGetPlacedColumnBeforeRawStringShift(GetLine(token), out var lineColumn) == false
+            || TryGetLineTextColumn(FindFirstTokenOnLine(token), out var lineTextColumn) == false)
         {
             return originalColumn;
         }
 
-        var firstTokenOnLine = FindFirstTokenOnLine(token);
-        var originalLineStart = GetColumn(firstTokenOnLine);
-
-        return lineColumn + (originalColumn - originalLineStart);
+        return lineColumn + (originalColumn - lineTextColumn);
     }
 
     /// <summary>
@@ -277,11 +277,11 @@ internal static class LayoutComputer
 
     /// <summary>
     /// Registers every line that a token starts inside an interpolation hole of a multi-line interpolated raw
-    /// string with the innermost such hole. The column the indentation phase would give such a line from the
+    /// string with the innermost such hole. The column the indentation requirements would give such a line from the
     /// scope depth, or from a construct outside the hole, does not depend on where the literal sits, while the
-    /// raw-string phase moves the line with the literal; giving it both would move it twice (FMT-RAW-007).
-    /// The line keeps its whitespace, whose tabs the cleanup phase replaces with four spaces each (FMT-CLEAN-002),
-    /// so the column registered for it counts each tab of that whitespace as four columns
+    /// move of the literal's lines carries the line with the literal; giving it both would move it twice (FMT-RAW-007).
+    /// The line keeps its whitespace, which holds no tab once the first phase ran, so the column registered for it is
+    /// the column at which its text starts
     /// </summary>
     /// <param name="root">The root syntax node</param>
     /// <param name="model">The layout model to register the lines with</param>
@@ -298,7 +298,11 @@ internal static class LayoutComputer
             {
                 foreach (var token in hole.DescendantTokens().Where(IsFirstOnLine))
                 {
-                    model.RegisterRawStringHoleLine(GetLine(token), hole, RawStringLineShifts.GetColumnAfterTabReplacement(token));
+                    var column = TryGetLineTextColumn(token, out var lineTextColumn)
+                                     ? lineTextColumn
+                                     : GetColumn(token);
+
+                    model.RegisterRawStringHoleLine(GetLine(token), hole, column);
                 }
             }
         }
@@ -342,6 +346,49 @@ internal static class LayoutComputer
         }
 
         model.Set(GetLine(token), new TokenLayout(childIndent * FormattingContext.IndentSize + baseColumn, "Block"));
+    }
+
+    /// <summary>
+    /// Gets the column at which the text of a line starts, given the line's first token: the column of the first
+    /// comment that stands in front of the token on its line, or otherwise the token's own column. The indentation
+    /// phase writes the line's column there. The text does not start on the line when the line starts inside the
+    /// previous token, inside that token's trailing trivia, or inside a trivia of the first token that began on an
+    /// earlier line, such as a multi-line comment; the phase then leaves the line's start as it is
+    /// </summary>
+    /// <param name="firstTokenOnLine">The first token on the line</param>
+    /// <param name="column">The column at which the line's text starts</param>
+    /// <returns><see langword="true"/> if the line's text starts on the line; otherwise, <see langword="false"/></returns>
+    private static bool TryGetLineTextColumn(SyntaxToken firstTokenOnLine, out int column)
+    {
+        column = GetColumn(firstTokenOnLine);
+
+        var lineStart = firstTokenOnLine.SpanStart - column;
+
+        if (firstTokenOnLine.FullSpan.Start > lineStart)
+        {
+            return false;
+        }
+
+        // The full span counts the delimiters of structured trivia, such as the opening "/**" of a documentation comment
+        foreach (var trivia in firstTokenOnLine.LeadingTrivia)
+        {
+            if (trivia.FullSpan.End <= lineStart
+                || trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                continue;
+            }
+
+            if (trivia.FullSpan.Start < lineStart)
+            {
+                return false;
+            }
+
+            column = trivia.FullSpan.Start - lineStart;
+
+            return true;
+        }
+
+        return true;
     }
 
     /// <summary>
