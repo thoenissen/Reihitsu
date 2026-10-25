@@ -49,3 +49,4 @@ None so far.
 ## After the repair audit (passed with text findings)
 
 - Audit 12 finding 4 → spec author; finding 5 (test summary comment) → cleaner. Proof: `scripts/verify-text-only.sh --strict-docs --base 5459c5d --head worktree`.
+- Finding 5's comment sits on a public test method, so the strict text-only proof fails; per section 6 this makes it repair round 2 (spec checker and auditor on the repair `5459c5d..HEAD`).
