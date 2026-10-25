@@ -38,3 +38,7 @@ On the implementer's disputed tests (`05-implementer.md`), the maintainer chose 
 # Escalation 2 (second amendment) — answered 2026-10-25
 
 The maintainer approved the change doc as of `06-spec-author.md`. Recorded in `squad/decisions/2026-10-25-phase-prediction-removal-second-amendment.md`. Status `Accepted` is still to be set by the spec author before the PR is marked ready.
+
+# Escalations 5 and 12 (node-level shift) — answered 2026-10-25
+
+On the implementer's stop in `08-implementer.md`, the maintainer chose option A: fix narrowly. The RH5303/RH5304 code fixes withhold themselves for a complex element whose opening brace's line starts inside a multi-line comment (the diagnostic stays without a fix, a supported end state per `AGENTS.md` *Code-fix coverage*); the gap is recorded as a decision in the RH5303/RH5304 specs; the tests that assert node-level output the change doc excludes are replaced by tests of the decided behavior; the node-level column steps (`ComputeTokenColumn` / `AdjustNodeIndentation`, together with the skeptic's follow-ups 1 and 2) become a follow-up candidate, presented with the other follow-ups when the PR is ready. Recorded in `squad/decisions/2026-10-25-phase-prediction-removal-node-level-shift.md`.
