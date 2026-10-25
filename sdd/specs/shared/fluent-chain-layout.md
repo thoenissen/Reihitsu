@@ -5,7 +5,7 @@
 | ID prefix | SHARED-CHAIN |
 | Status | Active |
 | Code owners | `FluentChain`, `FluentChainLink`, `FluentChainAttachedPart`, `FluentChainUtilities`, `FluentChainAnalyzerBase`, `FluentChainCodeFixHelper` |
-| Uses | FMT-PIPE-002 |
+| Uses | FMT-PIPE-002, SHARED-COMMENT-012 |
 
 This spec covers the layout of member-access chains (`items.Where(…).Select(…)`) that the analyzer and the formatter must agree on: what a chain is, when it counts as wrapped, which links must start a line, and the column wrapped links align to. The analyzer rules RH5112, RH5201, and RH5048 report against this policy, and the code fixes of RH5112 and RH5201 lay a chain out by it; the formatter's line-break phase (FMT-BREAK) and indentation phase (FMT-INDENT) produce it.
 
@@ -135,7 +135,9 @@ is left unchanged.
 
 In a wrapped chain, every link of the chain part after the first invoked link MUST start its own line. The prefix links and the links of a chain without an invoked link MUST keep the line the author put them on. RH5201 reports a later link that does not start a line; the formatter breaks the line in front of its operator.
 
-Why: Once a chain is wrapped, one step per line is what makes it scannable; a wrapped chain that still carries several calls on one line hides steps at the end of a line. A property prefix (`settings.Items`) is not a step of the pipeline, so it may stay together on one line, and a chain of property reads has no steps at all.
+The one exception is a link whose operator stands behind the closing `*/` of a delimited comment that spans several lines, which does not start its line (SHARED-COMMENT-012). In a wrapped chain such a link MUST start its own line, also when it is a prefix link, a link of a chain without an invoked link, or the first invoked link: the formatter breaks the line in front of its operator, and RH5201 reports the link as SHARED-COMMENT-012 specifies for a rule that checks in which column a line starts. This exception does not decide the chain's first link, which SHARED-CHAIN-003 and SHARED-CHAIN-004 govern, nor whether a chain whose only line breaks lie inside such a comment counts as wrapped.
+
+Why: Once a chain is wrapped, one step per line is what makes it scannable; a wrapped chain that still carries several calls on one line hides steps at the end of a line. A property prefix (`settings.Items`) is not a step of the pipeline, so it may stay together on one line, and a chain of property reads has no steps at all. A link behind the tail of a comment that spans several lines has no line of its own to keep: the author wrote it on the line the comment started on, so it gets a line of its own like every other step of a wrapped chain.
 
 Example:
 
@@ -167,6 +169,50 @@ class C
         var c = settings.Items
                         .Where(x => x.A)
                         .Select(x => x.B);
+    }
+}
+```
+
+Example — the prefix link `.B` and the first invoked link `.C()` stand behind the comment's last line, so each starts its own line and aligns with the anchor:
+
+```csharp
+class C
+{
+    void M(dynamic a)
+    {
+        var r = a.B
+
+                 /* x
+        */ .B
+                 .C()
+                 .D();
+        var s = a.B
+
+                 /* x
+        */ .C()
+                 .D();
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(dynamic a)
+    {
+        var r = a.B
+
+                 /* x
+        */
+                 .B
+                 .C()
+                 .D();
+        var s = a.B
+
+                 /* x
+        */
+                 .C()
+                 .D();
     }
 }
 ```

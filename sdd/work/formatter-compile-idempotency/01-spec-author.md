@@ -1,12 +1,12 @@
 Role: spec author
-Commit: 639e551 (revision 4; revision 3 was derived from 1ef05b5, revision 2 from d099e34, revision 1 from 5a58686)
+Commit: 707fc15 (revision 5; revision 4 was derived from 639e551, revision 3 from 1ef05b5, revision 2 from d099e34, revision 1 from 5a58686)
 Verdict: #948: spec written; #949: spec written; #954: spec written; #1390: spec written; #888: spec written
 
 Clarifications only, no change doc (bug-fix lane). New IDs: FMT-SWITCH-014, FMT-STRUCT-025, SHARED-BODY-004, all inserted into `sdd/specs/requirement-ids.txt` at their sorted positions. The lead prompt carried no intended fix or verdict; the issue texts' own cause hypotheses (#949, #954) were not taken over — see the facts below.
 
 How the statements were established: `scripts/trace.sh` over each issue input and its variants at `5a58686`, `scripts/format.sh` for converged outputs, `scripts/apply-fix.sh` for RH5031 and RH3202, and a scratch `net10.0` library compiled with `dotnet build` for the C# scope claims of FMT-SWITCH-014. `SpecStructureTests` and `SpecConsistencyTests` pass on the spec diff; `RequirementCoverageTests.EveryRequirementOfAnEnforcedSpecIsCovered` fails only for FMT-SWITCH-014, FMT-STRUCT-025, and SHARED-BODY-004 (no covering test yet — the test implementer's part). The analyzer project's `RuleDocumentation` tests pass on the changed rule pages.
 
-Revision 2 carries the maintainer's answers to Q1–Q3 (summarized in `00-lead.md`, "Escalation 1"); the questions are closed and recorded under "Maintainer answers" in the `Whole run` section. Revision 3 carries the skeptic's spec notes (`02-skeptic.md`) and the maintainer's answers to the skeptic's questions (`00-lead.md`, "Escalation (questions from 02-skeptic.md)"), each marked "(revision 3)" below. Revision 4 is repair round 1 (`07-auditor.md` findings A3 and A5; maintainer answer A5 → A in `00-lead.md`), marked "(revision 4)". The spec architecture tests (`Spec*`, `RequirementCoverage*`) pass at revision 4.
+Revision 2 carries the maintainer's answers to Q1–Q3 (summarized in `00-lead.md`, "Escalation 1"); the questions are closed and recorded under "Maintainer answers" in the `Whole run` section. Revision 3 carries the skeptic's spec notes (`02-skeptic.md`) and the maintainer's answers to the skeptic's questions (`00-lead.md`, "Escalation (questions from 02-skeptic.md)"), each marked "(revision 3)" below. Revision 4 is repair round 1 (`07-auditor.md` findings A3 and A5; maintainer answer A5 → A in `00-lead.md`), marked "(revision 4)". Revision 5 carries the two spec items of `03-test-implementer.md` "Revision 3 — repair round 1" (maintainer answer A on chain links behind a comment tail, and the routed query-clause clarification, both in `00-lead.md`), marked "(revision 5)". The spec architecture tests (`Spec*`, `RequirementCoverage*`) pass at revision 5.
 
 ## thoenissen/Reihitsu#948
 
@@ -24,6 +24,8 @@ Revision 2 carries the maintainer's answers to Q1–Q3 (summarized in `00-lead.m
 - (revision 3) FMT-SWITCH-014's list of directly declared forms is widened to every form the skeptic's compiled evidence shows C# scopes to the whole switch block (routed by the lead as a clarification): `const` and deconstruction declarations; `out var` / pattern variables in `return`, `throw`, `yield return`, a nested switch's governing expression, and a `lock` expression, besides expression statements, local declarations, and `if` conditions; any of these behind a label. Uses in another section's labels (`case K:`, `when L() > 0`) count. The self-scoped forms are named as the other side: `else if` condition, embedded statements of `if`/`else`, `while`/`do`/`for`/`foreach`/`using`/`fixed` headers, sections of a nested switch. The coverage sentence now leaves only a member name behind `.` unspecified. New example: a `const` used as another section's `case K:` (traced: today only `SwitchCaseBracePhase` changes it). The nested-block counter-example gains a `foreach (var y in ys)` header (compiled unbraced; traced braced output).
 
 - (revision 4, auditor A3) FMT-SWITCH-014's third bullet names the initializer of a local declaration (`var b = F(out var o);`). Evidence: my scratch build at revision 1 (`var b = F(out var o);` in section 1, `o = 2; G(o);` in section 2 compiles unbraced) and the auditor's scratch build; revision 1 had named the form, revision 3 dropped it from the bullet by mistake.
+
+- (revision 5) FMT-SWITCH-014 names query clauses next to lambda bodies: a variable a pattern declares inside a query clause (`from a in xs where a is int n select n`) is scoped to that clause and does not count, also inside a local declaration's initializer. The `Why:` says so. Source: the test implementer's compiled observation, routed by the lead as a clarification.
 
 ### Examples for the tests
 
@@ -137,9 +139,13 @@ _None._ (Q1 answered: B; Q3 answered: A.)
 
 - (revision 3) FMT-BREAK-019's sentence reads "a later link" instead of "a later call", matching SHARED-CHAIN-005, which covers every link after the first invoked link, a property read included (skeptic's #888 note, routed by the lead).
 
+- (revision 5, maintainer answer A) SHARED-CHAIN-005 (`sdd/specs/shared/fluent-chain-layout.md`) gains the exception: in a wrapped chain, a link whose operator stands behind the closing `*/` of a multi-line delimited comment starts its own line also when it is a prefix link, a link of a chain without an invoked link, or the first invoked link; the formatter breaks before its operator and RH5201 reports it as SHARED-COMMENT-012 specifies. New example (prefix `.B` and first invoked `.C()` behind `*/`); its output is what `format.sh` produces today on this branch, and a second run changes nothing. `Uses` gains SHARED-COMMENT-012. FMT-BREAK-019's sentence now covers any link behind such a comment, pointing to the exception. Ownership: `fluent-chain-layout.md` and its code owners belong to no concurrent run; no code owner changed.
+  - Facts on this branch: `scripts/apply-fix.sh RH5201` reports the prefix and first-invoked inputs and fixes each in one iteration (LF, CRLF); on the formatted output it reports nothing. So RH5201 already agrees, and the maintainer's "RH5201 unchanged" holds.
+  - Left unspecified, by the exception's own sentence: the chain's first link behind a comment tail (`var t = a /* x` / `*/ .C()` / `.D();`), which SHARED-CHAIN-003/-004 govern — today the formatter leaves `.C()` behind `*/` (as `*/.C()`) and RH5201 reports nothing; and whether a chain whose only line breaks lie inside such a comment counts as wrapped (the skeptic's #888 follow-up). See the open question below.
+
 ### Examples for the tests
 
-FMT-BREAK-019 (new example; the skeptic's `?.D()` / `.E` input is covered by the "later link" wording). Reproduction tags SHARED-COMMENT-012 and FMT-BREAK-019; the RH5201 code-fix test tags SHARED-CHAIN-008 / SHARED-FIX-001 (one-pass convergence), under LF and CRLF as the issue asks.
+FMT-BREAK-019 (new example; the skeptic's `?.D()` / `.E` input is covered by the "later link" wording), SHARED-CHAIN-005 (new example: prefix link and first invoked link behind a comment tail). Reproduction tags SHARED-COMMENT-012 and FMT-BREAK-019; the RH5201 code-fix test tags SHARED-CHAIN-008 / SHARED-FIX-001 (one-pass convergence), under LF and CRLF as the issue asks.
 
 ### Open questions for the maintainer
 
@@ -149,7 +155,28 @@ _None._
 
 ### Open questions for the maintainer
 
-_None._
+**Q4 (revision 5, #888, found in passing, not blocking) — the chain's first link behind a multi-line comment tail.** The maintainer's answer on the prefix link and the first invoked link says "any chain link". The cases asked about were links after the chain's first link; when the first invoked link is also the chain's first link, the answer and today's behavior part:
+
+```csharp
+class C
+{
+    object M(dynamic a)
+    {
+        var t = a /* x
+        */ .C()
+                 .D();
+
+        return t;
+    }
+}
+```
+
+Real output on this branch (`format.sh`): `var t = a /* x` / `*/.C()` / `  .D();` — `.C()` stays behind `*/`, `.D()` aligns to it. RH5201 reports nothing on that output. Touches SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-COMMENT-012, FMT-BREAK-019.
+
+- **A** — The first link behind a tail also starts its own line (`*/`, then `.C()` and `.D()` on lines of their own, aligned). Reads the answer literally; SHARED-CHAIN-004 already suspends SHARED-CHAIN-003 for this chain, so nothing contradicts it, but it is new formatter work and RH5112/RH5201 behavior on the result is unverified.
+- **B** — The first link keeps today's behavior; the exception covers only links after the chain's first link. No production change.
+
+Recommendation: **B** for this run, with a follow-up issue if the maintainer wants A — the asked cases are settled, the first link is governed by SHARED-CHAIN-003/-004 and RH5112, and A widens the run into the first-link layout.
 
 ### Maintainer answers (Escalation 1, recorded in `00-lead.md`)
 
