@@ -77,3 +77,69 @@ None.
 - 7: ok — `Passed! - Failed: 0, Passed: 84, Skipped: 0, Total: 84`.
 - 8: ok.
 - 9: ok — `sdd/work/` holds only `raw-string-literal-content/`, which the lead deletes before publishing.
+
+# Repair round 1
+
+Role: spec checker
+Commit: 71b17d2
+Verdict: #951: consistent; #1133: consistent; #1146: consistent
+
+Inputs: the diff `ea03170..71b17d2` and the full diff against `origin/main`, `00-lead.md` (Repair round 1, escalation 4), `01-spec-author.md`, `03-test-implementer.md` and `04-implementer.md` (Repair round 1), `07-auditor.md`. The prompt carried no intended fix or hoped-for verdict. I changed nothing except this file.
+
+Results on `71b17d2`:
+
+- `scripts/test.sh --project architecture`: `Passed! - Failed: 0, Passed: 84, Skipped: 0, Total: 84`.
+- Formatter filter `RawStringAlignment|Indentation|SelfHosting`: `Passed: 669, Total: 669`.
+- Analyzer filter `RH5104|RH5601|RH5602|RH5202`: `Passed: 129, Total: 129`.
+- `scripts/lane-check.sh bug-fix`: `LANE CHECK: confirmed — claimed bug-fix, diff needs bug-fix`.
+- `LC_ALL=C sort -c sdd/specs/requirement-ids.txt`: sorted.
+
+## thoenissen/Reihitsu#951
+
+### Findings
+None.
+
+### Checked
+1. Change doc: still none required. The repair adds no requirement and changes none for #951: `raw-string-alignment.md` changes only its `Code owners` row. The behavior the implementer changed (anchors measured after the raw-string shift, tab columns, `///` lines and constraint clauses in holes, the argument anchored behind a raw literal's closing quotes outside any hole) is stated by FMT-RAW-007 conditions 1 and 2, FMT-RAW-009 (`/* */` only, so dropping `///` from the frozen lines agrees with it), FMT-INDENT-012, FMT-INDENT-017, FMT-INDENT-029, FMT-INDENT-030 and FMT-CLEAN-002, none of which changed. It is the bug-fix case of bringing code to the spec.
+2. Specs match the diff: ok. `RawStringLineShifts` is the one owner of the per-line shift that FMT-RAW-001, -007, -008, -009 describe; no requirement contradicts it.
+3. IDs: ok; no #951 ID added.
+4. Code owners: the diff adds two production types, `RawStringLineShifts` (class) and `RawStringLiteral` (readonly record struct), in `Reihitsu.Formatter.Pipeline.RawStringAlignment.Utilities`. Both are in the `Code owners` row of `sdd/specs/formatter/raw-string-alignment.md` and in its row of `sdd/specs/README.md`, the two rows are identical, and neither type is an owner of another spec. `indentation.md` needs no owner or `Uses` change (it already lists FMT-RAW-001 and FMT-RAW-007, the only FMT-RAW IDs it references). `SpecConsistencyTests` and `SpecStructureTests` pass.
+5. User documentation: no rule page affected.
+6. Open questions: none from the spec author. The implementer lists one unverified follow-up candidate, auditor hint 3 (FC-028: a fix that formats a node inside a hole registers only the holes inside that node); it is for the lead to route and is written into no spec. The RH5202 fix's own copy of the shift (`RealignContent`) is already the approved follow-up thoenissen/Reihitsu#1458.
+7. Coverage: no new #951 ID; FMT-RAW-007, -008, -009 stay covered. Architecture result above.
+8. Tags: the eight added formatter tests carry the tags `03-test-implementer.md` names. In `RawStringInterpolationHoleTests`: FMT-RAW-007 on all seven, plus FMT-RAW-008 on `ArgumentAnchoredOnTheClosingLineOfANestedLiteralKeepsItsAlignment`, FMT-RAW-009 on `ArgumentAnchoredOnTheContinuationLineOfAVerbatimStringKeepsItsAlignment`, FMT-INDENT-017 on both constraint-clause tests. In `RawStringAlignmentPipelineTests`: FMT-INDENT-029 and FMT-INDENT-030 on the chain-link test, FMT-INDENT-012 and FMT-INDENT-030 on the wrapped-argument test.
+9. No `sdd/work/` other than this run's (`raw-string-literal-content/`, now with `07-auditor.md`).
+
+## thoenissen/Reihitsu#1133
+
+### Findings
+None.
+
+### Checked
+1 to 9: ok, unchanged. The repair touched no RH5601/RH5602 file; `ea03170..71b17d2` contains none.
+
+## thoenissen/Reihitsu#1146
+
+### Findings
+None.
+
+### Checked
+1. Change doc: still none required. RH5104-007 is a new requirement for the comment-reordering gap. It follows the maintainer's answer A (escalation 4 in `00-lead.md`) and SHARED-FIX-003, which the bug-fix lane brings the code to. The behavior it states is the fix being withheld, as RH5104-006 is.
+2. Specs match the diff: ok. `HasCommentBeforeOnLine` withholds the action when a comment trivia lies wholly between the line start and the reported comment, which is what RH5104-007 states and what RH5104-004's new condition refers to. The RH5104-007 example (`M(); /* a */ // b` and `/* c */ /* d⏎ e */ M();`, then the state after the first fix) matches the test `VerifyFixAllKeepsTheOrderOfCommentsThatShareALine` and its siblings. Format followed: normative sentence with SHARED-FIX-003, `Why:`, markup, a result block.
+3. IDs: RH5104-007 is the next free number and sits after RH5104-006 in the ledger; nothing removed.
+4. Code owners: unchanged. `Uses` of RH5104 (SHARED-COMMENT-002, SHARED-FIX-003, SHARED-FIX-006) still matches its references.
+5. User documentation: `documentation/rules/RH5104.md` is unchanged. That is right: a fix withheld only because of a comment is the general limitation in `general-notes.md` (`AGENTS.md`, *Code-fix coverage*), so it is not repeated on the rule page.
+6. Open questions: the earlier follow-up candidate (comment reordering) is resolved by RH5104-007. Still for the lead: the text of the follow-up for thoenissen/Reihitsu#1433 (Q6 superseded by J1) and of the RH5601/RH5602 SHARED-DIAG-003 gap, as in the first round.
+7. Coverage: RH5104-007 has four covering tests; architecture result above.
+8. Tags: `VerifyCodeFixIsOfferedOnlyForTheFirstCommentOfALine`, `VerifyNoCodeFixIsOfferedForACommentBehindAnUnreportedCommentOnItsLine`, `VerifyFixAllKeepsTheOrderOfCommentsThatShareALine`, and `VerifyCommentIsMovedOnceTheCommentBeforeItHasLeftItsLine` each carry `[Requirement("RH5104-007")]`, as the table lists. Both shapes of the RH5104-007 example are tagged on added tests.
+9. Nothing left behind.
+
+## Whole run
+
+### Findings
+| # | Check | Location | What does not match | Owner |
+|---|---|---|---|---|
+| — | — | — | None | — |
+
+### Checked
+1 to 9: ok, as stated per issue. Items for the lead before the PR: the follow-up text for the RH5601/RH5602 gap, the update to thoenissen/Reihitsu#1433, the auditor hint 3 candidate, and the run-report notes already listed in the first section; `sdd/work/` is deleted before publishing.
