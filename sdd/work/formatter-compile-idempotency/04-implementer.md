@@ -1,6 +1,6 @@
 Role: implementer
-Commit: 2dea131
-Verdict: #948: tests pass; #949: tests pass; #954: tests pass; #1390: test disputed (two tests, production change complete); #888: tests pass
+Commit: 780162b (revision 2, repair round 1; revision 1 was 2dea131)
+Verdict: #948: tests pass; #949: tests pass; #954: tests pass; #1390: tests pass; #888: tests pass
 
 My prompt carried no intended fix, suspected cause, or hoped-for verdict. The skeptic's mechanism readings (`02-skeptic.md`) were treated as claims: each one named below was checked by running the code (instrumented trace or a failing test) before it was used. Every handed-over test assertion, input, and expected output is unchanged. No file of a concurrent run was touched. The RH3202 code-fix provider sits in R7's RH3xxx area, which the maintainer released to this run (00-lead.md, Escalation 1, Q1).
 
@@ -171,3 +171,59 @@ _None._
 - **Start of file.** A comment above `#region` at the start of the file keeps the exemption (skeptic's follow-up), unchanged.
 - **RH3202 provider duplication.** `RH3202ExpressionStyleMethodsShouldNotBeUsedCodeFixProvider` duplicates `ExpressionBodyToBlockCodeFixProviderBase<MethodDeclarationSyntax>` instead of deriving from it (SHARED-BODY's code owner). Rebasing it would remove the second guard call; it changes a public class's base type, so it belongs to R7 or a separate issue.
 - The skeptic's and the test implementer's follow-ups stand unchanged: RH7501 fix output, FMT-PIPE-013 for the first statement moved into a braced section, the nested `Inner = { … }` initializer, and `RH5201.md` `Uses`.
+
+## Revision 2 — repair round 1
+
+Commit: 780162b. Items A1, A2, A4, A5 of `07-auditor.md`, as routed in `00-lead.md` ("Repair round 1", and the maintainer's answers A4 → B and A5 → A). The specs are at `01-spec-author.md` revision 5 and the tests at `03-test-implementer.md` revisions 3–4. No test assertion, input, or expected output was changed. Revision 1's two disputed #1390 tests were corrected by the test implementer (5a6472f) and pass. `scripts/format.sh` was run over the changed files.
+
+### thoenissen/Reihitsu#948 — A2
+
+| File | What changed | Requirement |
+|---|---|---|
+| `src/Reihitsu.Formatter/Pipeline/SwitchCaseBraces/Rewriter/SwitchCaseBraceRewriter.cs` | New `IsBoundInsideSection`. A simple name in another section is not a use when a declaration inside that section, enclosing the name, binds it: a parameter of an enclosing lambda, anonymous method, or local function; a variable that an enclosing lambda's or local function's expression body designates; or a local that an enclosing block declares directly. `GetDirectlyDeclaredLocalNames` now takes a statement list, so blocks reuse the same dispatch. `GetDesignatedNames` stops at `QueryBodySyntax`, so a pattern variable in a query clause behind the first `from` expression does not count. | FMT-SWITCH-014 (revision 5: query clauses; "used only in the section that declares it") |
+
+The narrowing stays on the safe side. Every binding it accepts is one C# resolves to the inner declaration. An inner local that shadows the switch-scoped local outside a lambda is CS0136 anyway. A shadowing form it does not recognize (a `for`, `foreach`, `using`, or `catch` variable inside a lambda) still triggers the guard, so the switch stays unbraced and still compiles.
+
+### thoenissen/Reihitsu#949 — A1
+
+| File | What changed | Requirement |
+|---|---|---|
+| `SwitchCaseBraceRewriter.cs`, `BuildTerminalBreakLeadingTrivia` | No line break is appended behind a comment trivia that already ends with one (`BlankLineTriviaUtilities.EndsWithLineBreak`, a `///` comment); the line behind it counts as a new line. Summary updated. | FMT-SWITCH-007, FMT-BLANK-011, FMT-PIPE-004 |
+
+`BuildLeadingTrivia` (the first statement moved into the block) has the same `///` hazard, per the auditor's hint. It was not changed, because it is outside the routed item.
+
+### thoenissen/Reihitsu#954 — A4 (answer B: behavior unchanged)
+
+| File | What changed | Requirement |
+|---|---|---|
+| `src/Reihitsu.Formatter/Pipeline/BlankLines/Utilities/BlankLineEditor.cs` | Documentation comments only. The 3-argument `IsExemptFromPrecedingBlankLineBeforeRegionDirective` now states what the code does: the start of the file is exempt whatever trivia stands in front; behind an opening brace, whitespace, line breaks, conditional-compilation directives, and disabled text keep the exemption, even when such a directive is the line directly above; a comment or any other directive ends it. `EnsureBlankLineBeforeFirstDirective`'s summary names the same two exemptions. No code changed. | SHARED-BLANK-005 (behavior as on `origin/main` for conditional directives, per the maintainer's answer) |
+
+### thoenissen/Reihitsu#1390 — A5 (answer A)
+
+| File | What changed | Requirement |
+|---|---|---|
+| `src/Reihitsu.Formatter/Pipeline/StructuralTransforms/Utilities/ExpressionBodyToBlockConverter.cs` | New `ArrowLineHoldsComment`: a comment in the arrow's trailing trivia, or in its leading trivia behind the last line break. When it holds one, `CreateBlock` moves no comment: the own-line comments stay in front of `{` and in front of the expression, as on `origin/main`. `CreateReturnStatement` then drops whitespace-only leading trivia only, as on `origin/main`, and does not join a `/* */` behind `return`. Summaries updated. | FMT-STRUCT-006 (revision 4), SHARED-BODY-003 |
+
+The RH3202 fix and the other expression-body fixes reach the same `CreateBlock` through the formatter, so `VerifyFixKeepsCommentOrderWhenTheArrowLineCarriesAComment` passes without a code-fix change.
+
+### Policy owners
+
+- `rg -n "BuildTerminalBreakLeadingTrivia|BuildLeadingTrivia" src/Reihitsu.Formatter`: both live only in `SwitchCaseBraceRewriter`. `rg -n "static bool EndsWithLineBreak" src/Reihitsu.Formatter`: the one owner, `BlankLineTriviaUtilities`, is reused in the rewriter and in `ArrowLineHoldsComment`.
+- `rg -n "IsExemptFromPrecedingBlankLineBeforeRegionDirective" src --glob '!*Test*'`: unchanged since revision 1.
+- `IsBoundInsideSection` reuses `GetDirectlyDeclaredLocalNames` and `GetDesignatedNames`; no second scope policy was added.
+
+### Tests run
+
+- `scripts/test.sh --configuration Debug --project formatter --filter "FullyQualifiedName~SwitchSectionSharedLocalTests|FullyQualifiedName~TerminalBreakCommentTests|FullyQualifiedName~SwitchCaseBrace"`: 87 passed, 0 failed.
+- `scripts/test.sh --configuration Debug --project formatter --filter "FullyQualifiedName~Structural|FullyQualifiedName~ExpressionBod|FullyQualifiedName~SwitchCaseBrace|FullyQualifiedName~SwitchSection|FullyQualifiedName~TerminalBreak"`: 600 passed, 0 failed.
+- `scripts/test.sh --configuration Debug --project formatter`: 2793 passed, 0 failed.
+- `scripts/test.sh --configuration Debug --project analyzer`: 6068 passed, 0 failed.
+
+### Disputed tests or scope
+
+_None._
+
+### Follow-up candidates
+
+- `BuildLeadingTrivia` (the first statement moved into a braced section) appends a line break behind a `///` comment and drops blank lines between comments (auditor hint; skeptic follow-up).
+- Revision 1's follow-ups stand. The conditional-directive case under SHARED-BLANK-005 is now the maintainer's A4 follow-up.
