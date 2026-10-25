@@ -81,22 +81,6 @@ internal static class InitializerLayoutAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether the node contains a complex element initializer whose opening brace stands behind the last
-    /// line of a multi-line comment, so that the brace's line starts inside the comment. The RH5303 and RH5304 fixes
-    /// withhold themselves for such code (RH5303-006, RH5304-005): the formatter's node-level entry point moves the
-    /// start of every line of the code it formats, but cannot move a line that starts inside a comment
-    /// </summary>
-    /// <param name="node">The code a fix formats</param>
-    /// <returns><see langword="true"/> if such a complex element is part of the node; otherwise, <see langword="false"/></returns>
-    public static bool ContainsComplexElementBehindMultiLineCommentTail(SyntaxNode node)
-    {
-        return node.DescendantNodesAndSelf()
-                   .OfType<InitializerExpressionSyntax>()
-                   .Any(static initializer => initializer.IsKind(SyntaxKind.ComplexElementInitializerExpression)
-                                              && StartsLineInsideComment(initializer.OpenBraceToken));
-    }
-
-    /// <summary>
     /// Determines whether a token or its formatter-controlled leading comment starts at the expected column
     /// </summary>
     /// <param name="token">Token whose line anchor should be checked</param>
@@ -138,33 +122,6 @@ internal static class InitializerLayoutAnalysisUtilities
         // The formatter controls the indentation before a leading comment but preserves the token's
         // raw position after a comment that ends on the same line.
         return commentSharesTokenLine || tokenPosition.Character == expectedColumn;
-    }
-
-    /// <summary>
-    /// Determines whether a token stands behind a comment that starts on an earlier line and ends on the token's line,
-    /// in the gap between the previous token and the token
-    /// </summary>
-    /// <param name="token">The token to inspect</param>
-    /// <returns><see langword="true"/> if the token's line starts inside such a comment; otherwise, <see langword="false"/></returns>
-    private static bool StartsLineInsideComment(SyntaxToken token)
-    {
-        var tokenLine = token.GetLocation().GetLineSpan().StartLinePosition.Line;
-        var gap = token.GetPreviousToken().TrailingTrivia.Concat(token.LeadingTrivia);
-
-        foreach (var trivia in gap.Where(SyntaxTriviaUtilities.IsCommentTrivia))
-        {
-            // The full span counts the delimiters of structured trivia, such as the opening "/**" of a documentation comment
-            var commentSpan = trivia.SyntaxTree.GetLineSpan(trivia.FullSpan);
-
-            if (commentSpan.StartLinePosition.Line < tokenLine
-                && commentSpan.EndLinePosition.Line == tokenLine
-                && commentSpan.EndLinePosition.Character > 0)
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     #endregion // Methods

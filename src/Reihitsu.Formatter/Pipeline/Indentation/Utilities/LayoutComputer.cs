@@ -50,12 +50,15 @@ internal static class LayoutComputer
         var baseColumn = context.BaseIndentLevel * FormattingContext.IndentSize;
 
         model.UseRawStringLineShifts(new RawStringLineShifts(root, root.SyntaxTree.GetText(cancellationToken), cancellationToken),
-                                     token => GetColumnBeforeRawStringShift(token, model));
+                                     token => GetOpeningQuotesColumnBeforeRawStringShift(token, model));
 
         RegisterRawStringHoleLines(root, model);
 
         // Pass 1: Block indentation — recursive descent over the tree
         ComputeBlockIndentation(root, 0, model, baseColumn, cancellationToken);
+
+        // A node formatted inside its document keeps its first token in its document column (FMT-PIPE-017)
+        ShiftToRootFirstTokenColumn(root, model, context);
 
         // Pass 2: Alignment contributors — override block indentation for specific constructs
         var contributors = CreateContributors();
@@ -273,6 +276,62 @@ internal static class LayoutComputer
                    new AnonymousObjectContributor(),
                    new LambdaAlignmentContributor()
                ];
+    }
+
+    /// <summary>
+    /// Gets the column the first token of a multi-line raw string literal has once its line is placed, as the move of the
+    /// literal's lines measures it. That is <see cref="GetColumnBeforeRawStringShift"/>, except on a placed line that
+    /// starts with the byte order mark of the text: the rewriter keeps the mark in front of the line's column, and the
+    /// literal's lines, which hold their indentation in the literal's text, count it as a column (FMT-RAW-005)
+    /// </summary>
+    /// <param name="token">The first token of the literal</param>
+    /// <param name="model">The layout model</param>
+    /// <returns>The column the move of the literal's lines measures the token at</returns>
+    private static int GetOpeningQuotesColumnBeforeRawStringShift(SyntaxToken token, LayoutModel model)
+    {
+        var column = GetColumnBeforeRawStringShift(token, model);
+        var lineStart = token.SpanStart - GetColumn(token);
+
+        if (lineStart == 0
+            && token.SyntaxTree?.GetText() is { Length: > 0 } text
+            && text[0] == '\uFEFF'
+            && model.TryGetPlacedColumnBeforeRawStringShift(GetLine(token), out _)
+            && TryGetLineTextColumn(FindFirstTokenOnLine(token), out _))
+        {
+            column++;
+        }
+
+        return column;
+    }
+
+    /// <summary>
+    /// Shifts the block indentation of every line by the root's offset when the caller supplies the column of the root's
+    /// first token in its document (FMT-PIPE-017): that column less the column block indentation gives the token. The
+    /// first token then keeps its column, and a line placed by its depth keeps its place relative to it. The alignments
+    /// run after the shift, so a line aligned to an anchor follows the anchor where it stands, also on a line this phase
+    /// does not place. When the first token's line is not placed, because the token stands behind the last line of a
+    /// multi-line comment, the token keeps its column and the offset is zero
+    /// </summary>
+    /// <param name="root">The root syntax node</param>
+    /// <param name="model">The layout model after block indentation</param>
+    /// <param name="context">The formatting context</param>
+    private static void ShiftToRootFirstTokenColumn(SyntaxNode root, LayoutModel model, FormattingContext context)
+    {
+        if (context.RootFirstTokenColumn is not { } rootFirstTokenColumn)
+        {
+            return;
+        }
+
+        var firstToken = root.GetFirstToken();
+
+        if (firstToken.IsKind(SyntaxKind.None)
+            || model.TryGetPlacedColumnBeforeRawStringShift(GetLine(firstToken), out _) == false
+            || TryGetLineTextColumn(firstToken, out _) == false)
+        {
+            return;
+        }
+
+        model.ShiftRange(0, int.MaxValue, rootFirstTokenColumn - GetColumnBeforeRawStringShift(firstToken, model), "RootFirstTokenColumn");
     }
 
     /// <summary>

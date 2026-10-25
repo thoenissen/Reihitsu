@@ -32,9 +32,10 @@ internal static class IndentationRewriter
     {
         var indented = root.ReplaceTokens(root.DescendantTokens(), (original, rewritten) => ApplyIndentation(original, rewritten, model, cancellationToken));
 
-        // The model numbers the lines of the input's tree, which for a node formatted inside its document is the
-        // document; the rewritten node is the root of a tree of its own. Placing lines changes no line break, so the
-        // two numberings differ by the line on which each node starts
+        // The model numbers the lines of the input's tree. The indentation phase hands this method a tree of its own,
+        // but a caller that computes and applies the layout of a node still part of its document numbers the
+        // document's lines, while the rewritten node is the root of a tree of its own. Placing lines changes no line
+        // break, so the two numberings differ by the line on which each node starts
         var lineOffset = GetFirstLine(root) - GetFirstLine(indented);
 
         return RawStringLineShifts.MoveLines(indented, lineNumber => model.GetRawStringShift(lineNumber + lineOffset), cancellationToken);

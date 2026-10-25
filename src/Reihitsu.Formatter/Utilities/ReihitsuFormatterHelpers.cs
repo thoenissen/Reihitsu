@@ -133,6 +133,39 @@ internal static class ReihitsuFormatterHelpers
     }
 
     /// <summary>
+    /// Computes the column of a node-level formatting root's first token in its document (FMT-PIPE-017): the number of
+    /// characters in front of it on its line, each one column, except that a byte order mark at the start of the text
+    /// counts as zero columns, and that a tab in the whitespace of the token's own leading trivia counts as four columns
+    /// when the entry point does not keep that trivia, because the first phase replaces it (FMT-TAB-001). A tab in front
+    /// of the token that the entry point keeps, or that stands inside a comment, counts as one column
+    /// </summary>
+    /// <param name="token">The first token of the formatting root. Must belong to a syntax tree</param>
+    /// <param name="countsOwnWhitespaceTabsAsReplaced">Whether the entry point writes back the token's leading trivia as the phases rewrite it</param>
+    /// <returns>The zero-based column of the token in its document</returns>
+    internal static int ComputeDocumentColumn(SyntaxToken token, bool countsOwnWhitespaceTabsAsReplaced)
+    {
+        var text = token.SyntaxTree.GetText();
+        var lineStart = text.Lines.GetLineFromPosition(token.SpanStart).Start;
+        var column = 0;
+
+        for (var position = lineStart; position < token.SpanStart; position++)
+        {
+            var character = text[position];
+
+            if (position == 0 && character == '\uFEFF')
+            {
+                continue;
+            }
+
+            column += character == '\t' && countsOwnWhitespaceTabsAsReplaced && IsInOwnLeadingWhitespace(token, position)
+                          ? SyntaxIndentationUtilities.IndentSize
+                          : 1;
+        }
+
+        return column;
+    }
+
+    /// <summary>
     /// Adjusts the indentation of all tokens within a node that start on a new line
     /// by the given column offset
     /// </summary>
@@ -246,6 +279,18 @@ internal static class ReihitsuFormatterHelpers
     #endregion // Methods
 
     #region Private methods
+
+    /// <summary>
+    /// Determines whether a position lies in a whitespace trivia of the token's own leading trivia
+    /// </summary>
+    /// <param name="token">The token</param>
+    /// <param name="position">The position in the token's text</param>
+    /// <returns><see langword="true"/> if a whitespace trivia of the token's leading trivia covers the position; otherwise, <see langword="false"/></returns>
+    private static bool IsInOwnLeadingWhitespace(SyntaxToken token, int position)
+    {
+        return token.LeadingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)
+                                                 && trivia.FullSpan.Contains(position));
+    }
 
     /// <summary>
     /// Determines whether comment text contains a generated-file marker

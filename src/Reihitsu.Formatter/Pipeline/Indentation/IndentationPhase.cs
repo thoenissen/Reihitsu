@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
@@ -18,6 +19,13 @@ internal sealed class IndentationPhase : IFormattingPhase
     public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        // A node that is still part of its document is laid out as a tree of its own, as every earlier phase that rewrites
+        // it already makes it: its first token starts the tree's text, and no token outside it decides a line
+        if (root.Parent != null)
+        {
+            root = CSharpSyntaxTree.Create((CSharpSyntaxNode)root, root.SyntaxTree.Options as CSharpParseOptions).GetRoot(cancellationToken);
+        }
 
         var layoutModel = LayoutComputer.Compute(root, context, cancellationToken);
 
