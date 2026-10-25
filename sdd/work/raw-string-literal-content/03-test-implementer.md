@@ -271,3 +271,24 @@ scripts/test.sh --project architecture --configuration Debug
 - RH5104 analyzer tests: 49 tests, 4 red. The red ones are exactly the 4 above.
 - Architecture: 84/84, including coverage of RH5104-007.
 - `scripts/format.sh` was run over the three changed test files.
+
+## Follow-on: auditor hint 1 (Commit: 78766ed)
+
+The input is the auditor's hint 1, which `04-implementer.md` reports as fixed with no test pinning it. The literal is not in a hole. A wrapped argument is anchored behind its closing quotes:
+
+`return M("""⏎    a⏎    """ + string.Concat("x",⏎                        "y"));`
+
+The expected output follows from the specs:
+
+- FMT-RAW-001 and FMT-RAW-005 move the literal 13 columns right, to the opening quotes at column 17. The closing line moves with it.
+- So `string.Concat(`'s `"x"` ends at column 37.
+- FMT-INDENT-012 aligns `"y"` to the first argument `"x"`. FMT-INDENT-030 measures that anchor at its final column, which gives column 37. FMT-INDENT-013 leaves that line to the nested argument list.
+- FMT-PIPE-004 requires that a second pass keeps this output.
+
+| Test | Requirement / failure class | Helper | Expected now | Observed |
+|---|---|---|---|---|
+| `RawStringAlignmentPipelineTests.WrappedArgumentAnchoredBehindTheClosingQuotesOfARawStringAlignsAfterTheLiteralMoved` | FMT-INDENT-012, FMT-INDENT-030; FC-012 | `AssertRuleResult(input, expected)`: two passes, LF and CRLF | green on 78766ed | **78766ed:** passes, both passes, LF and CRLF. **193b3a5:** red, with `"y"` at 24 instead of 37 in LF pass 1. I ran that check with this test file in a temporary worktree outside the repository, then removed it. |
+
+```shell
+scripts/test.sh --project formatter --configuration Debug --filter "FullyQualifiedName~RawStringAlignmentPipelineTests.WrappedArgumentAnchoredBehindTheClosingQuotesOfARawStringAlignsAfterTheLiteralMoved"
+```

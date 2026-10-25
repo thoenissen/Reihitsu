@@ -157,5 +157,41 @@ public class RawStringAlignmentPipelineTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a wrapped argument whose opening parenthesis stands behind the closing quotes of a raw string outside any interpolation hole aligns to the column that parenthesis has after the literal moved, and a second pass keeps it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-012")]
+    [Requirement("FMT-INDENT-030")]
+    public void WrappedArgumentAnchoredBehindTheClosingQuotesOfARawStringAlignsAfterTheLiteralMoved()
+    {
+        const string input = """"
+                             class C
+                             {
+                                 string M(string s)
+                                 {
+                                     return M("""
+                                 a
+                                 """ + string.Concat("x",
+                                                     "y"));
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    string M(string s)
+                                    {
+                                        return M("""
+                                                 a
+                                                 """ + string.Concat("x",
+                                                                     "y"));
+                                    }
+                                }
+                                """";
+
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
