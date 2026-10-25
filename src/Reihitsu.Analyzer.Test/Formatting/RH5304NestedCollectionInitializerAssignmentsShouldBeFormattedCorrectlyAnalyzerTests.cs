@@ -484,7 +484,8 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     }
 
     /// <summary>
-    /// Verifies that formatter-stable same-line comments can prefix every token validated inside a complex element
+    /// Verifies that same-line comments can prefix every token validated inside a complex element when the expressions and the
+    /// closing brace are measured from the opening brace behind its leading comment
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -508,10 +509,10 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
                                                     {
                                                         Values = {
                                                                      /* Keep element. */ {
-                                                                         /* Keep key. */ existingKey,
+                                                                                             /* Keep key. */ existingKey,
 
-                                                                         /* Keep value. */ existingValue
-                                                                     /* Keep close. */ }
+                                                                                             /* Keep value. */ existingValue
+                                                                                         /* Keep close. */ }
                                                                  }
                                                     };
                                     }
@@ -519,6 +520,353 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment-prefixed complex element whose expressions and closing brace are measured from the comment instead
+    /// of the brace behind it reports on the whole assignment and is fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-002")]
+    [Requirement("RH5304-002")]
+    [Requirement("RH5304-003")]
+    [Requirement("RH5304-004")]
+    public async Task VerifyCommentPrefixedComplexElementMeasuredFromTheCommentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Data;
+
+                                internal class Example
+                                {
+                                    public Dictionary<Data, Data> Values { get; } = [];
+
+                                    private static void Method(Data existingKey, Data existingValue)
+                                    {
+                                        var value = new Example
+                                                    {
+                                                        {|#0:Values = {
+                                                                     /* Keep element. */ {
+                                                                         /* Keep key. */ existingKey,
+
+                                                                         /* Keep value. */ existingValue
+                                                                     /* Keep close. */ }
+                                                                 }|}
+                                                    };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Data;
+
+                                 internal class Example
+                                 {
+                                     public Dictionary<Data, Data> Values { get; } = [];
+
+                                     private static void Method(Data existingKey, Data existingValue)
+                                     {
+                                         var value = new Example
+                                                     {
+                                                         Values = {
+                                                                      /* Keep element. */ {
+                                                                                              /* Keep key. */ existingKey,
+
+                                                                                              /* Keep value. */ existingValue
+                                                                                          /* Keep close. */ }
+                                                                  }
+                                                     };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a complex element whose expressions and closing brace follow its opening brace behind the
+    /// comment that leads the brace's line is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-002")]
+    [Requirement("RH5304-002")]
+    public async Task VerifyNoDiagnosticForComplexElementAlignedToItsBraceBehindLeadingComment()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    Dictionary<int, int> D { get; } = new Dictionary<int, int>();
+
+                                    Dictionary<int, int> E { get; } = new Dictionary<int, int>();
+
+                                    void M()
+                                    {
+                                        var a = new C
+                                                {
+                                                    D = {
+                                                            /* e */ {
+                                                                        1,
+                                                                        2
+                                                                    }
+                                                        }
+                                                };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a complex element whose expressions and closing brace start one level deeper than the comment
+    /// that leads the brace's line, and under it, reports on the whole assignment and is fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-002")]
+    [Requirement("RH5304-002")]
+    [Requirement("RH5304-003")]
+    [Requirement("RH5304-004")]
+    public async Task VerifyComplexElementAlignedToTheLeadingCommentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    Dictionary<int, int> D { get; } = new Dictionary<int, int>();
+
+                                    Dictionary<int, int> E { get; } = new Dictionary<int, int>();
+
+                                    void M()
+                                    {
+                                        var a = new C
+                                                {
+                                                    {|#0:D = {
+                                                            /* e */ {
+                                                                1,
+                                                                2
+                                                            }
+                                                        }|}
+                                                };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     Dictionary<int, int> D { get; } = new Dictionary<int, int>();
+
+                                     Dictionary<int, int> E { get; } = new Dictionary<int, int>();
+
+                                     void M()
+                                     {
+                                         var a = new C
+                                                 {
+                                                     D = {
+                                                             /* e */ {
+                                                                         1,
+                                                                         2
+                                                                     }
+                                                         }
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a complex element whose brace stands behind the last line of a multi-line comment is measured from the
+    /// brace and is not reported when its expressions and closing brace follow it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-002")]
+    [Requirement("RH5304-002")]
+    public async Task VerifyNoDiagnosticForComplexElementAlignedToItsBraceBehindTheLastLineOfAMultiLineComment()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    Dictionary<int, int> D { get; } = new Dictionary<int, int>();
+
+                                    Dictionary<int, int> E { get; } = new Dictionary<int, int>();
+
+                                    void M()
+                                    {
+                                        var a = new C
+                                                {
+                                                    D = {
+                                                            /* a
+                                                               b */ {
+                                                                        1,
+                                                                        2
+                                                                    }
+                                                        }
+                                                };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a complex element whose brace stands behind the last line of a multi-line comment, and whose expressions
+    /// and closing brace are measured from the comment, reports on the whole assignment and is fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-002")]
+    [Requirement("RH5304-002")]
+    [Requirement("RH5304-003")]
+    [Requirement("RH5304-004")]
+    public async Task VerifyComplexElementBehindTheLastLineOfAMultiLineCommentMeasuredFromTheCommentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    Dictionary<int, int> D { get; } = new Dictionary<int, int>();
+
+                                    Dictionary<int, int> E { get; } = new Dictionary<int, int>();
+
+                                    void M()
+                                    {
+                                        var a = new C
+                                                {
+                                                    {|#0:D = {
+                                                            /* a
+                                                               b */ {
+                                                                1,
+                                                                2
+                                                            }
+                                                        }|}
+                                                };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     Dictionary<int, int> D { get; } = new Dictionary<int, int>();
+
+                                     Dictionary<int, int> E { get; } = new Dictionary<int, int>();
+
+                                     void M()
+                                     {
+                                         var a = new C
+                                                 {
+                                                     D = {
+                                                             /* a
+                                                                b */ {
+                                                                         1,
+                                                                         2
+                                                                     }
+                                                         }
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that two assignments whose complex elements are measured from their leading comments both report and are
+    /// fixed together
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-002")]
+    [Requirement("RH5304-002")]
+    [Requirement("RH5304-003")]
+    [Requirement("RH5304-004")]
+    public async Task VerifyTwoAssignmentsWithComplexElementsMeasuredFromTheirLeadingCommentsAreDetectedAndFixed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    Dictionary<int, int> D { get; } = new Dictionary<int, int>();
+
+                                    Dictionary<int, int> E { get; } = new Dictionary<int, int>();
+
+                                    void M()
+                                    {
+                                        var a = new C
+                                                {
+                                                    {|#0:D = {
+                                                            /* e */ {
+                                                                1,
+                                                                2
+                                                            }
+                                                        }|},
+                                                    {|#1:E = {
+                                                            /* f */ {
+                                                                3,
+                                                                4
+                                                            }
+                                                        }|}
+                                                };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     Dictionary<int, int> D { get; } = new Dictionary<int, int>();
+
+                                     Dictionary<int, int> E { get; } = new Dictionary<int, int>();
+
+                                     void M()
+                                     {
+                                         var a = new C
+                                                 {
+                                                     D = {
+                                                             /* e */ {
+                                                                         1,
+                                                                         2
+                                                                     }
+                                                         },
+                                                     E = {
+                                                             /* f */ {
+                                                                         3,
+                                                                         4
+                                                                     }
+                                                         }
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat, 2));
     }
 
     /// <summary>

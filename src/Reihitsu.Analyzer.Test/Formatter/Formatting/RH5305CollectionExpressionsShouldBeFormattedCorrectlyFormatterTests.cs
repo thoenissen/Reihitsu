@@ -91,5 +91,54 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyFormatterTests
                               Diagnostics(RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5305MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter aligns the elements and the closing bracket of a collection expression whose opening bracket
+    /// stands behind a comment that leads its line to that bracket, where the analyzer measures it, and clears the diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5305-001")]
+    [Requirement("FMT-INDENT-025")]
+    [Requirement("FMT-INDENT-030")]
+    public async Task VerifyFormatterAlignsCollectionExpressionToItsBracketBehindCommentThatLeadsTheLine()
+    {
+        const string input = """
+                             using System.Collections.Generic;
+
+                             internal class Example
+                             {
+                                 private static void Method()
+                                 {
+                                     List<int> x =
+
+                                     /* c */ {|#0:[
+                                         1,
+                                         2
+                                     ]|};
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Example
+                                 {
+                                     private static void Method()
+                                     {
+                                         List<int> x =
+
+                                         /* c */ [
+                                                     1,
+                                                     2
+                                                 ];
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5305MessageFormat));
+    }
+
     #endregion // Tests
 }

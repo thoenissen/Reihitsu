@@ -122,5 +122,60 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyFormatterTests : F
         await VerifyFormatter(source);
     }
 
+    /// <summary>
+    /// Verifies that the formatter aligns the braces of an object creation whose <c>new</c> stands behind a comment that leads its
+    /// line to <c>new</c>, where the analyzer measures it, and clears the diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5301-001")]
+    [Requirement("FMT-INDENT-022")]
+    [Requirement("FMT-INDENT-030")]
+    public async Task VerifyFormatterAlignsObjectCreationToNewBehindCommentThatLeadsTheLine()
+    {
+        const string input = """
+                             internal class P
+                             {
+                                 public int X { get; set; }
+                             }
+
+                             internal class Example
+                             {
+                                 private static void Method()
+                                 {
+                                     var p =
+
+                                     /* c */ {|#0:new P
+                                     {
+                                         X = 2
+                                     }|};
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class P
+                                 {
+                                     public int X { get; set; }
+                                 }
+
+                                 internal class Example
+                                 {
+                                     private static void Method()
+                                     {
+                                         var p =
+
+                                         /* c */ new P
+                                                 {
+                                                     X = 2
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5301MessageFormat));
+    }
+
     #endregion // Tests
 }
