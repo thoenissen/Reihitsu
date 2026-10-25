@@ -54,5 +54,88 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyFormatterTests : F
                               ExpectedDiagnostic(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 7, 21, 9, 8, AnalyzerResources.RH5202MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter aligns a literal with a multi-line hole so that the hole lines move only with it, clears the diagnostic, and stays stable on a second pass
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-RAW-007")]
+    public async Task VerifyFormatterAlignsMultiLineHoleAndClearsTheDiagnostic()
+    {
+        const string input = """"
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var name = "x";
+                                     var a = $"""
+                                 Hello {
+                                     name
+                                 }
+                                 """;
+                                 }
+                             }
+                             """";
+        const string fixedData = """"
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var name = "x";
+                                         var a = $"""
+                                                  Hello {
+                                                      name
+                                                  }
+                                                  """;
+                                     }
+                                 }
+                                 """";
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 6, 17, 10, 8, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter aligns a raw string nested in a hole together with the literal around it, clears both diagnostics, and stays stable on a second pass
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-RAW-008")]
+    public async Task VerifyFormatterAlignsNestedRawStringInOnePassAndClearsTheDiagnostics()
+    {
+        const string input = """"
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var a = $"""
+                                 Outer {"""
+                                     inner
+                                     """}
+                                 """;
+                                 }
+                             }
+                             """";
+        const string fixedData = """"
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var a = $"""
+                                                  Outer {"""
+                                                         inner
+                                                         """}
+                                                  """;
+                                     }
+                                 }
+                                 """";
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 5, 17, 9, 8, AnalyzerResources.RH5202MessageFormat),
+                              ExpectedDiagnostic(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 6, 12, 8, 12, AnalyzerResources.RH5202MessageFormat));
+    }
+
     #endregion // Tests
 }
