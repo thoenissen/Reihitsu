@@ -477,3 +477,73 @@ bash scripts/trace.sh <fixture> --passes 3 --no-install   # 10 earlier counterex
 ```
 
 I re-ran no test project.
+
+# Repair round 3
+
+Role: auditor
+Commit: 85276a6
+Verdict: #951: pass; #1133: pass; #1146: pass
+
+## Scope
+
+This is a repair delta audit: `git diff 5d4db95 85276a6 -- src/`, at head `85276a6`. `git ls-remote origin refs/heads/main` returns `3973631c2c222ae484dd6039c3d6c89311959653`, the branch contains it, and the tree is clean. I read the "Repair round 3" sections of `00-lead.md`, `03-test-implementer.md`, `04-implementer.md` (with its nine probes), `05-cleaner.md`, and `06-spec-checker.md`. The prompt carried no intended fix or hoped-for verdict.
+
+The production change is in `RawStringAlignmentPhase.ComputeReplacement`, which now asks the new `GetIndentation(root, text, line)` what to rewrite:
+
+- **A line that a `WhitespaceTrivia` starts** is a hole line, or a comment line in a hole. Its whole leading whitespace is replaced by `max(0, width + shift)` spaces. `width` comes from the new position overload `RawStringLineShifts.GetColumnAfterTabReplacement(root, text, position)`.
+- **Every other line** is a content line, a closing line, or a line that a token starts at column 0. Only its leading spaces are rewritten, as before.
+
+Lines that do not move (shift 0, which includes every FMT-RAW-009 line) are still skipped before `GetIndentation` runs. No production file changed after `c6d9a2c`, so the implementer's full Debug run and the cleaner's and the spec checker's focused runs stand. `git diff origin/main -- documentation AGENTS.md squad .claude` is still empty.
+
+## Previous findings
+
+| # | Status | Evidence |
+|---|---|---|
+| 10 | closed | Both round-2 counterexamples are stable after pass 1, under LF (the implementer's p8 covers CRLF). The plain one puts `name` at 2. The anchored one puts `string` at 2, with `"a"` and `"b"` at 16. Four tests pin both sides of the boundary (FC-003): the shift beyond the spaces in front of the tab, and the shift equal to them, each with and without an anchor. The writer now uses the same width rule as both measurers. |
+| 1–9 | closed (unchanged) | I re-traced on `85276a6` the first-round counterexamples for findings 1 and 3, the round-1 counterexamples for findings 2 and 8, and the earlier tab probes. All are stable after pass 1. |
+
+## Findings
+
+_None._
+
+## Guard scope
+
+| Decision | Inspected span | Counterpart predicate | Agreement | Verdict |
+|---|---|---|---|---|
+| A line's indentation is code whitespace (`GetIndentation`) | `root.FindTrivia(line.Start)` is a `WhitespaceTrivia` that starts at `line.Start`, clipped to the line end | `CleanupPhase.NormalizeWhitespaceTabs` (the same trivia kind), and the text of a literal, which a position inside a token's text holds and which takes the spaces path | They agree. Probed: on a content line `····→{x} tail` of a misaligned `$"""` literal, the tab is kept and the value preserved. A blank tab line and a `→··name` hole line in the same literal move to width + shift. In a nested `$"""`'s hole, a `→··@"v` line moves by the outer and the inner shift together, while its frozen `→w"}` continuation is kept byte for byte | agree |
+| Width of the rewritten indentation | `GetColumnAfterTabReplacement(root, text, end)`: a tab in whitespace trivia counts 4, every other character 1 | The measurers in `LayoutComputer.RegisterRawStringHoleLines` and the raw-string phase's opening column, which share the method | They agree; one statement of the rule | agree |
+
+## Policy ownership
+
+| Policy | Owners found by rg | Verdict |
+|---|---|---|
+| Width of a hole line with tabs | `RawStringLineShifts.GetColumnAfterTabReplacement`: two overloads, one statement. It is used by the indentation registration, the raw-string phase's opening column, and `GetIndentation` (`rg -n "GetColumnAfterTabReplacement\|GetLeadingSpaceCount\|Math.Max\(0" src/Reihitsu.Formatter`) | single measuring owner. Rewriting stays with `CleanupPhase` (hint A, the escalation-5 follow-up) |
+
+## Assertion adequacy
+
+| Test | Invariant | Falsifying observation | Helper | Verdict |
+|---|---|---|---|---|
+| `LeftwardShiftBeyondTheSpacesInFrontOfATabMovesTheHoleLineByTheFullShift`, `ArgumentAnchoredOnAHoleLineMovedLeftBeyondTheSpacesInFrontOfATabStaysAligned` | A full leftward shift at the tab-expanded width, and the anchored line staying aligned, on pass 1 and pass 2, under LF and CRLF | A column difference, or a pass-2 change | `AssertRuleResult(source with tabs, expected)` | Adequate. Both were watched red on `a666661` |
+| `LeftwardShiftEqualToTheSpacesInFrontOfATabMovesTheHoleLineByTheFullShift`, `ArgumentAnchoredOnAHoleLineMovedLeftByTheSpacesInFrontOfATabStaysAligned` | The other side of the boundary | Same | `AssertRuleResult` | adequate (FC-003) |
+
+## Failure classes dismissed (repair delta)
+
+- **FC-006 and FC-022.** The trivia path never reaches a literal's text: content lines and closing lines take the spaces path, and frozen lines are skipped first. Content-line tabs are kept (probed).
+- **FC-010.** The implementer's p8 covers CRLF, and so does `AssertRuleResult`.
+- **FC-012.** On a rightward shift, the line ends where cleanup would have put it anyway. On a leftward shift, it ends at the column the measurers predicted.
+- **FC-031.** The `GetIndentation` summary and the new overload's summary describe the code. The `ComputeReplacement` summary is still accurate.
+- **FC-032.** No production change after `c6d9a2c`.
+- The remaining classes are as in the earlier rounds and have nothing new to reach.
+
+## Hints
+
+- **A, unchanged.** The tab rule is stated once for measuring and once in `CleanupPhase` for rewriting. It is the escalation-5 follow-up.
+- **B, unchanged.** `GetDistance` is not memoized.
+
+## Commands
+
+```shell
+bash scripts/trace.sh <fixture> --passes 3 --no-install   # 12 earlier counterexamples and probes, and 3 new probes, on 85276a6
+```
+
+I re-ran no test project.
