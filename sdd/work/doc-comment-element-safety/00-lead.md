@@ -61,3 +61,7 @@ Recorded here, not in `squad/decisions/` (off-limits for this run).
 
 1. RH8304 joins answer 1 (skeptic round): it does not report inside a `///` comment that the formatter leaves as written (FMT-DOC-003, FMT-DOC-013), including a comment stranded behind code (SHARED-DIAG-010).
 2. RH8308 is unchanged: it keeps reporting as today.
+
+## Maintainer answer to the round-3 open question (2026-10-25)
+
+A `U+FEFF` that starts an indented code line elsewhere in the text (Indentation phase): **A** — kept as today; it stays outside FMT-CLEAN-009's coverage, and no follow-up is filed.
