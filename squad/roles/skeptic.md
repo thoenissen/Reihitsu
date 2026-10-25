@@ -26,7 +26,7 @@ Read [`../README.md`](../README.md) first. Issues here are often generated from 
 6. **Which surfaces are involved?** Analyzer, formatter phase, code fix, Fix All, `Reihitsu.Core`, rule doc, tests: for each, must change, must stay, or not involved. "Not involved" is a finding too.
 7. **Is there a simpler option?** A narrower change, an existing helper, or no change.
 8. **Is the severity right?** A report can reproduce and still be wrong about how far it generalizes or how much it matters. A diagnostic without a code fix is a supported end state, not a defect (`AGENTS.md`, *Code-fix coverage*).
-9. **Is the cause structural?** A defect that comes from two components owning the same decision, a component predicting or copying another's behavior, or a rule stated in more than one place is an architecture finding (`README.md`, *Architecture findings*), however small the reported instance is.
+9. **Is the cause structural?** A defect with one of the structural causes, within the scope that `README.md`, *Architecture findings*, gives, is an architecture finding, however small the reported instance is.
 
 ## Executing a question
 

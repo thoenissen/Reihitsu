@@ -73,17 +73,19 @@ Known ways a change in this repository goes wrong. The skeptic names the classes
 
 ## Class matrices
 
-A matrix spans the neighboring shapes of a known class along its axes; every combination of one member per axis is a cell. A defect found in one cell is checked in every cell, and every failing cell is reported in the same finding. A cell is checked by formatting its input twice, under LF and CRLF: the second pass must not change the output. Each matrix names the components that share the decision, because a class whose members fail between two components is also an architecture finding.
+A matrix spans the neighboring shapes of a known class along its axes; every combination of one member per axis is a cell. A defect found in one cell is checked in every cell, and every failing cell is reported in the same finding. A cell holds when the output meets the requirement the decision serves and a second application — a second formatting pass, a second code-fix iteration — leaves it unchanged, under LF and CRLF. Stability alone does not show it: a cell can be stable and wrong. Each matrix names the requirement its cells are checked against. Each matrix names the components that share the decision, because a class whose members fail between two components is also an architecture finding.
 
 ### Tab width across formatter phases
 
-Classes: FC-012, FC-015, FC-016. Learned in the run that aligned interpolation holes of multi-line raw strings, where each of three audit rounds found one more failing cell of this matrix.
+Classes: FC-012, FC-015, FC-016. Learned in the run that aligned interpolation holes of multi-line raw strings, where three consecutive audits each found failing cells that the audit before had not enumerated.
 
-**Decision.** The column of a line in an interpolation hole of a multi-line raw string. `CleanupPhase` writes it last, replacing every tab in whitespace trivia with four spaces (FMT-CLEAN-002). `IndentationPhase` places other lines against that column, and `RawStringAlignmentPhase` measures the line and moves it, so both predict the cleanup phase's tab replacement. Wherever a tab is counted as one column, or only part of the whitespace is counted or rewritten, a token ends up three columns away from where the other components measured it, and the output is not stable after one pass (FMT-PIPE-004).
+**Decision.** The column of a line in an interpolation hole of a multi-line raw string. `CleanupPhase` writes it last, replacing every tab in whitespace trivia with four spaces (FMT-CLEAN-002). `IndentationPhase` places other lines against that column, and `RawStringAlignmentPhase` measures the line and moves it, so both predict the cleanup phase's tab replacement. Wherever a tab is counted as one column, or only part of the whitespace is counted, a token ends up three columns away from where the other components measured it, and the next pass moves it (FMT-PIPE-004). Wherever a move is clamped at the tab, the line moves less than it must: the token is off by the clamped amount, and the output can be stable and still wrong.
+
+**Check.** A cell holds when, after one pass, every token of the hole line stands at the column FMT-RAW-007 gives it, every anchored line stands at the column its alignment requirement gives it measured after the tab replacement, and a second pass changes nothing.
 
 | Axis | Members |
 |---|---|
-| Shift of the literal | right; none (aligned literal); left by at most the spaces in front of the tab; left by more than those spaces |
+| Shift of the literal | right; none (aligned literal); left by fewer than the spaces in front of the tab; left by exactly those spaces; left by more than those spaces |
 | What the tab stands in front of | the line's first token; a comment in front of the token on the same line; the opening quotes of a nested raw string |
 | Anchoring | none; another line aligned to the line's column — a comment line above it that follows the token below, a wrapped argument, or the content and closing quotes of the nested raw string |
 
@@ -96,4 +98,4 @@ The failing cells, in the order the run found them:
 | repair round 1 | none; right | the opening quotes of a nested raw string | content and closing quotes | The raw-string phase measured the opening quotes with the tab counted as one, the indentation phase with the tab counted as four |
 | repair round 2 | left by more than the spaces in front of the tab | the first token | none; wrapped argument | The raw-string phase moved the line by rewriting only the spaces in front of the tab, so a leftward move was clamped at the tab |
 
-Every tab test before the last round shifted right or not at all; the boundary between the two leftward members — a shift equal to the spaces in front of the tab — is a cell of its own (FC-003).
+Every tab test before the last repair shifted right or not at all. The last repair pinned the leftward boundary, a shift of exactly the spaces in front of the tab, next to the shift beyond it (FC-003). The cell with no anchor in the last row was stable but wrong, which a stability check alone passes.

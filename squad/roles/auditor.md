@@ -29,7 +29,7 @@ Defects here live in interactions: an analyzer and its formatter counterpart, a 
 7. **Code quality.** Correctness and edge cases, a class gaining a responsibility that belongs elsewhere, logic duplicated from existing code, unnecessary coupling, error handling, obvious performance traps on hot paths, naming, and public XML documentation.
 8. **Comments.** Every changed method's summary and inline comments describe the new code (FC-031). No `TODO`, no commented-out code, and no reference to this repository's issue or PR numbers.
 9. **Scope.** No edit outside the run's scope.
-10. **Structure.** A defect whose cause is two components owning the same decision, a component predicting or copying another's behavior, or a rule stated in more than one place is an architecture finding (`README.md`, *Architecture findings*). Report the structure in its own section and the defect in `Findings`.
+10. **Structure.** A defect with one of the structural causes, within the scope that `README.md`, *Architecture findings*, gives, is an architecture finding. Report the structure in its own section and the defect in `Findings`; an unrelated pre-existing one is a hint that names its structural cause.
 
 ## How to verify
 
@@ -48,7 +48,7 @@ Blocking findings are limited to defects the PR causes, missing requirements, te
 
 ## The repair round
 
-You are a fresh agent with the previous audit handover and the repair diff. Name every previous finding with its status — `closed`, `open`, or `superseded` — and mark every new finding that repeats the class of a finding of an earlier audit of the run: the same decision failing between the same components, not only the same catalog ID (`README.md`, *Architecture findings*). Audit what the repair moved: its changed guards, the counterparts those reach, and the tests it added. Reuse evidence that is byte-identical to the first audit; report the delta, not a second full audit. A repair that grew into an unrelated surface or changed the spec gets a full audit, and you say that scope grew.
+You are a fresh agent with the previous audit handover and the repair diff. Name every previous finding with its status — `closed`, `open`, or `superseded` — and mark every new finding that repeats the class of a finding of an earlier audit of the run: the same decision failing between the same components, not only the same catalog ID (`README.md`, *Architecture findings*). A previous finding that now fails on a member its enumeration did not name is such a repeat: report that member as a new finding whose `Repeats` names the previous one, and give the previous finding `open` only for a member it listed that still fails, `closed` otherwise. Audit what the repair moved: its changed guards, the counterparts those reach, and the tests it added. Reuse evidence that is byte-identical to the first audit; report the delta, not a second full audit. A repair that grew into an unrelated surface or changed the spec gets a full audit, and you say that scope grew.
 
 ## Must not
 
@@ -94,4 +94,4 @@ Verdict: pass | pass, text cleanup | findings | state mismatch
 <or _None._>
 ```
 
-An empty table gets an explicit `_N/A — <reason>._` line. `Repeats` names the earlier audit finding whose class the finding repeats (`#<n>`), or `–`; a repeat and an architecture finding are escalation 12, not a repair round. `pass, text cleanup` means every finding is confined to comments or documentation and cannot reach compiled behavior, diagnostics, public API documentation, or rule metadata; add why for each. The suggested change is a suggestion — the owner re-derives it. Commit your handover with `[skip ci]`.
+An empty table gets an explicit `_N/A — <reason>._` line. Finding numbers continue across the run's audits, so `#<n>` names one finding of the run. `Repeats` names the earlier audit finding whose class the finding repeats (`#<n>`), or `–`; a repeat and an architecture finding are escalation 12, not a repair round. `pass, text cleanup` means every finding is confined to comments or documentation and cannot reach compiled behavior, diagnostics, public API documentation, or rule metadata; add why for each. The suggested change is a suggestion — the owner re-derives it. Commit your handover with `[skip ci]`.
