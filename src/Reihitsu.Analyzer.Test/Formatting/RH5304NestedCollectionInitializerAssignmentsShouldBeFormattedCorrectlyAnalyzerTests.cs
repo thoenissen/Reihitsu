@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 
-using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -729,16 +728,17 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     }
 
     /// <summary>
-    /// Verifies the spec example: an assignment whose complex element's opening brace stands behind the last line of a
-    /// multi-line comment is reported, and no code fix is offered
+    /// Verifies that an assignment whose complex element's opening brace stands behind the last line of a multi-line comment is
+    /// reported, and that the fix lays out the code as the formatter lays out the whole document
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5304-005")]
+    [Requirement("RH5304-004")]
+    [Requirement("FMT-PIPE-017")]
     [Requirement("SHARED-INIT-002")]
     [Requirement("RH5304-002")]
     [Requirement("RH5304-003")]
-    public async Task VerifyComplexElementBehindTheLastLineOfAMultiLineCommentIsDetectedAndNoCodeFixIsOffered()
+    public async Task VerifyComplexElementBehindTheLastLineOfAMultiLineCommentIsDetectedAndFixedAsTheFormatterLaysItOut()
     {
         const string testData = """
                                 using System.Collections.Generic;
@@ -765,20 +765,20 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
                                 }
                                 """;
 
-        await VerifyNoCodeFixIsOffered(testData);
+        await VerifyCodeFixMatchesFormatter(testData);
     }
 
     /// <summary>
-    /// Verifies that the guard covers the object creation of the reported assignment: a split assignment is reported, and no
-    /// code fix is offered because another assignment of the creation holds a complex element behind the last line of a
-    /// multi-line comment
+    /// Verifies that a split assignment next to a complex element behind the last line of a multi-line comment is reported, and
+    /// that the fix lays out the code as the formatter lays out the whole document
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5304-005")]
     [Requirement("RH5304-001")]
     [Requirement("RH5304-003")]
-    public async Task VerifySplitAssignmentNextToComplexElementBehindTheLastLineOfAMultiLineCommentIsDetectedAndNoCodeFixIsOffered()
+    [Requirement("RH5304-004")]
+    [Requirement("FMT-PIPE-017")]
+    public async Task VerifySplitAssignmentNextToComplexElementBehindTheLastLineOfAMultiLineCommentIsDetectedAndFixedAsTheFormatterLaysItOut()
     {
         const string testData = """
                                 using System.Collections.Generic;
@@ -809,7 +809,7 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
                                 }
                                 """;
 
-        await VerifyNoCodeFixIsOffered(testData);
+        await VerifyCodeFixMatchesFormatter(testData);
     }
 
     /// <summary>
@@ -818,7 +818,6 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5304-005")]
     [Requirement("RH5304-001")]
     [Requirement("RH5304-003")]
     [Requirement("RH5304-004")]
@@ -889,7 +888,6 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5304-005")]
     [Requirement("RH5304-002")]
     [Requirement("RH5304-003")]
     [Requirement("RH5304-004")]
@@ -952,45 +950,40 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     }
 
     /// <summary>
-    /// Verifies Fix All across two object creations: the one that contains a complex element behind the last line of a
-    /// multi-line comment keeps its diagnostic without a fix, and the other one is fixed
+    /// Verifies Fix All across the assignments of two object creations that stand behind the last line of a multi-line comment:
+    /// both are laid out from where their creation stands
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5304-005")]
     [Requirement("RH5304-004")]
-    public async Task VerifyFixAllFixesOnlyTheCreationWithoutComplexElementBehindTheLastLineOfAMultiLineComment()
+    [Requirement("FMT-PIPE-017")]
+    public async Task VerifyFixAllLaysOutAssignmentsOfTwoCreationsBehindTheLastLineOfAMultiLineComment()
     {
         const string testData = """
                                 using System.Collections.Generic;
 
                                 class C
                                 {
-                                    Dictionary<int, int> D { get; } = new Dictionary<int, int>();
-
-                                    List<int> E { get; } = new List<int>();
+                                    List<int> L { get; } = new List<int>();
 
                                     void M()
                                     {
-                                        var a = new C
-                                                {
-                                                    {|#0:D = {
-                                                            /* a
-                                                               b */ {
-                                                                1,
+                                        var a = /* a
+                                                   b */ new C
+                                                        {
+                                                            {|#0:L =
+                                                            {
+                                                                1
+                                                            }|}
+                                                        };
+                                        var b = /* c
+                                                   d */ new C
+                                                        {
+                                                            {|#1:L =
+                                                            {
                                                                 2
-                                                            }
-                                                        }|}
-                                                };
-                                        var b = new C
-                                                {
-                                                    {|#1:D = {
-                                                            /* e */ {
-                                                                1,
-                                                                2
-                                                            }
-                                                        }|}
-                                                };
+                                                            }|}
+                                                        };
                                     }
                                 }
                                 """;
@@ -999,47 +992,128 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
 
                                  class C
                                  {
-                                     Dictionary<int, int> D { get; } = new Dictionary<int, int>();
-
-                                     List<int> E { get; } = new List<int>();
+                                     List<int> L { get; } = new List<int>();
 
                                      void M()
                                      {
-                                         var a = new C
-                                                 {
-                                                     {|RH5304:D = {
-                                                             /* a
-                                                                b */ {
-                                                                 1,
-                                                                 2
-                                                             }
-                                                         }|}
-                                                 };
-                                         var b = new C
-                                                 {
-                                                     D = {
-                                                             /* e */ {
-                                                                         1,
-                                                                         2
-                                                                     }
-                                                         }
-                                                 };
+                                         var a = /* a
+                                                    b */ new C
+                                                         {
+                                                             L = {
+                                                                     1
+                                                                 }
+                                                         };
+                                         var b = /* c
+                                                    d */ new C
+                                                         {
+                                                             L = {
+                                                                     2
+                                                                 }
+                                                         };
                                      }
                                  }
                                  """;
 
         await Verify(testData,
                      fixedData,
-                     static config =>
-                            {
-                                config.NumberOfIncrementalIterations = 1;
-                                config.NumberOfFixAllIterations = 1;
-
-                                // The diagnostic whose fix is withheld stays and is marked in the expected source
-                                config.FixedState.MarkupHandling = MarkupMode.Allow;
-                                config.BatchFixedState.MarkupHandling = MarkupMode.Allow;
-                            },
                      Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies the spec example: an assignment of an object creation behind the last line of a multi-line comment is laid out
+    /// from where that creation stands
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5304-004")]
+    [Requirement("FMT-PIPE-017")]
+    public async Task VerifyAssignmentInCreationBehindTheLastLineOfAMultiLineCommentIsFixedFromWhereTheCreationStands()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    List<int> L { get; } = new List<int>();
+
+                                    void M()
+                                    {
+                                        var a = /* a
+                                                   b */ new C
+                                                        {
+                                                            {|#0:L =
+                                                            {
+                                                                1
+                                                            }|}
+                                                        };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     List<int> L { get; } = new List<int>();
+
+                                     void M()
+                                     {
+                                         var a = /* a
+                                                    b */ new C
+                                                         {
+                                                             L = {
+                                                                     1
+                                                                 }
+                                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix lays out a split assignment whose object creation element stands behind the last line of a
+    /// multi-line comment as the formatter lays out the whole document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5304-004")]
+    [Requirement("FMT-PIPE-017")]
+    public async Task VerifySplitAssignmentWithObjectCreationElementBehindTheLastLineOfAMultiLineCommentIsFixedAsTheFormatterLaysItOut()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class P
+                                {
+                                    public int X { get; set; }
+                                }
+
+                                class C
+                                {
+                                    List<P> D { get; } = new List<P>();
+
+                                    void M()
+                                    {
+                                        var a = new C
+                                                {
+                                                    {|RH5304:D =
+                                                    {
+                                                        /* a
+                                                           b */ new P
+                                                                {
+                                                                    X = 1
+                                                                }
+                                                    }|}
+                                                };
+                                    }
+                                }
+                                """;
+
+        await VerifyCodeFixMatchesFormatter(testData);
     }
 
     /// <summary>

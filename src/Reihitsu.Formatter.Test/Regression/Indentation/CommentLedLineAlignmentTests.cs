@@ -241,5 +241,37 @@ public class CommentLedLineAlignmentTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies the spec example: a comment on its own line above a line that another comment leads takes the column of the
+    /// leading comment, not the column of the token behind it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-006")]
+    public void CommentAboveCommentLedLineTakesTheColumnOfTheLeadingComment()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                               // above
+                                         /* c */ M();
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        // above
+                                        /* c */ M();
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

@@ -111,6 +111,30 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
     }
 
     /// <summary>
+    /// Verifies that the analyzer reports exactly the diagnostics marked in the source, that the code fix offered for the
+    /// first diagnostic produces the text the formatter produces for the whole document, and that the analyzer reports
+    /// nothing on the result. Used where a requirement asks for the fix's output to be the formatter's output and the
+    /// formatter's own columns for the input are decided elsewhere
+    /// </summary>
+    /// <param name="source">
+    /// Source text with markup for every expected diagnostic, laid out as the formatter lays it out
+    /// apart from the code the fix formats, and without a final line break, which the formatter removes
+    /// </param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    protected static async Task VerifyCodeFixMatchesFormatter(string source)
+    {
+        await Verify(source);
+
+        TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+
+        var fixedSource = await ApplyCodeFixAsync(plainSource).ConfigureAwait(false);
+
+        Assert.AreEqual(Format(plainSource), fixedSource, "The code fix must lay out the code as the formatter lays it out.");
+
+        await Verify(fixedSource);
+    }
+
+    /// <summary>
     /// Gets the code actions registered for the provided diagnostic on the given source text
     /// </summary>
     /// <param name="source">Source text</param>

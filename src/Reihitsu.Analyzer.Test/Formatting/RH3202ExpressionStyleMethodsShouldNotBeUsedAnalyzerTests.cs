@@ -569,6 +569,95 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
         }
     }
 
+    /// <summary>
+    /// Verifies that the fix lays out a method indented with tabs from the column the tabs stand for, four columns each
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-TAB-001")]
+    public async Task VerifyFixLaysOutMethodIndentedWithTabsFromTheColumnTheTabsStandFor()
+    {
+        const string testData = "namespace N\n{\n\tclass C\n\t{\n\t\tint Get() {|#0:=> 1|};\n\t}\n}";
+        const string fixedData = "namespace N\n{\n\tclass C\n\t{\n        int Get()\n        {\n            return 1;\n        }\n\t}\n}";
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a method indented with tabs moves the content line and the closing marker of a raw string under
+    /// its opening quotes
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-RAW-001")]
+    public async Task VerifyFixMovesRawStringOfMethodIndentedWithTabsUnderTheOpeningQuotes()
+    {
+        const string testData = "namespace N\n{\n\tclass C\n\t{\n\t\tstring Get() {|#0:=> \"\"\"\n                a\n                \"\"\"|};\n\t}\n}";
+        const string fixedData = "namespace N\n{\n\tclass C\n\t{\n        string Get()\n        {\n            return \"\"\"\n                   a\n                   \"\"\";\n        }\n\t}\n}";
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the spec example: in a class indented with two spaces, the fix keeps the method's first token in column 2, and
+    /// the lines the depth places keep their place relative to it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task VerifyFixKeepsMethodOfTwoSpaceClassInItsColumn()
+    {
+        const string testData = "class C\n{\n  int Get() {|#0:=> 1|};\n}";
+        const string fixedData = "class C\n{\n  int Get()\n  {\n      return 1;\n  }\n}";
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the spec example: in a class indented with two spaces, the fix moves the content line and the closing marker of
+    /// a raw string under its opening quotes in column 13
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-RAW-001")]
+    public async Task VerifyFixMovesRawStringOfMethodInTwoSpaceClassUnderTheOpeningQuotes()
+    {
+        const string testData = "class C\n{\n  string S() {|#0:=> \"\"\"\n      a\n      \"\"\"|};\n}";
+        const string fixedData = "class C\n{\n  string S()\n  {\n      return \"\"\"\n             a\n             \"\"\";\n  }\n}";
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that in a class indented with two spaces, the fix moves every line of an interpolated raw string under its
+    /// opening quotes in column 14, and the hole's expression line with them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-RAW-001")]
+    [Requirement("FMT-RAW-007")]
+    public async Task VerifyFixMovesInterpolatedRawStringOfMethodInTwoSpaceClassWithItsHoleLines()
+    {
+        const string testData = "class C\n{\n  string S(int x) {|#0:=> $\"\"\"\n      a {\n          x\n      } b\n      \"\"\"|};\n}";
+        const string fixedData = "class C\n{\n  string S(int x)\n  {\n      return $\"\"\"\n              a {\n                  x\n              } b\n              \"\"\";\n  }\n}";
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

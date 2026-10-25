@@ -1270,6 +1270,49 @@ public class RawStringInterpolationHoleTests : FormatterTestsBase
         AssertRuleResult(source.Replace("→", "\t"), expected);
     }
 
+    /// <summary>
+    /// Verifies the spec example: a comment line above a hole line that another comment leads takes the column that line
+    /// starts in, where the leading comment stands, not the column of the token behind it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-RAW-007")]
+    [Requirement("FMT-INDENT-006")]
+    public void CommentAboveCommentLedHoleLineTakesTheColumnOfTheLeadingComment()
+    {
+        const string input = """"
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = "x";
+                                     var a = $"""
+                                 a {
+                                 // above
+                                 /* c */ x
+                                 } b
+                                 """;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = "x";
+                                        var a = $"""
+                                                 a {
+                                                 // above
+                                                 /* c */ x
+                                                 } b
+                                                 """;
+                                    }
+                                }
+                                """";
+
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Hole lines
 
     #region Nested raw strings

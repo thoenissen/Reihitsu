@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 
-using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -676,16 +675,17 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     }
 
     /// <summary>
-    /// Verifies the spec example: a complex element whose opening brace stands behind the last line of a multi-line comment is
-    /// reported, and no code fix is offered
+    /// Verifies that a complex element whose opening brace stands behind the last line of a multi-line comment is reported, and
+    /// that the fix lays out the code as the formatter lays out the whole document
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5303-006")]
+    [Requirement("RH5303-005")]
+    [Requirement("FMT-PIPE-017")]
     [Requirement("SHARED-INIT-002")]
     [Requirement("RH5303-003")]
     [Requirement("RH5303-004")]
-    public async Task VerifyComplexElementBehindTheLastLineOfAMultiLineCommentIsDetectedAndNoCodeFixIsOffered()
+    public async Task VerifyComplexElementBehindTheLastLineOfAMultiLineCommentIsDetectedAndFixedAsTheFormatterLaysItOut()
     {
         const string testData = """
                                 using System.Collections.Generic;
@@ -706,7 +706,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
                                 }
                                 """;
 
-        await VerifyNoCodeFixIsOffered(testData);
+        await VerifyCodeFixMatchesFormatter(testData);
     }
 
     /// <summary>
@@ -715,7 +715,6 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5303-006")]
     [Requirement("RH5303-003")]
     [Requirement("RH5303-004")]
     [Requirement("RH5303-005")]
@@ -766,16 +765,16 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     }
 
     /// <summary>
-    /// Verifies that the guard covers the whole code the fix formats: misplaced initializer braces are reported on the object
-    /// creation, and no code fix is offered because the creation contains a complex element behind the last line of a
-    /// multi-line comment
+    /// Verifies that misplaced initializer braces around a complex element behind the last line of a multi-line comment are
+    /// reported on the object creation, and that the fix lays out the code as the formatter lays out the whole document
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5303-006")]
     [Requirement("RH5303-001")]
     [Requirement("RH5303-004")]
-    public async Task VerifyMisplacedBracesAroundComplexElementBehindTheLastLineOfAMultiLineCommentAreDetectedAndNoCodeFixIsOffered()
+    [Requirement("RH5303-005")]
+    [Requirement("FMT-PIPE-017")]
+    public async Task VerifyMisplacedBracesAroundComplexElementBehindTheLastLineOfAMultiLineCommentAreDetectedAndFixedAsTheFormatterLaysThemOut()
     {
         const string testData = """
                                 using System.Collections.Generic;
@@ -796,7 +795,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
                                 }
                                 """;
 
-        await VerifyNoCodeFixIsOffered(testData);
+        await VerifyCodeFixMatchesFormatter(testData);
     }
 
     /// <summary>
@@ -805,7 +804,6 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5303-006")]
     [Requirement("RH5303-001")]
     [Requirement("RH5303-004")]
     [Requirement("RH5303-005")]
@@ -852,15 +850,16 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     }
 
     /// <summary>
-    /// Verifies that no code fix is offered when the code the fix formats is an assignment statement that starts its line and
-    /// contains a complex element behind the last line of a multi-line comment
+    /// Verifies that the fix lays out an assignment statement that starts its line and contains a complex element behind the last
+    /// line of a multi-line comment as the formatter lays out the whole document
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5303-006")]
+    [Requirement("RH5303-005")]
+    [Requirement("FMT-PIPE-017")]
     [Requirement("SHARED-INIT-002")]
     [Requirement("RH5303-003")]
-    public async Task VerifyComplexElementBehindTheLastLineOfAMultiLineCommentInAssignmentStatementIsDetectedAndNoCodeFixIsOffered()
+    public async Task VerifyComplexElementBehindTheLastLineOfAMultiLineCommentInAssignmentStatementIsDetectedAndFixedAsTheFormatterLaysItOut()
     {
         const string testData = """
                                 using System.Collections.Generic;
@@ -881,19 +880,20 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
                                 }
                                 """;
 
-        await VerifyNoCodeFixIsOffered(testData);
+        await VerifyCodeFixMatchesFormatter(testData);
     }
 
     /// <summary>
-    /// Verifies that no code fix is offered when the code the fix formats is an expression body that contains a complex element
-    /// behind the last line of a multi-line comment
+    /// Verifies that the fix lays out an expression body that contains a complex element behind the last line of a multi-line
+    /// comment as the formatter lays out the whole document
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5303-006")]
+    [Requirement("RH5303-005")]
+    [Requirement("FMT-PIPE-017")]
     [Requirement("SHARED-INIT-002")]
     [Requirement("RH5303-003")]
-    public async Task VerifyComplexElementBehindTheLastLineOfAMultiLineCommentInExpressionBodyIsDetectedAndNoCodeFixIsOffered()
+    public async Task VerifyComplexElementBehindTheLastLineOfAMultiLineCommentInExpressionBodyIsDetectedAndFixedAsTheFormatterLaysItOut()
     {
         const string testData = """
                                 using System.Collections.Generic;
@@ -911,18 +911,18 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
                                 }
                                 """;
 
-        await VerifyNoCodeFixIsOffered(testData);
+        await VerifyCodeFixMatchesFormatter(testData);
     }
 
     /// <summary>
-    /// Verifies Fix All across two object creations: the one that contains a complex element behind the last line of a
-    /// multi-line comment keeps its diagnostic without a fix, and the other one is fixed
+    /// Verifies Fix All across two object creations that stand behind the last line of a multi-line comment: both are laid out
+    /// from <c>new</c> where it stands
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5303-006")]
     [Requirement("RH5303-005")]
-    public async Task VerifyFixAllFixesOnlyTheCreationWithoutComplexElementBehindTheLastLineOfAMultiLineComment()
+    [Requirement("FMT-PIPE-017")]
+    public async Task VerifyFixAllLaysOutTwoCreationsBehindTheLastLineOfAMultiLineCommentFromNew()
     {
         const string testData = """
                                 using System.Collections.Generic;
@@ -931,21 +931,16 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
                                 {
                                     void M()
                                     {
-                                        var d = new Dictionary<int, int>
-                                                {
-                                                    /* a
-                                                       b */ {|#0:{
-                                                        1,
-                                                        2
-                                                    }|}
-                                                };
-                                        var e = new Dictionary<int, int>
-                                                {
-                                                    /* f */ {|#1:{
-                                                        3,
-                                                        4
-                                                    }|}
-                                                };
+                                        var d = /* a
+                                                   b */ {|#0:new List<int>
+                                          {
+                                            1
+                                          }|};
+                                        var e = /* c
+                                                   d */ {|#1:new List<int>
+                                          {
+                                            2
+                                          }|};
                                     }
                                 }
                                 """;
@@ -956,37 +951,271 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
                                  {
                                      void M()
                                      {
-                                         var d = new Dictionary<int, int>
-                                                 {
-                                                     /* a
-                                                        b */ {|RH5303:{
-                                                         1,
-                                                         2
-                                                     }|}
-                                                 };
-                                         var e = new Dictionary<int, int>
-                                                 {
-                                                     /* f */ {
-                                                                 3,
-                                                                 4
-                                                             }
-                                                 };
+                                         var d = /* a
+                                                    b */ new List<int>
+                                                         {
+                                                             1
+                                                         };
+                                         var e = /* c
+                                                    d */ new List<int>
+                                                         {
+                                                             2
+                                                         };
                                      }
                                  }
                                  """;
 
         await Verify(testData,
                      fixedData,
-                     static config =>
-                            {
-                                config.NumberOfIncrementalIterations = 1;
-                                config.NumberOfFixAllIterations = 1;
-
-                                // The diagnostic whose fix is withheld stays and is marked in the expected source
-                                config.FixedState.MarkupHandling = MarkupMode.Allow;
-                                config.BatchFixedState.MarkupHandling = MarkupMode.Allow;
-                            },
                      Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies the spec example: an object creation behind the last line of a multi-line comment is laid out from <c>new</c>
+    /// where it stands
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5303-005")]
+    [Requirement("FMT-PIPE-017")]
+    public async Task VerifyCreationBehindTheLastLineOfAMultiLineCommentIsFixedFromNewWhereItStands()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var d = /* a
+                                                   b */ {|#0:new List<int>
+                                          {
+                                            1
+                                          }|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var d = /* a
+                                                    b */ new List<int>
+                                                         {
+                                                             1
+                                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that two tabs in front of the declaration's value count as one column each, so the fix lays out the braces from
+    /// <c>new</c> in its character column, and its result is not reported again
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5303-005")]
+    [Requirement("FMT-PIPE-017")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyCreationBehindTabsIsFixedFromNewInItsCharacterColumn()
+    {
+        const string testData = "using System.Collections.Generic;\n\nclass C\n{\n\tvoid M()\n\t{\n\t\tvar d = {|#0:new List<int>\n\t\t  {\n\t\t\t1\n\t\t  }|};\n\t}\n}";
+        const string fixedData = "using System.Collections.Generic;\n\nclass C\n{\n\tvoid M()\n\t{\n\t\tvar d = new List<int>\n          {\n              1\n          };\n\t}\n}";
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix lays out an object creation element behind the last line of a multi-line comment as the formatter
+    /// lays out the whole document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5303-005")]
+    [Requirement("FMT-PIPE-017")]
+    public async Task VerifyObjectCreationElementBehindTheLastLineOfAMultiLineCommentIsFixedAsTheFormatterLaysItOut()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class P
+                                {
+                                    public int X { get; set; }
+                                }
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var d = {|RH5303:new List<P>
+                                              {
+                                                    /* a
+                                                       b */ new P
+                                                            {
+                                                                X = 1
+                                                            }
+                                                }|};
+                                    }
+                                }
+                                """;
+
+        await VerifyCodeFixMatchesFormatter(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix lays out a collection creation element behind the last line of a multi-line comment as the
+    /// formatter lays out the whole document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5303-005")]
+    [Requirement("FMT-PIPE-017")]
+    public async Task VerifyCollectionCreationElementBehindTheLastLineOfAMultiLineCommentIsFixedAsTheFormatterLaysItOut()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class P
+                                {
+                                    public int X { get; set; }
+                                }
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var d = {|RH5303:new List<List<int>>
+                                              {
+                                                    /* a
+                                                       b */ new List<int>
+                                                            {
+                                                                1
+                                                            }
+                                                }|};
+                                    }
+                                }
+                                """;
+
+        await VerifyCodeFixMatchesFormatter(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix lays out a call element with a wrapped argument behind the last line of a multi-line comment as the
+    /// formatter lays out the whole document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5303-005")]
+    [Requirement("FMT-PIPE-017")]
+    public async Task VerifyCallElementBehindTheLastLineOfAMultiLineCommentIsFixedAsTheFormatterLaysItOut()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class P
+                                {
+                                    public int X { get; set; }
+                                }
+
+                                class C
+                                {
+                                    static int Call(int a, int b)
+                                    {
+                                        return a + b;
+                                    }
+
+                                    void M()
+                                    {
+                                        var d = {|RH5303:new List<int>
+                                              {
+                                                    /* a
+                                                       b */ Call(1,
+                                                                 2)
+                                                }|};
+                                    }
+                                }
+                                """;
+
+        await VerifyCodeFixMatchesFormatter(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix lays out a logical element with a wrapped operand behind the last line of a multi-line comment as
+    /// the formatter lays out the whole document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5303-005")]
+    [Requirement("FMT-PIPE-017")]
+    public async Task VerifyLogicalElementBehindTheLastLineOfAMultiLineCommentIsFixedAsTheFormatterLaysItOut()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class P
+                                {
+                                    public int X { get; set; }
+                                }
+
+                                class C
+                                {
+                                    void M(bool x, bool y)
+                                    {
+                                        var d = {|RH5303:new List<bool>
+                                              {
+                                                    /* a
+                                                       b */ x
+                                                            && y
+                                                }|};
+                                    }
+                                }
+                                """;
+
+        await VerifyCodeFixMatchesFormatter(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix lays out an expression body whose object creation element stands behind the last line of a
+    /// multi-line comment as the formatter lays out the whole document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5303-005")]
+    [Requirement("FMT-PIPE-017")]
+    public async Task VerifyObjectCreationElementBehindTheLastLineOfAMultiLineCommentInExpressionBodyIsFixedAsTheFormatterLaysItOut()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class P
+                                {
+                                    public int X { get; set; }
+                                }
+
+                                class C
+                                {
+                                    List<P> Q => {|RH5303:new List<P>
+                                                {
+                                                  /* a
+                                                     b */ new P
+                                                          {
+                                                              X = 1
+                                                          }
+                                                 }|};
+                                }
+                                """;
+
+        await VerifyCodeFixMatchesFormatter(testData);
     }
 
     /// <summary>

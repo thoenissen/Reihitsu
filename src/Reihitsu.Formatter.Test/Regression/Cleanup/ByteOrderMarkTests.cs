@@ -314,5 +314,21 @@ public class ByteOrderMarkTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies the spec example: on the first line of a text that keeps its byte order mark, the opening quotes of a raw
+    /// string are counted with the byte order mark as one column, so the content line and the closing marker move to column 9
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-RAW-005")]
+    public void RawStringOnTheLineOfTheByteOrderMarkIsAlignedToTheQuotesCountedWithTheByteOrderMark()
+    {
+        // Arrange
+        const string input = ByteOrderMark + "var s = \"\"\"\n    a\n    \"\"\";";
+        const string expected = ByteOrderMark + "var s = \"\"\"\n         a\n         \"\"\";";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

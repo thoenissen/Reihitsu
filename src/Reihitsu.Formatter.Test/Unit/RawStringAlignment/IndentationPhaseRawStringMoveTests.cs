@@ -1,6 +1,9 @@
+using System.Linq;
 using System.Threading;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Data;
@@ -404,6 +407,47 @@ public class IndentationPhaseRawStringMoveTests : FormatterPhaseTestsBase
     }
 
     #endregion // Multiple raw strings
+
+    #region Attached nodes
+
+    /// <summary>
+    /// Verifies that the phase moves the lines of a raw string inside a node that is still attached to its document and starts
+    /// below the document's first line, so the model's line numbers and the rewritten node's line numbers differ
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-RAW-001")]
+    public void MisalignedRawStringInAttachedMethodBelowTheFirstLineIsCorrected()
+    {
+        const string input = """"
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var a = """
+                                 Hello
+                                 """;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                    void M()
+                                    {
+                                        var a = """
+                                                Hello
+                                                """;
+                                    }
+
+                                """";
+
+        var cancellationToken = TestContext.CancellationToken;
+        var root = CSharpSyntaxTree.ParseText(input.Replace("\r\n", "\n"), cancellationToken: cancellationToken).GetRoot(cancellationToken);
+        var method = root.DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+        var result = new IndentationPhase().Execute(method, new FormattingContext("\n", baseIndentLevel: 1), cancellationToken);
+
+        Assert.AreEqual(expected.Replace("\r\n", "\n"), result.ToFullString());
+    }
+
+    #endregion // Attached nodes
 
     #region FormatterPhaseTestsBase
 
