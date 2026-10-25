@@ -1,5 +1,5 @@
 Role: auditor
-Commit: 6555cd10b2d84a3798073660100c21a867a62543
+Commit: 2f5432b931881d400e2dfbe818c729c2670b27c4 (revision 1, repair round 1; revision 0 was 6555cd10b2d84a3798073660100c21a867a62543)
 Verdict: findings
 
 My prompt carried no intended fix, suspected cause, or hoped-for verdict. I changed nothing except this handover.
@@ -284,3 +284,103 @@ Full audit. The production change is `ChainLineBreakRewriter.IsBehindMultiLineCo
 - Blocking: A1 (high), A2, A3, A4, A5 (medium), A6, A7 (low).
 - Routing: A1 to the implementer and the test implementer. A2 to the implementer, or to the maintainer for a spec change. A3 to the test implementer and the spec author. A4 to the implementer and the test implementer, or to the maintainer for a spec change. A5 to the spec author as an open question. A6 and A7 to the test implementer.
 - I re-ran no repository test. Every finding rests on a probe or on static reading, as stated in its row.
+
+## Revision 1 — repair round 1
+
+Commit: 2f5432b931881d400e2dfbe818c729c2670b27c4
+Verdict: findings (#948: findings; #949: pass; #954: pass; #1390: findings; #888: pass)
+
+My prompt carried no intended fix, suspected cause, or hoped-for verdict. I changed nothing except this handover.
+
+### Scope
+
+This revision audits the repair only, against revision 0 (`6555cd1`).
+
+- State: the head is `2f5432b`. `origin/main` and `git ls-remote origin refs/heads/main` are both `3973631`, merged as `7a040e2`.
+- The repair is `6555cd1..3642dd8` (specs, tests, three production files) plus the spec author's revision 6 (`4253cc4`, `35a852c`).
+- The merge overlaps the run's files only in `sdd/specs/requirement-ids.txt`, which adds the run's three IDs at their sorted positions. The merged `ReihitsuFormatterHelpers` and `BlankLineTokenCleanupRewriter` changes (byte order mark) do not touch the predicates of this run.
+- `git diff origin/main -- documentation` is empty: the rule pages are as on `origin/main`, and the withheld fix is now recorded in `sdd/specs/analyzer/RH3202.md` and `RH3208.md`.
+- Answers taken from `00-lead.md`: A4 → B (comments only), A5 → A (move nothing when the arrow carries a comment), A7 → A (SHARED-CHAIN-005 exception), Q4 → B.
+- How I checked: static reading of the repair diff, probes in the scratchpad (`format.sh` twice, `trace.sh`), and a scratch `net10.0` build for the C# claims. Evidence from revision 0 is reused where the code is byte-identical: `TokenGapNormalizer`, `ChainLineBreakRewriter`, `LineBreakInitializerRewriter`, `ExpressionBodiedTransformUtilities`, and the code-fix guards are unchanged.
+
+### Previous findings
+
+| # | Issue | Status | Evidence |
+|---|---|---|---|
+| A1 | #949 | closed | `BuildTerminalBreakLeadingTrivia` no longer appends a line break behind trivia that ends with one (`SwitchCaseBraceRewriter.cs:584`). `trace.sh` on the revision-0 input settles in pass 1 (pass 2: no change). `DocumentationCommentBeforeTerminalBreakIsLaidOutInThePassThatInsertsTheBraces` pins it with the two-pass helper, LF and CRLF. |
+| A2 | #948 | open (narrowed) | `IsBoundInsideSection` and the `QueryBodySyntax` stop fix both revision-0 inputs, and tests pin them. Other shadowing forms inside a lambda still trigger the guard, so the switch stays unbraced although the local is used only in its own section, which FMT-SWITCH-014 still forbids. Compiled counterexamples: section 2 `Action a = () => { foreach (var y in ys) { Use(y); } };`, and section 2 `Func<object, int> f = o => o switch { int y => y, _ => 0 };`, each next to section 1 `int y = 1; Use(y);`. Both compile braced and unbraced, and the head leaves both switches unbraced. The implementer's revision 2 names this residual on purpose; no spec text allows it. |
+| A3 | #948 | closed | FMT-SWITCH-014's third bullet names the local-declaration initializer. `OutVariableOfLocalDeclarationInitializer…` and `PatternVariableOfLocalDeclarationInitializer…` pin the branch. |
+| A4 | #954 | closed (answer B) | Only comments changed in `BlankLineEditor.cs`. Both summaries now state the start-of-file exemption and the conditional-directive exemption behind `{`, as the code does. |
+| A5 | #1390 | closed (answer A) | `ArrowLineHoldsComment` turns off every move, including the `return /* c */` join, when the arrow's trailing trivia, or its line in front of it, holds a comment. Every revision-0 input and four more probes keep the source order and are stable in two passes, LF and CRLF. The new tests assert order and position without pinning the unspecified layout (adequate for the spec as written). |
+| A6 | #1390 | closed | Renamed to `BlockCommentLeadingNextLineExpressionJoinsReturnKeyword`; the assertion is unchanged. |
+| A7 | #888 | closed (answer A) | SHARED-CHAIN-005 carries the exception and an example. The `!.`, `/** */`, prefix, first-invoked, and no-invoked-link tests and the RH5201 parity test pin the behavior that revision 0 had probed. |
+
+### thoenissen/Reihitsu#948
+
+#### Findings
+
+| # | Severity | Location | Failure class | Scope relation | What goes wrong | Suggested change |
+|---|---|---|---|---|---|---|
+| A8 | high | `src/Reihitsu.Formatter/Pipeline/SwitchCaseBraces/Rewriter/SwitchCaseBraceRewriter.cs:222`, the `ParenthesizedLambdaExpressionSyntax` and `LocalFunctionStatementSyntax` arms at `:237` and `:240` | FC-001, FC-006 | PR-introduced (repair round 1) | `IsBoundInsideSection` treats every simple name under a lambda or local function as bound once the function has a parameter of that name. Names in the function's attribute lists and parameter default values are outside the parameter's scope, though, and C# binds them to the switch-scoped local. Counterexample (scratch build): section 1 `const int y = 2;` / `Use(y);`; section 2 `[My(y)]` / `int L(int y) => y;` / `Use(L(1));`. The same happens with `int L(int y, int b = y) => b;`. Unbraced, both compile. The head braces both switches, and the output fails with CS0103 at the attribute argument and at the default value (FMT-PIPE-003). At revision 0, any `y` in section 2 kept the switch unchanged. | Bind a parameter only for names inside the function's body (`Body` or `ExpressionBody`), not in its attribute lists, parameter list, return type, or constraint clauses. Test implementer: a test for each of the two shapes. |
+| A2 | medium | `SwitchCaseBraceRewriter.cs:222` | FC-016, FC-002 | same requirement | Still open; the counterexamples are in the table above. Not yet recognized as binders: a `foreach`, `for`, `using`, `fixed`, or `catch` variable, a `while` or `do` condition designation, a switch-expression arm designation, and the sections of a nested switch, each inside a lambda or local function. | Extend the binder walk to these constructs. Or the maintainer accepts that unrecognized shadowing forms keep the switch unbraced, and FMT-SWITCH-014 says so; that is a spec change. |
+
+#### Guard scope
+
+| Decision | Inspected span | Counterpart predicate | Agreement | Verdict |
+|---|---|---|---|---|
+| A name in another section is bound inside it (`IsBoundInsideSection`) | Ancestors of the name up to the section: parameters of lambdas, anonymous methods, and local functions; designations in lambda and local-function expression bodies; direct locals of enclosing blocks | C# binding (compiled) | Too wide for parameters: the parameter's scope is the function body, but the predicate inspects the whole function node, attributes and defaults included (A8). Too narrow for the other binders inside a lambda (A2; safe, since the output still compiles) | A8, A2 |
+| Query clauses declare nothing directly (`GetDesignatedNames` stops at `QueryBodySyntax`) | Everything behind the first `from` expression | C# clause scope | Agrees. The first `from` expression still counts, and must: `var q = from a in xs.Take(F(out var o)) select a;` with `o = 2;` in another section compiles unbraced (scratch build), and the head leaves that switch unchanged | Agrees |
+
+#### Assertion adequacy
+
+| Test | Invariant | Falsifying observation | Helper | Verdict |
+|---|---|---|---|---|
+| `LambdaParameterShadowing…`, `LocalFunctionParameterShadowing…`, `PatternVariableInQueryClause…DoesNotBlockTheBraces` | Exact braced output, two passes, LF and CRLF | The switch left unbraced | `AssertRuleResult` | Adequate; the A8 shapes are not tested |
+| `OutVariableOfLocalDeclarationInitializer…`, `PatternVariableOfLocalDeclarationInitializer…` | Fixed point | A brace inserted | `AssertRuleResult(input)` | Adequate |
+
+#### Failure classes dismissed
+
+- FC-011: `IsBoundInsideSection` walks a finite ancestor chain.
+- FC-015: the narrowing reuses `GetDirectlyDeclaredLocalNames` and `GetDesignatedNames`; no second scope policy was found by rg (only `RH4001TypeNameShouldMatchFileNameHelper`, which handles type names).
+- FC-031: the summaries describe the narrowing, except that the `IsBoundInsideSection` summary implies any parameter of an enclosing function binds the name, which is A8 itself.
+- The other classes are unchanged from revision 0.
+
+### thoenissen/Reihitsu#949
+
+The A1 repair also gives a doc comment followed by a blank line and another comment the expected result: the blank line is kept as a pending blank line. `BlankLineTriviaUtilities.EndsWithLineBreak` is false for `//`, `/* */`, and `/** */`, so those paths are unchanged. No new finding. `BuildLeadingTrivia` (the first statement) keeps the hazard, which stays a follow-up candidate, as revision 0 noted.
+
+### thoenissen/Reihitsu#954
+
+Only comments changed. The new summaries match the code: the start of the file is exempt whatever trivia comes first, and behind a `{` without a trailing comment, whitespace, line breaks, conditional-compilation directives, and disabled text keep the exemption. No new finding. Revision 0's conditional-directive and start-of-file divergences from RH5031 remain follow-up candidates, as answered.
+
+### thoenissen/Reihitsu#1390
+
+#### Findings
+
+| # | Severity | Location | Failure class | Scope relation | What goes wrong | Suggested change |
+|---|---|---|---|---|---|---|
+| A9 | low | `sdd/specs/formatter/structural-transforms.md:259` (FMT-STRUCT-006) and `src/Reihitsu.Formatter/Pipeline/StructuralTransforms/Utilities/ExpressionBodyToBlockConverter.cs:90` | FC-002 | PR-introduced (spec revision 4) | The spec turns off the move when "the arrow's line holds a comment, in front of the arrow or behind it". `ArrowLineHoldsComment` looks only at the arrow's own trivia. So a comment further behind on the arrow's line, such as `int M()` / `// a` / `=> 42; // t` or `=> 42 /* t */;`, still lets `// a` move into the block. The output is `{` / `// a` / `return 42;` / `} // t`, in source order and stable in two passes, which matches the spec's `Why:`. It contradicts the literal MUST NOT, though. | Spec author: name the comment as one directly at the arrow, in front of it on its line or in its trailing trivia, which is what the examples show and the code checks. This is a text change only. |
+
+#### Guard scope
+
+| Decision | Inspected span | Counterpart predicate | Agreement | Verdict |
+|---|---|---|---|---|
+| Move no comment (`ArrowLineHoldsComment`) | The arrow's trailing trivia, and its leading trivia back to the last line break (or a trivia that ends with one) | What lands on `{` (`ExtractSignificantTrivia(arrowToken.TrailingTrivia)`), and the arrow-line check in `TrySplitOwnLineComments` | Agrees with both: every comment that could end up in front of the moved comments is seen. Disagrees with the spec text's wider "arrow's line" (A9; order still preserved) | A9 |
+| `return /* c */` join turned off (`CreateReturnStatement` with `moveComments`) | Expression leading trivia | The same flag | Agrees. With a comment on the arrow, the output equals `origin/main`'s placement (probes `M1`, `M6`, `M7`), in source order | Agrees |
+
+#### Assertion adequacy
+
+| Test | Invariant | Falsifying observation | Helper | Verdict |
+|---|---|---|---|---|
+| `OwnLineCommentStaysOutOfTheBlockWhen…` (3), RH3202 `VerifyFixKeepsCommentOrderWhenTheArrowLineCarriesAComment` | Converted; each comment exactly once; source order; the own-line comment is not between `{` and the statement; second pass unchanged; LF and CRLF | Reversed order, a lost or duplicated comment, a moved own-line comment, or a pass-2 change | `AssertCommentsKeepOrderOutsideTheBlock`; `ApplyCodeFixAsync` for RH3202 | Adequate for a layout the spec leaves unspecified |
+
+### thoenissen/Reihitsu#888
+
+No production change. The SHARED-CHAIN-005 exception and FMT-BREAK-019's sentence match `EnsureLineBreak`'s three call sites, and the first link stays excluded (Q4 → B). The new tests use the exact-output two-pass helper and `VerifyFormatter`. No new finding.
+
+### Whole run
+
+- Blocking: A8 (high), A2 (medium, open), A9 (low).
+- Routing: A8 to the implementer and the test implementer. A2 to the implementer, or to the maintainer for a spec change. A9 to the spec author (text only).
+- Not a finding (hint): revision 0's hints stand. `int A4()` / `// a` / `/* c */ => 42;` now keeps `origin/main`'s `/* c */ {` layout. It is in order and stable, but odd, and it belongs to thoenissen/Reihitsu#963 by the A5 answer.
+- I re-ran no repository test. The implementer's full formatter and analyzer runs (`780162b`) and the cleaner's runs after the merge stand. Every finding rests on a probe or a scratch build named in its row.
