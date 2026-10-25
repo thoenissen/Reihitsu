@@ -73,7 +73,7 @@ Known ways a change in this repository goes wrong. The skeptic names the classes
 
 ## Class matrices
 
-A matrix spans the neighboring shapes of a known class along its axes; every combination of one member per axis is a cell. A defect found in one cell is checked in every cell, and every failing cell is reported in the same finding. A cell holds when the output meets the requirement the decision serves and a second application — a second formatting pass, a second code-fix iteration — leaves it unchanged, under LF and CRLF. Stability alone does not show it: a cell can be stable and wrong. Each matrix names the requirement its cells are checked against. Each matrix names the components that share the decision, because a class whose members fail between two components is also an architecture finding.
+A matrix spans the neighboring shapes of a known class along its axes; every combination of one member per axis is a cell. A defect found in one cell is checked in every cell, and every failing cell is reported in the same finding. A cell holds when, under LF and under CRLF alike, the output meets the requirement the decision serves and a second application — a second formatting pass, a second code-fix iteration — leaves it unchanged. Stability alone does not show it: a cell can be stable and wrong. Each matrix names the requirement its cells are checked against. Each matrix names the components that share the decision, because a class whose members fail between two components can be an architecture finding; whether it is one of the run is decided by [`README.md`](README.md#architecture-findings), *Architecture findings*.
 
 ### Tab width across formatter phases
 
@@ -81,7 +81,7 @@ Classes: FC-012, FC-015, FC-016. Learned in the run that aligned interpolation h
 
 **Decision.** The column of a line in an interpolation hole of a multi-line raw string. `CleanupPhase` writes it last, replacing every tab in whitespace trivia with four spaces (FMT-CLEAN-002). `IndentationPhase` places other lines against that column, and `RawStringAlignmentPhase` measures the line and moves it, so both predict the cleanup phase's tab replacement. Wherever a tab is counted as one column, or only part of the whitespace is counted, a token ends up three columns away from where the other components measured it, and the next pass moves it (FMT-PIPE-004). Wherever a move is clamped at the tab, the line moves less than it must: the token is off by the clamped amount, and the output can be stable and still wrong.
 
-**Check.** A cell holds when, after one pass, every token of the hole line stands at the column FMT-RAW-007 gives it, every anchored line stands at the column its alignment requirement gives it measured after the tab replacement, and a second pass changes nothing.
+**Check.** The cells hold as [Class matrices](#class-matrices) says, checked against these requirements: after one pass, every token of the hole line stands at the column FMT-RAW-007 gives it, and every anchored line stands at the column its alignment requirement gives it, measured after the tab replacement.
 
 | Axis | Members |
 |---|---|
