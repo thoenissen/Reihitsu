@@ -55,3 +55,22 @@ A role that finds it needs one of these files stops and reports it in its handov
 - Q3 → A. Escalation 5 approved in advance: the implementer may change `TokenGapNormalizer`, limited to the #954 blank line after `{` and the #1390 `with` initializer.
 
 Routed without asking (clarifications within the run's issues, from 02-skeptic.md): FMT-SWITCH-014's list of directly-declared forms is widened to every form C# scopes to the whole switch (the skeptic's compiled evidence); FMT-BREAK-019 "a later call" reads "a later link".
+
+# Escalation (auditor findings A4, A5 in 07-auditor.md), answered by the maintainer
+
+- A4 → B. A conditional directive between `{` and `#region` keeps its behavior from `origin/main` (no blank line before `#region`); follow-up candidate. This run only makes the new predicate's and `EnsureBlankLineBeforeFirstDirective`'s documentation comments state what the code does.
+- A5 → A. When the arrow carries a comment (on the arrow's line or glued behind it), the conversion moves no comment: the output matches `origin/main`'s placement, in source order. The arrow-line layout stays for thoenissen/Reihitsu#963.
+
+# Repair round 1 (07-auditor.md)
+
+| Finding | Class | Owner(s) |
+|---|---|---|
+| A1 `///` before terminal `break`, idempotency | same requirement (FMT-SWITCH-007, FMT-PIPE-004) | test implementer, implementer |
+| A2 guard too wide (shadowing lambda parameter, query pattern variable) | PR-introduced (FMT-SWITCH-014) | test implementer, implementer |
+| A3 `out var` in a local declaration's initializer | same requirement (FMT-SWITCH-014) | spec author (list), test implementer |
+| A4 predicate summaries contradict the code | PR-introduced (comments only, per answer B) | implementer |
+| A5 comment order reversed when the arrow carries a comment | PR-introduced (FMT-STRUCT-006; answer A) | spec author (coverage wording, if needed), test implementer, implementer |
+| A6 test name contradicts assertion | PR-introduced | test implementer |
+| A7 untested #888 behavior (`!.`, `/** */`, prefix link) | same requirement (FMT-BREAK-019) | test implementer |
+
+Hints in 07-auditor.md are follow-up candidates for the run report, not repairs.
