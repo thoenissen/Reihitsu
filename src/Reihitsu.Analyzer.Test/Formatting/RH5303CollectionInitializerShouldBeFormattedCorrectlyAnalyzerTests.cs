@@ -675,16 +675,253 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     }
 
     /// <summary>
-    /// Verifies that a complex element whose brace stands behind the last line of a multi-line comment, and whose expressions
-    /// and closing brace are measured from the comment, reports on the whole complex element and is fixed
+    /// Verifies the spec example: a complex element whose opening brace stands behind the last line of a multi-line comment is
+    /// reported, and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5303-006")]
     [Requirement("SHARED-INIT-002")]
     [Requirement("RH5303-003")]
     [Requirement("RH5303-004")]
+    public async Task VerifyComplexElementBehindTheLastLineOfAMultiLineCommentIsDetectedAndNoCodeFixIsOffered()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var d = new Dictionary<int, int>
+                                                {
+                                                    /* a
+                                                       b */ {|RH5303:{
+                                                        1,
+                                                        2
+                                                    }|}
+                                                };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the other side of the spec example: with the multi-line comment ending on a line above the complex element's
+    /// opening brace, the fix is offered and moves the misplaced expression
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5303-006")]
+    [Requirement("RH5303-003")]
+    [Requirement("RH5303-004")]
     [Requirement("RH5303-005")]
-    public async Task VerifyComplexElementBehindTheLastLineOfAMultiLineCommentMeasuredFromTheCommentIsDetectedAndFixed()
+    public async Task VerifyComplexElementBelowAMultiLineCommentThatEndsAboveItsBraceIsFixed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var d = new Dictionary<int, int>
+                                                {
+                                                    /* a
+                                                       b */
+                                                    {
+                                                        1,
+                                                      {|#0:2|}
+                                                    }
+                                                };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var d = new Dictionary<int, int>
+                                                 {
+                                                     /* a
+                                                        b */
+                                                     {
+                                                         1,
+                                                         2
+                                                     }
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the guard covers the whole code the fix formats: misplaced initializer braces are reported on the object
+    /// creation, and no code fix is offered because the creation contains a complex element behind the last line of a
+    /// multi-line comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5303-006")]
+    [Requirement("RH5303-001")]
+    [Requirement("RH5303-004")]
+    public async Task VerifyMisplacedBracesAroundComplexElementBehindTheLastLineOfAMultiLineCommentAreDetectedAndNoCodeFixIsOffered()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var d = {|RH5303:new Dictionary<int, int>
+                                              {
+                                                    /* a
+                                                       b */ {
+                                                                1,
+                                                                2
+                                                            }
+                                                }|};
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the one-line side of the guard's scope: misplaced initializer braces around a complex element behind a one-line
+    /// comment that leads its line are reported on the object creation and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5303-006")]
+    [Requirement("RH5303-001")]
+    [Requirement("RH5303-004")]
+    [Requirement("RH5303-005")]
+    public async Task VerifyMisplacedBracesAroundComplexElementBehindLeadingCommentAreDetectedAndFixed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var d = {|#0:new Dictionary<int, int>
+                                              {
+                                                    /* e */ {
+                                                                1,
+                                                                2
+                                                            }
+                                                }|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var d = new Dictionary<int, int>
+                                                 {
+                                                     /* e */ {
+                                                                 1,
+                                                                 2
+                                                             }
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when the code the fix formats is an assignment statement that starts its line and
+    /// contains a complex element behind the last line of a multi-line comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5303-006")]
+    [Requirement("SHARED-INIT-002")]
+    [Requirement("RH5303-003")]
+    public async Task VerifyComplexElementBehindTheLastLineOfAMultiLineCommentInAssignmentStatementIsDetectedAndNoCodeFixIsOffered()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M(Dictionary<int, int> d)
+                                    {
+                                        d = new Dictionary<int, int>
+                                            {
+                                                /* a
+                                                   b */ {|RH5303:{
+                                                    1,
+                                                    2
+                                                }|}
+                                            };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when the code the fix formats is an expression body that contains a complex element
+    /// behind the last line of a multi-line comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5303-006")]
+    [Requirement("SHARED-INIT-002")]
+    [Requirement("RH5303-003")]
+    public async Task VerifyComplexElementBehindTheLastLineOfAMultiLineCommentInExpressionBodyIsDetectedAndNoCodeFixIsOffered()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    Dictionary<int, int> P => new Dictionary<int, int>
+                                                              {
+                                                                  /* a
+                                                                     b */ {|RH5303:{
+                                                                      1,
+                                                                      2
+                                                                  }|}
+                                                              };
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies Fix All across two object creations: the one that contains a complex element behind the last line of a
+    /// multi-line comment keeps its diagnostic without a fix, and the other one is fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5303-006")]
+    [Requirement("RH5303-005")]
+    public async Task VerifyFixAllFixesOnlyTheCreationWithoutComplexElementBehindTheLastLineOfAMultiLineComment()
     {
         const string testData = """
                                 using System.Collections.Generic;
@@ -701,6 +938,13 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
                                                         2
                                                     }|}
                                                 };
+                                        var e = new Dictionary<int, int>
+                                                {
+                                                    /* f */ {|#1:{
+                                                        3,
+                                                        4
+                                                    }|}
+                                                };
                                     }
                                 }
                                 """;
@@ -714,9 +958,16 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
                                          var d = new Dictionary<int, int>
                                                  {
                                                      /* a
-                                                        b */ {
-                                                                 1,
-                                                                 2
+                                                        b */ {|RH5303:{
+                                                         1,
+                                                         2
+                                                     }|}
+                                                 };
+                                         var e = new Dictionary<int, int>
+                                                 {
+                                                     /* f */ {
+                                                                 3,
+                                                                 4
                                                              }
                                                  };
                                      }
@@ -725,7 +976,12 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+                     static config =>
+                            {
+                                config.NumberOfIncrementalIterations = 1;
+                                config.NumberOfFixAllIterations = 1;
+                            },
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat, 2));
     }
 
     /// <summary>

@@ -728,16 +728,16 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     }
 
     /// <summary>
-    /// Verifies that a complex element whose brace stands behind the last line of a multi-line comment, and whose expressions
-    /// and closing brace are measured from the comment, reports on the whole assignment and is fixed
+    /// Verifies the spec example: an assignment whose complex element's opening brace stands behind the last line of a
+    /// multi-line comment is reported, and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5304-005")]
     [Requirement("SHARED-INIT-002")]
     [Requirement("RH5304-002")]
     [Requirement("RH5304-003")]
-    [Requirement("RH5304-004")]
-    public async Task VerifyComplexElementBehindTheLastLineOfAMultiLineCommentMeasuredFromTheCommentIsDetectedAndFixed()
+    public async Task VerifyComplexElementBehindTheLastLineOfAMultiLineCommentIsDetectedAndNoCodeFixIsOffered()
     {
         const string testData = """
                                 using System.Collections.Generic;
@@ -746,7 +746,228 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
                                 {
                                     Dictionary<int, int> D { get; } = new Dictionary<int, int>();
 
-                                    Dictionary<int, int> E { get; } = new Dictionary<int, int>();
+                                    List<int> E { get; } = new List<int>();
+
+                                    void M()
+                                    {
+                                        var a = new C
+                                                {
+                                                    {|RH5304:D = {
+                                                            /* a
+                                                               b */ {
+                                                                1,
+                                                                2
+                                                            }
+                                                        }|}
+                                                };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the guard covers the object creation of the reported assignment: a split assignment is reported, and no
+    /// code fix is offered because another assignment of the creation holds a complex element behind the last line of a
+    /// multi-line comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5304-005")]
+    [Requirement("RH5304-001")]
+    [Requirement("RH5304-003")]
+    public async Task VerifySplitAssignmentNextToComplexElementBehindTheLastLineOfAMultiLineCommentIsDetectedAndNoCodeFixIsOffered()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    Dictionary<int, int> D { get; } = new Dictionary<int, int>();
+
+                                    List<int> E { get; } = new List<int>();
+
+                                    void M()
+                                    {
+                                        var a = new C
+                                                {
+                                                    D = {
+                                                            /* a
+                                                               b */ {
+                                                                        1,
+                                                                        2
+                                                                    }
+                                                        },
+                                                    {|RH5304:E =
+                                                    {
+                                                        1
+                                                    }|}
+                                                };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the one-line side of the guard's scope: a split assignment next to a complex element behind a one-line comment
+    /// that leads its line is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5304-005")]
+    [Requirement("RH5304-001")]
+    [Requirement("RH5304-003")]
+    [Requirement("RH5304-004")]
+    public async Task VerifySplitAssignmentNextToComplexElementBehindLeadingCommentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    Dictionary<int, int> D { get; } = new Dictionary<int, int>();
+
+                                    List<int> E { get; } = new List<int>();
+
+                                    void M()
+                                    {
+                                        var a = new C
+                                                {
+                                                    D = {
+                                                            /* e */ {
+                                                                        1,
+                                                                        2
+                                                                    }
+                                                        },
+                                                    {|#0:E =
+                                                    {
+                                                        1
+                                                    }|}
+                                                };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     Dictionary<int, int> D { get; } = new Dictionary<int, int>();
+
+                                     List<int> E { get; } = new List<int>();
+
+                                     void M()
+                                     {
+                                         var a = new C
+                                                 {
+                                                     D = {
+                                                             /* e */ {
+                                                                         1,
+                                                                         2
+                                                                     }
+                                                         },
+                                                     E = {
+                                                             1
+                                                         }
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the other side of the qualifier: with the multi-line comment ending on a line above the complex element's
+    /// opening brace, the fix is offered and lays out the element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5304-005")]
+    [Requirement("RH5304-002")]
+    [Requirement("RH5304-003")]
+    [Requirement("RH5304-004")]
+    public async Task VerifyComplexElementBelowAMultiLineCommentThatEndsAboveItsBraceIsFixed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    Dictionary<int, int> D { get; } = new Dictionary<int, int>();
+
+                                    List<int> E { get; } = new List<int>();
+
+                                    void M()
+                                    {
+                                        var a = new C
+                                                {
+                                                    {|#0:D = {
+                                                            /* a
+                                                               b */
+                                                            {
+                                                                1,
+                                                              2
+                                                            }
+                                                        }|}
+                                                };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     Dictionary<int, int> D { get; } = new Dictionary<int, int>();
+
+                                     List<int> E { get; } = new List<int>();
+
+                                     void M()
+                                     {
+                                         var a = new C
+                                                 {
+                                                     D = {
+                                                             /* a
+                                                                b */
+                                                             {
+                                                                 1,
+                                                                 2
+                                                             }
+                                                         }
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies Fix All across two object creations: the one that contains a complex element behind the last line of a
+    /// multi-line comment keeps its diagnostic without a fix, and the other one is fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5304-005")]
+    [Requirement("RH5304-004")]
+    public async Task VerifyFixAllFixesOnlyTheCreationWithoutComplexElementBehindTheLastLineOfAMultiLineComment()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    Dictionary<int, int> D { get; } = new Dictionary<int, int>();
+
+                                    List<int> E { get; } = new List<int>();
 
                                     void M()
                                     {
@@ -755,6 +976,15 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
                                                     {|#0:D = {
                                                             /* a
                                                                b */ {
+                                                                1,
+                                                                2
+                                                            }
+                                                        }|}
+                                                };
+                                        var b = new C
+                                                {
+                                                    {|#1:D = {
+                                                            /* e */ {
                                                                 1,
                                                                 2
                                                             }
@@ -770,15 +1000,24 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
                                  {
                                      Dictionary<int, int> D { get; } = new Dictionary<int, int>();
 
-                                     Dictionary<int, int> E { get; } = new Dictionary<int, int>();
+                                     List<int> E { get; } = new List<int>();
 
                                      void M()
                                      {
                                          var a = new C
                                                  {
-                                                     D = {
+                                                     {|RH5304:D = {
                                                              /* a
                                                                 b */ {
+                                                                 1,
+                                                                 2
+                                                             }
+                                                         }|}
+                                                 };
+                                         var b = new C
+                                                 {
+                                                     D = {
+                                                             /* e */ {
                                                                          1,
                                                                          2
                                                                      }
@@ -790,7 +1029,12 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat));
+                     static config =>
+                            {
+                                config.NumberOfIncrementalIterations = 1;
+                                config.NumberOfFixAllIterations = 1;
+                            },
+                     Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat, 2));
     }
 
     /// <summary>

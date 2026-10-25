@@ -140,6 +140,55 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a complex element whose brace stands behind the last line of a multi-line comment is measured from that
+    /// brace also when the collection initializer's opening brace moves
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-030")]
+    [Requirement("FMT-INDENT-023")]
+    public void ComplexElementAlignsToItsBraceBehindTheLastLineOfAMultiLineCommentWhenTheInitializerBraceMoves()
+    {
+        const string input = """
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var d = new Dictionary<int, int>
+                                           {
+                                                 /* a
+                                                    b */ {
+                                                     1,
+                                                     2
+                                                 }
+                                             };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var d = new Dictionary<int, int>
+                                                {
+                                                    /* a
+                                                       b */ {
+                                                                1,
+                                                                2
+                                                            }
+                                                };
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies the spec example: a comment leads the line of a nested initializer's opening brace, takes the column of the
     /// assigned member, and the member and the closing brace follow the brace behind the comment
     /// </summary>
@@ -790,108 +839,6 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
     #endregion // Other anchors
 
     #region Node-level entry point
-
-    /// <summary>
-    /// Verifies that document-scoped node formatting of a statement and of its equals-value clause measures a complex
-    /// element's brace behind the last line of a multi-line comment where that line puts it, and gives the output the
-    /// document-level entry point gives
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
-    [TestMethod]
-    [Requirement("FMT-INDENT-030")]
-    public async Task FormatNodeInDocumentAlignsComplexElementToItsBraceBehindTheLastLineOfAMultiLineComment()
-    {
-        const string input = """
-                             using System.Collections.Generic;
-
-                             class C
-                             {
-                                 void M()
-                                 {
-                                     var d = new Dictionary<int, int>
-                                             {
-                                                 /* a
-                                                    b */ {
-                                                     1,
-                                                     2
-                                                 }
-                                             };
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                using System.Collections.Generic;
-
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var d = new Dictionary<int, int>
-                                                {
-                                                    /* a
-                                                       b */ {
-                                                                1,
-                                                                2
-                                                            }
-                                                };
-                                    }
-                                }
-                                """;
-
-        await AssertFormatNodeInDocument(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that document-scoped node formatting of a statement and of its equals-value clause, when the collection
-    /// initializer's opening brace must move, measures a complex element's brace behind the last line of a multi-line comment
-    /// where that line puts it, and gives the output the document-level entry point gives
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
-    [TestMethod]
-    [Requirement("FMT-INDENT-030")]
-    public async Task FormatNodeInDocumentAlignsComplexElementToItsBraceBehindTheLastLineOfAMultiLineCommentWhenTheInitializerBraceMoves()
-    {
-        const string input = """
-                             using System.Collections.Generic;
-
-                             class C
-                             {
-                                 void M()
-                                 {
-                                     var d = new Dictionary<int, int>
-                                           {
-                                                 /* a
-                                                    b */ {
-                                                     1,
-                                                     2
-                                                 }
-                                             };
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                using System.Collections.Generic;
-
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var d = new Dictionary<int, int>
-                                                {
-                                                    /* a
-                                                       b */ {
-                                                                1,
-                                                                2
-                                                            }
-                                                };
-                                    }
-                                }
-                                """;
-
-        AssertRuleResult(input, expected);
-
-        await AssertFormatNodeInDocument(input, expected);
-    }
 
     /// <summary>
     /// Verifies the one-line side of the node-level case: document-scoped node formatting of a statement and of its
