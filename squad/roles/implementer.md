@@ -25,7 +25,7 @@ Read [`../README.md`](../README.md) first.
    - a code fix that cannot be delivered comprehensively is withheld for that input (`AGENTS.md`, *Code-fix coverage*).
 4. For every method whose body you changed, re-read its XML summary and inline comments and make them describe the new code (FC-031).
 5. A new rule also needs: its `.resx` strings and wrapper properties ([`add-resource-texts`](../../.claude/commands/add-resource-texts.md)), its rule page under `documentation/rules/` when the spec author has not written it, its row in `src/Reihitsu.Analyzer.Package/README.MD`, and its page in `Reihitsu.sln`.
-6. Run the focused tests of the changed rule or phase, then the test project they belong to.
+6. Run the focused tests of the changed rule or phase, then the test project they belong to. The self-hosting scans (`--project selfhosting`) are not part of a local run; CI runs them on every pull request.
 
 ## When a test looks wrong
 

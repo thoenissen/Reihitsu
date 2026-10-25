@@ -10,7 +10,7 @@ Paths are resolved against **your** working directory, not the repository root: 
 |---|---|
 | `prepare.sh` | Verify the toolchain, installing the SDK only if needed |
 | `build.sh` | `dotnet build Reihitsu.sln`, in Release unless `--configuration Debug` |
-| `test.sh` | Run one or all test projects, with an optional focused filter and configuration |
+| `test.sh` | Run one test project or the default set (every project except the self-hosting scans), with an optional focused filter and configuration |
 | `format.sh` | Format the given paths through `Reihitsu.Cli` |
 | `trace.sh` | Trace source changes at each top-level formatter phase without modifying the input |
 | `apply-fix.sh` | Run one diagnostic's code-fix surface over a fixture directory, under LF and CRLF |
@@ -23,6 +23,7 @@ Paths are resolved against **your** working directory, not the repository root: 
 scripts/prepare.sh
 scripts/build.sh
 scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH3204"
+scripts/test.sh --project selfhosting
 scripts/format.sh src/Reihitsu.Formatter/Pipeline/LineBreaks/LineBreakDetection.cs
 scripts/trace.sh samples/Example.cs --passes 3 --no-install
 scripts/apply-fix.sh RH7101 /tmp/sweep
@@ -70,7 +71,11 @@ Convergence is decided by **the diagnostic disappearing**, not by two consecutiv
 
 Exit codes are `0` when every fixture reached a supported end state, `1` when a fixture never stopped reporting the diagnostic (`not-converged` or `no-progress`), and `2` when the command could not run — bad arguments, an unresolvable ID, a missing or fixture-less directory, an unparseable fixture, a fix producing unparseable source, or an analyzer that threw. `no-diagnostic` and `no-fix-offered` deliberately stay at `0`: every negative sweep row depends on "ran, found nothing" being distinguishable from "could not run".
 
-The implementation lives in `Reihitsu.Tooling`, a non-packable project inside `Reihitsu.sln`, with `scripts/apply-fix/apply-fix.cs` as a thin file-based shim over it. Unlike the trace and proof apps it is a real project, because the runner adds classification behavior — fixture selection, target resolution, convergence, exit-code mapping — that needs test coverage; `Reihitsu.Tooling.Test` provides it through `scripts/test.sh --project tooling`. It needs no formatter internals and widens no public API. Both `Reihitsu.ArchitectureTests` and `Reihitsu.Tooling.Test` participate in the default `all` run, so local full validation covers every solution test project.
+The implementation lives in `Reihitsu.Tooling`, a non-packable project inside `Reihitsu.sln`, with `scripts/apply-fix/apply-fix.cs` as a thin file-based shim over it. Unlike the trace and proof apps it is a real project, because the runner adds classification behavior — fixture selection, target resolution, convergence, exit-code mapping — that needs test coverage; `Reihitsu.Tooling.Test` provides it through `scripts/test.sh --project tooling`. It needs no formatter internals and widens no public API. Both `Reihitsu.ArchitectureTests` and `Reihitsu.Tooling.Test` participate in the default `all` run.
+
+## The self-hosting scans
+
+`Reihitsu.SelfHosting.Test` runs the repository's own analyzers and formatter over the repository's own source: one test row per analyzer, and one row per source file for formatter idempotency and for formatter stability. It is a second safety net rather than a requirement check, and it takes long enough that the default `all` run of `test.sh` leaves it out; every other solution test project is in that run. CI runs it on every pull request, and `scripts/test.sh --project selfhosting` runs it locally, narrowed with `--filter` to one analyzer or one file when needed. A violation fails the row of the analyzer or the file that found it and names the file, the line, and the rule.
 
 ## The text-only proof
 

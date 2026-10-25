@@ -3,11 +3,16 @@
 #
 #   scripts/test.sh [options] [<extra dotnet test arguments>...]
 #
-#   --project <analyzer|formatter|core|cli|architecture|tooling|playground|all>   default: all
+#   --project <analyzer|formatter|core|cli|architecture|tooling|playground|selfhosting|all>   default: all
 #   --filter <expression>                                              focused run
 #   --configuration <Release|Debug>                                    default: Release
 #   --no-build                                                         reuse the previous build of that configuration
 #   --no-install                                                       fail instead of installing the SDK
+#
+# "all" runs every test project except selfhosting: the self-hosting scans run
+# every analyzer and the formatter over the repository's own source, which takes
+# long enough that CI runs them on every pull request and a local default run
+# leaves them out. Select them explicitly with --project selfhosting.
 #
 # Test projects are addressed by absolute path, so the caller's working
 # directory is never changed and relative arguments keep their meaning.
@@ -15,6 +20,7 @@
 # Examples:
 #   scripts/test.sh
 #   scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH3204"
+#   scripts/test.sh --project selfhosting
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -32,7 +38,7 @@ while [[ "$#" -gt 0 ]]; do
     case "$1" in
         --project)
             if [[ "$#" -lt 2 ]]; then
-                echo "test.sh: --project expects a value (analyzer, formatter, core, cli, architecture, tooling, playground, or all)." >&2
+                echo "test.sh: --project expects a value (analyzer, formatter, core, cli, architecture, tooling, playground, selfhosting, or all)." >&2
                 exit 2
             fi
 
@@ -78,6 +84,7 @@ case "$project" in
     architecture) projects=("src/Reihitsu.ArchitectureTests/Reihitsu.ArchitectureTests.csproj") ;;
     tooling) projects=("src/Reihitsu.Tooling.Test/Reihitsu.Tooling.Test.csproj") ;;
     playground) projects=("src/Reihitsu.Playground.Test/Reihitsu.Playground.Test.csproj") ;;
+    selfhosting) projects=("src/Reihitsu.SelfHosting.Test/Reihitsu.SelfHosting.Test.csproj") ;;
     all)
         projects=("src/Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj"
                   "src/Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj"
@@ -88,7 +95,7 @@ case "$project" in
                   "src/Reihitsu.Playground.Test/Reihitsu.Playground.Test.csproj")
         ;;
     *)
-        echo "test.sh: unknown --project value '$project' (use analyzer, formatter, core, cli, architecture, tooling, playground, or all)." >&2
+        echo "test.sh: unknown --project value '$project' (use analyzer, formatter, core, cli, architecture, tooling, playground, selfhosting, or all)." >&2
         exit 2
         ;;
 esac
