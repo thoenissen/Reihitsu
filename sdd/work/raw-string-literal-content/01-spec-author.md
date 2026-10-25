@@ -1,5 +1,5 @@
 Role: spec author
-Commit: 73f8e39
+Commit: 9b561b1
 Verdict: #951: spec written; #1133: spec written; #1146: spec written
 
 Inputs: thoenissen/Reihitsu#951, thoenissen/Reihitsu#1133, thoenissen/Reihitsu#1146 and their comments (read through the GitHub MCP server), `00-lead.md` with its two "Escalations" entries, `02-skeptic.md`, and the specs named below. The #951 body names a suspected cause and an intended mechanism, and the #1146 body proposes RH5104 rewordings for Q3, Q5, and Q6. I did not use either: the specs state observable output only, and Q3, Q5, and Q6 are out of scope (thoenissen/Reihitsu#1433). `sdd/specs/shared/code-fixes.md` is referenced and was not edited. No change doc.
@@ -13,7 +13,7 @@ Check run on the current tree: `scripts/test.sh --project architecture` filtered
 - **3e6dd08.** Escalation 2 (Q1 1B, Q2 2A, Q3 3A, Q4 4B) and the skeptic's findings that needed no maintainer decision. I re-derived each finding; each one is listed below under its issue, with how I checked it.
 - **f649b88.** Escalation 3, answer A: a comment that starts a hole line takes the FMT-INDENT-006 column of the token it precedes, measured after FMT-RAW-007. FMT-RAW-007 gains this as a third condition, with an example, and the case is removed from its coverage sentence (see #951).
 
-- **This revision.** The skeptic's re-check (`02-skeptic.md`, "Re-check", 12b09f9) listed repairs R1 to R4 in the spec. None needed a maintainer decision (`00-lead.md`, "Lead notes"). I re-derived each one:
+- **8d5a762.** The skeptic's re-check (`02-skeptic.md`, "Re-check", 12b09f9) listed repairs R1 to R4 in the spec. None needed a maintainer decision (`00-lead.md`, "Lead notes"). I re-derived each one:
   - **R1, confirmed.** I traced a literal inside a lambda body on the current tree, a misaligned literal over passes 1 to 3. Pass 1 puts `name` and `}` at 27 and 27. Pass 2 puts them back at 14, the block column inside the body. That is case 1's double move.
     - Under the old wording "directly or through the construct around it", this input reads two ways. Only the bounded reading is idempotent, and it matches 1B's "measured after the literal's shift", which implies that the anchor moves with the literal.
     - FMT-RAW-007's alignment condition now requires both an anchor inside the literal (in the same hole or on a content line) and an aligned construct inside the hole.
@@ -30,6 +30,15 @@ Check run on the current tree: `scripts/test.sh --project architecture` filtered
     - The example gains the `@$"` twin.
     - RH5104-004's condition now reads "inside a literal, an interpolated string included, or a comment (RH5104-006)".
     - The bullet on the rule page `documentation/rules/RH5104.md` now says "a multi-line string literal, interpolated strings included, or a multi-line comment".
+
+- **This revision (repair round 1).** Auditor finding 6 (`07-auditor.md`) and escalation 4, answer A (`00-lead.md`): the RH5104 fix is withheld for a reported comment that has another comment before it on the line where it starts.
+  - **New RH5104-007**, "The fix is withheld behind another comment on the comment's line" (SHARED-FIX-003). Its example holds both shapes:
+    - `M(); /* a */ // b`: only `/* a */` is offered a fix. Once that fix has run, `// b` is offered its fix, and the order stays `/* a */`, `// b`.
+    - `/* c */ /* d⏎   e */ M();`: `/* d … e */` stays reported without a fix, because `/* c */` is not reported and so nothing moves it off the line.
+  - **RH5104-004's condition** now also says that no other comment stands before the comment on its start line (RH5104-007).
+  - **RH5104-007 is in the ledger**, in sorted position.
+  - **The rule page is unchanged.** Per AGENTS.md, "Code-fix coverage": a gap caused only by a comment is the general limitation stated in `general-notes.md`, and it is not repeated on the rule page.
+  - **Checks.** The architecture spec checks give 50 passed and 1 failed. The failure is only the expected missing coverage for RH5104-007; the test implementer adds that test.
 
 ## thoenissen/Reihitsu#951
 
@@ -155,6 +164,7 @@ Bringing them in line means that RH5602 can no longer skip whole lines through `
 - RH5104-004 — The fix moves the comment above its line — clarified (condition tied to RH5104-006).
 - RH5104-005 — No blank line is inserted above the moved comment — reworded (J1, SHARED-FIX-006).
 - RH5104-006 — The fix is withheld when the line starts inside a literal or a comment — added (interpolated strings included, R4).
+- RH5104-007 — The fix is withheld behind another comment on the comment's line — added (escalation 4, A).
 - `Uses`: SHARED-COMMENT-002, SHARED-FIX-003, SHARED-FIX-006.
 
 ### Examples for the tests
@@ -178,7 +188,7 @@ _None._
 
 ### Follow-up candidates
 
-- **The RH5104 fix can move a comment above another comment that precedes it on its start line.** For `M(); /* a */ // b`, a single fix on `// b` reorders the two comments. After the Q4 clarification, `/* a */ /* b⏎   c */ M();` reorders whenever it is fixed. The skeptic confirmed both shapes. They are outside Q1 and Q4 and must not be codified in this run.
+- The comment-reordering candidate is resolved in this run by RH5104-007 (escalation 4).
 - **thoenissen/Reihitsu#1433 Q6 is superseded by J1** (from the skeptic's handover).
 
 ## Whole run
@@ -190,7 +200,7 @@ Files written, all under `/home/user/Reihitsu`:
 - `sdd/specs/analyzer/RH5601.md`
 - `sdd/specs/analyzer/RH5602.md`
 - `sdd/specs/analyzer/RH5104.md`
-- `sdd/specs/requirement-ids.txt` (sorted inserts FMT-RAW-007, FMT-RAW-008, FMT-RAW-009, RH5104-006)
+- `sdd/specs/requirement-ids.txt` (sorted inserts FMT-RAW-007, FMT-RAW-008, FMT-RAW-009, RH5104-006, RH5104-007)
 - `documentation/rules/RH5601.md`
 - `documentation/rules/RH5104.md`
 
