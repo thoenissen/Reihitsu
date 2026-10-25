@@ -174,5 +174,29 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceFormatterTests : Fo
                               Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat, 2));
     }
 
+    /// <summary>
+    /// Verifies that comments the formatter leaves as written are neither reported nor changed by the formatter, under
+    /// LF and CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-010")]
+    [Requirement("RH8301-002")]
+    public async Task VerifyFormatterLeavesCommentsKeptAsWrittenUnchanged()
+    {
+        const string input = """
+                             class C
+                             {
+                                 ///<summary>S
+                                 int A;
+
+                                 int B; ///<remarks>a
+                                 ///b</remarks>
+                             }
+                             """;
+
+        await VerifyFormatter(input);
+    }
+
     #endregion // Tests
 }

@@ -50,22 +50,24 @@ internal static class DocumentationCommentCodeFixUtilities
     }
 
     /// <summary>
-    /// Determines whether the documentation element at the specified span can be removed safely
+    /// Determines whether the documentation element at the specified span can be removed or unwrapped safely
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="elementSpan">Span of the documentation element</param>
-    /// <returns><see langword="true"/> if the element is well formed enough to be removed</returns>
+    /// <returns><see langword="true"/> if the element is empty or closed by an end tag of its own</returns>
     /// <remarks>
-    /// An element without an end tag is left alone. Roslyn extends such an element to the end of the documentation
-    /// comment, so its span reaches past the trailing line break and can cover unrelated tags and the declaration
-    /// which follows. Removing that span would move source code into the comment or drop neighboring documentation
+    /// An element without an end tag of its own is left alone. Roslyn extends an element without an end tag to the end
+    /// of the documentation comment, so its span reaches past the trailing line break and can cover unrelated tags and
+    /// the declaration which follows, and it closes an element with an end tag of another name, which belongs to the
+    /// element around it. Removing or unwrapping that span would move source code into the comment, drop neighboring
+    /// documentation, or delete the end tag of the enclosing element
     /// </remarks>
-    internal static bool CanRemoveElement(SyntaxNode root, TextSpan elementSpan)
+    internal static bool CanRewriteElement(SyntaxNode root, TextSpan elementSpan)
     {
         var node = root.FindNode(elementSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
 
         return node is not XmlElementSyntax element
-               || element.EndTag.IsMissing == false;
+               || DocumentationCommentUtilities.HasOwnEndTag(element);
     }
 
     /// <summary>

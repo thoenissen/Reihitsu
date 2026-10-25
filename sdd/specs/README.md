@@ -25,7 +25,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [shared/comment-placement.md](shared/comment-placement.md) | SHARED-COMMENT | `CommentPositionAnalyzerBase`, `CommentRegionAnalyzerBase`, `CommentPositionUtilities`, `FluentChainAnalysisHelper` |
 | [shared/debug-message-text.md](shared/debug-message-text.md) | SHARED-DEBUG | `DebugMessageTextAnalysisUtilities` |
 | [shared/diagnostics.md](shared/diagnostics.md) | SHARED-DIAG | `DiagnosticAnalyzerBase` |
-| [shared/element-documentation.md](shared/element-documentation.md) | SHARED-DOC | `SplitElementDocumentationAnalyzerBase`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `XmlDocumentationExpander`, `DocumentationModeAnalysisContextExtensions` |
+| [shared/element-documentation.md](shared/element-documentation.md) | SHARED-DOC | `SplitElementDocumentationAnalyzerBase`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `XmlDocumentationExpander`, `DocumentationModeAnalysisContextExtensions`, `DocumentationCommentCodeFixUtilities` |
 | [shared/empty-parentheses.md](shared/empty-parentheses.md) | SHARED-PARENS | `EmptyParenthesesAnalyzerBase<TNode>` |
 | [shared/empty-type-declarations.md](shared/empty-type-declarations.md) | SHARED-EMPTY | `EmptyTypeDeclarationShouldUseSemicolonAnalyzerBase`, `EmptyTypeDeclarationShouldUseSemicolonCodeFixProviderBase`, `EmptyTypeDeclarationSemicolonAnalysisUtilities` |
 | [shared/expression-body-conversion.md](shared/expression-body-conversion.md) | SHARED-BODY | `ExpressionBodyAnalyzerBase<TNode>`, `ExpressionBodyToBlockCodeFixProviderBase<TNode>`, `ExpressionBodyRewriteUtilities` |
@@ -368,7 +368,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH8104.md](analyzer/RH8104.md) | RH8104 | `RH8104ElementParameterDocumentationMustHaveTextAnalyzer` |
 | [analyzer/RH8105.md](analyzer/RH8105.md) | RH8105 | `RH8105ElementReturnValueMustBeDocumentedAnalyzer` |
 | [analyzer/RH8106.md](analyzer/RH8106.md) | RH8106 | `RH8106ElementReturnValueDocumentationMustHaveTextAnalyzer` |
-| [analyzer/RH8107.md](analyzer/RH8107.md) | RH8107 | `RH8107VoidReturnValueMustNotBeDocumentedAnalyzer`, `RH8107VoidReturnValueMustNotBeDocumentedCodeFixProvider`, `DocumentationCommentCodeFixUtilities` |
+| [analyzer/RH8107.md](analyzer/RH8107.md) | RH8107 | `RH8107VoidReturnValueMustNotBeDocumentedAnalyzer`, `RH8107VoidReturnValueMustNotBeDocumentedCodeFixProvider` |
 | [analyzer/RH8108.md](analyzer/RH8108.md) | RH8108 | `RH8108GenericTypeParametersMustBeDocumentedAnalyzer` |
 | [analyzer/RH8109.md](analyzer/RH8109.md) | RH8109 | `RH8109GenericTypeParameterDocumentationMustMatchTypeParametersAnalyzer` |
 | [analyzer/RH8110.md](analyzer/RH8110.md) | RH8110 | `RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnalyzer` |

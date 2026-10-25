@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
@@ -126,13 +127,29 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer : 
     }
 
     /// <summary>
+    /// Determines whether the specified element belongs to a <c>///</c> comment that the formatter leaves as written:
+    /// one stranded behind code, or one that holds an element without an end tag of its own
+    /// </summary>
+    /// <param name="element">XML element</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> if the element's comment is left as written</returns>
+    private static bool IsInCommentLeftAsWritten(XmlElementSyntax element, CancellationToken cancellationToken)
+    {
+        var documentationComment = element.FirstAncestorOrSelf<DocumentationCommentTriviaSyntax>();
+
+        return documentationComment != null
+               && DocumentationCommentUtilities.IsLeftAsWritten(documentationComment.ParentTrivia, element.SyntaxTree.GetText(cancellationToken));
+    }
+
+    /// <summary>
     /// Analyzes an XML documentation element
     /// </summary>
     /// <param name="context">Context</param>
     private void OnXmlElement(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is not XmlElementSyntax element
-            || ViolatesRule(element, context.CancellationToken) == false)
+            || ViolatesRule(element, context.CancellationToken) == false
+            || IsInCommentLeftAsWritten(element, context.CancellationToken))
         {
             return;
         }

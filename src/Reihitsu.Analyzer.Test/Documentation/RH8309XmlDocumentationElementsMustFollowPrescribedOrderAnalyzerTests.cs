@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
@@ -827,6 +828,605 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                  """;
 
         await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: no code fix is offered when a top-level element of the reported comment has
+    /// no end tag, whether it is the reported element, an element the fix would move, or an element that keeps its
+    /// position
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-017")]
+    [Requirement("RH8309-004")]
+    public async Task VerifySpecificationExampleWithholdsFixForElementsWithoutEndTag()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <returns>R</returns>
+                                  /// {|RH8309:<summary>S
+                              |}    int A() => 0;
+
+                                  /// <returns>R</returns>
+                                  /// {|RH8309:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  /// <param name="a">P
+                                  int M(int a) => a;
+
+                                  /// <returns>R</returns>
+                                  /// {|RH8309:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  /// <seealso cref="C">X
+                                  int N() => 0;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when the reported element is closed by an end tag of another name, so that
+    /// end tag is not moved with it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-017")]
+    public async Task VerifyNoCodeFixForReportedElementClosedByEndTagOfAnotherName()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <returns>R</returns>
+                                  /// {|RH8309:<summary>S</returns>|}
+                                  int A()
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that end-tag names are compared exactly: no code fix is offered when the reported summary's end tag
+    /// differs only in case
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-017")]
+    public async Task VerifyNoCodeFixForReportedElementClosedByEndTagDifferingOnlyInCase()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <returns>R</returns>
+                                  /// {|RH8309:<summary>
+                                  /// S
+                                  /// </Summary>|}
+                                  int A()
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the other side of the boundary: an element without an end tag of its own nested inside a top-level
+    /// element closed by its own end tag does not withhold the fix, and its text is kept
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-017")]
+    [Requirement("RH8309-004")]
+    public async Task VerifyCodeFixIsOfferedWhenOnlyANestedElementLacksAnEndTagOfItsOwn()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <returns>R <see>x</y></returns>
+                                  /// {|#0:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  int A()
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       /// <summary>
+                                       /// S
+                                       /// </summary>
+                                       /// <returns>R <see>x</y></returns>
+                                       int A()
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: no code fix is offered when text, an XML comment, a CDATA section, a
+    /// processing instruction, or an entity reference for a character that is not white space stands at the top level of
+    /// the reported comment, between, before, or after the elements
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-005")]
+    public async Task VerifySpecificationExampleWithholdsFixForTextAndNodesBesideTheElements()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <remarks>R</remarks>
+                                  /// Text between
+                                  /// {|RH8309:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  int A;
+
+                                  /// <remarks>R</remarks>
+                                  /// <!-- c -->
+                                  /// {|RH8309:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  int B;
+
+                                  /// Intro
+                                  /// <remarks>R</remarks>
+                                  /// {|RH8309:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  int D;
+
+                                  /// <remarks>R</remarks>
+                                  /// {|RH8309:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  /// Outro
+                                  int E;
+
+                                  /// <remarks>R</remarks>
+                                  /// <![CDATA[x]]>
+                                  /// {|RH8309:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  int F;
+
+                                  /// <remarks>R</remarks>
+                                  /// <?pi x?>
+                                  /// {|RH8309:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  int G;
+
+                                  /// <remarks>R</remarks>
+                                  /// &amp;
+                                  /// {|RH8309:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  int H;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that text between the elements withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-005")]
+    public async Task VerifyNoCodeFixForTextBetweenTheElements()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <remarks>R</remarks>
+                                  /// Text between
+                                  /// {|RH8309:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  int A;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that an XML comment between the elements withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-005")]
+    public async Task VerifyNoCodeFixForXmlCommentBetweenTheElements()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <remarks>R</remarks>
+                                  /// <!-- c -->
+                                  /// {|RH8309:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  int A;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that text before the first element withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-005")]
+    public async Task VerifyNoCodeFixForTextBeforeTheFirstElement()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// Intro
+                                  /// <remarks>R</remarks>
+                                  /// {|RH8309:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  int A;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that text after the last element withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-005")]
+    public async Task VerifyNoCodeFixForTextAfterTheLastElement()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <remarks>R</remarks>
+                                  /// {|RH8309:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  /// Outro
+                                  int A;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a CDATA section between the elements withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-005")]
+    public async Task VerifyNoCodeFixForCDataSectionBetweenTheElements()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <remarks>R</remarks>
+                                  /// <![CDATA[x]]>
+                                  /// {|RH8309:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  int A;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a processing instruction between the elements withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-005")]
+    public async Task VerifyNoCodeFixForProcessingInstructionBetweenTheElements()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <remarks>R</remarks>
+                                  /// <?pi x?>
+                                  /// {|RH8309:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  int A;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that an entity reference standing alone between the elements is text that withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-005")]
+    public async Task VerifyNoCodeFixForEntityReferenceBetweenTheElements()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <remarks>R</remarks>
+                                  /// &amp;
+                                  /// {|RH8309:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  int A;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the other side of the boundary: blank documentation lines between the elements are white space and do
+    /// not withhold the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-005")]
+    [Requirement("RH8309-004")]
+    public async Task VerifyCodeFixIsOfferedWhenOnlyWhiteSpaceStandsBetweenTheElements()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <remarks>R</remarks>
+                                  ///
+                                  /// {|#0:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  int A;
+                              }
+                              """;
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       /// <summary>
+                                       /// S
+                                       /// </summary>
+                                       ///
+                                       /// <remarks>R</remarks>
+                                       int A;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that fixing every diagnostic of a document sorts the comment that holds nothing but its elements and
+    /// leaves the comments whose fix is withheld reported and unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-005")]
+    [Requirement("SHARED-DOC-017")]
+    public async Task VerifyFixAllLeavesCommentsWithWithheldFixUnchanged()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <remarks>R</remarks>
+                                  /// {|RH8309:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  int A;
+
+                                  /// <remarks>R</remarks>
+                                  /// Text between
+                                  /// {|RH8309:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  int B;
+
+                                  /// <returns>R</returns>
+                                  /// {|RH8309:<summary>S</returns>|}
+                                  int D()
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       /// <summary>
+                                       /// S
+                                       /// </summary>
+                                       /// <remarks>R</remarks>
+                                       int A;
+
+                                       /// <remarks>R</remarks>
+                                       /// Text between
+                                       /// {|RH8309:<summary>
+                                       /// S
+                                       /// </summary>|}
+                                       int B;
+
+                                       /// <returns>R</returns>
+                                       /// {|RH8309:<summary>S</returns>|}
+                                       int D()
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered for a reported summary without an end tag in a CRLF document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-017")]
+    public async Task VerifyNoCodeFixForReportedElementWithoutEndTagWithCarriageReturnLineFeed()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <returns>R</returns>
+                                  /// {|RH8309:<summary>S
+                              |}    int A() => 0;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(source));
+    }
+
+    /// <summary>
+    /// Verifies that text between the elements withholds the fix in a CRLF document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-005")]
+    public async Task VerifyNoCodeFixForTextBetweenTheElementsWithCarriageReturnLineFeed()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <remarks>R</remarks>
+                                  /// Text between
+                                  /// {|RH8309:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  int A;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(source));
+    }
+
+    /// <summary>
+    /// Verifies the other side of the boundary: a decimal character reference that stands for a space is white space,
+    /// so it does not withhold the fix and stays where it is written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-005")]
+    [Requirement("RH8309-004")]
+    public async Task VerifyCodeFixIsOfferedWhenACharacterReferenceForASpaceStandsBetweenTheElements()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <remarks>R</remarks>
+                                  /// &#32;
+                                  /// {|#0:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  int A;
+                              }
+                              """;
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       /// <summary>
+                                       /// S
+                                       /// </summary>
+                                       /// &#32;
+                                       /// <remarks>R</remarks>
+                                       int A;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the other side of the boundary: a hexadecimal character reference that stands for a tab is white space,
+    /// so it does not withhold the fix and stays where it is written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-005")]
+    [Requirement("RH8309-004")]
+    public async Task VerifyCodeFixIsOfferedWhenAHexadecimalCharacterReferenceForATabStandsBetweenTheElements()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <remarks>R</remarks>
+                                  /// &#x9;
+                                  /// {|#0:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  int A;
+                              }
+                              """;
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       /// <summary>
+                                       /// S
+                                       /// </summary>
+                                       /// &#x9;
+                                       /// <remarks>R</remarks>
+                                       int A;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a character reference for a character that is not white space withholds the fix, as the entity
+    /// reference does
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-005")]
+    public async Task VerifyNoCodeFixForCharacterReferenceForALetterBetweenTheElements()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <remarks>R</remarks>
+                                  /// &#65;
+                                  /// {|RH8309:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  int A;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     #endregion // Tests

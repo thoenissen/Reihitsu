@@ -490,5 +490,67 @@ public class CleanupPhaseTests
         Assert.AreEqual("class Foo\n{\n    int x;\n}", result.ToFullString(), "Whitespace in front of a line break in the next token's leading trivia should be removed.");
     }
 
+    /// <summary>
+    /// Verifies that a byte order mark directly in front of the line break that ends the first line is kept, although
+    /// the parser reads it as white-space trivia
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-CLEAN-009")]
+    public void KeepsByteOrderMarkBeforeLineBreakOfTheFirstLine()
+    {
+        // Arrange
+        const string input = "\uFEFF\nclass Foo\n{\n}";
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+
+        // Act
+        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationToken), TestContext.CancellationToken);
+        var actual = result.ToFullString();
+
+        // Assert
+        Assert.AreEqual(input, actual, "The byte order mark in front of the first line break should be kept.");
+    }
+
+    /// <summary>
+    /// Verifies that the white space after a byte order mark in front of the line break that ends the first line is
+    /// removed while the byte order mark is kept
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-CLEAN-009")]
+    [Requirement("FMT-CLEAN-001")]
+    public void RemovesWhiteSpaceAfterByteOrderMarkBeforeLineBreakOfTheFirstLine()
+    {
+        // Arrange
+        const string input = "\uFEFF   \nclass Foo\n{\n}";
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+
+        // Act
+        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationToken), TestContext.CancellationToken);
+        var actual = result.ToFullString();
+
+        // Assert
+        Assert.AreEqual("\uFEFF\nclass Foo\n{\n}", actual, "The byte order mark should be kept and the white space after it removed.");
+    }
+
+    /// <summary>
+    /// Verifies the other side of the boundary: a white-space trivia that starts with the byte order mark character on
+    /// a line that holds nothing else, in the middle of the text, is removed like any other white space
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-CLEAN-009")]
+    [Requirement("FMT-CLEAN-001")]
+    public void RemovesByteOrderMarkCharacterOnBlankLineInTheMiddleOfTheText()
+    {
+        // Arrange
+        const string input = "class Foo\n{\n    int x;\n\uFEFF  \n}";
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+
+        // Act
+        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationToken), TestContext.CancellationToken);
+        var actual = result.ToFullString();
+
+        // Assert
+        Assert.AreEqual("class Foo\n{\n    int x;\n\n}", actual, "White space that starts with the byte order mark character in the middle of the text should be removed.");
+    }
+
     #endregion // Methods
 }

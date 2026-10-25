@@ -48,5 +48,36 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesFormatterTests : Forma
                               ExpectedDiagnostic(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, 3, 9, 3, 40, AnalyzerResources.RH8305MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that comments the formatter leaves as written are neither reported nor changed by the formatter, under
+    /// LF and CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-010")]
+    [Requirement("RH8305-002")]
+    public async Task VerifyFormatterLeavesCommentsKeptAsWrittenUnchanged()
+    {
+        const string input = """
+                             class C
+                             {
+                                 /// <summary>S
+                                 int A;
+
+                                 /// <summary>S</returns>
+                                 int B;
+
+                                 /// <summary>Gets the value.</summary>
+                                 /// <remarks>Text
+                                 /// more
+                                 int D;
+
+                                 int E; /// <summary>end</summary>
+                             }
+                             """;
+
+        await VerifyFormatter(input);
+    }
+
     #endregion // Tests
 }
