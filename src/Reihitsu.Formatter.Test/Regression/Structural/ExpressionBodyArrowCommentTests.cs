@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 using Microsoft.CodeAnalysis.CSharp;
@@ -608,6 +609,116 @@ public class ExpressionBodyArrowCommentTests : FormatterTestsBase
         AssertCommentsKeepOrderOutsideTheBlock(input, "// a", "/* c */", "42;");
     }
 
+    /// <summary>
+    /// Verifies that a comment between the expression and the semicolon on the arrow's line does not stand at the
+    /// arrow, so the own-line comment before the arrow still leads the created statement, and the comment stays in
+    /// front of the statement's semicolon
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
+    public void CommentBehindTheExpressionOnTheArrowLineDoesNotStopTheMove()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int M()
+                                 // a
+                                 => 42 /* t */;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int M()
+                                    {
+                                        // a
+                                        return 42 /* t */;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a comment between the expression and the semicolon does not stop the move of an own-line
+    /// comment after the arrow either
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
+    public void CommentBehindTheExpressionDoesNotStopTheMoveOfACommentAfterTheArrow()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int M() =>
+                                     // a
+                                     42 /* t */;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int M()
+                                    {
+                                        // a
+                                        return 42 /* t */;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind the semicolon on the arrow's line does not stand at the arrow, so the own-line
+    /// comment before the arrow still leads the created statement. Where the comment behind the semicolon goes is not
+    /// specified, so only that it survives behind the statement is asserted
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
+    public void CommentBehindTheSemicolonOnTheArrowLineDoesNotStopTheMove()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int N()
+                                 // b
+                                 => 42; // t
+                             }
+                             """;
+
+        // Act & Assert
+        AssertOwnLineCommentLeadsStatementAndTrailingCommentFollows(input, "// b", "return 42;", "// t");
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind the semicolon does not stop the move of an own-line comment after the arrow
+    /// either
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
+    public void CommentBehindTheSemicolonDoesNotStopTheMoveOfACommentAfterTheArrow()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int N() =>
+                                     // b
+                                     42; // t
+                             }
+                             """;
+
+        // Act & Assert
+        AssertOwnLineCommentLeadsStatementAndTrailingCommentFollows(input, "// b", "return 42;", "// t");
+    }
+
     #endregion // Tests
 
     #region Methods
@@ -650,6 +761,36 @@ public class ExpressionBodyArrowCommentTests : FormatterTestsBase
             Assert.IsLessThanOrEqualTo(openBraceIndex,
                                        ownLineIndex,
                                        $"The own-line comment must not be moved between the opening brace and the created statement under {endingName} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Formats the input under LF and CRLF and asserts that the own-line comment leads the created statement inside
+    /// the block, on the line directly after the opening brace and directly above the statement, that the comment
+    /// behind the semicolon survives once behind the statement, and that a second pass changes nothing
+    /// </summary>
+    /// <param name="input">The source text to format</param>
+    /// <param name="ownLineComment">The comment written on a line of its own next to the arrow</param>
+    /// <param name="statementText">Text of the created statement</param>
+    /// <param name="trailingComment">The comment written behind the semicolon</param>
+    private static void AssertOwnLineCommentLeadsStatementAndTrailingCommentFollows(string input, string ownLineComment, string statementText, string trailingComment)
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var endingName = DescribeLineEnding(endOfLine);
+            var formatted = Format(NormalizeLineEndings(input, endOfLine));
+
+            Assert.AreEqual(formatted, Format(formatted), $"Formatter is not idempotent under {endingName} line endings.");
+            AssertUsesLineEnding(formatted, endOfLine);
+            Assert.MatchesRegex(new Regex($@"\{{\r?\n[ ]*{Regex.Escape(ownLineComment)}\r?\n[ ]*{Regex.Escape(statementText)}", RegexOptions.None, Regex.InfiniteMatchTimeout),
+                                formatted,
+                                $"The own-line comment must lead the created statement inside the block under {endingName} line endings.");
+
+            var statementIndex = formatted.IndexOf(statementText, StringComparison.Ordinal);
+            var trailingIndex = formatted.IndexOf(trailingComment, StringComparison.Ordinal);
+
+            Assert.AreEqual(trailingIndex, formatted.LastIndexOf(trailingComment, StringComparison.Ordinal), $"The comment behind the semicolon must appear once under {endingName} line endings.");
+            Assert.IsGreaterThan(statementIndex, trailingIndex, $"The comment behind the semicolon must stay behind the statement under {endingName} line endings.");
         }
     }
 

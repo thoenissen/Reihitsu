@@ -538,3 +538,30 @@ scripts/test.sh --project formatter --filter "FullyQualifiedName~SwitchSectionSh
 Result: 46 tests, 13 failed (A8 ×4, A2 ×9), 33 passed.
 
 `sdd/specs/formatter/structural-transforms.md` has an uncommitted change in the worktree that is not mine (A9 belongs to the spec author). It was not staged.
+
+## Revision 6 — repair round 2, FMT-STRUCT-006 trailing comments
+
+Tests run on head 15aefa2. They cover the sentence that spec author revision 7 added to FMT-STRUCT-006, for which the spec checker (`06-spec-checker.md` revision 3) found no test. The sentence says that a comment further along the arrow's line, behind the expression or behind the semicolon, does not stand at the arrow and must not stop the move, so the own-line comments still lead the created statement. All four tests are in `ExpressionBodyArrowCommentTests` and tagged FMT-STRUCT-006. Each runs under LF and CRLF, with a second pass.
+
+| Test | Input | Helper | Expected now |
+|---|---|---|---|
+| `CommentBehindTheExpressionOnTheArrowLineDoesNotStopTheMove` | `int M()` / `// a` / `=> 42 /* t */;` | `AssertRuleResult(input, expected)`: `{` / `// a` / `return 42 /* t */;` / `}` | passes |
+| `CommentBehindTheExpressionDoesNotStopTheMoveOfACommentAfterTheArrow` | `int M() =>` / `// a` / `42 /* t */;` | `AssertRuleResult(input, expected)`, same output | passes |
+| `CommentBehindTheSemicolonOnTheArrowLineDoesNotStopTheMove` | `int N()` / `// b` / `=> 42; // t` | `AssertOwnLineCommentLeadsStatementAndTrailingCommentFollows` | passes |
+| `CommentBehindTheSemicolonDoesNotStopTheMoveOfACommentAfterTheArrow` | `int N() =>` / `// b` / `42; // t` | same helper | passes |
+
+What each test pins, derived from the spec:
+
+- **Comment behind the expression.** The full output is decided, so these tests assert it exactly. The own-line comment leads the created statement (the move). The expression joins `return`. A comment between the expression and the semicolon stays in front of the statement's semicolon (first paragraph of FMT-STRUCT-006).
+- **Comment behind the semicolon.** The spec decides only the move and the order, not where `// t` goes. Today it ends up as `} // t`, and the first paragraph's "carried into the block" would not obviously describe that place. So the new private helper asserts only these points:
+  - the own-line comment stands on the line directly after the block's `{` and directly above `return 42;`;
+  - `// t` appears once, behind the statement;
+  - a second pass changes nothing.
+
+All four pass on this head. The behavior already existed, as the spec checker confirmed by hand; these tests now cover it.
+
+```shell
+scripts/test.sh --project formatter --filter "FullyQualifiedName~ExpressionBodyArrowCommentTests"
+```
+
+Result: 22 passed.
