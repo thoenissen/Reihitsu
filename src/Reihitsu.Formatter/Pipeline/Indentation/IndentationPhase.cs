@@ -21,7 +21,8 @@ internal sealed class IndentationPhase : IFormattingPhase
         cancellationToken.ThrowIfCancellationRequested();
 
         // A node that is still part of its document is laid out as a tree of its own, as every earlier phase that rewrites
-        // it already makes it: its first token starts the tree's text, and no token outside it decides a line
+        // it already makes it: its first token starts the tree's text, its lines are numbered from its own start, which the
+        // layout and the move of raw string lines share, and no token outside it decides a line
         if (root.Parent != null)
         {
             root = CSharpSyntaxTree.Create((CSharpSyntaxNode)root, root.SyntaxTree.Options as CSharpParseOptions).GetRoot(cancellationToken);
