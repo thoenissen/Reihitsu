@@ -238,6 +238,150 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that an enum member target that starts its line behind two blank lines, one of which the phases would remove,
+    /// keeps both blank lines of the document and takes the column the indentation phase gives it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task EnumMemberTargetBehindTwoBlankLinesKeepsBothBlankLinesAndTakesThePhaseColumn()
+    {
+        const string input = "enum E\n{\n    A,\n\n\n  B,\n    C\n}";
+        const string expected = "enum E\n{\n    A,\n\n\n    B,\n    C\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             root => root.DescendantNodes().OfType<EnumMemberDeclarationSyntax>().Single(member => member.Identifier.Text == "B"),
+                                             SelectSingle<EnumDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that an enum member target behind a comment line, above which the phases would add a blank line, gets no blank
+    /// line, and the comment and the member take the columns the indentation phase gives them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task EnumMemberTargetBehindCommentLineKeepsTheMissingBlankLineAndTakesThePhaseColumns()
+    {
+        const string input = "enum E\n{\n    A,\n      // b\n  B,\n    C\n}";
+        const string expected = "enum E\n{\n    A,\n    // b\n    B,\n    C\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             root => root.DescendantNodes().OfType<EnumMemberDeclarationSyntax>().Single(member => member.Identifier.Text == "B"),
+                                             SelectSingle<EnumDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that an enum member target behind a conditional directive and a blank line keeps the directive in column 0, the
+    /// blank line behind it, and the column the indentation phase gives the member
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task EnumMemberTargetBehindConditionalDirectiveAndBlankLineKeepsBoth()
+    {
+        const string input = "enum E\n{\n    A,\n  #if !DEBUG\n\n      B,\n#endif\n    C\n}";
+        const string expected = "enum E\n{\n    A,\n#if !DEBUG\n\n    B,\n#endif\n    C\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             root => root.DescendantNodes().OfType<EnumMemberDeclarationSyntax>().Single(member => member.Identifier.Text == "B"),
+                                             SelectSingle<EnumDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that an enum member target behind a region directive, around which the phases would add blank lines, gets no
+    /// blank line, and the directive and the member take the columns the indentation phase gives them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task EnumMemberTargetBehindRegionDirectiveKeepsTheMissingBlankLinesAndTakesThePhaseColumns()
+    {
+        const string input = "enum E\n{\n    A,\n  #region R\n  B,\n  #endregion\n    C\n}";
+        const string expected = "enum E\n{\n    A,\n    #region R\n    B,\n  #endregion\n    C\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             root => root.DescendantNodes().OfType<EnumMemberDeclarationSyntax>().Single(member => member.Identifier.Text == "B"),
+                                             SelectSingle<EnumDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that an enum member target behind a documentation comment, above which the phases would add a blank line, gets
+    /// no blank line, and every line of the comment and the member take the columns the indentation phase gives them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task EnumMemberTargetBehindDocumentationCommentKeepsTheMissingBlankLineAndTakesThePhaseColumns()
+    {
+        const string input = "enum E\n{\n    A,\n      /// <summary>\n      /// B\n      /// </summary>\n  B,\n    C\n}";
+        const string expected = "enum E\n{\n    A,\n    /// <summary>\n    /// B\n    /// </summary>\n    B,\n    C\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             root => root.DescendantNodes().OfType<EnumMemberDeclarationSyntax>().Single(member => member.Identifier.Text == "B"),
+                                             SelectSingle<EnumDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that an enum member target behind two blank lines and a documentation comment keeps both blank lines, and the
+    /// comment and the member take the columns the indentation phase gives them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task EnumMemberTargetBehindTwoBlankLinesAndDocumentationCommentKeepsBothBlankLines()
+    {
+        const string input = "enum E\n{\n    A,\n\n\n      /// <summary>\n      /// B\n      /// </summary>\n  B,\n    C\n}";
+        const string expected = "enum E\n{\n    A,\n\n\n    /// <summary>\n    /// B\n    /// </summary>\n    B,\n    C\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             root => root.DescendantNodes().OfType<EnumMemberDeclarationSyntax>().Single(member => member.Identifier.Text == "B"),
+                                             SelectSingle<EnumDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that an enum member target behind two comments with a blank line between them keeps exactly that blank line,
+    /// and both comments and the member take the columns the indentation phase gives them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task EnumMemberTargetBehindSeveralCommentsKeepsTheDocumentsBlankLinesAndTakesThePhaseColumns()
+    {
+        const string input = "enum E\n{\n    A,\n      // b\n\n  /* c */\n      B,\n    C\n}";
+        const string expected = "enum E\n{\n    A,\n    // b\n\n    /* c */\n    B,\n    C\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             root => root.DescendantNodes().OfType<EnumMemberDeclarationSyntax>().Single(member => member.Identifier.Text == "B"),
+                                             SelectSingle<EnumDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a parameter target behind two blank lines and a comment keeps both blank lines, and the comment and the
+    /// parameter align with the first parameter, where the indentation phase puts them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task ParameterTargetBehindTwoBlankLinesAndCommentKeepsBothBlankLinesAndTakesThePhaseColumns()
+    {
+        const string input = "class C\n{\n    void M(int a,\n\n\n      // b\n               int b)\n    {\n    }\n}";
+        const string expected = "class C\n{\n    void M(int a,\n\n\n           // b\n           int b)\n    {\n    }\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             root => root.DescendantNodes().OfType<ParameterSyntax>().Last(),
+                                             SelectSingle<ParameterListSyntax>);
+    }
+
+    /// <summary>
     /// Selects the only node of the given type in the root
     /// </summary>
     /// <typeparam name="TNode">Type of the node</typeparam>
