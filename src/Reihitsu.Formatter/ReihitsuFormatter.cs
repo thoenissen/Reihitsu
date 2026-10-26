@@ -237,9 +237,10 @@ public static class ReihitsuFormatter
     /// Single-statement accessor blocks are kept rather than converted to expression bodies, and get-only properties and
     /// indexers keep their accessor list rather than becoming expression-bodied members, because this entry point
     /// serves code fixes. Version-dependent rules follow the effective language version of the document's project, clamped
-    /// to the newest supported version. When the target is the context node, formatting is delegated to
-    /// <see cref="FormatNodeInDocumentAsync(Document, SyntaxNode, CancellationToken)"/>, including its removal of the separator
-    /// whitespace in front of the target
+    /// to the newest supported version. The target's leading trivia is written back as it stands in the document, so a
+    /// target that starts a later line of the context keeps that line's column. When the target is the context node,
+    /// formatting is delegated to <see cref="FormatNodeInDocumentAsync(Document, SyntaxNode, CancellationToken)"/>, including
+    /// its removal of the separator whitespace in front of the target
     /// </remarks>
     public static async Task<Document> FormatNodeInDocumentWithContextAsync(Document document,
                                                                             SyntaxNode targetNode,
@@ -269,16 +270,12 @@ public static class ReihitsuFormatter
             return document;
         }
 
-        // Only the target is written back, and its original leading trivia only where FMT-PIPE-010 keeps it. The whitespace
-        // in front of the context's first token is therefore rewritten only when that token is the target's first token and
-        // the trivia is not kept; otherwise it stands as it is and each of its characters counts as one column. The
-        // indentation phase keeps the context's first token in that column (FMT-PIPE-017)
-        var originalFirstToken = targetNode.GetFirstToken();
-        var keepsLeadingTrivia = targetNode.Parent == root || ReihitsuFormatterHelpers.StartsOnNewLineIncludingDocumentation(originalFirstToken) == false;
-        var contextFirstToken = contextNode.GetFirstToken();
+        // Only the target is written back, and its leading trivia as it stands in the document (FMT-PIPE-018), so the
+        // whitespace in front of the context's first token is never rewritten and each of its characters counts as one
+        // column; the indentation phase keeps that token in its column (FMT-PIPE-017)
         int? rootFirstTokenColumn = contextNode == root
                                         ? null
-                                        : ReihitsuFormatterHelpers.ComputeDocumentColumn(contextFirstToken, contextFirstToken == originalFirstToken && keepsLeadingTrivia == false);
+                                        : ReihitsuFormatterHelpers.ComputeDocumentColumn(contextNode.GetFirstToken(), countsOwnWhitespaceTabsAsReplaced: false);
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var baseIndentLevel = ReihitsuFormatterHelpers.ComputeBaseIndentLevel(contextNode);
         var context = new FormattingContext(endOfLine,
@@ -288,6 +285,7 @@ public static class ReihitsuFormatter
                                             languageVersion: LanguageVersionResolver.Resolve(document.Project.ParseOptions),
                                             rootFirstTokenColumn: rootFirstTokenColumn);
         var targetTokenAnnotation = new SyntaxAnnotation();
+        var originalFirstToken = targetNode.GetFirstToken();
         var annotatedTarget = targetNode.ReplaceToken(originalFirstToken,
                                                       originalFirstToken.WithAdditionalAnnotations(targetTokenAnnotation));
         var annotatedContext = contextNode.ReplaceNode(targetNode, annotatedTarget);
@@ -300,15 +298,12 @@ public static class ReihitsuFormatter
             return document;
         }
 
-        // The target's original leading trivia is written back only where FMT-PIPE-010 keeps it: when the target does
-        // not start its line, or is a direct child of the root. A target that starts its line keeps the columns the
-        // indentation phase gave its leading lines, so no line moves after the last phase (FMT-PIPE-017), and the blank
-        // lines it had in the document, which a fix does not change (SHARED-FIX-006)
+        // The target's leading trivia is written back as it stands in the document, in every case: its blank lines, its
+        // comments and directives in their columns, and the whitespace in front of its first token (FMT-PIPE-018). A
+        // target that starts a later line of its context therefore keeps that line's column, while its other lines take
+        // the columns the phases gave them - the gap FMT-PIPE-017 records
         var formattedFirstToken = formattedTarget.GetFirstToken();
-        var updatedLeadingTrivia = keepsLeadingTrivia
-                                       ? originalFirstToken.LeadingTrivia
-                                       : ReihitsuFormatterHelpers.RestoreBlankLines(formattedFirstToken.LeadingTrivia, originalFirstToken.LeadingTrivia, endOfLine);
-        var updatedFirstToken = formattedFirstToken.WithLeadingTrivia(updatedLeadingTrivia)
+        var updatedFirstToken = formattedFirstToken.WithLeadingTrivia(originalFirstToken.LeadingTrivia)
                                                    .WithoutAnnotations(targetTokenAnnotation);
 
         formattedTarget = formattedTarget.ReplaceToken(formattedFirstToken, updatedFirstToken);
