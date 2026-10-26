@@ -16,7 +16,7 @@ sdd/
     analyzer/RH####.md   one spec per rule
     formatter/
       pipeline.md        phase order and cross-phase invariants
-      <phase>.md         one spec per pipeline phase
+      <phase>.md         one spec per pipeline phase, or per part of one
     shared/<behavior>.md behavior specified once and used by more than one spec
     cli/                 CLI specs
     playground/          Playground specs

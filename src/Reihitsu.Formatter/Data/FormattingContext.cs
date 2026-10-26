@@ -40,13 +40,17 @@ internal record FormattingContext
     /// <param name="rootListPosition">
     /// The position of the formatting root inside the statement or switch-section list of its document, or <see langword="default"/> when the caller supplies none
     /// </param>
+    /// <param name="rootFirstTokenColumn">
+    /// The column of the formatting root's first token in its document, or <see langword="null"/> when the root is laid out at its depth alone
+    /// </param>
     public FormattingContext(string endOfLine,
                              int baseIndentLevel = 0,
                              bool preserveRootDocumentationBoundary = false,
                              ConfigurableStructuralTransforms disabledStructuralTransforms = ConfigurableStructuralTransforms.None,
                              LanguageVersion languageVersion = LanguageVersion.Default,
                              PrecedingTokenFacts rootPrecedingToken = default,
-                             RootListPosition rootListPosition = default)
+                             RootListPosition rootListPosition = default,
+                             int? rootFirstTokenColumn = null)
     {
         EndOfLine = endOfLine;
         BaseIndentLevel = baseIndentLevel;
@@ -55,6 +59,7 @@ internal record FormattingContext
         LanguageVersion = LanguageVersionResolver.Resolve(languageVersion);
         RootPrecedingToken = rootPrecedingToken;
         RootListPosition = rootListPosition;
+        RootFirstTokenColumn = rootFirstTokenColumn;
     }
 
     #endregion // Constructor
@@ -109,6 +114,15 @@ internal record FormattingContext
     /// <see langword="default"/>, which means the root has no known preceding sibling
     /// </summary>
     public RootListPosition RootListPosition { get; }
+
+    /// <summary>
+    /// The column of the formatting root's first token in its document (FMT-PIPE-017). The indentation phase lays out the
+    /// root with the columns it gives the root at its depth, shifted so that the first token keeps this column, and nothing
+    /// moves a line after the last phase. Only <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> and
+    /// <see cref="ReihitsuFormatter.FormatNodeInDocumentWithContextAsync"/> supply it. Every other entry point leaves it at
+    /// <see langword="null"/>, which lays out the root at its depth
+    /// </summary>
+    public int? RootFirstTokenColumn { get; }
 
     #endregion // Properties
 

@@ -5,13 +5,13 @@
 | ID prefix | FMT-PIPE |
 | Status | Active |
 | Code owners | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `FormattingContext`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities` |
-| Uses | SHARED-FIX-006, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026 |
+| Uses | SHARED-FIX-001, SHARED-FIX-006, SHARED-FIX-007, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-CLEAN-001, FMT-CLEAN-005, FMT-EOL-001, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003 |
 
 This spec covers what holds for the formatter as a whole: the public entry points, the fixed phase order, and the invariants every phase must keep. What an individual phase decides is specified in that phase's own spec.
 
 ## Non-goals
 
-- The decisions of a single phase — each phase has its own spec, listed in FMT-PIPE-001.
+- The decisions of a single phase — each phase has its own spec, or two for the indentation phase, listed in FMT-PIPE-001.
 - File and directory walking, skipped file names, `--check`, `--dry-run`, and exit codes — those belong to the CLI specs.
 - Configuration. The formatter applies one fixed style and reads no `.editorconfig`, rule set, or option.
 - Formatting of code with syntax errors or of generated code (see FMT-PIPE-005 and FMT-PIPE-006).
@@ -24,20 +24,22 @@ The formatter MUST apply its phases in this order, each phase receiving the outp
 
 | # | Phase | Spec |
 |---|---|---|
-| 1 | `StructuralTransformPhase` | [structural-transforms.md](structural-transforms.md) (FMT-STRUCT) |
-| 2 | `RegionFormattingPhase` | [region-formatting.md](region-formatting.md) (FMT-REGION) |
-| 3 | `DocumentationCommentFormattingPhase` | [documentation-comments.md](documentation-comments.md) (FMT-DOC) |
-| 4 | `UsingDirectiveOrderingPhase` | [using-directives.md](using-directives.md) (FMT-USING) |
-| 5 | `BlankLinePhase` | [blank-lines.md](blank-lines.md) (FMT-BLANK) |
-| 6 | `LineBreakPhase` | [line-breaks.md](line-breaks.md) (FMT-BREAK) |
-| 7 | `SwitchCaseBracePhase` | [switch-case-braces.md](switch-case-braces.md) (FMT-SWITCH) |
-| 8 | `HorizontalSpacingPhase` | [horizontal-spacing.md](horizontal-spacing.md) (FMT-SPACE) |
-| 9 | `IndentationPhase` | [indentation.md](indentation.md) (FMT-INDENT) |
-| 10 | `RawStringAlignmentPhase` | [raw-string-alignment.md](raw-string-alignment.md) (FMT-RAW) |
+| 1 | `TabReplacementPhase` | [tab-replacement.md](tab-replacement.md) (FMT-TAB) |
+| 2 | `StructuralTransformPhase` | [structural-transforms.md](structural-transforms.md) (FMT-STRUCT) |
+| 3 | `RegionFormattingPhase` | [region-formatting.md](region-formatting.md) (FMT-REGION) |
+| 4 | `DocumentationCommentFormattingPhase` | [documentation-comments.md](documentation-comments.md) (FMT-DOC) |
+| 5 | `UsingDirectiveOrderingPhase` | [using-directives.md](using-directives.md) (FMT-USING) |
+| 6 | `BlankLinePhase` | [blank-lines.md](blank-lines.md) (FMT-BLANK) |
+| 7 | `LineBreakPhase` | [line-breaks.md](line-breaks.md) (FMT-BREAK) |
+| 8 | `SwitchCaseBracePhase` | [switch-case-braces.md](switch-case-braces.md) (FMT-SWITCH) |
+| 9 | `HorizontalSpacingPhase` | [horizontal-spacing.md](horizontal-spacing.md) (FMT-SPACE) |
+| 10 | `IndentationPhase` | [indentation.md](indentation.md) (FMT-INDENT) and [raw-string-alignment.md](raw-string-alignment.md) (FMT-RAW) |
 | 11 | `CleanupPhase` | [cleanup.md](cleanup.md) (FMT-CLEAN) |
 | 12 | `LineEndingNormalizationPhase` | [line-endings.md](line-endings.md) (FMT-EOL) |
 
-Why: Later phases rely on the shape earlier phases produce — line breaks are decided before spacing and indentation measure columns, raw strings are aligned to the indentation that was just computed, and line endings are normalized last so every inserted line break is covered. A phase may assume the phases before it ran; it must not assume anything about the phases after it.
+A phase MUST NOT compute the column of a token, a comment, or a line from a move or a replacement that a phase after it applies, neither by repeating that phase's rule nor by adjusting for its result: the tab width of FMT-TAB-001 and the raw-string move of FMT-RAW-001 are applied before or in the phase that measures them. This requirement specifies columns only; it does not decide whether a phase may anticipate a later phase's line breaks or blank lines.
+
+Why: Later phases rely on the shape earlier phases produce — tabs are gone before any layout is computed, line breaks are decided before spacing and indentation measure columns, raw strings are aligned in the phase that places their opening quotes, and line endings are normalized last so every inserted line break is covered. A phase may assume the phases before it ran; it must not assume anything about the phases after it. A phase that predicts a later one makes one decision in two places, and every difference between the prediction and the later phase is output that the next pass changes again (FMT-PIPE-004).
 
 ### FMT-PIPE-002 — User-authored content survives
 
@@ -224,7 +226,7 @@ Why: The CLI, the analyzer code fixes, and the Playground share one engine. Keep
 
 ### FMT-PIPE-010 — Node-level entry points format only their target
 
-`FormatNodeInDocumentAsync` and `FormatNodeInDocumentWithContextAsync` MUST rewrite only the target node and keep the rest of the document as it is. The one exception is the whitespace that ended the line before a documentation comment the target moves onto its own line, which MUST be removed as document-level formatting removes it. The target's leading trivia MUST be kept when the target does not start its line or is a direct child of the root, and its trailing trivia MUST be kept in every case.
+`FormatNodeInDocumentAsync` and `FormatNodeInDocumentWithContextAsync` MUST rewrite only the target node and keep the rest of the document as it is. The one exception is the whitespace that ended the line before a documentation comment the target moves onto its own line, which MUST be removed as document-level formatting removes it. `FormatNodeInDocumentAsync` MUST keep the target's leading trivia when the target does not start its line or is a direct child of the root; `FormatNodeInDocumentWithContextAsync` MUST keep it in every case (FMT-PIPE-018). Both MUST keep the target's trailing trivia in every case.
 
 Why: These entry points serve code fixes, which change only the code their diagnostic is about (SHARED-FIX-006). Reformatting the surrounding document would turn a one-line fix into an unrelated diff.
 
@@ -360,5 +362,180 @@ class C
         a = b;
         b = a;
     }
+}
+```
+
+### FMT-PIPE-015 — Columns are final after the indentation phase
+
+The phases after `IndentationPhase` MUST NOT change the column of any token, comment, or directive, nor the indentation of a content line or the closing line of a multi-line raw string literal. They MAY remove whitespace that ends a line and line breaks at the end of the file (FMT-CLEAN-001, FMT-CLEAN-005), and rewrite the characters of a line ending (FMT-EOL-001).
+
+Why: The indentation phase measures every anchor at its final column (FMT-INDENT-030). That holds only when no later phase moves text within a line; a later move would force the indentation phase to predict it, which FMT-PIPE-001 rules out.
+
+Example — the indentation phase places `2` under `1` and moves the raw string under its opening quotes; the output of that phase already has every line in its final column, and the phases after it only remove the final line break:
+
+```csharp
+class C
+{
+void M()
+{
+var s = """
+    a
+    """;
+
+    Call(1,
+2);
+}
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var s = """
+                a
+                """;
+
+        Call(1,
+             2);
+    }
+}
+```
+
+When a line of the input ends in spaces, the cleanup phase removes them, and no token moves. When the input has a tab in front of a trailing comment, such as `Call(1,`, a tab, `// c`, that tab is already four spaces when the indentation phase runs (FMT-PIPE-016), so the comment keeps the column the indentation phase left it in.
+
+### FMT-PIPE-016 — No phase after the first sees or writes a tab in whitespace
+
+The formatter MUST replace the tabs in the whitespace of the code and between directive tokens (FMT-TAB-001, FMT-TAB-002) in its first phase, and a later phase MUST NOT write a tab into that whitespace, so every phase after the first receives and returns it without tabs and counts every character of it as one column. The whitespace inside a documentation comment, a comment, a literal, or disabled text, and a directive's free text, keep their tabs (FMT-TAB-003) and are outside this requirement: a tab in front of a continuation line's `///` reaches the indentation phase, which replaces that whitespace as a whole (FMT-INDENT-008).
+
+Why: All layout is computed in spaces. A tab that survives into a later phase has a width that each phase has to agree on, and a phase that counts it differently from the phase that finally replaces it places a token where the next pass moves it (FMT-PIPE-004). Replacing every tab first leaves no width to agree on.
+
+Example — not shown as an input block because the input contains tabs: in
+
+```csharp
+class C
+{
+    void M()
+    {
+        Call(1,
+             2);
+    }
+}
+```
+
+when the indentation of every line is written with tabs, the output of the first phase holds four spaces for each of those tabs, every later phase receives that text without a tab, and the result is the block above.
+
+### FMT-PIPE-017 — Node-level targets take their columns from the indentation phase
+
+`FormatNodeInDocumentAsync` and `FormatNodeInDocumentWithContextAsync` MUST NOT change the column of a line after the last phase: every line they write back MUST end in the column the indentation phase gives it (FMT-PIPE-015), apart from the leading trivia they keep (FMT-PIPE-010, FMT-PIPE-018) and the recorded gap below. The indentation phase MUST lay out the node they format — the target, or the context node — with the columns it gives that node at its depth, shifted by the node's offset: the column of the node's first token in the document, less the column the phase gives that token at the node's depth. The first token therefore stays in its column, a line placed by the depth keeps its place relative to the first token, and a line aligned to an anchor follows the anchor where the phase puts it. This holds for every line written back, also for a line that starts inside a comment that began on an earlier line, for the lines aligned to an anchor on such a line (FMT-INDENT-030), and for the content, hole, and closing lines of a multi-line raw string literal (FMT-RAW-001, FMT-RAW-007). When the first token stands behind the last line of a multi-line comment, the phase does not place its line (FMT-INDENT-007), the token keeps its column, and the offset is zero.
+
+The column of the first token in the document is the number of characters in front of it on its line, each one column, with two exceptions:
+
+- A tab in whitespace that belongs to the node and that the entry point does not keep — the leading whitespace of a target of `FormatNodeInDocumentAsync` that starts its line and whose leading trivia FMT-PIPE-010 does not keep — counts as four columns, because the first phase replaces it (FMT-TAB-001). `FormatNodeInDocumentWithContextAsync` keeps its target's leading trivia in every case (FMT-PIPE-018), so for it every character in front of the context's first token counts as one column.
+- A byte order mark at the start of the text counts as zero columns, as in the layout the phases compute; the raw-string move still counts it as FMT-RAW-005 states.
+
+So a tab in the whitespace in front of a node that does not start its line, which belongs to the code in front of the node and is kept, counts as one column, and so does a tab inside a comment or a literal, which is kept (FMT-TAB-003). The leading trivia that FMT-PIPE-010 and FMT-PIPE-018 keep is written back as it stands and is outside this requirement, and so are the lines of the context node outside the target, which `FormatNodeInDocumentWithContextAsync` does not write back.
+
+Recorded gap — a target of `FormatNodeInDocumentWithContextAsync` whose first token the phases place in another line or column than the one it keeps in the document. The entry point writes back only the target, with its leading trivia as in the document, the whitespace in front of its first token included (FMT-PIPE-010, FMT-PIPE-018), and keeps everything in front of it on its line as it stands. So the target's first token stays where it stood in the document, while the other lines of the target take the columns the phases gave them; a line aligned to an anchor on the target's first line stands where the anchor stood in the phases' layout, not where the anchor ends up. This requirement does not cover the target's first line or the lines whose column depends on it. The gap has two known cases:
+
+- The target starts a later line of its context, and the phases give that line another column than the whitespace in front of it in the document.
+- The target does not start its line, and the phases break the line in front of it. The line break they add is not written back, so the target stays on the line where it started, in its column in the document, while its other lines take the columns the phases gave them on the new line.
+
+A target whose first token the phases leave in its line and column in the document is not in the gap: what stands in front of it is written back unchanged, and the phases laid the target out from that column. That covers a target that starts the context's first line, and a target that does not start its line and in front of which the phases change nothing on that line.
+
+Example — the second case: with the argument `Wrap(…)` of `        var x = Call(1, Wrap("""` / `    a` / `    """));` as target and the statement as context, the phases put the argument on a line of its own under `1`, in column 21, and the content line and the closing marker of the raw string literal under its opening quotes in column 26. The line break is not written back, so `Wrap(` stays on the first line, the opening quotes stand in column 29, and the content line and the closing marker stand in column 26, three columns left of them.
+
+Example — the first case: the RH5111 fix of the declarator `b` in `        int a = 1,` / `              b =` / `                  Other(1,` / `                        2);`, with the statement as context: the result is `              b = Other(1,` / `                  2);`, `b` keeps column 14, and `2` stands in column 18, under the column `1` had with `b` in the phases' column 8, while `1` ends up in 24.
+
+Why: A code fix formats only the code its diagnostic is about (FMT-PIPE-010), and the columns of that code have to be the columns the formatter gives it, so that formatting the result changes nothing in it (SHARED-FIX-007). When the node is formatted as if it started at another column and its lines are moved afterwards, the move reaches only lines that start with whitespace: the line behind a multi-line comment's last line and the lines of a raw string literal stay where the phases left them, while the lines aligned to them move, and a tab in the node's own leading whitespace counted as one column by the move but as four by the phases puts the node a few columns off. Laying out the node at its own column leaves nothing to move, so the indentation phase is the only owner of a line's final column for node-level targets too, as it is for documents (FMT-PIPE-001). Whitespace in front of the node that the entry point does not rewrite is counted as it stands, as the rules that report the code count it, so a fix's output is measured by its rule in the column the fix gave it (SHARED-FIX-001).
+
+Example — `FormatNodeInDocumentAsync` with the `EqualsValueClauseSyntax` `= /* a … List<int> …` as target; `new` stands behind the last line of a multi-line comment, in column 24, and the braces and the element are laid out from it, as document-level formatting lays them out:
+
+```csharp
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var d = /* a
+                   b */ new List<int>
+          {
+            1
+          };
+    }
+}
+```
+
+```csharp
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var d = /* a
+                   b */ new List<int>
+                        {
+                            1
+                        };
+    }
+}
+```
+
+Example — with the `EqualsValueClauseSyntax` `= """ …` of `        var s = """` / `    a` / `    """;` as target, the content line and the closing marker move under the opening quotes in column 16, as in document-level formatting.
+
+Example — in a class whose members are indented with two spaces, the RH3202 fix converts `  int Get() => 1;` and formats the method: the first token keeps column 2, and the lines placed by the depth keep their place relative to it, so the result is `  int Get()`, `  {`, `      return 1;`. The same fix on `  string S() => """` / `      a` / `      """;` gives `      return """` with the opening quotes in column 13, and the content line and the closing marker in column 13 under them.
+
+Example — not shown as input blocks because the inputs contain tabs: the statement `Call(1,` / `2);` is indented with two tabs, as is the method around it, and is the target. The tabs belong to the target's leading whitespace, so its first token counts as column 8, and the output is `        Call(1,` / `             2);`, with eight and thirteen spaces, while the lines of the method outside the target keep their tabs. In `→→var d = new List<int>` with its braces out of place and the `EqualsValueClauseSyntax` as target, the two tabs stand in front of the target and are kept, so they count as one column each: `new` stands in column 10, and the braces are written with ten spaces in front of them.
+
+### FMT-PIPE-018 — The context entry point writes back its target's leading trivia as in the document
+
+`FormatNodeInDocumentWithContextAsync` MUST write back the target's leading trivia as it stands in the document, in every case: its blank lines, its comments and directives in their columns, and the whitespace in front of the target's first token. The blank-line requirements (FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014) and the columns the indentation phase gives those lines do not change it. This requirement does not decide the leading trivia of a target of `FormatNodeInDocumentAsync`, which FMT-PIPE-010 states.
+
+Why: The entry point serves code fixes whose target starts a later line of the context, such as the RH5111 fix of an enum member, a parameter, or a declarator. A fix must not change the blank lines between the code it changes and its neighbours (SHARED-FIX-006), and writing back the trivia as it stands keeps them. Writing back the phases' trivia instead, with the document's blank lines put back, would need the entry point to decide again, for each part of the trivia, whether it starts its line — a decision the documentation phase makes differently when the token in front of the target lies inside the context; that is left to a restructuring of the entry point. The cost is the gap that FMT-PIPE-017 records: the target's first line keeps its column in the document.
+
+Example — the RH5111 fix of the enum member `B` with the enum as context; the two blank lines above it stay, where document-level formatting would collapse them to one, and `B` keeps its column:
+
+```csharp
+enum E
+{
+    A,
+
+
+  B =
+  2
+}
+```
+
+```csharp
+enum E
+{
+    A,
+
+
+  B = 2
+}
+```
+
+Example — the same with a comment line above `B`; no blank line is added above the comment, where document-level formatting would add one, and the comment and `B` keep their columns:
+
+```csharp
+enum E
+{
+    A,
+      // b
+  B =
+  2
+}
+```
+
+```csharp
+enum E
+{
+    A,
+      // b
+  B = 2
 }
 ```

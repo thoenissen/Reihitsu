@@ -137,5 +137,45 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyFormatterTests : F
                               ExpectedDiagnostic(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 6, 12, 8, 12, AnalyzerResources.RH5202MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter aligns a literal on a line that a comment leads to its opening quotes behind the comment,
+    /// clears the diagnostic, and stays stable on a second pass, while the chain link behind the closing marker aligns to its
+    /// anchor where the literal moved
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-RAW-005")]
+    public async Task VerifyFormatterAlignsLiteralOnCommentLedLineAndClearsTheDiagnostic()
+    {
+        const string input = """"
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     /* c */ var s = """
+                                 a
+                                 """.Trim()
+                                 .ToUpper();
+                                 }
+                             }
+                             """";
+        const string fixedData = """"
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         /* c */ var s = """
+                                                         a
+                                                         """.Trim()
+                                                            .ToUpper();
+                                     }
+                                 }
+                                 """";
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 5, 25, 7, 8, AnalyzerResources.RH5202MessageFormat));
+    }
+
     #endregion // Tests
 }

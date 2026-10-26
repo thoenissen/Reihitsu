@@ -133,43 +133,36 @@ internal static class ReihitsuFormatterHelpers
     }
 
     /// <summary>
-    /// Adjusts the indentation of all tokens within a node that start on a new line
-    /// by the given column offset
+    /// Computes the column of a node-level formatting root's first token in its document (FMT-PIPE-017): the number of
+    /// characters in front of it on its line, each one column, except that a byte order mark at the start of the text
+    /// counts as zero columns, and that a tab in the whitespace of the token's own leading trivia counts as four columns
+    /// when the entry point does not keep that trivia, because the first phase replaces it (FMT-TAB-001). A tab in front
+    /// of the token that the entry point keeps, or that stands inside a comment, counts as one column
     /// </summary>
-    /// <param name="node">The syntax node whose indentation to adjust</param>
-    /// <param name="columnOffset">The number of columns to shift (positive = right, negative = left)</param>
-    /// <returns>A new syntax node with adjusted indentation</returns>
-    internal static SyntaxNode AdjustNodeIndentation(SyntaxNode node, int columnOffset)
+    /// <param name="token">The first token of the formatting root. Must belong to a syntax tree</param>
+    /// <param name="countsOwnWhitespaceTabsAsReplaced">Whether the entry point writes back the token's leading trivia as the phases rewrite it</param>
+    /// <returns>The zero-based column of the token in its document</returns>
+    internal static int ComputeDocumentColumn(SyntaxToken token, bool countsOwnWhitespaceTabsAsReplaced)
     {
-        var firstToken = node.GetFirstToken();
-        var tokensToAdjust = new List<SyntaxToken>();
-        var afterEndOfLine = new Dictionary<SyntaxToken, bool>();
-        var genuinelyAfterEndOfLine = new Dictionary<SyntaxToken, bool>();
+        var text = token.SyntaxTree.GetText();
+        var lineStart = text.Lines.GetLineFromPosition(token.SpanStart).Start;
+        var column = 0;
 
-        foreach (var token in node.DescendantTokens())
+        for (var position = lineStart; position < token.SpanStart; position++)
         {
-            var isFirstToken = token == firstToken;
+            var character = text[position];
 
-            if (isFirstToken == false && StartsOnNewLine(token) == false)
+            if (position == 0 && character == '\uFEFF')
             {
                 continue;
             }
 
-            tokensToAdjust.Add(token);
-
-            var isAfterEndOfLine = IsAfterEndOfLine(token);
-
-            afterEndOfLine[token] = isFirstToken || isAfterEndOfLine;
-            genuinelyAfterEndOfLine[token] = isAfterEndOfLine;
+            column += character == '\t' && countsOwnWhitespaceTabsAsReplaced && IsInOwnLeadingWhitespace(token, position)
+                          ? SyntaxIndentationUtilities.IndentSize
+                          : 1;
         }
 
-        if (tokensToAdjust.Count == 0)
-        {
-            return node;
-        }
-
-        return node.ReplaceTokens(tokensToAdjust,
-                                  (original, rewritten) => AdjustLeadingWhitespace(rewritten, columnOffset, afterEndOfLine[original], genuinelyAfterEndOfLine[original]));
+        return column;
     }
 
     /// <summary>
@@ -248,6 +241,18 @@ internal static class ReihitsuFormatterHelpers
     #region Private methods
 
     /// <summary>
+    /// Determines whether a position lies in a whitespace trivia of the token's own leading trivia
+    /// </summary>
+    /// <param name="token">The token</param>
+    /// <param name="position">The position in the token's text</param>
+    /// <returns><see langword="true"/> if a whitespace trivia of the token's leading trivia covers the position; otherwise, <see langword="false"/></returns>
+    private static bool IsInOwnLeadingWhitespace(SyntaxToken token, int position)
+    {
+        return token.LeadingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)
+                                                 && trivia.FullSpan.Contains(position));
+    }
+
+    /// <summary>
     /// Determines whether comment text contains a generated-file marker
     /// </summary>
     /// <param name="commentText">The comment text to inspect</param>
@@ -275,71 +280,6 @@ internal static class ReihitsuFormatterHelpers
         var trailing = prevToken.TrailingTrivia;
 
         return trailing.Count > 0 && trailing.Last().IsKind(SyntaxKind.EndOfLineTrivia);
-    }
-
-    /// <summary>
-    /// Adjusts the leading whitespace trivia of a token by the given column offset.
-    /// Only whitespace trivia that appears at the beginning of a line is adjusted
-    /// </summary>
-    /// <param name="token">The token whose leading whitespace to adjust</param>
-    /// <param name="columnOffset">The number of columns to shift (positive = right, negative = left)</param>
-    /// <param name="previousEndsWithEndOfLine">Whether the previous token's trailing trivia ends with an end-of-line</param>
-    /// <param name="genuinelyPrecededByEndOfLine">
-    /// Whether the token is genuinely preceded by an end-of-line — the previous token's trailing trivia ends
-    /// with one, regardless of <paramref name="previousEndsWithEndOfLine"/>'s forced <see langword="true"/> for
-    /// the node's own first token. A missing whitespace entry may only be filled in when this is
-    /// <see langword="true"/> (or becomes true from an end-of-line trivia found in this token's own leading
-    /// trivia below); otherwise a first token that never starts a real line — for example one immediately
-    /// following an opening brace on the same line — would gain indentation it never had
-    /// </param>
-    /// <returns>A new token with adjusted leading whitespace</returns>
-    private static SyntaxToken AdjustLeadingWhitespace(SyntaxToken token, int columnOffset, bool previousEndsWithEndOfLine, bool genuinelyPrecededByEndOfLine)
-    {
-        var leadingTrivia = token.LeadingTrivia;
-        var newTrivia = new List<SyntaxTrivia>(leadingTrivia.Count);
-        var atLineStart = previousEndsWithEndOfLine;
-        var canInsertMissingWhitespace = genuinelyPrecededByEndOfLine;
-
-        foreach (var trivia in leadingTrivia)
-        {
-            if (atLineStart && trivia.IsKind(SyntaxKind.WhitespaceTrivia))
-            {
-                var currentWidth = trivia.Span.Length;
-                var newWidth = Math.Max(0, currentWidth + columnOffset);
-
-                newTrivia.Add(SyntaxFactory.Whitespace(new string(' ', newWidth)));
-                atLineStart = false;
-            }
-            else
-            {
-                var adjustedTrivia = trivia;
-
-                if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
-                {
-                    adjustedTrivia = DocumentationCommentUtilities.ShiftContinuationExteriorMarkers(trivia, columnOffset);
-                }
-
-                newTrivia.Add(adjustedTrivia);
-                atLineStart = trivia.IsKind(SyntaxKind.EndOfLineTrivia)
-                              || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-                              || (trivia.HasStructure
-                                  && trivia.GetStructure() is DirectiveTriviaSyntax);
-
-                if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-                {
-                    canInsertMissingWhitespace = true;
-                }
-            }
-        }
-
-        // A token that already starts at column zero has no whitespace trivia entry for the loop above to
-        // adjust, so a positive offset needs a new one inserted here instead of being silently dropped
-        if (atLineStart && canInsertMissingWhitespace && columnOffset > 0)
-        {
-            newTrivia.Add(SyntaxFactory.Whitespace(new string(' ', columnOffset)));
-        }
-
-        return token.WithLeadingTrivia(newTrivia);
     }
 
     #endregion // Private methods

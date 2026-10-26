@@ -10,14 +10,20 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 
 /// <summary>
 /// Applies the computed layout model to a syntax tree by rewriting leading trivia
-/// on first-on-line tokens to produce the correct indentation
+/// on first-on-line tokens to produce the correct indentation, then moving the lines of
+/// multi-line raw string literals by the shifts the same model computed
 /// </summary>
 internal static class IndentationRewriter
 {
     #region Methods
 
     /// <summary>
-    /// Applies indentation from the layout model to the syntax tree
+    /// Applies indentation from the layout model to the syntax tree. Every line is placed first; then the content
+    /// lines, the hole lines, and the closing marker of each multi-line raw string literal move by the shift
+    /// <see cref="LayoutModel.GetRawStringShift"/> gives their line, which is the shift every anchor on those lines
+    /// was measured with, so the literal's closing marker ends up under its opening quotes (FMT-RAW-001). The model
+    /// numbers the lines of the root's tree, and placing lines changes no line break, so the rewritten tree has the same
+    /// line numbers; the root is the root of its own tree, as <see cref="IndentationPhase"/> makes an attached input
     /// </summary>
     /// <param name="root">The syntax tree root</param>
     /// <param name="model">The computed layout model</param>
@@ -25,7 +31,9 @@ internal static class IndentationRewriter
     /// <returns>The syntax tree with corrected indentation</returns>
     public static SyntaxNode Apply(SyntaxNode root, LayoutModel model, CancellationToken cancellationToken)
     {
-        return root.ReplaceTokens(root.DescendantTokens(), (original, rewritten) => ApplyIndentation(original, rewritten, model, cancellationToken));
+        var indented = root.ReplaceTokens(root.DescendantTokens(), (original, rewritten) => ApplyIndentation(original, rewritten, model, cancellationToken));
+
+        return RawStringLineShifts.MoveLines(indented, model.GetRawStringShift, cancellationToken);
     }
 
     #endregion // Methods

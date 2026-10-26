@@ -933,6 +933,43 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests : Ba
         await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5301MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the fix lays out an object creation whose member holds a complex element behind the last line of a
+    /// multi-line comment as the formatter lays out the whole document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5301-004")]
+    [Requirement("FMT-PIPE-017")]
+    public async Task VerifyCreationWithComplexElementBehindTheLastLineOfAMultiLineCommentIsFixedAsTheFormatterLaysItOut()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    Dictionary<int, int> D { get; set; }
+
+                                    void M()
+                                    {
+                                        var c = {|RH5301:new C
+                                              {
+                                                    D = new Dictionary<int, int>
+                                                        {
+                                                            /* a
+                                                               b */ {
+                                                                        1,
+                                                                        2
+                                                                    }
+                                                        }
+                                                }|};
+                                    }
+                                }
+                                """;
+
+        await VerifyCodeFixMatchesFormatter(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

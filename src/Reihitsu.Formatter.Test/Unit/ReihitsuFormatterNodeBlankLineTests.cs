@@ -799,6 +799,66 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a single-line documentation comment behind the opening brace of a method body is moved onto its own line
+    /// above the first statement also when a tab stands in the whitespace of the target statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task MovesSingleLineDocumentationBehindOpeningBraceOfMethodBodyWhenTheTargetHoldsATab()
+    {
+        const string input = "public class TestClass\n{\n    public void M()\n    { /// Doc\n        M(\t);\n    }\n}";
+        const string expected = "public class TestClass\n{\n    public void M()\n    {\n        /// Doc\n        M();\n    }\n}";
+
+        await AssertFormatsTarget(input, expected, SelectStatement("M("));
+    }
+
+    /// <summary>
+    /// Verifies that a single-line documentation comment behind the opening brace of a type is moved onto its own line above
+    /// the first member also when a tab stands in the whitespace of the target property
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-DOC-001")]
+    [Requirement("FMT-PIPE-010")]
+    public async Task MovesSingleLineDocumentationBehindOpeningBraceOfTypeWhenTheTargetHoldsATab()
+    {
+        const string input = "public class TestClass\n{ /// Doc\n    public string Description {\tget; set; }\n}";
+        const string expected = "public class TestClass\n{\n    /// Doc\n    public string Description { get; set; }\n}";
+
+        await AssertFormatsTarget(input, expected, SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a single-line documentation comment behind a switch label is moved onto its own line above the first
+    /// statement of the section also when a tab stands in the whitespace of the target statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task MovesSingleLineDocumentationBehindCaseLabelWhenTheTargetHoldsATab()
+    {
+        const string input = "public class TestClass\n{\n    public void M(int v)\n    {\n        switch (v)\n        {\n            case 1: /// Doc\n                M(\t2);\n                break;\n        }\n    }\n}";
+        const string expected = "public class TestClass\n{\n    public void M(int v)\n    {\n        switch (v)\n        {\n            case 1:\n                /// Doc\n                M(2);\n                break;\n        }\n    }\n}";
+
+        await AssertFormatsTarget(input, expected, SelectStatement("M("));
+    }
+
+    /// <summary>
+    /// Verifies that a single-line documentation comment behind the opening brace of a method body is moved onto its own line
+    /// above the first statement when the target statement is indented with tabs, and that the statement and the comment start
+    /// in the column the two tabs stand for
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task MovesSingleLineDocumentationBehindOpeningBraceOfMethodBodyWhenTheTargetIsIndentedWithTabs()
+    {
+        const string input = "public class TestClass\n{\n    public void M()\n    { /// Doc\n\t\tM();\n    }\n}";
+        const string expected = "public class TestClass\n{\n    public void M()\n    {\n        /// Doc\n        M();\n    }\n}";
+
+        await AssertFormatsTarget(input, expected, SelectStatement("M("));
+    }
+
+    /// <summary>
     /// Verifies that a single-line documentation comment behind the previous statement is moved onto its own line above
     /// the following block statement with a blank line above it when that block is formatted, as document-level
     /// formatting does, and that a second pass does not change the result

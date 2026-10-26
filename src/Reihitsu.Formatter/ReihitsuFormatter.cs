@@ -174,7 +174,13 @@ public static class ReihitsuFormatter
 
         var originalFirstToken = targetNode.GetFirstToken();
         var precedingToken = originalFirstToken.GetPreviousToken();
-        var originalColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(originalFirstToken);
+        var keepsLeadingTrivia = targetNode.Parent == root || ReihitsuFormatterHelpers.StartsOnNewLineIncludingDocumentation(originalFirstToken) == false;
+
+        // The indentation phase lays out the target so that its first token keeps its column in the document, so no line
+        // is moved after the last phase (FMT-PIPE-017)
+        int? rootFirstTokenColumn = targetNode == root
+                                        ? null
+                                        : ReihitsuFormatterHelpers.ComputeDocumentColumn(originalFirstToken, keepsLeadingTrivia == false);
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var baseIndentLevel = ReihitsuFormatterHelpers.ComputeBaseIndentLevel(targetNode);
         var context = new FormattingContext(endOfLine,
@@ -183,17 +189,11 @@ public static class ReihitsuFormatter
                                             disabledStructuralTransforms: CodeFixDisabledStructuralTransforms,
                                             languageVersion: LanguageVersionResolver.Resolve(document.Project.ParseOptions),
                                             rootPrecedingToken: PrecedingTokenFacts.From(precedingToken),
-                                            rootListPosition: RootListPosition.From(targetNode));
+                                            rootListPosition: RootListPosition.From(targetNode),
+                                            rootFirstTokenColumn: rootFirstTokenColumn);
         var formattedTarget = FormattingPipeline.Execute(targetNode, context, cancellationToken);
-        var formattedColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(formattedTarget.GetFirstToken());
-        var columnOffset = originalColumn - formattedColumn;
 
-        if (columnOffset != 0)
-        {
-            formattedTarget = ReihitsuFormatterHelpers.AdjustNodeIndentation(formattedTarget, columnOffset);
-        }
-
-        if (targetNode.Parent == root || ReihitsuFormatterHelpers.StartsOnNewLineIncludingDocumentation(originalFirstToken) == false)
+        if (keepsLeadingTrivia)
         {
             var formattedFirstToken = formattedTarget.GetFirstToken();
             formattedTarget = formattedTarget.ReplaceToken(formattedFirstToken, formattedFirstToken.WithLeadingTrivia(originalFirstToken.LeadingTrivia));
@@ -237,9 +237,10 @@ public static class ReihitsuFormatter
     /// Single-statement accessor blocks are kept rather than converted to expression bodies, and get-only properties and
     /// indexers keep their accessor list rather than becoming expression-bodied members, because this entry point
     /// serves code fixes. Version-dependent rules follow the effective language version of the document's project, clamped
-    /// to the newest supported version. When the target is the context node, formatting is delegated to
-    /// <see cref="FormatNodeInDocumentAsync(Document, SyntaxNode, CancellationToken)"/>, including its removal of the separator
-    /// whitespace in front of the target
+    /// to the newest supported version. The target's leading trivia is written back as it stands in the document, so a
+    /// target that starts a later line of the context keeps that line's column. When the target is the context node,
+    /// formatting is delegated to <see cref="FormatNodeInDocumentAsync(Document, SyntaxNode, CancellationToken)"/>, including
+    /// its removal of the separator whitespace in front of the target
     /// </remarks>
     public static async Task<Document> FormatNodeInDocumentWithContextAsync(Document document,
                                                                             SyntaxNode targetNode,
@@ -269,28 +270,26 @@ public static class ReihitsuFormatter
             return document;
         }
 
-        var originalContextFirstToken = contextNode.GetFirstToken();
-        var originalColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(originalContextFirstToken);
+        // Only the target is written back, and its leading trivia as it stands in the document (FMT-PIPE-018), so the
+        // whitespace in front of the context's first token is never rewritten and each of its characters counts as one
+        // column; the indentation phase keeps that token in its column (FMT-PIPE-017)
+        int? rootFirstTokenColumn = contextNode == root
+                                        ? null
+                                        : ReihitsuFormatterHelpers.ComputeDocumentColumn(contextNode.GetFirstToken(), countsOwnWhitespaceTabsAsReplaced: false);
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var baseIndentLevel = ReihitsuFormatterHelpers.ComputeBaseIndentLevel(contextNode);
         var context = new FormattingContext(endOfLine,
                                             baseIndentLevel,
                                             preserveRootDocumentationBoundary: contextNode != root,
                                             disabledStructuralTransforms: CodeFixDisabledStructuralTransforms,
-                                            languageVersion: LanguageVersionResolver.Resolve(document.Project.ParseOptions));
+                                            languageVersion: LanguageVersionResolver.Resolve(document.Project.ParseOptions),
+                                            rootFirstTokenColumn: rootFirstTokenColumn);
         var targetTokenAnnotation = new SyntaxAnnotation();
         var originalFirstToken = targetNode.GetFirstToken();
         var annotatedTarget = targetNode.ReplaceToken(originalFirstToken,
                                                       originalFirstToken.WithAdditionalAnnotations(targetTokenAnnotation));
         var annotatedContext = contextNode.ReplaceNode(targetNode, annotatedTarget);
         var formattedContext = FormattingPipeline.Execute(annotatedContext, context, cancellationToken);
-        var formattedColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(formattedContext.GetFirstToken());
-        var columnOffset = originalColumn - formattedColumn;
-
-        if (columnOffset != 0)
-        {
-            formattedContext = ReihitsuFormatterHelpers.AdjustNodeIndentation(formattedContext, columnOffset);
-        }
 
         var formattedTarget = FindCorrespondingNode(targetNode, formattedContext, targetTokenAnnotation);
 
@@ -299,6 +298,10 @@ public static class ReihitsuFormatter
             return document;
         }
 
+        // The target's leading trivia is written back as it stands in the document, in every case: its blank lines, its
+        // comments and directives in their columns, and the whitespace in front of its first token (FMT-PIPE-018). A
+        // target that starts a later line of its context therefore keeps that line's column, while its other lines take
+        // the columns the phases gave them - the gap FMT-PIPE-017 records
         var formattedFirstToken = formattedTarget.GetFirstToken();
         var updatedFirstToken = formattedFirstToken.WithLeadingTrivia(originalFirstToken.LeadingTrivia)
                                                    .WithoutAnnotations(targetTokenAnnotation);

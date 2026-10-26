@@ -5,16 +5,16 @@
 | ID prefix | FMT-INDENT |
 | Status | Active |
 | Code owners | `IndentationPhase`, `LayoutComputer`, `LayoutModel`, `TokenLayout`, `IndentationRewriter`, `ListElementAligner`, `SyntaxIndentationUtilities`, `ArgumentAlignmentContributor`, `AngleBracketListAlignmentContributor`, `AnonymousObjectContributor`, `BaseTypeListContributor`, `BinaryExpressionContributor`, `CaseWhenClauseContributor`, `CollectionExpressionContributor`, `CommentIndentationContributor`, `ConditionalExpressionContributor`, `ConstructorInitializerContributor`, `GenericConstraintContributor`, `LambdaAlignmentContributor`, `ListPatternContributor`, `MethodChainAlignmentContributor`, `ObjectInitializerContributor`, `ParenthesizedPatternContributor`, `PatternAnchor`, `RecursivePatternContributor`, `SwitchExpressionContributor` |
-| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, SHARED-BLANK-002, SHARED-CHAIN-007, FMT-DOC-012, FMT-RAW-001, FMT-RAW-007, FMT-SWITCH-001 |
+| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-015, SHARED-BLANK-002, SHARED-CHAIN-007, FMT-DOC-012, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SWITCH-001 |
 
-This spec covers the indentation phase: the column at which every line that starts with a token begins — block indentation by scope depth, the alignment of wrapped constructs to an anchor token, and the re-indentation of comments and directives that start a line. Line breaks are already decided when this phase runs (FMT-PIPE-001); it only changes the whitespace in front of the first token or trivia of a line.
+This spec covers the indentation phase: the column at which every line that starts with a token begins — block indentation by scope depth, the alignment of wrapped constructs to an anchor token, and the re-indentation of comments and directives that start a line. Line breaks are already decided when this phase runs (FMT-PIPE-001); it only changes the whitespace in front of the first token or trivia of a line. The same phase moves the lines of multi-line raw string literals as FMT-RAW specifies, so the column it gives a line is final (FMT-PIPE-015).
 
 ## Non-goals
 
 - Where lines break — FMT-BREAK. This phase never adds or removes a line break.
 - Spacing between tokens on the same line — FMT-SPACE. The rest of a line keeps its spacing and moves with its first token.
 - Blank lines — FMT-BLANK.
-- The content lines and the closing marker of a multi-line raw string literal, and the lines inside its interpolation holes that no alignment inside the hole places — FMT-RAW.
+- How the content lines and the closing marker of a multi-line raw string literal, and the lines inside its interpolation holes that no alignment inside the hole places, are moved — FMT-RAW, which specifies that part of this phase.
 - The text of documentation comments other than the column of their `///` markers — FMT-DOC.
 - The column of a continuation line that no requirement below owns — for example the right operand of a wrapped binary expression, the expression after `=>` or `=` that stays on its own line, or the content of a parenthesized pattern that is not a property pattern. Such lines currently take the block column of the enclosing statement or declaration; indenting them one level deeper is a decided behavior change, tracked in thoenissen/Reihitsu#953.
 - Configuration. The indentation unit is fixed; no option or `.editorconfig` setting is read.
@@ -237,7 +237,7 @@ class C
 
 ### FMT-INDENT-006 — A comment on its own line takes the column of the code that follows it
 
-The formatter MUST indent a comment that starts its line — as decided by SHARED-BLANK-002 — to the column of the token it precedes. A comment that precedes a closing brace MUST be indented one level deeper than the brace, inside the scope it closes. A comment that does not start its line, such as a delimited documentation comment written behind an opening brace, MUST be left where it is and MUST NOT receive indentation in the middle of its line.
+The formatter MUST indent a comment that starts its line — as decided by SHARED-BLANK-002 — to the column of the token it precedes. When that token stands behind another comment that leads the token's line, the line starts with that comment: the comment on its own line above takes the column the token's line starts in, which is the column of the leading comment, not the column of the token behind it (FMT-INDENT-030): in a method body, `  // above` above `            /* c */ M();` gives `        // above` above `        /* c */ M();`. A comment that precedes a closing brace MUST be indented one level deeper than the brace, inside the scope it closes. A comment that does not start its line, such as a delimited documentation comment written behind an opening brace, MUST be left where it is and MUST NOT receive indentation in the middle of its line.
 
 Why: A comment on its own line describes the code below it and reads as part of that code's block. A comment at the end of a scope describes the scope's contents, not the brace. Indenting a comment that shares a line with code would insert whitespace into the middle of that line.
 
@@ -441,9 +441,9 @@ class C
 
 ### FMT-INDENT-011 — Disabled text and literal content are never re-indented
 
-The formatter MUST NOT change the whitespace inside disabled text or inside the text of a string or character literal, including the continuation lines of a verbatim string, and MUST NOT re-indent a content line or the closing line of a multi-line raw string literal, nor a line inside one of its interpolation holes that FMT-RAW-007 moves only with the literal. Only the other lines that start with a token, a comment, or a directive are re-indented; a line inside a hole that an alignment inside the hole places keeps that alignment.
+The formatter MUST NOT change the whitespace inside disabled text or inside the text of a string or character literal, including the continuation lines of a verbatim string, and MUST NOT give a content line or the closing line of a multi-line raw string literal, nor a line inside one of its interpolation holes that FMT-RAW-007 moves only with the literal, a column from the requirements of this spec: such a line moves only as FMT-RAW-001 and FMT-RAW-007 move it. Only the other lines that start with a token, a comment, or a directive are re-indented; a line inside a hole that an alignment inside the hole places keeps that alignment.
 
-Why: Disabled text is not parsed, so its structure is unknown; re-indenting it would half-format code nobody compiles. The whitespace inside a literal is part of its value (FMT-PIPE-002). Multi-line raw strings are aligned by their own phase (FMT-RAW-001), which moves the lines of their holes with them; giving a hole line a column here as well, from the scope depth or from a construct outside the hole, would add a second move that does not depend on where the literal sits.
+Why: Disabled text is not parsed, so its structure is unknown; re-indenting it would half-format code nobody compiles. The whitespace inside a literal is part of its value (FMT-PIPE-002). Multi-line raw strings are aligned as FMT-RAW-001 states, which moves the lines of their holes with them; giving a hole line a column from the scope depth or from a construct outside the hole as well would add a second move that does not depend on where the literal sits.
 
 Example:
 
@@ -982,6 +982,8 @@ class C
 
 For a nested initializer assigned to a member (`Child = { … }`), the formatter MUST indent an opening brace that starts a line to the column of the assigned member, and the closing brace to the same column as the opening brace. For an array initializer of a declaration (`int[] a = { … }`) and for a complex element initializer (`{ 1, 2 }` inside a collection initializer), the closing brace MUST be indented to the column of the opening brace. In every case the members that start a line MUST be indented one level deeper than the opening brace's column.
 
+When a comment leads the line of the opening brace, the comment takes the column that line starts in — for a nested initializer assigned to a member, the column of the assigned member (FMT-INDENT-006) — and the column of the opening brace is the column it stands in behind the comment (FMT-INDENT-030): the closing brace and the members follow that column, not the comment's. When the comment stands on a line above the brace, the brace starts its line, and its column is the column of that line.
+
 Why: Without a `new` keyword the target of the assignment is the closest token that owns the initializer; when the brace stays on the line of `=`, the brace itself is the anchor.
 
 Example:
@@ -1036,6 +1038,54 @@ class C
                       1,
                       2
                   };
+    }
+}
+```
+
+Example — a comment leads the line of a nested initializer's opening brace; the comment takes the column of `Child`, 20, the brace stands in column 28, and the member and the closing brace follow the brace:
+
+```csharp
+class P
+{
+    public int X { get; set; }
+
+    public P Child { get; set; } = new P();
+}
+
+class C
+{
+    void M()
+    {
+        var p = new P
+                {
+                    Child =
+                    /* c */ {
+                        X = 2
+                    }
+                };
+    }
+}
+```
+
+```csharp
+class P
+{
+    public int X { get; set; }
+
+    public P Child { get; set; } = new P();
+}
+
+class C
+{
+    void M()
+    {
+        var p = new P
+                {
+                    Child =
+                    /* c */ {
+                                X = 2
+                            }
+                };
     }
 }
 ```
@@ -1336,9 +1386,9 @@ class C
 
 ### FMT-INDENT-030 — Anchors are measured at their final column
 
-Every alignment above MUST be computed from the column its anchor token has after this phase, not from the column it had in the input: when the line of an anchor moves, everything aligned to it MUST move with it, through any number of nested constructs.
+Every alignment above MUST be computed from the column its anchor token has after this phase, not from the column it had in the input: when the line of an anchor moves, everything aligned to it MUST move with it, through any number of nested constructs. This holds also when the anchor's line is a line that a multi-line raw string literal moves — its closing line, or a line inside one of its interpolation holes: the anchor is measured after the literal moved (FMT-RAW-001, FMT-RAW-007), which happens in this phase.
 
-Why: Alignment against the input's columns would leave a wrapped list or initializer misaligned as soon as its owner is re-indented, and a second run would then move it again (FMT-PIPE-004).
+Why: Alignment against the input's columns would leave a wrapped list or initializer misaligned as soon as its owner is re-indented, and a second run would then move it again (FMT-PIPE-004). Because the raw string's lines move in this phase too, the anchor's final column is this phase's own result; no column has to be predicted from a phase that runs later.
 
 Example:
 
@@ -1368,6 +1418,158 @@ class C
 
     void Call(int a, int b)
     {
+    }
+}
+```
+
+Example — the anchor link `.Trim` stands behind the closing marker of a raw string literal that moves 12 columns to the right; `.ToUpper` aligns to the anchor where the move puts it:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var s = """
+    a
+    """.Trim()
+    .ToUpper();
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var s = """
+                a
+                """.Trim()
+                   .ToUpper();
+    }
+}
+```
+
+When the literal is not moved, because its closing marker already starts under its opening quotes, the link aligns to the same column, and the output is left unchanged.
+
+The column of an anchor is the column it has in this phase's output, counting everything that stands in front of it on its line. When a comment stands in front of a line's first token, on that token's line, the comment takes the column FMT-INDENT-006 gives it and the token keeps its gap behind the comment (FMT-INDENT-005): an anchor on that line is measured behind the comment, and so are the opening quotes of a raw string literal on it (FMT-RAW-005). The same holds for a token behind the last line of a multi-line comment, which this phase does not move (FMT-INDENT-007): the token is measured where that line puts it. A comment that ends with its line — a `//` comment, or a delimited comment followed by a line break — is not in front of the token on the token's line; the token then starts its line and is measured at the line's column.
+
+This holds also when the anchor is itself the first token of its line, such as the opening brace of a complex element initializer or of a nested initializer (FMT-INDENT-023), the opening bracket of a collection expression (FMT-INDENT-025), the `new` keyword of a creation expression (FMT-INDENT-022), the first token of a governing expression (FMT-INDENT-027), or the left operand of a wrapped binary expression (FMT-INDENT-018): the comment takes the column that the requirement placing the line gives its start, and the anchor is measured behind the comment, where it stands. A token that starts its line behind such a comment but anchors nothing — such as the opening brace of a creation initializer, whose members align to `new` (FMT-INDENT-022) — moves no other line.
+
+Example — a comment leads the line of the call; `1` stands behind it, in column 21, and `2` aligns there:
+
+```csharp
+class C
+{
+    void M()
+    {
+        /* c */ Call(1,
+2);
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        /* c */ Call(1,
+                     2);
+    }
+}
+```
+
+while a comment on the line above the call leaves `Call` at the start of its line, and `2` aligns to column 13:
+
+```csharp
+class C
+{
+    void M()
+    {
+        // c
+        Call(1,
+             2);
+    }
+}
+```
+
+Example — a comment leads the line of a raw string literal whose closing line carries the anchor link `.Trim`; the opening quotes stand behind the comment, in column 24, the literal moves under them, and `.ToUpper` aligns to `.Trim` where that move puts it:
+
+```csharp
+class C
+{
+    void M()
+    {
+        /* c */ var s = """
+    a
+    """.Trim()
+    .ToUpper();
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        /* c */ var s = """
+                        a
+                        """.Trim()
+                           .ToUpper();
+    }
+}
+```
+
+The same holds for the alignment of every other requirement above, such as a chain link: behind `/* c */ a.B()`, a wrapped `.C()` aligns to `.B`, in column 17 when the line starts in column 8.
+
+Example — a comment leads the line of a complex element initializer's opening brace, which is the first token of its line; the comment takes the element's column, 20, the brace stands behind it in column 28, and the element's expressions and closing brace follow the brace (FMT-INDENT-023), while the second element, whose comment stands on the line above, keeps its brace at the line's column:
+
+```csharp
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var d = new Dictionary<int, int>
+                {
+                    /* e */ {
+                        1,
+                        2
+                    },
+
+                    // f
+                    {
+                        3,
+                        4
+                    }
+                };
+    }
+}
+```
+
+```csharp
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var d = new Dictionary<int, int>
+                {
+                    /* e */ {
+                                1,
+                                2
+                            },
+
+                    // f
+                    {
+                        3,
+                        4
+                    }
+                };
     }
 }
 ```

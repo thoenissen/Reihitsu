@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
@@ -216,9 +216,9 @@ public static class SyntaxIndentationUtilities
     /// node, including one nested in an initializer, rather than a level that stops at the nearest brace scope.
     /// The approximation this produces for an initializer-nested node is deliberately inexact: it
     /// undercounts the anchor-derived column by not accounting for the initializer's own alignment, but the two
-    /// document-scoped overloads cancel that undercount as a uniform column offset against the node's own
-    /// original position, and the detached overload's only production caller can never reach an initializer
-    /// ancestor. A caller that instead needs the exact anchor-derived column - as the code fixes in
+    /// document-scoped overloads cancel that undercount, because the indentation phase lays out their node shifted
+    /// to its first token's original column, and the detached overload's only production caller can never reach an
+    /// initializer ancestor. A caller that instead needs the exact anchor-derived column - as the code fixes in
     /// <c>Reihitsu.Analyzer.CodeFixes</c> do - must check <see cref="HasAnchorScopeAncestor"/> and read the
     /// column from source text when it returns <see langword="true"/>, the same way those code fixes do
     /// </summary>

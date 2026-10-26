@@ -10,10 +10,10 @@ using Reihitsu.Formatter.Pipeline.HorizontalSpacing;
 using Reihitsu.Formatter.Pipeline.Indentation;
 using Reihitsu.Formatter.Pipeline.LineBreaks;
 using Reihitsu.Formatter.Pipeline.LineEndings;
-using Reihitsu.Formatter.Pipeline.RawStringAlignment;
 using Reihitsu.Formatter.Pipeline.RegionFormatting;
 using Reihitsu.Formatter.Pipeline.StructuralTransforms;
 using Reihitsu.Formatter.Pipeline.SwitchCaseBraces;
+using Reihitsu.Formatter.Pipeline.TabReplacement;
 using Reihitsu.Formatter.Pipeline.UsingDirectives;
 
 namespace Reihitsu.Formatter.Pipeline;
@@ -94,14 +94,16 @@ internal static class FormattingPipeline
 
     /// <summary>
     /// Creates the ordered list of formatting phases.
-    /// Order: structural transforms → region formatting → documentation comments → using
-    /// directives → blank lines → line breaks → switch-case braces → horizontal spacing →
-    /// indentation → raw-string alignment → cleanup → line-ending normalization
+    /// Order: tab replacement → structural transforms → region formatting → documentation comments →
+    /// using directives → blank lines → line breaks → switch-case braces → horizontal spacing →
+    /// indentation (including the move of raw string literal lines) → cleanup → line-ending normalization.
+    /// No phase computes a column from a move or replacement that a later phase applies
     /// </summary>
     /// <returns>The ordered list of phases to execute</returns>
     private static IReadOnlyList<IFormattingPhase> CreatePhases()
     {
         return [
+                   new TabReplacementPhase(),
                    new StructuralTransformPhase(),
                    new RegionFormattingPhase(),
                    new DocumentationCommentFormattingPhase(),
@@ -111,7 +113,6 @@ internal static class FormattingPipeline
                    new SwitchCaseBracePhase(),
                    new HorizontalSpacingPhase(),
                    new IndentationPhase(),
-                   new RawStringAlignmentPhase(),
                    new CleanupPhase(),
                    new LineEndingNormalizationPhase(),
                ];

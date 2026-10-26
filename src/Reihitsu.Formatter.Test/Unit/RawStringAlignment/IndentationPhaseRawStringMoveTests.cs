@@ -1,26 +1,24 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
+using System.Linq;
+using System.Threading;
+
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Pipeline.RawStringAlignment;
+using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.Indentation;
 using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.RawStringAlignment;
 
 /// <summary>
-/// Tests for <see cref="RawStringAlignmentPhase"/>
+/// Tests for the move of a multi-line raw string literal's lines under its opening quotes, which <see cref="IndentationPhase"/>
+/// applies in the same phase that places the opening quotes
 /// </summary>
 [TestClass]
-public class RawStringAlignmentPhaseTests
+public class IndentationPhaseRawStringMoveTests : FormatterPhaseTestsBase
 {
-    #region Properties
-
-    /// <summary>
-    /// Test context for the current test
-    /// </summary>
-    public TestContext TestContext { get; set; }
-
-    #endregion // Properties
-
     #region Non-interpolated raw strings
 
     /// <summary>
@@ -42,12 +40,7 @@ public class RawStringAlignmentPhaseTests
                              }
                              """";
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var root = tree.GetRoot(TestContext.CancellationToken);
-
-        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationToken);
-
-        Assert.AreEqual(input, result.ToFullString());
+        Assert.AreEqual(input, ApplyPhase(input));
     }
 
     /// <summary>
@@ -81,12 +74,7 @@ public class RawStringAlignmentPhaseTests
                                 }
                                 """";
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var root = tree.GetRoot(TestContext.CancellationToken);
-
-        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationToken);
-
-        Assert.AreEqual(expected, result.ToFullString());
+        Assert.AreEqual(expected, ApplyPhase(input));
     }
 
     /// <summary>
@@ -106,12 +94,7 @@ public class RawStringAlignmentPhaseTests
                              }
                              """";
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var root = tree.GetRoot(TestContext.CancellationToken);
-
-        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationToken);
-
-        Assert.AreEqual(input, result.ToFullString());
+        Assert.AreEqual(input, ApplyPhase(input));
     }
 
     /// <summary>
@@ -124,12 +107,7 @@ public class RawStringAlignmentPhaseTests
         var input = "class C\r\n{\r\n    void M()\r\n    {\r\n        var a = \"\"\"\"\r\n    Hello \"\"\"\r\n    \"\"\"\";\r\n    }\r\n}";
         var expected = "class C\r\n{\r\n    void M()\r\n    {\r\n        var a = \"\"\"\"\r\n                Hello \"\"\"\r\n                \"\"\"\";\r\n    }\r\n}";
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var root = tree.GetRoot(TestContext.CancellationToken);
-
-        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationToken);
-
-        Assert.AreEqual(expected, result.ToFullString());
+        Assert.AreEqual(expected, ApplyPhase(input));
     }
 
     /// <summary>
@@ -167,12 +145,7 @@ public class RawStringAlignmentPhaseTests
                                 }
                                 """";
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var root = tree.GetRoot(TestContext.CancellationToken);
-
-        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationToken);
-
-        Assert.AreEqual(expected, result.ToFullString());
+        Assert.AreEqual(expected, ApplyPhase(input));
     }
 
     /// <summary>
@@ -206,12 +179,7 @@ public class RawStringAlignmentPhaseTests
                                 }
                                 """";
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var root = tree.GetRoot(TestContext.CancellationToken);
-
-        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationToken);
-
-        Assert.AreEqual(expected, result.ToFullString());
+        Assert.AreEqual(expected, ApplyPhase(input));
     }
 
     /// <summary>
@@ -245,12 +213,7 @@ public class RawStringAlignmentPhaseTests
                                 }
                                 """";
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var root = tree.GetRoot(TestContext.CancellationToken);
-
-        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationToken);
-
-        Assert.AreEqual(expected, result.ToFullString());
+        Assert.AreEqual(expected, ApplyPhase(input));
     }
 
     /// <summary>
@@ -273,12 +236,7 @@ public class RawStringAlignmentPhaseTests
                              }
                              """";
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var root = tree.GetRoot(TestContext.CancellationToken);
-
-        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationToken);
-
-        Assert.AreEqual(input, result.ToFullString());
+        Assert.AreEqual(input, ApplyPhase(input));
     }
 
     #endregion // Non-interpolated raw strings
@@ -306,12 +264,7 @@ public class RawStringAlignmentPhaseTests
                              }
                              """";
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var root = tree.GetRoot(TestContext.CancellationToken);
-
-        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationToken);
-
-        Assert.AreEqual(input, result.ToFullString());
+        Assert.AreEqual(input, ApplyPhase(input));
     }
 
     /// <summary>
@@ -349,12 +302,7 @@ public class RawStringAlignmentPhaseTests
                                 }
                                 """";
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var root = tree.GetRoot(TestContext.CancellationToken);
-
-        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationToken);
-
-        Assert.AreEqual(expected, result.ToFullString());
+        Assert.AreEqual(expected, ApplyPhase(input));
     }
 
     /// <summary>
@@ -367,12 +315,7 @@ public class RawStringAlignmentPhaseTests
         var input = "class C\r\n{\r\n    void M()\r\n    {\r\n        var x = 1;\r\n\r\n        var a = $$\"\"\"\r\n    {{x}} Test\r\n    \"\"\";\r\n    }\r\n}";
         var expected = "class C\r\n{\r\n    void M()\r\n    {\r\n        var x = 1;\r\n\r\n        var a = $$\"\"\"\r\n                  {{x}} Test\r\n                  \"\"\";\r\n    }\r\n}";
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var root = tree.GetRoot(TestContext.CancellationToken);
-
-        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationToken);
-
-        Assert.AreEqual(expected, result.ToFullString());
+        Assert.AreEqual(expected, ApplyPhase(input));
     }
 
     /// <summary>
@@ -414,12 +357,7 @@ public class RawStringAlignmentPhaseTests
                                 }
                                 """";
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var root = tree.GetRoot(TestContext.CancellationToken);
-
-        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationToken);
-
-        Assert.AreEqual(expected, result.ToFullString());
+        Assert.AreEqual(expected, ApplyPhase(input));
     }
 
     #endregion // Interpolated raw strings
@@ -465,13 +403,63 @@ public class RawStringAlignmentPhaseTests
                                 }
                                 """";
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var root = tree.GetRoot(TestContext.CancellationToken);
-
-        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationToken);
-
-        Assert.AreEqual(expected, result.ToFullString());
+        Assert.AreEqual(expected, ApplyPhase(input));
     }
 
     #endregion // Multiple raw strings
+
+    #region Attached nodes
+
+    /// <summary>
+    /// Verifies that the phase moves the lines of a raw string inside a node that is still attached to its document and starts
+    /// below the document's first line, where the lines the layout numbers in the document differ from the lines of the node
+    /// on its own. The test calls the phase directly; the node-level entry point reaches the same handling with a raw string
+    /// literal as its target (<c>ReihitsuFormatterNodeColumnTests.RawStringLiteralTargetMovesContentUnderTheOpeningQuotes</c>)
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-RAW-001")]
+    public void MisalignedRawStringInAttachedMethodBelowTheFirstLineIsCorrected()
+    {
+        const string input = """"
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var a = """
+                                 Hello
+                                 """;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                    void M()
+                                    {
+                                        var a = """
+                                                Hello
+                                                """;
+                                    }
+
+                                """";
+
+        var cancellationToken = TestContext.CancellationToken;
+        var root = CSharpSyntaxTree.ParseText(input.Replace("\r\n", "\n"), cancellationToken: cancellationToken).GetRoot(cancellationToken);
+        var method = root.DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+        var result = new IndentationPhase().Execute(method, new FormattingContext("\n", baseIndentLevel: 1), cancellationToken);
+
+        Assert.AreEqual(expected.Replace("\r\n", "\n"), result.ToFullString());
+    }
+
+    #endregion // Attached nodes
+
+    #region FormatterPhaseTestsBase
+
+    /// <inheritdoc/>
+    protected override SyntaxNode ExecutePhase(SyntaxNode root, CancellationToken cancellationToken)
+    {
+        var endOfLine = root.ToFullString().Contains("\r\n") ? "\r\n" : "\n";
+
+        return new IndentationPhase().Execute(root, new FormattingContext(endOfLine), cancellationToken);
+    }
+
+    #endregion // FormatterPhaseTestsBase
 }

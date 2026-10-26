@@ -119,18 +119,16 @@ internal sealed class ObjectInitializerContributor : ILayoutContributor
 
             case InitializerExpressionSyntax { Parent: AssignmentExpressionSyntax assignment } initializer:
                 {
-                    int anchorColumn;
-
+                    // A brace that starts its line takes the column of the assigned member; the members and the
+                    // closing brace then follow the brace where it stands, which is behind a comment that leads its line
                     if (LayoutComputer.IsFirstOnLine(initializer.OpenBraceToken))
                     {
-                        anchorColumn = LayoutComputer.GetAdjustedColumn(assignment.Left.GetFirstToken(), model);
+                        var memberColumn = LayoutComputer.GetAdjustedColumn(assignment.Left.GetFirstToken(), model);
 
-                        LayoutComputer.SetIfFirstOnLine(initializer.OpenBraceToken, anchorColumn, ObjectInitializerSource, model);
+                        LayoutComputer.SetIfFirstOnLine(initializer.OpenBraceToken, memberColumn, ObjectInitializerSource, model);
                     }
-                    else
-                    {
-                        anchorColumn = LayoutComputer.GetAdjustedColumn(initializer.OpenBraceToken, model);
-                    }
+
+                    var anchorColumn = LayoutComputer.GetAdjustedColumn(initializer.OpenBraceToken, model);
 
                     AlignInitializerToColumn(anchorColumn, initializer, model, alignOpenBrace: false);
                 }

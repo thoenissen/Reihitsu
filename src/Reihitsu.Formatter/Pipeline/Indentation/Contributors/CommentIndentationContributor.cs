@@ -43,9 +43,9 @@ internal sealed class CommentIndentationContributor : ILayoutContributor
     /// is aligned: a documentation comment that Roslyn files as leading trivia of the token but that is written behind the
     /// preceding code shares that code's line, whose indentation belongs to the code rather than to the comment. The first
     /// token of a node formatted on its own has no previous token in its tree, so its preceding token in the document is read
-    /// from <see cref="FormattingContext.RootPrecedingToken"/>. The token's column is the one it has after formatting: after
-    /// the raw-string phase moved its line, and, for a line of an interpolation hole that keeps its whitespace, with the tabs
-    /// in front of it counted as the spaces the cleanup phase replaces them with (<see cref="LayoutModel.TryGetPlacedColumn"/>)
+    /// from <see cref="FormattingContext.RootPrecedingToken"/>. The column is the one the token's line has in the output of
+    /// the indentation phase, after the phase moved the lines of multi-line raw string literals
+    /// (<see cref="LayoutModel.TryGetPlacedColumn"/>)
     /// </summary>
     /// <param name="token">The token whose leading trivia to inspect</param>
     /// <param name="model">The layout model</param>

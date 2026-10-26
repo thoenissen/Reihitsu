@@ -101,10 +101,10 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// </summary>
     /// <param name="root">Root node</param>
     /// <param name="sourceText">Source text</param>
-    /// <param name="endOfLine">Line-ending sequence</param>
+    /// <param name="context">The formatting context</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The root with trailing documentation comments moved before their Roslyn owner</returns>
-    private static SyntaxNode RelocateOffPositionDocumentationComments(SyntaxNode root, SourceText sourceText, string endOfLine, CancellationToken cancellationToken)
+    private static SyntaxNode RelocateOffPositionDocumentationComments(SyntaxNode root, SourceText sourceText, FormattingContext context, CancellationToken cancellationToken)
     {
         var owningRelocations = new Dictionary<SyntaxToken, List<SyntaxTrivia>>();
         var previousTokenRelocationCounts = new Dictionary<SyntaxToken, int>();
@@ -112,14 +112,14 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
         foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            RegisterRelocation(root, trivia, sourceText, owningRelocations, previousTokenRelocationCounts);
+            RegisterRelocation(root, trivia, sourceText, context, owningRelocations, previousTokenRelocationCounts);
         }
 
         var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
 
         foreach (var owningRelocation in owningRelocations)
         {
-            replacements[owningRelocation.Key] = MoveBeforeOwningToken(owningRelocation.Key, owningRelocation.Value, endOfLine);
+            replacements[owningRelocation.Key] = MoveBeforeOwningToken(owningRelocation.Key, owningRelocation.Value, context.EndOfLine);
         }
 
         foreach (var previousTokenRelocation in previousTokenRelocationCounts)
@@ -134,7 +134,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
 
             for (var relocationIndex = 0; relocationIndex < previousTokenRelocation.Value; relocationIndex++)
             {
-                trailingTrivia = trailingTrivia.Add(SyntaxFactory.EndOfLine(endOfLine));
+                trailingTrivia = trailingTrivia.Add(SyntaxFactory.EndOfLine(context.EndOfLine));
             }
 
             replacements[previousTokenRelocation.Key] = currentPreviousToken.WithTrailingTrivia(trailingTrivia);
@@ -151,16 +151,19 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// <param name="root">Root node</param>
     /// <param name="trivia">Trivia candidate</param>
     /// <param name="sourceText">Source text</param>
+    /// <param name="context">The formatting context</param>
     /// <param name="owningRelocations">Relocations that split the owning token's leading trivia</param>
     /// <param name="previousTokenRelocationCounts">Line breaks to append to previous tokens</param>
     private static void RegisterRelocation(SyntaxNode root,
                                            SyntaxTrivia trivia,
                                            SourceText sourceText,
+                                           FormattingContext context,
                                            IDictionary<SyntaxToken, List<SyntaxTrivia>> owningRelocations,
                                            Dictionary<SyntaxToken, int> previousTokenRelocationCounts)
     {
         if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) == false
-            || DocumentationCommentUtilities.IsWrittenBehindSource(trivia, sourceText) == false)
+            || (DocumentationCommentUtilities.IsWrittenBehindSource(trivia, sourceText) == false
+                && IsWrittenBehindRootPrecedingToken(root, trivia, sourceText, context) == false))
         {
             return;
         }
@@ -169,7 +172,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
         // does not open a node there is nothing to document - the comment is stranded before a ';' or a closing
         // '}' - so moving it changes the author's layout without making the comment mean anything, and the
         // compiler reports CS1587 either way. Leave it where it was written.
-        if (DocumentationCommentUtilities.IsStrandedBehindCode(trivia, sourceText))
+        if (DocumentationCommentUtilities.DocumentsFollowingCode(trivia.Token) == false)
         {
             return;
         }
@@ -189,6 +192,25 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
 
         previousTokenRelocationCounts.TryGetValue(previousToken, out var relocationCount);
         previousTokenRelocationCounts[previousToken] = relocationCount + 1;
+    }
+
+    /// <summary>
+    /// Determines whether a documentation comment on the first line of a detached formatting root is written behind the
+    /// token that precedes the root in its document. A phase that replaces the root detaches it, so the root's text
+    /// starts with the comment and the token in front of it is no longer part of the tree; the facts captured for that
+    /// token (<see cref="FormattingContext.RootPrecedingToken"/>) say whether it shares the comment's line
+    /// </summary>
+    /// <param name="root">Root node</param>
+    /// <param name="trivia">Documentation trivia</param>
+    /// <param name="sourceText">Source text of the root</param>
+    /// <param name="context">The formatting context</param>
+    /// <returns><see langword="true"/> if the comment stands behind the root's preceding token on that token's line; otherwise, <see langword="false"/></returns>
+    private static bool IsWrittenBehindRootPrecedingToken(SyntaxNode root, SyntaxTrivia trivia, SourceText sourceText, FormattingContext context)
+    {
+        return context.RootPrecedingToken.Exists
+               && context.RootPrecedingToken.EndsLine == false
+               && GetPreviousPresentToken(trivia.Token).RawKind == 0
+               && sourceText.Lines.GetLineFromPosition(trivia.FullSpan.Start).LineNumber == sourceText.Lines.GetLineFromPosition(root.FullSpan.Start).LineNumber;
     }
 
     /// <summary>
@@ -382,7 +404,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
         var sourceText = root.SyntaxTree?.GetText(cancellationToken) ?? SourceText.From(root.ToFullString());
-        var relocatedRoot = RelocateOffPositionDocumentationComments(root, sourceText, context.EndOfLine, cancellationToken);
+        var relocatedRoot = RelocateOffPositionDocumentationComments(root, sourceText, context, cancellationToken);
 
         if (ReferenceEquals(relocatedRoot, root) == false)
         {

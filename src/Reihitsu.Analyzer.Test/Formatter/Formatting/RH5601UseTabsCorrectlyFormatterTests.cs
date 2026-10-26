@@ -78,5 +78,38 @@ public class RH5601UseTabsCorrectlyFormatterTests : FormatterTestsBase<RH5601Use
         await VerifyFormatter(testData.Replace("→", "\t"));
     }
 
+    /// <summary>
+    /// Verifies that the formatter replaces a tab in front of a delimited documentation comment before it aligns the wrapped
+    /// chain link behind it, clears the diagnostic, and stays stable on a second pass
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-TAB-001")]
+    public async Task VerifyFormatterAlignsChainLinkBehindTabAndDelimitedDocumentationCommentInOnePass()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M(string a)
+                                    {
+                                        var x = a{|#0:→|}/** c */.Trim()
+                                .ToUpper();
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M(string a)
+                                     {
+                                         var x = a    /** c */.Trim()
+                                                              .ToUpper();
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(testData.Replace("→", "\t"), fixedData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+    }
+
     #endregion // Tests
 }
