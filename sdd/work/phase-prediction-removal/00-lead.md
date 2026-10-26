@@ -54,3 +54,7 @@ The lead took its recommended options: the change doc as of `18-spec-author.md` 
 # Skeptic round 20 — decided 2026-10-25 under the standing instruction
 
 C1 (tab in front of a node-level target): B — for whatever lies outside the target, the node-level column counts characters (a whitespace tab outside the target is one column), so the fixes keep converging under SHARED-FIX-001/005; SHARED-FIX-007 is clarified not to reach whitespace tabs outside the code the fix changes. This reverses the earlier Q2 A. C2–C7 are spec wording with a single reading, for the spec author. Checkpoint before: 0e22387. Recorded in `squad/decisions/2026-10-25-phase-prediction-removal-tab-before-node-target.md`.
+
+# Audit 2 — decided 2026-10-26 under the standing instruction
+
+On `28-auditor.md`: finding #8 (repeats #1, escalation 12): option A — the context entry point restores the target's original leading trivia only where FMT-PIPE-010 keeps it, so no step after the last phase moves a line (FMT-PIPE-017 and the `AGENTS.md` sentence then hold as written). Finding #9: the dead line-offset mapping and attached-input clone are repaired (removed or made reachable and tested). Finding #10: keep `ShiftContinuationExteriorMarkers`; its removal is a follow-up candidate (public Core API). Repair round 3 of 3. Checkpoint before: 504310f. Recorded in `squad/decisions/2026-10-26-phase-prediction-removal-audit-2.md`.
