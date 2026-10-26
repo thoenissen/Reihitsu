@@ -244,6 +244,7 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
     [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-PIPE-018")]
     public async Task EnumMemberTargetBehindTwoBlankLinesKeepsBothBlankLinesAndTakesThePhaseColumn()
     {
         const string input = "enum E\n{\n    A,\n\n\n  B,\n    C\n}";
@@ -262,6 +263,7 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
     [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-PIPE-018")]
     public async Task EnumMemberTargetBehindCommentLineKeepsTheMissingBlankLineAndTakesThePhaseColumns()
     {
         const string input = "enum E\n{\n    A,\n      // b\n  B,\n    C\n}";
@@ -280,6 +282,7 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
     [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-PIPE-018")]
     public async Task EnumMemberTargetBehindConditionalDirectiveAndBlankLineKeepsBoth()
     {
         const string input = "enum E\n{\n    A,\n  #if !DEBUG\n\n      B,\n#endif\n    C\n}";
@@ -298,6 +301,7 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
     [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-PIPE-018")]
     public async Task EnumMemberTargetBehindRegionDirectiveKeepsTheMissingBlankLinesAndTakesThePhaseColumns()
     {
         const string input = "enum E\n{\n    A,\n  #region R\n  B,\n  #endregion\n    C\n}";
@@ -316,6 +320,7 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
     [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-PIPE-018")]
     public async Task EnumMemberTargetBehindDocumentationCommentKeepsTheMissingBlankLineAndTakesThePhaseColumns()
     {
         const string input = "enum E\n{\n    A,\n      /// <summary>\n      /// B\n      /// </summary>\n  B,\n    C\n}";
@@ -334,6 +339,7 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
     [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-PIPE-018")]
     public async Task EnumMemberTargetBehindTwoBlankLinesAndDocumentationCommentKeepsBothBlankLines()
     {
         const string input = "enum E\n{\n    A,\n\n\n      /// <summary>\n      /// B\n      /// </summary>\n  B,\n    C\n}";
@@ -352,6 +358,7 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
     [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-PIPE-018")]
     public async Task EnumMemberTargetBehindSeveralCommentsKeepsTheDocumentsBlankLinesAndTakesThePhaseColumns()
     {
         const string input = "enum E\n{\n    A,\n      // b\n\n  /* c */\n      B,\n    C\n}";
@@ -370,6 +377,7 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
     [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-PIPE-018")]
     public async Task ParameterTargetBehindTwoBlankLinesAndCommentKeepsBothBlankLinesAndTakesThePhaseColumns()
     {
         const string input = "class C\n{\n    void M(int a,\n\n\n      // b\n               int b)\n    {\n    }\n}";
@@ -379,6 +387,64 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
                                              expected,
                                              root => root.DescendantNodes().OfType<ParameterSyntax>().Last(),
                                              SelectSingle<ParameterListSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: with the enum member <c>B</c> as target and the enum as context, the two blank lines above
+    /// <c>B</c> stay and <c>B</c> takes the phase's column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-018")]
+    [Requirement("FMT-PIPE-017")]
+    public async Task SpecExampleTwoBlankLinesAboveEnumMemberStay()
+    {
+        const string input = "enum E\n{\n    A,\n\n\n  B\n}";
+        const string expected = "enum E\n{\n    A,\n\n\n    B\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             root => root.DescendantNodes().OfType<EnumMemberDeclarationSyntax>().Single(member => member.Identifier.Text == "B"),
+                                             SelectSingle<EnumDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: with a comment line above the enum member <c>B</c>, no blank line is added above the comment,
+    /// and the comment and <c>B</c> take the phase's column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-018")]
+    [Requirement("FMT-PIPE-017")]
+    public async Task SpecExampleNoBlankLineIsAddedAboveCommentInFrontOfEnumMember()
+    {
+        const string input = "enum E\n{\n    A,\n      // b\n  B\n}";
+        const string expected = "enum E\n{\n    A,\n    // b\n    B\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             root => root.DescendantNodes().OfType<EnumMemberDeclarationSyntax>().Single(member => member.Identifier.Text == "B"),
+                                             SelectSingle<EnumDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies the other side of the requirement's qualifier: a target that is a direct child of the root, whose leading
+    /// trivia FMT-PIPE-010 keeps, has that trivia written back as it stands: the two blank lines, which the phases would
+    /// collapse, and the comment and the first token in column 2, which the phases would move to column 0
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-018")]
+    [Requirement("FMT-PIPE-010")]
+    public async Task DirectChildOfRootTargetWithContextKeepsItsLeadingTriviaAsItStands()
+    {
+        const string input = "class A\n{\n}\n\n\n  // c\n  class D\n{\n    int x;\n}";
+        const string expected = "class A\n{\n}\n\n\n  // c\n  class D\n{\n    int x;\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             root => root.DescendantNodes().OfType<ClassDeclarationSyntax>().Single(type => type.Identifier.Text == "D"),
+                                             root => root);
     }
 
     /// <summary>

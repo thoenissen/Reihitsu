@@ -1475,6 +1475,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     [TestMethod]
     [Requirement("RH5111-002")]
     [Requirement("RH5111-005")]
+    [Requirement("FMT-PIPE-018")]
     public async Task VerifyCommentInFrontOfEnumMemberDoesNotWithholdTheFix()
     {
         const string testData = """
@@ -1505,6 +1506,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     [TestMethod]
     [Requirement("RH5111-002")]
     [Requirement("RH5111-005")]
+    [Requirement("FMT-PIPE-018")]
     public async Task VerifyCommentInFrontOfParameterDoesNotWithholdTheFix()
     {
         const string testData = """
@@ -1649,6 +1651,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     [Requirement("RH5111-004")]
     [Requirement("SHARED-FIX-006")]
     [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-PIPE-018")]
     public async Task VerifyEnumMemberBehindTwoBlankLinesKeepsBothBlankLines()
     {
         const string testData = """
@@ -1687,6 +1690,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     [Requirement("RH5111-004")]
     [Requirement("SHARED-FIX-006")]
     [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-PIPE-018")]
     public async Task VerifyEnumMemberBehindConditionalDirectiveKeepsTheBlankLineAndTakesTheColumns()
     {
         const string testData = """
@@ -1727,6 +1731,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     [Requirement("RH5111-004")]
     [Requirement("SHARED-FIX-006")]
     [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-PIPE-018")]
     public async Task VerifyEnumMemberBehindRegionDirectiveAddsNoBlankLineAndTakesTheColumns()
     {
         const string testData = """
@@ -1765,6 +1770,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     [Requirement("RH5111-004")]
     [Requirement("SHARED-FIX-006")]
     [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-PIPE-018")]
     public async Task VerifyEnumMemberBehindDocumentationCommentAddsNoBlankLineAndTakesTheColumns()
     {
         const string testData = """
@@ -1805,6 +1811,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     [Requirement("RH5111-004")]
     [Requirement("SHARED-FIX-006")]
     [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-PIPE-018")]
     public async Task VerifyEnumMemberBehindSeveralCommentsKeepsTheBlankLineBetweenThem()
     {
         const string testData = """
@@ -1845,6 +1852,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     [Requirement("RH5111-004")]
     [Requirement("SHARED-FIX-006")]
     [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-PIPE-018")]
     public async Task VerifyEnumMemberBehindSeveralCommentsKeepsTheBlankLineBetweenThemWithCrLf()
     {
         const string testData = """
@@ -1885,6 +1893,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     [Requirement("RH5111-004")]
     [Requirement("SHARED-FIX-006")]
     [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-PIPE-018")]
     public async Task VerifyParameterBehindTwoBlankLinesAndCommentKeepsBothBlankLines()
     {
         const string testData = """
@@ -1927,6 +1936,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     [Requirement("RH5111-004")]
     [Requirement("SHARED-FIX-006")]
     [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-PIPE-018")]
     public async Task VerifyDeclaratorBehindBlankLineKeepsTheBlankLine()
     {
         const string testData = """
