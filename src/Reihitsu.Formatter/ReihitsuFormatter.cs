@@ -301,10 +301,15 @@ public static class ReihitsuFormatter
         }
 
         // The target's original leading trivia is written back only where FMT-PIPE-010 keeps it: when the target does
-        // not start its line, or is a direct child of the root. A target that starts its line keeps the line the
-        // indentation phase gave it, so no line moves after the last phase (FMT-PIPE-017)
+        // not start its line, or is a direct child of the root. A target that starts its line keeps the columns the
+        // indentation phase gave its leading lines, so no line moves after the last phase (FMT-PIPE-017), and the blank
+        // lines it had in the document, which a fix does not change (SHARED-FIX-006)
         var formattedFirstToken = formattedTarget.GetFirstToken();
-        var updatedFirstToken = (keepsLeadingTrivia ? formattedFirstToken.WithLeadingTrivia(originalFirstToken.LeadingTrivia) : formattedFirstToken).WithoutAnnotations(targetTokenAnnotation);
+        var updatedLeadingTrivia = keepsLeadingTrivia
+                                       ? originalFirstToken.LeadingTrivia
+                                       : ReihitsuFormatterHelpers.RestoreBlankLines(formattedFirstToken.LeadingTrivia, originalFirstToken.LeadingTrivia, endOfLine);
+        var updatedFirstToken = formattedFirstToken.WithLeadingTrivia(updatedLeadingTrivia)
+                                                   .WithoutAnnotations(targetTokenAnnotation);
 
         formattedTarget = formattedTarget.ReplaceToken(formattedFirstToken, updatedFirstToken);
 

@@ -211,6 +211,48 @@ internal static class ReihitsuFormatterHelpers
     }
 
     /// <summary>
+    /// Rebuilds the formatted leading trivia of a node-level target that starts its line with the blank lines its
+    /// original leading trivia had. The formatted trivia keeps every comment, directive, and column the phases gave it;
+    /// only the number of line breaks in each gap between two of its comments or directives, or in front of the first
+    /// one, is taken from the original where the gap starts its line or holds a line break on both sides, so the
+    /// difference is blank lines alone. When the phases changed which comments and directives the trivia holds, the
+    /// formatted trivia is returned unchanged
+    /// </summary>
+    /// <param name="formatted">The leading trivia the phases produced</param>
+    /// <param name="original">The leading trivia the target had in its document</param>
+    /// <param name="endOfLine">The line-ending sequence of the document</param>
+    /// <returns>The formatted leading trivia with the original blank lines</returns>
+    internal static SyntaxTriviaList RestoreBlankLines(SyntaxTriviaList formatted, SyntaxTriviaList original, string endOfLine)
+    {
+        var formattedGaps = SplitIntoGaps(formatted, out var formattedItems);
+        var originalGaps = SplitIntoGaps(original, out var originalItems);
+
+        if (formattedItems.Count != originalItems.Count
+            || formattedItems.Where((item, index) => item.RawKind != originalItems[index].RawKind).Any())
+        {
+            return formatted;
+        }
+
+        var result = new List<SyntaxTrivia>(formatted.Count);
+
+        for (var gapIndex = 0; gapIndex < formattedGaps.Count; gapIndex++)
+        {
+            // The first gap starts its line, because the target does; so does a gap behind a directive or a "///"
+            // comment, which carries its own line break. Every line break in such a gap is a blank line
+            var startsLine = gapIndex == 0 || EndsWithLineBreak(formattedItems[gapIndex - 1]);
+
+            result.AddRange(RestoreGapLineBreaks(formattedGaps[gapIndex], CountLineBreaks(originalGaps[gapIndex]), startsLine, endOfLine));
+
+            if (gapIndex < formattedItems.Count)
+            {
+                result.Add(formattedItems[gapIndex]);
+            }
+        }
+
+        return SyntaxFactory.TriviaList(result);
+    }
+
+    /// <summary>
     /// Determines whether a token starts on a new line by checking for
     /// end-of-line trivia in the token's leading trivia or the previous token's trailing trivia
     /// </summary>
@@ -250,6 +292,97 @@ internal static class ReihitsuFormatterHelpers
     {
         return token.LeadingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)
                                                  && trivia.FullSpan.Contains(position));
+    }
+
+    /// <summary>
+    /// Splits a leading trivia list into the gaps of whitespace and line breaks around its other trivia
+    /// </summary>
+    /// <param name="triviaList">The trivia list</param>
+    /// <param name="items">The trivia that are neither whitespace nor a line break, in order</param>
+    /// <returns>One gap more than there are items: the gap in front of each item, and the gap behind the last one</returns>
+    private static List<List<SyntaxTrivia>> SplitIntoGaps(SyntaxTriviaList triviaList, out List<SyntaxTrivia> items)
+    {
+        var gaps = new List<List<SyntaxTrivia>>
+                   {
+                       new()
+                   };
+
+        items = [];
+
+        foreach (var trivia in triviaList)
+        {
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia)
+                || trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                gaps[gaps.Count - 1].Add(trivia);
+            }
+            else
+            {
+                items.Add(trivia);
+                gaps.Add([]);
+            }
+        }
+
+        return gaps;
+    }
+
+    /// <summary>
+    /// Counts the line breaks in a gap
+    /// </summary>
+    /// <param name="gap">The gap</param>
+    /// <returns>The number of end-of-line trivia</returns>
+    private static int CountLineBreaks(List<SyntaxTrivia> gap)
+    {
+        return gap.Count(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+    }
+
+    /// <summary>
+    /// Determines whether a trivia carries the line break that ends its line, as a directive and a <c>///</c> comment do
+    /// </summary>
+    /// <param name="trivia">The trivia</param>
+    /// <returns><see langword="true"/> if the trivia's text ends with a line break; otherwise, <see langword="false"/></returns>
+    private static bool EndsWithLineBreak(SyntaxTrivia trivia)
+    {
+        return trivia.ToFullString().EndsWith("\n", StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Rebuilds a formatted gap with the number of line breaks of the original gap: the trivia in front of its first line
+    /// break, the line breaks, and the whitespace behind its last line break, which is the column the phases gave the
+    /// next line. A gap that does not start its line keeps its line breaks unless both gaps hold one, so only blank lines
+    /// change
+    /// </summary>
+    /// <param name="gap">The formatted gap</param>
+    /// <param name="originalLineBreaks">The number of line breaks in the original gap</param>
+    /// <param name="startsLine">Whether the gap starts its line</param>
+    /// <param name="endOfLine">The line-ending sequence of the document</param>
+    /// <returns>The rebuilt gap</returns>
+    private static List<SyntaxTrivia> RestoreGapLineBreaks(List<SyntaxTrivia> gap, int originalLineBreaks, bool startsLine, string endOfLine)
+    {
+        var lineBreaks = CountLineBreaks(gap);
+
+        if (lineBreaks == originalLineBreaks
+            || (startsLine == false && (lineBreaks == 0 || originalLineBreaks == 0)))
+        {
+            return gap;
+        }
+
+        var firstLineBreak = gap.FindIndex(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+        var lastLineBreak = gap.FindLastIndex(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+        var result = new List<SyntaxTrivia>(gap.Count + originalLineBreaks);
+
+        // In front of the first line break stands what ends the previous line; behind the last one, the whitespace of the
+        // next line's column. A gap without a line break starts its line here, so all of it is that whitespace
+        result.AddRange(firstLineBreak < 0 ? [] : gap.Take(firstLineBreak));
+
+        for (var lineBreakIndex = 0; lineBreakIndex < originalLineBreaks; lineBreakIndex++)
+        {
+            result.Add(SyntaxFactory.EndOfLine(endOfLine));
+        }
+
+        result.AddRange(gap.Skip(lastLineBreak + 1));
+
+        return result;
     }
 
     /// <summary>
