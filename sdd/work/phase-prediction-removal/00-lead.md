@@ -62,3 +62,7 @@ On `28-auditor.md`: finding #8 (repeats #1, escalation 12): option A — the con
 # Spec author round 33 — decided 2026-10-26 under the standing instruction
 
 FMT-PIPE-018 and the column wording are approved (change doc stays `Accepted`); Q1 (blank lines in front of a `FormatNodeInDocumentAsync` target) becomes a follow-up candidate. Checkpoint before: 5a8bc77. Recorded in `squad/decisions/2026-10-26-phase-prediction-removal-context-blank-lines.md`.
+
+# Audit 3 — decided 2026-10-26 under the standing instruction
+
+On `37-auditor.md` finding #11 (repeats #2/#8; escalations 7 and 12): option B. `FormatNodeInDocumentWithContextAsync` returns to its behavior before the #8 repair (it writes back the target's original leading trivia, as on `main`); the #9 repair and everything else stay. FMT-PIPE-017 is narrowed so a context target that starts a later line of its context is a recorded gap; FMT-PIPE-018 and the `AGENTS.md` sentence follow whatever the reverted behavior actually is; tests of the #8 repair are replaced by tests of the reverted behavior (no regression against `main`). The restructuring of the context entry point becomes a follow-up candidate. This is one final round authorized by the decision; any further block stops the run. Checkpoint before: 20251e9. Recorded in `squad/decisions/2026-10-26-phase-prediction-removal-audit-3.md`.
