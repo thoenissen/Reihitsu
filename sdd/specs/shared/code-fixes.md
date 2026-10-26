@@ -5,7 +5,7 @@
 | ID prefix | SHARED-FIX |
 | Status | Active |
 | Code owners | — |
-| Uses | FMT-PIPE-007, FMT-PIPE-017, FMT-PIPE-018, RH5111-004, SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, SHARED-DOC-004, SHARED-JOIN-001, SHARED-ORDER-002 |
+| Uses | FMT-PIPE-007, FMT-PIPE-017, FMT-PIPE-018, RH5111-004, RH7004-004, RH7309-006, SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, SHARED-DOC-004, SHARED-JOIN-001, SHARED-ORDER-002, SHARED-ORDER-006 |
 
 This spec covers what holds for every code fix of an analyzer rule, so a rule spec states only what its own fix produces and when it is withheld. It applies to every rule whose header names a code fix, without being listed under `Uses`; SHARED-FIX-002 applies to the rules whose header says `Fix All`.
 
@@ -154,21 +154,30 @@ A code fix MUST NOT be offered when its result would:
 
 - have a compile error that the code did not have;
 - change what the program does at run time;
-- change the text of a comment, a directive, or a literal that the user wrote;
+- change the text of a comment, a directive, disabled text, or a literal that the user wrote, or drop one of them;
+- move a comment away from the code it stands with, change the order of two comments that stand with the same code, or change which code a directive governs;
 - leave code that an `#if` branch excludes referring to a name the fix changed; or
 - change which declarations a documentation comment documents.
 
-The diagnostic is still reported: withholding a fix never removes a report, also for an input where the change the rule asks for can be written at that position and only the fix is withheld, for example `x is !true`, which RH3001 reports without a fix although `x is (true == false)` is valid there. Which inputs a rule reports at all is decided by its own requirements and by the requirements that name inputs a rule does not report, such as SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, and SHARED-JOIN-001; this requirement adds none. The second, third, and fifth conditions are bounded as follows:
+The diagnostic is still reported: withholding a fix never removes a report, also for an input where the change the rule asks for can be written at that position and only the fix is withheld, for example `x is !true`, which RH3001 reports without a fix although `x is (true == false)` is valid there. Which inputs a rule reports at all is decided by its own requirements and by the requirements that name inputs a rule does not report, such as SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, and SHARED-JOIN-001; this requirement adds none. The conditions are bounded as follows:
 
+- **Build configurations.** The first two conditions hold in every build configuration, not only in the one the code is analyzed in: a compile error or a run-time difference that only a build defining, or not defining, a conditional compilation symbol would show counts as well. Examples are a statement in an `#if` branch that the fix moves out of the scope of a local the statement uses, and a statement that the fix moves to the other side of an `#if` branch, so that the code of that branch runs where it did not run before. The fifth condition is one instance of this bullet.
 - **Run time.** The new name or the new accessibility that the fix exists to produce does not count; any other difference in behavior does. Reordering the instance fields of a type whose field order sets its layout counts. That is a struct, which has sequential layout unless it declares `LayoutKind.Auto` or `LayoutKind.Explicit`, and any other type declared with `[StructLayout(LayoutKind.Sequential)]`. Under `LayoutKind.Explicit`, each field's `[FieldOffset]` sets its offset, so the field order sets no layout. A reorder that changes neither a layout nor the order in which code runs does not count.
-- **Comment, directive, and literal text.** Text that a diagnostic of the fix's own rule reports may change. Two kinds of text change together with a name the fix changes, as part of the rename:
+- **Comment, directive, disabled, and literal text.** Text that a diagnostic of the fix's own rule reports may change. Two kinds of text change together with a name the fix changes, as part of the rename:
   - a name in a documentation comment that binds to a symbol the fix renames, such as a `cref` or a `<param name>`; a word of the comment's text that only reads like the name does not bind to it and stays unchanged;
   - the comment of an `#endregion` that repeats the name of the region the fix renames; an `#endregion` comment that does not repeat that name stays unchanged.
 
-  Layout does not count: the whitespace around a comment or a directive and the indentation of its lines; in a documentation comment, also the `///` exterior and the whitespace and line breaks next to an XML tag; and the indentation of a raw string literal's lines when the literal's value stays the same. The text of a comment or a directive is content, including the whitespace and line breaks inside it, such as between two words of a `//` or `/* */` comment or of a directive's message. A change to that text counts, and so does a changed value of a literal.
+  Layout does not count: the whitespace around a comment or a directive and the indentation of its lines, and the indentation of the lines of disabled text; in a documentation comment, also the `///` exterior and the whitespace and line breaks next to an XML tag; and the indentation of a raw string literal's lines when the literal's value stays the same. The text of a comment or a directive is content, including the whitespace and line breaks inside it, such as between two words of a `//` or `/* */` comment or of a directive's message. Disabled text — the code that an `#if`, `#elif`, or `#else` branch excludes — is content as well, its whitespace and line breaks included. A change to that text counts, and so does a changed value of a literal. Removing a comment, a directive, or disabled text is a change to its text, with one more exception: a fix that removes a region whose `#region` its diagnostic reports, as the RH7310 fix removes an empty region, removes the region's `#endregion` with it.
+- **Comments and directives in place.** A comment stands with the code it is written next to:
+  - a comment behind code at the end of its line stands with that code;
+  - a comment that starts its line stands with the line of code or the directive line that follows it, when no blank line lies between them.
+
+  A fix moves a comment away from the code it stands with when it moves that code and leaves the comment behind, moves the comment and leaves the code, or puts other code between them. A blank line that the fix inserts or removes is not other code; blank lines are the subject of SHARED-FIX-006. Code that the fix rewrites in place counts as the code it is rewritten into. A comment that moves together with the code it stands with, such as a comment of a moved declaration (SHARED-ORDER-002), does not count, and neither does a comment that a diagnostic of the fix's own rule reports. This condition decides the comments it names; a comment that a blank line separates from the code below it, and a comment between two tokens of one line, are not decided by it.
+
+  A directive governs code: a conditional or region directive the code and the disabled text between it and its partner, and any other directive, such as `#pragma` or `#nullable`, the code from its line to the directive that ends its effect, or to the end of the file. A fix changes which code a directive governs when code that the fix keeps or moves is governed by the directive in the result and was not before, or the other way round, as when the fix moves code across a `#pragma` directive. It also changes it when it splits a pair of directives across a brace — a conditional pair, a region pair, or a directive and the directive that ends its effect, such as `#pragma warning disable` and its `#pragma warning restore`: it moves one directive of the pair to the other side of a brace while its partner stays, or it adds a brace between the two. A directive pair that moves together with all the code it governs, as a balanced pair travels under SHARED-ORDER-006, does not count, and neither does a directive that a diagnostic of the fix's own rule reports.
 - **Documentation.** A documentation comment documents a declaration as SHARED-DOC-004 states, when the documentation mode of the syntax tree is `Parse` or `Diagnose`; a comment of a field or event declaration with several declarators documents each of them. A fix changes which declarations a comment documents when, in its result, a declaration that the comment documented in the code the fix is applied to is no longer documented by it, or a declaration it did not document is, for example because the fix moves the declaration and leaves the comment behind, or splits a declaration with several declarators and keeps the comment on one part only. A fix that removes the declaration together with its comment does not count, and neither does a change to a documentation comment that a diagnostic of the fix's own rule reports. In the documentation mode `None`, the compiler attaches no documentation comment to a declaration, so the condition does not apply; where a `///` comment behind code goes then is stated by SHARED-DOC-004.
 
-Why: A user applies a fix trusting that it only corrects what the diagnostic names. A fix that breaks the build, changes behavior, or edits text the user wrote as content hands the user a defect in exchange for a warning. The new name or accessibility is the correction itself, not a change in behavior; a field order that sets a type's layout is behavior, because native code and code that reads the memory directly see the fields in that order. A rename has to reach every place that refers to the symbol or repeats the region's name, and layout is not content, so neither is such an edit. Code excluded by `#if` compiles in another configuration, so a rename that misses it breaks that build. Documentation belongs to the declarations it documents, and no fix may lose it: a fix that leaves it behind, or keeps it on one part of a split declaration, takes it from a declaration and can hand it to whatever code follows, which changes the documentation the compiler generates and what the editor shows. Where the documentation should go then is the author's decision, so the user rearranges such code by hand. A diagnostic without a fix is a supported end state; a broken fix is not.
+Why: A user applies a fix trusting that it only corrects what the diagnostic names. A fix that breaks the build, changes behavior, or edits text the user wrote as content hands the user a defect in exchange for a warning. Code that an `#if` branch excludes is compiled and run by another build, so a defect that shows only there is still a defect of the fix. A comment describes the code it is written next to and a directive acts on the code it governs: a fix that separates them makes the comment describe other code and the directive act on other code, and where they should go instead is the author's decision. The new name or accessibility is the correction itself, not a change in behavior; a field order that sets a type's layout is behavior, because native code and code that reads the memory directly see the fields in that order. A rename has to reach every place that refers to the symbol or repeats the region's name, and layout is not content, so neither is such an edit. Code excluded by `#if` compiles in another configuration, so a rename that misses it breaks that build. Documentation belongs to the declarations it documents, and no fix may lose it: a fix that leaves it behind, or keeps it on one part of a split declaration, takes it from a declaration and can hand it to whatever code follows, which changes the documentation the compiler generates and what the editor shows. Where the documentation should go then is the author's decision, so the user rearranges such code by hand. A diagnostic without a fix is a supported end state; a broken fix is not.
 
 Example — a compile error, for RH4106:
 
@@ -225,6 +234,34 @@ public class C
 ```
 
 Both fields are reported. For `_b`, no code fix is offered: moving it in front of `_a` would run its initializer first, so `_b` would hold `0` instead of `1`. For `_a`, the fix is offered: it crosses only the instance field `_instance`, whose initialization runs at a different time, and moving a static field changes no layout. The second block is the result of the fix for `_a`, in which `_b` is still reported.
+
+Example — a reorder that changes the layout, for RH7109:
+
+```csharp
+public struct S
+{
+    public int _a;
+    public readonly int {|RH7109:_b|};
+}
+```
+
+is reported, and no code fix is offered: the struct declares no `StructLayout` attribute, so it has sequential layout, and moving `_b` in front of `_a` would swap their offsets. The same holds for a class declared with `[StructLayout(LayoutKind.Sequential)]`. Static fields are no part of the layout:
+
+```csharp
+public struct S
+{
+    public static int _a;
+    public static readonly int {|RH7109:_b|};
+}
+```
+
+```csharp
+public struct S
+{
+    public static readonly int _b;
+    public static int _a;
+}
+```
 
 Example — a reorder that changes no layout, for RH7109:
 
@@ -424,6 +461,100 @@ public class C
 The excluded branch does not name `Value`, so the fix is offered and leaves that branch as it is.
 
 Example — documentation that stays with its declaration, for RH7103: the RH7103 examples under SHARED-DOC-004, where the fix carries a documentation comment with the declaration it moves. The comment documents the same declaration after the fix, so the fix is offered.
+
+Example — a directive pair split across a brace, for RH7501:
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                {
+                    A();
+#pragma warning disable CS0162
+                    {|RH7501:break|};
+#pragma warning restore CS0162
+                }
+        }
+    }
+
+    void A()
+    {
+    }
+}
+```
+
+is reported, and no code fix is offered: moving the `break` behind the closing brace would take the `disable` directive in front of it along and leave the `restore` inside the block, so the warning would stay disabled to the end of the file.
+
+Example — a brace added between the two directives of a pair, for RH7004, when `DEBUG` is defined:
+
+```csharp
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        {|RH7004:using|} var s = new MemoryStream();
+#if DEBUG
+        s.Flush();
+#endif
+    }
+}
+```
+
+is reported, and no code fix is offered: the block of the new `using` statement would end between `#if DEBUG` and `#endif`, so a build without `DEBUG` would lose that closing brace. When `DEBUG` is not defined, `s.Flush();` is disabled text, and the fix is not offered either: the block would end in front of `#if DEBUG`, so a build with `DEBUG` would call `s.Flush()` outside the scope of `s`. A pair that lies wholly in the statements the fix moves into the block moves with them:
+
+```csharp
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        {|RH7004:using|} var s = new MemoryStream();
+#if DEBUG
+        s.Flush();
+#endif
+        s.Close();
+    }
+}
+```
+
+is reported, and the fix is offered with and without `DEBUG`: the pair and the code between its directives move into the block of the `using` statement together with `s.Close();`.
+
+Example — code of another build configuration, for RH7501:
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                {
+                    A();
+                    {|RH7501:break|};
+#if DEBUG
+                    A();
+#endif
+                }
+        }
+    }
+
+    void A()
+    {
+    }
+}
+```
+
+is reported, and no code fix is offered: in a build with `DEBUG`, the second call to `A()` follows the `break` and never runs; moving the `break` behind the closing brace would make it run.
+
+Example — a comment that stays with the code it stands with, for RH7004: the comment behind the using declaration in RH7004-004 stays behind the header of the `using` statement the declaration is rewritten into. A comment that the fix would leave in front of a region block it moves is the example of RH7309-006.
 
 ### SHARED-FIX-004 — The fixes of two rules do not undo each other
 
