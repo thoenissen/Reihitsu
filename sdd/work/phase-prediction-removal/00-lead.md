@@ -58,3 +58,7 @@ C1 (tab in front of a node-level target): B — for whatever lies outside the ta
 # Audit 2 — decided 2026-10-26 under the standing instruction
 
 On `28-auditor.md`: finding #8 (repeats #1, escalation 12): option A — the context entry point restores the target's original leading trivia only where FMT-PIPE-010 keeps it, so no step after the last phase moves a line (FMT-PIPE-017 and the `AGENTS.md` sentence then hold as written). Finding #9: the dead line-offset mapping and attached-input clone are repaired (removed or made reachable and tested). Finding #10: keep `ShiftContinuationExteriorMarkers`; its removal is a follow-up candidate (public Core API). Repair round 3 of 3. Checkpoint before: 504310f. Recorded in `squad/decisions/2026-10-26-phase-prediction-removal-audit-2.md`.
+
+# Spec author round 33 — decided 2026-10-26 under the standing instruction
+
+FMT-PIPE-018 and the column wording are approved (change doc stays `Accepted`); Q1 (blank lines in front of a `FormatNodeInDocumentAsync` target) becomes a follow-up candidate. Checkpoint before: 5a8bc77. Recorded in `squad/decisions/2026-10-26-phase-prediction-removal-context-blank-lines.md`.
