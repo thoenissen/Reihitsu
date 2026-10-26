@@ -1960,6 +1960,82 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     }
 
     /// <summary>
+    /// Verifies that the fix of a chain whose first link carries a documentation comment written behind the opening brace of
+    /// its block aligns the wrapped link and keeps the brace's line as written, with nothing inserted in front of the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-005")]
+    [Requirement("FMT-PIPE-010")]
+    [Requirement("FMT-PIPE-018")]
+    public async Task VerifyChainWithDocumentationCommentBehindTheOpeningBraceKeepsThatLineAsWritten()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(string a)
+                                    { /// Doc
+                                        a.Trim()
+                                        {|#0:.|}ToUpper();
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(string a)
+                                     { /// Doc
+                                         a.Trim()
+                                          .ToUpper();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a chain whose first link carries a documentation comment written behind the statement in front
+    /// of it aligns the wrapped link and keeps that statement's line as written, with nothing inserted in front of the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-005")]
+    [Requirement("FMT-PIPE-010")]
+    [Requirement("FMT-PIPE-018")]
+    public async Task VerifyChainWithDocumentationCommentBehindThePreviousStatementKeepsThatLineAsWritten()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(string a)
+                                    {
+                                        var x = 1; /// Doc
+                                        a.Trim()
+                                        {|#0:.|}ToUpper();
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(string a)
+                                     {
+                                         var x = 1; /// Doc
+                                         a.Trim()
+                                          .ToUpper();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
     /// Formats the given source text through the shared formatting pipeline with LF line endings,
     /// the same engine <c>reihitsu-format</c> uses, without going through the CLI
     /// </summary>

@@ -1566,14 +1566,13 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     }
 
     /// <summary>
-    /// Verifies that the fix of a declarator that starts a later line of its declaration lays it out as the formatter lays out
-    /// the whole document: the declarator's line takes the formatter's column, and the wrapped argument aligns under the first
+    /// Characterizes the gap FMT-PIPE-017 records for a declarator that starts a later line of its declaration: the
+    /// declarator's line keeps its column in the document, while the wrapped argument stands in the column the formatter gave
+    /// it with the declarator in the formatter's column, and not under the first argument where it ends up
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5111-004")]
-    [Requirement("FMT-PIPE-017")]
-    public async Task VerifyDeclaratorOnALaterLineIsFixedAsTheFormatterLaysItOut()
+    public async Task VerifyDeclaratorOnALaterLineKeepsItsFirstLineColumnAndLeavesTheWrappedArgumentInTheFormattersLayout()
     {
         const string testData = """
                                 class C
@@ -1586,71 +1585,196 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
                                     void M()
                                     {
                                         int a = 1,
-                                              {|RH5111:b =
+                                              {|#0:b =
                                                   Other(1,
                                                         2)|};
                                     }
                                 }
                                 """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     static int Other(int x, int y)
+                                     {
+                                         return x + y;
+                                     }
 
-        await VerifyCodeFixMatchesFormatter(testData);
+                                     void M()
+                                     {
+                                         int a = 1,
+                                               b = Other(1,
+                                                   2);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
     }
 
     /// <summary>
-    /// Verifies that the fix of a parameter that starts a later line of its parameter list lays it out as the formatter lays
-    /// out the whole document, in the column of the first parameter
+    /// Verifies that the fix of a parameter that starts a later line of its parameter list joins it and keeps the parameter's
+    /// column as in the document
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5111-004")]
-    [Requirement("FMT-PIPE-017")]
-    public async Task VerifyParameterOnALaterLineIsFixedAsTheFormatterLaysItOut()
+    [Requirement("FMT-PIPE-018")]
+    public async Task VerifyParameterOnALaterLineIsJoinedInItsColumn()
     {
         const string testData = """
                                 class C
                                 {
                                     void M(int a,
-                                               {|RH5111:int b =
+                                               {|#0:int b =
                                                5|})
                                     {
                                     }
                                 }
                                 """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M(int a,
+                                                int b = 5)
+                                     {
+                                     }
+                                 }
+                                 """;
 
-        await VerifyCodeFixMatchesFormatter(testData);
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
     }
 
     /// <summary>
-    /// Verifies that the fix of an enum member that starts a later line of its enum lays it out as the formatter lays out the
-    /// whole document, in the column of the other members
+    /// Verifies that the fix of an enum member that starts a later line of its enum joins it and keeps the member's column as
+    /// in the document
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5111-004")]
-    [Requirement("FMT-PIPE-017")]
-    public async Task VerifyEnumMemberOnALaterLineIsFixedAsTheFormatterLaysItOut()
+    [Requirement("FMT-PIPE-018")]
+    public async Task VerifyEnumMemberOnALaterLineIsJoinedInItsColumn()
     {
         const string testData = """
                                 enum E
                                 {
                                     A = 1,
-                                      {|RH5111:B =
+                                      {|#0:B =
                                       2|}
                                 }
                                 """;
+        const string fixedData = """
+                                 enum E
+                                 {
+                                     A = 1,
+                                       B = 2
+                                 }
+                                 """;
 
-        await VerifyCodeFixMatchesFormatter(testData);
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
     }
 
     /// <summary>
-    /// Verifying that the fix of an enum member behind two blank lines keeps both blank lines, one of which document-level
-    /// formatting would remove, and puts the member in the column of the other members
+    /// Verifies that the fix of a declarator that starts a later line of a declaration indented with tabs keeps the tabs and
+    /// spaces in front of the declarator as in the document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-004")]
+    [Requirement("FMT-PIPE-018")]
+    public async Task VerifyDeclaratorOnALaterLineOfATabIndentedDeclarationKeepsTheWhitespaceInFrontOfIt()
+    {
+        const string testData = "internal class TestClass\n{\n\tvoid Method()\n\t{\n\t\tint a = 1,\n\t\t    {|#0:b =\n\t\t        2|};\n\t}\n}\n";
+        const string fixedData = "internal class TestClass\n{\n\tvoid Method()\n\t{\n\t\tint a = 1,\n\t\t    b = 2;\n\t}\n}\n";
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of an enum member whose documentation comment is written behind the member in front of it keeps
+    /// that line as written, with nothing inserted in front of the comment, and keeps the member's column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-004")]
+    [Requirement("FMT-PIPE-010")]
+    [Requirement("FMT-PIPE-018")]
+    public async Task VerifyEnumMemberWithDocumentationCommentBehindThePreviousMemberKeepsThatLineAsWritten()
+    {
+        const string testData = """
+                                internal enum Values
+                                {
+                                    First, /// Doc
+                                    {|#0:Second =
+                                        2|},
+                                    Third,
+                                }
+                                """;
+        const string fixedData = """
+                                 internal enum Values
+                                 {
+                                     First, /// Doc
+                                     Second = 2,
+                                     Third,
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a parameter whose documentation comment is written behind the parameter in front of it keeps
+    /// that line as written, with nothing inserted in front of the comment, and keeps the parameter's column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-004")]
+    [Requirement("FMT-PIPE-010")]
+    [Requirement("FMT-PIPE-018")]
+    public async Task VerifyParameterWithDocumentationCommentBehindThePreviousParameterKeepsThatLineAsWritten()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int first, /// Doc
+                                                {|#0:int second =
+                                                    1|})
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int first, /// Doc
+                                                 int second = 1)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of an enum member behind two blank lines keeps both blank lines, one of which document-level
+    /// formatting would remove, and the member's column as in the document
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5111-004")]
     [Requirement("SHARED-FIX-006")]
-    [Requirement("FMT-PIPE-017")]
     [Requirement("FMT-PIPE-018")]
     public async Task VerifyEnumMemberBehindTwoBlankLinesKeepsBothBlankLines()
     {
@@ -1671,7 +1795,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
                                      First,
 
 
-                                     Second = 2,
+                                   Second = 2,
                                      Third,
                                  }
                                  """;
@@ -1682,16 +1806,15 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     }
 
     /// <summary>
-    /// Verifying that the fix of an enum member behind a conditional directive and a blank line keeps the blank line, puts the
-    /// directive in column 0, and the member in the column of the other members
+    /// Verifies that the fix of an enum member behind a conditional directive and a blank line keeps the directive, the blank
+    /// line, and the columns as in the document
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5111-004")]
     [Requirement("SHARED-FIX-006")]
-    [Requirement("FMT-PIPE-017")]
     [Requirement("FMT-PIPE-018")]
-    public async Task VerifyEnumMemberBehindConditionalDirectiveKeepsTheBlankLineAndTakesTheColumns()
+    public async Task VerifyEnumMemberBehindConditionalDirectiveKeepsTheDirectiveAndTheBlankLineAsInTheDocument()
     {
         const string testData = """
                                 internal enum Values
@@ -1709,9 +1832,9 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
                                  internal enum Values
                                  {
                                      First,
-                                 #if !DEBUG
+                                   #if !DEBUG
 
-                                     Second = 2,
+                                       Second = 2,
                                  #endif
                                      Third,
                                  }
@@ -1723,16 +1846,15 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     }
 
     /// <summary>
-    /// Verifying that the fix of an enum member behind a region directive adds none of the blank lines document-level
-    /// formatting puts around the directive, and puts the directive and the member in the column of the other members
+    /// Verifies that the fix of an enum member behind a region directive adds none of the blank lines document-level formatting
+    /// puts around the directive, and keeps the directive and the member in their columns as in the document
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5111-004")]
     [Requirement("SHARED-FIX-006")]
-    [Requirement("FMT-PIPE-017")]
     [Requirement("FMT-PIPE-018")]
-    public async Task VerifyEnumMemberBehindRegionDirectiveAddsNoBlankLineAndTakesTheColumns()
+    public async Task VerifyEnumMemberBehindRegionDirectiveAddsNoBlankLineAndKeepsTheColumns()
     {
         const string testData = """
                                 internal enum Values
@@ -1749,8 +1871,8 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
                                  internal enum Values
                                  {
                                      First,
-                                     #region Values
-                                     Second = 2,
+                                   #region Values
+                                   Second = 2,
                                    #endregion
                                      Third,
                                  }
@@ -1762,16 +1884,15 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     }
 
     /// <summary>
-    /// Verifying that the fix of an enum member behind a documentation comment adds no blank line above the comment, and puts
-    /// every line of the comment and the member in the column of the other members
+    /// Verifies that the fix of an enum member behind a documentation comment adds no blank line above the comment, and keeps
+    /// every line of the comment and the member in their columns as in the document
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5111-004")]
     [Requirement("SHARED-FIX-006")]
-    [Requirement("FMT-PIPE-017")]
     [Requirement("FMT-PIPE-018")]
-    public async Task VerifyEnumMemberBehindDocumentationCommentAddsNoBlankLineAndTakesTheColumns()
+    public async Task VerifyEnumMemberBehindDocumentationCommentAddsNoBlankLineAndKeepsTheColumns()
     {
         const string testData = """
                                 internal enum Values
@@ -1789,10 +1910,10 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
                                  internal enum Values
                                  {
                                      First,
-                                     /// <summary>
-                                     /// Second
-                                     /// </summary>
-                                     Second = 2,
+                                       /// <summary>
+                                       /// Second
+                                       /// </summary>
+                                   Second = 2,
                                      Third,
                                  }
                                  """;
@@ -1803,16 +1924,15 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     }
 
     /// <summary>
-    /// Verifying that the fix of an enum member behind two comments with a blank line between them keeps exactly that blank
-    /// line, and puts both comments and the member in the column of the other members
+    /// Verifies that the fix of an enum member behind two comments with a blank line between them keeps exactly that blank
+    /// line, and both comments and the member in their columns as in the document
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5111-004")]
     [Requirement("SHARED-FIX-006")]
-    [Requirement("FMT-PIPE-017")]
     [Requirement("FMT-PIPE-018")]
-    public async Task VerifyEnumMemberBehindSeveralCommentsKeepsTheBlankLineBetweenThem()
+    public async Task VerifyEnumMemberBehindSeveralCommentsKeepsThemAsInTheDocument()
     {
         const string testData = """
                                 internal enum Values
@@ -1830,10 +1950,10 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
                                  internal enum Values
                                  {
                                      First,
-                                     // b
+                                       // b
 
-                                     /* c */
-                                     Second = 2,
+                                   /* c */
+                                       Second = 2,
                                      Third,
                                  }
                                  """;
@@ -1844,16 +1964,15 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     }
 
     /// <summary>
-    /// Verifying that the fix of an enum member behind two comments with a blank line between them keeps exactly that blank
-    /// line and the column of the other members under CRLF line endings
+    /// Verifies that the fix of an enum member behind two comments with a blank line between them keeps them as in the document
+    /// under CRLF line endings
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5111-004")]
     [Requirement("SHARED-FIX-006")]
-    [Requirement("FMT-PIPE-017")]
     [Requirement("FMT-PIPE-018")]
-    public async Task VerifyEnumMemberBehindSeveralCommentsKeepsTheBlankLineBetweenThemWithCrLf()
+    public async Task VerifyEnumMemberBehindSeveralCommentsKeepsThemAsInTheDocumentWithCrLf()
     {
         const string testData = """
                                 internal enum Values
@@ -1871,10 +1990,10 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
                                  internal enum Values
                                  {
                                      First,
-                                     // b
+                                       // b
 
-                                     /* c */
-                                     Second = 2,
+                                   /* c */
+                                       Second = 2,
                                      Third,
                                  }
                                  """;
@@ -1885,16 +2004,15 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     }
 
     /// <summary>
-    /// Verifying that the fix of a parameter behind two blank lines and a comment keeps both blank lines, and aligns the
-    /// comment and the parameter with the first parameter
+    /// Verifies that the fix of a parameter behind two blank lines and a comment keeps both blank lines, the comment, and the
+    /// columns as in the document
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5111-004")]
     [Requirement("SHARED-FIX-006")]
-    [Requirement("FMT-PIPE-017")]
     [Requirement("FMT-PIPE-018")]
-    public async Task VerifyParameterBehindTwoBlankLinesAndCommentKeepsBothBlankLines()
+    public async Task VerifyParameterBehindTwoBlankLinesAndCommentKeepsThemAsInTheDocument()
     {
         const string testData = """
                                 internal class TestClass
@@ -1915,8 +2033,8 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
                                      void Method(int first,
 
 
-                                                 // second
-                                                 int second = 1)
+                                       // second
+                                                     int second = 1)
                                      {
                                      }
                                  }
@@ -1928,16 +2046,15 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     }
 
     /// <summary>
-    /// Verifying that the fix of a declarator behind a blank line on a later line of its declaration keeps the blank line and
-    /// puts the declarator in the column document-level formatting gives it
+    /// Verifies that the fix of a declarator behind a blank line on a later line of its declaration keeps the blank line and
+    /// the declarator's column as in the document
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5111-004")]
     [Requirement("SHARED-FIX-006")]
-    [Requirement("FMT-PIPE-017")]
     [Requirement("FMT-PIPE-018")]
-    public async Task VerifyDeclaratorBehindBlankLineKeepsTheBlankLine()
+    public async Task VerifyDeclaratorBehindBlankLineKeepsTheBlankLineAndItsColumn()
     {
         const string testData = """
                                 internal class TestClass
@@ -1958,7 +2075,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
                                      {
                                          int first = 1,
 
-                                         second = 2;
+                                               second = 2;
                                      }
                                  }
                                  """;
