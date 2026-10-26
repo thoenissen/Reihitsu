@@ -1563,6 +1563,83 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
         await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the fix of a declarator that starts a later line of its declaration lays it out as the formatter lays out
+    /// the whole document: the declarator's line takes the formatter's column, and the wrapped argument aligns under the first
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-004")]
+    [Requirement("FMT-PIPE-017")]
+    public async Task VerifyDeclaratorOnALaterLineIsFixedAsTheFormatterLaysItOut()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    static int Other(int x, int y)
+                                    {
+                                        return x + y;
+                                    }
+
+                                    void M()
+                                    {
+                                        int a = 1,
+                                              {|RH5111:b =
+                                                  Other(1,
+                                                        2)|};
+                                    }
+                                }
+                                """;
+
+        await VerifyCodeFixMatchesFormatter(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a parameter that starts a later line of its parameter list lays it out as the formatter lays
+    /// out the whole document, in the column of the first parameter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-004")]
+    [Requirement("FMT-PIPE-017")]
+    public async Task VerifyParameterOnALaterLineIsFixedAsTheFormatterLaysItOut()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M(int a,
+                                               {|RH5111:int b =
+                                               5|})
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyCodeFixMatchesFormatter(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of an enum member that starts a later line of its enum lays it out as the formatter lays out the
+    /// whole document, in the column of the other members
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-004")]
+    [Requirement("FMT-PIPE-017")]
+    public async Task VerifyEnumMemberOnALaterLineIsFixedAsTheFormatterLaysItOut()
+    {
+        const string testData = """
+                                enum E
+                                {
+                                    A = 1,
+                                      {|RH5111:B =
+                                      2|}
+                                }
+                                """;
+
+        await VerifyCodeFixMatchesFormatter(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

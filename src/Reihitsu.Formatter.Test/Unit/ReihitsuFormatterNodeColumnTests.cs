@@ -65,6 +65,23 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a raw string literal formatted as the target on its own, which reaches the indentation phase still attached
+    /// to its document because no earlier phase rewrites it, moves its content line and closing marker under its opening quotes,
+    /// as document-level formatting does
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-RAW-001")]
+    public async Task RawStringLiteralTargetMovesContentUnderTheOpeningQuotes()
+    {
+        const string input = "class C\n{\n    void M()\n    {\n        var s = \"\"\"\n    a\n    \"\"\";\n    }\n}";
+        const string expected = "class C\n{\n    void M()\n    {\n        var s = \"\"\"\n                a\n                \"\"\";\n    }\n}";
+
+        await AssertFormatsTarget(input, expected, SelectSingle<LiteralExpressionSyntax>);
+    }
+
+    /// <summary>
     /// Verifies the spec example: the tabs in the leading whitespace of a statement target count as four columns each, so the
     /// statement starts in column 8 and the wrapped argument aligns behind it, while the lines outside the target keep their
     /// tabs
@@ -176,6 +193,47 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
                                              expected,
                                              root => root.DescendantNodes().OfType<InvocationExpressionSyntax>().First(),
                                              SelectSingle<EqualsValueClauseSyntax>);
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that formatting an argument that starts a later line of its statement, with the statement as context, writes the
+    /// argument's line in the column the indentation phase gives it, under the first argument, and aligns the argument's own
+    /// wrapped argument behind it, as document-level formatting does
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-INDENT-012")]
+    public async Task ArgumentTargetOnALaterLineOfItsContextIsWrittenInThePhaseColumnWithTheLinesAlignedToIt()
+    {
+        const string input = "class C\n{\n    void M()\n    {\n        Call(1,\n                 Other(2,\n                 3));\n    }\n}";
+        const string expected = "class C\n{\n    void M()\n    {\n        Call(1,\n             Other(2,\n                   3));\n    }\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             root => root.DescendantNodes().OfType<ArgumentSyntax>().Single(argument => argument.ToString().StartsWith("Other", StringComparison.Ordinal)),
+                                             SelectSingle<ExpressionStatementSyntax>);
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that formatting a one-line argument that starts a later line of its statement, with the statement as context,
+    /// writes the argument's line in the column the indentation phase gives it, under the first argument
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-INDENT-012")]
+    public async Task OneLineArgumentTargetOnALaterLineOfItsContextIsWrittenInThePhaseColumn()
+    {
+        const string input = "class C\n{\n    void M()\n    {\n        Call(1,\n                 2);\n    }\n}";
+        const string expected = "class C\n{\n    void M()\n    {\n        Call(1,\n             2);\n    }\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             root => root.DescendantNodes().OfType<ArgumentSyntax>().Last(),
+                                             SelectSingle<ExpressionStatementSyntax>);
         AssertRuleResult(input, expected);
     }
 

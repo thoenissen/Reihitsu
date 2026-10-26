@@ -412,7 +412,9 @@ public class IndentationPhaseRawStringMoveTests : FormatterPhaseTestsBase
 
     /// <summary>
     /// Verifies that the phase moves the lines of a raw string inside a node that is still attached to its document and starts
-    /// below the document's first line, so the model's line numbers and the rewritten node's line numbers differ
+    /// below the document's first line, where the lines the layout numbers in the document differ from the lines of the node
+    /// on its own. The test calls the phase directly; the node-level entry point reaches the same handling with a raw string
+    /// literal as its target (<c>ReihitsuFormatterNodeColumnTests.RawStringLiteralTargetMovesContentUnderTheOpeningQuotes</c>)
     /// </summary>
     [TestMethod]
     [Requirement("FMT-RAW-001")]
