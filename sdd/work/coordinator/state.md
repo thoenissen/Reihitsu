@@ -36,37 +36,40 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 Prompts are plain `/squad #a #b …` (maintainer 2026-10-25): every decision lives on the issues (triage comments), never in a prompt. Added 2026-10-25: #1458 (RH5202 fix changes verbatim value, 1.2.0, alone, after R3), #1463 (formatter phases must not predict later phases; behavior change, Maintenance; after R1, R3, #1458; before R10, R11), #1464 (squad architecture escalation, tooling; after #1441; body edited: no decisions entry). R3 = PR #1457.
 
+Status 2026-10-26: merged #1454 (#1441), #1455 (R1), #1456 (R2 incl. #1242), #1457 (R3; Refs #1393), #1466 (#1464), #1469 (#1463), #1468 (#1467), #1462 (docs), #1465 (/triage command `.claude/commands/triage.md`). R4, R5, R7 not started (no branch/PR). New: #1459 (RH8305 fix no progress, bug, 1.2.0, from #1456); Maintenance follow-ups #1460 #1461 #1470 #1471 #1472-#1479 (#1472/#1474/#1478 are 'decide' issues; #1473 labelled enhancement + behavior-change lane but on Maintenance — triage).
+
 | Wave | Run | Issues | Starts after | Status |
 |---|---|---|---|---|
-| W1 | R1 | #948 #949 #954 #1390 #888 | — | started |
-| W1 | R2 | #1329 #1389 #1241 #1344 (#1242 if listed) | — | started |
-| W1 | R3 | #951 #1133 #1146 | — | started (PR #1457) |
-| W1 | R4 | #1136 #1134 #1135 #1262 #1332 #1336 #1340 | — | ? |
-| W1 | R5 | #1016 #1070 #1073 | — | ? |
-| W1 | R7 | #1257 #1279 #1281 #1282 #1417 #1422 | — | ? |
-| W1 | T1 | #1441 | — | prompt given |
-| W2 | R6 | #967 #1286 #1287 #1288 | R4 | open |
-| W2 | R8 | #946 #1075 #1261 | R3, R7 | open |
-| W2 | R12 | #1382 #1383 #958 #1397 #1243 #1093 #1149 | R1 | open |
-| W2 | R13 | #1140 #1144 #1145 #1393 | R3 | open |
-| W2 | R9 | #1458 | R3 | open |
-| W2 | T2 | #1464 | #1441 | open |
-| W3 | F1 | #1463 | R1, R3, #1458 | open |
-| W3 | R15 | #972 #1096 #1076 #1416 | R8 | open |
-| W3 | R18 | #969 #1335 #1263 #1151 | R4 | open |
+| W1 | R1 | #948 #949 #954 #1390 #888 | — | merged #1455 |
+| W1 | R2 | #1329 #1389 #1241 #1344 #1242 | — | merged #1456 |
+| W1 | R3 | #951 #1133 #1146 | — | merged #1457 |
+| W1 | T1 | #1441 | — | merged #1454 |
+| — | T2 | #1464 | — | merged #1466 |
+| — | F1 | #1463 | — | merged #1469 |
+| W2 | R4 | #1136 #1134 #1135 #1262 #1332 #1336 #1340 | — | open |
+| W2 | R5 | #1016 #1070 #1073 | — | open |
+| W2 | R7 | #1257 #1279 #1281 #1282 #1417 #1422 | — | open |
+| W2 | R9 | #1458 | — | open |
+| W2 | R9b | #1459 | — | open |
+| W2 | R12 | #1382 #1383 #958 #1397 #1243 #1093 #1149 | — | open |
+| W3 | R6 | #967 #1286 #1287 #1288 | R4 | open |
+| W3 | R8 | #946 #1075 #1261 | R7 | open |
+| W3 | R10 | #1384 #1395 #963 #1381 #1398 | — | open |
+| W3 | R11 | #1392 #1385 #952 #1391 #1239 | — | open |
+| W3 | R13 | #1140 #1144 #1145 #1393 | — | open |
 | W3 | R20 | #966 #1105 #1266 #1267 | — | open |
-| W3 | R21 | #1269 #1342 #1343 (+#1242 if not in R2) | R2 | open |
-| W3 | R23 | #1283 #1284 #1285 | R7, R8 | open |
-| W4 | R10 | #1384 #1395 #963 #1381 #1398 | #1463 | open |
-| W4 | R11 | #1392 #1385 #952 #1391 #1239 | #1463 | open |
 | W4 | R14 | #1147 #1152 #1386 #1387 | R12 | open |
-| W4 | R17 | #1094 #1141 #1142 #1388 | R15, R21, R23 | open |
-| W4 | R19 | #1264 #1333 #1334 #1339 #1337 #1412 | R6, R18 | open |
+| W4 | R15 | #972 #1096 #1076 #1416 | R8 | open |
+| W4 | R18 | #969 #1335 #1263 #1151 | R4 | open |
+| W4 | R21 | #1269 #1342 #1343 | #1459 | open |
+| W4 | R23 | #1283 #1284 #1285 | R7, R8 | open |
 | W4 | R24 | #1071 #1268 #1084 #1289 #974 | R5, R20 | open |
-| W5 | R16 | #1150 #1274 #1015 #1143 | R13, R17 | open |
-| W5 | R22 | #1345 #1346 #1347 #1348 #1270 #1092 #1153 | R19 | open |
-| W5 | R25 | #1074 #1079 #1276 | R3 | open |
+| W5 | R17 | #1094 #1141 #1142 #1388 | R15, R21, R23 | open |
+| W5 | R19 | #1264 #1333 #1334 #1339 #1337 #1412 | R6, R18 | open |
+| W5 | R25 | #1074 #1079 #1276 | — | open |
 | W5 | M1 | #1453 | — | open (optional) |
+| W6 | R16 | #1150 #1274 #1015 #1143 | R13, R17 | open |
+| W6 | R22 | #1345 #1346 #1347 #1348 #1270 #1092 #1153 | R19 | open |
 
 - Next: classification rounds per "Phase 5 plan" below (1.2 critical / vNext extension / Maintenance internal / remaining bugs prioritized); check every `bug` label.
 
