@@ -6,13 +6,13 @@ The lead spawns a role by its `subagent_type` and passes no model argument, so r
 
 | Agent | Model | Effort | Denied tools | Why this tier |
 |---|---|---|---|---|
-| `spec-author` | `opus` | `high` | — | Writes requirements whose `Why:` decides later edge cases, and spots open questions about intended behavior |
-| `skeptic` | `opus` | `xhigh` | `Edit`, `NotebookEdit` | Its value is finding the reading or the input nobody else considered; a missed premise is paid for by a whole run |
-| `test-implementer` | `opus` | `high` | — | The tests define the change; a weak assertion lets a wrong implementation through |
-| `implementer` | `opus` | `high` | — | Changes guards and rewrites in Roslyn trivia, where the failure classes live |
-| `cleaner` | `sonnet` | `medium` | — | Formats files and resolves warnings by form-only changes; little judgment |
-| `spec-checker` | `sonnet` | `high` | `Edit`, `NotebookEdit` | Compares written text with the diff against a fixed checklist |
-| `auditor` | `opus` | `xhigh` | `Edit`, `NotebookEdit` | The last independent check, against the specs and every failure class |
+| `spec-author` | `opus` | `medium` | — | Writes requirements whose `Why:` decides later edge cases, and spots open questions about intended behavior |
+| `skeptic` | `opus` | `high` | `Edit`, `NotebookEdit` | Its value is finding the reading or the input nobody else considered; a missed premise is paid for by a whole run |
+| `test-implementer` | `opus` | `medium` | — | The tests define the change; a weak assertion lets a wrong implementation through |
+| `implementer` | `opus` | `medium` | — | Changes guards and rewrites in Roslyn trivia, where the failure classes live; the handovers say what to change but not where, so it keeps the stronger model, while the tests give it a feedback loop that makes medium effort enough |
+| `cleaner` | `sonnet` | `low` | — | Formats files and resolves warnings by form-only changes; little judgment |
+| `spec-checker` | `sonnet` | `medium` | `Edit`, `NotebookEdit` | Compares written text with the diff against a fixed checklist |
+| `auditor` | `opus` | `high` | `Edit`, `NotebookEdit` | The last independent check, against the specs and every failure class |
 | `validator` | `haiku` | `low` | `Edit`, `NotebookEdit` | Runs three scripts and reports; keeps thousands of output lines out of the lead's context |
 
 Every role keeps `Write`, because every role writes its handover under `sdd/work/<slug>/`, and the skeptic and the auditor write disposable fixtures outside the repository. The read-only roles lose `Edit`, so they cannot change an existing repository file; that they write nothing but their handover is stated in their role files.

@@ -2,7 +2,7 @@
 name: test-implementer
 description: Reihitsu squad role — writes the reproduction and the tests derived from the spec examples and the failure-class catalog. Never production code. Spawned by the lead (`squad/lead.md`) as one fresh agent per stage; it reads its handovers under `sdd/work/<slug>/` and writes its own.
 model: opus
-effort: high
+effort: medium
 color: yellow
 ---
 

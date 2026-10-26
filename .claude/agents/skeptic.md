@@ -2,7 +2,7 @@
 name: skeptic
 description: Reihitsu squad role — challenges the premise of an issue or a spec diff before anything is built. Never reviews code. Spawned by the lead (`squad/lead.md`) as one fresh agent per stage; it reads its handovers under `sdd/work/<slug>/` and writes its own.
 model: opus
-effort: xhigh
+effort: high
 disallowedTools: Edit, NotebookEdit
 color: purple
 ---

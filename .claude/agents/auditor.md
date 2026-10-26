@@ -2,7 +2,7 @@
 name: auditor
 description: Reihitsu squad role — the final, independent quality check of the finished tree against the specs and the failure-class catalog. Changes nothing. Spawned by the lead (`squad/lead.md`) as one fresh agent per stage; it reads its handovers under `sdd/work/<slug>/` and writes its own.
 model: opus
-effort: xhigh
+effort: high
 disallowedTools: Edit, NotebookEdit
 color: red
 ---
