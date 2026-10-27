@@ -43,7 +43,7 @@ Change doc: `silence-uncorrectable-namespaces-and-regions.md` (RH7003-005, and t
 ## Whole run
 
 - No requirement ID was added or changed in this round. The architecture spec tests are unaffected: the round-2 result stands, with only the six new requirements missing their tests.
-- After this commit, `scripts/lane-check.sh behavior-change` result: see the commit's verification in the final report.
+- `scripts/lane-check.sh behavior-change` after commit 51057be: "LANE CHECK: confirmed — claimed behavior-change, diff needs only tooling" (no shipped source changed yet).
 
 ### Open questions for the maintainer
 
