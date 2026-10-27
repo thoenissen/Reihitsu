@@ -29,3 +29,7 @@ Roles run: spec author (clarifications of SHARED-FIX-003, RH7309-004, RH7501-004
 - #1332: the blank-line part (former Q10) moved to #1437 and is not part of this run. The empty block that remains after the fix is kept (Q9).
 - #1336: an additional instance — RH7101 in mode `Parse` on a multi-declarator field with a `///` or `/** */` comment: fix withheld, diagnostic stays; RH7101-004 changes with this issue.
 - #1340: bug-fix lane, no change doc; where the rule's spec text disagrees, the same PR aligns it.
+
+# Lane widened: behavior change
+
+After the spec author's repair round, `scripts/lane-check.sh bug-fix` failed because the run's decisions entry lies under `squad/` (tooling). The maintainer reclassified the run as a behavior change and allowed change docs (`squad/decisions/2026-10-27-withhold-unsafe-fixes-lane.md`), before the implementer started. The run now claims the behavior-change lane; the spec author writes the change doc, and the maintainer approves its What and Why before the test implementer starts (escalation 2). Roles run: all eight, as before. The maintainer asked the lead to pause after every role because of the run's budget.
