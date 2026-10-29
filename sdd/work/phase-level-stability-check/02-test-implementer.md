@@ -15,7 +15,7 @@ The issue's whole deliverable is test-side: the helper extension and the excepti
   - Stale at the call: the fixture's entry names a phase that no longer changes it under that ending.
   - Stale at cleanup: an entry of a test method that ran the check was never reached under an ending it covers. This happens when the fingerprint drifted or the fixture went away. `[TestCleanup]` on `FormatterTestsBase` reports it.
   - Per-test state is an `AsyncLocal` dictionary that `[TestInitialize]` creates. I confirmed that it flows into the test and into its cleanup under MSTest 4.5.1: every check found its recorder, and the cleanup failures below fired.
-- **No `TestContext` on the base.** Twenty derived classes already declare `TestContext`, and MSTEST0036 forbids a second one on the base. That is why the test identity comes from the stack.
+- **No `TestContext` on the base.** Fourteen derived classes already declare `TestContext`, and MSTEST0036 forbids a second one on the base. That is why the test identity comes from the stack.
 - **The enum location.** It lives in `Helpers/Enumerations/` because `ShouldBeInEnumerationsNamespace` (architecture tests) requires it.
 
 ## The exception list
@@ -89,7 +89,7 @@ The ten listed fixtures in their own test classes are the end-to-end cases. Each
 ## Not covered, and why
 
 - **The `CheckCatches*` tests characterize today's defects.** The structural packages under thoenissen/Reihitsu#1482 that remove a cause must delete those tests together with the cause's entries. The tests fail loudly when that happens, by design.
-- **An entry whose test method no longer calls either helper at all is not reported.** Cleanup only knows the test methods that ran the check: no `TestContext` on the base, see above. A rename breaks the build through `nameof`. A deleted call with the method kept is the one gap. Closing it needs a `TestContext` on `FormatterTestsBase`, which means removing the property from the twenty derived classes. That is a follow-up candidate, not done here.
+- **An entry whose test method no longer calls either helper at all is not reported.** Cleanup only knows the test methods that ran the check: no `TestContext` on the base, see above. A rename breaks the build through `nameof`. A deleted call with the method kept is the one gap. Closing it needs a `TestContext` on `FormatterTestsBase`, which means removing the property from the fourteen derived classes. That is a follow-up candidate, not done here.
 - **Formatter tests that check idempotency without these two helpers are out of scope.** Examples are `FormatterPhaseTestsBase`, the node-level entry points, and the public-API `ReihitsuFormatter*Tests` (see `01-skeptic.md`, Surfaces).
 - **The reversal inside one phase is out of reach.** Its own steps undo each other, the fourth reversal named in the sibling issue thoenissen/Reihitsu#1499. Running one phase alone cannot see it.
 - **Failure classes outside the list.** Analyzer, code-fix, Fix All, naming, and token-gap failure classes cannot reach this change: no shipped source changes. Second-pass idempotency and CRLF are the property under test itself.
