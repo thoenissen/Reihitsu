@@ -26,4 +26,4 @@ Tests. The issue changes the formatter test helpers under `src/Reihitsu.Formatte
 
 ## Maintainer clarifications
 
-None.
+- Escalation 12 (skeptic architecture findings: three pre-existing two-phase reversals): the maintainer chose to keep the run narrow, list the reversing fixtures as exceptions with their causes, and link the existing structural packages under thoenissen/Reihitsu#1482 as follow-up work instead of filing new issues.
