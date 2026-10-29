@@ -2,27 +2,34 @@
 
 using Microsoft.CodeAnalysis.CSharp;
 
+using Reihitsu.Formatter.Pipeline;
 using Reihitsu.Formatter.Test.Helpers.Enumerations;
 
 namespace Reihitsu.Formatter.Test.Helpers;
 
 /// <summary>
-/// Runs the phase-level stability check for the fixtures of one test and keeps track of which phase reversal exceptions
-/// the test's fixtures matched, so an exception whose reversal no longer happens fails the test that carries it
+/// Runs the phase-level stability check for the fixtures of one test and keeps track of which phase reversal entries
+/// the test's fixtures reached, so an entry whose reversal no longer happens fails the test that carries it
 /// </summary>
 public sealed class PhaseStabilityRecorder
 {
     #region Fields
 
     /// <summary>
-    /// The exceptions that belong to the test
+    /// The entries that belong to the test
     /// </summary>
-    private readonly List<PhaseReversalException> _exceptions;
+    private readonly List<PhaseReversalEntry> _entries;
 
     /// <summary>
-    /// The exceptions and line endings that a fixture of the test reached, whether or not the phase still changes it
+    /// Creates the phases the check runs alone
     /// </summary>
-    private readonly HashSet<(PhaseReversalException Exception, PhaseReversalLineEndings LineEnding)> _reached = [];
+    private readonly Func<IReadOnlyList<IFormattingPhase>> _createPhases;
+
+    /// <summary>
+    /// The entries and line endings that a fixture of the test reached, whether or not the phase still makes the entry's
+    /// change
+    /// </summary>
+    private readonly HashSet<(PhaseReversalEntry Entry, PhaseReversalLineEndings LineEnding)> _reached = [];
 
     /// <summary>
     /// The fixtures the check ran on, in the order it ran on them
@@ -34,13 +41,12 @@ public sealed class PhaseStabilityRecorder
     #region Constructor
 
     /// <summary>
-    /// Constructor
+    /// Constructor for a recorder that runs the production phases
     /// </summary>
-    /// <param name="testClass">The test class that declares the test method</param>
-    /// <param name="testMethod">The name of the test method</param>
-    /// <param name="exceptions">The phase reversal exceptions to apply; only those of the given test are kept</param>
-    public PhaseStabilityRecorder(Type testClass, string testMethod, IEnumerable<PhaseReversalException> exceptions)
-        : this(PhaseStabilityCheck.FormatTestName(testClass, testMethod), exceptions)
+    /// <param name="testName">The name of the test method, qualified with the full name of its class</param>
+    /// <param name="entries">The phase reversal entries to apply; only those of the given test are kept</param>
+    public PhaseStabilityRecorder(string testName, IEnumerable<PhaseReversalEntry> entries)
+        : this(testName, entries, PhaseStabilityCheck.CreateProductionPhases)
     {
     }
 
@@ -48,11 +54,13 @@ public sealed class PhaseStabilityRecorder
     /// Constructor
     /// </summary>
     /// <param name="testName">The name of the test method, qualified with the full name of its class</param>
-    /// <param name="exceptions">The phase reversal exceptions to apply; only those of the given test are kept</param>
-    public PhaseStabilityRecorder(string testName, IEnumerable<PhaseReversalException> exceptions)
+    /// <param name="entries">The phase reversal entries to apply; only those of the given test are kept</param>
+    /// <param name="createPhases">Creates the phases the check runs alone</param>
+    internal PhaseStabilityRecorder(string testName, IEnumerable<PhaseReversalEntry> entries, Func<IReadOnlyList<IFormattingPhase>> createPhases)
     {
         TestName = testName;
-        _exceptions = exceptions.Where(exception => exception.TestName == testName).ToList();
+        _entries = entries.Where(entry => entry.TestName == testName).ToList();
+        _createPhases = createPhases;
     }
 
     #endregion // Constructor
@@ -75,9 +83,9 @@ public sealed class PhaseStabilityRecorder
     #region Methods
 
     /// <summary>
-    /// Runs every production phase alone on the final output of a fixture and returns one failure per phase that changes
-    /// it without an exception of this test covering it, and one per exception of this fixture whose phase no longer
-    /// changes it under the given line ending
+    /// Runs every phase alone on the final output of a fixture and returns one failure per change that no entry of this
+    /// fixture covers, and one per entry of this fixture whose change the phase no longer makes under the given line
+    /// ending. An entry covers a change only when its phase and the fingerprint of the phase's output both match
     /// </summary>
     /// <param name="finalOutput">The final output of the fixture</param>
     /// <param name="endOfLine">The end-of-line sequence the output was formatted with</param>
@@ -85,35 +93,35 @@ public sealed class PhaseStabilityRecorder
     /// <returns>The failures; empty when the fixture passes the check</returns>
     public IReadOnlyList<string> Check(string finalOutput, string endOfLine, CSharpParseOptions parseOptions)
     {
-        var lineEnding = endOfLine == "\n" ? PhaseReversalLineEndings.Lf : PhaseReversalLineEndings.Crlf;
-        var endingName = endOfLine == "\n" ? "LF" : "CRLF";
+        var lineEnding = ToLineEnding(endOfLine);
+        var endingName = Describe(lineEnding);
         var fingerprint = PhaseStabilityCheck.ComputeFingerprint(finalOutput);
-        var changes = PhaseStabilityCheck.FindChangingPhases(finalOutput, endOfLine, parseOptions);
-        var fixtureExceptions = _exceptions.Where(exception => exception.Fingerprint == fingerprint
-                                                               && exception.Covers(lineEnding))
-                                           .ToList();
+        var changes = PhaseStabilityCheck.FindChangingPhases(finalOutput, endOfLine, parseOptions, _createPhases());
+        var fixtureEntries = _entries.Where(entry => entry.Fingerprint == fingerprint
+                                                     && entry.Covers(lineEnding))
+                                     .ToList();
         var failures = new List<string>();
 
         _checkedFixtures.Add((fingerprint, lineEnding, parseOptions));
 
-        foreach (var exception in fixtureExceptions)
+        foreach (var entry in fixtureEntries)
         {
-            _reached.Add((exception, lineEnding));
+            _reached.Add((entry, lineEnding));
         }
 
         foreach (var change in changes)
         {
-            if (fixtureExceptions.Any(exception => exception.Phase == change.Phase) == false)
+            if (fixtureEntries.Any(entry => IsCoveredBy(change, entry)) == false)
             {
-                failures.Add($"{change.Phase} changes the final output of fixture {fingerprint} of {TestName} under {endingName} line endings when it runs alone. {change.Difference} A reversal with a known cause is listed in {nameof(PhaseReversalExceptions)} with fingerprint \"{fingerprint}\" and phase {change.Phase}.");
+                failures.Add($"{change.Phase} changes the final output of fixture {fingerprint} of {TestName} under {endingName} line endings when it runs alone, to the output {change.OutputFingerprint}. {change.Difference} A reversal with a known cause is listed in {nameof(PhaseReversalExceptionList)} with fixture \"{fingerprint}\" and phase output \"{change.OutputFingerprint}\".");
             }
         }
 
-        foreach (var exception in fixtureExceptions)
+        foreach (var entry in fixtureEntries)
         {
-            if (changes.Any(change => change.Phase == exception.Phase) == false)
+            if (changes.Any(change => IsCoveredBy(change, entry)) == false)
             {
-                failures.Add($"Stale phase reversal exception ({exception}): {exception.Phase} no longer changes the final output of fixture {fingerprint} under {endingName} line endings. Delete the entry, or narrow its line endings.");
+                failures.Add($"Stale phase reversal entry ({entry}): {entry.Phase} no longer changes the final output of fixture {fingerprint} to the output {entry.PhaseOutputFingerprint} under {endingName} line endings. Delete the entry, or narrow its line endings.");
             }
         }
 
@@ -121,26 +129,58 @@ public sealed class PhaseStabilityRecorder
     }
 
     /// <summary>
-    /// Returns one failure per exception of this test and line ending it covers that no fixture of the test reached
+    /// Returns one failure per entry of this test and line ending it covers that no fixture of the test reached
     /// </summary>
-    /// <returns>The failures; empty when every exception of the test was reached</returns>
-    public IReadOnlyList<string> FindUnreachedExceptions()
+    /// <returns>The failures; empty when every entry of the test was reached</returns>
+    public IReadOnlyList<string> FindUnreachedEntries()
     {
         var failures = new List<string>();
 
-        foreach (var exception in _exceptions)
+        foreach (var entry in _entries)
         {
             foreach (var lineEnding in new[] { PhaseReversalLineEndings.Lf, PhaseReversalLineEndings.Crlf })
             {
-                if (exception.Covers(lineEnding)
-                    && _reached.Contains((exception, lineEnding)) == false)
+                if (entry.Covers(lineEnding)
+                    && _reached.Contains((entry, lineEnding)) == false)
                 {
-                    failures.Add($"Stale phase reversal exception ({exception}): no fixture of the test has the final output {exception.Fingerprint} under {(lineEnding == PhaseReversalLineEndings.Lf ? "LF" : "CRLF")} line endings. Delete the entry, or update its fingerprint.");
+                    failures.Add($"Stale phase reversal entry ({entry}): no fixture of the test has the final output {entry.Fingerprint} under {Describe(lineEnding)} line endings. Delete the entry, or update its fingerprint.");
                 }
             }
         }
 
         return failures;
+    }
+
+    /// <summary>
+    /// Determines whether an entry covers a change: the same phase, returning the same output
+    /// </summary>
+    /// <param name="change">The change</param>
+    /// <param name="entry">The entry</param>
+    /// <returns><see langword="true"/> when the entry covers the change</returns>
+    private static bool IsCoveredBy(PhaseChange change, PhaseReversalEntry entry)
+    {
+        return change.Phase == entry.Phase
+               && change.OutputFingerprint == entry.PhaseOutputFingerprint;
+    }
+
+    /// <summary>
+    /// Maps an end-of-line sequence to its line ending
+    /// </summary>
+    /// <param name="endOfLine">The end-of-line sequence</param>
+    /// <returns>The line ending</returns>
+    private static PhaseReversalLineEndings ToLineEnding(string endOfLine)
+    {
+        return endOfLine == "\n" ? PhaseReversalLineEndings.Lf : PhaseReversalLineEndings.Crlf;
+    }
+
+    /// <summary>
+    /// Names a line ending for a failure message
+    /// </summary>
+    /// <param name="lineEnding">The line ending</param>
+    /// <returns><c>LF</c> or <c>CRLF</c></returns>
+    private static string Describe(PhaseReversalLineEndings lineEnding)
+    {
+        return lineEnding == PhaseReversalLineEndings.Lf ? "LF" : "CRLF";
     }
 
     #endregion // Methods

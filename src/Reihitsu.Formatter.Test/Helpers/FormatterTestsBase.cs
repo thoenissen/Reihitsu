@@ -37,8 +37,8 @@ public abstract class FormatterTestsBase
     }
 
     /// <summary>
-    /// Ends the phase-level stability check of the current test and fails when a phase reversal exception of a test method
-    /// that ran was reached by none of its fixtures
+    /// Ends the phase-level stability check of the current test and fails when a phase reversal entry of a test method
+    /// that ran the check was reached by none of its fixtures
     /// </summary>
     [TestCleanup]
     public void EndPhaseStabilityCheck()
@@ -48,7 +48,8 @@ public abstract class FormatterTestsBase
 
     /// <summary>
     /// Applies the formatter rule and verifies both first-pass and second-pass results under both
-    /// LF and CRLF line endings, and that no phase of the pipeline, run alone, changes the final output
+    /// LF and CRLF line endings, and that no phase of the pipeline, run alone, changes the final output apart from the
+    /// reversals <see cref="PhaseReversalExceptionList"/> names
     /// </summary>
     /// <param name="input">The input source text</param>
     /// <param name="expected">The expected formatted output, or <see langword="null"/> when the input is already formatted</param>
@@ -63,8 +64,9 @@ public abstract class FormatterTestsBase
 
     /// <summary>
     /// Formats the input once and verifies, under both LF and CRLF line endings, that a second pass leaves the output
-    /// of the first pass unchanged. Used where a requirement leaves the exact output open but the result must still be
-    /// a fixed point of the formatter, and that no phase of the pipeline, run alone, changes it
+    /// of the first pass unchanged and that no phase of the pipeline, run alone, changes that output apart from the
+    /// reversals <see cref="PhaseReversalExceptionList"/> names. Used where a requirement leaves the exact output open but
+    /// the result must still be a fixed point of the formatter
     /// </summary>
     /// <param name="input">The input source text</param>
     /// <param name="parseOptions">The parse options to use, or <see langword="null"/> for the defaults</param>
@@ -130,7 +132,8 @@ public abstract class FormatterTestsBase
     /// <summary>
     /// Applies the formatter rule with the requested end-of-line sequence and parse options, and
     /// verifies that the output matches the expected text, uses the requested ending byte-for-byte,
-    /// and is idempotent
+    /// is idempotent, and that no phase of the pipeline, run alone, changes it apart from the reversals
+    /// <see cref="PhaseReversalExceptionList"/> names
     /// </summary>
     /// <param name="input">The input source text</param>
     /// <param name="expected">The expected formatted output, or <see langword="null"/> when the input is already formatted</param>
@@ -177,9 +180,9 @@ public abstract class FormatterTestsBase
     /// <returns>The formatted source text</returns>
     private static string ApplyRule(string input, string endOfLine, CSharpParseOptions parseOptions = null)
     {
-        var tree = CSharpSyntaxTree.ParseText(input, parseOptions);
-        var context = new FormattingContext(endOfLine, languageVersion: LanguageVersionResolver.Resolve(tree.Options));
-        var result = FormattingPipeline.Execute(tree.GetRoot(), context, CancellationToken.None);
+        var (root, context) = SecondPassInput.Create(input, endOfLine, parseOptions);
+
+        var result = FormattingPipeline.Execute(root, context, CancellationToken.None);
 
         return result.ToFullString();
     }

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -9,10 +9,8 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline;
 using Reihitsu.Formatter.Test.Helpers.Enumerations;
-using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Test.Helpers;
 
@@ -26,10 +24,10 @@ public static class PhaseStabilityCheck
     #region Fields
 
     /// <summary>
-    /// The recorders of the test that is currently running on this logical call context, one per test method that called
-    /// the check. The test initialization creates the dictionary, so the check and the test cleanup share it
+    /// The check's state for the test that is currently running on this logical call context. The test initialization
+    /// creates it, so the check and the test cleanup share it
     /// </summary>
-    private static readonly AsyncLocal<Dictionary<string, PhaseStabilityRecorder>> _currentRecorders = new();
+    private static readonly AsyncLocal<PhaseStabilitySession> _currentSession = new();
 
     /// <summary>
     /// The private factory of the production phase list, read through reflection so the check runs exactly the phases
@@ -42,29 +40,32 @@ public static class PhaseStabilityCheck
     #region Methods
 
     /// <summary>
-    /// Starts recording the phase-level stability check for a test
+    /// Starts recording the phase-level stability check for a test, with the entries of <see cref="PhaseReversalExceptionList"/>
+    /// and the production phases
     /// </summary>
     public static void BeginTest()
     {
-        _currentRecorders.Value = [];
+        _currentSession.Value = new PhaseStabilitySession(PhaseReversalExceptionList.Entries, CreateProductionPhases);
     }
 
     /// <summary>
-    /// Ends recording for the current test and fails when an exception of a test method that called the check was
-    /// reached by none of its fixtures
+    /// Ends recording for the current test and fails when an entry of a test method that called the check was reached by
+    /// none of its fixtures. A second call in the same test finds nothing left to report
     /// </summary>
     public static void EndTest()
     {
-        var recorders = _currentRecorders.Value;
+        var session = _currentSession.Value;
 
-        _currentRecorders.Value = null;
+        _currentSession.Value = null;
 
-        if (recorders == null)
+        if (session == null)
         {
             return;
         }
 
-        var failures = recorders.Values.SelectMany(recorder => recorder.FindUnreachedExceptions()).ToList();
+        var failures = session.Recorders.Values.SelectMany(recorder => recorder.FindUnreachedEntries()).ToList();
+
+        session.Recorders.Clear();
 
         if (failures.Count > 0)
         {
@@ -73,24 +74,21 @@ public static class PhaseStabilityCheck
     }
 
     /// <summary>
-    /// Runs the check on the final output of a fixture of the current test and fails on every phase that changes it
-    /// without an exception, and on every exception of the fixture that no longer applies
+    /// Runs the check on the final output of a fixture of the current test and fails on every change without an entry,
+    /// and on every entry of the fixture whose change no longer happens
     /// </summary>
     /// <param name="finalOutput">The final output of the fixture</param>
     /// <param name="endOfLine">The end-of-line sequence the output was formatted with</param>
     /// <param name="parseOptions">The parse options the fixture was formatted with, or <see langword="null"/> for the defaults</param>
     public static void Verify(string finalOutput, string endOfLine, CSharpParseOptions parseOptions)
     {
-        var recorders = _currentRecorders.Value;
-
-        Assert.IsNotNull(recorders, "The phase-level stability check runs only inside a test of a class derived from FormatterTestsBase.");
-
+        var session = GetCurrentSession();
         var testName = FindCallingTestName();
 
-        if (recorders.TryGetValue(testName, out var recorder) == false)
+        if (session.Recorders.TryGetValue(testName, out var recorder) == false)
         {
-            recorder = new PhaseStabilityRecorder(testName, PhaseReversalExceptions.Entries);
-            recorders.Add(testName, recorder);
+            recorder = new PhaseStabilityRecorder(testName, session.Entries, session.CreatePhases);
+            session.Recorders.Add(testName, recorder);
         }
 
         var failures = recorder.Check(finalOutput, endOfLine, parseOptions);
@@ -107,52 +105,33 @@ public static class PhaseStabilityCheck
     /// <returns>The fingerprint, line ending, and parse options of every checked fixture, in the order the check ran</returns>
     public static IReadOnlyList<(string Fingerprint, PhaseReversalLineEndings LineEnding, CSharpParseOptions ParseOptions)> GetCheckedFixtures()
     {
-        var recorders = _currentRecorders.Value;
-
-        Assert.IsNotNull(recorders, "The phase-level stability check runs only inside a test of a class derived from FormatterTestsBase.");
-
-        return recorders.TryGetValue(FindCallingTestName(), out var recorder)
+        return GetCurrentSession().Recorders.TryGetValue(FindCallingTestName(), out var recorder)
                    ? recorder.CheckedFixtures
                    : [];
     }
 
     /// <summary>
     /// Runs every production phase alone on the given text, parsed as a second pass would parse it, and returns the
-    /// phases that change it
+    /// changes of the phases that change it
     /// </summary>
     /// <param name="text">The text to check</param>
     /// <param name="endOfLine">The end-of-line sequence of the formatting context</param>
     /// <param name="parseOptions">The parse options, or <see langword="null"/> for the defaults</param>
-    /// <returns>One entry per phase that changes the text, in pipeline order</returns>
-    public static IReadOnlyList<(string Phase, string Difference)> FindChangingPhases(string text, string endOfLine, CSharpParseOptions parseOptions)
+    /// <returns>One change per phase that changes the text, in pipeline order</returns>
+    public static IReadOnlyList<PhaseChange> FindChangingPhases(string text, string endOfLine, CSharpParseOptions parseOptions)
     {
-        var changes = new List<(string Phase, string Difference)>();
-
-        foreach (var phase in CreateProductionPhases())
-        {
-            var tree = CSharpSyntaxTree.ParseText(text, parseOptions);
-            var context = new FormattingContext(endOfLine, languageVersion: LanguageVersionResolver.Resolve(tree.Options));
-            var output = FormattingPipeline.ExecutePhases(tree.GetRoot(), context, [phase], null, CancellationToken.None).ToFullString();
-
-            if (output != text)
-            {
-                changes.Add((phase.GetType().Name, DescribeFirstDifference(text, output)));
-            }
-        }
-
-        return changes;
+        return FindChangingPhases(text, endOfLine, parseOptions, CreateProductionPhases());
     }
 
     /// <summary>
-    /// Computes the fingerprint that identifies a fixture by its final output: the first 16 hexadecimal digits of the
-    /// SHA-256 hash of the output with every line break written as LF, so one fingerprint names the fixture under both
-    /// line endings
+    /// Computes the fingerprint that identifies a text: the first 16 hexadecimal digits of the SHA-256 hash of the text
+    /// with every line break written as LF, so one fingerprint names a fixture's output under both line endings
     /// </summary>
-    /// <param name="finalOutput">The final output of the fixture</param>
+    /// <param name="text">The text</param>
     /// <returns>The fingerprint</returns>
-    public static string ComputeFingerprint(string finalOutput)
+    public static string ComputeFingerprint(string text)
     {
-        var normalized = finalOutput.Replace("\r\n", "\n");
+        var normalized = text.Replace("\r\n", "\n");
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes(normalized));
 
         return Convert.ToHexString(hash, 0, 8).ToLowerInvariant();
@@ -178,6 +157,62 @@ public static class PhaseStabilityCheck
         Assert.IsNotNull(_createPhases, "FormattingPipeline.CreatePhases was not found; the phase-level stability check must run the production phase list.");
 
         return (IReadOnlyList<IFormattingPhase>)_createPhases.Invoke(null, null);
+    }
+
+    /// <summary>
+    /// Replaces, for the rest of the current test, the entries and the phases the check uses. The tests of the check use
+    /// it to drive the helpers and the test cleanup into their failures without a real reversal
+    /// </summary>
+    /// <param name="entries">The entries to apply instead of <see cref="PhaseReversalExceptionList"/></param>
+    /// <param name="createPhases">Creates the phases to run alone instead of the production phases</param>
+    internal static void OverrideForCurrentTest(IReadOnlyList<PhaseReversalEntry> entries, Func<IReadOnlyList<IFormattingPhase>> createPhases)
+    {
+        var session = GetCurrentSession();
+
+        Assert.IsEmpty(session.Recorders, "The check must be overridden before it first runs in the test.");
+
+        session.Override(entries, createPhases);
+    }
+
+    /// <summary>
+    /// Runs the given phases alone on the given text, parsed as a second pass would parse it, and returns the changes of
+    /// the phases that change it
+    /// </summary>
+    /// <param name="text">The text to check</param>
+    /// <param name="endOfLine">The end-of-line sequence of the formatting context</param>
+    /// <param name="parseOptions">The parse options, or <see langword="null"/> for the defaults</param>
+    /// <param name="phases">The phases to run alone</param>
+    /// <returns>One change per phase that changes the text, in the given order</returns>
+    internal static IReadOnlyList<PhaseChange> FindChangingPhases(string text, string endOfLine, CSharpParseOptions parseOptions, IReadOnlyList<IFormattingPhase> phases)
+    {
+        var (root, context) = SecondPassInput.Create(text, endOfLine, parseOptions);
+
+        var changes = new List<PhaseChange>();
+
+        foreach (var phase in phases)
+        {
+            var output = FormattingPipeline.ExecutePhases(root, context, [phase], null, CancellationToken.None).ToFullString();
+
+            if (output != text)
+            {
+                changes.Add(new PhaseChange(phase.GetType().Name, text, output));
+            }
+        }
+
+        return changes;
+    }
+
+    /// <summary>
+    /// Returns the check's state for the current test
+    /// </summary>
+    /// <returns>The state</returns>
+    private static PhaseStabilitySession GetCurrentSession()
+    {
+        var session = _currentSession.Value;
+
+        Assert.IsNotNull(session, "The phase-level stability check runs only inside a test of a class derived from FormatterTestsBase.");
+
+        return session;
     }
 
     /// <summary>
@@ -222,42 +257,6 @@ public static class PhaseStabilityCheck
         Assert.Fail("The phase-level stability check found no test method on the call stack.");
 
         return null;
-    }
-
-    /// <summary>
-    /// Describes the first line in which two texts differ
-    /// </summary>
-    /// <param name="expected">The text the phase received</param>
-    /// <param name="actual">The text the phase returned</param>
-    /// <returns>The description</returns>
-    private static string DescribeFirstDifference(string expected, string actual)
-    {
-        var expectedLines = expected.Split('\n');
-        var actualLines = actual.Split('\n');
-        var lineCount = Math.Max(expectedLines.Length, actualLines.Length);
-
-        for (var index = 0; index < lineCount; index++)
-        {
-            var expectedLine = index < expectedLines.Length ? expectedLines[index] : null;
-            var actualLine = index < actualLines.Length ? actualLines[index] : null;
-
-            if (expectedLine != actualLine)
-            {
-                return $"First difference at line {index + 1}: expected {Quote(expectedLine)}, phase returned {Quote(actualLine)}.";
-            }
-        }
-
-        return "The texts differ only in their line breaks.";
-    }
-
-    /// <summary>
-    /// Quotes a line for a failure message, making a carriage return visible
-    /// </summary>
-    /// <param name="line">The line, or <see langword="null"/> when the text has no such line</param>
-    /// <returns>The quoted line</returns>
-    private static string Quote(string line)
-    {
-        return line == null ? "<no line>" : $"\"{line.Replace("\r", "\\r")}\"";
     }
 
     #endregion // Methods
