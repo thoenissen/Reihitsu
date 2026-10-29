@@ -22,7 +22,7 @@ Widened from tests to tooling after the skeptic: the escalation-12 answer is rec
 - Spec author — skipped: the issue asks for no spec; the run adds a test-side check of existing behavior, not a spec of a surface. Re-evaluated if the skeptic or test implementer finds a spec gap.
 - Skeptic — runs: premise check of the issue's statements about today's code against `main`, including the three listed reversal causes.
 - Test implementer — runs: extends the helpers and writes the exception list.
-- Implementer — runs after the widening to tooling, when the test implementer's handover leaves production or tooling work; otherwise recorded as having nothing to do.
+- Implementer — skipped: the test implementer (`02-test-implementer.md`) delivered the whole change test-side and changed no production or tooling file, so no failing test was left to make pass.
 - Cleaner — runs.
 - Spec checker — runs.
 - Auditor — runs after the widening to tooling.
