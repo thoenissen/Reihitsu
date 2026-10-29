@@ -13,15 +13,19 @@ Verdict: lane claimed
 
 Tests. The issue changes the formatter test helpers under `src/Reihitsu.Formatter.Test/Helpers/` and adds an exception list next to them; it asks for no change to shipped source and no new behavior. The issue itself names this lane.
 
+## Lane widening
+
+Widened from tests to tooling after the skeptic: the escalation-12 answer is recorded in `squad/decisions/`, and `scripts/lane-check.sh tests --head worktree` reports `LANE CHECK: mismatch — claimed tests, diff needs tooling` because the lane classifier counts every `squad/` path as tooling. The widening happened before any implementer started. The tooling lane adds the implementer and the auditor. Follow-up candidate: the lane classifier puts a run's own `squad/decisions/` entry in the tooling lane, although the playbook requires every run to commit one.
+
 ## Roles
 
 - Spec author — skipped: the issue asks for no spec; the run adds a test-side check of existing behavior, not a spec of a surface. Re-evaluated if the skeptic or test implementer finds a spec gap.
 - Skeptic — runs: premise check of the issue's statements about today's code against `main`, including the three listed reversal causes.
 - Test implementer — runs: extends the helpers and writes the exception list.
-- Implementer — skipped: not in the tests lane.
+- Implementer — runs after the widening to tooling, when the test implementer's handover leaves production or tooling work; otherwise recorded as having nothing to do.
 - Cleaner — runs.
 - Spec checker — runs.
-- Auditor — skipped: not in the tests lane.
+- Auditor — runs after the widening to tooling.
 - Validator — runs.
 
 ## Maintainer clarifications
