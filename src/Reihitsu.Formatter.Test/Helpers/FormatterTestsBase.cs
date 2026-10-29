@@ -28,8 +28,27 @@ public abstract class FormatterTestsBase
     #region Methods
 
     /// <summary>
+    /// Starts the phase-level stability check of the current test
+    /// </summary>
+    [TestInitialize]
+    public void BeginPhaseStabilityCheck()
+    {
+        PhaseStabilityCheck.BeginTest();
+    }
+
+    /// <summary>
+    /// Ends the phase-level stability check of the current test and fails when a phase reversal exception of a test method
+    /// that ran was reached by none of its fixtures
+    /// </summary>
+    [TestCleanup]
+    public void EndPhaseStabilityCheck()
+    {
+        PhaseStabilityCheck.EndTest();
+    }
+
+    /// <summary>
     /// Applies the formatter rule and verifies both first-pass and second-pass results under both
-    /// LF and CRLF line endings
+    /// LF and CRLF line endings, and that no phase of the pipeline, run alone, changes the final output
     /// </summary>
     /// <param name="input">The input source text</param>
     /// <param name="expected">The expected formatted output, or <see langword="null"/> when the input is already formatted</param>
@@ -45,7 +64,7 @@ public abstract class FormatterTestsBase
     /// <summary>
     /// Formats the input once and verifies, under both LF and CRLF line endings, that a second pass leaves the output
     /// of the first pass unchanged. Used where a requirement leaves the exact output open but the result must still be
-    /// a fixed point of the formatter
+    /// a fixed point of the formatter, and that no phase of the pipeline, run alone, changes it
     /// </summary>
     /// <param name="input">The input source text</param>
     /// <param name="parseOptions">The parse options to use, or <see langword="null"/> for the defaults</param>
@@ -61,6 +80,8 @@ public abstract class FormatterTestsBase
             var secondPass = ApplyRule(firstPass, endOfLine, parseOptions);
 
             Assert.AreEqual(firstPass, secondPass, $"Formatter is not idempotent under {endingName} line endings.");
+
+            PhaseStabilityCheck.Verify(secondPass, endOfLine, parseOptions);
         }
     }
 
@@ -126,6 +147,8 @@ public abstract class FormatterTestsBase
 
             Assert.AreEqual(normalizedInput, actual, $"Formatter changed already-formatted source under {endingName} line endings.");
             AssertUsesLineEnding(actual, endOfLine);
+
+            PhaseStabilityCheck.Verify(actual, endOfLine, parseOptions);
         }
         else
         {
@@ -138,6 +161,8 @@ public abstract class FormatterTestsBase
             var actualSecondPass = ApplyRule(actual, endOfLine, parseOptions);
 
             Assert.AreEqual(normalizedExpected, actualSecondPass, $"Formatter is not idempotent under {endingName} line endings.");
+
+            PhaseStabilityCheck.Verify(actualSecondPass, endOfLine, parseOptions);
         }
     }
 
