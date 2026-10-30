@@ -1,7 +1,7 @@
 ﻿namespace Reihitsu.Formatter.Test.Helpers.Enumerations;
 
 /// <summary>
-/// The line endings a phase reversal exception covers
+/// The line endings a phase reversal entry covers
 /// </summary>
 [Flags]
 public enum PhaseReversalLineEndings

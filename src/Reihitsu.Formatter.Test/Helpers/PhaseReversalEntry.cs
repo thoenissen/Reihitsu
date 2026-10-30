@@ -22,7 +22,7 @@ public sealed class PhaseReversalEntry
     /// <param name="cause">The cause of the reversal, one of <see cref="PhaseReversalCauses"/>; it names the phase</param>
     /// <param name="phaseOutputFingerprint">The fingerprint of the text the phase returns when it runs alone on the final output</param>
     /// <param name="lineEndings">The line endings under which the phase changes the final output</param>
-    /// <param name="dataRow">For a data-driven test, the data row of the execution that formats the fixture, as <see cref="PhaseStabilityCheck.FormatDataRow"/> formats it; otherwise <see langword="null"/></param>
+    /// <param name="dataRow">For a data-driven test, the data row of the execution that formats the fixture, as <see cref="DataRowKey.Format"/> formats it; otherwise <see langword="null"/></param>
     public PhaseReversalEntry(Type testClass, string testMethod, string fingerprint, PhaseReversalCause cause, string phaseOutputFingerprint, PhaseReversalLineEndings lineEndings, string dataRow = null)
         : this(PhaseStabilityCheck.FormatTestName(testClass, testMethod), fingerprint, cause, phaseOutputFingerprint, lineEndings, dataRow)
     {

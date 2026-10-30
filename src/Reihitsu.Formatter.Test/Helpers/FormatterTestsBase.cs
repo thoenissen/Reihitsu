@@ -38,12 +38,13 @@ public abstract class FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Starts the phase-level stability check of the current test, identified by its class, its method, and its data row
+    /// Starts the phase-level stability check of the current test, identified by its class, its method, and its data row.
+    /// A data row the check cannot key fails the test here
     /// </summary>
     [TestInitialize]
     public void BeginPhaseStabilityCheck()
     {
-        PhaseStabilityCheck.BeginTest($"{TestContext.FullyQualifiedTestClassName}.{TestContext.TestName}", PhaseStabilityCheck.FormatDataRow(TestContext.TestData));
+        PhaseStabilityCheck.BeginTest(PhaseStabilityCheck.FormatTestName(TestContext.FullyQualifiedTestClassName, TestContext.TestName), DataRowKey.Format(TestContext.TestData));
     }
 
     /// <summary>

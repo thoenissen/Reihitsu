@@ -832,7 +832,7 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
                                            _textChangingCause,
                                            PhaseStabilityCheck.ComputeFingerprint(TextChangingPhase.GetOutput(FormattedSource.Replace("\r\n", "\n"), "\n")),
                                            PhaseReversalLineEndings.Both,
-                                           "True");
+                                           "true");
 
         PhaseStabilityCheck.OverrideForCurrentTest([entry], listedRow ? CreateTextChangingPhases : PhaseStabilityCheck.CreateProductionPhases);
 
@@ -840,26 +840,108 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
         AssertRuleResult(FormattedSource);
 
         // Assert
-        Assert.AreEqual(listedRow ? "True" : "False", PhaseStabilityCheck.FormatDataRow(TestContext.TestData));
+        Assert.AreEqual(listedRow ? "true" : "false", DataRowKey.Format(TestContext.TestData));
         PhaseStabilityCheck.EndTest();
     }
 
     /// <summary>
-    /// Verifies that a data row is formatted in invariant culture with quoted strings, and that a test without data has
-    /// no data row
+    /// Verifies that data rows whose only argument is an array are keyed element by element: the entry of row
+    /// <c>[1]</c> covers that row's change, and row <c>[2]</c>, which formats the same fixture without the change, neither
+    /// fails on it nor reports it as stale
     /// </summary>
+    /// <param name="values">The array argument of the row</param>
     [TestMethod]
-    public void DataRowIsFormattedInInvariantCultureWithQuotedStrings()
+    [DataRow(new[] { 1 })]
+    [DataRow(new[] { 2 })]
+    public void ArrayDataRowEntryCoversOnlyItsOwnRow(int[] values)
     {
+        // Arrange
+        var listedRow = values[0] == 1;
+        var entry = new PhaseReversalEntry(typeof(PhaseStabilityCheckTests),
+                                           nameof(ArrayDataRowEntryCoversOnlyItsOwnRow),
+                                           PhaseStabilityCheck.ComputeFingerprint(FormattedSource),
+                                           _textChangingCause,
+                                           PhaseStabilityCheck.ComputeFingerprint(TextChangingPhase.GetOutput(FormattedSource.Replace("\r\n", "\n"), "\n")),
+                                           PhaseReversalLineEndings.Both,
+                                           "System.Int32[1]");
+
+        PhaseStabilityCheck.OverrideForCurrentTest([entry], listedRow ? CreateTextChangingPhases : PhaseStabilityCheck.CreateProductionPhases);
+
         // Act
-        var formatted = PhaseStabilityCheck.FormatDataRow([null, "a", 1.5, true]);
+        AssertRuleResult(FormattedSource);
 
         // Assert
-        Assert.AreEqual("null, \"a\", 1.5, True", formatted);
-        Assert.IsNull(PhaseStabilityCheck.FormatDataRow(null));
-        Assert.IsNull(PhaseStabilityCheck.FormatDataRow([]));
+        Assert.AreEqual(listedRow ? "System.Int32[1]" : "System.Int32[2]", DataRowKey.Format(TestContext.TestData));
+        PhaseStabilityCheck.EndTest();
+    }
+
+    /// <summary>
+    /// Verifies that data rows of strings whose text holds a quoted separator are keyed apart: the two rows below gave the
+    /// same key while strings were quoted without escaping
+    /// </summary>
+    /// <param name="first">The first argument</param>
+    /// <param name="second">The second argument</param>
+    [TestMethod]
+    [DataRow("a\", \"b", "c")]
+    [DataRow("a", "b\", \"c")]
+    public void StringDataRowEntryCoversOnlyItsOwnRow(string first, string second)
+    {
+        // Arrange
+        const string listedKey = "\"a\\\", \\\"b\", \"c\"";
+        var listedRow = first.Length > 1;
+        var entry = new PhaseReversalEntry(typeof(PhaseStabilityCheckTests),
+                                           nameof(StringDataRowEntryCoversOnlyItsOwnRow),
+                                           PhaseStabilityCheck.ComputeFingerprint(FormattedSource),
+                                           _textChangingCause,
+                                           PhaseStabilityCheck.ComputeFingerprint(TextChangingPhase.GetOutput(FormattedSource.Replace("\r\n", "\n"), "\n")),
+                                           PhaseReversalLineEndings.Both,
+                                           listedKey);
+
+        PhaseStabilityCheck.OverrideForCurrentTest([entry], listedRow ? CreateTextChangingPhases : PhaseStabilityCheck.CreateProductionPhases);
+
+        // Act
+        AssertRuleResult(FormattedSource);
+
+        // Assert
+        Assert.AreEqual(listedRow, DataRowKey.Format(TestContext.TestData) == listedKey, $"Row ({first}) ({second}) has the key {DataRowKey.Format(TestContext.TestData)}.");
+        PhaseStabilityCheck.EndTest();
+    }
+
+    /// <summary>
+    /// Verifies the key format: the qualified test name, followed by the data row in parentheses for a data-driven test
+    /// </summary>
+    [TestMethod]
+    public void TestKeyAppendsTheDataRowInParentheses()
+    {
+        // Act & Assert
         Assert.AreEqual("Sample.Tests.Fixture(1)", PhaseStabilityCheck.FormatTestKey(RecorderTestName, "1"));
         Assert.AreEqual(RecorderTestName, PhaseStabilityCheck.FormatTestKey(RecorderTestName, null));
+        Assert.AreEqual(PhaseStabilityCheck.FormatTestName(typeof(PhaseStabilityCheckTests).FullName, "M"), PhaseStabilityCheck.FormatTestName(typeof(PhaseStabilityCheckTests), "M"));
+    }
+
+    /// <summary>
+    /// Verifies that the runtime key of the running test equals the key of an entry naming it by type and method, so both
+    /// sides use the one test-name format
+    /// </summary>
+    [TestMethod]
+    public void RuntimeTestNameMatchesTheEntryTestName()
+    {
+        // Arrange
+        var entry = new PhaseReversalEntry(typeof(PhaseStabilityCheckTests),
+                                           nameof(RuntimeTestNameMatchesTheEntryTestName),
+                                           PhaseStabilityCheck.ComputeFingerprint(FormattedSource),
+                                           _textChangingCause,
+                                           PhaseStabilityCheck.ComputeFingerprint(TextChangingPhase.GetOutput(FormattedSource.Replace("\r\n", "\n"), "\n")),
+                                           PhaseReversalLineEndings.Both);
+
+        PhaseStabilityCheck.OverrideForCurrentTest([entry], CreateTextChangingPhases);
+
+        // Act
+        AssertRuleResult(FormattedSource);
+
+        // Assert
+        Assert.AreEqual(PhaseStabilityCheck.FormatTestName(TestContext.FullyQualifiedTestClassName, TestContext.TestName), entry.TestKey);
+        PhaseStabilityCheck.EndTest();
     }
 
     /// <summary>
@@ -908,7 +990,7 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
 
             Assert.IsNotNull(method, $"{entry} names no public test method.");
 
-            var dataRows = method.GetCustomAttributes<DataRowAttribute>().Select(row => PhaseStabilityCheck.FormatDataRow(row.Data)).ToList();
+            var dataRows = method.GetCustomAttributes<DataRowAttribute>().Select(row => DataRowKey.Format(row.Data)).ToList();
             var hasDynamicData = method.IsDefined(typeof(DynamicDataAttribute), inherit: true);
 
             // Assert

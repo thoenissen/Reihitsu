@@ -1,5 +1,4 @@
 ﻿﻿using System.Collections.Generic;
-using System.Globalization;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
@@ -43,7 +42,7 @@ public static class PhaseStabilityCheck
     /// and the production phases
     /// </summary>
     /// <param name="testName">The name of the test method, qualified with the full name of its class</param>
-    /// <param name="dataRow">The data row of the test execution, as <see cref="FormatDataRow"/> formats it, or <see langword="null"/> for a test that is not data-driven</param>
+    /// <param name="dataRow">The data row of the test execution, as <see cref="DataRowKey.Format"/> formats it, or <see langword="null"/> for a test that is not data-driven</param>
     public static void BeginTest(string testName, string dataRow)
     {
         _currentSession.Value = new PhaseStabilitySession(FormatTestKey(testName, dataRow), PhaseReversalExceptionList.Entries, CreateProductionPhases);
@@ -136,7 +135,19 @@ public static class PhaseStabilityCheck
     /// <returns>The qualified name</returns>
     public static string FormatTestName(Type testClass, string testMethod)
     {
-        return $"{testClass.FullName}.{testMethod}";
+        return FormatTestName(testClass.FullName, testMethod);
+    }
+
+    /// <summary>
+    /// Formats the name of a test method, qualified with the full name of its class. The only statement of the format:
+    /// the runtime key of a test and the key of its entries both come from here
+    /// </summary>
+    /// <param name="testClassName">The full name of the test class, as <see cref="TestContext.FullyQualifiedTestClassName"/> or <see cref="Type.FullName"/> gives it</param>
+    /// <param name="testMethod">The name of the test method</param>
+    /// <returns>The qualified name</returns>
+    public static string FormatTestName(string testClassName, string testMethod)
+    {
+        return $"{testClassName}.{testMethod}";
     }
 
     /// <summary>
@@ -149,23 +160,6 @@ public static class PhaseStabilityCheck
     public static string FormatTestKey(string testName, string dataRow)
     {
         return dataRow == null ? testName : $"{testName}({dataRow})";
-    }
-
-    /// <summary>
-    /// Formats the arguments of a data row, as <see cref="TestContext.TestData"/> or <see cref="DataRowAttribute.Data"/>
-    /// hold them: each argument in invariant culture, strings quoted, separated by a comma and a space
-    /// </summary>
-    /// <param name="data">The arguments, or <see langword="null"/> for a test that is not data-driven</param>
-    /// <returns>The formatted data row, or <see langword="null"/> when there are no arguments</returns>
-    public static string FormatDataRow(object[] data)
-    {
-        if (data == null
-            || data.Length == 0)
-        {
-            return null;
-        }
-
-        return string.Join(", ", data.Select(FormatArgument));
     }
 
     /// <summary>
@@ -220,21 +214,6 @@ public static class PhaseStabilityCheck
         }
 
         return changes;
-    }
-
-    /// <summary>
-    /// Formats one argument of a data row
-    /// </summary>
-    /// <param name="argument">The argument</param>
-    /// <returns>The formatted argument</returns>
-    private static string FormatArgument(object argument)
-    {
-        return argument switch
-               {
-                   null => "null",
-                   string text => $"\"{text}\"",
-                   _ => Convert.ToString(argument, CultureInfo.InvariantCulture)
-               };
     }
 
     /// <summary>

@@ -1,4 +1,4 @@
-using System.Threading;
+﻿using System.Threading;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -42,7 +42,7 @@ internal sealed class TextChangingPhase : IFormattingPhase
     /// <inheritdoc/>
     public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
-        return CSharpSyntaxTree.ParseText(GetOutput(root.ToFullString(), context.EndOfLine), cancellationToken: cancellationToken).GetRoot(cancellationToken);
+        return CSharpSyntaxTree.ParseText(GetOutput(root.ToFullString(), context.EndOfLine), (CSharpParseOptions)root.SyntaxTree.Options, cancellationToken: cancellationToken).GetRoot(cancellationToken);
     }
 
     #endregion // IFormattingPhase
