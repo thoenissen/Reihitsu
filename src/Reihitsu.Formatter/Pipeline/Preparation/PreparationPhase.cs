@@ -65,18 +65,13 @@ internal sealed class PreparationPhase : IFormattingPhase
     #region IFormattingPhase
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// The sub-phases are run by <see cref="FormattingPipeline.ExecutePhases"/>, the one runner of the sequence, so this
+    /// phase run on its own gives the result the pipeline gives
+    /// </remarks>
     public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
-        var current = root;
-
-        foreach (var subPhase in SubPhases)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            current = subPhase.Execute(current, context, cancellationToken);
-        }
-
-        return current;
+        return FormattingPipeline.ExecutePhases(root, context, [this], phaseObserver: null, cancellationToken);
     }
 
     #endregion // IFormattingPhase
