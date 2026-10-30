@@ -5,7 +5,7 @@
 | ID prefix | FMT-SWITCH |
 | Status | Active |
 | Code owners | `SwitchCaseBracePhase`, `SwitchCaseBraceRewriter` |
-| Uses | FMT-PIPE-002, FMT-PIPE-003, SHARED-BLANK-004, FMT-PIPE-013, FMT-BLANK-011, FMT-PIPE-004 |
+| Uses | FMT-PIPE-002, FMT-PIPE-003, SHARED-BLANK-004, FMT-PIPE-013, FMT-BLANK-011, FMT-PIPE-004, FMT-PIPE-001, FMT-BREAK-012, FMT-BREAK-015, FMT-BREAK-021 |
 
 This spec covers when the formatter wraps the statements of the sections of a `switch` statement in a `{ … }` block: which sections make a switch braced, what goes inside the block, and every guard that leaves a section or a whole switch as it is.
 
@@ -157,9 +157,9 @@ class C
 
 ### FMT-SWITCH-003 — Statements that make a section multi-line
 
-A section MUST count as multi-line when, ignoring `break`, `return`, and `throw` statements, it holds more than one statement, or one statement that spans more than one line, or one statement followed by a final `return` or `throw` on a later line. A section MUST NOT count as multi-line merely because a `break`, `return`, or `throw` spans several lines.
+A section MUST count as multi-line when, ignoring `break`, `return`, and `throw` statements, it holds more than one statement, or one statement that spans more than one line, or one statement followed by a final `return` or `throw` on a later line. A section MUST NOT count as multi-line merely because a `break`, `return`, or `throw` spans several lines. Whether a statement spans more than one line, and whether a `return` or `throw` is on a later line, MUST be measured on the code as the line-break phase leaves it (FMT-PIPE-001), as FMT-SWITCH-008 does for an existing block. This holds for every line break FMT-BREAK decides, whether it joins, keeps, or adds it: a wrap that FMT-BREAK joins, such as the wrap inside a list element that FMT-BREAK-015 joins, does not make a section multi-line; a wrap that FMT-BREAK keeps does, and so does a line break that FMT-BREAK adds to a statement written on one line, such as the expanded object initializer of FMT-BREAK-021.
 
-Why: The block is for sections that do more than one thing or whose one thing is long. A section that only returns or throws a wrapped expression stays a single jump, and wrapping it in a block adds two lines without adding structure. FMT-SWITCH-002 shows a statement followed by `return`; FMT-SWITCH-001 shows two statements.
+Why: The block is for sections that do more than one thing or whose one thing is long. A section that only returns or throws a wrapped expression stays a single jump, and wrapping it in a block adds two lines without adding structure. FMT-SWITCH-002 shows a statement followed by `return`; FMT-SWITCH-001 shows two statements. The line-break phase runs before this phase, so the lines it counts are the lines of the output; counting the lines of the input instead would put a block around a statement that ends up on one line.
 
 Example — one statement that spans two lines:
 
@@ -194,6 +194,95 @@ class C
                 {
                     A(1,
                       2);
+                }
+                break;
+
+            case 2:
+                {
+                    B();
+                }
+                break;
+        }
+    }
+}
+```
+
+Example — a wrap that FMT-BREAK-015 joins does not make the section multi-line, so no section is braced:
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                A(out
+                  var v);
+                break;
+            case 2:
+                B();
+                break;
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                A(out var v);
+                break;
+
+            case 2:
+                B();
+                break;
+        }
+    }
+}
+```
+
+The wrapped argument list `A(1,⏎2)` of the first example is kept by FMT-BREAK-012, so that section stays multi-line and braces the switch.
+
+Example — an object initializer written on one line is laid out over several lines by FMT-BREAK-021, so the section is multi-line and braces the switch:
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                var y = new D { A = 1, B = 2 };
+                break;
+            case 2:
+                B();
+                break;
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                {
+                    var y = new D
+                            {
+                                A = 1,
+                                B = 2
+                            };
                 }
                 break;
 

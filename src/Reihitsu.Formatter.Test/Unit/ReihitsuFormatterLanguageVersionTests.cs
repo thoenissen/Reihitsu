@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
@@ -127,6 +128,25 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
                                                        }
                                                    }
                                                    """;
+
+    /// <summary>
+    /// The property of the FMT-PIPE-008 example, whose accessor block only C# 6 can write as an expression body
+    /// </summary>
+    private const string SpecPropertyInput = """
+                                             class C
+                                             {
+                                                 int P { get { return 1; } }
+                                             }
+                                             """;
+
+    /// <summary>
+    /// The empty class of the node-level FMT-PIPE-008 example, which C# 12 writes with a semicolon body
+    /// </summary>
+    private const string SpecEmptyClassInput = """
+                                               class Empty
+                                               {
+                                               }
+                                               """;
 
     #endregion // Constants
 
@@ -325,6 +345,7 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
+    [Requirement("FMT-PIPE-008")]
     public async Task FormatNodeInDocumentAsyncConvertsNestedEmptyClassInCSharp12Project()
     {
         await AssertFormatNodeInDocument(LanguageVersion.CSharp12, NestedSemicolonExpected);
@@ -363,6 +384,7 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
+    [Requirement("FMT-PIPE-008")]
     public async Task FormatNodeInDocumentWithContextAsyncConvertsEmptyClassInCSharp12Project()
     {
         foreach (var endOfLine in _lineEndings)
@@ -387,6 +409,7 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
     /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> follows the language version of the node's syntax tree
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-008")]
     public void FormatNodeKeepsEmptyClassBracedForCSharp11Tree()
     {
         foreach (var endOfLine in _lineEndings)
@@ -402,8 +425,8 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> formats a detached node, which carries the default parse
-    /// options, for the newest supported language version
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> formats a node parsed without parse options, whose reported
+    /// syntax tree carries the default parse options, for the newest supported language version
     /// </summary>
     [TestMethod]
     [Requirement("FMT-PIPE-008")]
@@ -414,6 +437,381 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
         var result = ReihitsuFormatter.FormatNode(detachedRoot, cancellationToken: TestContext.CancellationToken);
 
         Assert.AreEqual(TopLevelSemicolonExpected, result.ToFullString());
+    }
+
+    /// <summary>
+    /// Verifies the spec example through <see cref="ReihitsuFormatter.FormatDocumentAsync"/>: a C# 5 project keeps the accessor
+    /// blocks of a get-only property, which only C# 6 can write as an expression body
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public async Task FormatDocumentAsyncKeepsGetOnlyAccessorListInCSharp5Project()
+    {
+        const string expected = """
+                                class C
+                                {
+                                    int P
+                                    {
+                                        get
+                                        {
+                                            return 1;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await AssertFormatDocument(SpecPropertyInput, expected, LanguageVersion.CSharp5);
+    }
+
+    /// <summary>
+    /// Verifies the spec example through <see cref="ReihitsuFormatter.FormatDocumentAsync"/>: a C# 6 project converts the get-only
+    /// property to an expression body
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public async Task FormatDocumentAsyncConvertsGetOnlyPropertyInCSharp6Project()
+    {
+        const string expected = """
+                                class C
+                                {
+                                    int P => 1;
+                                }
+                                """;
+
+        await AssertFormatDocument(SpecPropertyInput, expected, LanguageVersion.CSharp6);
+    }
+
+    /// <summary>
+    /// Verifies the spec example through <see cref="ReihitsuFormatter.FormatSyntaxTree"/>: a tree parsed as C# 5 keeps the accessor
+    /// blocks of a get-only property and a tree parsed as C# 6 converts it to an expression body
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public void FormatSyntaxTreeFollowsTheTreeVersionForTheSpecPropertyExample()
+    {
+        const string bracedExpected = """
+                                      class C
+                                      {
+                                          int P
+                                          {
+                                              get
+                                              {
+                                                  return 1;
+                                              }
+                                          }
+                                      }
+                                      """;
+        const string expressionExpected = """
+                                          class C
+                                          {
+                                              int P => 1;
+                                          }
+                                          """;
+
+        AssertFormatSyntaxTree(SpecPropertyInput, bracedExpected, LanguageVersion.CSharp5);
+        AssertFormatSyntaxTree(SpecPropertyInput, expressionExpected, LanguageVersion.CSharp6);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatDocumentAsync"/> converts an empty class in a C# 12 project
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public async Task FormatDocumentAsyncConvertsEmptyClassInCSharp12Project()
+    {
+        await AssertFormatDocument(TopLevelInput, TopLevelSemicolonExpected, LanguageVersion.CSharp12);
+    }
+
+    /// <summary>
+    /// Verifies the node-level spec example: <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> keeps an empty top-level
+    /// class braced in a C# 11 project
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public async Task FormatNodeInDocumentAsyncKeepsSpecEmptyClassBracedInCSharp11Project()
+    {
+        await AssertFormatEmptyClassInDocument(LanguageVersion.CSharp11, false, SpecEmptyClassInput);
+    }
+
+    /// <summary>
+    /// Verifies the node-level spec example: <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> converts an empty top-level
+    /// class in a C# 12 project
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public async Task FormatNodeInDocumentAsyncConvertsSpecEmptyClassInCSharp12Project()
+    {
+        await AssertFormatEmptyClassInDocument(LanguageVersion.CSharp12, false, "class Empty;");
+    }
+
+    /// <summary>
+    /// Verifies the node-level spec example: <see cref="ReihitsuFormatter.FormatNodeInDocumentWithContextAsync"/> with the
+    /// compilation unit as context keeps an empty class braced in a C# 11 project
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public async Task FormatNodeInDocumentWithContextAsyncKeepsSpecEmptyClassBracedInCSharp11Project()
+    {
+        await AssertFormatEmptyClassInDocument(LanguageVersion.CSharp11, true, SpecEmptyClassInput);
+    }
+
+    /// <summary>
+    /// Verifies the node-level spec example: <see cref="ReihitsuFormatter.FormatNodeInDocumentWithContextAsync"/> with the
+    /// compilation unit as context converts an empty class in a C# 12 project
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public async Task FormatNodeInDocumentWithContextAsyncConvertsSpecEmptyClassInCSharp12Project()
+    {
+        await AssertFormatEmptyClassInDocument(LanguageVersion.CSharp12, true, "class Empty;");
+    }
+
+    /// <summary>
+    /// Verifies the node-level spec example: <see cref="ReihitsuFormatter.FormatNode"/> keeps an empty class braced when its
+    /// tree is parsed as C# 11 and converts it when its tree is parsed as C# 12
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public void FormatNodeFollowsTheTreeVersionForTheSpecEmptyClass()
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var source = NormalizeLineEndings(SpecEmptyClassInput, endOfLine);
+            var csharp11Tree = CSharpSyntaxTree.ParseText(source, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp11), cancellationToken: TestContext.CancellationToken);
+            var csharp12Tree = CSharpSyntaxTree.ParseText(source, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12), cancellationToken: TestContext.CancellationToken);
+            var csharp11Target = csharp11Tree.GetRoot(TestContext.CancellationToken).DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
+            var csharp12Target = csharp12Tree.GetRoot(TestContext.CancellationToken).DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
+
+            var csharp11Result = ReihitsuFormatter.FormatNode(csharp11Target, cancellationToken: TestContext.CancellationToken);
+            var csharp12Result = ReihitsuFormatter.FormatNode(csharp12Target, cancellationToken: TestContext.CancellationToken);
+
+            Assert.AreEqual(source, csharp11Result.ToFullString(), $"The C# 11 class must stay braced under {DescribeLineEnding(endOfLine)} line endings.");
+            Assert.AreEqual("class Empty;", csharp12Result.ToFullString(), $"The C# 12 class must convert under {DescribeLineEnding(endOfLine)} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> converts an empty class whose tree is parsed as C# 12
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public void FormatNodeConvertsEmptyClassForCSharp12Tree()
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var tree = CSharpSyntaxTree.ParseText(NormalizeLineEndings(TopLevelInput, endOfLine),
+                                                  CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12),
+                                                  cancellationToken: TestContext.CancellationToken);
+
+            var result = ReihitsuFormatter.FormatNode(tree.GetRoot(TestContext.CancellationToken), cancellationToken: TestContext.CancellationToken);
+
+            Assert.AreEqual(NormalizeLineEndings(TopLevelSemicolonExpected, endOfLine), result.ToFullString(), $"FormatNode output mismatch under {DescribeLineEnding(endOfLine)} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a node parsed with C# 11 parse options and without a parent reports a syntax tree with those parse
+    /// options: <see cref="ReihitsuFormatter.FormatNode"/> leaves the empty class braced
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public void FormatNodeKeepsParseOptionsOfDetachedNodeParsedWithOlderOptions()
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var source = NormalizeLineEndings(SpecEmptyClassInput, endOfLine);
+            var detachedRoot = SyntaxFactory.ParseCompilationUnit(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp11));
+
+            var result = ReihitsuFormatter.FormatNode(detachedRoot, cancellationToken: TestContext.CancellationToken);
+
+            Assert.AreEqual(source, result.ToFullString(), $"The detached C# 11 node must stay braced under {DescribeLineEnding(endOfLine)} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a member declaration parsed with parse options and without a parent reports a syntax tree with those
+    /// parse options: <see cref="ReihitsuFormatter.FormatNode"/> leaves the empty class braced for C# 11 and converts it for C# 12
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public void FormatNodeFollowsTheParseOptionsOfDetachedMemberDeclaration()
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var source = NormalizeLineEndings(SpecEmptyClassInput, endOfLine);
+            var csharp11Member = SyntaxFactory.ParseMemberDeclaration(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp11));
+            var csharp12Member = SyntaxFactory.ParseMemberDeclaration(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
+
+            Assert.IsNotNull(csharp11Member);
+            Assert.IsNotNull(csharp12Member);
+
+            var csharp11Result = ReihitsuFormatter.FormatNode(csharp11Member, cancellationToken: TestContext.CancellationToken);
+            var csharp12Result = ReihitsuFormatter.FormatNode(csharp12Member, cancellationToken: TestContext.CancellationToken);
+
+            Assert.AreEqual(source, csharp11Result.ToFullString(), $"The detached C# 11 member must stay braced under {DescribeLineEnding(endOfLine)} line endings.");
+            Assert.AreEqual("class Empty;", csharp12Result.ToFullString(), $"The detached C# 12 member must convert under {DescribeLineEnding(endOfLine)} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a node built with <see cref="SyntaxFactory"/>, without parse options, belongs to a tree with the
+    /// default parse options: <see cref="ReihitsuFormatter.FormatNode"/> converts the empty class for the newest supported version
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public void FormatNodeFormatsNodeBuiltWithSyntaxFactoryForTheNewestSupportedVersion()
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var builtRoot = SyntaxFactory.CompilationUnit()
+                                         .AddMembers(SyntaxFactory.ClassDeclaration("Empty"))
+                                         .NormalizeWhitespace(eol: endOfLine);
+
+            Assert.AreEqual(NormalizeLineEndings(SpecEmptyClassInput, endOfLine), builtRoot.ToFullString(), $"The built node must match the spec input under {DescribeLineEnding(endOfLine)} line endings.");
+
+            var result = ReihitsuFormatter.FormatNode(builtRoot, cancellationToken: TestContext.CancellationToken);
+
+            Assert.AreEqual("class Empty;", result.ToFullString(), $"The built node must convert under {DescribeLineEnding(endOfLine)} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that the root of a tree created by <c>CSharpSyntaxTree.Create</c> with parse options reports a tree with
+    /// those parse options: <see cref="ReihitsuFormatter.FormatNode"/> leaves the empty class braced for C# 11 and converts it for C# 12
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public void FormatNodeFollowsTheParseOptionsOfRootCreatedWithCSharpSyntaxTreeCreate()
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var source = NormalizeLineEndings(SpecEmptyClassInput, endOfLine);
+            var parsedRoot = SyntaxFactory.ParseCompilationUnit(source);
+            var csharp11Root = CSharpSyntaxTree.Create(parsedRoot, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp11)).GetRoot(TestContext.CancellationToken);
+            var csharp12Root = CSharpSyntaxTree.Create(parsedRoot, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12)).GetRoot(TestContext.CancellationToken);
+
+            var csharp11Result = ReihitsuFormatter.FormatNode(csharp11Root, cancellationToken: TestContext.CancellationToken);
+            var csharp12Result = ReihitsuFormatter.FormatNode(csharp12Root, cancellationToken: TestContext.CancellationToken);
+
+            Assert.AreEqual(source, csharp11Result.ToFullString(), $"The C# 11 root must stay braced under {DescribeLineEnding(endOfLine)} line endings.");
+            Assert.AreEqual("class Empty;", csharp12Result.ToFullString(), $"The C# 12 root must convert under {DescribeLineEnding(endOfLine)} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a node returned by <c>WithoutTrivia</c> on a class of a C# 11
+    /// tree reports a tree with the C# 11 parse options: <see cref="ReihitsuFormatter.FormatNode"/> leaves the empty class braced
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public void FormatNodeKeepsParseOptionsOfNodeReturnedByWithoutTrivia()
+    {
+        AssertFormatNodeOfDerivedNode((root, declaration, sameIdentifier, endOfLine) => declaration.WithoutTrivia(), true);
+    }
+
+    /// <summary>
+    /// Verifies that a node returned by <c>ReplaceToken</c> on a class of a C# 11 tree reports a tree with the C# 11 parse
+    /// options: <see cref="ReihitsuFormatter.FormatNode"/> leaves the empty class braced
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public void FormatNodeKeepsParseOptionsOfNodeReturnedByReplaceToken()
+    {
+        AssertFormatNodeOfDerivedNode((root, declaration, sameIdentifier, endOfLine) => declaration.ReplaceToken(declaration.Identifier, sameIdentifier), true);
+    }
+
+    /// <summary>
+    /// Verifies that a node returned by <c>NormalizeWhitespace</c> on a class of a C# 11 tree reports a tree with the C# 11
+    /// parse options: <see cref="ReihitsuFormatter.FormatNode"/> leaves the empty class braced
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public void FormatNodeKeepsParseOptionsOfNodeReturnedByNormalizeWhitespace()
+    {
+        AssertFormatNodeOfDerivedNode((root, declaration, sameIdentifier, endOfLine) => declaration.NormalizeWhitespace(eol: endOfLine), true);
+    }
+
+    /// <summary>
+    /// Verifies that the compilation unit returned by <c>ReplaceNode</c> on a C# 11 tree reports a tree with the C# 11 parse
+    /// options, although the class it inserts was changed by <c>WithIdentifier</c>: <see cref="ReihitsuFormatter.FormatNode"/>
+    /// leaves the empty class braced
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public void FormatNodeKeepsParseOptionsOfRootReturnedByReplaceNode()
+    {
+        AssertFormatNodeOfDerivedNode((root, declaration, sameIdentifier, endOfLine) => root.ReplaceNode(declaration, declaration.WithIdentifier(sameIdentifier)), true);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>WithIdentifier</c> call that changes nothing returns the class itself, which keeps the C# 11 tree:
+    /// <see cref="ReihitsuFormatter.FormatNode"/> leaves the empty class braced
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public void FormatNodeKeepsParseOptionsOfNodeReturnedByUnchangingWithIdentifier()
+    {
+        AssertFormatNodeOfDerivedNode((root, declaration, sameIdentifier, endOfLine) =>
+                                      {
+                                          var unchanged = declaration.WithIdentifier(declaration.Identifier);
+
+                                          Assert.AreSame(declaration, unchanged, "A WithIdentifier call that changes nothing must return the node itself.");
+
+                                          return unchanged;
+                                      },
+                                      true);
+    }
+
+    /// <summary>
+    /// Verifies that a class of a C# 11 tree changed by <c>WithIdentifier</c> reports a tree with the default parse options:
+    /// <see cref="ReihitsuFormatter.FormatNode"/> converts the empty class for the newest supported version
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public void FormatNodeFormatsNodeChangedByWithIdentifierForTheNewestSupportedVersion()
+    {
+        AssertFormatNodeOfDerivedNode((root, declaration, sameIdentifier, endOfLine) => declaration.WithIdentifier(sameIdentifier), false);
+    }
+
+    /// <summary>
+    /// Verifies that a class of a C# 11 tree changed by <c>WithAdditionalAnnotations</c> reports a tree with the default parse
+    /// options: <see cref="ReihitsuFormatter.FormatNode"/> converts the empty class for the newest supported version
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public void FormatNodeFormatsNodeChangedByWithAdditionalAnnotationsForTheNewestSupportedVersion()
+    {
+        AssertFormatNodeOfDerivedNode((root, declaration, sameIdentifier, endOfLine) => declaration.WithAdditionalAnnotations(new SyntaxAnnotation()), false);
+    }
+
+    /// <summary>
+    /// Verifies that a compilation unit built with <see cref="SyntaxFactory"/> around a class of a C# 11 tree reports a tree with
+    /// the default parse options: <see cref="ReihitsuFormatter.FormatNode"/> converts the empty class for the newest supported version
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public void FormatNodeFormatsCompilationUnitBuiltAroundParsedClassForTheNewestSupportedVersion()
+    {
+        AssertFormatNodeOfDerivedNode((root, declaration, sameIdentifier, endOfLine) => SyntaxFactory.CompilationUnit().AddMembers(declaration), false);
+    }
+
+    /// <summary>
+    /// Verifies that a later <c>WithoutTrivia</c> edit of a class changed by
+    /// <c>WithIdentifier</c> keeps the default parse options: <see cref="ReihitsuFormatter.FormatNode"/> converts the empty class
+    /// for the newest supported version
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public void FormatNodeFormatsEditOfChangedNodeForTheNewestSupportedVersion()
+    {
+        AssertFormatNodeOfDerivedNode((root, declaration, sameIdentifier, endOfLine) => declaration.WithIdentifier(sameIdentifier).WithoutTrivia(), false);
     }
 
     /// <summary>
@@ -429,6 +827,40 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
                                .WithParseOptions(CSharpParseOptions.Default.WithLanguageVersion(languageVersion));
 
         return project.AddDocument("Test.cs", SourceText.From(source));
+    }
+
+    /// <summary>
+    /// Parses <see cref="SpecEmptyClassInput"/> as C# 11 under every line ending, derives a node from the compilation unit and
+    /// its class, asserts that the derived node's text still equals the input, and asserts the result of
+    /// <see cref="ReihitsuFormatter.FormatNode"/> on it
+    /// </summary>
+    /// <param name="derive">Derives the node to format from the compilation unit, its class, an identifier token with the same text and trivia as the class identifier, and the line ending</param>
+    /// <param name="keepsCSharp11">Whether the derived node reports the C# 11 tree, so the empty class stays braced; otherwise it is converted for the newest supported version</param>
+    private void AssertFormatNodeOfDerivedNode(Func<CompilationUnitSyntax, ClassDeclarationSyntax, SyntaxToken, string, SyntaxNode> derive, bool keepsCSharp11)
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var source = NormalizeLineEndings(SpecEmptyClassInput, endOfLine);
+            var tree = CSharpSyntaxTree.ParseText(source, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp11), cancellationToken: TestContext.CancellationToken);
+            var root = (CompilationUnitSyntax)tree.GetRoot(TestContext.CancellationToken);
+            var declaration = (ClassDeclarationSyntax)root.Members[0];
+            var sameIdentifier = SyntaxFactory.Identifier(declaration.Identifier.LeadingTrivia, "Empty", declaration.Identifier.TrailingTrivia);
+
+            var node = derive(root, declaration, sameIdentifier, endOfLine);
+
+            Assert.AreEqual(source, node.ToFullString(), $"The derived node must keep the input text under {DescribeLineEnding(endOfLine)} line endings.");
+
+            var result = ReihitsuFormatter.FormatNode(node, cancellationToken: TestContext.CancellationToken);
+
+            if (keepsCSharp11)
+            {
+                Assert.AreEqual(source, result.ToFullString(), $"The derived node must stay braced under {DescribeLineEnding(endOfLine)} line endings.");
+            }
+            else
+            {
+                Assert.AreEqual("class Empty;", result.ToFullString(), $"The derived node must convert under {DescribeLineEnding(endOfLine)} line endings.");
+            }
+        }
     }
 
     /// <summary>
@@ -478,6 +910,59 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
                 Assert.IsNotNull(target);
 
                 var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, TestContext.CancellationToken);
+
+                await AssertDocumentText(result, NormalizeLineEndings(expected, endOfLine), endOfLine);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Formats the source through <see cref="ReihitsuFormatter.FormatDocumentAsync"/> in a project at the given language
+    /// version under every line ending
+    /// </summary>
+    /// <param name="input">The input source</param>
+    /// <param name="expected">The expected document text</param>
+    /// <param name="languageVersion">The project's language version</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private async Task AssertFormatDocument(string input, string expected, LanguageVersion languageVersion)
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            using (var workspace = new AdhocWorkspace())
+            {
+                var document = CreateDocument(workspace, NormalizeLineEndings(input, endOfLine), languageVersion);
+
+                var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken);
+
+                await AssertDocumentText(result, NormalizeLineEndings(expected, endOfLine), endOfLine);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Formats the class of <see cref="SpecEmptyClassInput"/> through <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/>,
+    /// or through <see cref="ReihitsuFormatter.FormatNodeInDocumentWithContextAsync"/> with the compilation unit as context, in
+    /// a project at the given language version under every line ending
+    /// </summary>
+    /// <param name="languageVersion">The project's language version</param>
+    /// <param name="withContext">Whether to format with the compilation unit as context</param>
+    /// <param name="expected">The expected document text</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private async Task AssertFormatEmptyClassInDocument(LanguageVersion languageVersion, bool withContext, string expected)
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            using (var workspace = new AdhocWorkspace())
+            {
+                var document = CreateDocument(workspace, NormalizeLineEndings(SpecEmptyClassInput, endOfLine), languageVersion);
+                var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
+                var target = root?.DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
+
+                Assert.IsNotNull(target);
+
+                var result = withContext
+                                 ? await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, target, root, TestContext.CancellationToken)
+                                 : await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, TestContext.CancellationToken);
 
                 await AssertDocumentText(result, NormalizeLineEndings(expected, endOfLine), endOfLine);
             }

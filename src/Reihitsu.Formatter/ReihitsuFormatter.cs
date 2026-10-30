@@ -113,8 +113,8 @@ public static class ReihitsuFormatter
     /// passing a node that is safe to format. Like every node-level entry point, it keeps single-statement
     /// accessor blocks instead of converting them to expression bodies, and keeps the accessor list of get-only
     /// properties and indexers instead of converting them to expression-bodied members. Version-dependent rules follow the language version
-    /// of the node's syntax tree; a detached node carries the default parse options and is formatted for the newest
-    /// supported version
+    /// of the tree that Roslyn reports as the node's syntax tree, whether or not the node has a parent; a node that reports a tree
+    /// with the default parse options is formatted for the newest supported version
     /// </remarks>
     public static SyntaxNode FormatNode(SyntaxNode node, int indentLevel = -1, CancellationToken cancellationToken = default)
     {
