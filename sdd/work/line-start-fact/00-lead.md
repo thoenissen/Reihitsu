@@ -15,3 +15,12 @@ Roles: spec author → skeptic → test implementer → implementer → cleaner 
 ## Clarifications from the maintainer
 
 None so far; the issue has no comments. The issue asks the run to first check every statement about today's code against current `main` and drop what an earlier package already made true or moot.
+
+## Escalations
+
+- Escalation 2 — change doc approved as written, analyzer consequences included (`squad/decisions/2026-10-30-line-start-fact-change-doc.md`).
+- Escalation 12 — skeptic's architecture finding: option B. The line-break rewriters for conditionals, conditional-access chains, and do-while, and the line-terminator count over disabled text, are routed through the shared line-start fact and terminator predicate in this run, with tests (`squad/decisions/2026-10-30-line-start-fact-architecture-finding.md`).
+
+## Scope baseline (escalation 5)
+
+The issue's Proposed Behavior and Done when — including its restructuring items: the shared facts in `Pipeline/Core`, the neutral-helper moves, the `ConfigurableStructuralTransforms` move to `Data/`, the `ReihitsuFormatterHelpers` split, and the one-contributor-per-line test — plus the components added under escalation 12.
