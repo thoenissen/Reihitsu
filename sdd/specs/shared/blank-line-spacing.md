@@ -335,7 +335,7 @@ is left unchanged.
 
 ### SHARED-BLANK-008 — A token starts its line after the same line breaks as trivia
 
-Analyzer and formatter MUST treat a token as starting its line exactly when the token has text and nothing but whitespace stands between it and the last line break in front of it, whichever trivia carries that line break: an end-of-line trivia, or the line break that ends a single-line comment, a single-line documentation comment (`///`), or a directive in front of the token. A line break inside the text of a multi-line comment MUST NOT count (SHARED-BLANK-002). A token without text, such as an omitted type argument (`Dictionary<,>`) or an omitted array size, MUST NOT be treated as starting its line; the line starts at the next token or trivia with text on it. This includes the end of the file: trivia in front of it, such as a comment or an `#endregion` behind the last closing brace, starts its line as SHARED-BLANK-002 decides. Without a preceding token (the start of a file or of a detached formatting root) and without a line break in front of it, a token with text starts its line when nothing but whitespace precedes it; a `///` comment or a directive in front of it ends its line like anywhere else.
+Analyzer and formatter MUST treat a token as starting its line exactly when the token has text and nothing but whitespace stands between it and the last line break in front of it, whichever trivia carries that line break: an end-of-line trivia, or the line break that ends a single-line comment, a single-line documentation comment (`///`), or a directive in front of the token. A line break inside the text of a multi-line comment MUST NOT count (SHARED-BLANK-002). A token without text, such as an omitted type argument (`Dictionary<,>`) or an omitted array size, MUST NOT be treated as starting its line; the line starts at the next token or trivia with text on it. This includes the end of the file: trivia in front of it, such as a comment or an `#endregion` behind the last closing brace, starts its line as SHARED-BLANK-002 decides, whether or not the file ends with a line break. Without a preceding token (the start of a file or of a detached formatting root) and without a line break in front of it, a token with text starts its line when nothing but whitespace precedes it; a `///` comment or a directive in front of it ends its line like anywhere else.
 
 Why: Whether a line starts at a token decides which rules place that line — its indentation, its alignment, whether a list or a chain counts as wrapped, and whether a gap is a same-line gap — and every analyzer and every formatter phase must agree on it, and with SHARED-BLANK-002, or a line is placed by none of them or by two. The line break of a `///` comment is part of the comment's structure, not an end-of-line trivia, yet the line behind it starts as any other. A token without text has no column, so a line it would start offers nothing to place.
 
@@ -405,7 +405,7 @@ class C
 }
 ```
 
-A comment behind the last closing brace of a file starts its line in front of the end of the file and is indented:
+A comment behind the last closing brace of a file starts its line in front of the end of the file and is indented (the blank line above it is FMT-BLANK's):
 
 ```csharp
 class C
@@ -420,6 +420,7 @@ class C
 {
     int _a;
 }
+
 // end
 ```
 
