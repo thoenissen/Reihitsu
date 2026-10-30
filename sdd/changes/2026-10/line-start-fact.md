@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-10 |
 | Affected requirements | SHARED-BLANK-008 (new), FMT-INDENT-002, FMT-DOC-003, FMT-SPACE-001, FMT-SPACE-015 (retired), RH5203-001, RH5204-001, RH6002-001, RH6002-002, SHARED-CHAIN-002 |
 | Depends on | [A preparation phase replaces tabs and normalizes line endings first](preparation-phase.md) |

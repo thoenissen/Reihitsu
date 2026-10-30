@@ -33,7 +33,7 @@ Additional outputs found that change under the shared rule (named in the change 
 - RH5203-001, RH5204-001, SHARED-CHAIN-002 — changed (reference SHARED-BLANK-008 for "starts its line"/"first token")
 - Bugs against unchanged requirements, no spec change: FMT-INDENT-015 (`>` to column 8), FMT-INDENT-006 (comment with lone `\r` or U+2028 inside is re-indented).
 
-Change doc: `sdd/changes/2026-10/line-start-fact.md`, `Status: Draft`, needs the maintainer's approval of What and Why (escalation 2) before tests, including its section *Analyzer diagnostics follow the shared rule*, which the issue says is part of the change doc or goes back to the maintainer. The folder month assumes the merge happens in October 2026; move it if it merges later.
+Change doc: `sdd/changes/2026-10/line-start-fact.md`, `Status: Accepted`. The maintainer approved What and Why as written, the section *Analyzer diagnostics follow the shared rule* included (escalation 2, recorded in `squad/decisions/2026-10-30-line-start-fact-change-doc.md`). The folder month assumes the merge happens in October 2026; move it if it merges later.
 
 `documentation/rules/` is left unchanged: RH5203, RH5204, RH6002, and RH5201 change only for code with a stranded `///` comment, a corner case that does not change what is reported or how to fix it in the normal case.
 
