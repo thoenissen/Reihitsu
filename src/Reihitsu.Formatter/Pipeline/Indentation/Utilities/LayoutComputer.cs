@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 
 namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;

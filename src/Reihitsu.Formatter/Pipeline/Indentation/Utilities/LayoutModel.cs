@@ -48,6 +48,11 @@ internal sealed class LayoutModel
     private readonly Dictionary<int, HashSet<Type>> _alignmentContributors = [];
 
     /// <summary>
+    /// Maps each line that only a fallback placed (<see cref="SetUnlessPlaced"/>) to the alignment contributor that wrote it
+    /// </summary>
+    private readonly Dictionary<int, Type> _fallbackContributors = [];
+
+    /// <summary>
     /// The moves of the lines of multi-line raw string literals, or <see langword="null"/> when the tree holds no
     /// such literal
     /// </summary>
@@ -137,15 +142,51 @@ internal sealed class LayoutModel
     }
 
     /// <summary>
-    /// Gets the alignment contributors that placed the line through <see cref="Set"/> while the alignment sweeps ran. A
-    /// contributor that only moved the line with a range (<see cref="ShiftRange"/>) is not counted
+    /// Sets a fallback layout for a line: it places the line only while no alignment contributor has placed it through
+    /// <see cref="Set"/>, and a later <see cref="Set"/> takes the line over. A contributor uses it for a line it aligns only
+    /// because no construct on the line lays the line out itself, such as a line that continues a list element, so the
+    /// construct that does lay the line out is its only owner
+    /// </summary>
+    /// <param name="lineNumber">The 0-based line number</param>
+    /// <param name="layout">The fallback layout</param>
+    public void SetUnlessPlaced(int lineNumber, TokenLayout layout)
+    {
+        if (_alignmentContributors.ContainsKey(lineNumber)
+            || AcceptsWrite(lineNumber) == false)
+        {
+            return;
+        }
+
+        RecordPlacement(lineNumber);
+
+        if (AlignmentContributor != null)
+        {
+            _fallbackContributors[lineNumber] = AlignmentContributor.GetType();
+        }
+
+        var shift = GetRawStringShift(lineNumber);
+
+        _layouts[lineNumber] = shift == 0
+                                   ? layout
+                                   : new TokenLayout(layout.Column - shift, layout.Source);
+    }
+
+    /// <summary>
+    /// Gets the alignment contributors that placed the line while the alignment sweeps ran: the contributors whose
+    /// <see cref="Set"/> placed it, or, when none did, the contributor whose fallback (<see cref="SetUnlessPlaced"/>) placed
+    /// it. A contributor that only moved the line with a range (<see cref="ShiftRange"/>) is not counted
     /// </summary>
     /// <param name="lineNumber">The 0-based line number</param>
     /// <returns>The types of the contributors that placed the line; empty when none did</returns>
     public IReadOnlyCollection<Type> GetAlignmentContributors(int lineNumber)
     {
-        return _alignmentContributors.TryGetValue(lineNumber, out var contributors)
-                   ? contributors
+        if (_alignmentContributors.TryGetValue(lineNumber, out var contributors))
+        {
+            return contributors;
+        }
+
+        return _fallbackContributors.TryGetValue(lineNumber, out var fallbackContributor)
+                   ? [fallbackContributor]
                    : [];
     }
 

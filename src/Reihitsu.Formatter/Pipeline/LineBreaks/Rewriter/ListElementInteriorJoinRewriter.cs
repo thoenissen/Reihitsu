@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Pipeline.Core.Utilities;
-using Reihitsu.Formatter.Pipeline.HorizontalSpacing.Utilities;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
@@ -227,21 +226,19 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Creates the whitespace written between two joined tokens. The horizontal spacing policy decides every pair it
-    /// has a rule for; for the remaining pairs, delimiters and member, scope, range, nullable, pointer, name, and
-    /// attribute-target punctuation, a cast, and a prefix operator are written tight, and every other pair gets one
-    /// space. A pair that would merge into a different token when written tight - two identifier or keyword
-    /// characters such as <c>out var</c>, or <c>- -x</c> - always keeps its space
+    /// Creates the whitespace written between two joined tokens. The joined gap is a gap on one line, which the
+    /// horizontal-spacing phase spaces afterwards for every pair it has a rule for (FMT-SPACE); the join does not ask that
+    /// phase's policy. A pair no spacing rule covers keeps the gap the join writes, so the join writes delimiters and
+    /// member, scope, range, nullable, pointer, name, and attribute-target punctuation, a cast, and a prefix operator tight,
+    /// and every other pair with one space. A pair that would merge into a different token when written tight - two
+    /// identifier or keyword characters such as <c>out var</c>, or <c>- -x</c> - always keeps its space
     /// </summary>
     /// <param name="previousToken">The token before the gap</param>
     /// <param name="token">The token after the gap</param>
     /// <returns>The trailing whitespace for the previous token</returns>
     private static SyntaxTriviaList CreateSeparator(SyntaxToken previousToken, SyntaxToken token)
     {
-        var desiredSpaces = SpacingPolicy.GetDesiredSpacesAfter(previousToken, token);
-        var isTight = desiredSpaces.HasValue
-                          ? desiredSpaces.Value == 0
-                          : IsTightBefore(token) || IsTightAfter(previousToken);
+        var isTight = IsTightBefore(token) || IsTightAfter(previousToken);
 
         return isTight && WouldMergeWhenTight(previousToken, token) == false
                    ? SyntaxFactory.TriviaList()

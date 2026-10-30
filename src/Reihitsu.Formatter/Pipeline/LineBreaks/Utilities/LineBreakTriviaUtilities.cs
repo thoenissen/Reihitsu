@@ -42,17 +42,6 @@ internal static class LineBreakTriviaUtilities
     }
 
     /// <summary>
-    /// Removes whitespace trivia from the end of a trivia list, leaving interior whitespace
-    /// (such as the space that separates a kept comment from preceding trivia) untouched
-    /// </summary>
-    /// <param name="triviaList">The trivia list to clean</param>
-    /// <returns>The trivia list without trailing whitespace trivia</returns>
-    public static SyntaxTriviaList StripTrailingWhitespace(SyntaxTriviaList triviaList)
-    {
-        return TriviaListUtilities.RemoveTrailingWhitespace(triviaList);
-    }
-
-    /// <summary>
     /// Moves a token to a new line by prepending an end-of-line trivia to its leading trivia.
     /// Also strips any trailing whitespace from the previous token to avoid orphaned spaces
     /// </summary>
@@ -74,7 +63,7 @@ internal static class LineBreakTriviaUtilities
             && HasTrailingEndOfLine(previousToken) == false
             && previousToken.TrailingTrivia.Any(SyntaxKind.WhitespaceTrivia))
         {
-            if (TokenLocator.ContainsToken(node, previousToken) == false)
+            if (TokenContainmentUtilities.ContainsToken(node, previousToken) == false)
             {
                 return node.ReplaceToken(token, newToken);
             }
@@ -101,9 +90,9 @@ internal static class LineBreakTriviaUtilities
     /// end-of-line trivia from both the token's leading trivia and the previous
     /// token's trailing trivia. The collapse is refused when a comment, preprocessor
     /// directive, or disabled text sits in the gap, because each must keep its own line,
-    /// and when the directly preceding token has no text, such as an omitted type argument, and the gap
-    /// to it holds no line break — the line break then lies in front of that token, out of the gap's
-    /// reach; in both cases the original node is returned unchanged
+    /// and the original node is returned unchanged. When the tokens directly in front of the token have
+    /// no text, such as omitted type arguments, the gap joined is the one to the token with text in front
+    /// of them, which holds the line break
     /// </summary>
     /// <typeparam name="TNode">The syntax node type containing the token</typeparam>
     /// <param name="node">The node containing the token</param>
@@ -116,8 +105,23 @@ internal static class LineBreakTriviaUtilities
         var hasPreviousToken = TokenLocator.TryGetPreviousToken(node, token, out var previousToken);
 
         if (hasPreviousToken
+            && previousToken.Span.IsEmpty
+            && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(previousToken, token) == false)
+        {
+            // Tokens without text, such as omitted type arguments, carry no trivia, so the line break in front of the
+            // token lies behind the token with text in front of them; the gap to join is the one to that token
+            previousToken = token.GetPreviousToken();
+
+            if (previousToken.IsKind(SyntaxKind.None)
+                || TokenContainmentUtilities.ContainsToken(node, previousToken) == false
+                || SyntaxTriviaUtilities.AreSeparatedByEndOfLine(previousToken, token) == false)
+            {
+                return node;
+            }
+        }
+
+        if (hasPreviousToken
                 ? WouldJoinAcrossUnjoinableTrivia(previousToken, token)
-                  || (previousToken.Span.IsEmpty && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(previousToken, token) == false)
                 : SyntaxTriviaUtilities.ContainsUnjoinableTrivia(token.LeadingTrivia))
         {
             return node;

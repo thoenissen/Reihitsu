@@ -42,7 +42,7 @@ internal static class TokenLocator
 
         if (structuredTriviaToken != default
             && structuredTriviaToken.IsKind(SyntaxKind.None) == false
-            && ContainsToken(node, structuredTriviaToken))
+            && TokenContainmentUtilities.ContainsToken(node, structuredTriviaToken))
         {
             previousToken = structuredTriviaToken;
 
@@ -67,18 +67,6 @@ internal static class TokenLocator
     }
 
     /// <summary>
-    /// Determines whether the specified token is contained within the syntax node span
-    /// </summary>
-    /// <param name="node">The syntax node to inspect</param>
-    /// <param name="token">The token to test</param>
-    /// <returns><see langword="true"/> if the token lies within the node span; otherwise, <see langword="false"/></returns>
-    public static bool ContainsToken(SyntaxNode node,
-                                     SyntaxToken token)
-    {
-        return TokenContainmentUtilities.ContainsToken(node, token);
-    }
-
-    /// <summary>
     /// Resolves the token in <paramref name="node"/> that is identical to <paramref name="token"/>.
     /// Resolution is identity based: a token is only returned when it is the very token passed in, so a
     /// stale token whose span start coincides with an unrelated token of the same kind is never substituted
@@ -91,7 +79,7 @@ internal static class TokenLocator
     public static SyntaxToken GetCurrentToken(SyntaxNode node,
                                               SyntaxToken token)
     {
-        if (ContainsToken(node, token) == false)
+        if (TokenContainmentUtilities.ContainsToken(node, token) == false)
         {
             return token;
         }

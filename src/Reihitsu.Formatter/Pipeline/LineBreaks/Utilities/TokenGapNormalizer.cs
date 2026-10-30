@@ -126,7 +126,7 @@ internal sealed class TokenGapNormalizer
     {
         token = TokenLocator.GetCurrentToken(node, token);
 
-        if (token.IsMissing || TokenLocator.ContainsToken(node, token) == false)
+        if (token.IsMissing || TokenContainmentUtilities.ContainsToken(node, token) == false)
         {
             return node;
         }
@@ -159,7 +159,7 @@ internal sealed class TokenGapNormalizer
             return node;
         }
 
-        if (TokenLocator.ContainsToken(node, previousToken) == false)
+        if (TokenContainmentUtilities.ContainsToken(node, previousToken) == false)
         {
             // The previous token lies outside the node, so its trailing line break cannot be
             // removed here. When it already ends the line, emit one fewer line break to avoid doubling.
@@ -204,7 +204,7 @@ internal sealed class TokenGapNormalizer
     {
         token = TokenLocator.GetCurrentToken(node, token);
 
-        if (token.IsMissing || TokenLocator.ContainsToken(node, token) == false)
+        if (token.IsMissing || TokenContainmentUtilities.ContainsToken(node, token) == false)
         {
             return node;
         }
@@ -219,7 +219,7 @@ internal sealed class TokenGapNormalizer
                        : withToken(node, gapToken);
         }
 
-        if (hasPreviousToken && TokenLocator.ContainsToken(node, previousToken))
+        if (hasPreviousToken && TokenContainmentUtilities.ContainsToken(node, previousToken))
         {
             previousToken = TokenLocator.GetCurrentToken(node, previousToken);
         }
@@ -242,7 +242,7 @@ internal sealed class TokenGapNormalizer
             return node;
         }
 
-        if (TokenLocator.ContainsToken(node, previousToken) == false)
+        if (TokenContainmentUtilities.ContainsToken(node, previousToken) == false)
         {
             // The previous token lies outside the node, so its trailing line break cannot be
             // removed here. When it already ends the line, emit one fewer line break to avoid doubling.
@@ -288,7 +288,7 @@ internal sealed class TokenGapNormalizer
             return node;
         }
 
-        if (TokenLocator.ContainsToken(node, token) == false)
+        if (TokenContainmentUtilities.ContainsToken(node, token) == false)
         {
             return node;
         }
@@ -300,7 +300,7 @@ internal sealed class TokenGapNormalizer
                        : node.ReplaceToken(token, gapToken);
         }
 
-        var previousInsideNode = TokenLocator.ContainsToken(node, previousToken);
+        var previousInsideNode = TokenContainmentUtilities.ContainsToken(node, previousToken);
 
         if (previousInsideNode)
         {

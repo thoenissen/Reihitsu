@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Core;
 
-namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
+namespace Reihitsu.Formatter.Pipeline.Core.Utilities;
 
 /// <summary>
 /// Names, for each physical line of a syntax tree, the position at which the line's text starts: the comment, directive,
