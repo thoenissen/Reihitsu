@@ -18,6 +18,20 @@ namespace Reihitsu.Formatter.Test.Helpers;
 /// </summary>
 public static class ObservedPipeline
 {
+    #region Constants
+
+    /// <summary>
+    /// Name under which the pipeline observer reports the TabReplacement sub-phase of the preparation phase
+    /// </summary>
+    public const string TabReplacementPhaseName = "PreparationPhase/TabReplacement";
+
+    /// <summary>
+    /// Name under which the pipeline observer reports the LineEndings sub-phase of the preparation phase
+    /// </summary>
+    public const string LineEndingsPhaseName = "PreparationPhase/LineEndings";
+
+    #endregion // Constants
+
     #region Methods
 
     /// <summary>
@@ -41,7 +55,8 @@ public static class ObservedPipeline
     }
 
     /// <summary>
-    /// Returns the output of the first phase and asserts that the first phase is the tab replacement
+    /// Returns the output of the first phase and asserts that the first phase is the TabReplacement sub-phase of the
+    /// preparation phase
     /// </summary>
     /// <param name="input">The source text to format</param>
     /// <param name="endOfLine">The end-of-line sequence of the formatting context</param>
@@ -50,7 +65,7 @@ public static class ObservedPipeline
     {
         var phases = Run(input, endOfLine);
 
-        Assert.AreEqual("TabReplacementPhase", phases[0].Name, "The first phase of the pipeline should be the tab replacement.");
+        Assert.AreEqual(TabReplacementPhaseName, phases[0].Name, "The first phase of the pipeline should be the TabReplacement sub-phase of the preparation phase.");
 
         return phases[0].Output.ToFullString();
     }
@@ -95,6 +110,40 @@ public static class ObservedPipeline
     }
 
     /// <summary>
+    /// Describes every line break that the line-ending rules cover and that differs from the given line ending: end-of-line
+    /// trivia between tokens, the line break that ends a directive, and the newlines of a documentation comment. Line breaks
+    /// inside literals, inside comments that are not documentation comments, and inside disabled text are not reported,
+    /// because they are part of the text of a token or a trivia and not line breaks of their own
+    /// </summary>
+    /// <param name="root">The syntax root to scan</param>
+    /// <param name="endOfLine">The line ending every reported line break should have</param>
+    /// <returns>One description per line break that differs from the line ending</returns>
+    public static IReadOnlyList<string> FindForeignLineBreaks(SyntaxNode root, string endOfLine)
+    {
+        var findings = new List<string>();
+
+        foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
+        {
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia)
+                && trivia.ToFullString() != endOfLine)
+            {
+                findings.Add(DescribeLineBreak(trivia.ToFullString(), trivia.GetLocation(), trivia.IsPartOfStructuredTrivia() ? "directive or documentation trivia" : "end-of-line trivia"));
+            }
+        }
+
+        foreach (var token in root.DescendantTokens(descendIntoTrivia: true))
+        {
+            if (token.IsKind(SyntaxKind.XmlTextLiteralNewLineToken)
+                && token.Text != endOfLine)
+            {
+                findings.Add(DescribeLineBreak(token.Text, token.GetLocation(), "documentation newline"));
+            }
+        }
+
+        return findings;
+    }
+
+    /// <summary>
     /// Splits text into lines without their line-ending characters and without the whitespace that ends them, and drops
     /// the empty lines at the end of the text. Two texts with equal lines place every token, comment, and directive in the
     /// same column
@@ -126,6 +175,21 @@ public static class ObservedPipeline
     {
         return trivia.IsKind(SyntaxKind.WhitespaceTrivia)
                && trivia.ToFullString().Contains('\t');
+    }
+
+    /// <summary>
+    /// Describes a line break by its characters, its carrier, and its position
+    /// </summary>
+    /// <param name="text">The characters of the line break</param>
+    /// <param name="location">The location of the line break</param>
+    /// <param name="carrier">What carries the line break</param>
+    /// <returns>The description</returns>
+    private static string DescribeLineBreak(string text, Location location, string carrier)
+    {
+        var position = location.GetLineSpan().StartLinePosition;
+        var characters = string.Join(" ", text.Select(character => $"U+{(int)character:X4}"));
+
+        return $"{characters} in {carrier} at line {position.Line + 1}, column {position.Character + 1}";
     }
 
     /// <summary>

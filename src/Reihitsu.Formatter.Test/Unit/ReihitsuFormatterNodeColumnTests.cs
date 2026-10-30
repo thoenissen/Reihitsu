@@ -562,6 +562,56 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a statement target indented with tabs that holds a line break other than the document's line ending, which
+    /// the preparation phase rewrites before every other phase, still counts each of its tabs as four columns, so the statement
+    /// starts in column 8 and the wrapped argument aligns behind it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task StatementTargetIndentedWithTabsHoldingAForeignLineBreakCountsEachOfItsTabsAsFourColumns()
+    {
+        const string input = "class C\n{\n\tvoid M()\n\t{\n\t\tCall(1,¶2);\n\t}\n}";
+        const string expected = "class C\n{\n\tvoid M()\n\t{\n        Call(1,\n             2);\n\t}\n}";
+
+        await AssertFormatsTargetWithForeignLineBreaks(input, expected, SelectSingle<ExpressionStatementSyntax>, null);
+    }
+
+    /// <summary>
+    /// Verifies that a misindented statement target led by a one-line comment that holds a line break other than the
+    /// document's line ending keeps its first token in its column, and the wrapped argument aligns under the first argument
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task MisindentedStatementTargetHoldingAForeignLineBreakKeepsItsFirstTokenAndAlignsTheWrappedArgument()
+    {
+        const string input = "class C\n{\n    void M()\n    {\n     /* c */ Call(1,¶2);\n    }\n}";
+        const string expected = "class C\n{\n    void M()\n    {\n     /* c */ Call(1,\n                  2);\n    }\n}";
+
+        await AssertFormatsTargetWithForeignLineBreaks(input, expected, SelectSingle<ExpressionStatementSyntax>, null);
+    }
+
+    /// <summary>
+    /// Verifies that a chain target formatted with an equals-value clause as context, whose wrapped link follows a line break
+    /// other than the document's line ending, aligns the wrapped link under the first link behind the last line of a
+    /// multi-line comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task ChainTargetWithContextHoldingAForeignLineBreakAlignsTheWrappedLink()
+    {
+        const string input = "class C\n{\n    void M(string s)\n    {\n        var x = /* a\n                   b */ s.Trim()¶.ToUpper();\n    }\n}";
+        const string expected = "class C\n{\n    void M(string s)\n    {\n        var x = /* a\n                   b */ s.Trim()\n                         .ToUpper();\n    }\n}";
+
+        await AssertFormatsTargetWithForeignLineBreaks(input,
+                                                       expected,
+                                                       root => root.DescendantNodes().OfType<InvocationExpressionSyntax>().First(),
+                                                       SelectSingle<EqualsValueClauseSyntax>);
+    }
+
+    /// <summary>
     /// Selects the only node of the given type in the root
     /// </summary>
     /// <typeparam name="TNode">Type of the node</typeparam>
@@ -627,6 +677,36 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
             var secondPass = await Format(firstPass, selectTarget, selectContext);
 
             Assert.AreEqual(expected, secondPass, $"The second pass must not change the output under {DescribeLineEnding(endOfLine)} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Formats the selected target under LF and CRLF, with every <c>¶</c> of the input replaced by a line break other than the
+    /// document's line ending, and asserts the document's text after one pass, and that a second pass leaves it unchanged
+    /// </summary>
+    /// <param name="inputWithLf">Input with LF line endings, where <c>¶</c> marks the foreign line break</param>
+    /// <param name="expectedWithLf">Expected output with LF line endings</param>
+    /// <param name="selectTarget">Selects the target in the document's root</param>
+    /// <param name="selectContext">Selects the context node, or <see langword="null"/> to format without a context</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private async Task AssertFormatsTargetWithForeignLineBreaks(string inputWithLf, string expectedWithLf, Func<SyntaxNode, SyntaxNode> selectTarget, Func<SyntaxNode, SyntaxNode> selectContext)
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var expected = NormalizeLineEndings(expectedWithLf, endOfLine);
+            var foreignLineBreaks = endOfLine == "\n" ? new[] { "\r\n", "\r", "\u2028" } : new[] { "\n", "\r", "\u2029" };
+
+            foreach (var foreignLineBreak in foreignLineBreaks)
+            {
+                var description = $"{DescribeLineEnding(endOfLine)} line endings with {string.Join(" ", foreignLineBreak.Select(character => $"U+{(int)character:X4}"))} as the foreign line break";
+                var firstPass = await Format(NormalizeLineEndings(inputWithLf, endOfLine).Replace("¶", foreignLineBreak), selectTarget, selectContext);
+
+                Assert.AreEqual(expected, firstPass, $"Unexpected first pass under {description}.");
+
+                var secondPass = await Format(firstPass, selectTarget, selectContext);
+
+                Assert.AreEqual(expected, secondPass, $"The second pass must not change the output under {description}.");
+            }
         }
     }
 

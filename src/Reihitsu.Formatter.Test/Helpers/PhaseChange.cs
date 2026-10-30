@@ -10,7 +10,7 @@ public sealed class PhaseChange
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="phase">The type name of the phase</param>
+    /// <param name="phase">The name under which the pipeline observer reports the phase</param>
     /// <param name="input">The text the phase received</param>
     /// <param name="output">The text the phase returned</param>
     public PhaseChange(string phase, string input, string output)
@@ -26,7 +26,7 @@ public sealed class PhaseChange
     #region Properties
 
     /// <summary>
-    /// The type name of the phase
+    /// The name under which the pipeline observer reports the phase
     /// </summary>
     public string Phase { get; }
 

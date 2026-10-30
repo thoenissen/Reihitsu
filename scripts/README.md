@@ -33,7 +33,7 @@ scripts/lane-check.sh bug-fix --head worktree
 
 ## Formatter pipeline trace
 
-`trace.sh <file> [--passes N] [--no-install]` runs one C# file through the twelve top-level `IFormattingPhase` boundaries. Paths are resolved relative to the caller, including when the wrapper is invoked outside the repository root. The input file is only read: each pass operates in memory, and the complete result is reparsed before the next pass to match repeated CLI invocations.
+`trace.sh <file> [--passes N] [--no-install]` runs one C# file through the twelve formatter phase boundaries: the preparation phase's two sub-phases, `PreparationPhase/TabReplacement` and `PreparationPhase/LineEndings`, and the ten phases after it. Paths are resolved relative to the caller, including when the wrapper is invoked outside the repository root. The input file is only read: each pass operates in memory, and the complete result is reparsed before the next pass to match repeated CLI invocations.
 
 The trace defaults to at most three passes and requires a positive pass count. It prints a pass/phase header only when that phase changes serialized source. Line-content changes get a unified diff; when a change only normalizes line-ending separators, the shared diff generator has no line hunk, so the trace prints before/after CRLF, LF, and CR counts instead. It preserves the input's detected LF or CRLF convention and stops early after the first complete pass that makes no change. Syntax-invalid and generated inputs are reported as legitimate skips.
 

@@ -258,9 +258,10 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// <param name="commentSpan">Span the comment text occupies in <paramref name="sourceText"/></param>
     /// <param name="documentationComment">Structured documentation comment</param>
     /// <param name="sourceText">Source text</param>
+    /// <param name="endOfLine">The detected line ending, written between the lines of an expanded element</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The rebuilt comment text, or <see langword="null"/> if no element required rebuilding</returns>
-    private static string NormalizeOutermostElements(string commentText, TextSpan commentSpan, DocumentationCommentTriviaSyntax documentationComment, SourceText sourceText, CancellationToken cancellationToken)
+    private static string NormalizeOutermostElements(string commentText, TextSpan commentSpan, DocumentationCommentTriviaSyntax documentationComment, SourceText sourceText, string endOfLine, CancellationToken cancellationToken)
     {
         var candidates = documentationComment.DescendantNodes()
                                              .OfType<XmlElementSyntax>()
@@ -282,7 +283,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var replacementText = DocCommentElementNormalizer.BuildReplacement(element, sourceText);
+            var replacementText = DocCommentElementNormalizer.BuildReplacement(element, sourceText, endOfLine);
             var relativeStart = element.Span.Start - commentSpan.Start;
             var relativeEnd = element.Span.End - commentSpan.Start;
 
@@ -331,9 +332,10 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// <param name="documentationCommentTrivia">Documentation comment trivia</param>
     /// <param name="documentationComment">Structured documentation comment</param>
     /// <param name="sourceText">Source text</param>
+    /// <param name="endOfLine">The detected line ending, written between the lines of an expanded element</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The rebuilt comment text, or <see langword="null"/> if no element required rebuilding</returns>
-    private static string NormalizeElementsUntilStable(SyntaxTrivia documentationCommentTrivia, DocumentationCommentTriviaSyntax documentationComment, SourceText sourceText, CancellationToken cancellationToken)
+    private static string NormalizeElementsUntilStable(SyntaxTrivia documentationCommentTrivia, DocumentationCommentTriviaSyntax documentationComment, SourceText sourceText, string endOfLine, CancellationToken cancellationToken)
     {
         var currentComment = documentationComment;
         var currentSourceText = sourceText;
@@ -345,7 +347,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var roundText = NormalizeOutermostElements(currentText, currentSpan, currentComment, currentSourceText, cancellationToken);
+            var roundText = NormalizeOutermostElements(currentText, currentSpan, currentComment, currentSourceText, endOfLine, cancellationToken);
 
             if (roundText == null)
             {
@@ -373,11 +375,12 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// <param name="documentationCommentTrivia">Documentation comment trivia</param>
     /// <param name="documentationComment">Structured documentation comment</param>
     /// <param name="sourceText">Source text</param>
+    /// <param name="endOfLine">The detected line ending, written between the lines of an expanded element</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The normalized comment text, or <see langword="null"/> if no change is required</returns>
-    private static string NormalizeDocumentationComment(SyntaxTrivia documentationCommentTrivia, DocumentationCommentTriviaSyntax documentationComment, SourceText sourceText, CancellationToken cancellationToken)
+    private static string NormalizeDocumentationComment(SyntaxTrivia documentationCommentTrivia, DocumentationCommentTriviaSyntax documentationComment, SourceText sourceText, string endOfLine, CancellationToken cancellationToken)
     {
-        var rebuiltCommentText = NormalizeElementsUntilStable(documentationCommentTrivia, documentationComment, sourceText, cancellationToken);
+        var rebuiltCommentText = NormalizeElementsUntilStable(documentationCommentTrivia, documentationComment, sourceText, endOfLine, cancellationToken);
         var normalizedCommentText = rebuiltCommentText ?? sourceText.ToString(documentationCommentTrivia.FullSpan);
         var changed = rebuiltCommentText != null;
 
@@ -433,7 +436,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
                 continue;
             }
 
-            var updatedCommentText = NormalizeDocumentationComment(trivia, documentationComment, sourceText, cancellationToken);
+            var updatedCommentText = NormalizeDocumentationComment(trivia, documentationComment, sourceText, context.EndOfLine, cancellationToken);
 
             if (updatedCommentText == null)
             {

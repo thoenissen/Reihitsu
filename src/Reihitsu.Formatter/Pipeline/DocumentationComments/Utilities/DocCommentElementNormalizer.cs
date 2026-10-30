@@ -34,12 +34,13 @@ internal static class DocCommentElementNormalizer
     /// </summary>
     /// <param name="element">XML element</param>
     /// <param name="sourceText">Source text</param>
+    /// <param name="endOfLine">The detected line ending, written between the lines of an expanded element</param>
     /// <returns>The normalized element text</returns>
-    public static string BuildReplacement(XmlElementSyntax element, SourceText sourceText)
+    public static string BuildReplacement(XmlElementSyntax element, SourceText sourceText, string endOfLine)
     {
         return CanCollapseToSingleLine(element, sourceText)
                    ? BuildCollapsedElement(element, sourceText, DocumentationCommentUtilities.GetContinuationPrefix(sourceText, sourceText.Lines.GetLineFromPosition(element.StartTag.Span.Start)))
-                   : BuildExpandedElement(element, sourceText);
+                   : BuildExpandedElement(element, sourceText, endOfLine);
     }
 
     /// <summary>
@@ -61,11 +62,11 @@ internal static class DocCommentElementNormalizer
     /// </summary>
     /// <param name="element">XML element</param>
     /// <param name="sourceText">Source text</param>
+    /// <param name="lineBreak">The detected line ending, written between the lines of the element</param>
     /// <returns>The normalized multi-line element text</returns>
-    private static string BuildExpandedElement(XmlElementSyntax element, SourceText sourceText)
+    private static string BuildExpandedElement(XmlElementSyntax element, SourceText sourceText, string lineBreak)
     {
         var documentationPrefix = DocumentationCommentUtilities.GetContinuationPrefix(sourceText, sourceText.Lines.GetLineFromPosition(element.StartTag.Span.Start));
-        var lineBreak = GetLineBreak(sourceText, sourceText.Lines.GetLineFromPosition(element.StartTag.Span.Start));
         var contentLines = GetElementContentLines(element, sourceText, documentationPrefix);
         var formattedContentLines = contentLines.Select(obj => string.IsNullOrWhiteSpace(obj) && contentLines.Count > 1
                                                                    ? documentationPrefix.TrimEnd()
@@ -91,19 +92,6 @@ internal static class DocCommentElementNormalizer
         var contentLines = GetElementContentLines(element, sourceText, documentationPrefix);
 
         return contentLines.Count == 1;
-    }
-
-    /// <summary>
-    /// Gets the line break sequence for the affected line
-    /// </summary>
-    /// <param name="sourceText">Source text</param>
-    /// <param name="line">Affected line</param>
-    /// <returns>The line break sequence</returns>
-    private static string GetLineBreak(SourceText sourceText, TextLine line)
-    {
-        return line.EndIncludingLineBreak > line.End
-                   ? sourceText.ToString(TextSpan.FromBounds(line.End, line.EndIncludingLineBreak))
-                   : Environment.NewLine;
     }
 
     /// <summary>

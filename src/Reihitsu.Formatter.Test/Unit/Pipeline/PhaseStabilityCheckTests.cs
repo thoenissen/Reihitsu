@@ -78,8 +78,9 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies that the check runs the phases of the production pipeline, in the order the pipeline runs them, so a phase
-    /// added to or removed from the pipeline is checked without a second list to update
+    /// Verifies that the check runs the phases of the production pipeline, in the order the pipeline runs them and under the
+    /// names the pipeline observer reports, the sub-phases of the preparation phase included, so a phase added to or removed
+    /// from the pipeline is checked without a second list to update
     /// </summary>
     [TestMethod]
     public void CheckRunsTheProductionPhasesInPipelineOrder()
@@ -88,7 +89,7 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
         var observedNames = ObservedPipeline.Run(FormattedSource, "\n").Select(phase => phase.Name).ToList();
 
         // Act
-        var checkedNames = PhaseStabilityCheck.CreateProductionPhases().Select(phase => phase.GetType().Name).ToList();
+        var checkedNames = PhaseStabilityCheck.CreateProductionPhases().Select(PhaseStabilityCheck.GetReportedName).ToList();
 
         // Assert
         Assert.AreSequenceEqual(observedNames, checkedNames);
@@ -806,7 +807,7 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
     public void EveryCauseNamesAProductionPhase()
     {
         // Arrange
-        var phaseNames = PhaseStabilityCheck.CreateProductionPhases().Select(phase => phase.GetType().Name).ToList();
+        var phaseNames = PhaseStabilityCheck.CreateProductionPhases().Select(PhaseStabilityCheck.GetReportedName).ToList();
 
         foreach (var cause in GetKnownCauses())
         {

@@ -95,7 +95,7 @@ public sealed class PhaseReversalEntry
     public PhaseReversalCause Cause { get; }
 
     /// <summary>
-    /// The type name of the phase that changes the final output when it runs alone, as the cause names it
+    /// The name under which the pipeline observer reports the phase that changes the final output when it runs alone, as the cause names it
     /// </summary>
     public string Phase => Cause.Phase;
 

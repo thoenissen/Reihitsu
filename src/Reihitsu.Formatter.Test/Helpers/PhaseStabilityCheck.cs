@@ -7,7 +7,9 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline;
+using Reihitsu.Formatter.Pipeline.Preparation;
 using Reihitsu.Formatter.Test.Helpers.Enumerations;
 
 namespace Reihitsu.Formatter.Test.Helpers;
@@ -163,14 +165,50 @@ public static class PhaseStabilityCheck
     }
 
     /// <summary>
-    /// Creates the phases of the production pipeline in the order the pipeline runs them
+    /// Creates the phases of the production pipeline in the order the pipeline runs them, with the preparation phase replaced
+    /// by its sub-phases, which the pipeline runs and reports as phases of their own
     /// </summary>
     /// <returns>The production phases</returns>
     internal static IReadOnlyList<IFormattingPhase> CreateProductionPhases()
     {
         Assert.IsNotNull(_createPhases, "FormattingPipeline.CreatePhases was not found; the phase-level stability check must run the production phase list.");
 
-        return (IReadOnlyList<IFormattingPhase>)_createPhases.Invoke(null, null);
+        var phases = new List<IFormattingPhase>();
+
+        foreach (var phase in (IReadOnlyList<IFormattingPhase>)_createPhases.Invoke(null, null))
+        {
+            if (phase is PreparationPhase preparationPhase)
+            {
+                phases.AddRange(preparationPhase.SubPhases);
+            }
+            else
+            {
+                phases.Add(phase);
+            }
+        }
+
+        return phases;
+    }
+
+    /// <summary>
+    /// Returns the name under which the pipeline observer reports the phase when it runs alone, so the check names a phase as
+    /// the observer and the trace do, a sub-phase of the preparation phase included
+    /// </summary>
+    /// <param name="phase">The phase</param>
+    /// <returns>The reported name</returns>
+    internal static string GetReportedName(IFormattingPhase phase)
+    {
+        var names = new List<string>();
+
+        FormattingPipeline.ExecutePhases(SyntaxFactory.ParseCompilationUnit(string.Empty),
+                                         new FormattingContext("\n"),
+                                         [phase],
+                                         (name, _, _) => names.Add(name),
+                                         CancellationToken.None);
+
+        Assert.HasCount(1, names, "A phase that runs alone should be reported as exactly one step.");
+
+        return names[0];
     }
 
     /// <summary>
@@ -209,7 +247,7 @@ public static class PhaseStabilityCheck
 
             if (output != text)
             {
-                changes.Add(new PhaseChange(phase.GetType().Name, text, output));
+                changes.Add(new PhaseChange(GetReportedName(phase), text, output));
             }
         }
 
