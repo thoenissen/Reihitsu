@@ -184,7 +184,7 @@ Every line break of the result is `\n`. With a second `\r\n` behind the closing 
 Rules that depend on the C# language version MUST read it from these parse options:
 
 - `FormatDocumentAsync` and `FormatSyntaxTree`: the parse options of the syntax tree they format — for a document, the tree its project parsed;
-- `FormatNode`: the parse options of the given node's syntax tree; a detached node belongs to a tree with the default parse options;
+- `FormatNode`: the parse options of the given node's syntax tree. A node taken from a tree, or parsed with parse options without a tree of its own, keeps those parse options; a node parsed or built without parse options belongs to a tree with the default parse options;
 - `FormatNodeInDocumentAsync` and `FormatNodeInDocumentWithContextAsync`: the parse options of the document's project.
 
 `Default`, `Latest`, and `LatestMajor` MUST resolve to the newest supported version (C# 14), and `Preview` or any newer version MUST be clamped to it. Without C# parse options, the newest supported version applies.
@@ -238,7 +238,7 @@ stays as it is. In a C# 12 project, or from a tree parsed as C# 12, the result i
 class Empty;
 ```
 
-Given to `FormatNode` as a detached node, built without a tree, it gets the C# 12 result, because the default parse options resolve to the newest supported version.
+Given to `FormatNode` without a tree of its own, parsed with C# 11 parse options (`SyntaxFactory.ParseCompilationUnit` with `options` set to C# 11), it stays as it is. Parsed without parse options, or built with `SyntaxFactory`, it gets the C# 12 result, because the default parse options resolve to the newest supported version.
 
 ### FMT-PIPE-009 — Host-independent entry points
 
