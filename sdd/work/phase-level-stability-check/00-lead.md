@@ -32,3 +32,4 @@ Widened from tests to tooling after the skeptic: the escalation-12 answer is rec
 
 - Escalation 12 (skeptic architecture findings: three pre-existing two-phase reversals): the maintainer chose to keep the run narrow, list the reversing fixtures as exceptions with their causes, and link the existing structural packages under thoenissen/Reihitsu#1482 as follow-up work instead of filing new issues.
 - Escalation 7 (repair round 1, test identity): the maintainer chose to declare `TestContext` on `FormatterTestsBase`, remove it from the derived formatter test classes, and drop the call-stack walk.
+- Escalation 12 (repair-round audit finding 10 repeats finding 2, colliding data-row keys): the maintainer chose the narrow fix — an injective row text for supported arguments and a clear failure at test start for unsupported ones — in repair round 2, together with findings 11 and 12.
