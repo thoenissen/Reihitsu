@@ -159,16 +159,7 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
     {
         // Arrange
         const string input = "#region A\nclass C\n{\n    int _a;\n}\n    #endregion\n";
-        const string expected = """
-                                #region A
-
-                                class C
-                                {
-                                    int _a;
-                                }
-
-                                #endregion // A
-                                """;
+        const string expected = "#region A\n\nclass C\n{\n    int _a;\n}\n\n#endregion // A\n";
 
         // Act & Assert
         AssertRuleResult(input, expected);
