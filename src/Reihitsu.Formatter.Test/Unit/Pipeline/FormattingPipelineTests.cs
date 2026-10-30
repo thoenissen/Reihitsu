@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline;
 using Reihitsu.Formatter.Pipeline.LineEndings;
+using Reihitsu.Formatter.Pipeline.Preparation;
 using Reihitsu.Formatter.Pipeline.TabReplacement;
 using Reihitsu.Formatter.Test.Helpers;
 
@@ -255,14 +256,8 @@ public class FormattingPipelineTests
     [Requirement("FMT-PIPE-001")]
     public void PreparationPhaseRunAloneReportsItsTwoSubPhasesInOrder()
     {
-        // Arrange — the type is located by name, so this test class compiles before the type exists
-        var preparationPhaseType = typeof(FormattingPipeline).Assembly
-                                                             .GetTypes()
-                                                             .SingleOrDefault(type => type.Name == "PreparationPhase");
-
-        Assert.IsNotNull(preparationPhaseType, "The formatter assembly should contain the type PreparationPhase.");
-
-        var preparationPhase = (IFormattingPhase)Activator.CreateInstance(preparationPhaseType, nonPublic: true);
+        // Arrange
+        var preparationPhase = new PreparationPhase();
         var tree = CSharpSyntaxTree.ParseText("class C\r\n{\n\tint x;\r}", cancellationToken: TestContext.CancellationToken);
         var observedPhases = new List<(string Name, string Input, string Output)>();
 
@@ -280,6 +275,49 @@ public class FormattingPipelineTests
         Assert.AreEqual(observedPhases[0].Output, observedPhases[1].Input, "The LineEndings sub-phase should receive the output of the TabReplacement sub-phase.");
         Assert.AreEqual("class C\n{\n    int x;\n}", observedPhases[1].Output, "The LineEndings sub-phase should rewrite every line break to the detected line ending.");
         Assert.AreEqual(observedPhases[1].Output, result.ToFullString());
+    }
+
+    /// <summary>
+    /// Verifies that the preparation phase, executed directly as a phase, replaces the tabs in the whitespace of the code and
+    /// between directive tokens and rewrites every end-of-line trivia, directive line break, and documentation newline to the
+    /// context's line ending, and returns what the pipeline returns when it runs the preparation phase
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-019")]
+    public void PreparationPhaseExecutedDirectlyReplacesTabsAndRewritesLineBreaks()
+    {
+        // Arrange
+        const string input = "class C\r\n{\n#region\tA\r\tint x;\u2028    /// <summary>\r    /// A\r\n    /// </summary>\n\tint y;\n#endregion\u0085}";
+        const string expected = "class C\n{\n#region    A\n    int x;\n    /// <summary>\n    /// A\n    /// </summary>\n    int y;\n#endregion\n}";
+        var root = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
+        var context = new FormattingContext("\n");
+
+        // Act
+        var executed = new PreparationPhase().Execute(root, context, TestContext.CancellationToken).ToFullString();
+        var pipelined = FormattingPipeline.ExecutePhases(root, context, [new PreparationPhase()], phaseObserver: null, TestContext.CancellationToken).ToFullString();
+
+        // Assert
+        Assert.AreEqual(expected, executed);
+        Assert.AreEqual(pipelined, executed, "Executing the preparation phase directly should give what the pipeline gives for it.");
+    }
+
+    /// <summary>
+    /// Verifies that the preparation phase, executed directly with a cancelled token, throws
+    /// <see cref="OperationCanceledException"/> instead of returning a result
+    /// </summary>
+    [TestMethod]
+    public void PreparationPhaseExecutedDirectlyWithCancelledTokenThrowsOperationCanceled()
+    {
+        // Arrange
+        var root = CSharpSyntaxTree.ParseText("class C\r\n{\n\tint x;\r}", cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
+
+        using (var cts = new CancellationTokenSource())
+        {
+            cts.Cancel();
+
+            // Act & Assert
+            Assert.ThrowsExactly<OperationCanceledException>(() => new PreparationPhase().Execute(root, new FormattingContext("\n"), cts.Token));
+        }
     }
 
     /// <summary>
