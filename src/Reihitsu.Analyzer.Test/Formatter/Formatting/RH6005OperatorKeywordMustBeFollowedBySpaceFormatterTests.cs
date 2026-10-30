@@ -43,5 +43,28 @@ public class RH6005OperatorKeywordMustBeFollowedBySpaceFormatterTests : Formatte
                               Diagnostics(RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6005MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter's output for an <c>operator</c> keyword directly followed by a documentation comment stays
+    /// unchanged and raises no diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6005-001")]
+    public async Task VerifyFormatterOutputWithStrayDocumentationCommentBehindOperatorKeywordIsNotReported()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    public static C operator/// x
+                                    +(C a, C b)
+                                    {
+                                        return a;
+                                    }
+                                }
+                                """;
+
+        await VerifyFormatter(testData);
+    }
+
     #endregion // Tests
 }

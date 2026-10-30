@@ -301,6 +301,328 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a wrapped list of omitted type arguments with a blank line in front of the closing angle bracket is joined onto one line
+    /// in one pass
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-014")]
+    public void WrappedListWithBlankLineBeforeClosingAngleBracketIsJoinedInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var type = typeof(Dictionary<,
+
+                                     >);
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System;
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var type = typeof(Dictionary<,>);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped list of omitted type arguments with a blank line in front of the first separator is joined onto one line
+    /// in one pass
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-014")]
+    public void WrappedListWithBlankLineBeforeFirstSeparatorIsJoinedInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var type = typeof(Func<
+
+                                     ,>);
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System;
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var type = typeof(Func<,>);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped list of omitted type arguments with a blank line in front of each of several separators is joined onto one line
+    /// in one pass
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-014")]
+    public void WrappedListWithBlankLinesBeforeSeveralSeparatorsIsJoinedInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var type = typeof(Func<
+
+                                     ,
+
+                                     ,>);
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System;
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var type = typeof(Func<,,>);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped list of omitted type arguments with a blank line between the angle brackets of a single omitted type argument is joined onto one line
+    /// in one pass
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-014")]
+    public void WrappedListOfSingleOmittedTypeArgumentWithBlankLineIsJoinedInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var type = typeof(Action<
+
+                                     >);
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System;
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var type = typeof(Action<>);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped list of omitted type arguments with two blank lines in front of the closing angle bracket is joined onto one line
+    /// in one pass
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-014")]
+    public void WrappedListWithTwoBlankLinesBeforeClosingAngleBracketIsJoinedInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var type = typeof(Dictionary<,
+
+
+                                     >);
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System;
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var type = typeof(Dictionary<,>);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped list of omitted type arguments with a line holding only whitespace in front of the closing angle bracket is joined onto one line
+    /// in one pass
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-014")]
+    public void WrappedListWithWhitespaceOnlyLineBeforeClosingAngleBracketIsJoinedInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var type = typeof(Dictionary<,
+                                         
+                                     >);
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System;
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var type = typeof(Dictionary<,>);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped list of omitted type arguments with a plain line break in front of one separator and a blank line in front of the closing angle bracket is joined onto one line
+    /// in one pass
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-014")]
+    public void WrappedListWithLineBreakAndThenBlankLineIsJoinedInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var type = typeof(Func<,
+                                     ,
+
+                                     >);
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System;
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var type = typeof(Func<,,>);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the control with type arguments that have text: a blank line in front of the second type argument, which is joined onto one line in one pass
+    /// </summary>
+    [TestMethod]
+    public void WrappedTypeArgumentListWithTextAndBlankLineIsJoinedInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     Dictionary<int,
+
+                                                string> d = null;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System;
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Dictionary<int, string> d = null;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a list of omitted type arguments wrapped in front of its separator is joined onto one line
     /// </summary>
     [TestMethod]
