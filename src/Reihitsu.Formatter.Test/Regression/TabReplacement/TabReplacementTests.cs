@@ -17,15 +17,6 @@ namespace Reihitsu.Formatter.Test.Regression.TabReplacement;
 [TestClass]
 public class TabReplacementTests : FormatterTestsBase
 {
-    #region Properties
-
-    /// <summary>
-    /// Test context for the current test
-    /// </summary>
-    public TestContext TestContext { get; set; }
-
-    #endregion // Properties
-
     #region Whitespace of the code
 
     /// <summary>

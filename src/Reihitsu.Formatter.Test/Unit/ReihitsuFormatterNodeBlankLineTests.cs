@@ -20,15 +20,6 @@ namespace Reihitsu.Formatter.Test.Unit;
 [TestClass]
 public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
 {
-    #region Properties
-
-    /// <summary>
-    /// Test context for the current test
-    /// </summary>
-    public TestContext TestContext { get; set; }
-
-    #endregion // Properties
-
     #region Methods
 
     /// <summary>

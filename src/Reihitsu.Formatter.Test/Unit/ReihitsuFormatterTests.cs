@@ -98,15 +98,6 @@ public class ReihitsuFormatterTests : FormatterTestsBase
 
     #endregion // Constants
 
-    #region Properties
-
-    /// <summary>
-    /// Test context for the current test
-    /// </summary>
-    public TestContext TestContext { get; set; }
-
-    #endregion // Properties
-
     #region Methods
 
     /// <summary>

@@ -11,15 +11,6 @@ namespace Reihitsu.Formatter.Test.Unit.RawStringAlignment;
 [TestClass]
 public class RawStringAlignmentPipelineTests : FormatterTestsBase
 {
-    #region Properties
-
-    /// <summary>
-    /// Test context for the current test
-    /// </summary>
-    public TestContext TestContext { get; set; }
-
-    #endregion // Properties
-
     #region Methods
 
     /// <summary>

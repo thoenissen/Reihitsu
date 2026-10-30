@@ -19,15 +19,6 @@ namespace Reihitsu.Formatter.Test.Regression.Indentation;
 [TestClass]
 public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
 {
-    #region Properties
-
-    /// <summary>
-    /// Test context for the current test
-    /// </summary>
-    public TestContext TestContext { get; set; }
-
-    #endregion // Properties
-
     #region Initializer braces
 
     /// <summary>

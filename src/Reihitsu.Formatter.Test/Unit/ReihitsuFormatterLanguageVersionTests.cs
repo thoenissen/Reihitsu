@@ -130,15 +130,6 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
 
     #endregion // Constants
 
-    #region Properties
-
-    /// <summary>
-    /// Test context
-    /// </summary>
-    public TestContext TestContext { get; set; }
-
-    #endregion // Properties
-
     #region Methods
 
     /// <summary>
