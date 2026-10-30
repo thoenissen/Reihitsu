@@ -4,8 +4,8 @@
 |---|---|
 | ID prefix | FMT-PIPE |
 | Status | Active |
-| Code owners | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `FormattingContext`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities` |
-| Uses | SHARED-FIX-001, SHARED-FIX-006, SHARED-FIX-007, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-CLEAN-001, FMT-CLEAN-005, FMT-EOL-001, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-STRUCT-017, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003 |
+| Code owners | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `PreparationPhase`, `FormattingContext`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities` |
+| Uses | SHARED-FIX-001, SHARED-FIX-006, SHARED-FIX-007, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-CLEAN-001, FMT-CLEAN-005, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-STRUCT-017, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003 |
 
 This spec covers what holds for the formatter as a whole: the public entry points, the fixed phase order, and the invariants every phase must keep. What an individual phase decides is specified in that phase's own spec.
 
@@ -24,7 +24,8 @@ The formatter MUST apply its phases in this order, each phase receiving the outp
 
 | # | Phase | Spec |
 |---|---|---|
-| 1 | `TabReplacementPhase` | [tab-replacement.md](tab-replacement.md) (FMT-TAB) |
+| 1.1 | `PreparationPhase/TabReplacement` | [tab-replacement.md](tab-replacement.md) (FMT-TAB) |
+| 1.2 | `PreparationPhase/LineEndings` | [line-endings.md](line-endings.md) (FMT-EOL) |
 | 2 | `StructuralTransformPhase` | [structural-transforms.md](structural-transforms.md) (FMT-STRUCT) |
 | 3 | `RegionFormattingPhase` | [region-formatting.md](region-formatting.md) (FMT-REGION) |
 | 4 | `DocumentationCommentFormattingPhase` | [documentation-comments.md](documentation-comments.md) (FMT-DOC) |
@@ -35,11 +36,12 @@ The formatter MUST apply its phases in this order, each phase receiving the outp
 | 9 | `HorizontalSpacingPhase` | [horizontal-spacing.md](horizontal-spacing.md) (FMT-SPACE) |
 | 10 | `IndentationPhase` | [indentation.md](indentation.md) (FMT-INDENT) and [raw-string-alignment.md](raw-string-alignment.md) (FMT-RAW) |
 | 11 | `CleanupPhase` | [cleanup.md](cleanup.md) (FMT-CLEAN) |
-| 12 | `LineEndingNormalizationPhase` | [line-endings.md](line-endings.md) (FMT-EOL) |
+
+The first phase is the preparation phase, whose two sub-phases, TabReplacement and LineEndings, run in this order. Each sub-phase is a phase of its own: it receives the output of the step before it and is reported to the pipeline observer and the trace under the name in the table. The preparation phase is not reported as a step of its own; every other phase is reported under its type name.
 
 A phase MUST NOT compute the column of a token, a comment, or a line from a move or a replacement that a phase after it applies, neither by repeating that phase's rule nor by adjusting for its result: the tab width of FMT-TAB-001 and the raw-string move of FMT-RAW-001 are applied before or in the phase that measures them. This requirement specifies columns only; it does not decide whether a phase may anticipate a later phase's line breaks or blank lines.
 
-Why: Later phases rely on the shape earlier phases produce — tabs are gone before any layout is computed, line breaks are decided before spacing and indentation measure columns, raw strings are aligned in the phase that places their opening quotes, and line endings are normalized last so every inserted line break is covered. A phase may assume the phases before it ran; it must not assume anything about the phases after it. A phase that predicts a later one makes one decision in two places, and every difference between the prediction and the later phase is output that the next pass changes again (FMT-PIPE-004).
+Why: Later phases rely on the shape earlier phases produce — tabs and line endings are normalized before any other phase runs (FMT-PIPE-019), line breaks are decided before spacing and indentation measure columns, and raw strings are aligned in the phase that places their opening quotes. A phase may assume the phases before it ran; it must not assume anything about the phases after it. A phase that predicts a later one makes one decision in two places, and every difference between the prediction and the later phase is output that the next pass changes again (FMT-PIPE-004).
 
 ### FMT-PIPE-002 — User-authored content survives
 
@@ -396,7 +398,7 @@ class C
 
 ### FMT-PIPE-015 — Columns are final after the indentation phase
 
-The phases after `IndentationPhase` MUST NOT change the column of any token, comment, or directive, nor the indentation of a content line or the closing line of a multi-line raw string literal. They MAY remove whitespace that ends a line and line breaks at the end of the file (FMT-CLEAN-001, FMT-CLEAN-005), and rewrite the characters of a line ending (FMT-EOL-001).
+The phases after `IndentationPhase` MUST NOT change the column of any token, comment, or directive, nor the indentation of a content line or the closing line of a multi-line raw string literal. They MAY remove whitespace that ends a line and line breaks at the end of the file (FMT-CLEAN-001, FMT-CLEAN-005).
 
 Why: The indentation phase measures every anchor at its final column (FMT-INDENT-030). That holds only when no later phase moves text within a line; a later move would force the indentation phase to predict it, which FMT-PIPE-001 rules out.
 
@@ -432,28 +434,11 @@ class C
 }
 ```
 
-When a line of the input ends in spaces, the cleanup phase removes them, and no token moves. When the input has a tab in front of a trailing comment, such as `Call(1,`, a tab, `// c`, that tab is already four spaces when the indentation phase runs (FMT-PIPE-016), so the comment keeps the column the indentation phase left it in.
+When a line of the input ends in spaces, the cleanup phase removes them, and no token moves. When the input has a tab in front of a trailing comment, such as `Call(1,`, a tab, `// c`, that tab is already four spaces when the indentation phase runs (FMT-PIPE-019), so the comment keeps the column the indentation phase left it in.
 
 ### FMT-PIPE-016 — No phase after the first sees or writes a tab in whitespace
 
-The formatter MUST replace the tabs in the whitespace of the code and between directive tokens (FMT-TAB-001, FMT-TAB-002) in its first phase, and a later phase MUST NOT write a tab into that whitespace, so every phase after the first receives and returns it without tabs and counts every character of it as one column. The whitespace inside a documentation comment, a comment, a literal, or disabled text, and a directive's free text, keep their tabs (FMT-TAB-003) and are outside this requirement: a tab in front of a continuation line's `///` reaches the indentation phase, which replaces that whitespace as a whole (FMT-INDENT-008).
-
-Why: All layout is computed in spaces. A tab that survives into a later phase has a width that each phase has to agree on, and a phase that counts it differently from the phase that finally replaces it places a token where the next pass moves it (FMT-PIPE-004). Replacing every tab first leaves no width to agree on.
-
-Example — not shown as an input block because the input contains tabs: in
-
-```csharp
-class C
-{
-    void M()
-    {
-        Call(1,
-             2);
-    }
-}
-```
-
-when the indentation of every line is written with tabs, the output of the first phase holds four spaces for each of those tabs, every later phase receives that text without a tab, and the result is the block above.
+Status: Retired — the tab rule is now an invariant of the preparation phase; FMT-PIPE-019 states it unchanged for tabs and extends it to line endings.
 
 ### FMT-PIPE-017 — Node-level targets take their columns from the indentation phase
 
@@ -461,7 +446,7 @@ when the indentation of every line is written with tabs, the output of the first
 
 The column of the first token in the document is the number of characters in front of it on its line, each one column, with two exceptions:
 
-- A tab in whitespace that belongs to the node and that the entry point does not keep — the leading whitespace of a target of `FormatNodeInDocumentAsync` that starts its line and whose leading trivia FMT-PIPE-010 does not keep — counts as four columns, because the first phase replaces it (FMT-TAB-001). `FormatNodeInDocumentWithContextAsync` keeps its target's leading trivia in every case (FMT-PIPE-018), so for it every character in front of the context's first token counts as one column.
+- A tab in whitespace that belongs to the node and that the entry point does not keep — the leading whitespace of a target of `FormatNodeInDocumentAsync` that starts its line and whose leading trivia FMT-PIPE-010 does not keep — counts with the width the preparation phase gives it (FMT-PIPE-019). `FormatNodeInDocumentWithContextAsync` keeps its target's leading trivia in every case (FMT-PIPE-018), so for it every character in front of the context's first token counts as one column.
 - A byte order mark at the start of the text counts as zero columns, as in the layout the phases compute; the raw-string move still counts it as FMT-RAW-005 states.
 
 So a tab in the whitespace in front of a node that does not start its line, which belongs to the code in front of the node and is kept, counts as one column, and so does a tab inside a comment or a literal, which is kept (FMT-TAB-003). The leading trivia that FMT-PIPE-010 and FMT-PIPE-018 keep is written back as it stands and is outside this requirement, and so are the lines of the context node outside the target, which `FormatNodeInDocumentWithContextAsync` does not write back.
@@ -568,3 +553,101 @@ enum E
   B = 2
 }
 ```
+
+### FMT-PIPE-019 — After the preparation phase, no phase sees or writes a tab in whitespace or a foreign line ending
+
+The preparation phase MUST replace the tabs in the whitespace of the code and between directive tokens (FMT-TAB-001, FMT-TAB-002) and rewrite every line break FMT-EOL covers to the detected line ending (FMT-PIPE-007, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003), and a later phase MUST NOT write a tab into that whitespace or another line ending into those line breaks. So every phase after the preparation phase receives and returns:
+
+- the whitespace of the code and between directive tokens without a tab, so it counts every character of it as one column;
+- every end-of-line trivia, the line break that ends a directive, and every line break inside a documentation comment as the detected line ending, also where the phase writes a new one.
+
+The whitespace inside a documentation comment, a comment, a literal, or disabled text, and a directive's free text, keep their tabs (FMT-TAB-003) and are outside this requirement: a tab in front of a continuation line's `///` reaches the indentation phase, which replaces that whitespace as a whole (FMT-INDENT-008). The line breaks inside a literal (FMT-EOL-004), inside a comment that is not a documentation comment, and inside disabled text keep their characters and are outside this requirement too.
+
+Why: All layout is computed in spaces and on lines. A tab that survives into a later phase has a width that each phase has to agree on, and a phase that counts it differently from the phase that finally replaces it places a token where the next pass moves it (FMT-PIPE-004). A line break of another kind is a line to the tree but can fuse with a line break a phase writes next to it — a lone `\r` followed by a written `\n` is one line break in the text where the tree holds two — so a phase that numbers lines through the text works on wrong lines. Normalizing both first leaves every later phase one form to rely on, and a phase that writes another form is a defect a check of that phase's output finds, not a difference a final pass repairs.
+
+Example — not shown as an input block because the input contains tabs: in
+
+```csharp
+class C
+{
+    void M()
+    {
+        Call(1,
+             2);
+    }
+}
+```
+
+when the indentation of every line is written with tabs, the output of the TabReplacement sub-phase holds four spaces for each of those tabs, every later phase receives that text without a tab, and the result is the block above.
+
+Example — in a file whose line breaks are `\n`, wrapping the statement below in braces (FMT-STRUCT) writes the line breaks behind the opening brace and behind the comment as `\n`, so the output of every phase holds only `\n`:
+
+```csharp
+class C
+{
+    void M(bool a)
+    {
+        if (a)
+            // leading
+            Foo();
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(bool a)
+    {
+        if (a)
+        {
+            // leading
+            Foo();
+        }
+    }
+}
+```
+
+Under `\r\n` line endings, the output of every phase holds only `\r\n`.
+
+### FMT-PIPE-020 — The layout does not depend on the input's line endings
+
+`FormatDocumentAsync` and `FormatSyntaxTree` MUST give a file the same output as they give its copy in which every line break that FMT-EOL rewrites (FMT-EOL-001, FMT-EOL-002, FMT-EOL-003) is already the line ending the formatter detects for the file (FMT-PIPE-007). This covers every line terminator FMT-EOL-001 lists, mixed in any proportion. The copy keeps the line breaks inside literals, inside comments that are not documentation comments, and inside disabled text as the file has them. This requirement does not cover the node-level entry points, which keep the document around their target as it stands (FMT-PIPE-010).
+
+Why: A line ending is a property of the file, not of its code. A file saved with other line breaks than its author's usual ones must not get another layout, and a layout that depends on them is changed again by the next pass, once the first pass has written the detected line ending (FMT-PIPE-004).
+
+Example — the class below saved with a lone `\r` after every line (`␍` marks a lone `\r`; the file holds no other line break, and the block's own line breaks are only for display):
+
+```csharp
+class C␍
+{␍
+    #region A␍
+    int a;␍
+    #endregion␍
+␍
+    #region B␍
+    int b;␍
+    #endregion␍
+}␍
+```
+
+FMT-PIPE-007 detects `\n` for it, and the result is the result of the same class saved with `\n`, with every line break `\n`:
+
+```csharp
+class C
+{
+    #region A
+
+    int a;
+
+    #endregion // A
+
+    #region B
+
+    int b;
+
+    #endregion // B
+}
+```
+
+The same holds when every line break is U+0085, U+2028, or U+2029 (not shown as blocks because the characters are invisible), and for a file whose line breaks mix `\r\n`, `\n`, and lone `\r`.

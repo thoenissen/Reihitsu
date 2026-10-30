@@ -13,7 +13,7 @@ This spec covers `CleanupPhase`: the removal of whitespace that ends a line and 
 
 - Collapsing runs of blank lines (FMT-BLANK-014) and deciding where blank lines go — the phase only removes whitespace on a blank line, never the line itself, except at the end of the file.
 - Indentation and the gaps between tokens on a line — FMT-INDENT and FMT-SPACE decide them before this phase runs.
-- Tabs in whitespace and inside directives — FMT-TAB replaces them in the first phase of the pipeline, so this phase receives none.
+- Tabs in whitespace and inside directives — FMT-TAB replaces them in the preparation phase, so this phase receives none.
 - Whitespace after `///` on a documentation line (FMT-DOC-005, FMT-DOC-006).
 - Which character sequence a line break uses (FMT-PIPE-007, FMT-EOL).
 - Whitespace at the end of a single-line comment, a documentation comment line, or a directive line, and whitespace behind the last token of a file that has no final line break — the phase currently leaves all of these in place. Removing that whitespace is decided: at the end of a comment or a documentation comment line as a behavior change, tracked in thoenissen/Reihitsu#959, and at the end of a directive line without message text and behind the last token as a bug, tracked in thoenissen/Reihitsu#960.
