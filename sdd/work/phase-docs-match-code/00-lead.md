@@ -42,3 +42,5 @@ Worklist from `08-auditor.md`, finding #1 (same requirement / PR-introduced):
 - (a) FMT-PIPE-008 `FormatNode` wording — spec author.
 - (c) test summary in `ReihitsuFormatterLanguageVersionTests.cs`, and any covering test the reworded clause needs — test implementer.
 - (b) public remarks of `ReihitsuFormatter.FormatNode`, comment only, proven with `scripts/verify-text-only.sh` on that file — cleaner.
+
+Lane check after the cleaner (4c06e3b): `LANE CHECK: no lane — claimed tooling, but production and tooling paths without a change doc fit neither the bug-fix nor the behavior-change lane`. The only production path is the comment-only remarks edit in `src/Reihitsu.Formatter/ReihitsuFormatter.cs` (`TEXT-ONLY PROOF: PASS` on that change, `11-cleaner.md`), accepted by the maintainer under escalation 7; the lane stays tooling.
