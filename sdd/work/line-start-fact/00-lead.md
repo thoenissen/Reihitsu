@@ -24,3 +24,5 @@ None so far; the issue has no comments. The issue asks the run to first check ev
 ## Scope baseline (escalation 5)
 
 The issue's Proposed Behavior and Done when — including its restructuring items: the shared facts in `Pipeline/Core`, the neutral-helper moves, the `ConfigurableStructuralTransforms` move to `Data/`, the `ReihitsuFormatterHelpers` split, and the one-contributor-per-line test — plus the components added under escalation 12.
+- Escalation 9 — `#endregion` behind the last `}` without a final line break: fixed in this run (`squad/decisions/2026-10-30-line-start-fact-end-of-file-region.md`).
+- One-contributor-per-line test: written by a second test-implementer pass after the implementer, against the restructured layout model (`squad/decisions/2026-10-30-line-start-fact-one-contributor-test.md`).
