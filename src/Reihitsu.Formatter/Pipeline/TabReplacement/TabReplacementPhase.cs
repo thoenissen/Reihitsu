@@ -9,10 +9,11 @@ using Reihitsu.Formatter.Data;
 namespace Reihitsu.Formatter.Pipeline.TabReplacement;
 
 /// <summary>
-/// First phase of the pipeline. Replaces every tab in the whitespace of the code and between the tokens of a
-/// directive with four spaces, before any other phase runs, so no later phase receives a tab in that whitespace and
-/// every phase counts each of its characters as one column. Comments, documentation comments, literals, disabled
-/// text, and a directive's free text use other trivia and token kinds and keep their tabs
+/// First sub-phase of the preparation phase, the first phase of the pipeline. Replaces every tab in the whitespace of
+/// the code and between the tokens of a directive with four spaces, before any other phase runs, so no later phase
+/// receives a tab in that whitespace and every phase counts each of its characters as one column. Comments,
+/// documentation comments, literals, disabled text, and a directive's free text use other trivia and token kinds and
+/// keep their tabs
 /// </summary>
 internal sealed class TabReplacementPhase : IFormattingPhase
 {
@@ -38,6 +39,42 @@ internal sealed class TabReplacementPhase : IFormattingPhase
                            : root.ReplaceTokens(tokens, (_, rewritten) => ReplaceTabsAroundToken(rewritten, cancellationToken));
 
         return ReplaceDirectiveTriviaTabs(replaced, cancellationToken);
+    }
+
+    /// <summary>
+    /// Replaces each tab character within whitespace trivia with four spaces. Comment, disabled-text, and string
+    /// content use distinct trivia and token kinds, never <see cref="SyntaxKind.WhitespaceTrivia"/>, so this only ever
+    /// touches indentation and the gaps around tokens. This is the one statement of the rule: the column of a
+    /// node-level formatting root's first token is measured with it too, before the pipeline runs (FMT-PIPE-017)
+    /// </summary>
+    /// <param name="triviaList">The trivia list to process</param>
+    /// <returns>The trivia list with tab characters in whitespace replaced by spaces</returns>
+    internal static SyntaxTriviaList ReplaceWhitespaceTabs(SyntaxTriviaList triviaList)
+    {
+        if (triviaList.Count == 0)
+        {
+            return triviaList;
+        }
+
+        var result = new List<SyntaxTrivia>(triviaList.Count);
+        var changed = false;
+
+        foreach (var triviaItem in triviaList)
+        {
+            if (triviaItem.IsKind(SyntaxKind.WhitespaceTrivia) && triviaItem.ToFullString().Contains('\t'))
+            {
+                result.Add(SyntaxFactory.Whitespace(triviaItem.ToFullString().Replace("\t", new string(' ', FormattingContext.IndentSize))));
+                changed = true;
+            }
+            else
+            {
+                result.Add(triviaItem);
+            }
+        }
+
+        return changed
+                   ? SyntaxFactory.TriviaList(result)
+                   : triviaList;
     }
 
     /// <summary>
@@ -74,41 +111,6 @@ internal sealed class TabReplacementPhase : IFormattingPhase
 
         return token.WithLeadingTrivia(ReplaceWhitespaceTabs(token.LeadingTrivia))
                     .WithTrailingTrivia(ReplaceWhitespaceTabs(token.TrailingTrivia));
-    }
-
-    /// <summary>
-    /// Replaces each tab character within whitespace trivia with four spaces. Comment, disabled-text, and string
-    /// content use distinct trivia and token kinds, never <see cref="SyntaxKind.WhitespaceTrivia"/>, so this only ever
-    /// touches indentation and the gaps around tokens
-    /// </summary>
-    /// <param name="triviaList">The trivia list to process</param>
-    /// <returns>The trivia list with tab characters in whitespace replaced by spaces</returns>
-    private static SyntaxTriviaList ReplaceWhitespaceTabs(SyntaxTriviaList triviaList)
-    {
-        if (triviaList.Count == 0)
-        {
-            return triviaList;
-        }
-
-        var result = new List<SyntaxTrivia>(triviaList.Count);
-        var changed = false;
-
-        foreach (var triviaItem in triviaList)
-        {
-            if (triviaItem.IsKind(SyntaxKind.WhitespaceTrivia) && triviaItem.ToFullString().Contains('\t'))
-            {
-                result.Add(SyntaxFactory.Whitespace(triviaItem.ToFullString().Replace("\t", new string(' ', FormattingContext.IndentSize))));
-                changed = true;
-            }
-            else
-            {
-                result.Add(triviaItem);
-            }
-        }
-
-        return changed
-                   ? SyntaxFactory.TriviaList(result)
-                   : triviaList;
     }
 
     /// <summary>

@@ -3,8 +3,10 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Core;
+using Reihitsu.Formatter.Pipeline.TabReplacement;
 
 namespace Reihitsu.Formatter.Utilities;
 
@@ -135,9 +137,10 @@ internal static class ReihitsuFormatterHelpers
     /// <summary>
     /// Computes the column of a node-level formatting root's first token in its document (FMT-PIPE-017): the number of
     /// characters in front of it on its line, each one column, except that a byte order mark at the start of the text
-    /// counts as zero columns, and that a tab in the whitespace of the token's own leading trivia counts as four columns
-    /// when the entry point does not keep that trivia, because the first phase replaces it (FMT-TAB-001). A tab in front
-    /// of the token that the entry point keeps, or that stands inside a comment, counts as one column
+    /// counts as zero columns. When the entry point does not keep the token's own leading trivia, that trivia is measured
+    /// as the preparation phase writes it, through <see cref="TabReplacementPhase.ReplaceWhitespaceTabs"/>, so a tab in its
+    /// whitespace counts with the width that phase gives it (FMT-PIPE-019). A tab in front of the token that the entry
+    /// point keeps, or that stands inside a comment, counts as one column
     /// </summary>
     /// <param name="token">The first token of the formatting root. Must belong to a syntax tree</param>
     /// <param name="countsOwnWhitespaceTabsAsReplaced">Whether the entry point writes back the token's leading trivia as the phases rewrite it</param>
@@ -146,20 +149,24 @@ internal static class ReihitsuFormatterHelpers
     {
         var text = token.SyntaxTree.GetText();
         var lineStart = text.Lines.GetLineFromPosition(token.SpanStart).Start;
-        var column = 0;
+        var leadingTriviaStart = token.FullSpan.Start;
+        var leadingTrivia = countsOwnWhitespaceTabsAsReplaced
+                                ? TabReplacementPhase.ReplaceWhitespaceTabs(token.LeadingTrivia)
+                                : token.LeadingTrivia;
 
-        for (var position = lineStart; position < token.SpanStart; position++)
+        // The token's line, from its start to the token, as the phases receive it: the text in front of the token's
+        // leading trivia as it stands, followed by that trivia. The trivia may itself hold the line's start
+        var prefixStart = Math.Min(lineStart, leadingTriviaStart);
+        var prefix = SourceText.From(text.ToString(TextSpan.FromBounds(prefixStart, leadingTriviaStart)) + leadingTrivia.ToFullString());
+        var tokenLine = prefix.Lines[prefix.Lines.Count - 1];
+        var column = tokenLine.Span.Length;
+
+        if (prefixStart == 0
+            && tokenLine.Start == 0
+            && column > 0
+            && prefix[0] == '\uFEFF')
         {
-            var character = text[position];
-
-            if (position == 0 && character == '\uFEFF')
-            {
-                continue;
-            }
-
-            column += character == '\t' && countsOwnWhitespaceTabsAsReplaced && IsInOwnLeadingWhitespace(token, position)
-                          ? SyntaxIndentationUtilities.IndentSize
-                          : 1;
+            column--;
         }
 
         return column;
@@ -239,18 +246,6 @@ internal static class ReihitsuFormatterHelpers
     #endregion // Methods
 
     #region Private methods
-
-    /// <summary>
-    /// Determines whether a position lies in a whitespace trivia of the token's own leading trivia
-    /// </summary>
-    /// <param name="token">The token</param>
-    /// <param name="position">The position in the token's text</param>
-    /// <returns><see langword="true"/> if a whitespace trivia of the token's leading trivia covers the position; otherwise, <see langword="false"/></returns>
-    private static bool IsInOwnLeadingWhitespace(SyntaxToken token, int position)
-    {
-        return token.LeadingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)
-                                                 && trivia.FullSpan.Contains(position));
-    }
 
     /// <summary>
     /// Determines whether comment text contains a generated-file marker

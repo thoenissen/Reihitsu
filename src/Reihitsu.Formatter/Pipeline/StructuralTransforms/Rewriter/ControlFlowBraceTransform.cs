@@ -71,7 +71,7 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
 
         var leadingComments = CollectComments(statement.GetLeadingTrivia());
 
-        var normalizedStatement = statement.WithLeadingTrivia(NormalizeLeadingTrivia(leadingComments))
+        var normalizedStatement = statement.WithLeadingTrivia(NormalizeLeadingTrivia(leadingComments, endOfLine))
                                            .WithTrailingTrivia(NormalizeTrailingTrivia(statement.GetTrailingTrivia()));
 
         var block = SyntaxFactory.Block(SyntaxFactory.SingletonList(normalizedStatement));
@@ -88,7 +88,7 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
             // The end-of-line after the open brace must live on the brace token (mirroring
             // normally-parsed code); otherwise the blank-line phase treats a leading end-of-line
             // on the first statement as a blank line and strips it, gluing the comment to the brace.
-            block = block.WithOpenBraceToken(block.OpenBraceToken.WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed));
+            block = block.WithOpenBraceToken(block.OpenBraceToken.WithTrailingTrivia(SyntaxFactory.ElasticEndOfLine(endOfLine)));
         }
 
         return block;
@@ -100,8 +100,9 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
     /// but comments are preserved so they are not silently deleted
     /// </summary>
     /// <param name="leadingComments">The comments collected from the original leading trivia of the statement</param>
+    /// <param name="endOfLine">The end-of-line sequence to terminate each comment's line with</param>
     /// <returns>The normalized leading trivia</returns>
-    private static SyntaxTriviaList NormalizeLeadingTrivia(List<SyntaxTrivia> leadingComments)
+    private static SyntaxTriviaList NormalizeLeadingTrivia(List<SyntaxTrivia> leadingComments, string endOfLine)
     {
         if (leadingComments.Count == 0)
         {
@@ -113,7 +114,7 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
         foreach (var comment in leadingComments)
         {
             result.Add(comment);
-            result.Add(SyntaxFactory.ElasticCarriageReturnLineFeed);
+            result.Add(SyntaxFactory.ElasticEndOfLine(endOfLine));
         }
 
         return SyntaxFactory.TriviaList(result);

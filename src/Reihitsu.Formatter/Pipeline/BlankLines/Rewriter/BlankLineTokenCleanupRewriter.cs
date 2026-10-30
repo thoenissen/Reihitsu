@@ -138,17 +138,17 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     /// space and the next run reads the same trivia
     /// </summary>
     /// <param name="token">The token to update</param>
+    /// <param name="endOfLine">The detected line ending, written for the line break that is kept</param>
     /// <param name="keepSingleLineBreak">Whether one line break should be preserved</param>
     /// <param name="startsText">Whether the token starts the text, the only place where a byte order mark is kept</param>
     /// <returns>The updated token</returns>
-    private static SyntaxToken CollapseLeadingBlankLines(SyntaxToken token, bool keepSingleLineBreak, bool startsText = false)
+    private static SyntaxToken CollapseLeadingBlankLines(SyntaxToken token, string endOfLine, bool keepSingleLineBreak, bool startsText = false)
     {
         var trivia = token.LeadingTrivia;
         var endOfLineCount = 0;
         var runEnd = 0;
         var indentationTrivia = new List<SyntaxTrivia>();
         var afterEndOfLine = false;
-        var endOfLineText = Environment.NewLine;
 
         while (runEnd < trivia.Count)
         {
@@ -157,7 +157,6 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
                 endOfLineCount++;
                 indentationTrivia.Clear();
                 afterEndOfLine = true;
-                endOfLineText = trivia[runEnd].ToString();
                 runEnd++;
 
                 continue;
@@ -193,7 +192,7 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
 
         if (keepSingleLineBreak)
         {
-            newTrivia.Add(SyntaxFactory.EndOfLine(endOfLineText));
+            newTrivia.Add(SyntaxFactory.EndOfLine(endOfLine));
         }
 
         if (keepByteOrderMark && keepSingleLineBreak == false)
@@ -218,8 +217,9 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     /// leading trivia and the token itself
     /// </summary>
     /// <param name="token">The token to update</param>
+    /// <param name="endOfLine">The detected line ending, written for the line break that is kept</param>
     /// <returns>The updated token</returns>
-    private static SyntaxToken RemoveBlankLinesAfterTrailingEndRegion(SyntaxToken token)
+    private static SyntaxToken RemoveBlankLinesAfterTrailingEndRegion(SyntaxToken token, string endOfLine)
     {
         var trivia = token.LeadingTrivia;
         var endRegionIndex = -1;
@@ -239,7 +239,7 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
             return token;
         }
 
-        return RemoveExcessBlankLinesAfterIndex(token, endRegionIndex);
+        return RemoveExcessBlankLinesAfterIndex(token, endRegionIndex, endOfLine);
     }
 
     /// <summary>
@@ -254,8 +254,9 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     /// cannot reach.
     /// </summary>
     /// <param name="token">The token to update</param>
+    /// <param name="endOfLine">The detected line ending, written for the line break that is kept</param>
     /// <returns>The updated token</returns>
-    private static SyntaxToken RemoveBlankLinesAfterTrailingDirective(SyntaxToken token)
+    private static SyntaxToken RemoveBlankLinesAfterTrailingDirective(SyntaxToken token, string endOfLine)
     {
         var trivia = token.LeadingTrivia;
         var lastContentIndex = SyntaxTriviaUtilities.FindLastSignificantTriviaIndex(trivia);
@@ -265,7 +266,7 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
             return token;
         }
 
-        return RemoveExcessBlankLinesAfterIndex(token, lastContentIndex);
+        return RemoveExcessBlankLinesAfterIndex(token, lastContentIndex, endOfLine);
     }
 
     /// <summary>
@@ -276,22 +277,21 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     /// </summary>
     /// <param name="token">The token to update</param>
     /// <param name="anchorIndex">The leading-trivia index whose trailing run should be normalized</param>
+    /// <param name="endOfLine">The detected line ending, written for the line break that is kept</param>
     /// <returns>The updated token</returns>
-    private static SyntaxToken RemoveExcessBlankLinesAfterIndex(SyntaxToken token, int anchorIndex)
+    private static SyntaxToken RemoveExcessBlankLinesAfterIndex(SyntaxToken token, int anchorIndex, string endOfLine)
     {
         var trivia = token.LeadingTrivia;
 
         // The anchor trivia may carry its own trailing line break (a directive or #endregion), so any
         // end-of-line trivia that follows it in the list represents a blank line
         var endOfLineCount = 0;
-        var endOfLineText = Environment.NewLine;
         var indentationTrivia = new List<SyntaxTrivia>();
 
         for (var triviaIndex = anchorIndex + 1; triviaIndex < trivia.Count; triviaIndex++)
         {
             if (trivia[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia))
             {
-                endOfLineText = trivia[triviaIndex].ToString();
                 endOfLineCount++;
                 indentationTrivia.Clear();
             }
@@ -323,7 +323,7 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
 
         if (requiredLineBreaks == 1)
         {
-            newTrivia.Add(SyntaxFactory.EndOfLine(endOfLineText));
+            newTrivia.Add(SyntaxFactory.EndOfLine(endOfLine));
         }
 
         newTrivia.AddRange(indentationTrivia);
@@ -482,7 +482,7 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
             var keepDocumentationBoundary = _context.PreserveRootDocumentationBoundary
                                             && StartsWithSingleLineDocumentationCommentAfterLineBreak(token);
 
-            token = CollapseLeadingBlankLines(token, keepDocumentationBoundary, startsText);
+            token = CollapseLeadingBlankLines(token, _context.EndOfLine, keepDocumentationBoundary, startsText);
         }
 
         if (previousToken.Kind == SyntaxKind.OpenBraceToken)
@@ -493,7 +493,7 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
             // trailing line break, as the conversion of an expression body into a block does
             token = previousToken.EndsLine
                         ? RemoveLeadingBlankLines(token)
-                        : CollapseLeadingBlankLines(token, keepSingleLineBreak: true);
+                        : CollapseLeadingBlankLines(token, _context.EndOfLine, keepSingleLineBreak: true);
         }
 
         if (token.IsKind(SyntaxKind.OpenBraceToken)
@@ -519,7 +519,7 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
             if (hasNonRegionDirective == false)
             {
                 var keepSingleLineBreak = previousToken.EndsLine == false;
-                token = CollapseLeadingBlankLines(token, keepSingleLineBreak);
+                token = CollapseLeadingBlankLines(token, _context.EndOfLine, keepSingleLineBreak);
             }
 
             var lastSignificantIndex = SyntaxTriviaUtilities.FindLastSignificantTriviaIndex(token.LeadingTrivia);
@@ -529,13 +529,13 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
 
             if (lastSignificantIsNonRegionDirective)
             {
-                token = RemoveBlankLinesAfterTrailingDirective(token);
+                token = RemoveBlankLinesAfterTrailingDirective(token, _context.EndOfLine);
             }
         }
 
         if (token.IsKind(SyntaxKind.CloseBraceToken))
         {
-            token = RemoveBlankLinesAfterTrailingEndRegion(token);
+            token = RemoveBlankLinesAfterTrailingEndRegion(token, _context.EndOfLine);
         }
 
         if (HasDocumentationCommentInLeadingTrivia(token))
