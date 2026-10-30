@@ -27,3 +27,12 @@ Roles: spec author (change doc + spec diff + documentation) → skeptic → test
 - Escalation 12 (architecture finding of `02-skeptic.md`, the tab rule stated in `TabReplacementPhase` and in `ReihitsuFormatterHelpers.ComputeDocumentColumn`/`IsInOwnLeadingWhitespace`): option B — the structural change is part of this run. The column of a node-level target's first token (FMT-PIPE-017) is measured with the preparation rule, and the copy in `ComputeDocumentColumn` is removed; the existing FMT-PIPE-017 tests must keep passing unchanged. The accepted change doc already describes this end state, so no amendment. This does not use up a repair round. Recorded in `squad/decisions/2026-10-30-preparation-phase-tab-column-copy.md`.
 - The maintainer asked for a follow-up issue about line breaks kept inside comments and disabled text that decide layout; the lead drafts it outside the run.
 - Follow-ups for the PR's `Follow-up work`: thoenissen/Reihitsu#1509 (created after the maintainer approved the text: kept line breaks inside comments and disabled text decide a comment's column); thoenissen/Reihitsu#898 (existing: `scripts/trace.sh` lacks the executable bit).
+
+## Repair round 1 (from `09-auditor.md`, audited at 3425508)
+
+All four findings are `PR-introduced`; none repeats an earlier class, no architecture finding.
+- Finding 1 (doc comment of `ControlFlowBraceTransform.WrapWithBraces`) → cleaner.
+- Finding 2 (`PreparationPhase.Execute` not run by production or tests) → implementer.
+- Finding 3 (`FormattingPipelineTests` reflection lookup of `PreparationPhase`) → test implementer.
+- Finding 4 (`AGENTS.md` ownership-table row `PreparationPhase/LineEndings`) → spec author.
+- Follow-up candidate from the auditor's hints: the tab-width matrix decision text in `squad/failure-classes.md` names `CleanupPhase`/FMT-CLEAN-002 (pre-existing, unrelated).
