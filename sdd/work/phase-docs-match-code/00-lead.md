@@ -33,3 +33,12 @@ None so far.
 ## Escalations
 
 1. Escalation 4 (test implementer, `03-test-implementer.md`): FMT-PIPE-008's detached-node clause is wrong for a node parsed with explicit parse options. The maintainer chose to narrow the clause to the code: a node parsed with parse options keeps them, a node parsed or built without them gets the default parse options; the covering test expects the C# 11 result for a node parsed with C# 11 options. Recorded in `squad/decisions/2026-10-30-phase-docs-match-code-detached-node-version.md`.
+2. Escalation 7 (auditor, `08-auditor.md`, finding #1 part b): the stale public remarks of `ReihitsuFormatter.FormatNode` may be corrected in this run as a comment-only edit; the lane stays tooling, and a lane-check rejection caused only by that edit is accepted by the maintainer and stated in the run report. Recorded in `squad/decisions/2026-10-30-phase-docs-match-code-formatnode-remarks.md`.
+
+## Repair round 1
+
+Worklist from `08-auditor.md`, finding #1 (same requirement / PR-introduced):
+
+- (a) FMT-PIPE-008 `FormatNode` wording — spec author.
+- (c) test summary in `ReihitsuFormatterLanguageVersionTests.cs`, and any covering test the reworded clause needs — test implementer.
+- (b) public remarks of `ReihitsuFormatter.FormatNode`, comment only, proven with `scripts/verify-text-only.sh` on that file — cleaner.
