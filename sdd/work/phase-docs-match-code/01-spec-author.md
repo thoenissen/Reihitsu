@@ -32,14 +32,14 @@ One thing the issue did not say, which matters for its item 4 test: FMT-PIPE-008
   - switch row: `HasCrossSectionLocalUse` added;
   - spacing row: the decisions column now says a token pair no spacing rule covers keeps its gap, and each run of whitespace in it becomes one space.
 - `sdd/specs/formatter/line-breaks.md`: the intro names `LineBreakPhase` and points to FMT-PIPE-001 for its position, with no number. `Uses` gains FMT-PIPE-001.
-- `sdd/specs/formatter/switch-case-braces.md`: FMT-SWITCH-003 clarified, with a new example. `Uses` gains FMT-PIPE-001, FMT-BREAK-012, FMT-BREAK-015.
+- `sdd/specs/formatter/switch-case-braces.md`: FMT-SWITCH-003 clarified, with two new examples (a joined wrap, an added line break). `Uses` gains FMT-PIPE-001, FMT-BREAK-012, FMT-BREAK-015, FMT-BREAK-021.
 - `sdd/specs/formatter/pipeline.md`: FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-008 clarified. `Uses` gains FMT-STRUCT-017.
 
 `scripts/test.sh --project architecture --filter "FullyQualifiedName~Reihitsu.ArchitectureTests.Sdd|FullyQualifiedName~PhaseOwnershipDocumentationTests|FullyQualifiedName~Documentation"`: 53 passed, 0 failed. This includes `UsesListsExactlyTheReferencedRequirements` and `OwnershipMapMatchesRuntimePhaseOrder`.
 
 ## Changed requirements
 
-- FMT-SWITCH-003 — Statements that make a section multi-line — clarified: whether a statement spans more than one line, and whether a `return` or `throw` is on a later line, is measured on the output of the line-break phase.
+- FMT-SWITCH-003 — Statements that make a section multi-line — clarified: whether a statement spans more than one line, and whether a `return` or `throw` is on a later line, is measured on the output of the line-break phase, for every line break FMT-BREAK joins, keeps, or adds.
 - FMT-PIPE-005 — Code with syntax errors is left untouched — clarified: names the four guarded entry points, the node-in-document ones included; `FormatNode` points to FMT-PIPE-012.
 - FMT-PIPE-006 — Generated code is left untouched — clarified: the same entry points as FMT-PIPE-005.
 - FMT-PIPE-008 — Version-dependent rules follow the language version — clarified: the parse-options source per entry-point family; a node-level example added.
@@ -48,7 +48,7 @@ One thing the issue did not say, which matters for its item 4 test: FMT-PIPE-008
 
 The output files of the CLI probe have no final newline (FMT-CLEAN). The blocks below show code only.
 
-### FMT-SWITCH-003 (one qualifier, both sides)
+### FMT-SWITCH-003 (one qualifier, three sides: joined, kept, added)
 
 Joined side, new. Verified with `scripts/format.sh`. Input:
 
@@ -94,7 +94,58 @@ class C
 
 Kept side: the same input with `A(1,⏎  2);` in place of `A(out⏎  var v);` braces both sections, as in the spec's first FMT-SWITCH-003 example. Verified with `scripts/format.sh`. `SwitchCaseBraceRequirementTests.SingleStatementSpanningTwoLinesMakesTheSectionMultiLine` already covers it.
 
-The "later line" part of the qualifier is verified but has no spec example. This input:
+Added side, new after the skeptic's precision point (`02-skeptic.md`, commit d1aa5f0). The first version of the clause named only joined and kept wraps, and a reader could take that list as exhaustive. Verified with `scripts/format.sh`. Input:
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                var y = new D { A = 1, B = 2 };
+                break;
+            case 2:
+                B();
+                break;
+        }
+    }
+}
+```
+
+Output (FMT-BREAK-021 expands the initializer, so both sections are braced):
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                {
+                    var y = new D
+                            {
+                                A = 1,
+                                B = 2
+                            };
+                }
+                break;
+
+            case 2:
+                {
+                    B();
+                }
+                break;
+        }
+    }
+}
+```
+
+A second added-side input, also verified, is `Run(() => { X(); Y(); });` on one line in `case 1`. It gives `Run(() =>⏎{⏎X();⏎Y();⏎});` inside a block, and both sections are braced.
+
+The "later line" part of the qualifier is verified but has no spec example. Splitting two statements onto separate lines is also an added line break. This input:
 
 ```csharp
 class C
