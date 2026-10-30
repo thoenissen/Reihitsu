@@ -29,3 +29,7 @@ Verdict: lane claimed — tooling
 ## Maintainer clarifications
 
 None so far.
+
+## Escalations
+
+1. Escalation 4 (test implementer, `03-test-implementer.md`): FMT-PIPE-008's detached-node clause is wrong for a node parsed with explicit parse options. The maintainer chose to narrow the clause to the code: a node parsed with parse options keeps them, a node parsed or built without them gets the default parse options; the covering test expects the C# 11 result for a node parsed with C# 11 options. Recorded in `squad/decisions/2026-10-30-phase-docs-match-code-detached-node-version.md`.
