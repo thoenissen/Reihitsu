@@ -697,13 +697,12 @@ public class WrappedAngleBracketListTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an unbound generic (<c>Dictionary&lt;,&gt;</c>) whose omitted type arguments
-    /// span multiple lines falls back to the enclosing block's indentation instead of aligning to a
-    /// zero-width anchor, since an omitted type argument's token carries no real column to align to
+    /// Verifies that an unbound generic (<c>Dictionary&lt;,&gt;</c>) whose omitted type arguments span multiple lines is
+    /// joined onto one line like any other wrapped type argument list
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-INDENT-015")]
-    public void UnboundGenericWithZeroWidthAnchorIsNotAlignedToADegenerateColumn()
+    [Requirement("FMT-BREAK-014")]
+    public void UnboundGenericWithWrappedOmittedTypeArgumentsIsJoined()
     {
         // Arrange
         const string input = """
@@ -725,8 +724,7 @@ public class WrappedAngleBracketListTests : FormatterTestsBase
                                 {
                                     public void Foo()
                                     {
-                                        var type = typeof(Dictionary<,
-                                        >);
+                                        var type = typeof(Dictionary<,>);
                                     }
                                 }
                                 """;

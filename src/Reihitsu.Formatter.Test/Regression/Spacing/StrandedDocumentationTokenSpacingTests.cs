@@ -378,10 +378,12 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that the gap between a block comment and a terminator on the line below a stray documentation comment is
-    /// still removed, because it lies on one line
+    /// kept, because the gap between the return expression and the terminator holds the line break that ends the
+    /// documentation comment, as it is kept below a single-line comment
     /// </summary>
     [TestMethod]
-    public void RemovesGapBetweenBlockCommentAndTerminatorBelowStrayDocumentationComment()
+    [Requirement("FMT-SPACE-001")]
+    public void KeepsGapBetweenBlockCommentAndTerminatorBelowStrayDocumentationComment()
     {
         const string input = """
                              public class C
@@ -393,18 +395,8 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
                                  }
                              }
                              """;
-        const string expected = """
-                                public class C
-                                {
-                                    public int M()
-                                    {
-                                        return 1 /// stray
-                                        /* b */;
-                                    }
-                                }
-                                """;
 
-        AssertRuleResult(input, expected);
+        AssertRuleResult(input);
     }
 
     /// <summary>

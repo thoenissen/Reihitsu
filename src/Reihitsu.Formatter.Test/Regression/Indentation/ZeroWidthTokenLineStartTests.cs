@@ -7,7 +7,8 @@ namespace Reihitsu.Formatter.Test.Regression.Indentation;
 /// <summary>
 /// Full-pipeline tests for lines around tokens without text: an omitted type argument, an omitted array size, and the
 /// end of the file. Such a token never starts a line, so the line starts at the next token or trivia with text, which is
-/// placed once at the column its own requirement gives it
+/// placed once at the column its own requirement gives it. A wrapped list of omitted type arguments is joined unless a
+/// comment or a directive keeps it wrapped
 /// </summary>
 [TestClass]
 public class ZeroWidthTokenLineStartTests : FormatterTestsBase
@@ -15,13 +16,13 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies the specification example: behind the omitted type argument, the closing angle bracket starts its line
-    /// and takes the block column
+    /// Verifies the specification example: behind the omitted type argument of a list that a comment keeps wrapped, the
+    /// closing angle bracket starts its line and takes the block column
     /// </summary>
     [TestMethod]
     [Requirement("SHARED-BLANK-008")]
     [Requirement("FMT-INDENT-015")]
-    public void ClosingAngleBracketBehindOmittedTypeArgumentTakesBlockColumn()
+    public void ClosingAngleBracketBehindOmittedTypeArgumentAndCommentTakesBlockColumn()
     {
         // Arrange
         const string input = """
@@ -29,7 +30,7 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
                              {
                                  void M()
                                  {
-                                     var type = typeof(System.Collections.Generic.Dictionary<,
+                                     var type = typeof(System.Collections.Generic.Dictionary<, // c
                              >);
                                  }
                              }
@@ -39,7 +40,7 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
                                 {
                                     void M()
                                     {
-                                        var type = typeof(System.Collections.Generic.Dictionary<,
+                                        var type = typeof(System.Collections.Generic.Dictionary<, // c
                                         >);
                                     }
                                 }
@@ -50,12 +51,12 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the issue's example: the closing angle bracket behind an omitted type argument of an unbound generic in
-    /// column 0 takes the block column
+    /// Verifies the issue's second example as amended: a wrapped list of omitted type arguments without a comment or a
+    /// directive in it is joined onto one line
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-INDENT-015")]
-    public void ClosingAngleBracketOfUnboundGenericInColumnZeroTakesBlockColumn()
+    [Requirement("FMT-BREAK-014")]
+    public void WrappedUnboundGenericIsJoined()
     {
         // Arrange
         const string input = """
@@ -77,7 +78,84 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
                                 {
                                     public void Foo()
                                     {
+                                        var type = typeof(Dictionary<,>);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a closing angle bracket that the author aligned under the list, behind the
+    /// omitted type argument of a list that a comment keeps wrapped, takes the block column
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-015")]
+    public void AlignedClosingAngleBracketBehindOmittedTypeArgumentAndCommentTakesBlockColumn()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var type = typeof(System.Collections.Generic.Dictionary<, // c
+                                                                                             >);
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var type = typeof(System.Collections.Generic.Dictionary<, // c
+                                        >);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the closing angle bracket behind an omitted type argument of a list that a directive keeps wrapped
+    /// takes the block column
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-015")]
+    public void ClosingAngleBracketBehindOmittedTypeArgumentAndDirectiveTakesBlockColumn()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var type = typeof(Dictionary<,
+                             #if X
+                             #endif
+                                             >);
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System;
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
                                         var type = typeof(Dictionary<,
+                                #if X
+                                #endif
                                         >);
                                     }
                                 }
@@ -223,11 +301,11 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a separator that starts its line behind an omitted type argument takes the block column
+    /// Verifies that a list of omitted type arguments wrapped in front of its separator is joined onto one line
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-INDENT-015")]
-    public void SeparatorBehindOmittedTypeArgumentTakesBlockColumn()
+    [Requirement("FMT-BREAK-014")]
+    public void WrappedListWithSeparatorOnSecondLineIsJoined()
     {
         // Arrange
         const string input = """
@@ -251,8 +329,7 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
                                 {
                                     void M()
                                     {
-                                        var type = typeof(Dictionary<
-                                        ,>);
+                                        var type = typeof(Dictionary<,>);
                                     }
                                 }
                                 """;
@@ -262,11 +339,11 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the closing angle bracket behind the only, omitted type argument takes the block column
+    /// Verifies that a wrapped list of one omitted type argument is joined onto one line
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-INDENT-015")]
-    public void ClosingAngleBracketOfSingleOmittedTypeArgumentTakesBlockColumn()
+    [Requirement("FMT-BREAK-014")]
+    public void WrappedListOfSingleOmittedTypeArgumentIsJoined()
     {
         // Arrange
         const string input = """
@@ -290,8 +367,7 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
                                 {
                                     void M()
                                     {
-                                        var type = typeof(Action<
-                                        >);
+                                        var type = typeof(Action<>);
                                     }
                                 }
                                 """;
@@ -301,11 +377,12 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the closing angle bracket behind three omitted type arguments takes the block column
+    /// Verifies that a list of three omitted type arguments wrapped in front of its closing angle bracket is joined onto
+    /// one line
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-INDENT-015")]
-    public void ClosingAngleBracketBehindThreeOmittedTypeArgumentsTakesBlockColumn()
+    [Requirement("FMT-BREAK-014")]
+    public void WrappedListOfThreeOmittedTypeArgumentsIsJoined()
     {
         // Arrange
         const string input = """
@@ -329,8 +406,7 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
                                 {
                                     void M()
                                     {
-                                        var type = typeof(Func<,,
-                                        >);
+                                        var type = typeof(Func<,,>);
                                     }
                                 }
                                 """;
@@ -340,12 +416,12 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a separator and the closing angle bracket behind it, which start their line between omitted type
-    /// arguments, take the block column
+    /// Verifies the specification example: a list of omitted type arguments wrapped between its separators is joined
+    /// onto one line
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-INDENT-015")]
-    public void SeparatorAndClosingAngleBracketBehindOmittedTypeArgumentsTakeBlockColumn()
+    [Requirement("FMT-BREAK-014")]
+    public void WrappedListWithSeparatorAndClosingAngleBracketOnSecondLineIsJoined()
     {
         // Arrange
         const string input = """
@@ -369,8 +445,7 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
                                 {
                                     void M()
                                     {
-                                        var type = typeof(Func<,
-                                        ,>);
+                                        var type = typeof(Func<,,>);
                                     }
                                 }
                                 """;
@@ -380,12 +455,12 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a closing angle bracket that the author indented deeper than the block behind an omitted type
-    /// argument takes the block column
+    /// Verifies that a list of omitted type arguments whose closing angle bracket the author indented deeper than the
+    /// block is joined onto one line
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-INDENT-015")]
-    public void OverIndentedClosingAngleBracketBehindOmittedTypeArgumentTakesBlockColumn()
+    [Requirement("FMT-BREAK-014")]
+    public void WrappedListWithOverIndentedClosingAngleBracketIsJoined()
     {
         // Arrange
         const string input = """
@@ -409,8 +484,7 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
                                 {
                                     void M()
                                     {
-                                        var type = typeof(Dictionary<,
-                                        >);
+                                        var type = typeof(Dictionary<,>);
                                     }
                                 }
                                 """;

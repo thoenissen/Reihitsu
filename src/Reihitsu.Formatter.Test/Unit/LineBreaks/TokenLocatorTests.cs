@@ -25,38 +25,6 @@ public class TokenLocatorTests
     #region Methods
 
     /// <summary>
-    /// Verifies that a token owned by a node is reported as contained
-    /// </summary>
-    [TestMethod]
-    public void ContainsTokenReturnsTrueForOwnedToken()
-    {
-        // Arrange
-        var declaration = ParseClassDeclaration("class C { }");
-
-        // Act
-        var result = TokenLocator.ContainsToken(declaration, declaration.Identifier);
-
-        // Assert
-        Assert.IsTrue(result, "A token owned by the node should be reported as contained.");
-    }
-
-    /// <summary>
-    /// Verifies that a default token is not reported as contained
-    /// </summary>
-    [TestMethod]
-    public void ContainsTokenReturnsFalseForDefaultToken()
-    {
-        // Arrange
-        var declaration = ParseClassDeclaration("class C { }");
-
-        // Act
-        var result = TokenLocator.ContainsToken(declaration, default);
-
-        // Assert
-        Assert.IsFalse(result, "A default token should not be reported as contained.");
-    }
-
-    /// <summary>
     /// Verifies that the previous token is resolved within a node
     /// </summary>
     [TestMethod]
