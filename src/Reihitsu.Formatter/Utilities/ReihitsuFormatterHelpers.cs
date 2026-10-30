@@ -11,54 +11,15 @@ using Reihitsu.Formatter.Pipeline.TabReplacement;
 namespace Reihitsu.Formatter.Utilities;
 
 /// <summary>
-/// Helper methods for the <see cref="ReihitsuFormatter"/> class
+/// The entry-point code of <see cref="ReihitsuFormatter"/>: the guards that decide whether a tree is formatted at all, and
+/// what an entry point computes about its input before the pipeline runs — the line ending, the base indentation level,
+/// and the column of a formatting root in its document. Code fixes and the command-line tool apply the same guards and
+/// computations through it. Phases do not use it; the facts they share live in <c>Reihitsu.Core</c> and in
+/// <c>Pipeline/Core</c>
 /// </summary>
 internal static class ReihitsuFormatterHelpers
 {
-    #region Constants
-
-    /// <summary>
-    /// The byte order mark, which the parser reads as white-space trivia at the start of the text
-    /// </summary>
-    private const string ByteOrderMark = "\uFEFF";
-
-    #endregion // Constants
-
     #region Methods
-
-    /// <summary>
-    /// Determines whether a trivia is white space that starts with the byte order mark. The parser reads the byte order
-    /// mark as white space, together with any spaces or tabs that follow it on the first line, so a step that removes
-    /// white space by trivia kind would drop the encoding signature of the text with it
-    /// </summary>
-    /// <param name="trivia">The trivia to check</param>
-    /// <returns><see langword="true"/> if the trivia is white space whose text starts with the byte order mark</returns>
-    internal static bool StartsWithByteOrderMark(SyntaxTrivia trivia)
-    {
-        return trivia.IsKind(SyntaxKind.WhitespaceTrivia)
-               && trivia.ToFullString().StartsWith(ByteOrderMark, StringComparison.Ordinal);
-    }
-
-    /// <summary>
-    /// Creates a white-space trivia that holds only the byte order mark, which a step that removes the white space it
-    /// was read with puts back in its place
-    /// </summary>
-    /// <returns>The byte order mark trivia</returns>
-    internal static SyntaxTrivia CreateByteOrderMarkTrivia()
-    {
-        return SyntaxFactory.Whitespace(ByteOrderMark);
-    }
-
-    /// <summary>
-    /// Creates one white-space trivia that holds the byte order mark followed by the given white space, the shape the
-    /// parser gives a byte order mark that the indentation of the first line follows
-    /// </summary>
-    /// <param name="followingWhitespace">White-space trivia that follows the byte order mark on its line</param>
-    /// <returns>The byte order mark trivia, joined with the following white space</returns>
-    internal static SyntaxTrivia CreateByteOrderMarkTrivia(IEnumerable<SyntaxTrivia> followingWhitespace)
-    {
-        return SyntaxFactory.Whitespace(string.Concat(ByteOrderMark, string.Concat(followingWhitespace.Select(static trivia => trivia.ToFullString()))));
-    }
 
     /// <summary>
     /// Detects the predominant end-of-line sequence in the syntax node.
@@ -98,7 +59,7 @@ internal static class ReihitsuFormatterHelpers
 
         foreach (var trivia in headerTrivia)
         {
-            if (IsCommentTrivia(trivia) == false)
+            if (SyntaxTriviaUtilities.IsCommentTrivia(trivia) == false)
             {
                 continue;
             }
@@ -172,77 +133,6 @@ internal static class ReihitsuFormatterHelpers
         return column;
     }
 
-    /// <summary>
-    /// Determines whether the token has a comment directly above its line
-    /// </summary>
-    /// <param name="token">The token to inspect</param>
-    /// <returns><see langword="true"/> if a comment is directly above the token; otherwise, <see langword="false"/></returns>
-    internal static bool HasCommentDirectlyAbove(SyntaxToken token)
-    {
-        return SyntaxTriviaUtilities.HasCommentDirectlyAbove(token);
-    }
-
-    /// <summary>
-    /// Determines whether a trivia is a comment
-    /// </summary>
-    /// <param name="trivia">The trivia to check</param>
-    /// <returns><see langword="true"/> if the trivia is a comment; otherwise, <see langword="false"/></returns>
-    internal static bool IsCommentTrivia(SyntaxTrivia trivia)
-    {
-        return SyntaxTriviaUtilities.IsCommentTrivia(trivia);
-    }
-
-    /// <summary>
-    /// Determines whether a documentation comment owned by the specified token documents the code that follows it
-    /// </summary>
-    /// <param name="owningToken">The token whose leading trivia holds the documentation comment</param>
-    /// <returns><see langword="true"/> if the documentation comment documents what follows; otherwise, <see langword="false"/></returns>
-    /// <remarks>
-    /// The decision belongs to <see cref="DocumentationCommentUtilities.DocumentsFollowingCode"/>, which the layout rules
-    /// share with the formatter. The phases that relocate or separate documentation comments call it through this
-    /// method so they cannot disagree about which comments carry documentation
-    /// </remarks>
-    internal static bool DocumentsFollowingCode(SyntaxToken owningToken)
-    {
-        return DocumentationCommentUtilities.DocumentsFollowingCode(owningToken);
-    }
-
-    /// <summary>
-    /// Determines whether a trivia is a preprocessor directive or disabled (conditionally compiled out) text
-    /// </summary>
-    /// <param name="trivia">The trivia to check</param>
-    /// <returns><see langword="true"/> if the trivia is a directive or disabled text; otherwise, <see langword="false"/></returns>
-    internal static bool IsDirectiveOrDisabledTextTrivia(SyntaxTrivia trivia)
-    {
-        return SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia);
-    }
-
-    /// <summary>
-    /// Determines whether a token starts on a new line by checking for
-    /// end-of-line trivia in the token's leading trivia or the previous token's trailing trivia
-    /// </summary>
-    /// <param name="token">The token to check</param>
-    /// <returns><see langword="true"/> if the token starts on a new line; otherwise, <see langword="false"/></returns>
-    internal static bool StartsOnNewLine(SyntaxToken token)
-    {
-        return token.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-               || IsAfterEndOfLine(token);
-    }
-
-    /// <summary>
-    /// Determines whether a formatting target's first token starts its line once its own leading trivia is taken into
-    /// account. In addition to <see cref="StartsOnNewLine"/>, a single-line documentation comment in the leading trivia counts,
-    /// because it carries its line break inside its structure rather than as separate end-of-line trivia: a token behind
-    /// such a comment starts its line even when the comment itself is written behind the preceding code
-    /// </summary>
-    /// <param name="token">The first token of the formatting target</param>
-    /// <returns><see langword="true"/> if the token starts its line; otherwise, <see langword="false"/></returns>
-    internal static bool StartsOnNewLineIncludingDocumentation(SyntaxToken token)
-    {
-        return StartsOnNewLine(token)
-               || token.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia));
-    }
-
     #endregion // Methods
 
     #region Private methods
@@ -256,25 +146,6 @@ internal static class ReihitsuFormatterHelpers
     {
         return commentText.IndexOf("<auto-generated", StringComparison.OrdinalIgnoreCase) >= 0
                || commentText.IndexOf("<autogenerated", StringComparison.OrdinalIgnoreCase) >= 0;
-    }
-
-    /// <summary>
-    /// Determines whether the previous token's trailing trivia ends with an end-of-line trivia
-    /// </summary>
-    /// <param name="token">The token to check</param>
-    /// <returns><see langword="true"/> if the previous token's trailing trivia ends with EOL; otherwise, <see langword="false"/></returns>
-    private static bool IsAfterEndOfLine(SyntaxToken token)
-    {
-        var prevToken = token.GetPreviousToken();
-
-        if (prevToken == default)
-        {
-            return false;
-        }
-
-        var trailing = prevToken.TrailingTrivia;
-
-        return trailing.Count > 0 && trailing.Last().IsKind(SyntaxKind.EndOfLineTrivia);
     }
 
     #endregion // Private methods

@@ -1,6 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
+
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 /// <summary>
@@ -73,9 +75,7 @@ internal static class TokenLocator
     public static bool ContainsToken(SyntaxNode node,
                                      SyntaxToken token)
     {
-        return token.IsKind(SyntaxKind.None) == false
-               && token.FullSpan.Start >= node.FullSpan.Start
-               && token.FullSpan.End <= node.FullSpan.End;
+        return TokenContainmentUtilities.ContainsToken(node, token);
     }
 
     /// <summary>

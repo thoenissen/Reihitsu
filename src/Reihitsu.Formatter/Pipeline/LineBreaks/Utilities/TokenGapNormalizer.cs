@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Core;
-using Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
 using Reihitsu.Formatter.Pipeline.Core.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
@@ -99,7 +98,7 @@ internal sealed class TokenGapNormalizer
         // author's call, already settled by BlankLinePhase; this method does not spend that budget on
         // the content→token run
         var normalizedTrailingRun = blankLineCount == 0
-                                        ? NormalizeTrailingRun(trailingRun, BlankLineTriviaUtilities.EndsWithLineBreak(token.LeadingTrivia[lastContentIndex]))
+                                        ? NormalizeTrailingRun(trailingRun, SyntaxTriviaUtilities.EndsWithLineBreak(token.LeadingTrivia[lastContentIndex]))
                                         : trailingRun;
 
         var newLeadingTrivia = new List<SyntaxTrivia>(preservedPrefix.Count + normalizedTrailingRun.Count);
@@ -354,7 +353,7 @@ internal sealed class TokenGapNormalizer
     /// on its own line, or a preprocessor directive or disabled-text block other than <c>#region</c>/
     /// <c>#endregion</c> (which, unlike a comment, always occupies its own line and so always owns the
     /// decision above it, whether or not it embeds an explicit trailing end-of-line trivia — see
-    /// <see cref="BlankLineTriviaUtilities.EndsWithLineBreak"/>). A region directive is excluded: its
+    /// <see cref="SyntaxTriviaUtilities.EndsWithLineBreak"/>). A region directive is excluded: its
     /// blank-line placement already has a dedicated owner (<see cref="Pipeline.BlankLines.Rewriter.BlankLineRegionDirectiveRewriter"/>,
     /// <see cref="Pipeline.BlankLines.Rewriter.BlankLineTriviaBoundaryRewriter"/>) with its own exemption rules, and folding it
     /// into this decision would fight that owner instead of leaving it in sole control. A comment glued to
@@ -444,7 +443,7 @@ internal sealed class TokenGapNormalizer
             var trivia = leadingTrivia[triviaIndex];
 
             if (trivia.IsKind(SyntaxKind.EndOfLineTrivia)
-                || BlankLineTriviaUtilities.EndsWithLineBreak(trivia))
+                || SyntaxTriviaUtilities.EndsWithLineBreak(trivia))
             {
                 break;
             }
@@ -566,7 +565,7 @@ internal sealed class TokenGapNormalizer
             trailingRun.Add(token.LeadingTrivia[triviaIndex]);
         }
 
-        var lastContentEndsWithLineBreak = BlankLineTriviaUtilities.EndsWithLineBreak(token.LeadingTrivia[lastContentIndex]);
+        var lastContentEndsWithLineBreak = SyntaxTriviaUtilities.EndsWithLineBreak(token.LeadingTrivia[lastContentIndex]);
 
         // Comments that start their own line and are glued to the token form one line with it. Comments glued to the token
         // behind other code do not start a line, so the token is moved onto its own line behind them

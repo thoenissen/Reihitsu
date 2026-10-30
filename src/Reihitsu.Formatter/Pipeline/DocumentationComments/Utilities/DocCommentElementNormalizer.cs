@@ -106,9 +106,7 @@ internal static class DocCommentElementNormalizer
     {
         var contentSpan = TextSpan.FromBounds(element.StartTag.Span.End, element.EndTag.Span.Start);
         var rawContent = sourceText.ToString(contentSpan);
-        var rawLines = rawContent.Replace("\r\n", "\n")
-                                 .Replace('\r', '\n')
-                                 .Split('\n');
+        var rawLines = LineEndingUtilities.SplitLines(rawContent);
         var contentLines = new List<string>();
 
         foreach (var rawLine in rawLines)

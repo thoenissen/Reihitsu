@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Core;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
@@ -48,7 +49,7 @@ internal static class LineBreakTriviaUtilities
     /// <returns>The trivia list without trailing whitespace trivia</returns>
     public static SyntaxTriviaList StripTrailingWhitespace(SyntaxTriviaList triviaList)
     {
-        return RemoveTrailingWhitespace(triviaList);
+        return TriviaListUtilities.RemoveTrailingWhitespace(triviaList);
     }
 
     /// <summary>
@@ -99,8 +100,10 @@ internal static class LineBreakTriviaUtilities
     /// Collapses a token to the same line as the previous token by removing any
     /// end-of-line trivia from both the token's leading trivia and the previous
     /// token's trailing trivia. The collapse is refused when a comment, preprocessor
-    /// directive, or disabled text sits in the gap, because each must keep its own line;
-    /// in that case the original node is returned unchanged
+    /// directive, or disabled text sits in the gap, because each must keep its own line,
+    /// and when the directly preceding token has no text, such as an omitted type argument, and the gap
+    /// to it holds no line break — the line break then lies in front of that token, out of the gap's
+    /// reach; in both cases the original node is returned unchanged
     /// </summary>
     /// <typeparam name="TNode">The syntax node type containing the token</typeparam>
     /// <param name="node">The node containing the token</param>
@@ -114,6 +117,7 @@ internal static class LineBreakTriviaUtilities
 
         if (hasPreviousToken
                 ? WouldJoinAcrossUnjoinableTrivia(previousToken, token)
+                  || (previousToken.Span.IsEmpty && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(previousToken, token) == false)
                 : SyntaxTriviaUtilities.ContainsUnjoinableTrivia(token.LeadingTrivia))
         {
             return node;
@@ -141,38 +145,33 @@ internal static class LineBreakTriviaUtilities
     }
 
     /// <summary>
-    /// Determines whether a token's leading trivia contains an end-of-line trivia,
-    /// either directly or preceded only by whitespace
+    /// Determines whether a line break separates a token from the token with text in front of it, so that the token stands
+    /// first on its line. The decision is the shared line-start fact (<see cref="SyntaxTokenPositionUtilities.IsFirstOnLine"/>):
+    /// the line break may be an end-of-line trivia or the one that ends a <c>///</c> comment or a directive, and a token
+    /// without text never starts a line. A token whose tree holds no token in front of it stands in a standalone subtree
+    /// after rewriting; its leading line break or whitespace is then taken as the start of a new line
     /// </summary>
     /// <param name="token">The token to inspect</param>
-    /// <returns><see langword="true"/> if the token has a leading end-of-line trivia; otherwise, <see langword="false"/></returns>
+    /// <returns><see langword="true"/> if a line break separates the token from the token in front of it; otherwise, <see langword="false"/></returns>
     public static bool HasLeadingEndOfLine(SyntaxToken token)
     {
-        if (token.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)))
+        if (token.GetPreviousToken().IsKind(SyntaxKind.None))
         {
-            return true;
+            return token.Span.IsEmpty == false
+                   && token.LeadingTrivia.Any(static trivia => SyntaxTriviaUtilities.EndsLine(trivia) || trivia.IsKind(SyntaxKind.WhitespaceTrivia));
         }
 
-        var previousToken = token.GetPreviousToken();
-
-        if (previousToken != default && previousToken.IsKind(SyntaxKind.None) == false)
-        {
-            return previousToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
-        }
-
-        // When previous token is unavailable (standalone subtree after rewriting),
-        // treat leading whitespace as indentation on a new line.
-        return token.LeadingTrivia.Any(SyntaxKind.WhitespaceTrivia);
+        return SyntaxTokenPositionUtilities.IsFirstOnLine(token);
     }
 
     /// <summary>
-    /// Determines whether a token's trailing trivia contains an end-of-line trivia
+    /// Determines whether a token's trailing trivia ends its line (<see cref="SyntaxTriviaUtilities.EndsLine"/>)
     /// </summary>
     /// <param name="token">The token to inspect</param>
-    /// <returns><see langword="true"/> if the token has a trailing end-of-line trivia; otherwise, <see langword="false"/></returns>
+    /// <returns><see langword="true"/> if the token's trailing trivia ends its line; otherwise, <see langword="false"/></returns>
     public static bool HasTrailingEndOfLine(SyntaxToken token)
     {
-        return token.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+        return token.TrailingTrivia.Any(SyntaxTriviaUtilities.EndsLine);
     }
 
     /// <summary>
@@ -248,14 +247,7 @@ internal static class LineBreakTriviaUtilities
     /// <returns>The trivia list with trailing whitespace removed</returns>
     public static SyntaxTriviaList RemoveTrailingWhitespace(SyntaxTriviaList triviaList)
     {
-        var result = triviaList.ToList();
-
-        while (result.Count > 0 && result[result.Count - 1].IsKind(SyntaxKind.WhitespaceTrivia))
-        {
-            result.RemoveAt(result.Count - 1);
-        }
-
-        return SyntaxFactory.TriviaList(result);
+        return TriviaListUtilities.RemoveTrailingWhitespace(triviaList);
     }
 
     /// <summary>

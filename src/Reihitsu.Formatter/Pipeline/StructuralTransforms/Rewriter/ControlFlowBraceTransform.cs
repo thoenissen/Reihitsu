@@ -4,8 +4,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
-using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
 
@@ -63,8 +63,8 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
         // The brace insertion rebuilds the statement's leading and trailing trivia from comments only.
         // A preprocessor directive or disabled text in that trivia would be dropped, silently changing
         // which code compiles under which configuration, so leave such a statement unbraced instead.
-        if (statement.GetLeadingTrivia().Any(ReihitsuFormatterHelpers.IsDirectiveOrDisabledTextTrivia)
-            || statement.GetTrailingTrivia().Any(ReihitsuFormatterHelpers.IsDirectiveOrDisabledTextTrivia))
+        if (statement.GetLeadingTrivia().Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia)
+            || statement.GetTrailingTrivia().Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia))
         {
             return statement;
         }
@@ -157,7 +157,7 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
     /// <returns>The comment trivia contained in the list</returns>
     private static List<SyntaxTrivia> CollectComments(SyntaxTriviaList triviaList)
     {
-        return triviaList.Where(ReihitsuFormatterHelpers.IsCommentTrivia)
+        return triviaList.Where(SyntaxTriviaUtilities.IsCommentTrivia)
                          .ToList();
     }
 

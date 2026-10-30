@@ -62,7 +62,7 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
         {
             currentLine.Add(triviaItem);
 
-            if (triviaItem.IsKind(SyntaxKind.EndOfLineTrivia) || BlankLineTriviaUtilities.EndsWithLineBreak(triviaItem))
+            if (triviaItem.IsKind(SyntaxKind.EndOfLineTrivia) || SyntaxTriviaUtilities.EndsWithLineBreak(triviaItem))
             {
                 lines.Add(currentLine);
                 currentLine = [];

@@ -224,7 +224,7 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
                        ? nodeOrToken.AsToken().Text
                        : nodeOrToken.AsNode().ToString();
 
-        return text.IndexOfAny(['\r', '\n', '\u0085', '\u2028', '\u2029']) >= 0;
+        return LineEndingUtilities.ContainsLineTerminator(text);
     }
 
     /// <summary>

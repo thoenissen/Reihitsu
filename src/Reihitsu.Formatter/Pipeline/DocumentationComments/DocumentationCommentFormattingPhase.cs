@@ -7,8 +7,8 @@ using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Pipeline.DocumentationComments.Utilities;
-using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.DocumentationComments;
 
@@ -183,7 +183,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
 
         if (HasOwningLeadingSourceOnSameLine(trivia, sourceText)
             || previousToken.RawKind == 0
-            || TokenLocator.ContainsToken(root, previousToken) == false)
+            || TokenContainmentUtilities.ContainsToken(root, previousToken) == false)
         {
             AddOwningRelocation(owningRelocations, owningToken, trivia);
 

@@ -97,15 +97,15 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether the gap between two adjacent tokens holds a line break
+    /// Determines whether the gap between two adjacent tokens holds a line break: an end-of-line trivia, or the line break
+    /// that ends a <c>///</c> comment, a directive, or disabled text (<see cref="SyntaxTriviaUtilities.AreSeparatedByEndOfLine"/>)
     /// </summary>
     /// <param name="previousToken">The token in front of the gap</param>
     /// <param name="nextToken">The token behind the gap</param>
     /// <returns><see langword="true"/> if the gap holds a line break</returns>
     private static bool HasLineBreak(SyntaxToken previousToken, SyntaxToken nextToken)
     {
-        return LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken)
-               || nextToken.LeadingTrivia.Any(SyntaxKind.EndOfLineTrivia);
+        return SyntaxTriviaUtilities.AreSeparatedByEndOfLine(previousToken, nextToken);
     }
 
     /// <summary>
@@ -121,13 +121,13 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
         {
             var trivia = token.LeadingTrivia[triviaIndex];
 
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            if (SyntaxTriviaUtilities.EndsLine(trivia))
             {
                 return false;
             }
 
             if ((trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
-                && trivia.ToFullString().IndexOfAny(['\r', '\n']) >= 0)
+                && LineEndingUtilities.ContainsLineTerminator(trivia.ToFullString()))
             {
                 return true;
             }

@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
-using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.BlankLines.Rewriter;
 
@@ -60,7 +59,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     /// <returns><see langword="true"/> if any comment trivia is found in the leading trivia</returns>
     private static bool HasCommentInLeadingTrivia(SyntaxToken token)
     {
-        return token.LeadingTrivia.Any(ReihitsuFormatterHelpers.IsCommentTrivia);
+        return token.LeadingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia);
     }
 
     /// <summary>
@@ -85,7 +84,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     private static bool IsStrandedInlineDocumentation(SyntaxToken token, PrecedingTokenFacts previousTokenFacts)
     {
         if (previousTokenFacts.Exists == false
-            || ReihitsuFormatterHelpers.DocumentsFollowingCode(token))
+            || DocumentationCommentUtilities.DocumentsFollowingCode(token))
         {
             return false;
         }
@@ -150,7 +149,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     {
         for (var triviaIndex = 0; triviaIndex < trivia.Count; triviaIndex++)
         {
-            if (ReihitsuFormatterHelpers.IsCommentTrivia(trivia[triviaIndex]))
+            if (SyntaxTriviaUtilities.IsCommentTrivia(trivia[triviaIndex]))
             {
                 return triviaIndex;
             }

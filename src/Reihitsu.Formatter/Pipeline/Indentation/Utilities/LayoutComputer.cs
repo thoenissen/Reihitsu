@@ -167,8 +167,8 @@ internal static class LayoutComputer
 
     /// <summary>
     /// Determines whether a token is the first token on its line. The rule itself lives in
-    /// <see cref="SyntaxTokenPositionUtilities.IsFirstOnLine"/>, shared with the RH5204 analyzer so both engines
-    /// agree on which token owns a line; this forwarder keeps the formatter's own call sites unchanged
+    /// <see cref="SyntaxTokenPositionUtilities.IsFirstOnLine"/>, shared with the analyzers so every engine agrees on which
+    /// token owns a line (SHARED-BLANK-008); this forwarder keeps the formatter's own call sites unchanged
     /// </summary>
     /// <param name="token">The token to check</param>
     /// <returns><see langword="true"/> if the token is first on its line; otherwise, <see langword="false"/></returns>
@@ -391,7 +391,9 @@ internal static class LayoutComputer
     }
 
     /// <summary>
-    /// Applies block indentation for first-on-line tokens
+    /// Applies block indentation for first-on-line tokens, and for the line the end of the file stands on when no token
+    /// with text stands on that line. The end of the file has no text and starts no line (SHARED-BLANK-008), but a comment
+    /// or directive in front of it on its line, and the comments above it, take the column of the file's top level
     /// </summary>
     /// <param name="token">The token to evaluate</param>
     /// <param name="childIndent">The computed child indentation level</param>
@@ -399,12 +401,31 @@ internal static class LayoutComputer
     /// <param name="baseColumn">The base indentation column</param>
     private static void SetTokenIndentation(SyntaxToken token, int childIndent, LayoutModel model, int baseColumn)
     {
-        if (IsFirstOnLine(token) == false)
+        if (IsFirstOnLine(token) == false
+            && IsAloneOnEndOfFileLine(token) == false)
         {
             return;
         }
 
         model.Set(GetLine(token), new TokenLayout(childIndent * FormattingContext.IndentSize + baseColumn, "Block"));
+    }
+
+    /// <summary>
+    /// Determines whether a token is the end of the file and no token with text stands on its line
+    /// </summary>
+    /// <param name="token">The token to check</param>
+    /// <returns><see langword="true"/> if the token is the end of the file alone on its line; otherwise, <see langword="false"/></returns>
+    private static bool IsAloneOnEndOfFileLine(SyntaxToken token)
+    {
+        if (token.IsKind(SyntaxKind.EndOfFileToken) == false)
+        {
+            return false;
+        }
+
+        var previousToken = token.GetPreviousToken();
+
+        return previousToken.IsKind(SyntaxKind.None)
+               || SyntaxTriviaUtilities.AreSeparatedByEndOfLine(previousToken, token);
     }
 
     /// <summary>

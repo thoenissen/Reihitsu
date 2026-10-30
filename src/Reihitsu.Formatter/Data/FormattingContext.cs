@@ -1,7 +1,7 @@
 ﻿using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Core;
-using Reihitsu.Formatter.Pipeline.StructuralTransforms.Enumerations;
+using Reihitsu.Formatter.Data.Enumerations;
 using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Data;

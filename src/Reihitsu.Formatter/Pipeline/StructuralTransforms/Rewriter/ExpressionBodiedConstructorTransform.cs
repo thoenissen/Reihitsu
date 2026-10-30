@@ -2,7 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Pipeline.StructuralTransforms.Enumerations;
 using Reihitsu.Formatter.Pipeline.StructuralTransforms.Utilities;
 
@@ -65,13 +65,13 @@ internal sealed class ExpressionBodiedConstructorTransform : CSharpSyntaxRewrite
 
         // Strip trailing whitespace from parameter list close paren
         var paramCloseParen = node.ParameterList.CloseParenToken;
-        var paramCleanTrailing = LineBreakTriviaUtilities.StripTrailingWhitespace(paramCloseParen.TrailingTrivia);
+        var paramCleanTrailing = TriviaListUtilities.RemoveTrailingWhitespace(paramCloseParen.TrailingTrivia);
         node = node.WithParameterList(node.ParameterList.WithCloseParenToken(paramCloseParen.WithTrailingTrivia(paramCleanTrailing)));
 
         if (node.Initializer != null)
         {
             var initCloseParen = node.Initializer.ArgumentList.CloseParenToken;
-            var initCleanTrailing = LineBreakTriviaUtilities.StripTrailingWhitespace(initCloseParen.TrailingTrivia);
+            var initCleanTrailing = TriviaListUtilities.RemoveTrailingWhitespace(initCloseParen.TrailingTrivia);
 
             var newInitializer = node.Initializer.WithArgumentList(node.Initializer.ArgumentList.WithCloseParenToken(initCloseParen.WithTrailingTrivia(initCleanTrailing)));
 

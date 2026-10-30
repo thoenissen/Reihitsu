@@ -3,7 +3,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
-using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Data;
 
@@ -67,7 +66,9 @@ internal readonly struct RootListPosition
     /// <returns>The position of the root</returns>
     public static RootListPosition From(SyntaxNode root)
     {
-        if (ReihitsuFormatterHelpers.StartsOnNewLineIncludingDocumentation(root.GetFirstToken()) == false)
+        var firstToken = root.GetFirstToken();
+
+        if (SyntaxTriviaUtilities.AreSeparatedByEndOfLine(firstToken.GetPreviousToken(), firstToken) == false)
         {
             return default;
         }

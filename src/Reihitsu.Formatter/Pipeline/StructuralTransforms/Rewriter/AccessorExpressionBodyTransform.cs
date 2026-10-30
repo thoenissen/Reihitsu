@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
-using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
 
@@ -211,7 +211,7 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
     {
         var withoutLineBreaks = SyntaxFactory.TriviaList(triviaList.Where(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false));
 
-        return LineBreakTriviaUtilities.StripTrailingWhitespace(withoutLineBreaks);
+        return TriviaListUtilities.RemoveTrailingWhitespace(withoutLineBreaks);
     }
 
     /// <summary>

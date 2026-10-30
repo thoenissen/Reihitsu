@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Formatter.Data;
-using Reihitsu.Formatter.Pipeline.StructuralTransforms.Enumerations;
+using Reihitsu.Formatter.Data.Enumerations;
 using Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
 
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms;

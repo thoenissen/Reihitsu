@@ -57,7 +57,13 @@ internal static class IndentationRewriter
             return rewritten;
         }
 
-        if (LayoutComputer.IsFirstOnLine(original) == false)
+        var hasText = original.Span.IsEmpty == false;
+
+        // A token with text is placed when it is the first token on its line. A token without text, such as the end of
+        // the file, starts no line, but a comment or directive in its leading trivia can (SHARED-BLANK-008)
+        if (hasText
+                ? LayoutComputer.IsFirstOnLine(original) == false
+                : original.LeadingTrivia.Count == 0)
         {
             return rewritten;
         }
@@ -70,12 +76,10 @@ internal static class IndentationRewriter
         //
         // The token opens its own line, but its leading trivia need not: a comment the previous line ends with is
         // filed here, and indenting it as though it began the line inserts indentation in the middle of that line.
-        // The previous token's trailing trivia is what says which of the two cases this is.
-        var previousToken = original.GetPreviousToken();
-        var startsAtLineStart = previousToken.RawKind == 0
-                                || previousToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+        // Whether the first trivia starts its line is the shared line-start fact for trivia (SHARED-BLANK-002)
+        var startsAtLineStart = TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(original, 0);
 
-        return rewritten.WithLeadingTrivia(RebuildLeadingTrivia(rewritten.LeadingTrivia, tokenLine, model, startsAtLineStart));
+        return rewritten.WithLeadingTrivia(RebuildLeadingTrivia(rewritten.LeadingTrivia, tokenLine, model, startsAtLineStart, hasText));
     }
 
     /// <summary>
@@ -86,14 +90,16 @@ internal static class IndentationRewriter
     /// <param name="tokenLine">The 0-based line number of the token</param>
     /// <param name="model">The layout model</param>
     /// <param name="startsAtLineStart">Whether the leading trivia begins at the start of its line</param>
+    /// <param name="tokenHasText">Whether the token has text; a token without text starts no line, so the line it stands on gets no column from it</param>
     /// <returns>The rebuilt trivia list</returns>
-    private static SyntaxTriviaList RebuildLeadingTrivia(SyntaxTriviaList trivia, int tokenLine, LayoutModel model, bool startsAtLineStart)
+    private static SyntaxTriviaList RebuildLeadingTrivia(SyntaxTriviaList trivia, int tokenLine, LayoutModel model, bool startsAtLineStart, bool tokenHasText)
     {
         var eolCount = CountLineBreaks(trivia);
 
         var currentLine = tokenLine - eolCount;
         var result = new List<SyntaxTrivia>();
         var atLineStart = startsAtLineStart;
+        var behindLineStartWhitespace = false;
 
         for (var triviaIndex = 0; triviaIndex < trivia.Count; triviaIndex++)
         {
@@ -106,13 +112,20 @@ internal static class IndentationRewriter
 
             if (TryHandleLineStartWhitespace(trivia, triviaIndex, triviaItem, result, currentLine, model, ref atLineStart))
             {
+                behindLineStartWhitespace = true;
+
                 continue;
             }
 
-            HandleNonWhitespaceTrivia(triviaItem, result, currentLine, model, ref atLineStart, ref currentLine);
+            HandleNonWhitespaceTrivia(triviaItem, result, currentLine, model, atLineStart || behindLineStartWhitespace, ref atLineStart, ref currentLine);
+
+            behindLineStartWhitespace = false;
         }
 
-        AddFinalLineIndentation(result, atLineStart, currentLine, model);
+        if (tokenHasText)
+        {
+            AddFinalLineIndentation(result, atLineStart, currentLine, model);
+        }
 
         return SyntaxFactory.TriviaList(result);
     }
@@ -192,12 +205,14 @@ internal static class IndentationRewriter
     /// <param name="result">The rebuilt trivia list</param>
     /// <param name="layoutLine">The source line used for layout lookup</param>
     /// <param name="model">The layout model</param>
+    /// <param name="startsLine">Whether the trivia starts its line, with nothing but the line's indentation in front of it</param>
     /// <param name="atLineStart">Whether the builder is currently at line start</param>
     /// <param name="currentLine">The mutable current source line</param>
     private static void HandleNonWhitespaceTrivia(SyntaxTrivia triviaItem,
                                                   List<SyntaxTrivia> result,
                                                   int layoutLine,
                                                   LayoutModel model,
+                                                  bool startsLine,
                                                   ref bool atLineStart,
                                                   ref int currentLine)
     {
@@ -213,32 +228,32 @@ internal static class IndentationRewriter
 
         // A single-line documentation comment (`///`) bundles the terminating end-of-line of its last
         // line into its own trivia text, unlike a multi-line documentation comment (`/** */`) which ends
-        // at the closing delimiter. Only the single-line form needs the same line-start treatment as directives
+        // at the closing delimiter. Only the single-line form needs the same line-start treatment as directives.
+        // Its continuation lines follow its first line only when the comment starts its line (FMT-INDENT-008); the lines
+        // of a comment written behind code are its text, which stays as written (FMT-DOC-003)
         var isSingleLineDocumentationComment = triviaItem.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia);
 
-        if (isSingleLineDocumentationComment && model.TryGetLayout(layoutLine, out var layout))
+        if (isSingleLineDocumentationComment
+            && startsLine
+            && model.TryGetLayout(layoutLine, out var layout))
         {
             triviaItem = DocumentationCommentUtilities.AlignContinuationExteriorMarkers(triviaItem, layout.Column);
         }
 
         result.Add(triviaItem);
 
-        // Directive trivia contains an embedded end-of-line; advance to the next line
-        if (triviaItem.HasStructure && triviaItem.GetStructure() is DirectiveTriviaSyntax)
+        // A trivia's own text can hold line breaks: the interior lines of a multi-line comment or of disabled text, and
+        // the line break that ends a directive or a single-line documentation comment. Each one moves the running line
+        // counter, counted with the line terminators Roslyn's line table counts, so the following trivia maps to the line
+        // the layout model numbers. A directive or `///` comment that ends with its line break leaves the next trivia at
+        // the start of its line; disabled text is always followed by the directive that closes it
+        var text = triviaItem.ToFullString();
+
+        currentLine += LineEndingUtilities.CountLineTerminators(text);
+
+        if ((triviaItem.HasStructure && triviaItem.GetStructure() is DirectiveTriviaSyntax) || isSingleLineDocumentationComment)
         {
-            currentLine++;
-            atLineStart = true;
-        }
-        else if (isSingleLineDocumentationComment)
-        {
-            currentLine += CountEmbeddedNewLines(triviaItem);
-            atLineStart = true;
-        }
-        else
-        {
-            // Multi-line comments carry their own embedded line breaks; keep the running line counter
-            // in sync so following trivia maps to the correct layout entry
-            currentLine += CountEmbeddedNewLines(triviaItem);
+            atLineStart = LineEndingUtilities.EndsWithLineTerminator(text);
         }
     }
 
@@ -258,40 +273,21 @@ internal static class IndentationRewriter
     }
 
     /// <summary>
-    /// Counts the number of effective line breaks represented by leading trivia
+    /// Counts the line breaks a leading-trivia list holds: its end-of-line trivia and the line terminators inside the text
+    /// of its comments, directives, and disabled text, counted as Roslyn's line table counts them
     /// </summary>
     /// <param name="trivia">The trivia to inspect</param>
-    /// <returns>The effective line-break count</returns>
+    /// <returns>The number of line breaks</returns>
     private static int CountLineBreaks(SyntaxTriviaList trivia)
     {
-        var endOfLineCount = 0;
+        var lineBreakCount = 0;
 
         foreach (var entry in trivia)
         {
-            if (entry.IsKind(SyntaxKind.EndOfLineTrivia)
-                || (entry.HasStructure && entry.GetStructure() is DirectiveTriviaSyntax))
-            {
-                endOfLineCount++;
-            }
-            else
-            {
-                endOfLineCount += CountEmbeddedNewLines(entry);
-            }
+            lineBreakCount += LineEndingUtilities.CountLineTerminators(entry.ToFullString());
         }
 
-        return endOfLineCount;
-    }
-
-    /// <summary>
-    /// Counts the number of line breaks embedded inside a single trivia entry,
-    /// such as the newlines within a multi-line comment
-    /// </summary>
-    /// <param name="trivia">The trivia entry to inspect</param>
-    /// <returns>The number of embedded line breaks</returns>
-    private static int CountEmbeddedNewLines(SyntaxTrivia trivia)
-    {
-        return trivia.ToFullString()
-                     .Count(character => character == '\n');
+        return lineBreakCount;
     }
 
     /// <summary>
