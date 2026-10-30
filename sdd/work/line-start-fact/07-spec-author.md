@@ -2,7 +2,7 @@ Role: spec author
 Commit: d5ce186
 Verdict: change doc written
 
-This repair implements the maintainer's answer 2B in `squad/decisions/2026-10-30-line-start-fact-implementer-findings.md` and the `AGENTS.md` item of `06-implementer.md`. The change doc is back to `Status: Draft`. Its intro carries an amendment note, and each changed passage is marked *(amended)* so the maintainer can approve it again (escalation 2). Everything unmarked is as accepted.
+This repair implements the maintainer's answer 2B in `squad/decisions/2026-10-30-line-start-fact-implementer-findings.md` and the `AGENTS.md` item of `06-implementer.md`. The change doc went back to `Status: Draft` for this amendment. Its intro carries an amendment note, and each changed passage is marked *(amended)*. The maintainer approved the amended passages (`squad/decisions/2026-10-30-line-start-fact-amended-change-doc.md`), and the status is `Accepted` again.
 
 ## Re-derived on the branch (cb59e98 production code), `scripts/format.sh --force`
 

@@ -2,12 +2,12 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-10 |
 | Affected requirements | SHARED-BLANK-008 (new), FMT-INDENT-002, FMT-INDENT-015, FMT-DOC-003, FMT-SPACE-001, FMT-SPACE-015 (retired), RH5203-001, RH5204-001, RH6002-001, RH6002-002, SHARED-CHAIN-002 |
 | Depends on | [A preparation phase replaces tabs and normalizes line endings first](preparation-phase.md) |
 
-Amendment for approval: the maintainer accepted this change doc on 2026-10-30. The passages marked *(amended)* below have changed since then and await approval again. They make a wrapped type argument list of omitted type arguments join like any other list (FMT-BREAK-014) instead of staying wrapped with `>` in the block column; FMT-INDENT-015 keeps block indentation only for such a list that a comment or a directive keeps wrapped. Everything not marked is as accepted.
+Amendment for approval: the maintainer accepted this change doc on 2026-10-30. The passages marked *(amended)* below changed since then and were approved again on the same day. They make a wrapped type argument list of omitted type arguments join like any other list (FMT-BREAK-014) instead of staying wrapped with `>` in the block column; FMT-INDENT-015 keeps block indentation only for such a list that a comment or a directive keeps wrapped. Everything not marked is as accepted.
 
 ## What
 
