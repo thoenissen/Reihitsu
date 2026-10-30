@@ -50,7 +50,7 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
     /// Wraps a statement in a block when it is not already braced
     /// </summary>
     /// <param name="statement">The statement to inspect</param>
-    /// <param name="endOfLine">The end-of-line sequence to terminate the inserted closing brace's line with</param>
+    /// <param name="endOfLine">The end-of-line sequence written behind the opening brace, behind each kept leading comment, and after the inserted closing brace</param>
     /// <returns>The braced statement</returns>
     private static StatementSyntax WrapWithBraces(StatementSyntax statement,
                                                   string endOfLine)
