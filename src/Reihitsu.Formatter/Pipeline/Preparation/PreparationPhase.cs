@@ -36,9 +36,9 @@ internal sealed class PreparationPhase : IFormattingPhase
     /// The sub-phases in the order they run: tab replacement, then line endings
     /// </summary>
     internal IReadOnlyList<IFormattingPhase> SubPhases { get; } = [
-                                                                     new TabReplacementPhase(),
-                                                                     new LineEndingNormalizationPhase(),
-                                                                 ];
+                                                                      new TabReplacementPhase(),
+                                                                      new LineEndingNormalizationPhase(),
+                                                                  ];
 
     #endregion // Properties
 
