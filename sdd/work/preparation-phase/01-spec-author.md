@@ -2,7 +2,11 @@ Role: spec author
 Commit: 07cb8de
 Verdict: change doc written
 
-The change doc `sdd/changes/2026-10/preparation-phase.md` is `Status: Draft` and needs the maintainer's approval of What and Why before tests are written (escalation 2). The spec diff below is written against it.
+The spec diff below follows the change doc `sdd/changes/2026-10/preparation-phase.md`.
+
+## Approval
+
+The maintainer approved the change doc (escalation 2), recorded in `squad/decisions/2026-10-30-preparation-phase-change-doc.md`. What and Why are approved as written. FMT-PIPE-020 covers every terminator FMT-EOL-001 lists, as drafted, so the U+0085 and U+2028 cases are in scope. The doc stays under `sdd/changes/2026-10/`. Its `Status` is now `Accepted`.
 
 ## Changed requirements
 
@@ -51,5 +55,3 @@ The type names `TabReplacementPhase` and `LineEndingNormalizationPhase` stay the
 ## Open questions for the maintainer
 
 _None._
-
-The change doc's month folder is `2026-10`; if the PR merges in November, the file belongs under `sdd/changes/2026-11/` (rulebook: by the month the change is merged).

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-10 |
 | Affected requirements | FMT-PIPE-001, FMT-PIPE-015, FMT-PIPE-016 (retired), FMT-PIPE-017, FMT-PIPE-019 (new), FMT-PIPE-020 (new), FMT-TAB-001, FMT-EOL-001, FMT-EOL-003 |
 | Depends on | [Phase prediction removal](phase-prediction-removal.md) |
