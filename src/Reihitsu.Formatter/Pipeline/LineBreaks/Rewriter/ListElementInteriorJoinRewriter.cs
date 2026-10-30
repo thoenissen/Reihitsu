@@ -88,8 +88,7 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
             return false;
         }
 
-        if (LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken) == false
-            && token.LeadingTrivia.Any(SyntaxKind.EndOfLineTrivia) == false)
+        if (SyntaxTriviaUtilities.AreSeparatedByEndOfLine(previousToken, token) == false)
         {
             return false;
         }

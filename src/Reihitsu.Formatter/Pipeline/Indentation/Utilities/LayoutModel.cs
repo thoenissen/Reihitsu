@@ -3,6 +3,8 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Formatter.Pipeline.Indentation.Contributors;
+
 namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 
 /// <summary>
@@ -41,6 +43,11 @@ internal sealed class LayoutModel
     private readonly HashSet<int> _placedRawStringHoleLines = [];
 
     /// <summary>
+    /// Maps each line to the alignment contributors whose <see cref="Set"/> placed it
+    /// </summary>
+    private readonly Dictionary<int, HashSet<Type>> _alignmentContributors = [];
+
+    /// <summary>
     /// The moves of the lines of multi-line raw string literals, or <see langword="null"/> when the tree holds no
     /// such literal
     /// </summary>
@@ -68,6 +75,13 @@ internal sealed class LayoutModel
     /// write while none is set only stands in until a construct inside the hole places the line
     /// </summary>
     public SyntaxNode Contributor { get; set; }
+
+    /// <summary>
+    /// The alignment contributor that is writing to the model, or <see langword="null"/> while block indentation, the
+    /// shift to the root's document column, and comment alignment write to it. Every line an accepted <see cref="Set"/>
+    /// places while it is set is recorded for that contributor (<see cref="GetAlignmentContributors"/>)
+    /// </summary>
+    public ILayoutContributor AlignmentContributor { get; set; }
 
     #endregion // Properties
 
@@ -113,12 +127,26 @@ internal sealed class LayoutModel
         }
 
         RecordPlacement(lineNumber);
+        RecordAlignmentContributor(lineNumber);
 
         var shift = GetRawStringShift(lineNumber);
 
         _layouts[lineNumber] = shift == 0
                                    ? layout
                                    : new TokenLayout(layout.Column - shift, layout.Source);
+    }
+
+    /// <summary>
+    /// Gets the alignment contributors that placed the line through <see cref="Set"/> while the alignment sweeps ran. A
+    /// contributor that only moved the line with a range (<see cref="ShiftRange"/>) is not counted
+    /// </summary>
+    /// <param name="lineNumber">The 0-based line number</param>
+    /// <returns>The types of the contributors that placed the line; empty when none did</returns>
+    public IReadOnlyCollection<Type> GetAlignmentContributors(int lineNumber)
+    {
+        return _alignmentContributors.TryGetValue(lineNumber, out var contributors)
+                   ? contributors
+                   : [];
     }
 
     /// <summary>
@@ -350,6 +378,26 @@ internal sealed class LayoutModel
         return Contributor == null
                || _rawStringHoleLines.TryGetValue(lineNumber, out var holeLine) == false
                || holeLine.Hole.Span.Contains(Contributor.Span);
+    }
+
+    /// <summary>
+    /// Records that the current alignment contributor placed the line, when one is writing
+    /// </summary>
+    /// <param name="lineNumber">The 0-based line number</param>
+    private void RecordAlignmentContributor(int lineNumber)
+    {
+        if (AlignmentContributor == null)
+        {
+            return;
+        }
+
+        if (_alignmentContributors.TryGetValue(lineNumber, out var contributors) == false)
+        {
+            contributors = [];
+            _alignmentContributors[lineNumber] = contributors;
+        }
+
+        contributors.Add(AlignmentContributor.GetType());
     }
 
     /// <summary>
