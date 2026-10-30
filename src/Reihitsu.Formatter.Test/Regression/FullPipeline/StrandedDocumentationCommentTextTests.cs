@@ -141,10 +141,12 @@ public class StrandedDocumentationCommentTextTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a one-line summary behind the left operand of a binary expression keeps its text
+    /// Verifies that a one-line summary behind the left operand of a binary expression keeps its text, while the
+    /// operator on the line behind it is aligned as behind a single-line comment
     /// </summary>
     [TestMethod]
     [Requirement("FMT-DOC-003")]
+    [Requirement("FMT-INDENT-002")]
     public void OneLineSummaryBeforeBinaryOperatorKeepsItsText()
     {
         // Arrange
@@ -155,16 +157,25 @@ public class StrandedDocumentationCommentTextTests : FormatterTestsBase
                                      + 2;
                              }
                              """;
+        const string expected = """
+                                class C
+                                {
+                                    int A = 1 /// <summary>end</summary>
+                                            + 2;
+                                }
+                                """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
-    /// Verifies that a one-line summary before the dot of a member access keeps its text
+    /// Verifies that a one-line summary before the dot of a member access keeps its text, while the dot on the line
+    /// behind it is aligned behind its receiver as behind a single-line comment
     /// </summary>
     [TestMethod]
     [Requirement("FMT-DOC-003")]
+    [Requirement("FMT-INDENT-002")]
     public void OneLineSummaryBeforeMemberAccessDotKeepsItsText()
     {
         // Arrange
@@ -175,9 +186,16 @@ public class StrandedDocumentationCommentTextTests : FormatterTestsBase
                                      .Trim();
                              }
                              """;
+        const string expected = """
+                                class C
+                                {
+                                    string S = "a" /// <summary>end</summary>
+                                               .Trim();
+                                }
+                                """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>

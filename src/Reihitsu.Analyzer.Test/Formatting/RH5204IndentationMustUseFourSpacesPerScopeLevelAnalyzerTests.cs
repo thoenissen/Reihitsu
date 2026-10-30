@@ -1596,6 +1596,198 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
         await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the specification example: a closing brace that starts its line behind a documentation comment written
+    /// behind the last field is reported and moved to the column of its type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("SHARED-BLANK-008")]
+    public async Task VerifyClosingBraceBehindStrayDocumentationCommentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal int A; /// <summary>end</summary>
+                                          {|#0:}|}
+                                """;
+        const string fixedData = """
+                                 internal class C
+                                 {
+                                     internal int A; /// <summary>end</summary>
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the control of the documentation-comment case: a closing brace that starts its line behind a single-line
+    /// comment is reported and moved to the column of its type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyClosingBraceBehindSingleLineCommentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal int A; // end
+                                          {|#0:}|}
+                                """;
+        const string fixedData = """
+                                 internal class C
+                                 {
+                                     internal int A; // end
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a closing brace behind the last line of a multi-line comment does not start
+    /// its line and is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BLANK-008")]
+    public async Task VerifyClosingBraceBehindLastLineOfMultiLineCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal int A; /* a
+                                    b */ }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: at the start of a file, the first token behind a documentation comment starts
+    /// its line and is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("SHARED-BLANK-008")]
+    public async Task VerifyFirstTokenOfFileBehindDocumentationCommentIsDetected()
+    {
+        const string testData = """
+                                /// <summary>C</summary>
+                                    {|#0:public|} class C
+                                {
+                                    private int _a;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a closing brace separated from a documentation comment written behind code by a blank line is
+    /// reported, and the fix moves it to the column of its type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    public async Task VerifyClosingBraceBehindStrayDocumentationCommentAndBlankLineIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal int A; /// x
+
+                                          {|#0:}|}
+                                """;
+        const string fixedData = """
+                                 internal class C
+                                 {
+                                     internal int A; /// x
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a misindented statement on the line behind a documentation comment written behind the previous
+    /// statement is reported, and that the fix lays out the block as the formatter does, in one pass
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("RH5204-006")]
+    public async Task VerifyStatementBehindStrayDocumentationCommentIsDetectedAndFixedInOnePass()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal void M()
+                                    {
+                                        var x = 1; /// stray
+                                            {|#0:return|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class C
+                                 {
+                                     internal void M()
+                                     {
+                                         var x = 1;
+
+                                         /// stray
+                                         return;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a misindented <c>if</c> statement on the line behind a documentation comment written behind the
+    /// previous statement is reported together with its braces, and that the fix lays out the block as the formatter does
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("RH5204-006")]
+    public async Task VerifyIfStatementBehindStrayDocumentationCommentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal void M()
+                                    {
+                                        var x = 1; /// stray
+                                            {|#0:if|} (x > 0)
+                                            {|#1:{|}
+                                            {|#2:}|}
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class C
+                                 {
+                                     internal void M()
+                                     {
+                                         var x = 1;
+
+                                         /// stray
+                                         if (x > 0)
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat, 3));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

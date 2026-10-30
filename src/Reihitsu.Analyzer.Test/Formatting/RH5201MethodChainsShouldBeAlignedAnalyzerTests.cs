@@ -2036,6 +2036,240 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     }
 
     /// <summary>
+    /// Verifies the specification example: later links of a chain that start their lines behind a documentation comment
+    /// written in front of the second link are reported, and the fix aligns them and keeps the comment where it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-002")]
+    [Requirement("SHARED-CHAIN-002")]
+    public async Task VerifyLaterLinksBehindStrayDocumentationCommentAreDetectedAndAligned()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal class C
+                                {
+                                    internal object M(int[] items)
+                                    {
+                                        return items.Where(x => x > 0) /// x
+                                                 {|#0:.|}Select(x => x)
+                                                     {|#1:.|}ToList();
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Linq;
+
+                                 internal class C
+                                 {
+                                     internal object M(int[] items)
+                                     {
+                                         return items.Where(x => x > 0) /// x
+                                                     .Select(x => x)
+                                                     .ToList();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that conditional-access links that start their lines behind a documentation comment written in front of
+    /// the second link are reported, and the fix aligns them and keeps the comment where it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-002")]
+    [Requirement("SHARED-CHAIN-002")]
+    public async Task VerifyConditionalAccessLinksBehindStrayDocumentationCommentAreDetectedAndAligned()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class C
+                                {
+                                    internal string M(List<object> items)
+                                    {
+                                        return items.Find(x => x != null) /// x
+                                                 {|#0:?|}.ToString()
+                                                     {|#1:?|}.Trim();
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class C
+                                 {
+                                     internal string M(List<object> items)
+                                     {
+                                         return items.Find(x => x != null) /// x
+                                                     ?.ToString()
+                                                     ?.Trim();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that a chain whose first link starts its line behind a documentation comment written behind the root is
+    /// reported, and the fix aligns its links and keeps the comment where it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-002")]
+    [Requirement("SHARED-CHAIN-002")]
+    public async Task VerifyLinksBehindStrayDocumentationCommentInFrontOfFirstLinkAreDetectedAndAligned()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal class C
+                                {
+                                    internal object M(int[] items)
+                                    {
+                                        return items /// x
+                                            {|#0:.|}Where(x => x > 0)
+                                            {|#1:.|}ToList();
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Linq;
+
+                                 internal class C
+                                 {
+                                     internal object M(int[] items)
+                                     {
+                                         return items /// x
+                                                .Where(x => x > 0)
+                                                .ToList();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies the control of the documentation-comment case: later links of a chain that start their lines behind a comment in front of the
+    /// second link are reported, and the fix aligns them and keeps the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLaterLinksBehindSingleLineCommentAreDetectedAndAligned()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal class C
+                                {
+                                    internal object M(int[] items)
+                                    {
+                                        return items.Where(x => x > 0) // x
+                                                 {|#0:.|}Select(x => x)
+                                                     {|#1:.|}ToList();
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Linq;
+
+                                 internal class C
+                                 {
+                                     internal object M(int[] items)
+                                     {
+                                         return items.Where(x => x > 0) // x
+                                                     .Select(x => x)
+                                                     .ToList();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies the control of the documentation-comment case: conditional-access links that start their lines behind a comment in front of the
+    /// second link are reported, and the fix aligns them and keeps the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyConditionalAccessLinksBehindSingleLineCommentAreDetectedAndAligned()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class C
+                                {
+                                    internal string M(List<object> items)
+                                    {
+                                        return items.Find(x => x != null) // x
+                                                 {|#0:?|}.ToString()
+                                                     {|#1:?|}.Trim();
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class C
+                                 {
+                                     internal string M(List<object> items)
+                                     {
+                                         return items.Find(x => x != null) // x
+                                                     ?.ToString()
+                                                     ?.Trim();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies the control of the documentation-comment case: a chain whose first link starts its line behind a comment written behind the root
+    /// is reported, and the fix aligns its links and keeps the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLinksBehindSingleLineCommentInFrontOfFirstLinkAreDetectedAndAligned()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal class C
+                                {
+                                    internal object M(int[] items)
+                                    {
+                                        return items // x
+                                            {|#0:.|}Where(x => x > 0)
+                                            {|#1:.|}ToList();
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Linq;
+
+                                 internal class C
+                                 {
+                                     internal object M(int[] items)
+                                     {
+                                         return items // x
+                                                .Where(x => x > 0)
+                                                .ToList();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2));
+    }
+
+    /// <summary>
     /// Formats the given source text through the shared formatting pipeline with LF line endings,
     /// the same engine <c>reihitsu-format</c> uses, without going through the CLI
     /// </summary>

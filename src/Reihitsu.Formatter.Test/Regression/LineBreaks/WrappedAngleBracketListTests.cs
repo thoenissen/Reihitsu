@@ -702,6 +702,7 @@ public class WrappedAngleBracketListTests : FormatterTestsBase
     /// zero-width anchor, since an omitted type argument's token carries no real column to align to
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-015")]
     public void UnboundGenericWithZeroWidthAnchorIsNotAlignedToADegenerateColumn()
     {
         // Arrange
@@ -725,7 +726,7 @@ public class WrappedAngleBracketListTests : FormatterTestsBase
                                     public void Foo()
                                     {
                                         var type = typeof(Dictionary<,
-                                                >);
+                                        >);
                                     }
                                 }
                                 """;
