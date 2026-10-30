@@ -4,8 +4,8 @@
 |---|---|
 | ID prefix | SHARED-BLANK |
 | Status | Active |
-| Code owners | `BlankLineSpacingPolicy`, `TokenGapAnalysis`, `RegionDirectiveBlankLineUtilities`, `FormattingTextAnalysisUtilities` |
-| Uses | FMT-BLANK-001, FMT-BLANK-004, FMT-PIPE-002 |
+| Code owners | `BlankLineSpacingPolicy`, `TokenGapAnalysis`, `SyntaxTokenPositionUtilities`, `RegionDirectiveBlankLineUtilities`, `FormattingTextAnalysisUtilities` |
+| Uses | FMT-BLANK-001, FMT-BLANK-004, FMT-INDENT-002, FMT-INDENT-015, FMT-PIPE-002 |
 
 This spec covers the blank-line rules that analyzer, code fixes, and formatter decide through the same `Reihitsu.Core` code: what counts as a blank line and as the start of a line, the blank line after a closing brace, the exemption of a switch section's terminal `break`, and the blank lines around `#region` and `#endregion`. The formatter's own blank-line decisions are specified in FMT-BLANK.
 
@@ -332,3 +332,75 @@ class C
 ```
 
 is left unchanged.
+
+### SHARED-BLANK-008 — A token starts its line after the same line breaks as trivia
+
+Analyzer and formatter MUST treat a token as starting its line exactly when the token has text and nothing but whitespace stands between it and the last line break in front of it, whichever trivia carries that line break: an end-of-line trivia, or the line break that ends a single-line comment, a single-line documentation comment (`///`), or a directive in front of the token. A line break inside the text of a multi-line comment MUST NOT count (SHARED-BLANK-002). A token without text, such as an omitted type argument (`Dictionary<,>`) or an omitted array size, MUST NOT be treated as starting its line; the line starts at the next token or trivia with text on it. Without a preceding token (the start of a file or of a detached formatting root), a token with text starts its line when nothing but whitespace precedes it.
+
+Why: Whether a line starts at a token decides which rules place that line — its indentation, its alignment, whether a list or a chain counts as wrapped, and whether a gap is a same-line gap — and every analyzer and every formatter phase must agree on it, and with SHARED-BLANK-002, or a line is placed by none of them or by two. The line break of a `///` comment is part of the comment's structure, not an end-of-line trivia, yet the line behind it starts as any other. A token without text has no column, so a line it would start offers nothing to place.
+
+Example — the closing brace behind a `///` comment written behind code starts its line, so RH5204 reports it:
+
+```csharp
+class C
+{
+    int A; /// <summary>end</summary>
+          {|RH5204:}|}
+```
+
+and the formatter indents it like any other closing brace (FMT-INDENT-002):
+
+```csharp
+class C
+{
+    int A; /// <summary>end</summary>
+}
+```
+
+A closing brace behind the last line of a multi-line comment does not start its line and is not reported:
+
+```csharp
+class C
+{
+    int A; /* a
+    b */ }
+```
+
+A comma behind a `///` comment starts its line, and a comma in front of one ends its line, so neither is reported for the gap the comment breaks (RH6002):
+
+```csharp
+class C
+{
+    void M(int a, int b)
+    {
+        M(a /// stray
+          , b);
+        M(a,   /// stray
+          b);
+    }
+}
+```
+
+Behind the omitted type argument, the closing `>` starts its line, and the line takes the block column (FMT-INDENT-015):
+
+```csharp
+class C
+{
+    void M()
+    {
+        var type = typeof(System.Collections.Generic.Dictionary<,
+>);
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var type = typeof(System.Collections.Generic.Dictionary<,
+        >);
+    }
+}
+```

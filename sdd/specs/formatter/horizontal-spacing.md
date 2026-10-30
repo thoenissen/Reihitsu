@@ -5,7 +5,7 @@
 | ID prefix | FMT-SPACE |
 | Status | Active |
 | Code owners | `HorizontalSpacingPhase`, `HorizontalSpacingRewriter`, `SpacingPolicy`, `ISpacingRule`, `AttributeListCloseBracketSpacingRule`, `NoSpaceSpacingRule`, `CommaSpacingRule`, `SingleSpaceSpacingRule`, `OperatorSpacingRule`, `ForLoopSemicolonSpacingRule`, `KeywordSpacingRule`, `TrailingWhitespaceWriter`, `CommaSpacingUtilities`, `UnaryOperatorSpacingUtilities` |
-| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004 |
+| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, SHARED-BLANK-008 |
 
 This spec covers `HorizontalSpacingPhase`: the whitespace between two adjacent tokens on the same line, as decided by the ordered spacing rules of `SpacingPolicy`, how that decision is applied when a comment sits in the gap, and the gaps the phase leaves alone.
 
@@ -20,9 +20,9 @@ This spec covers `HorizontalSpacingPhase`: the whitespace between two adjacent t
 
 ### FMT-SPACE-001 — Only gaps on one line are changed
 
-The formatter MUST change only the whitespace between two tokens that are on the same line. When the left token's trailing trivia or the right token's leading trivia contains a line break, the phase MUST leave the whole gap unchanged, including the whitespace between a token and a comment that ends the line.
+The formatter MUST change only the whitespace between two tokens that are on the same line. When the left token's trailing trivia or the right token's leading trivia contains a line break — an end-of-line trivia, or the line break that ends a single-line documentation comment (`///`) in front of the right token, which then starts its line (SHARED-BLANK-008) — the phase MUST leave the whole gap unchanged, including the whitespace between a token and a comment that ends the line. A line break inside the text of a multi-line comment is not a line break of the gap.
 
-Why: A gap across a line break is indentation, which a later phase computes (FMT-PIPE-001). The space in front of an end-of-line comment is the author's choice of comment position; rewriting it would fight hand-aligned trailing comments.
+Why: A gap across a line break is indentation, which a later phase computes (FMT-PIPE-001). The space in front of an end-of-line comment is the author's choice of comment position; rewriting it would fight hand-aligned trailing comments. A `///` comment ends with its own line break, so the whitespace behind it is the indentation of the next line, even when no space is allowed in front of the token there.
 
 Example:
 
@@ -37,7 +37,18 @@ class C
 }
 ```
 
-is left unchanged.
+is left unchanged, and so is the gap broken by a `///` comment written behind code:
+
+```csharp
+class C
+{
+    public int M()
+    {
+        return 1    /// stray
+        ;
+    }
+}
+```
 
 ### FMT-SPACE-002 — Whitespace no rule covers is only collapsed
 
@@ -617,21 +628,4 @@ class C
 
 ### FMT-SPACE-015 — Indentation after a single-line documentation comment is kept
 
-When the right token's leading trivia ends with a single-line documentation comment (`///`) followed by whitespace, the formatter MUST NOT remove that whitespace, even when no space is allowed before the token.
-
-Why: A `///` comment ends with its own line break, so the whitespace after it starts a new line and is the token's indentation, not a gap. No end-of-line trivia separates the two tokens in that case, so the phase cannot see the line break the usual way (FMT-SPACE-001), and no later phase would restore the indentation once it was removed.
-
-Example:
-
-```csharp
-class C
-{
-    public int M()
-    {
-        return 1 /// stray
-        ;
-    }
-}
-```
-
-is left unchanged.
+Status: Retired — the line break that ends a `///` comment is a line break of the gap (SHARED-BLANK-008), so FMT-SPACE-001 leaves the whitespace behind the comment unchanged, and the line behind it is placed by the indentation phase.
