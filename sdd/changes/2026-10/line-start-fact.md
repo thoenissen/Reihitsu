@@ -12,7 +12,7 @@
 Analyzers and every formatter phase decide with one rule whether a token starts its line, SHARED-BLANK-008, which extends to tokens what SHARED-BLANK-002 already decides for trivia:
 
 - A token starts its line when nothing but whitespace stands between it and the last line break in front of it, whichever trivia carries that line break: an end-of-line trivia, or the line break that ends a `//` comment, a `///` documentation comment, or a directive. A line break inside the text of a multi-line comment does not count (SHARED-BLANK-002).
-- A token without text — the omitted type argument of `Dictionary<,>`, an omitted array size — never starts a line.
+- A token without text — the omitted type argument of `Dictionary<,>`, an omitted array size, the end of the file — never starts a line. Trivia in front of it still starts its line as SHARED-BLANK-002 decides, so a comment or `#endregion` behind the last closing brace of a file is indented as today.
 
 The user-visible consequence is that a line which starts behind a `///` comment written behind code is a line like any other. Today no phase places it, because Roslyn never puts a `///` comment into trailing trivia and its line break is part of the comment's structure, not an end-of-line trivia:
 
@@ -80,6 +80,7 @@ RH5203, RH5204, RH6002, and the fluent-chain rules RH5112, RH5201, and RH5048 as
 - **RH5203** checks an argument whose first token starts its line behind a `///` comment and reports it outside the alignment column, as it does behind a `//` comment.
 - **RH6002** stops reporting the whitespace in front of a `///` comment that stands between a token and a comma, and the whitespace between a comma and a `///` comment behind it: a `///` comment ends its line, so the comma starts its line (RH6002-001) or ends it (RH6002-002). Today it reports both and its fix removes the space in front of the comment (`N(1 /// x` becomes `N(1/// x`), against RH6002-004, while the formatter keeps both gaps.
 - **RH5201** and **RH5112** count a link behind a `///` comment as starting its line (SHARED-CHAIN-002). RH5201 reports such a link outside the chain's alignment column, and its fix aligns it without moving the comment, which is the formatter's output (SHARED-CHAIN-008); today the fix moves the comment onto its own line, as the formatter does. A first link behind a `///` comment keeps its line (SHARED-CHAIN-004), as behind any other comment.
+- **RH5048** reports an ordinary comment in front of a chain's first link when that link starts its line behind a `///` comment, as it does behind a `//` comment (RH5048-001): in `items /* c */ /// x` / `.Where(…)`, `/* c */` is reported, and today nothing is.
 
 For a token without text the same rule applies; none of the rules named above checks the position of an omitted type argument or array size, so none of their diagnostics changes for one.
 
@@ -87,8 +88,8 @@ For a token without text the same rule applies; none of the rules named above ch
 
 Formatter output changes only for these inputs:
 
-- A line that starts behind a `///` comment written behind code gets the column the same line gets behind a `//` comment — for example a closing brace, a `;`, a `)` or `]`, a wrapped binary operator, or a chain link.
-- A stranded `///` comment in front of a chain link stays behind code, and the chain is aligned:
+- A line that starts behind a `///` comment written behind code gets the column the same line gets behind a `//` comment — for example a closing brace, a `;`, a `)` or `]`, a leading `,`, a wrapped binary operator, `is`, `=>`, `=`, a chain link, a conditional-access link `?.`, the `?` or `:` of a conditional, or the `while` of a do-while statement — also when a directive or an own-line comment stands between the `///` comment and that line.
+- A stranded `///` comment in front of a chain link, a conditional-access link `?.`, the `?` or `:` of a conditional, or the `while` of a do-while statement stays behind code (FMT-DOC-003), and the line behind it is placed as behind a `//` comment. For a chain:
 
   ```csharp
   return items.Where(x => x > 0) /// x
@@ -102,15 +103,15 @@ Formatter output changes only for these inputs:
                       .ToList();
   ```
 
-  Today the line-break phase moves `/// x` onto a line of its own, and a second run puts a blank line above it.
-- A line whose first token with text follows a token without text on the same line is placed once, at the column its own requirement gives it (the `Dictionary<,>` case of FMT-INDENT-015).
+  Today the line-break phase moves `/// x` onto a line of its own in front of each of these tokens, and a second run puts a blank line above it.
+- A line whose first token with text follows a token without text on the same line is placed once, at the column its own requirement gives it: the `Dictionary<,>` case of FMT-INDENT-015, and the same shapes with an omitted array size (`int[,` / `] a`), whose `]` or `,` keeps the block column as `int[2,` / `3] a` does today.
 
 ### Bugs fixed in the same change
 
 Two outputs change without a change of intended behavior, because the code violates an existing requirement:
 
 - **FMT-INDENT-015** — a list whose first element is an omitted type argument keeps block indentation; `>` in `typeof(Dictionary<,` / `>)` goes to column 8, not 16.
-- **FMT-INDENT-006** — a comment that starts its line takes the column of the code that follows it also when its text holds a line terminator other than `\n`, such as a lone `\r` or U+2028; today such a comment keeps its column, while the same comment with `\n` inside moves.
+- **FMT-INDENT-006** — a comment that starts its line takes the column of the code that follows it also when its text holds a line terminator other than `\n`, such as a lone `\r`, U+2028, U+2029, or U+0085; today such a comment keeps its column, while the same comment with `\n` inside moves. The same holds for an own-line comment in the same leading trivia as a multi-line comment or disabled text (FMT-INDENT-011) whose text holds such a terminator.
 
 ### What stays as it is
 
