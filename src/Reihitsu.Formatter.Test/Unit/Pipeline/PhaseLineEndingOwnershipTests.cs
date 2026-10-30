@@ -203,6 +203,22 @@ public class PhaseLineEndingOwnershipTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a documentation element on the last line of a file without a final line break, which the documentation
+    /// phase expands onto several lines, is written with the detected line ending, under LF and under CRLF, so a second pass
+    /// leaves the output unchanged
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-019")]
+    [Requirement("FMT-PIPE-004")]
+    public void ExpandedDocumentationElementOnTheLastLineIsWrittenWithTheDetectedLineEnding()
+    {
+        const string input = "class C\n{\n}\n/// <summary>a</summary>";
+        const string expected = "class C;\n\n/// <summary>\n/// a\n/// </summary>";
+
+        AssertEveryPhaseUsesTheDetectedLineEnding(input, expected);
+    }
+
+    /// <summary>
     /// Formats the input through the observed production pipeline under LF and CRLF and asserts that every phase after the
     /// preparation phase receives and returns only the detected line ending in the line breaks the line-ending rules cover,
     /// that the LineEndings sub-phase returns only that line ending, that the output matches the expected text, that a
