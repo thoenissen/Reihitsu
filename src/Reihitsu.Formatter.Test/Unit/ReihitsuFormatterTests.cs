@@ -551,6 +551,44 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> formats a detached node that holds a line break other than
+    /// its detected line ending as it formats the node without it, and writes every line break with the detected line ending
+    /// </summary>
+    [TestMethod]
+    public void FormatNodeFormatsDetachedNodeHoldingAForeignLineBreak()
+    {
+        // Arrange
+        const string inputWithLf = "void M()\n{\n#region inner\n    var value=1;¶#endregion\n}";
+        const string expectedWithLf = "void M()\n{\n    #region Inner\n\n    var value = 1;\n\n    #endregion // Inner\n}";
+
+        foreach (var endOfLine in _lineEndings)
+        {
+            var expected = NormalizeLineEndings(expectedWithLf, endOfLine);
+            var foreignLineBreaks = endOfLine == "\n" ? new[] { "\r\n", "\r", "\u2028" } : new[] { "\n", "\r", "\u2029" };
+
+            foreach (var foreignLineBreak in foreignLineBreaks)
+            {
+                var description = $"{DescribeLineEnding(endOfLine)} line endings with {string.Join(" ", foreignLineBreak.Select(character => $"U+{(int)character:X4}"))} as the foreign line break";
+                var detachedMethod = SyntaxFactory.ParseMemberDeclaration(NormalizeLineEndings(inputWithLf, endOfLine).Replace("¶", foreignLineBreak));
+
+                Assert.IsNotNull(detachedMethod, "Expected the fixture to parse as a method declaration.");
+
+                // Act
+                var firstPass = ReihitsuFormatter.FormatNode(detachedMethod, cancellationToken: TestContext.CancellationToken).ToFullString();
+
+                // Assert
+                Assert.AreEqual(expected, firstPass, $"Unexpected first pass under {description}.");
+                AssertUsesLineEnding(firstPass, endOfLine);
+
+                var reparsedMethod = SyntaxFactory.ParseMemberDeclaration(firstPass);
+
+                Assert.IsNotNull(reparsedMethod, "Expected the first-pass output to parse as a method declaration.");
+                Assert.AreEqual(firstPass, ReihitsuFormatter.FormatNode(reparsedMethod, cancellationToken: TestContext.CancellationToken).ToFullString(), $"The second pass must not change the output under {description}.");
+            }
+        }
+    }
+
+    /// <summary>
     /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> indents a node inside a switch section to the level the
     /// layout engine assigns, including the extra indentation the switch section adds to its statement body
     /// </summary>

@@ -171,6 +171,32 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that two blank lines above a structurally rewritten property whose body holds a line break other than the
+    /// document's line ending collapse to exactly one
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task CollapsesTwoBlankLinesAboveRewrittenPropertyHoldingAForeignLineBreakToOne()
+    {
+        await AssertFormatsTargetWithForeignLineBreaks(UnbracedPropertyAfterField("\n\n").Replace("if (value != null)\n", "if (value != null)¶"),
+                                                       BracedPropertyAfterField("\n"),
+                                                       SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line above a structurally rewritten property whose body holds a line break other than the
+    /// document's line ending is kept
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task KeepsBlankLineAboveRewrittenPropertyHoldingAForeignLineBreak()
+    {
+        await AssertFormatsTargetWithForeignLineBreaks(UnbracedPropertyAfterField("\n").Replace("if (value != null)\n", "if (value != null)¶"),
+                                                       BracedPropertyAfterField("\n"),
+                                                       SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
     /// Verifies that the blank line above a line comment that precedes a structurally rewritten property is kept
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
@@ -3091,6 +3117,37 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
             var secondPass = await FormatTarget(firstPass, selectTarget);
 
             Assert.AreEqual(firstPass, secondPass, $"The second pass must not change the output under {DescribeLineEnding(endOfLine)} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Formats the selected target under LF and CRLF, with every <c>¶</c> of the input replaced by a line break other than the
+    /// document's line ending, asserts the expected text, and asserts that formatting the same target of the result a second
+    /// time changes nothing
+    /// </summary>
+    /// <param name="inputWithLf">The input with LF line endings, where <c>¶</c> marks the foreign line break</param>
+    /// <param name="expectedWithLf">The expected output with LF line endings</param>
+    /// <param name="selectTarget">Selects the target node from the document root</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private async Task AssertFormatsTargetWithForeignLineBreaks(string inputWithLf, string expectedWithLf, Func<SyntaxNode, SyntaxNode> selectTarget)
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var expected = NormalizeLineEndings(expectedWithLf, endOfLine);
+            var foreignLineBreaks = endOfLine == "\n" ? new[] { "\r\n", "\r", "\u2028" } : new[] { "\n", "\r", "\u2029" };
+
+            foreach (var foreignLineBreak in foreignLineBreaks)
+            {
+                var description = $"{DescribeLineEnding(endOfLine)} line endings with {string.Join(" ", foreignLineBreak.Select(character => $"U+{(int)character:X4}"))} as the foreign line break";
+                var firstPass = await FormatTarget(NormalizeLineEndings(inputWithLf, endOfLine).Replace("¶", foreignLineBreak), selectTarget);
+
+                Assert.AreEqual(expected, firstPass, $"Unexpected first pass under {description}.");
+                AssertUsesLineEnding(firstPass, endOfLine);
+
+                var secondPass = await FormatTarget(firstPass, selectTarget);
+
+                Assert.AreEqual(firstPass, secondPass, $"The second pass must not change the output under {description}.");
+            }
         }
     }
 
