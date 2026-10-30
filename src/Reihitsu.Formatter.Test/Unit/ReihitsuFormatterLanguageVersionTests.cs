@@ -616,18 +616,69 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a detached node parsed with C# 11 options, which belongs to no tree of its own, is formatted for the
-    /// newest supported version, because its tree carries the default parse options
+    /// Verifies that a node parsed with C# 11 parse options, which has no tree of its own, keeps those parse options:
+    /// <see cref="ReihitsuFormatter.FormatNode"/> leaves the empty class braced
     /// </summary>
     [TestMethod]
     [Requirement("FMT-PIPE-008")]
-    public void FormatNodeFormatsDetachedNodeParsedWithOlderOptionsForTheNewestSupportedVersion()
+    public void FormatNodeKeepsParseOptionsOfDetachedNodeParsedWithOlderOptions()
     {
-        var detachedRoot = SyntaxFactory.ParseCompilationUnit(SpecEmptyClassInput, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp11));
+        foreach (var endOfLine in _lineEndings)
+        {
+            var source = NormalizeLineEndings(SpecEmptyClassInput, endOfLine);
+            var detachedRoot = SyntaxFactory.ParseCompilationUnit(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp11));
 
-        var result = ReihitsuFormatter.FormatNode(detachedRoot, cancellationToken: TestContext.CancellationToken);
+            var result = ReihitsuFormatter.FormatNode(detachedRoot, cancellationToken: TestContext.CancellationToken);
 
-        Assert.AreEqual("class Empty;", result.ToFullString());
+            Assert.AreEqual(source, result.ToFullString(), $"The detached C# 11 node must stay braced under {DescribeLineEnding(endOfLine)} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a member declaration parsed with parse options, which has no tree of its own, keeps those parse
+    /// options: <see cref="ReihitsuFormatter.FormatNode"/> leaves the empty class braced for C# 11 and converts it for C# 12
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public void FormatNodeFollowsTheParseOptionsOfDetachedMemberDeclaration()
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var source = NormalizeLineEndings(SpecEmptyClassInput, endOfLine);
+            var csharp11Member = SyntaxFactory.ParseMemberDeclaration(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp11));
+            var csharp12Member = SyntaxFactory.ParseMemberDeclaration(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
+
+            Assert.IsNotNull(csharp11Member);
+            Assert.IsNotNull(csharp12Member);
+
+            var csharp11Result = ReihitsuFormatter.FormatNode(csharp11Member, cancellationToken: TestContext.CancellationToken);
+            var csharp12Result = ReihitsuFormatter.FormatNode(csharp12Member, cancellationToken: TestContext.CancellationToken);
+
+            Assert.AreEqual(source, csharp11Result.ToFullString(), $"The detached C# 11 member must stay braced under {DescribeLineEnding(endOfLine)} line endings.");
+            Assert.AreEqual("class Empty;", csharp12Result.ToFullString(), $"The detached C# 12 member must convert under {DescribeLineEnding(endOfLine)} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a node built with <see cref="SyntaxFactory"/>, without parse options, belongs to a tree with the
+    /// default parse options: <see cref="ReihitsuFormatter.FormatNode"/> converts the empty class for the newest supported version
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public void FormatNodeFormatsNodeBuiltWithSyntaxFactoryForTheNewestSupportedVersion()
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var builtRoot = SyntaxFactory.CompilationUnit()
+                                         .AddMembers(SyntaxFactory.ClassDeclaration("Empty"))
+                                         .NormalizeWhitespace(eol: endOfLine);
+
+            Assert.AreEqual(NormalizeLineEndings(SpecEmptyClassInput, endOfLine), builtRoot.ToFullString(), $"The built node must match the spec input under {DescribeLineEnding(endOfLine)} line endings.");
+
+            var result = ReihitsuFormatter.FormatNode(builtRoot, cancellationToken: TestContext.CancellationToken);
+
+            Assert.AreEqual("class Empty;", result.ToFullString(), $"The built node must convert under {DescribeLineEnding(endOfLine)} line endings.");
+        }
     }
 
     /// <summary>
