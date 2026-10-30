@@ -184,8 +184,15 @@ Every line break of the result is `\n`. With a second `\r\n` behind the closing 
 Rules that depend on the C# language version MUST read it from these parse options:
 
 - `FormatDocumentAsync` and `FormatSyntaxTree`: the parse options of the syntax tree they format — for a document, the tree its project parsed;
-- `FormatNode`: the parse options of the given node's syntax tree. A node taken from a tree, or parsed with parse options without a tree of its own, keeps those parse options; a node parsed or built without parse options belongs to a tree with the default parse options;
+- `FormatNode`: the parse options of the tree that Roslyn reports as the given node's `SyntaxTree`, whether or not the node has a parent;
 - `FormatNodeInDocumentAsync` and `FormatNodeInDocumentWithContextAsync`: the parse options of the document's project.
+
+Roslyn decides which tree a node passed to `FormatNode` reports, by how the node was obtained:
+
+- A node inside a parsed tree reports that tree.
+- A node returned by a `SyntaxFactory.Parse…` method called with parse options, or the root of a tree created by `CSharpSyntaxTree.Create` with parse options, reports a tree with those parse options.
+- A node returned by an edit that produces a new root — `ReplaceNode`, `ReplaceToken`, `ReplaceTrivia`, `RemoveNode`, the `Insert…` methods, `NormalizeWhitespace`, and `WithLeadingTrivia`, `WithTrailingTrivia`, and `WithoutTrivia` — reports a new tree with the parse options of the edited node's tree, and so do the nodes inside it.
+- These nodes report a tree with the default parse options: a node returned by a `SyntaxFactory.Parse…` method called without parse options, a node built with `SyntaxFactory`, a node returned by a generated `With…` or `Add…` method or by `WithAdditionalAnnotations` when the call changes the node, and every node inside such a node. A later edit of the previous kind keeps the default parse options. A `With…` call that changes nothing returns the node itself, which keeps its tree.
 
 `Default`, `Latest`, and `LatestMajor` MUST resolve to the newest supported version (C# 14), and `Preview` or any newer version MUST be clamped to it. Without C# parse options, the newest supported version applies.
 
@@ -238,7 +245,7 @@ stays as it is. In a C# 12 project, or from a tree parsed as C# 12, the result i
 class Empty;
 ```
 
-Given to `FormatNode` without a tree of its own, parsed with C# 11 parse options (`SyntaxFactory.ParseCompilationUnit` with `options` set to C# 11), it stays as it is. Parsed without parse options, or built with `SyntaxFactory`, it gets the C# 12 result, because the default parse options resolve to the newest supported version.
+Given to `FormatNode` without a parent, the class `Empty` from a tree parsed as C# 11 stays as it is after `ReplaceToken`, `WithoutTrivia`, or `NormalizeWhitespace`, and so does the compilation unit after `ReplaceNode` puts a changed class into it. Parsed with `SyntaxFactory.ParseCompilationUnit` or `SyntaxFactory.ParseMemberDeclaration` with C# 11 parse options, it stays as it is as well. The same class gets the C# 12 result after `WithIdentifier` with a new identifier token, after `WithAdditionalAnnotations`, or after `SyntaxFactory.CompilationUnit().AddMembers` puts it into a new compilation unit; parsed without parse options or built with `SyntaxFactory`, it gets the C# 12 result too, because the default parse options resolve to the newest supported version.
 
 ### FMT-PIPE-009 — Host-independent entry points
 
