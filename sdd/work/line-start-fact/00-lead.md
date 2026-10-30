@@ -30,3 +30,4 @@ The issue's Proposed Behavior and Done when — including its restructuring item
 - Escalation 2 (amendment): approved (`squad/decisions/2026-10-30-line-start-fact-amended-change-doc.md`).
 - Escalation 12 (contributor overlap, spacing move): 1A one contributor per line with unchanged output; 2B the join stops computing spacing and leaves the gap to the horizontal-spacing phase, fallback to moving policy and rules (`squad/decisions/2026-10-30-line-start-fact-contributor-and-spacing.md`).
 - Standing instruction from the maintainer for the rest of the run: every escalation takes the lead's recommended option, and any further change doc is provisionally accepted; the run continues to the published PR, and each such decision is recorded and listed in the run report.
+- Escalation 12 (join tight-pair table): A — kept in this run, follow-up candidate (`squad/decisions/2026-10-30-line-start-fact-join-spacing-pairs.md`).
