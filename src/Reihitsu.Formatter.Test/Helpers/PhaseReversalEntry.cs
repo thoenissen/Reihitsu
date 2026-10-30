@@ -4,10 +4,10 @@ namespace Reihitsu.Formatter.Test.Helpers;
 
 /// <summary>
 /// One known case in which a single formatting phase, run alone on the final output of a fixture, changes it, because a
-/// later phase of the pipeline undoes that change in every pass. The entry identifies the fixture by the test method
-/// that formats it and by the fingerprint of its final output, identifies the change by the fingerprint of the phase's
-/// output, and names the cause, which names the phase, and the line endings under which the change happens. Any other
-/// change of the same phase to the same fixture is not covered
+/// later phase of the pipeline undoes that change in every pass. The entry identifies the fixture by the test execution
+/// that formats it (its method and, for a data-driven test, its data row) and by the fingerprint of its final output,
+/// identifies the change by the fingerprint of the phase's output, and names the cause, which names the phase, and the
+/// line endings under which the change happens. Any other change of the same phase to the same fixture is not covered
 /// </summary>
 public sealed class PhaseReversalEntry
 {
@@ -22,8 +22,9 @@ public sealed class PhaseReversalEntry
     /// <param name="cause">The cause of the reversal, one of <see cref="PhaseReversalCauses"/>; it names the phase</param>
     /// <param name="phaseOutputFingerprint">The fingerprint of the text the phase returns when it runs alone on the final output</param>
     /// <param name="lineEndings">The line endings under which the phase changes the final output</param>
-    public PhaseReversalEntry(Type testClass, string testMethod, string fingerprint, PhaseReversalCause cause, string phaseOutputFingerprint, PhaseReversalLineEndings lineEndings)
-        : this(PhaseStabilityCheck.FormatTestName(testClass, testMethod), fingerprint, cause, phaseOutputFingerprint, lineEndings)
+    /// <param name="dataRow">For a data-driven test, the data row of the execution that formats the fixture, as <see cref="PhaseStabilityCheck.FormatDataRow"/> formats it; otherwise <see langword="null"/></param>
+    public PhaseReversalEntry(Type testClass, string testMethod, string fingerprint, PhaseReversalCause cause, string phaseOutputFingerprint, PhaseReversalLineEndings lineEndings, string dataRow = null)
+        : this(PhaseStabilityCheck.FormatTestName(testClass, testMethod), fingerprint, cause, phaseOutputFingerprint, lineEndings, dataRow)
     {
         TestClass = testClass;
         TestMethod = testMethod;
@@ -39,9 +40,12 @@ public sealed class PhaseReversalEntry
     /// <param name="cause">The cause of the reversal; it names the phase</param>
     /// <param name="phaseOutputFingerprint">The fingerprint of the text the phase returns when it runs alone on the final output</param>
     /// <param name="lineEndings">The line endings under which the phase changes the final output</param>
-    public PhaseReversalEntry(string testName, string fingerprint, PhaseReversalCause cause, string phaseOutputFingerprint, PhaseReversalLineEndings lineEndings)
+    /// <param name="dataRow">For a data-driven test, the data row of the execution that formats the fixture; otherwise <see langword="null"/></param>
+    public PhaseReversalEntry(string testName, string fingerprint, PhaseReversalCause cause, string phaseOutputFingerprint, PhaseReversalLineEndings lineEndings, string dataRow = null)
     {
         TestName = testName;
+        DataRow = dataRow;
+        TestKey = PhaseStabilityCheck.FormatTestKey(testName, dataRow);
         Fingerprint = fingerprint;
         Cause = cause;
         PhaseOutputFingerprint = phaseOutputFingerprint;
@@ -68,6 +72,17 @@ public sealed class PhaseReversalEntry
     /// The name of the test method, qualified with the full name of its class
     /// </summary>
     public string TestName { get; }
+
+    /// <summary>
+    /// For a data-driven test, the data row of the execution that formats the fixture; otherwise <see langword="null"/>
+    /// </summary>
+    public string DataRow { get; }
+
+    /// <summary>
+    /// The key of the test execution that formats the fixture: the qualified test name, with the data row of a
+    /// data-driven test
+    /// </summary>
+    public string TestKey { get; }
 
     /// <summary>
     /// The fingerprint of the fixture's final output
@@ -115,7 +130,7 @@ public sealed class PhaseReversalEntry
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"{TestName}, fixture {Fingerprint}, {Phase} output {PhaseOutputFingerprint}, {LineEndings}";
+        return $"{TestKey}, fixture {Fingerprint}, {Phase} output {PhaseOutputFingerprint}, {LineEndings}";
     }
 
     #endregion // Object

@@ -1,7 +1,6 @@
 ﻿﻿using System.Collections.Generic;
-using System.Diagnostics;
+using System.Globalization;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -43,14 +42,16 @@ public static class PhaseStabilityCheck
     /// Starts recording the phase-level stability check for a test, with the entries of <see cref="PhaseReversalExceptionList"/>
     /// and the production phases
     /// </summary>
-    public static void BeginTest()
+    /// <param name="testName">The name of the test method, qualified with the full name of its class</param>
+    /// <param name="dataRow">The data row of the test execution, as <see cref="FormatDataRow"/> formats it, or <see langword="null"/> for a test that is not data-driven</param>
+    public static void BeginTest(string testName, string dataRow)
     {
-        _currentSession.Value = new PhaseStabilitySession(PhaseReversalExceptionList.Entries, CreateProductionPhases);
+        _currentSession.Value = new PhaseStabilitySession(FormatTestKey(testName, dataRow), PhaseReversalExceptionList.Entries, CreateProductionPhases);
     }
 
     /// <summary>
-    /// Ends recording for the current test and fails when an entry of a test method that called the check was reached by
-    /// none of its fixtures. A second call in the same test finds nothing left to report
+    /// Ends recording for the current test and fails when an entry of the test was reached by none of its fixtures,
+    /// including an entry of a test that never ran the check. A second call in the same test finds nothing left to report
     /// </summary>
     public static void EndTest()
     {
@@ -58,14 +59,15 @@ public static class PhaseStabilityCheck
 
         _currentSession.Value = null;
 
-        if (session == null)
+        if (session == null
+            || session.IsEnded)
         {
             return;
         }
 
-        var failures = session.Recorders.Values.SelectMany(recorder => recorder.FindUnreachedEntries()).ToList();
+        session.End();
 
-        session.Recorders.Clear();
+        var failures = session.Recorder.FindUnreachedEntries();
 
         if (failures.Count > 0)
         {
@@ -82,16 +84,7 @@ public static class PhaseStabilityCheck
     /// <param name="parseOptions">The parse options the fixture was formatted with, or <see langword="null"/> for the defaults</param>
     public static void Verify(string finalOutput, string endOfLine, CSharpParseOptions parseOptions)
     {
-        var session = GetCurrentSession();
-        var testName = FindCallingTestName();
-
-        if (session.Recorders.TryGetValue(testName, out var recorder) == false)
-        {
-            recorder = new PhaseStabilityRecorder(testName, session.Entries, session.CreatePhases);
-            session.Recorders.Add(testName, recorder);
-        }
-
-        var failures = recorder.Check(finalOutput, endOfLine, parseOptions);
+        var failures = GetCurrentSession().Recorder.Check(finalOutput, endOfLine, parseOptions);
 
         if (failures.Count > 0)
         {
@@ -100,14 +93,12 @@ public static class PhaseStabilityCheck
     }
 
     /// <summary>
-    /// Returns the fixtures the check ran on for the calling test method so far
+    /// Returns the fixtures the check ran on in the current test so far
     /// </summary>
     /// <returns>The fingerprint, line ending, and parse options of every checked fixture, in the order the check ran</returns>
     public static IReadOnlyList<(string Fingerprint, PhaseReversalLineEndings LineEnding, CSharpParseOptions ParseOptions)> GetCheckedFixtures()
     {
-        return GetCurrentSession().Recorders.TryGetValue(FindCallingTestName(), out var recorder)
-                   ? recorder.CheckedFixtures
-                   : [];
+        return GetCurrentSession().Recorder.CheckedFixtures;
     }
 
     /// <summary>
@@ -149,6 +140,35 @@ public static class PhaseStabilityCheck
     }
 
     /// <summary>
+    /// Formats the key that identifies one test execution: the qualified test name, followed by the data row in
+    /// parentheses for a data-driven test
+    /// </summary>
+    /// <param name="testName">The name of the test method, qualified with the full name of its class</param>
+    /// <param name="dataRow">The data row, or <see langword="null"/> for a test that is not data-driven</param>
+    /// <returns>The key</returns>
+    public static string FormatTestKey(string testName, string dataRow)
+    {
+        return dataRow == null ? testName : $"{testName}({dataRow})";
+    }
+
+    /// <summary>
+    /// Formats the arguments of a data row, as <see cref="TestContext.TestData"/> or <see cref="DataRowAttribute.Data"/>
+    /// hold them: each argument in invariant culture, strings quoted, separated by a comma and a space
+    /// </summary>
+    /// <param name="data">The arguments, or <see langword="null"/> for a test that is not data-driven</param>
+    /// <returns>The formatted data row, or <see langword="null"/> when there are no arguments</returns>
+    public static string FormatDataRow(object[] data)
+    {
+        if (data == null
+            || data.Length == 0)
+        {
+            return null;
+        }
+
+        return string.Join(", ", data.Select(FormatArgument));
+    }
+
+    /// <summary>
     /// Creates the phases of the production pipeline in the order the pipeline runs them
     /// </summary>
     /// <returns>The production phases</returns>
@@ -169,7 +189,7 @@ public static class PhaseStabilityCheck
     {
         var session = GetCurrentSession();
 
-        Assert.IsEmpty(session.Recorders, "The check must be overridden before it first runs in the test.");
+        Assert.IsEmpty(session.Recorder.CheckedFixtures, "The check must be overridden before it first runs in the test.");
 
         session.Override(entries, createPhases);
     }
@@ -203,6 +223,21 @@ public static class PhaseStabilityCheck
     }
 
     /// <summary>
+    /// Formats one argument of a data row
+    /// </summary>
+    /// <param name="argument">The argument</param>
+    /// <returns>The formatted argument</returns>
+    private static string FormatArgument(object argument)
+    {
+        return argument switch
+               {
+                   null => "null",
+                   string text => $"\"{text}\"",
+                   _ => Convert.ToString(argument, CultureInfo.InvariantCulture)
+               };
+    }
+
+    /// <summary>
     /// Returns the check's state for the current test
     /// </summary>
     /// <returns>The state</returns>
@@ -213,50 +248,6 @@ public static class PhaseStabilityCheck
         Assert.IsNotNull(session, "The phase-level stability check runs only inside a test of a class derived from FormatterTestsBase.");
 
         return session;
-    }
-
-    /// <summary>
-    /// Finds the test method on the call stack: the innermost method that carries a test method attribute, or whose async
-    /// state machine is on the stack
-    /// </summary>
-    /// <returns>The name of the test method, qualified with the full name of its class</returns>
-    private static string FindCallingTestName()
-    {
-        foreach (var frame in new StackTrace().GetFrames())
-        {
-            var method = frame.GetMethod();
-
-            if (method == null)
-            {
-                continue;
-            }
-
-            if (method.IsDefined(typeof(TestMethodAttribute), inherit: true))
-            {
-                return FormatTestName(method.DeclaringType, method.Name);
-            }
-
-            var stateMachineType = method.DeclaringType;
-            var ownerType = stateMachineType?.DeclaringType;
-
-            if (ownerType == null)
-            {
-                continue;
-            }
-
-            foreach (var candidate in ownerType.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly))
-            {
-                if (candidate.GetCustomAttribute<AsyncStateMachineAttribute>()?.StateMachineType == stateMachineType
-                    && candidate.IsDefined(typeof(TestMethodAttribute), inherit: true))
-                {
-                    return FormatTestName(ownerType, candidate.Name);
-                }
-            }
-        }
-
-        Assert.Fail("The phase-level stability check found no test method on the call stack.");
-
-        return null;
     }
 
     #endregion // Methods

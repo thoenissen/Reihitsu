@@ -25,20 +25,30 @@ public abstract class FormatterTestsBase
 
     #endregion // Fields
 
+    #region Properties
+
+    /// <summary>
+    /// Test context for the current test. Declared once here, so every formatter test class uses this property and the
+    /// phase-level stability check takes the running test's identity from it
+    /// </summary>
+    public TestContext TestContext { get; set; }
+
+    #endregion // Properties
+
     #region Methods
 
     /// <summary>
-    /// Starts the phase-level stability check of the current test
+    /// Starts the phase-level stability check of the current test, identified by its class, its method, and its data row
     /// </summary>
     [TestInitialize]
     public void BeginPhaseStabilityCheck()
     {
-        PhaseStabilityCheck.BeginTest();
+        PhaseStabilityCheck.BeginTest($"{TestContext.FullyQualifiedTestClassName}.{TestContext.TestName}", PhaseStabilityCheck.FormatDataRow(TestContext.TestData));
     }
 
     /// <summary>
-    /// Ends the phase-level stability check of the current test and fails when a phase reversal entry of a test method
-    /// that ran the check was reached by none of its fixtures
+    /// Ends the phase-level stability check of the current test and fails when a phase reversal entry of the test was
+    /// reached by none of its fixtures
     /// </summary>
     [TestCleanup]
     public void EndPhaseStabilityCheck()

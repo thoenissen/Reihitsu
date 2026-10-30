@@ -8,8 +8,9 @@ using Reihitsu.Formatter.Test.Helpers.Enumerations;
 namespace Reihitsu.Formatter.Test.Helpers;
 
 /// <summary>
-/// Runs the phase-level stability check for the fixtures of one test and keeps track of which phase reversal entries
-/// the test's fixtures reached, so an entry whose reversal no longer happens fails the test that carries it
+/// Runs the phase-level stability check for the fixtures of one test execution and keeps track of which phase reversal
+/// entries they reached, so an entry whose reversal no longer happens fails the test that carries it. Every data row of
+/// a data-driven test is its own execution with its own recorder
 /// </summary>
 public sealed class PhaseStabilityRecorder
 {
@@ -43,23 +44,23 @@ public sealed class PhaseStabilityRecorder
     /// <summary>
     /// Constructor for a recorder that runs the production phases
     /// </summary>
-    /// <param name="testName">The name of the test method, qualified with the full name of its class</param>
-    /// <param name="entries">The phase reversal entries to apply; only those of the given test are kept</param>
-    public PhaseStabilityRecorder(string testName, IEnumerable<PhaseReversalEntry> entries)
-        : this(testName, entries, PhaseStabilityCheck.CreateProductionPhases)
+    /// <param name="testKey">The key of the test execution, as <see cref="PhaseStabilityCheck.FormatTestKey"/> formats it</param>
+    /// <param name="entries">The phase reversal entries to apply; only those of the given test execution are kept</param>
+    public PhaseStabilityRecorder(string testKey, IEnumerable<PhaseReversalEntry> entries)
+        : this(testKey, entries, PhaseStabilityCheck.CreateProductionPhases)
     {
     }
 
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="testName">The name of the test method, qualified with the full name of its class</param>
-    /// <param name="entries">The phase reversal entries to apply; only those of the given test are kept</param>
+    /// <param name="testKey">The key of the test execution, as <see cref="PhaseStabilityCheck.FormatTestKey"/> formats it</param>
+    /// <param name="entries">The phase reversal entries to apply; only those of the given test execution are kept</param>
     /// <param name="createPhases">Creates the phases the check runs alone</param>
-    internal PhaseStabilityRecorder(string testName, IEnumerable<PhaseReversalEntry> entries, Func<IReadOnlyList<IFormattingPhase>> createPhases)
+    internal PhaseStabilityRecorder(string testKey, IEnumerable<PhaseReversalEntry> entries, Func<IReadOnlyList<IFormattingPhase>> createPhases)
     {
-        TestName = testName;
-        _entries = entries.Where(entry => entry.TestName == testName).ToList();
+        TestKey = testKey;
+        _entries = entries.Where(entry => entry.TestKey == testKey).ToList();
         _createPhases = createPhases;
     }
 
@@ -68,9 +69,9 @@ public sealed class PhaseStabilityRecorder
     #region Properties
 
     /// <summary>
-    /// The name of the test method, qualified with the full name of its class
+    /// The key of the test execution: the qualified test name, with the data row of a data-driven test
     /// </summary>
-    public string TestName { get; }
+    public string TestKey { get; }
 
     /// <summary>
     /// The fixtures the check ran on, in the order it ran on them: the fingerprint of each final output, its line ending,
@@ -113,7 +114,7 @@ public sealed class PhaseStabilityRecorder
         {
             if (fixtureEntries.Any(entry => IsCoveredBy(change, entry)) == false)
             {
-                failures.Add($"{change.Phase} changes the final output of fixture {fingerprint} of {TestName} under {endingName} line endings when it runs alone, to the output {change.OutputFingerprint}. {change.Difference} A reversal with a known cause is listed in {nameof(PhaseReversalExceptionList)} with fixture \"{fingerprint}\" and phase output \"{change.OutputFingerprint}\".");
+                failures.Add($"{change.Phase} changes the final output of fixture {fingerprint} of {TestKey} under {endingName} line endings when it runs alone, to the output {change.OutputFingerprint}. {change.Difference} A reversal with a known cause is listed in {nameof(PhaseReversalExceptionList)} with fixture \"{fingerprint}\" and phase output \"{change.OutputFingerprint}\".");
             }
         }
 

@@ -816,12 +816,85 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that every entry names a test method of the formatter test suite that is not data-driven and a known
-    /// cause, and that no fixture and phase is listed twice. A data-driven method is refused because every data row is
-    /// its own test execution, and an entry of one row would read as stale in every other row
+    /// Verifies that a data-driven test keys its entries by data row: the entry of one row covers that row's change, and
+    /// the other row, which formats the same fixture without the change, neither fails on it nor reports it as stale
+    /// </summary>
+    /// <param name="listedRow">Whether this row is the one the entry names</param>
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void DataRowEntryCoversOnlyItsOwnRow(bool listedRow)
+    {
+        // Arrange
+        var entry = new PhaseReversalEntry(typeof(PhaseStabilityCheckTests),
+                                           nameof(DataRowEntryCoversOnlyItsOwnRow),
+                                           PhaseStabilityCheck.ComputeFingerprint(FormattedSource),
+                                           _textChangingCause,
+                                           PhaseStabilityCheck.ComputeFingerprint(TextChangingPhase.GetOutput(FormattedSource.Replace("\r\n", "\n"), "\n")),
+                                           PhaseReversalLineEndings.Both,
+                                           "True");
+
+        PhaseStabilityCheck.OverrideForCurrentTest([entry], listedRow ? CreateTextChangingPhases : PhaseStabilityCheck.CreateProductionPhases);
+
+        // Act
+        AssertRuleResult(FormattedSource);
+
+        // Assert
+        Assert.AreEqual(listedRow ? "True" : "False", PhaseStabilityCheck.FormatDataRow(TestContext.TestData));
+        PhaseStabilityCheck.EndTest();
+    }
+
+    /// <summary>
+    /// Verifies that a data row is formatted in invariant culture with quoted strings, and that a test without data has
+    /// no data row
     /// </summary>
     [TestMethod]
-    public void EveryEntryNamesATestMethodThatIsNotDataDrivenAndAKnownCause()
+    public void DataRowIsFormattedInInvariantCultureWithQuotedStrings()
+    {
+        // Act
+        var formatted = PhaseStabilityCheck.FormatDataRow([null, "a", 1.5, true]);
+
+        // Assert
+        Assert.AreEqual("null, \"a\", 1.5, True", formatted);
+        Assert.IsNull(PhaseStabilityCheck.FormatDataRow(null));
+        Assert.IsNull(PhaseStabilityCheck.FormatDataRow([]));
+        Assert.AreEqual("Sample.Tests.Fixture(1)", PhaseStabilityCheck.FormatTestKey(RecorderTestName, "1"));
+        Assert.AreEqual(RecorderTestName, PhaseStabilityCheck.FormatTestKey(RecorderTestName, null));
+    }
+
+    /// <summary>
+    /// Verifies that the test cleanup fails on an entry of a test that never runs the check, so an entry outlives no
+    /// helper call
+    /// </summary>
+    [TestMethod]
+    public void TestCleanupFailsOnAnEntryOfATestThatNeverRunsTheCheck()
+    {
+        // Arrange
+        var entry = new PhaseReversalEntry(typeof(PhaseStabilityCheckTests),
+                                           nameof(TestCleanupFailsOnAnEntryOfATestThatNeverRunsTheCheck),
+                                           PhaseStabilityCheck.ComputeFingerprint(MisindentedSource),
+                                           PhaseReversalCauses.BlankLineNextToBrace,
+                                           PhaseStabilityCheck.ComputeFingerprint(FormattedSource),
+                                           PhaseReversalLineEndings.Both);
+
+        PhaseStabilityCheck.OverrideForCurrentTest([entry], PhaseStabilityCheck.CreateProductionPhases);
+
+        // Act
+        var failure = Assert.Throws<AssertFailedException>(PhaseStabilityCheck.EndTest);
+
+        // Assert
+        Assert.Contains("Stale phase reversal entry", failure.Message);
+        Assert.Contains("under LF line endings", failure.Message);
+        Assert.Contains("under CRLF line endings", failure.Message);
+    }
+
+    /// <summary>
+    /// Verifies that every entry names a test method of the formatter test suite and a known cause, that an entry of a
+    /// data-driven method names one of its data rows and an entry of another method names none, and that no test
+    /// execution, fixture, and phase is listed twice
+    /// </summary>
+    [TestMethod]
+    public void EveryEntryNamesATestMethodItsDataRowAndAKnownCause()
     {
         // Arrange
         var causes = GetKnownCauses();
@@ -833,17 +906,35 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
 
             var method = entry.TestClass.GetMethod(entry.TestMethod, BindingFlags.Public | BindingFlags.Instance);
 
-            // Assert
             Assert.IsNotNull(method, $"{entry} names no public test method.");
+
+            var dataRows = method.GetCustomAttributes<DataRowAttribute>().Select(row => PhaseStabilityCheck.FormatDataRow(row.Data)).ToList();
+            var hasDynamicData = method.IsDefined(typeof(DynamicDataAttribute), inherit: true);
+
+            // Assert
             Assert.IsTrue(method.IsDefined(typeof(TestMethodAttribute), inherit: true), $"{entry} names a method that is not a test.");
-            Assert.DoesNotContain(attribute => attribute is DataRowAttribute or DynamicDataAttribute, method.GetCustomAttributes(), $"{entry} names a data-driven test method.");
             Assert.IsTrue(typeof(FormatterTestsBase).IsAssignableFrom(entry.TestClass), $"{entry} names a class whose tests do not run the check.");
             Assert.Contains(entry.Cause, causes, $"{entry} names no known cause.");
+
+            if (dataRows.Count == 0
+                && hasDynamicData == false)
+            {
+                Assert.IsNull(entry.DataRow, $"{entry} names a data row of a test that is not data-driven.");
+            }
+            else
+            {
+                Assert.IsNotNull(entry.DataRow, $"{entry} names no data row of its data-driven test.");
+
+                if (hasDynamicData == false)
+                {
+                    Assert.Contains(entry.DataRow, dataRows, $"{entry} names a data row its test does not have.");
+                }
+            }
         }
 
-        var keys = PhaseReversalExceptionList.Entries.Select(entry => (entry.TestName, entry.Fingerprint, entry.Phase)).ToList();
+        var keys = PhaseReversalExceptionList.Entries.Select(entry => (entry.TestKey, entry.Fingerprint, entry.Phase)).ToList();
 
-        Assert.HasCount(keys.Count, keys.Distinct(), "A fixture and phase is listed twice.");
+        Assert.HasCount(keys.Count, keys.Distinct(), "A test execution, fixture, and phase is listed twice.");
     }
 
     /// <summary>
