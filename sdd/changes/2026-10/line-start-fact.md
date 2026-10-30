@@ -2,10 +2,12 @@
 
 | | |
 |---|---|
-| Status | Accepted |
+| Status | Draft |
 | Date | 2026-10 |
-| Affected requirements | SHARED-BLANK-008 (new), FMT-INDENT-002, FMT-DOC-003, FMT-SPACE-001, FMT-SPACE-015 (retired), RH5203-001, RH5204-001, RH6002-001, RH6002-002, SHARED-CHAIN-002 |
+| Affected requirements | SHARED-BLANK-008 (new), FMT-INDENT-002, FMT-INDENT-015, FMT-DOC-003, FMT-SPACE-001, FMT-SPACE-015 (retired), RH5203-001, RH5204-001, RH6002-001, RH6002-002, SHARED-CHAIN-002 |
 | Depends on | [A preparation phase replaces tabs and normalizes line endings first](preparation-phase.md) |
+
+Amendment for approval: the maintainer accepted this change doc on 2026-10-30. The passages marked *(amended)* below have changed since then and await approval again. They make a wrapped type argument list of omitted type arguments join like any other list (FMT-BREAK-014) instead of staying wrapped with `>` in the block column; FMT-INDENT-015 keeps block indentation only for such a list that a comment or a directive keeps wrapped. Everything not marked is as accepted.
 
 ## What
 
@@ -38,7 +40,7 @@ Whether a token starts its line is decided today by several predicates on three 
 
 - A predicate that looks for `EndOfLineTrivia` does not see the line break of a `///` comment. The line behind a `///` written behind code is placed by no phase and keeps any column — the closing brace above stays in column 10 — and the horizontal-spacing phase needs FMT-SPACE-015 to keep the whitespace there, because nothing restores it once removed.
 - The same blind spot lets the line-break phase move a stranded `///` comment in front of a chain link onto its own line, against FMT-DOC-003, and the next run then adds a blank line above it, against FMT-PIPE-004 (example under *Outputs that change*).
-- A predicate that skips tokens without text treats both the omitted type argument of `Dictionary<,` and the `>` behind it as first on their line, so the indentation phase writes the line's column twice: `>` lands in column 16 instead of the block column 8 that FMT-INDENT-015 requires.
+- *(amended)* A predicate that skips tokens without text misreads a list of omitted type arguments. The line-break phase does not join `typeof(Dictionary<,` / `>)`, although FMT-BREAK-014 joins every wrapped type argument list, because it finds no first element with text to join from. And when a comment keeps such a list wrapped, the omitted type argument and the `>` behind it both count as first on their line, so the indentation phase writes the line's column twice: in `typeof(Dictionary<, // c` / `>)`, `>` lands in column 16 instead of the block column 8 that FMT-INDENT-015 requires.
 
 A rule that only one component states drifts from the copies that the others keep. One rule, shared by the analyzers that ask where a line starts and by every formatter phase, removes the disagreement and the compensating exception FMT-SPACE-015.
 
@@ -104,13 +106,15 @@ Formatter output changes only for these inputs:
   ```
 
   Today the line-break phase moves `/// x` onto a line of its own in front of each of these tokens, and a second run puts a blank line above it.
-- A line whose first token with text follows a token without text on the same line is placed once, at the column its own requirement gives it: the `Dictionary<,>` case of FMT-INDENT-015, and the same shapes with an omitted array size (`int[,` / `] a`), whose `]` or `,` keeps the block column as `int[2,` / `3] a` does today.
+- *(amended)* A wrapped type argument list whose elements are omitted type arguments is joined onto one line like any other type argument list (FMT-BREAK-014): `typeof(Dictionary<,` / `>)` becomes `typeof(Dictionary<,>)`, and `typeof(Func<` / `,,>)` becomes `typeof(Func<,,>)`. Today both stay wrapped.
+- *(amended)* A line whose first token with text follows a token without text on the same line is placed once, at the column its own requirement gives it: a type argument list of omitted type arguments that a comment or a directive keeps wrapped (`typeof(Dictionary<, // c` / `>)`, FMT-INDENT-015), and the same shapes with an omitted array size (`int[,` / `] a`), which no requirement joins, whose `]` or `,` keeps the block column as `int[2,` / `3] a` does today.
 
 ### Bugs fixed in the same change
 
-Two outputs change without a change of intended behavior, because the code violates an existing requirement:
+*(amended)* These outputs change without a change of intended behavior, because the code violates an existing requirement:
 
-- **FMT-INDENT-015** — a list whose first element is an omitted type argument keeps block indentation; `>` in `typeof(Dictionary<,` / `>)` goes to column 8, not 16.
+- *(amended)* **FMT-BREAK-014** — a wrapped type argument list is joined also when its elements are omitted type arguments: `typeof(Dictionary<,` / `>)` becomes `typeof(Dictionary<,>)`.
+- *(amended)* **FMT-INDENT-015** — a list whose first element is an omitted type argument and that stays wrapped keeps block indentation: `>` in `typeof(Dictionary<, // c` / `>)` goes to column 8, not 16.
 - **FMT-INDENT-006** — a comment that starts its line takes the column of the code that follows it also when its text holds a line terminator other than `\n`, such as a lone `\r`, U+2028, U+2029, or U+0085; today such a comment keeps its column, while the same comment with `\n` inside moves. The same holds for an own-line comment in the same leading trivia as a multi-line comment or disabled text (FMT-INDENT-011) whose text holds such a terminator.
 
 ### What stays as it is

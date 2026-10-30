@@ -381,14 +381,14 @@ class C
 }
 ```
 
-Behind the omitted type argument, the closing `>` starts its line, and the line takes the block column (FMT-INDENT-015):
+Behind the omitted type argument of a list that a comment keeps wrapped, the closing `>` starts its line, and the line takes the block column (FMT-INDENT-015):
 
 ```csharp
 class C
 {
     void M()
     {
-        var type = typeof(System.Collections.Generic.Dictionary<,
+        var type = typeof(System.Collections.Generic.Dictionary<, // c
 >);
     }
 }
@@ -399,7 +399,7 @@ class C
 {
     void M()
     {
-        var type = typeof(System.Collections.Generic.Dictionary<,
+        var type = typeof(System.Collections.Generic.Dictionary<, // c
         >);
     }
 }
