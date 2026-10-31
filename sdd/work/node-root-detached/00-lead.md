@@ -19,7 +19,7 @@ Behavior change: the issue requests changed behavior of the node-level entry poi
 - Only end-user-visible output reaches the maintainer (now the rule on `main`, #1528).
 - The node-level entry points are used only by this repository's code fixes; a node-level output no code fix reaches is not a visible output.
 - No `squad/decisions/` entries in this run.
-- Public methods of the repository's assemblies (formatter entry points, analyzer and Core helpers) are not a public API. They must work for the inputs this repository's own callers — the code fixes, the CLI, whole-document formatting — pass, not for every input their signature admits. A case no such caller reaches is neither a defect nor a follow-up. The maintainer wants this rule written down in this PR (process text in `AGENTS.md` and `squad/`, with a process change doc).
+- The formatter's public methods (`FormatNode`, `FormatNodeInDocumentAsync`, `FormatNodeInDocumentWithContextAsync`, and the rest) are not a public API — like every assembly of the repository (`squad/README.md`). They must work for the inputs this repository's own callers — the code fixes, the CLI, whole-document formatting — pass, not for every input their signature admits. A case no such caller reaches is neither a defect nor a follow-up. The maintainer wants this rule written down in this PR (process text in `AGENTS.md` and `squad/`, with a process change doc).
 
 ## Maintainer answers
 
