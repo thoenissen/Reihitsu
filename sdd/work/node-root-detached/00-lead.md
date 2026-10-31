@@ -51,9 +51,12 @@ Behavior change: the issue requests changed behavior of the node-level entry poi
 | 14 | auditor (round 1) | Architecture finding: the outermost-chain decision has several owners (Core's `FluentChain.ContinuesChain`/`IsOutermostChainNode` reading `Parent`, the root-only `ChainContinuation` fact); finding #1 is a reachable case (RH6023 on an assignment inside a conditional access) | Change the structure in this run: one owner of the outermost-chain decision that answers for every node of a detached root, not only the root; `MethodChainAlignmentContributor` joins it where that costs nothing extra | The narrow repair would copy `ContinuesChain`'s assignment branch, a second statement of the rule; the components are ones the run already changes | Restores `main`'s RH6023 output; no new output | pending |
 | 15 | auditor (round 1) | Findings #2 (code owners of `RootConstruct`, `TriviaFact`, `RootConstructExtensions`), #3 (stale attachment remarks in two blank-line files), #4 (`ComputeDepth` repeats Core's `ComputeStatementIndentLevel` loop) | Repair all three in round 1: #2 spec author, #3 and #4 implementer | Same requirement / PR-introduced; #4 removes a second loop | Text or no-output refactor | pending |
 | 16 | auditor (round 1) | Hints: construct flags serving inputs no caller passes; `IndentationPhase` re-rooting branch; `PrecedingTokenFacts.Resolve` allocation | No change | They serve FMT-PIPE-023's tab rule or are harmless; churn would cost more than it saves | Nothing changed | — |
+| 17 | test implementer (round 1) | RH6023 regression tests pin `main`'s fix output, which differs from `main`'s whole-document formatting for these inputs (`.C` column, `a?[0]` join) | Keep `main`'s fix output in this run; the fix-versus-document gap becomes a follow-up candidate | The gap exists on `main` and the run does not change it; restoring `main` is the repair | Output equals `main` | 4778920 |
 
 ## Follow-up candidates
 
-None. Every candidate the handovers named was dropped under the maintainer's clarification (decision 9).
+- RH6023 on an assignment inside a conditional access with a wrapped left side: the fix's output differs from whole-document formatting on `main` (`13-test-implementer.md`); reachable through the RH6023 code fix.
+
+Every earlier candidate was dropped under the maintainer's clarification (decision 9).
 
 Already filed during the run: thoenissen/Reihitsu#1521, thoenissen/Reihitsu#1527.
