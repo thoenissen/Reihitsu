@@ -5,7 +5,7 @@
 | ID prefix | FMT-PIPE |
 | Status | Active |
 | Code owners | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `PreparationPhase`, `FormattingContext`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities` |
-| Uses | SHARED-FIX-001, SHARED-FIX-006, SHARED-FIX-007, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-CLEAN-001, FMT-CLEAN-005, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-STRUCT-017, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003 |
+| Uses | SHARED-FIX-001, SHARED-FIX-006, SHARED-FIX-007, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BREAK-001, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-CLEAN-001, FMT-CLEAN-005, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-026, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003 |
 
 This spec covers what holds for the formatter as a whole: the public entry points, the fixed phase order, and the invariants every phase must keep. What an individual phase decides is specified in that phase's own spec.
 
@@ -580,7 +580,7 @@ class C
 
 when the indentation of every line is written with tabs, the output of the TabReplacement sub-phase holds four spaces for each of those tabs, every later phase receives that text without a tab, and the result is the block above.
 
-Example — in a file whose line breaks are `\n`, wrapping the statement below in braces (FMT-STRUCT) writes the line breaks behind the opening brace and behind the comment as `\n`, so the output of every phase holds only `\n`:
+Example — in a file whose line breaks are `\n`, wrapping the statement below in braces (FMT-STRUCT) writes the line break behind the opening brace as `\n` (FMT-STRUCT-026), and the line break behind the comment, which the author wrote, is `\n` as well, so the output of every phase holds only `\n`:
 
 ```csharp
 class C
@@ -651,3 +651,70 @@ class C
 ```
 
 The same holds when every line break is U+0085, U+2028, or U+2029 (not shown as blocks because the characters are invisible), and for a file whose line breaks mix `\r\n`, `\n`, and lone `\r`.
+
+### FMT-PIPE-021 — Every phase returns a tree its text parses back to
+
+Every phase, each sub-phase of the preparation phase included, MUST return a tree whose text, parsed again with the language version the formatter applies to it (FMT-PIPE-008), gives the same tree:
+
+- the same nodes in the same structure, and the same tokens with the same kinds and texts at the same places;
+- no token the parser has to add or skip, so no syntax error;
+- every comment, documentation comment, preprocessor directive, and disabled-text span as trivia of the same token, on the same side of it — leading or trailing.
+
+Whitespace and line breaks need only stand at the same places: the parser may give a line break or whitespace to the other of the two tokens around it, and may join two neighbouring runs of whitespace into one. This requirement covers the tree that `FormatDocumentAsync` and `FormatSyntaxTree` pass through the phases; it does not cover the node that `FormatNode`, `FormatNodeInDocumentAsync`, and `FormatNodeInDocumentWithContextAsync` pass through them.
+
+Why: Every phase after the one that wrote a tree, the documentation phase, which reads the text, and the trace, which prints the text and parses it again between passes, have to see the program the tree is. A tree whose text is another program — two tokens that read as one, or a token inside a comment — is formatted correctly only as long as a later phase happens to repair it, and a token pair that no spacing rule covers is never repaired (FMT-SPACE-002). Ownership of a comment decides what the phases do with it: a comment that trails a token stays at the end of that token's line (FMT-BREAK-001), while a comment that leads one starts its own line; a tree whose comment the parser gives to another token is formatted one way in memory and another way once its text is read. Which token holds a line break or whitespace decides nothing a phase relies on, and the line-break phase writes a line break in front of the token it moves, where the parser gives it to the token before (FMT-BREAK-001, FMT-BREAK-029).
+
+Example — in the class below, the structural-transform phase converts `Get` and braces both `if` bodies (FMT-STRUCT-001, FMT-STRUCT-004):
+
+```csharp
+class C
+{
+    int Get() => 42;
+
+    void M(bool a)
+    {
+        if (a)
+            Foo(); // trailing
+        else
+            Bar();
+    }
+}
+```
+
+The phase's output MUST NOT read `int Get(){return42;}`, where `return42` parses as one identifier, and MUST NOT put the inserted `}` directly behind `// trailing`, where it is part of the comment. It reads `int Get(){return 42;}`, and a line break stands between `// trailing` and the inserted `}` (FMT-STRUCT-026).
+
+Example — the same tree where the parser gives the whitespace and the line break to the other token: the line-break phase moves the `{` of `if (a) {` onto its own line by writing the line break in front of `{`, behind the space that ends `if (a) `; parsed again, the space and the line break are both trivia of `)`. The tree is the same. A tree in which `// leading` stands behind an inserted `{` on the brace's line, as leading trivia of the statement after it, is not the same: parsed again, the comment trails the brace.
+
+### FMT-PIPE-022 — Every phase keeps the annotations it does not own
+
+Every phase MUST return each annotation that its input carries on a node, a token, or a trivia on that element, for every element its output still holds — also where the phase changes the element's text, its trivia, or its children, or moves it into a node the phase creates. This holds for the content and closing-line tokens of a multi-line raw string literal that the indentation phase moves (FMT-RAW-001), and for the whitespace in front of a hole line that moves with it (FMT-RAW-007). An element the phase removes takes its annotations with it, and an element the phase creates carries none of the input's. The annotations a phase adds itself are outside this requirement, and so is an element the phase writes more than once, such as the modifiers each field of a split declaration repeats (FMT-STRUCT-021).
+
+Why: A caller marks the nodes it needs to find again with annotations. `FormatNodeInDocumentWithContextAsync` finds its target in the phases' output through an annotation on the target's first token (FMT-PIPE-018), and a code fix may carry annotations of its own through the formatter. A phase that rebuilds an element instead of editing it drops them: the caller then finds nothing, or a node in another place, and an entry point that cannot find its target cannot format it.
+
+Example — an annotation on the token `Call` inside the interpolation hole of the literal below stays on that token after the indentation phase moves the literal's content lines, its hole line, and its closing line under the opening quotes, and so does an annotation on the text token that holds the content `a `:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var s = $"""
+            a {Call(1,
+            2)} b
+            """;
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var s = $"""
+                 a {Call(1,
+                         2)} b
+                 """;
+    }
+}
+```

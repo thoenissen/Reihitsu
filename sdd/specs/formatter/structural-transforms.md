@@ -5,13 +5,13 @@
 | ID prefix | FMT-STRUCT |
 | Status | Active |
 | Code owners | `StructuralTransformPhase`, `ConfigurableStructuralTransforms`, `ControlFlowBraceTransform`, `ExpressionBodiedMethodTransform`, `ExpressionBodiedConstructorTransform`, `ExpressionBodiedOperatorTransform`, `ExpressionBodiedConversionTransform`, `ExpressionBodiedFinalizerTransform`, `ExpressionBodiedLocalFunctionTransform`, `ExpressionBodiedTransformUtilities`, `ExpressionBodyToBlockConverter`, `AccessorExpressionBodyTransform`, `GetOnlyMemberExpressionBodyTransform`, `EmptyTypeDeclarationSemicolonTransform`, `EnumTrailingCommaRemovalTransform`, `InitializerTrailingCommaRemovalTransform`, `TrailingCommaRemovalUtilities`, `FieldDeclarationSplitTransform` |
-| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013 |
+| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021 |
 
 This spec covers the phase that rewrites syntax shape before any layout is decided, right after the tabs in whitespace are replaced (FMT-PIPE-001): braces for `if`/`else` bodies, block bodies for expression-bodied functions, expression bodies for simple accessors and get-only members, semicolon declarations for empty types, removal of trailing commas, and one field per declaration. Every rewrite produces equivalent code (FMT-PIPE-003) and is refused for a construct whose comments, directives, or disabled text it could not carry over (FMT-PIPE-002).
 
 ## Non-goals
 
-- Line breaks, spacing, and indentation of the rewritten code. The phase only builds the new shape; later phases lay it out (FMT-PIPE-001).
+- Line breaks, spacing, and indentation of the rewritten code, apart from the separators FMT-STRUCT-026 names and the layout it leaves to the field split. The phase only builds the new shape; later phases lay it out (FMT-PIPE-001).
 - Braces for `while`, `for`, `foreach`, `using`, `lock`, `fixed`, and `do` bodies. The phase braces `if` and `else` bodies only; other unbraced bodies are left as they are.
 - Braces for switch sections — FMT-SWITCH owns them.
 - Expression-bodied properties, indexers, accessors, and lambdas. They are never turned into block bodies.
@@ -1158,3 +1158,64 @@ class C
     }
 }
 ```
+
+### FMT-STRUCT-026 — The phase writes only the separators its text needs
+
+A structural transform MUST NOT write whitespace, a line break, or indentation next to a token it creates, nor into the trivia it carries over, except a separator without which its output would not parse back to its tree (FMT-PIPE-021). These separators are decided:
+
+- one space between a token the transform creates and the token after it when the two would otherwise read as one token, such as `return` before `42`; no space where they read as two tokens without it, such as `{` before `return` or `)` before `{`;
+- a line break between a single-line comment and a token the transform creates behind it, such as `// trailing` before an inserted `}`; none between a statement and an inserted `}` that no single-line comment separates, such as `Bar();` before `}`;
+- a line break between a token the transform creates and a comment behind it that leads the next token, such as an inserted `{` before the comment `// leading` above the braced statement, and between a token the transform creates and a preprocessor directive behind it, such as an inserted `}` before `#if`; none between an inserted `{` and a statement that no comment leads, and none behind an inserted `}` that no directive follows.
+
+The comments that lead a braced statement keep the whitespace and line breaks the author wrote between them and in front of the statement, as FMT-PIPE-013 states for the final output; the transform writes no line break behind such a comment. Other whitespace and line breaks of the trivia a transform rebuilds or removes — the indentation and the line breaks in front of the first comment that leads a braced statement, or the trivia of a removed `=>` — may be dropped, as long as FMT-PIPE-002 and FMT-PIPE-013 hold for the final output.
+
+The field split (FMT-STRUCT-021) is outside this requirement: it writes the line break and indentation in front of each field it creates and the line break behind each comment it moves onto its own line, because the RH7101 code fix runs it without the phases after it. That exception is recorded until the fix formats through an entry point the pipeline spec names (thoenissen/Reihitsu#1502).
+
+Why: The phases after this one, the trace, and the documentation phase read the text of this phase's tree, so the text has to be that tree (FMT-PIPE-021). Every other piece of layout is decided again by the phase that owns it — line breaks by FMT-BREAK, spaces by FMT-SPACE, columns by FMT-INDENT — so a transform that writes it makes one decision in two places (FMT-PIPE-001), and the two can disagree.
+
+Example — the transform's output for the class of FMT-PIPE-021's first example holds `int Get(){return 42;}`, a line break between `// trailing` and the inserted `}` behind it, and no line break behind either inserted `}`. The final output is unchanged by this requirement:
+
+```csharp
+class C
+{
+    int Get()
+    {
+        return 42;
+    }
+
+    void M(bool a)
+    {
+        if (a)
+        {
+            Foo(); // trailing
+        }
+        else
+        {
+            Bar();
+        }
+    }
+}
+```
+
+Example — in
+
+```csharp
+class C
+{
+    void M(bool a)
+    {
+        if (a)
+            // leading
+            Foo();
+        if (a)
+            /* x */ /* y */ Foo();
+        if (a)
+            Foo();
+#if DEBUG
+        Bar();
+#endif
+    }
+}
+```
+
+the transform's output has a line break behind the first inserted `{`, in front of `// leading`, and keeps the line break the author wrote behind that comment; it has a line break behind the second inserted `{`, in front of `/* x */`, and keeps `/* x */ /* y */ Foo();` on one line with the spaces the author wrote; it has no line break behind the third inserted `{`, and a line break between the third inserted `}` and `#if DEBUG`.
