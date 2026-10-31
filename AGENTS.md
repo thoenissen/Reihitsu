@@ -51,12 +51,13 @@ A code fix is never required to correct every case its diagnostic reports. Some 
 
 ## Issue intake — question the report
 
-Issues here are filed under the maintainer's GitHub account, but many of them are generated — drafted by an agent from a source audit rather than observed by a person running the tool. The account name is not evidence that a human confirmed the behavior. Treat every issue as a hypothesis to be checked, never as a specification to be executed, and apply that regardless of who filed it:
+Issues here are filed under the maintainer's GitHub account, but most of them are generated — drafted by an agent from a source audit rather than observed by a person running the tool. The account name is not evidence that a human confirmed the behavior. An issue an agent writes carries the label `agent-filed`, which only the maintainer removes, from an issue whose text they wrote or reviewed. Treat every issue as a hypothesis to be checked, never as a specification to be executed, and apply that regardless of who filed it:
 
 - Verify the premise before implementing it. A bug report is confirmed only by a test that reproduces its reported behavior; a report that says it was derived from reading code rather than from running it has confirmed nothing yet, however precise its file-and-line references look.
 - Check the reasoning, not only the example. A report can reproduce and still be wrong about why it matters, how far it generalizes, or how severe it is. Its severity argument is a claim like any other and gets tested like one.
 - Reject a framing the repository's own policy contradicts. A report that treats a diagnostic without a fix as a defect in itself is arguing against `Code-fix coverage` above, and that argument does not become correct by being written in an issue.
 - Check a report that asks an analyzer to follow the formatter, or calls the formatter wrong because no rule reports what it rewrites, against [The formatter may do more than the analyzers (P11)](sdd/README.md#the-formatter-may-do-more-than-the-analyzers-p11) before implementing it: the formatter may do more than the analyzers, a rule is not widened to a different construct only because it roughly fits, and a gap inside the rule's own construct is the rule's gap.
+- Question the goals of an `agent-filed` issue, not only its premise. Its goals, "Done when" items, target behavior, and prescribed solution are proposals that the work may show to be unnecessary or wrong; drop or adjust them on the evidence, and state the difference in the pull request. A change that would alter what an end user sees is still the maintainer's to decide. The goals of an issue without the label are binding. [`squad/README.md`](squad/README.md#issues-are-hypotheses) states how the squad applies this.
 - Fix the defect that exists, not the one the issue asserts. Where the analysis and the report disagree, implement the analysis and state plainly in the pull request how the shipped change differs from what was requested.
 - Say so when a report turns out to be wrong, overstated, or already-correct behavior. Downgrading, narrowing, or closing it is a legitimate result of a run. A bug that does not reproduce keeps its passing test as a characterization test, the pull request links the issue with `Refs #<N>` rather than `Closes #<N>`, and the maintainer decides how to proceed.
 
@@ -90,9 +91,46 @@ Moving the comment into the block changes its position relative to `return`.
 **Recommendation: A** — B violates SHARED-FIX-003, and A needs no new documentation.
 ```
 
+### Output questions
+
+A question whose answer decides what an end user sees — the formatter's output, a diagnostic, a code-fix result, a rule page, or CLI behavior — is an **output question**, and it is asked as outputs, not as reasoning. It shows nothing but what the maintainer needs to pick an output:
+
+1. **Heading** — the surface and the case in a few words. For an analyzer rule, the rule's ID and its title, so the maintainer need not look the ID up: `RH3202 · Expression-style methods should not be used`.
+2. **Input** — the code the case starts from, in a `csharp` block.
+3. **Before** — today's output on `main`, in a `csharp` block, or one line when there is none ("no fix offered", "not reported").
+4. **After** — one `csharp` block per option, labeled `A`, `B`, …, with `(recommended)` on one of them. A diagnostic is shown as the code with the reported span marked, or as one line naming span and message.
+5. **Why** — one sentence for the recommendation.
+
+No requirement IDs, mechanisms, or internal alternatives; those belong to the run, not to the question. Several output questions in one message are numbered like any other questions, and the rules above for waiting on the answer apply unchanged.
+
+````markdown
+**1 · RH3202 · Expression-style methods should not be used — comment in front of the expression**
+
+Input:
+```csharp
+int Get() => /* cached */ _value;
+```
+
+Before (`main`): no fix offered.
+
+After, A (recommended):
+```csharp
+int Get()
+{
+    return /* cached */ _value;
+}
+```
+
+After, B: no fix offered; the diagnostic stays.
+
+Why A: the comment stays directly in front of the expression it describes.
+````
+
+In a squad run, only output questions and the escalations `squad/README.md` lists reach the maintainer; the lead decides every other question and records it in the pull request.
+
 ## The squad
 
-Agents implement issues as a squad: the maintainer talks only to a lead, and the lead delegates every stage to a role with a narrow job. [`squad/README.md`](squad/README.md) describes the roles, lanes, handovers, and escalations; [`squad/lead.md`](squad/lead.md) is the lead's playbook, and `squad/roles/` holds one file per role. `scripts/lane-check.sh <lane>` confirms the lane a run claimed against its diff.
+Agents implement issues as a squad: the maintainer talks only to a lead, the lead delegates every stage to a role with a narrow job, decides every internal question itself, and asks the maintainer only about what an end user sees. [`squad/README.md`](squad/README.md) describes the roles, lanes, handovers, what reaches the maintainer, and the escalations; [`squad/lead.md`](squad/lead.md) is the lead's playbook, and `squad/roles/` holds one file per role. `scripts/lane-check.sh <lane>` confirms the lane a run claimed against its diff.
 
 ## Spec Driven Development
 
@@ -144,7 +182,7 @@ Formatter transformations are non-destructive: they may rewrite syntax and trivi
 - CLI end-to-end tests call `Program.Main()` directly, use the console/temp-directory helpers in `src/Reihitsu.Cli.Test/Helpers`, and are marked `[DoNotParallelize]`.
 - The formatter and CLI intentionally leave syntax-invalid or generated code alone. Preserve that behavior when changing formatting flows: the formatter returns the original tree/document for syntax errors or auto-generated source, and the CLI skips generated files such as `.Designer.cs`, `.g.cs`, and `.g.i.cs`.
 - A `Regex` match timeout is a ReDoS guard against untrusted input, not a general safety margin — it is a wall-clock budget, so a thread merely descheduled on a loaded machine can throw even when the engine has done almost no matching work. Inside an analyzer, that throw surfaces as `AD0001` and silently disables the analyzer for the whole compilation; inside a test, it is a spurious failure under CI contention. Default new `Regex` instances to `Regex.InfiniteMatchTimeout`. Only add a bounded timeout when the pattern matches genuinely untrusted input (not a repository-owned file, not source Roslyn already parsed) *and* is capable of catastrophic backtracking (nested or overlapping quantifiers) — and when you do, record both facts in a comment at the declaration so the bound reads as a decision, not a copied neighbour.
-- Source carries no `TODO` comments. Unfinished work is a follow-up issue, which the maintainer approves before it is created and which is linked from the pull request, never from the code.
+- Source carries no `TODO` comments. Unfinished work is a follow-up issue, labeled `agent-filed` when an agent writes it, and linked from the pull request, never from the code.
 - Source comments, documentation comments, and declared type/member/file names must not reference this repository's own GitHub tracker numbers (`issue #123`, `PR #123`, or a bare `#123`) — state the durable behavior, invariant, or constraint the code protects instead; a tracker number can be renumbered, closed, or deleted, and it carries no information a reader can act on without leaving the editor. A link to another project's tracker, written as a full `https://github.com/<owner>/<repo>/issues/<n>` URL, stays legitimate. This does not restrict a pull-request description's `Closes #123` link, or agent workflow files that document passing an issue URL as workflow input — both name a tracker reference in a context outside source. `Reihitsu.ArchitectureTests` enforces the source-comment and declared-name rule and fails, naming file and line, when it is violated.
 
 ## Instructions

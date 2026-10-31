@@ -9,7 +9,7 @@
 
 Amendment for approval: the maintainer accepted this change doc on 2026-10-30. The passages marked *(amended)* below changed since then and were approved again on the same day. They make a wrapped type argument list of omitted type arguments join like any other list (FMT-BREAK-014) instead of staying wrapped with `>` in the block column; FMT-INDENT-015 keeps block indentation only for such a list that a comment or a directive keeps wrapped. Everything not marked is as accepted.
 
-The passage marked *(added 2026-10-31)* (RH6001) is provisionally accepted under the maintainer's standing instruction for this run (`squad/decisions/2026-10-31-line-start-fact-audit-2-repeat.md`).
+The passage marked *(added 2026-10-31)* (RH6001) is provisionally accepted under the maintainer's standing instruction for this run.
 
 ## What
 
