@@ -240,7 +240,7 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
     {
         var isTight = IsTightBefore(token) || IsTightAfter(previousToken);
 
-        return isTight && TokenGapUtilities.WouldMergeWhenTight(previousToken, token) == false
+        return isTight && TokenSeparationUtilities.WouldMergeIntoOneToken(previousToken, token) == false
                    ? SyntaxFactory.TriviaList()
                    : SyntaxFactory.TriviaList(SyntaxFactory.Space);
     }

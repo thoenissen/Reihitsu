@@ -9,7 +9,8 @@ using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 
 /// <summary>
-/// Applies line-break rules for blocks, accessor lists, and switch braces
+/// Applies line-break rules for blocks, accessor lists, and switch braces. It is the one owner of the braces of every block
+/// and every event accessor list, member bodies included
 /// </summary>
 internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
 {
@@ -52,22 +53,6 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
     #endregion // Constructor
 
     #region Methods
-
-    /// <summary>
-    /// Determines whether a block is the body of a method, constructor, destructor, operator, conversion operator, or
-    /// local function, whose braces <see cref="DeclarationBraceLineBreakRewriter"/> places on the declaration
-    /// </summary>
-    /// <param name="block">The block of the tree being visited</param>
-    /// <returns><see langword="true"/> if the block is such a member body; otherwise, <see langword="false"/></returns>
-    private static bool IsMemberBody(BlockSyntax block)
-    {
-        return block.Parent switch
-               {
-                   BaseMethodDeclarationSyntax method => method.Body == block,
-                   LocalFunctionStatementSyntax localFunction => localFunction.Body == block,
-                   _ => false
-               };
-    }
 
     /// <summary>
     /// Determines whether the gap between two adjacent statement tokens carries a preprocessor directive or
@@ -143,6 +128,24 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
                    : node;
     }
 
+    /// <summary>
+    /// Places the braces of a member body again on the declaration that owns them. The block was laid out when it was
+    /// visited, but a block whose content changed during the visit is detached from the token in front of its open brace,
+    /// so its open brace can only be placed here, where that token lies inside the node
+    /// </summary>
+    /// <typeparam name="TNode">The declaration type</typeparam>
+    /// <param name="node">The visited declaration</param>
+    /// <returns>The declaration with the braces of its body placed</returns>
+    private TNode NormalizeBodyBraces<TNode>(TNode node)
+        where TNode : BaseMethodDeclarationSyntax
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        return node?.Body == null
+                   ? node
+                   : _bracePlacer.NormalizeOwnedBraces(node, static declaration => declaration.Body.OpenBraceToken, static declaration => declaration.Body.CloseBraceToken);
+    }
+
     #endregion // Methods
 
     #region CSharpSyntaxVisitor
@@ -152,9 +155,6 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
     {
         _cancellationToken.ThrowIfCancellationRequested();
 
-        // The braces of a member body are placed by DeclarationBraceLineBreakRewriter, on the declaration that owns them
-        var isMemberBody = IsMemberBody(node);
-
         node = (BlockSyntax)base.VisitBlock(node);
 
         if (node == null)
@@ -162,11 +162,8 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        if (isMemberBody == false)
-        {
-            node = _bracePlacer.EnsureBraceOnOwnLine(node, owner => owner.OpenBraceToken, (owner, token) => owner.WithOpenBraceToken(token), owner => owner.CloseBraceToken, (owner, token) => owner.WithCloseBraceToken(token));
-            node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
-        }
+        node = _bracePlacer.EnsureBraceOnOwnLine(node, owner => owner.OpenBraceToken, (owner, token) => owner.WithOpenBraceToken(token), owner => owner.CloseBraceToken, (owner, token) => owner.WithCloseBraceToken(token));
+        node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
 
         node = EnsureStatementsStartOnSeparateLines(node, static block => block.Statements, static (block, statements) => block.WithStatements(statements));
 
@@ -178,9 +175,6 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
     {
         _cancellationToken.ThrowIfCancellationRequested();
 
-        // The braces of an event's accessor list are placed by DeclarationBraceLineBreakRewriter, on the event declaration
-        var isEventAccessorList = node.Parent is EventDeclarationSyntax;
-
         node = (AccessorListSyntax)base.VisitAccessorList(node);
 
         if (node == null)
@@ -188,8 +182,7 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        if (isEventAccessorList
-            || LineBreakDetection.ShouldNormalizeAccessorListBraces(node) == false)
+        if (LineBreakDetection.ShouldNormalizeAccessorListBraces(node) == false)
         {
             return node;
         }
@@ -199,6 +192,66 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
         node = _bracePlacer.EnsureAccessorsStartOnSeparateLines(node, static accessorList => accessorList);
 
         return node;
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
+    {
+        return NormalizeBodyBraces((ConstructorDeclarationSyntax)base.VisitConstructorDeclaration(node));
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitMethodDeclaration(MethodDeclarationSyntax node)
+    {
+        return NormalizeBodyBraces((MethodDeclarationSyntax)base.VisitMethodDeclaration(node));
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitOperatorDeclaration(OperatorDeclarationSyntax node)
+    {
+        return NormalizeBodyBraces((OperatorDeclarationSyntax)base.VisitOperatorDeclaration(node));
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node)
+    {
+        return NormalizeBodyBraces((ConversionOperatorDeclarationSyntax)base.VisitConversionOperatorDeclaration(node));
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitDestructorDeclaration(DestructorDeclarationSyntax node)
+    {
+        return NormalizeBodyBraces((DestructorDeclarationSyntax)base.VisitDestructorDeclaration(node));
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (LocalFunctionStatementSyntax)base.VisitLocalFunctionStatement(node);
+
+        return node?.Body == null
+                   ? node
+                   : _bracePlacer.NormalizeOwnedBraces(node, static localFunction => localFunction.Body.OpenBraceToken, static localFunction => localFunction.Body.CloseBraceToken);
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitEventDeclaration(EventDeclarationSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (EventDeclarationSyntax)base.VisitEventDeclaration(node);
+
+        if (node?.AccessorList == null
+            || LineBreakDetection.ShouldNormalizeAccessorListBraces(node.AccessorList) == false)
+        {
+            return node;
+        }
+
+        node = _bracePlacer.NormalizeOwnedBraces(node, static declaration => declaration.AccessorList.OpenBraceToken, static declaration => declaration.AccessorList.CloseBraceToken);
+
+        return _bracePlacer.EnsureAccessorsStartOnSeparateLines(node, static declaration => declaration.AccessorList);
     }
 
     /// <inheritdoc/>

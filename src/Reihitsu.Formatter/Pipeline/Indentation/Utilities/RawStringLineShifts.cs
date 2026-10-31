@@ -308,16 +308,17 @@ internal sealed class RawStringLineShifts
     }
 
     /// <summary>
-    /// Creates the token that holds the moved text of a raw string literal token. Its value is its text when it was
-    /// before, as for the end token of an interpolated literal, and otherwise the value it had: every line of one literal
-    /// moves by the same number of columns, which leaves the content without its indentation unchanged
+    /// Creates the token that holds the moved text of a raw string literal token. The end token of an interpolated literal
+    /// stands for its own text, so its value is the moved text. Every other token keeps the value it had: the value of a
+    /// literal's content is its text without the closing line's indentation, and every line of one literal, the closing
+    /// line included, moves by the same number of columns, so the value does not change
     /// </summary>
     /// <param name="token">The token of the indented tree</param>
     /// <param name="movedText">The moved text of the token</param>
     /// <returns>The token with the moved text and the original trailing trivia, without leading trivia</returns>
     private static SyntaxToken CreateMovedTextToken(SyntaxToken token, string movedText)
     {
-        var valueText = token.ValueText == token.Text
+        var valueText = token.IsKind(SyntaxKind.InterpolatedRawStringEndToken)
                             ? movedText
                             : token.ValueText;
 

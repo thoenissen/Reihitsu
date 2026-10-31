@@ -258,7 +258,10 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
 
                     if (RequiresThrowExpressionParentheses(operand))
                     {
-                        operand = SyntaxFactory.ParenthesizedExpression(operand.WithoutTrivia())
+                        // The parentheses are built with explicit trivia, so they carry no elastic trivia (FMT-STRUCT-026)
+                        operand = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.Token(default, SyntaxKind.OpenParenToken, default),
+                                                                        operand.WithoutTrivia(),
+                                                                        SyntaxFactory.Token(default, SyntaxKind.CloseParenToken, default))
                                                .WithTriviaFrom(operand);
                     }
 

@@ -52,23 +52,14 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
     /// comments around it together with the whitespace and line breaks the author wrote in front of and between them
     /// </summary>
     /// <param name="statement">The statement to inspect</param>
-    /// <param name="nextToken">The token that follows the statement in the original tree, whose leading trivia decides whether the closing brace needs a line break behind it</param>
+    /// <param name="nextToken">The token that follows the inserted closing brace, read from the original tree, whose leading trivia decides whether the closing brace needs a line break behind it; <see langword="default"/> when another inserted closing brace follows it</param>
     /// <param name="endOfLine">The end-of-line sequence of a separator line break</param>
     /// <returns>The braced statement</returns>
     private static StatementSyntax WrapWithBraces(StatementSyntax statement,
                                                   SyntaxToken nextToken,
                                                   string endOfLine)
     {
-        if (statement is null or BlockSyntax)
-        {
-            return statement;
-        }
-
-        // A preprocessor directive or disabled text in the statement's trivia would end up between the statement and a
-        // brace on a line the directive does not own, silently changing which code compiles under which configuration, so
-        // leave such a statement unbraced instead.
-        if (statement.GetLeadingTrivia().Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia)
-            || statement.GetTrailingTrivia().Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia))
+        if (CanWrap(statement) == false)
         {
             return statement;
         }
@@ -93,6 +84,59 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
         return SyntaxFactory.Block(SyntaxFactory.Token(default, SyntaxKind.OpenBraceToken, openBraceTrailingTrivia),
                                    SyntaxFactory.SingletonList(normalizedStatement),
                                    SyntaxFactory.Token(default, SyntaxKind.CloseBraceToken, closeBraceTrailingTrivia));
+    }
+
+    /// <summary>
+    /// Determines whether a statement gets braces. A block needs none. A preprocessor directive or disabled text in the
+    /// statement's trivia would end up between the statement and a brace on a line the directive does not own, silently
+    /// changing which code compiles under which configuration, so such a statement stays unbraced
+    /// </summary>
+    /// <param name="statement">The statement</param>
+    /// <returns><see langword="true"/> if the statement is wrapped in braces; otherwise, <see langword="false"/></returns>
+    private static bool CanWrap(StatementSyntax statement)
+    {
+        return statement is not null and not BlockSyntax
+               && statement.GetLeadingTrivia().Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia) == false
+               && statement.GetTrailingTrivia().Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia) == false;
+    }
+
+    /// <summary>
+    /// Gets the token that follows the closing brace inserted behind an <c>if</c> or <c>else</c> body, read from the
+    /// original tree: the <c>else</c> keyword behind an <c>if</c> body, or the token behind the whole <c>if</c> statement.
+    /// When that statement is itself a body this transform braces, its own inserted closing brace follows, so no token of
+    /// the original tree does
+    /// </summary>
+    /// <param name="body">The body of the original tree</param>
+    /// <returns>The token that follows the inserted closing brace, or <see langword="default"/> when another inserted closing brace follows it</returns>
+    private static SyntaxToken GetTokenBehindInsertedCloseBrace(StatementSyntax body)
+    {
+        return body.Parent switch
+               {
+                   IfStatementSyntax { Else: not null } ifStatement when ifStatement.Statement == body => ifStatement.Else.ElseKeyword,
+                   IfStatementSyntax ifStatement => GetTokenBehindIfStatement(ifStatement),
+                   ElseClauseSyntax { Parent: IfStatementSyntax ifStatement } => GetTokenBehindIfStatement(ifStatement),
+                   _ => body.GetLastToken().GetNextToken(includeZeroWidth: true)
+               };
+    }
+
+    /// <summary>
+    /// Gets the token that follows an <c>if</c> statement once the transform has braced the bodies around it, read from the
+    /// original tree. An <c>else if</c> stays unbraced, so what follows it is what follows the <c>if</c> statement it
+    /// belongs to; an <c>if</c> that is the body of another <c>if</c> or <c>else</c> is followed by that body's inserted
+    /// closing brace when the body gets braces
+    /// </summary>
+    /// <param name="ifStatement">The <c>if</c> statement of the original tree</param>
+    /// <returns>The token that follows the statement, or <see langword="default"/> when an inserted closing brace follows it</returns>
+    private static SyntaxToken GetTokenBehindIfStatement(IfStatementSyntax ifStatement)
+    {
+        return ifStatement.Parent switch
+               {
+                   ElseClauseSyntax { Parent: IfStatementSyntax outerIfStatement } => GetTokenBehindIfStatement(outerIfStatement),
+                   IfStatementSyntax outerIfStatement when outerIfStatement.Statement == ifStatement => CanWrap(ifStatement)
+                                                                                                            ? default
+                                                                                                            : GetTokenBehindInsertedCloseBrace(ifStatement),
+                   _ => ifStatement.GetLastToken().GetNextToken(includeZeroWidth: true)
+               };
     }
 
     /// <summary>
@@ -181,9 +225,12 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
     {
         _cancellationToken.ThrowIfCancellationRequested();
 
-        // The token behind each body is read from the original tree, because the visited node is detached from it
-        var statementNextToken = node.Statement.GetLastToken().GetNextToken(includeZeroWidth: true);
-        var elseNextToken = node.Else?.Statement.GetLastToken().GetNextToken(includeZeroWidth: true) ?? default;
+        // The token behind each inserted closing brace is read from the original tree, because the visited node is
+        // detached from it
+        var statementNextToken = GetTokenBehindInsertedCloseBrace(node.Statement);
+        var elseNextToken = node.Else != null
+                                ? GetTokenBehindInsertedCloseBrace(node.Else.Statement)
+                                : default;
 
         node = (IfStatementSyntax)base.VisitIfStatement(node);
 
