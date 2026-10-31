@@ -1082,6 +1082,32 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
         await Verify(NormalizeToCarriageReturnLineFeed(testData));
     }
 
+    /// <summary>
+    /// Verifies that a first link that starts its line behind a documentation comment written behind the root keeps its
+    /// line, as behind any other comment, and is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5112-001")]
+    public async Task VerifyFirstLinkBehindStrayDocumentationCommentIsNotReported()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal class C
+                                {
+                                    internal object M(int[] items)
+                                    {
+                                        return items /// x
+                                               .Where(x => x > 0)
+                                               .ToList();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

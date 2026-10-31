@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 
 namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
@@ -148,11 +149,14 @@ internal static class LayoutComputer
 
                 foreach (var contributor in contributors)
                 {
+                    model.AlignmentContributor = contributor;
+
                     contributor.Contribute(node, model, context);
                 }
             }
 
             model.Contributor = null;
+            model.AlignmentContributor = null;
 
             if (model.MatchesColumns(columns))
             {
@@ -167,8 +171,8 @@ internal static class LayoutComputer
 
     /// <summary>
     /// Determines whether a token is the first token on its line. The rule itself lives in
-    /// <see cref="SyntaxTokenPositionUtilities.IsFirstOnLine"/>, shared with the RH5204 analyzer so both engines
-    /// agree on which token owns a line; this forwarder keeps the formatter's own call sites unchanged
+    /// <see cref="SyntaxTokenPositionUtilities.IsFirstOnLine"/>, shared with the analyzers so every engine agrees on which
+    /// token owns a line (SHARED-BLANK-008); this forwarder keeps the formatter's own call sites unchanged
     /// </summary>
     /// <param name="token">The token to check</param>
     /// <returns><see langword="true"/> if the token is first on its line; otherwise, <see langword="false"/></returns>
@@ -227,7 +231,7 @@ internal static class LayoutComputer
         var originalColumn = GetColumn(token);
 
         if (model.TryGetPlacedColumnBeforeRawStringShift(GetLine(token), out var lineColumn) == false
-            || TryGetLineTextColumn(FindFirstTokenOnLine(token), out var lineTextColumn) == false)
+            || TryGetLineTextColumn(token, out var lineTextColumn) == false)
         {
             return originalColumn;
         }
@@ -296,7 +300,7 @@ internal static class LayoutComputer
             && token.SyntaxTree?.GetText() is { Length: > 0 } text
             && text[0] == '\uFEFF'
             && model.TryGetPlacedColumnBeforeRawStringShift(GetLine(token), out _)
-            && TryGetLineTextColumn(FindFirstTokenOnLine(token), out _))
+            && TryGetLineTextColumn(token, out _))
         {
             column++;
         }
@@ -391,7 +395,9 @@ internal static class LayoutComputer
     }
 
     /// <summary>
-    /// Applies block indentation for first-on-line tokens
+    /// Applies block indentation for first-on-line tokens, and for the line the end of the file stands on when no token
+    /// with text stands on that line. The end of the file has no text and starts no line (SHARED-BLANK-008), but a comment
+    /// or directive in front of it on its line, and the comments above it, take the column of the file's top level
     /// </summary>
     /// <param name="token">The token to evaluate</param>
     /// <param name="childIndent">The computed child indentation level</param>
@@ -399,7 +405,8 @@ internal static class LayoutComputer
     /// <param name="baseColumn">The base indentation column</param>
     private static void SetTokenIndentation(SyntaxToken token, int childIndent, LayoutModel model, int baseColumn)
     {
-        if (IsFirstOnLine(token) == false)
+        if (IsFirstOnLine(token) == false
+            && IsAloneOnEndOfFileLine(token) == false)
         {
             return;
         }
@@ -408,69 +415,35 @@ internal static class LayoutComputer
     }
 
     /// <summary>
-    /// Gets the column at which the text of a line starts, given the line's first token: the column of the first
-    /// comment that stands in front of the token on its line, or otherwise the token's own column. The indentation
-    /// phase writes the line's column there. The text does not start on the line when the line starts inside the
-    /// previous token, inside that token's trailing trivia, or inside a trivia of the first token that began on an
-    /// earlier line, such as a multi-line comment; the phase then leaves the line's start as it is
+    /// Determines whether a token is the end of the file and no token with text stands on its line
     /// </summary>
-    /// <param name="firstTokenOnLine">The first token on the line</param>
-    /// <param name="column">The column at which the line's text starts</param>
-    /// <returns><see langword="true"/> if the line's text starts on the line; otherwise, <see langword="false"/></returns>
-    private static bool TryGetLineTextColumn(SyntaxToken firstTokenOnLine, out int column)
+    /// <param name="token">The token to check</param>
+    /// <returns><see langword="true"/> if the token is the end of the file alone on its line; otherwise, <see langword="false"/></returns>
+    private static bool IsAloneOnEndOfFileLine(SyntaxToken token)
     {
-        column = GetColumn(firstTokenOnLine);
-
-        var lineStart = firstTokenOnLine.SpanStart - column;
-
-        if (firstTokenOnLine.FullSpan.Start > lineStart)
+        if (token.IsKind(SyntaxKind.EndOfFileToken) == false)
         {
             return false;
         }
 
-        // The full span counts the delimiters of structured trivia, such as the opening "/**" of a documentation comment
-        foreach (var trivia in firstTokenOnLine.LeadingTrivia)
-        {
-            if (trivia.FullSpan.End <= lineStart
-                || trivia.IsKind(SyntaxKind.WhitespaceTrivia))
-            {
-                continue;
-            }
+        var previousToken = token.GetPreviousToken();
 
-            if (trivia.FullSpan.Start < lineStart)
-            {
-                return false;
-            }
-
-            column = trivia.FullSpan.Start - lineStart;
-
-            return true;
-        }
-
-        return true;
+        return previousToken.IsKind(SyntaxKind.None)
+               || SyntaxTriviaUtilities.AreSeparatedByEndOfLine(previousToken, token);
     }
 
     /// <summary>
-    /// Finds the first token on the same line as the given token
+    /// Gets the column at which the text of a token's line starts: the comment or directive that starts the line, or the
+    /// token that starts it (<see cref="LineStartIndex"/>). The indentation phase writes the line's column there. The text
+    /// does not start on the line when the line starts inside the previous token, inside its trailing trivia, or inside a
+    /// trivia that began on an earlier line, such as a multi-line comment; the phase then leaves the line's start as it is
     /// </summary>
-    /// <param name="token">The token to find the first token on the same line for</param>
-    /// <returns>The first token on the same line</returns>
-    private static SyntaxToken FindFirstTokenOnLine(SyntaxToken token)
+    /// <param name="token">A token on the line</param>
+    /// <param name="column">The column at which the line's text starts</param>
+    /// <returns><see langword="true"/> if the line's text starts on the line; otherwise, <see langword="false"/></returns>
+    private static bool TryGetLineTextColumn(SyntaxToken token, out int column)
     {
-        var targetLine = GetLine(token);
-        var current = token;
-
-        while (true)
-        {
-            var prev = current.GetPreviousToken();
-
-            if (prev == default || prev.IsKind(SyntaxKind.None) || GetLine(prev) != targetLine)
-            {
-                return current;
-            }
-
-            current = prev;
-        }
+        return LineStartIndex.For(token.SyntaxTree).TryGetLineStartColumn(GetLine(token), out column);
     }
 
     #endregion // Private methods

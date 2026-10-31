@@ -5,7 +5,7 @@
 | ID prefix | FMT-INDENT |
 | Status | Active |
 | Code owners | `IndentationPhase`, `LayoutComputer`, `LayoutModel`, `TokenLayout`, `IndentationRewriter`, `ListElementAligner`, `SyntaxIndentationUtilities`, `ArgumentAlignmentContributor`, `AngleBracketListAlignmentContributor`, `AnonymousObjectContributor`, `BaseTypeListContributor`, `BinaryExpressionContributor`, `CaseWhenClauseContributor`, `CollectionExpressionContributor`, `CommentIndentationContributor`, `ConditionalExpressionContributor`, `ConstructorInitializerContributor`, `GenericConstraintContributor`, `LambdaAlignmentContributor`, `ListPatternContributor`, `MethodChainAlignmentContributor`, `ObjectInitializerContributor`, `ParenthesizedPatternContributor`, `PatternAnchor`, `RecursivePatternContributor`, `SwitchExpressionContributor` |
-| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-015, SHARED-BLANK-002, SHARED-CHAIN-007, FMT-DOC-012, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SWITCH-001 |
+| Uses | FMT-BREAK-014, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-015, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-007, FMT-DOC-003, FMT-DOC-012, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SWITCH-001 |
 
 This spec covers the indentation phase: the column at which every line that starts with a token begins — block indentation by scope depth, the alignment of wrapped constructs to an anchor token, and the re-indentation of comments and directives that start a line. Line breaks are already decided when this phase runs (FMT-PIPE-001); it only changes the whitespace in front of the first token or trivia of a line. The same phase moves the lines of multi-line raw string literals as FMT-RAW specifies, so the column it gives a line is final (FMT-PIPE-015).
 
@@ -41,9 +41,9 @@ class C
 
 ### FMT-INDENT-002 — Block indentation follows the scope depth
 
-The formatter MUST indent the first token of every line by one level per enclosing scope: the braces of a block-scoped namespace, a type, a block, an accessor list, and a switch statement each add one level for what lies between them, and the braces themselves stay at their owner's level. A file-scoped namespace and top-level statements MUST NOT add a level. A labeled statement MUST be indented like any other statement.
+The formatter MUST indent the first token of every line by one level per enclosing scope: the braces of a block-scoped namespace, a type, a block, an accessor list, and a switch statement each add one level for what lies between them, and the braces themselves stay at their owner's level. A file-scoped namespace and top-level statements MUST NOT add a level. A labeled statement MUST be indented like any other statement. The first token of a line is the token that starts it as SHARED-BLANK-008 decides, also when the line break in front of it is the one that ends a single-line documentation comment (`///`) written behind code on the line above; the lines of that comment are its text and MUST keep their columns (FMT-DOC-003).
 
-Why: Depth by scope is the convention every C# reader expects, and computing it from the syntax tree rather than from the existing whitespace makes the result independent of how badly the input was indented. A label is a statement in the syntax tree and gets no separate outdent rule.
+Why: Depth by scope is the convention every C# reader expects, and computing it from the syntax tree rather than from the existing whitespace makes the result independent of how badly the input was indented. A label is a statement in the syntax tree and gets no separate outdent rule. A line behind a `///` comment written behind code is a line like any other; it gets the column it would get behind a `//` comment, rather than whatever column the author left it in.
 
 Example:
 
@@ -138,6 +138,34 @@ class C
     }
 }
 ```
+
+A closing brace behind a `///` comment written behind code starts its line and is indented:
+
+```csharp
+class C
+{
+    int A; /// <summary>end</summary>
+          }
+```
+
+```csharp
+class C
+{
+    int A; /// <summary>end</summary>
+}
+```
+
+while the continuation line of such a comment is part of the comment's text and keeps its column:
+
+```csharp
+class C
+{
+    int A; ///<remarks>a
+        /// b</remarks>
+}
+```
+
+is left unchanged.
 
 ### FMT-INDENT-003 — Switch sections
 
@@ -606,7 +634,7 @@ class C
 
 ### FMT-INDENT-015 — Attribute lists and angle-bracket lists align to their first element
 
-When an attribute list, a type argument list, a type parameter list, or a function-pointer parameter list spans several lines, the formatter MUST indent every later element, every separator, and the closing bracket that starts a line to the column of the list's first element. A list whose first element is an omitted type argument (`Dictionary<,>`) MUST keep block indentation.
+When an attribute list, a type argument list, a type parameter list, or a function-pointer parameter list spans several lines, the formatter MUST indent every later element, every separator, and the closing bracket that starts a line to the column of the list's first element. A list whose first element is an omitted type argument (`Dictionary<,>`) and that stays wrapped, because a comment or a directive in it keeps FMT-BREAK-014 from joining it, MUST keep block indentation.
 
 Why: These lists open with a bracket that sits directly in front of the first element, so the first element's column is the natural anchor. An omitted type argument has no width and therefore no column to align to.
 
@@ -637,6 +665,30 @@ class C
 
     System.Collections.Generic.Dictionary<int, // first
                                           string> _map;
+}
+```
+
+A list of omitted type arguments that a comment keeps wrapped keeps block indentation:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var type = typeof(System.Collections.Generic.Dictionary<, // c
+                                                                >);
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var type = typeof(System.Collections.Generic.Dictionary<, // c
+        >);
+    }
 }
 ```
 

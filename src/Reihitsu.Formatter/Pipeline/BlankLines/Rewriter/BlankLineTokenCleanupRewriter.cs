@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
-using Reihitsu.Formatter.Utilities;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.BlankLines.Rewriter;
 
@@ -183,11 +183,11 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
         }
 
         var newTrivia = new List<SyntaxTrivia>(trivia.Count - runEnd + indentationTrivia.Count + 2);
-        var keepByteOrderMark = startsText && ReihitsuFormatterHelpers.StartsWithByteOrderMark(trivia[0]);
+        var keepByteOrderMark = startsText && ByteOrderMarkUtilities.StartsWithByteOrderMark(trivia[0]);
 
         if (keepByteOrderMark && keepSingleLineBreak)
         {
-            newTrivia.Add(ReihitsuFormatterHelpers.CreateByteOrderMarkTrivia());
+            newTrivia.Add(ByteOrderMarkUtilities.CreateByteOrderMarkTrivia());
         }
 
         if (keepSingleLineBreak)
@@ -197,7 +197,7 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
 
         if (keepByteOrderMark && keepSingleLineBreak == false)
         {
-            newTrivia.Add(ReihitsuFormatterHelpers.CreateByteOrderMarkTrivia(indentationTrivia));
+            newTrivia.Add(ByteOrderMarkUtilities.CreateByteOrderMarkTrivia(indentationTrivia));
         }
         else
         {
@@ -272,7 +272,7 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Removes blank lines that appear between the trivia at <paramref name="anchorIndex"/> and the
     /// token itself, leaving exactly the line break the anchor trivia's own termination requires — zero
-    /// when it already embeds one (see <see cref="BlankLineTriviaUtilities.EndsWithLineBreak"/>), one
+    /// when it already embeds one (see <see cref="SyntaxTriviaUtilities.EndsWithLineBreak"/>), one
     /// otherwise
     /// </summary>
     /// <param name="token">The token to update</param>
@@ -306,7 +306,7 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
             }
         }
 
-        var anchorEndsWithLineBreak = BlankLineTriviaUtilities.EndsWithLineBreak(trivia[anchorIndex]);
+        var anchorEndsWithLineBreak = SyntaxTriviaUtilities.EndsWithLineBreak(trivia[anchorIndex]);
         var requiredLineBreaks = anchorEndsWithLineBreak ? 0 : 1;
 
         if (endOfLineCount <= requiredLineBreaks)
@@ -345,7 +345,7 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
             return trivia;
         }
 
-        var documentationCommentEndsWithLineBreak = BlankLineTriviaUtilities.EndsWithLineBreak(trivia[documentationCommentIndex]);
+        var documentationCommentEndsWithLineBreak = SyntaxTriviaUtilities.EndsWithLineBreak(trivia[documentationCommentIndex]);
 
         if (TryGetDocumentationBlankLineRun(trivia,
                                             documentationCommentIndex,

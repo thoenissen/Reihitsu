@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -609,6 +610,48 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
                                                        expected,
                                                        root => root.DescendantNodes().OfType<InvocationExpressionSyntax>().First(),
                                                        SelectSingle<EqualsValueClauseSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a block target whose closing brace starts its line behind a documentation comment written behind the
+    /// block's last statement places that brace in the column of its method, as document-level formatting does
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-INDENT-002")]
+    public async Task BlockTargetPlacesClosingBraceBehindStrayDocumentationComment()
+    {
+        const string input = "class C\n{\n    void M()\n    {\n        var x = 1; /// x\n            }\n}";
+        const string expected = "class C\n{\n    void M()\n    {\n        var x = 1; /// x\n    }\n}";
+
+        await AssertFormatsTarget(input, expected, SelectSingle<BlockSyntax>);
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> on a detached type whose closing brace starts its line behind
+    /// a documentation comment written behind the last field places that brace in the column of its type, as
+    /// document-level formatting does
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-002")]
+    public void DetachedTypePlacesClosingBraceBehindStrayDocumentationComment()
+    {
+        const string input = "class D\n{\n    int A; /// <summary>end</summary>\n          }";
+        const string expected = "class D\n{\n    int A; /// <summary>end</summary>\n}";
+
+        foreach (var endOfLine in _lineEndings)
+        {
+            var detachedRoot = SyntaxFactory.ParseCompilationUnit(NormalizeLineEndings(input, endOfLine));
+
+            var firstPass = ReihitsuFormatter.FormatNode(detachedRoot, cancellationToken: TestContext.CancellationToken).ToFullString();
+
+            Assert.AreEqual(NormalizeLineEndings(expected, endOfLine), firstPass, $"Unexpected first pass under {DescribeLineEnding(endOfLine)} line endings.");
+
+            var secondPass = ReihitsuFormatter.FormatNode(SyntaxFactory.ParseCompilationUnit(firstPass), cancellationToken: TestContext.CancellationToken).ToFullString();
+
+            Assert.AreEqual(firstPass, secondPass, $"The second pass must not change the output under {DescribeLineEnding(endOfLine)} line endings.");
+        }
     }
 
     /// <summary>

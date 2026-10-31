@@ -6,8 +6,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
-using Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
-using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.SwitchCaseBraces.Rewriter;
 
@@ -607,7 +605,7 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
         foreach (var trivia in original)
         {
-            if (ReihitsuFormatterHelpers.IsCommentTrivia(trivia))
+            if (SyntaxTriviaUtilities.IsCommentTrivia(trivia))
             {
                 for (var blankLineIndex = 0; blankLineIndex < pendingBlankLines; blankLineIndex++)
                 {
@@ -619,7 +617,7 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
                 result.Add(trivia);
 
                 // A documentation comment carries the line break that ends its last line, so the next line starts behind it
-                if (BlankLineTriviaUtilities.EndsWithLineBreak(trivia))
+                if (SyntaxTriviaUtilities.EndsWithLineBreak(trivia))
                 {
                     lineHasContent = false;
                 }
@@ -724,8 +722,8 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     /// <returns><see langword="true"/> if the list carries a comment or directive; otherwise, <see langword="false"/></returns>
     private static bool BraceTriviaCarriesCommentOrDirective(SyntaxTriviaList triviaList)
     {
-        return triviaList.Any(static trivia => ReihitsuFormatterHelpers.IsCommentTrivia(trivia)
-                                               || ReihitsuFormatterHelpers.IsDirectiveOrDisabledTextTrivia(trivia));
+        return triviaList.Any(static trivia => SyntaxTriviaUtilities.IsCommentTrivia(trivia)
+                                               || SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia));
     }
 
     /// <summary>
@@ -735,7 +733,7 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     /// <returns>The comment trivia contained in the list</returns>
     private static List<SyntaxTrivia> CollectComments(SyntaxTriviaList triviaList)
     {
-        return triviaList.Where(ReihitsuFormatterHelpers.IsCommentTrivia)
+        return triviaList.Where(SyntaxTriviaUtilities.IsCommentTrivia)
                          .ToList();
     }
 
@@ -750,8 +748,8 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     {
         return section.Labels.Cast<SyntaxNode>()
                              .Concat(section.Statements)
-                             .Any(static node => node.GetLeadingTrivia().Any(ReihitsuFormatterHelpers.IsDirectiveOrDisabledTextTrivia)
-                                                 || node.GetTrailingTrivia().Any(ReihitsuFormatterHelpers.IsDirectiveOrDisabledTextTrivia));
+                             .Any(static node => node.GetLeadingTrivia().Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia)
+                                                 || node.GetTrailingTrivia().Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia));
     }
 
     /// <summary>

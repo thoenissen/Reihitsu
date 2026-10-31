@@ -3,6 +3,8 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Formatter.Pipeline.Indentation.Contributors;
+
 namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 
 /// <summary>
@@ -41,6 +43,16 @@ internal sealed class LayoutModel
     private readonly HashSet<int> _placedRawStringHoleLines = [];
 
     /// <summary>
+    /// Maps each line to the alignment contributors whose <see cref="Set"/> placed it
+    /// </summary>
+    private readonly Dictionary<int, HashSet<Type>> _alignmentContributors = [];
+
+    /// <summary>
+    /// Maps each line that only a fallback placed (<see cref="SetUnlessPlaced"/>) to the alignment contributor that wrote it
+    /// </summary>
+    private readonly Dictionary<int, Type> _fallbackContributors = [];
+
+    /// <summary>
     /// The moves of the lines of multi-line raw string literals, or <see langword="null"/> when the tree holds no
     /// such literal
     /// </summary>
@@ -68,6 +80,13 @@ internal sealed class LayoutModel
     /// write while none is set only stands in until a construct inside the hole places the line
     /// </summary>
     public SyntaxNode Contributor { get; set; }
+
+    /// <summary>
+    /// The alignment contributor that is writing to the model, or <see langword="null"/> while block indentation, the
+    /// shift to the root's document column, and comment alignment write to it. Every line an accepted <see cref="Set"/>
+    /// places while it is set is recorded for that contributor (<see cref="GetAlignmentContributors"/>)
+    /// </summary>
+    public ILayoutContributor AlignmentContributor { get; set; }
 
     #endregion // Properties
 
@@ -113,12 +132,62 @@ internal sealed class LayoutModel
         }
 
         RecordPlacement(lineNumber);
+        RecordAlignmentContributor(lineNumber);
 
         var shift = GetRawStringShift(lineNumber);
 
         _layouts[lineNumber] = shift == 0
                                    ? layout
                                    : new TokenLayout(layout.Column - shift, layout.Source);
+    }
+
+    /// <summary>
+    /// Sets a fallback layout for a line: it places the line only while no alignment contributor has placed it through
+    /// <see cref="Set"/>, and a later <see cref="Set"/> takes the line over. A contributor uses it for a line it aligns only
+    /// because no construct on the line lays the line out itself, such as a line that continues a list element, so the
+    /// construct that does lay the line out is its only owner
+    /// </summary>
+    /// <param name="lineNumber">The 0-based line number</param>
+    /// <param name="layout">The fallback layout</param>
+    public void SetUnlessPlaced(int lineNumber, TokenLayout layout)
+    {
+        if (_alignmentContributors.ContainsKey(lineNumber)
+            || AcceptsWrite(lineNumber) == false)
+        {
+            return;
+        }
+
+        RecordPlacement(lineNumber);
+
+        if (AlignmentContributor != null)
+        {
+            _fallbackContributors[lineNumber] = AlignmentContributor.GetType();
+        }
+
+        var shift = GetRawStringShift(lineNumber);
+
+        _layouts[lineNumber] = shift == 0
+                                   ? layout
+                                   : new TokenLayout(layout.Column - shift, layout.Source);
+    }
+
+    /// <summary>
+    /// Gets the alignment contributors that placed the line while the alignment sweeps ran: the contributors whose
+    /// <see cref="Set"/> placed it, or, when none did, the contributor whose fallback (<see cref="SetUnlessPlaced"/>) placed
+    /// it. A contributor that only moved the line with a range (<see cref="ShiftRange"/>) is not counted
+    /// </summary>
+    /// <param name="lineNumber">The 0-based line number</param>
+    /// <returns>The types of the contributors that placed the line; empty when none did</returns>
+    public IReadOnlyCollection<Type> GetAlignmentContributors(int lineNumber)
+    {
+        if (_alignmentContributors.TryGetValue(lineNumber, out var contributors))
+        {
+            return contributors;
+        }
+
+        return _fallbackContributors.TryGetValue(lineNumber, out var fallbackContributor)
+                   ? [fallbackContributor]
+                   : [];
     }
 
     /// <summary>
@@ -350,6 +419,26 @@ internal sealed class LayoutModel
         return Contributor == null
                || _rawStringHoleLines.TryGetValue(lineNumber, out var holeLine) == false
                || holeLine.Hole.Span.Contains(Contributor.Span);
+    }
+
+    /// <summary>
+    /// Records that the current alignment contributor placed the line, when one is writing
+    /// </summary>
+    /// <param name="lineNumber">The 0-based line number</param>
+    private void RecordAlignmentContributor(int lineNumber)
+    {
+        if (AlignmentContributor == null)
+        {
+            return;
+        }
+
+        if (_alignmentContributors.TryGetValue(lineNumber, out var contributors) == false)
+        {
+            contributors = [];
+            _alignmentContributors[lineNumber] = contributors;
+        }
+
+        contributors.Add(AlignmentContributor.GetType());
     }
 
     /// <summary>

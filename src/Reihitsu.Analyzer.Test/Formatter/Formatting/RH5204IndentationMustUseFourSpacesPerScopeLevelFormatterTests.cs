@@ -136,5 +136,32 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelFormatterTests : For
         await VerifyFormatter(source);
     }
 
+    /// <summary>
+    /// Verifies that the formatter moves a closing brace that starts its line behind a documentation comment written behind
+    /// code to the column of its type, which clears the diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BLANK-008")]
+    public async Task VerifyFormatterFixesClosingBraceBehindStrayDocumentationComment()
+    {
+        const string input = """
+                             internal class C
+                             {
+                                 internal int A; /// <summary>end</summary>
+                                       }
+                             """;
+        const string fixedData = """
+                                 internal class C
+                                 {
+                                     internal int A; /// <summary>end</summary>
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, 4, 11, 4, 12, AnalyzerResources.RH5204MessageFormat));
+    }
+
     #endregion // Tests
 }

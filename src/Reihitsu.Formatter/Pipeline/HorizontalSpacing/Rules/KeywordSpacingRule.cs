@@ -97,6 +97,7 @@ internal sealed class KeywordSpacingRule : ISpacingRule
             case SyntaxKind.CatchKeyword:
             case SyntaxKind.UsingKeyword:
             case SyntaxKind.LockKeyword:
+            case SyntaxKind.FixedKeyword:
             case SyntaxKind.ReturnKeyword:
             case SyntaxKind.ThrowKeyword:
             case SyntaxKind.NewKeyword:

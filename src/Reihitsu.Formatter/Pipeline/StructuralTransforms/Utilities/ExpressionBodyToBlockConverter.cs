@@ -5,8 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
-using Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
-using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Pipeline.StructuralTransforms.Enumerations;
 
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Utilities;
@@ -99,7 +98,7 @@ internal static class ExpressionBodyToBlockConverter
             var trivia = arrowToken.LeadingTrivia[triviaIndex];
 
             if (trivia.IsKind(SyntaxKind.EndOfLineTrivia)
-                || BlankLineTriviaUtilities.EndsWithLineBreak(trivia))
+                || SyntaxTriviaUtilities.EndsWithLineBreak(trivia))
             {
                 return false;
             }
@@ -291,7 +290,7 @@ internal static class ExpressionBodyToBlockConverter
             significantTrivia.Add(trivia);
         }
 
-        return LineBreakTriviaUtilities.StripTrailingWhitespace(SyntaxFactory.TriviaList(significantTrivia));
+        return TriviaListUtilities.RemoveTrailingWhitespace(SyntaxFactory.TriviaList(significantTrivia));
     }
 
     #endregion // Methods

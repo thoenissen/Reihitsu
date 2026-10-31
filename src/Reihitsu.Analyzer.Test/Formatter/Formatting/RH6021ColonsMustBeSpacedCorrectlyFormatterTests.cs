@@ -44,5 +44,35 @@ public class RH6021ColonsMustBeSpacedCorrectlyFormatterTests : FormatterTestsBas
                               Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6021MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter's output for a constructor-initializer colon directly followed by a documentation comment
+    /// stays unchanged and raises no diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6021-002")]
+    public async Task VerifyFormatterOutputWithStrayDocumentationCommentBehindColonIsNotReported()
+    {
+        const string testData = """
+                                internal class B
+                                {
+                                    public B(int a)
+                                    {
+                                    }
+                                }
+
+                                internal class C : B
+                                {
+                                    public C()
+                                        :/// x
+                                    base(1)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyFormatter(testData);
+    }
+
     #endregion // Tests
 }

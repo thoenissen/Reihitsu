@@ -3,9 +3,10 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Data.Enumerations;
 using Reihitsu.Formatter.Pipeline;
-using Reihitsu.Formatter.Pipeline.StructuralTransforms.Enumerations;
 using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter;
@@ -174,7 +175,7 @@ public static class ReihitsuFormatter
 
         var originalFirstToken = targetNode.GetFirstToken();
         var precedingToken = originalFirstToken.GetPreviousToken();
-        var keepsLeadingTrivia = targetNode.Parent == root || ReihitsuFormatterHelpers.StartsOnNewLineIncludingDocumentation(originalFirstToken) == false;
+        var keepsLeadingTrivia = targetNode.Parent == root || SyntaxTriviaUtilities.AreSeparatedByEndOfLine(precedingToken, originalFirstToken) == false;
 
         // The indentation phase lays out the target so that its first token keeps its column in the document, so no line
         // is moved after the last phase (FMT-PIPE-017)

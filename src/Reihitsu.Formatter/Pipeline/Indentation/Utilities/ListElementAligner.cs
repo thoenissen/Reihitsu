@@ -91,7 +91,9 @@ internal static class ListElementAligner
     /// first token. A line inside a construct that lays out its own lines - as
     /// <see cref="ListElementInteriorUtilities.FindOwningConstruct"/> names them, the same constructs whose interior
     /// wraps the line-break phase keeps - is left to that construct, except that every clause after a query's first
-    /// <c>from</c>, including the clauses of an <c>into</c> continuation, is aligned with the query's first token
+    /// <c>from</c>, including the clauses of an <c>into</c> continuation, is aligned with the query's first token. The
+    /// alignment is a fallback (<see cref="LayoutModel.SetUnlessPlaced"/>): a construct inside the element whose contributor
+    /// places the line, such as a wrapped binary operator, a conditional, or a chain link, is the line's only owner
     /// </summary>
     /// <typeparam name="TElement">The type of the list's elements</typeparam>
     /// <param name="elements">The list's elements</param>
@@ -128,7 +130,7 @@ internal static class ListElementAligner
                     continue;
                 }
 
-                model.Set(LayoutComputer.GetLine(token), new TokenLayout(LayoutComputer.GetAdjustedColumn(anchorToken, model), "ListElementContinuation"));
+                model.SetUnlessPlaced(LayoutComputer.GetLine(token), new TokenLayout(LayoutComputer.GetAdjustedColumn(anchorToken, model), "ListElementContinuation"));
             }
         }
     }

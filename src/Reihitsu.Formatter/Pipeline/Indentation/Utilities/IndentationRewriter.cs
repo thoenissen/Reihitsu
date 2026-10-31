@@ -5,13 +5,14 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 
 /// <summary>
-/// Applies the computed layout model to a syntax tree by rewriting leading trivia
-/// on first-on-line tokens to produce the correct indentation, then moving the lines of
-/// multi-line raw string literals by the shifts the same model computed
+/// Applies the computed layout model to a syntax tree by writing each line's column in front of the element its text
+/// starts at, as <see cref="LineStartIndex"/> names it, then moving the lines of multi-line raw string literals by the
+/// shifts the same model computed
 /// </summary>
 internal static class IndentationRewriter
 {
@@ -31,7 +32,8 @@ internal static class IndentationRewriter
     /// <returns>The syntax tree with corrected indentation</returns>
     public static SyntaxNode Apply(SyntaxNode root, LayoutModel model, CancellationToken cancellationToken)
     {
-        var indented = root.ReplaceTokens(root.DescendantTokens(), (original, rewritten) => ApplyIndentation(original, rewritten, model, cancellationToken));
+        var lineStarts = LineStartIndex.For(root.SyntaxTree);
+        var indented = root.ReplaceTokens(root.DescendantTokens(), (original, rewritten) => ApplyIndentation(original, rewritten, lineStarts, model, cancellationToken));
 
         return RawStringLineShifts.MoveLines(indented, model.GetRawStringShift, cancellationToken);
     }
@@ -41,14 +43,20 @@ internal static class IndentationRewriter
     #region Private methods
 
     /// <summary>
-    /// Applies indentation to a single token based on the layout model
+    /// Applies indentation to a single token based on the layout model. The text of a line starts at one element, which
+    /// <see cref="LineStartIndex"/> names: a comment, directive, documentation comment, or disabled text in the token's
+    /// leading trivia, or the token itself. The line's column is written in front of that element, replacing the whitespace
+    /// that stands there, and nowhere else on the line; every other trivia keeps its text. Each element's line is the one
+    /// Roslyn's line table gives its position, which is the line the layout model numbers. A whitespace-only line at the
+    /// end of the leading trivia of a token without text, such as the end of the file, takes the column its line has
     /// </summary>
     /// <param name="original">The original token from the syntax tree</param>
     /// <param name="rewritten">The rewritten token</param>
+    /// <param name="lineStarts">The line starts of the tree</param>
     /// <param name="model">The computed layout model</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The token with corrected indentation</returns>
-    private static SyntaxToken ApplyIndentation(SyntaxToken original, SyntaxToken rewritten, LayoutModel model, CancellationToken cancellationToken)
+    private static SyntaxToken ApplyIndentation(SyntaxToken original, SyntaxToken rewritten, LineStartIndex lineStarts, LayoutModel model, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -57,241 +65,120 @@ internal static class IndentationRewriter
             return rewritten;
         }
 
-        if (LayoutComputer.IsFirstOnLine(original) == false)
-        {
-            return rewritten;
-        }
-
-        var tokenLine = original.GetLocation().GetLineSpan().StartLinePosition.Line;
-
-        // A line without a layout keeps its whitespace, which is how a line of an interpolation hole that keeps its
-        // column is left alone. The leading trivia is still rebuilt, because a comment line in it can have a layout
-        // of its own.
-        //
-        // The token opens its own line, but its leading trivia need not: a comment the previous line ends with is
-        // filed here, and indenting it as though it began the line inserts indentation in the middle of that line.
-        // The previous token's trailing trivia is what says which of the two cases this is.
-        var previousToken = original.GetPreviousToken();
-        var startsAtLineStart = previousToken.RawKind == 0
-                                || previousToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
-
-        return rewritten.WithLeadingTrivia(RebuildLeadingTrivia(rewritten.LeadingTrivia, tokenLine, model, startsAtLineStart));
-    }
-
-    /// <summary>
-    /// Rebuilds the leading trivia for a token, replacing indentation whitespace
-    /// on each line that has a layout entry in the model
-    /// </summary>
-    /// <param name="trivia">The original leading trivia list</param>
-    /// <param name="tokenLine">The 0-based line number of the token</param>
-    /// <param name="model">The layout model</param>
-    /// <param name="startsAtLineStart">Whether the leading trivia begins at the start of its line</param>
-    /// <returns>The rebuilt trivia list</returns>
-    private static SyntaxTriviaList RebuildLeadingTrivia(SyntaxTriviaList trivia, int tokenLine, LayoutModel model, bool startsAtLineStart)
-    {
-        var eolCount = CountLineBreaks(trivia);
-
-        var currentLine = tokenLine - eolCount;
-        var result = new List<SyntaxTrivia>();
-        var atLineStart = startsAtLineStart;
+        var originalTrivia = original.LeadingTrivia;
+        var trivia = rewritten.LeadingTrivia;
+        var result = new List<SyntaxTrivia>(trivia.Count + 1);
+        var pendingWhitespace = new List<SyntaxTrivia>();
+        var placesLine = false;
 
         for (var triviaIndex = 0; triviaIndex < trivia.Count; triviaIndex++)
         {
             var triviaItem = trivia[triviaIndex];
 
-            if (TryHandleEndOfLineTrivia(triviaItem, result, ref currentLine, ref atLineStart))
+            if (triviaItem.IsKind(SyntaxKind.WhitespaceTrivia))
             {
+                pendingWhitespace.Add(triviaItem);
+
                 continue;
             }
 
-            if (TryHandleLineStartWhitespace(trivia, triviaIndex, triviaItem, result, currentLine, model, ref atLineStart))
+            if (triviaItem.IsKind(SyntaxKind.EndOfLineTrivia) == false
+                && lineStarts.IsLineStart(originalTrivia[triviaIndex].FullSpan.Start, out var lineNumber))
             {
-                continue;
-            }
+                placesLine = true;
 
-            HandleNonWhitespaceTrivia(triviaItem, result, currentLine, model, ref atLineStart, ref currentLine);
-        }
-
-        AddFinalLineIndentation(result, atLineStart, currentLine, model);
-
-        return SyntaxFactory.TriviaList(result);
-    }
-
-    /// <summary>
-    /// Handles an end-of-line trivia entry while rebuilding leading trivia
-    /// </summary>
-    /// <param name="triviaItem">The trivia entry to inspect</param>
-    /// <param name="result">The rebuilt trivia list</param>
-    /// <param name="currentLine">The current source line</param>
-    /// <param name="atLineStart">Whether the builder is currently at line start</param>
-    /// <returns><see langword="true"/> when the trivia was handled</returns>
-    private static bool TryHandleEndOfLineTrivia(SyntaxTrivia triviaItem,
-                                                 List<SyntaxTrivia> result,
-                                                 ref int currentLine,
-                                                 ref bool atLineStart)
-    {
-        if (triviaItem.IsKind(SyntaxKind.EndOfLineTrivia) == false)
-        {
-            return false;
-        }
-
-        result.Add(triviaItem);
-        currentLine++;
-        atLineStart = true;
-
-        return true;
-    }
-
-    /// <summary>
-    /// Handles whitespace that appears at the start of a line
-    /// </summary>
-    /// <param name="trivia">The full trivia list</param>
-    /// <param name="triviaIndex">The current trivia index</param>
-    /// <param name="triviaItem">The current trivia item</param>
-    /// <param name="result">The rebuilt trivia list</param>
-    /// <param name="currentLine">The current source line</param>
-    /// <param name="model">The layout model</param>
-    /// <param name="atLineStart">Whether the builder is currently at line start</param>
-    /// <returns><see langword="true"/> when the whitespace was handled</returns>
-    private static bool TryHandleLineStartWhitespace(SyntaxTriviaList trivia,
-                                                     int triviaIndex,
-                                                     SyntaxTrivia triviaItem,
-                                                     List<SyntaxTrivia> result,
-                                                     int currentLine,
-                                                     LayoutModel model,
-                                                     ref bool atLineStart)
-    {
-        if (atLineStart == false || triviaItem.IsKind(SyntaxKind.WhitespaceTrivia) == false)
-        {
-            return false;
-        }
-
-        var text = triviaItem.ToFullString();
-        var hasBom = text.Length > 0 && text[0] == '\uFEFF';
-
-        if (StartsWithNonRegionDirective(trivia, triviaIndex + 1))
-        {
-            if (hasBom)
-            {
-                result.Add(SyntaxFactory.Whitespace("\uFEFF"));
-            }
-
-            return true;
-        }
-
-        AddLineStartWhitespace(result, triviaItem, hasBom, currentLine, model);
-        atLineStart = false;
-
-        return true;
-    }
-
-    /// <summary>
-    /// Handles non-whitespace trivia while rebuilding leading trivia
-    /// </summary>
-    /// <param name="triviaItem">The current trivia item</param>
-    /// <param name="result">The rebuilt trivia list</param>
-    /// <param name="layoutLine">The source line used for layout lookup</param>
-    /// <param name="model">The layout model</param>
-    /// <param name="atLineStart">Whether the builder is currently at line start</param>
-    /// <param name="currentLine">The mutable current source line</param>
-    private static void HandleNonWhitespaceTrivia(SyntaxTrivia triviaItem,
-                                                  List<SyntaxTrivia> result,
-                                                  int layoutLine,
-                                                  LayoutModel model,
-                                                  ref bool atLineStart,
-                                                  ref int currentLine)
-    {
-        if (atLineStart)
-        {
-            if (IsNonRegionDirectiveTrivia(triviaItem) == false)
-            {
-                AddLayoutWhitespaceIfConfigured(result, layoutLine, model);
-            }
-
-            atLineStart = false;
-        }
-
-        // A single-line documentation comment (`///`) bundles the terminating end-of-line of its last
-        // line into its own trivia text, unlike a multi-line documentation comment (`/** */`) which ends
-        // at the closing delimiter. Only the single-line form needs the same line-start treatment as directives
-        var isSingleLineDocumentationComment = triviaItem.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia);
-
-        if (isSingleLineDocumentationComment && model.TryGetLayout(layoutLine, out var layout))
-        {
-            triviaItem = DocumentationCommentUtilities.AlignContinuationExteriorMarkers(triviaItem, layout.Column);
-        }
-
-        result.Add(triviaItem);
-
-        // Directive trivia contains an embedded end-of-line; advance to the next line
-        if (triviaItem.HasStructure && triviaItem.GetStructure() is DirectiveTriviaSyntax)
-        {
-            currentLine++;
-            atLineStart = true;
-        }
-        else if (isSingleLineDocumentationComment)
-        {
-            currentLine += CountEmbeddedNewLines(triviaItem);
-            atLineStart = true;
-        }
-        else
-        {
-            // Multi-line comments carry their own embedded line breaks; keep the running line counter
-            // in sync so following trivia maps to the correct layout entry
-            currentLine += CountEmbeddedNewLines(triviaItem);
-        }
-    }
-
-    /// <summary>
-    /// Adds indentation for a trailing empty line when the layout model defines one
-    /// </summary>
-    /// <param name="result">The rebuilt trivia list</param>
-    /// <param name="atLineStart">Whether the builder is currently at line start</param>
-    /// <param name="currentLine">The current source line</param>
-    /// <param name="model">The layout model</param>
-    private static void AddFinalLineIndentation(List<SyntaxTrivia> result, bool atLineStart, int currentLine, LayoutModel model)
-    {
-        if (atLineStart && model.TryGetLayout(currentLine, out var finalLayout) && finalLayout.Column > 0)
-        {
-            result.Add(SyntaxFactory.Whitespace(new string(' ', finalLayout.Column)));
-        }
-    }
-
-    /// <summary>
-    /// Counts the number of effective line breaks represented by leading trivia
-    /// </summary>
-    /// <param name="trivia">The trivia to inspect</param>
-    /// <returns>The effective line-break count</returns>
-    private static int CountLineBreaks(SyntaxTriviaList trivia)
-    {
-        var endOfLineCount = 0;
-
-        foreach (var entry in trivia)
-        {
-            if (entry.IsKind(SyntaxKind.EndOfLineTrivia)
-                || (entry.HasStructure && entry.GetStructure() is DirectiveTriviaSyntax))
-            {
-                endOfLineCount++;
+                if (WriteLineStart(result, pendingWhitespace, lineNumber, model, IsNonRegionDirectiveTrivia(triviaItem)) is { } column
+                    && triviaItem.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
+                {
+                    triviaItem = DocumentationCommentUtilities.AlignContinuationExteriorMarkers(triviaItem, column);
+                }
             }
             else
             {
-                endOfLineCount += CountEmbeddedNewLines(entry);
+                result.AddRange(pendingWhitespace);
             }
+
+            pendingWhitespace.Clear();
+            result.Add(triviaItem);
         }
 
-        return endOfLineCount;
+        if (original.Span.IsEmpty == false
+            && lineStarts.IsLineStart(original.SpanStart, out var tokenLine))
+        {
+            placesLine = true;
+
+            WriteLineStart(result, pendingWhitespace, tokenLine, model, false);
+        }
+        else if (original.Span.IsEmpty
+                 && pendingWhitespace.Count > 0
+                 && TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(original, originalTrivia.Count - pendingWhitespace.Count)
+                 && model.TryGetLayout(lineStarts.GetLine(original.SpanStart), out _))
+        {
+            placesLine = true;
+
+            WriteLineStart(result, pendingWhitespace, lineStarts.GetLine(original.SpanStart), model, false);
+        }
+        else
+        {
+            result.AddRange(pendingWhitespace);
+        }
+
+        return placesLine
+                   ? rewritten.WithLeadingTrivia(SyntaxFactory.TriviaList(result))
+                   : rewritten;
     }
 
     /// <summary>
-    /// Counts the number of line breaks embedded inside a single trivia entry,
-    /// such as the newlines within a multi-line comment
+    /// Writes the start of a line in place of the whitespace in front of the element its text starts at. The whitespace in
+    /// front of an active non-region directive is removed, so the directive starts in column 0. A line with a layout gets
+    /// its column; a line without one keeps its whitespace. A byte order mark at the start of the whitespace is kept in
+    /// front of whatever is written
     /// </summary>
-    /// <param name="trivia">The trivia entry to inspect</param>
-    /// <returns>The number of embedded line breaks</returns>
-    private static int CountEmbeddedNewLines(SyntaxTrivia trivia)
+    /// <param name="result">The rebuilt trivia list</param>
+    /// <param name="whitespace">The whitespace in front of the element</param>
+    /// <param name="lineNumber">The 0-based line the element starts</param>
+    /// <param name="model">The layout model</param>
+    /// <param name="isNonRegionDirective">Whether the element is an active non-region directive</param>
+    /// <returns>The column written, or <see langword="null"/> when the line has no layout or starts with a directive</returns>
+    private static int? WriteLineStart(List<SyntaxTrivia> result, List<SyntaxTrivia> whitespace, int lineNumber, LayoutModel model, bool isNonRegionDirective)
     {
-        return trivia.ToFullString()
-                     .Count(character => character == '\n');
+        var hasByteOrderMark = whitespace.Count > 0 && ByteOrderMarkUtilities.StartsWithByteOrderMark(whitespace[0]);
+
+        if (isNonRegionDirective)
+        {
+            if (hasByteOrderMark)
+            {
+                result.Add(ByteOrderMarkUtilities.CreateByteOrderMarkTrivia());
+            }
+
+            return null;
+        }
+
+        if (model.TryGetLayout(lineNumber, out var layout) == false)
+        {
+            if (hasByteOrderMark)
+            {
+                result.Add(ByteOrderMarkUtilities.CreateByteOrderMarkTrivia());
+            }
+            else
+            {
+                result.AddRange(whitespace);
+            }
+
+            return null;
+        }
+
+        if (hasByteOrderMark)
+        {
+            result.Add(ByteOrderMarkUtilities.CreateByteOrderMarkTrivia());
+        }
+
+        if (layout.Column > 0)
+        {
+            result.Add(SyntaxFactory.Whitespace(new string(' ', layout.Column)));
+        }
+
+        return layout.Column;
     }
 
     /// <summary>
@@ -304,70 +191,6 @@ internal static class IndentationRewriter
         return trivia.HasStructure
                && trivia.GetStructure() is DirectiveTriviaSyntax { IsActive: true }
                && SyntaxTriviaUtilities.IsRegionDirective(trivia) == false;
-    }
-
-    /// <summary>
-    /// Determines whether the remaining trivia on the current line starts with a non-region preprocessor directive
-    /// </summary>
-    /// <param name="trivia">The leading trivia list</param>
-    /// <param name="startIndex">The index to inspect from</param>
-    /// <returns><see langword="true"/> if a non-region directive is next on the line; otherwise, <see langword="false"/></returns>
-    private static bool StartsWithNonRegionDirective(SyntaxTriviaList trivia, int startIndex)
-    {
-        for (var triviaIndex = startIndex; triviaIndex < trivia.Count; triviaIndex++)
-        {
-            if (trivia[triviaIndex].IsKind(SyntaxKind.WhitespaceTrivia))
-            {
-                continue;
-            }
-
-            return IsNonRegionDirectiveTrivia(trivia[triviaIndex]);
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Adds indentation trivia for the current line start, preserving BOM when present
-    /// </summary>
-    /// <param name="result">The target trivia list being built</param>
-    /// <param name="originalTrivia">The original whitespace trivia</param>
-    /// <param name="hasBom">Whether the original trivia starts with a BOM character</param>
-    /// <param name="currentLine">The current source line index</param>
-    /// <param name="model">The layout model</param>
-    private static void AddLineStartWhitespace(List<SyntaxTrivia> result, SyntaxTrivia originalTrivia, bool hasBom, int currentLine, LayoutModel model)
-    {
-        // Preserve BOM character (\uFEFF) which Roslyn classifies as WhitespaceTrivia.
-        if (hasBom)
-        {
-            result.Add(SyntaxFactory.Whitespace("\uFEFF"));
-        }
-
-        if (model.TryGetLayout(currentLine, out var layout))
-        {
-            if (layout.Column > 0)
-            {
-                result.Add(SyntaxFactory.Whitespace(new string(' ', layout.Column)));
-            }
-        }
-        else if (hasBom == false)
-        {
-            result.Add(originalTrivia);
-        }
-    }
-
-    /// <summary>
-    /// Adds indentation whitespace for a line when layout data is available
-    /// </summary>
-    /// <param name="result">The target trivia list being built</param>
-    /// <param name="currentLine">The current source line index</param>
-    /// <param name="model">The layout model</param>
-    private static void AddLayoutWhitespaceIfConfigured(List<SyntaxTrivia> result, int currentLine, LayoutModel model)
-    {
-        if (model.TryGetLayout(currentLine, out var lineLayout) && lineLayout.Column > 0)
-        {
-            result.Add(SyntaxFactory.Whitespace(new string(' ', lineLayout.Column)));
-        }
     }
 
     #endregion // Private methods

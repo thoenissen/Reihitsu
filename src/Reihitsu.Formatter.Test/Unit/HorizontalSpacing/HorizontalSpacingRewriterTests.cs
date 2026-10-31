@@ -660,7 +660,7 @@ public class HorizontalSpacingRewriterTests
     /// following token instead of separating it from the comment
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-SPACE-015")]
+    [Requirement("FMT-SPACE-001")]
     public void KeepsIndentationOfTokenFollowingSingleLineDocumentationComment()
     {
         const string input = """
@@ -675,6 +675,74 @@ public class HorizontalSpacingRewriterTests
                              """;
 
         AssertHorizontalSpacing(input, input);
+    }
+
+    /// <summary>
+    /// Verifies that a line break inside the text of a multi-line comment is not a line break of the gap: the whitespace
+    /// on both sides of the comment is spaced as on one line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-001")]
+    public void SpacesGapAroundMultiLineCommentBeforeBinaryOperator()
+    {
+        const string input = """
+                             class C
+                             {
+                                 int M(int a)
+                                 {
+                                     var x = a    /* x
+                                      y */   + 1;
+
+                                     return x;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int M(int a)
+                                    {
+                                        var x = a /* x
+                                         y */ + 1;
+
+                                        return x;
+                                    }
+                                }
+                                """;
+
+        AssertHorizontalSpacing(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a line break inside the text of a multi-line comment is not a line break of the gap in front of a
+    /// comma: the whitespace in front of the comma is removed
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-001")]
+    public void RemovesGapBetweenMultiLineCommentAndComma()
+    {
+        const string input = """
+                             class C
+                             {
+                                 int M(int a, int b)
+                                 {
+                                     return M(a   /* x
+                                      y */   , 2);
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int M(int a, int b)
+                                    {
+                                        return M(a /* x
+                                         y */, 2);
+                                    }
+                                }
+                                """;
+
+        AssertHorizontalSpacing(input, expected);
     }
 
     /// <summary>

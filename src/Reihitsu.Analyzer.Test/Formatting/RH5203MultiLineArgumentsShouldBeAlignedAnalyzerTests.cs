@@ -495,6 +495,72 @@ public class RH5203MultiLineArgumentsShouldBeAlignedAnalyzerTests : BatchCodeFix
         await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH5203MultiLineArgumentsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5203MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that an argument that starts its line behind a documentation comment written behind the comma is
+    /// reported outside the alignment column, and the fix moves only the argument into that column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5203-001")]
+    [Requirement("SHARED-BLANK-008")]
+    public async Task VerifyArgumentBehindStrayDocumentationCommentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    internal int N(int a, int b)
+                                    {
+                                        return N(1, /// x
+                                              {|#0:2|});
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     internal int N(int a, int b)
+                                     {
+                                         return N(1, /// x
+                                                  2);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5203MultiLineArgumentsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5203MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the control of the documentation-comment case: an argument that starts its line behind a single-line
+    /// comment is reported outside the alignment column and moved into that column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyArgumentBehindSingleLineCommentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    internal int N(int a, int b)
+                                    {
+                                        return N(1, // x
+                                              {|#0:2|});
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     internal int N(int a, int b)
+                                     {
+                                         return N(1, // x
+                                                  2);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5203MultiLineArgumentsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5203MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

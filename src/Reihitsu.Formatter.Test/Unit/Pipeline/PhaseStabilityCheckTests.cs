@@ -302,43 +302,6 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the check catches the line-break phase stripping the indentation of the <c>&gt;</c> behind an
-    /// omitted type argument, which the indentation phase writes back
-    /// </summary>
-    [TestMethod]
-    public void CheckCatchesLineBreakPhaseStrippingIndentationOfClosingAngleBracketBehindOmittedTypeArgument()
-    {
-        // Arrange
-        const string source = """
-                              using System.Collections.Generic;
-
-                              public class Sample
-                              {
-                                  public void Foo()
-                                  {
-                                      var type = typeof(Dictionary<,
-                                              >);
-                                  }
-                              }
-                              """;
-        const string phaseOutput = """
-                                   using System.Collections.Generic;
-
-                                   public class Sample
-                                   {
-                                       public void Foo()
-                                       {
-                                           var type = typeof(Dictionary<,
-                                   >);
-                                       }
-                                   }
-                                   """;
-
-        // Act & Assert
-        AssertOnlyPhaseChanges(source, nameof(LineBreakPhase), phaseOutput);
-    }
-
-    /// <summary>
     /// Verifies that the check catches the line-break phase stripping the indentation of a parenthesized lambda argument
     /// on its own line, which the indentation phase writes back
     /// </summary>

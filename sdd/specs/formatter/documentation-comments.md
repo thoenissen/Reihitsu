@@ -5,7 +5,7 @@
 | ID prefix | FMT-DOC |
 | Status | Active |
 | Code owners | `DocumentationCommentFormattingPhase`, `DocCommentElementNormalizer`, `DocumentationCommentUtilities` |
-| Uses | FMT-CLEAN-009, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-010, SHARED-DOC-017 |
+| Uses | FMT-CLEAN-009, FMT-INDENT-002, FMT-INDENT-029, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-010, SHARED-DOC-017 |
 
 This spec covers what the documentation-comment phase decides about single-line documentation comments (`///`): moving a comment written behind code onto its own line, the separator after each `///` exterior, and the line layout of the XML elements inside the comment. It is the normalization of documentation-comment text that FMT-PIPE-002 allows.
 
@@ -94,7 +94,7 @@ class C
 
 ### FMT-DOC-003 — Stranded documentation stays as it was written
 
-The formatter MUST NOT move a documentation comment written behind code when the token that follows it does not open the syntax node it belongs to — such as a `;`, `)`, `]`, or `}`, a binary operator such as `+`, or the `.` of a member access — and MUST leave the text of every line of that comment as written: FMT-DOC-005 to FMT-DOC-011 do not apply to it.
+The formatter MUST NOT move a documentation comment written behind code when the token that follows it does not open the syntax node it belongs to — such as a `;`, `)`, `]`, or `}`, a binary operator such as `+`, or the `.` of a member access — and MUST leave the text of every line of that comment as written: FMT-DOC-005 to FMT-DOC-011 do not apply to it. The line that starts behind the comment is not part of it and is placed like any other line (FMT-INDENT-002).
 
 Why: Such a comment documents nothing; the compiler reports CS1587 wherever it stands and does not read it as documentation, so it is an ordinary comment whose text the formatter keeps (FMT-PIPE-002). Moving it would change the author's layout without giving the comment a meaning, and laying out its elements would rewrite text that documents nothing, so the formatter keeps it as it is and leaves the decision to the author.
 
@@ -110,13 +110,51 @@ class C
 }
 ```
 
-is left unchanged, and so is a comment before a `;`:
+is left unchanged. A comment before a `;` stays where it is, and the `;` behind it takes its declaration's column:
 
 ```csharp
 class C
 {
     int A /// stray
         ;
+}
+```
+
+```csharp
+class C
+{
+    int A /// stray
+    ;
+}
+```
+
+A comment before the `.` of a chain link stays behind code, and the links behind it are aligned (FMT-INDENT-029):
+
+```csharp
+using System.Linq;
+
+class C
+{
+    object M(int[] items)
+    {
+        return items.Where(x => x > 0) /// x
+                 .Select(x => x)
+                     .ToList();
+    }
+}
+```
+
+```csharp
+using System.Linq;
+
+class C
+{
+    object M(int[] items)
+    {
+        return items.Where(x => x > 0) /// x
+                    .Select(x => x)
+                    .ToList();
+    }
 }
 ```
 

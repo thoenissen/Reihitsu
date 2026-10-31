@@ -665,48 +665,5 @@ public class ReihitsuFormatterHelpersTests
         Assert.AreEqual(3, result);
     }
 
-    /// <summary>
-    /// Verifies that <see cref="ReihitsuFormatterHelpers.ComputeTokenColumn"/> returns zero for a token at the beginning of a line
-    /// </summary>
-    [TestMethod]
-    public void ComputeTokenColumnReturnsZeroForTokenAtBeginningOfLine()
-    {
-        // Arrange
-        const string input = "class Foo { }";
-
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var root = tree.GetRoot(TestContext.CancellationToken);
-        var classKeyword = root.DescendantTokens().First(token => token.IsKind(SyntaxKind.ClassKeyword));
-
-        // Act
-        var result = ReihitsuFormatterHelpers.ComputeTokenColumn(classKeyword);
-
-        // Assert
-        Assert.AreEqual(0, result);
-    }
-
-    /// <summary>
-    /// Verifies that <see cref="ReihitsuFormatterHelpers.ComputeTokenColumn"/> returns the correct column for an indented token
-    /// </summary>
-    [TestMethod]
-    public void ComputeTokenColumnReturnsCorrectColumnForIndentedToken()
-    {
-        // Arrange
-        const string input = """
-                             namespace Test;
-                                 class Foo { }
-                             """;
-
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var root = tree.GetRoot(TestContext.CancellationToken);
-        var classKeyword = root.DescendantTokens().First(token => token.IsKind(SyntaxKind.ClassKeyword));
-
-        // Act
-        var result = ReihitsuFormatterHelpers.ComputeTokenColumn(classKeyword);
-
-        // Assert
-        Assert.AreEqual(4, result);
-    }
-
     #endregion // Methods
 }

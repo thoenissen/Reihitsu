@@ -2,7 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Reihitsu.Formatter.Utilities;
+using Reihitsu.Core;
 
 namespace Reihitsu.Formatter.Data;
 
@@ -56,13 +56,14 @@ internal readonly struct PrecedingTokenFacts
 
     /// <summary>
     /// Whether the trailing trivia of the preceding token contains a line break, which means the preceding token ends its line
+    /// (<see cref="SyntaxTriviaUtilities.EndsLine"/>)
     /// </summary>
-    public bool EndsLine => TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia);
+    public bool EndsLine => TrailingTrivia.Any(SyntaxTriviaUtilities.EndsLine);
 
     /// <summary>
     /// Whether the trailing trivia of the preceding token contains a comment
     /// </summary>
-    public bool HasTrailingComment => TrailingTrivia.Any(ReihitsuFormatterHelpers.IsCommentTrivia);
+    public bool HasTrailingComment => TrailingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia);
 
     #endregion // Properties
 

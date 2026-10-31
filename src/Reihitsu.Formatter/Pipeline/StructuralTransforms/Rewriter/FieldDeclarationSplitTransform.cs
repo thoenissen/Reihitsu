@@ -4,8 +4,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
-using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
 
@@ -54,7 +54,7 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     internal static bool CarriesDirective(FieldDeclarationSyntax fieldDeclaration)
     {
         return fieldDeclaration.DescendantTrivia(descendIntoTrivia: true)
-                               .Any(ReihitsuFormatterHelpers.IsDirectiveOrDisabledTextTrivia);
+                               .Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia);
     }
 
     /// <summary>
@@ -83,7 +83,7 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     /// <returns>The comment trivia</returns>
     private static IEnumerable<SyntaxTrivia> GetComments(SyntaxTriviaList trivia)
     {
-        return trivia.Where(ReihitsuFormatterHelpers.IsCommentTrivia);
+        return trivia.Where(SyntaxTriviaUtilities.IsCommentTrivia);
     }
 
     /// <summary>
@@ -109,21 +109,6 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether the provided trivia ends the line it sits on
-    /// </summary>
-    /// <param name="trivia">The trivia to inspect</param>
-    /// <returns><see langword="true"/> if the trivia ends its line; otherwise, <see langword="false"/></returns>
-    private static bool EndsLine(SyntaxTrivia trivia)
-    {
-        // Deciding this on the trivia text rather than on its kind is what lets the line break a single-line
-        // documentation comment carries inside its own structure count just like a plain end-of-line trivia.
-        // BlankLineTriviaUtilities.EndsWithLineBreak answers a deliberately narrower question - it is scoped to
-        // directive, disabled-text and documentation trivia and reports false for a plain end-of-line - so it cannot
-        // serve the callers here, which have to treat both as ending the line.
-        return trivia.ToFullString().EndsWith("\n", StringComparison.Ordinal);
-    }
-
-    /// <summary>
     /// Gets the indentation trivia for additional generated fields, which is the whitespace that begins the
     /// physical line the field declaration starts on
     /// </summary>
@@ -146,7 +131,7 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
         }
 
         if (runStart > 0
-            && EndsLine(leadingTrivia[runStart - 1]) == false)
+            && SyntaxTriviaUtilities.EndsLine(leadingTrivia[runStart - 1]) == false)
         {
             // The declaration shares its line with preceding trivia, so the run found above is an inner gap rather
             // than the line's indentation. The whitespace that opens the trivia list opens the line instead.
@@ -220,7 +205,7 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
         // absorbs that break, but the RH7101 code fix runs this transform on its own and would emit the detached
         // comment verbatim. A delimited documentation comment (/** … */) carries no break and still needs one,
         // which is why the question is asked of the trivia text rather than of its kind.
-        if (EndsLine(comment) == false)
+        if (SyntaxTriviaUtilities.EndsLine(comment) == false)
         {
             trivia.Add(SyntaxFactory.EndOfLine(_context.EndOfLine));
         }

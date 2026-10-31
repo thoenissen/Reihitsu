@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Enumerations;
+namespace Reihitsu.Formatter.Data.Enumerations;
 
 /// <summary>
 /// Identifies the structural transforms that a formatting run can switch off individually. A transform

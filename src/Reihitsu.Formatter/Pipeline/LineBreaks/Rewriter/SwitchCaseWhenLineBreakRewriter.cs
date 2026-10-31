@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
@@ -55,7 +56,7 @@ internal sealed class SwitchCaseWhenLineBreakRewriter : CSharpSyntaxRewriter
     /// <returns><see langword="true"/> if the pattern text spans multiple lines; otherwise, <see langword="false"/></returns>
     private static bool PatternSpansMultipleLines(PatternSyntax pattern)
     {
-        return pattern.ToString().IndexOf('\n') >= 0;
+        return LineEndingUtilities.ContainsLineTerminator(pattern.ToString());
     }
 
     /// <summary>

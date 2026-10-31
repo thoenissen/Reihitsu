@@ -1,5 +1,13 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Immutable;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Layout;
@@ -441,5 +449,92 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzerT
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies the change-doc example: an ordinary comment in front of a first link that starts its line behind a
+    /// documentation comment written behind the root is reported, as behind a single-line comment. Only the report of
+    /// the ordinary comment is asserted; whether the documentation comment itself is reported is not decided here
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5048-001")]
+    [Requirement("SHARED-BLANK-008")]
+    public async Task VerifyCommentBeforeFirstLinkBehindStrayDocumentationCommentIsReported()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal class TestClass
+                                {
+                                    internal object Method(int[] items)
+                                    {
+                                        return items /* c */ /// x
+                                            .Where(value => value > 0)
+                                            .ToList();
+                                    }
+                                }
+                                """;
+        const string comment = "/* c */";
+
+        foreach (var endOfLine in new[] { "\n", "\r\n" })
+        {
+            var source = testData.Replace("\r\n", "\n").Replace("\n", endOfLine);
+            var commentStart = source.IndexOf(comment, StringComparison.Ordinal);
+            var diagnostics = await GetAnalyzerDiagnosticsAsync(source);
+
+            Assert.IsTrue(diagnostics.Any(diagnostic => diagnostic.Id == RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId
+                                                        && diagnostic.Location.SourceSpan.Start == commentStart
+                                                        && diagnostic.Location.SourceSpan.Length == comment.Length),
+                          $"The comment in front of the first link should be reported under {(endOfLine == "\n" ? "LF" : "CRLF")} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies the control of the documentation-comment case: an ordinary comment in front of a first link that starts
+    /// its line behind a single-line comment is reported, and so is the single-line comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5048-001")]
+    public async Task VerifyCommentBeforeFirstLinkBehindSingleLineCommentIsReported()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal class TestClass
+                                {
+                                    internal object Method(int[] items)
+                                    {
+                                        return items {|#0:/* c */|} {|#1:// x|}
+                                            .Where(value => value > 0)
+                                            .ToList();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat, 2));
+    }
+
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Runs the analyzer over the source and returns every diagnostic it reports, so a test can assert one diagnostic
+    /// without deciding the others
+    /// </summary>
+    /// <param name="source">The source text</param>
+    /// <returns>The analyzer diagnostics</returns>
+    private static async Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsAsync(string source)
+    {
+        var tree = CSharpSyntaxTree.ParseText(source, cancellationToken: CancellationToken.None);
+        var references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")).Split(Path.PathSeparator)
+                                                                                    .Select(path => MetadataReference.CreateFromFile(path));
+        var compilation = CSharpCompilation.Create("Test", [tree], references, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        return await compilation.WithAnalyzers([new RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer()])
+                                .GetAnalyzerDiagnosticsAsync(CancellationToken.None)
+                                .ConfigureAwait(false);
+    }
+
+    #endregion // Methods
 }

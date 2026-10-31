@@ -133,7 +133,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
         var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
         var newOpenParen = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(node.OpenParenToken);
 
-        if (TokenLocator.ContainsToken(node, previousToken) == false)
+        if (TokenContainmentUtilities.ContainsToken(node, previousToken) == false)
         {
             return node.WithOpenParenToken(newOpenParen);
         }

@@ -2,6 +2,8 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.UsingDirectives.Utilities;
 
 /// <summary>
@@ -159,7 +161,7 @@ internal static class UsingTrailingTriviaBuilder
     /// <returns><see langword="true"/> if the text contains a line break; otherwise, <see langword="false"/></returns>
     private static bool SpansLine(SyntaxTriviaList trivia)
     {
-        return trivia.ToFullString().IndexOfAny(['\r', '\n', '\u0085', '\u2028', '\u2029']) >= 0;
+        return LineEndingUtilities.ContainsLineTerminator(trivia.ToFullString());
     }
 
     /// <summary>

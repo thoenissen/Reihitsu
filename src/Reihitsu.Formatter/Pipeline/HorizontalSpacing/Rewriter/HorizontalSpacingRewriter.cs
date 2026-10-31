@@ -3,7 +3,6 @@ using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Pipeline.HorizontalSpacing.Utilities;
-using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.HorizontalSpacing.Rewriter;
 
@@ -49,11 +48,8 @@ internal sealed class HorizontalSpacingRewriter : CSharpSyntaxRewriter
     /// comment belongs to the previous token's trailing trivia, the part after it to this token's leading trivia.
     /// The spacing rules only ever rewrite the first, so <c>[Obsolete /** why */ ]</c> keeps a space RH6014 reports
     /// however the previous token is normalized. Trimming here is what the exemption above owes the analyzers.
-    /// <para>
-    /// A single-line documentation comment is the exception: its text ends with the line break, so the whitespace
-    /// after it starts a physical line and is the token's indentation rather than a gap. No end-of-line trivia
-    /// separates the two tokens in that case, so no later phase would restore the indentation once it is removed.
-    /// </para>
+    /// A gap that holds a line break — also the one that ends a <c>///</c> comment — is indentation and stays as it is
+    /// (FMT-SPACE-001)
     /// </remarks>
     private static SyntaxToken TrimGapBeforeToken(SyntaxToken token)
     {
@@ -61,8 +57,7 @@ internal sealed class HorizontalSpacingRewriter : CSharpSyntaxRewriter
 
         if (leadingTrivia.Count < 2
             || leadingTrivia[leadingTrivia.Count - 1].IsKind(SyntaxKind.WhitespaceTrivia) == false
-            || ReihitsuFormatterHelpers.IsCommentTrivia(leadingTrivia[leadingTrivia.Count - 2]) == false
-            || leadingTrivia[leadingTrivia.Count - 2].IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
+            || SyntaxTriviaUtilities.IsCommentTrivia(leadingTrivia[leadingTrivia.Count - 2]) == false)
         {
             return token;
         }
@@ -117,7 +112,7 @@ internal sealed class HorizontalSpacingRewriter : CSharpSyntaxRewriter
         // The exemption is deliberately one-sided. A comment in the left token's own trailing trivia does not move
         // the whitespace the rules target, so exempting that side as well would suppress the normalization every
         // "no space before X" rule performs and leave the formatter emitting output RH6002, RH6003 and RH6014 report.
-        if (nextToken.LeadingTrivia.Any(ReihitsuFormatterHelpers.IsCommentTrivia))
+        if (nextToken.LeadingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia))
         {
             return token;
         }
