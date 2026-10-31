@@ -685,7 +685,7 @@ The same holds when every line break is U+0085, U+2028, or U+2029 (not shown as 
 
 Every phase, each sub-phase of the preparation phase included, MUST return a tree whose text, parsed again with the parse options of the syntax tree the formatter was given — its language version and its preprocessor symbols, as they stand, not as FMT-PIPE-008 resolves them — gives the same tree:
 
-- the same nodes in the same structure, and the same tokens with the same kinds and texts at the same places;
+- the same nodes in the same structure, and the same tokens with the same kinds, texts, and values at the same places — a token's value is what the parser gives its text, such as the string a raw-string text token stands for;
 - no token the parser has to add or skip, so no syntax error;
 - every comment, documentation comment, preprocessor directive, and disabled-text span as trivia of the same token, on the same side of it — leading or trailing.
 
@@ -713,6 +713,8 @@ class C
 The phase's output MUST NOT read `int Get(){return42;}`, where `return42` parses as one identifier, and MUST NOT put the inserted `}` directly behind `// trailing`, where it is part of the comment. It reads `int Get(){return 42;}`, and a line break stands between `// trailing` and the inserted `}` (FMT-STRUCT-026).
 
 Example — the same tree where the parser gives the whitespace and the line break to the other token: the line-break phase moves the `{` of `if (a) {` onto its own line by writing the line break in front of `{`, behind the space that ends `if (a) `; parsed again, the space and the line break are both trivia of `)`. The tree is the same. A tree in which `// leading` stands behind an inserted `{` on the brace's line, as leading trivia of the statement after it, is not the same: parsed again, the comment trails the brace.
+
+Example — a token's value: in `var s = $"""`, followed by the lines `a {Call(1,`, `2)} b`, and `""";`, each starting in column 0, the closing quotes strip no indentation, and the text token in front of the hole stands for `a `. When the indentation phase moves the literal's lines under its opening quotes, every line gains the same indentation, the closing line included, and the moved text token still stands for `a `, as its new text does when it is parsed again; a token that kept its new text, indentation included, as its value would not be the same token.
 
 ### FMT-PIPE-022 — Every phase keeps the annotations it does not own
 

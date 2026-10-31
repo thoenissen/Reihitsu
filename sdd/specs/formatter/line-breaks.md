@@ -5,7 +5,7 @@
 | ID prefix | FMT-BREAK |
 | Status | Active |
 | Code owners | `LineBreakPhase`, `LineBreakBlockRewriter`, `LineBreakInitializerRewriter`, `LineBreakContainedBlockRewriter`, `LineBreakAssignmentRewriter`, `DeclarationSemicolonLineBreakRewriter`, `ListElementInteriorJoinRewriter`, `ListElementInteriorUtilities`, `LineBreakListRewriter`, `PropertyLayoutLineBreakRewriter`, `GenericConstraintLineBreakRewriter`, `DeclarationBraceLineBreakRewriter`, `MemberLineStartRewriter`, `AttributeTargetFormattingRewriter`, `AttributeTargetFormattingShared`, `BinaryOperatorLineBreakRewriter`, `ChainLineBreakRewriter`, `TernaryLineBreakRewriter`, `SwitchCaseWhenLineBreakRewriter`, `BracePlacer`, `TokenGapNormalizer`, `AccessorListLayout`, `LineBreakDetection`, `LineBreakTriviaUtilities` |
-| Uses | FMT-CLEAN-001, FMT-PIPE-001, FMT-PIPE-002, FMT-SPACE-001, FMT-STRUCT-009, FMT-STRUCT-014, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012 |
+| Uses | FMT-CLEAN-001, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-010, FMT-SPACE-001, FMT-STRUCT-009, FMT-STRUCT-014, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012 |
 
 This spec covers `LineBreakPhase`, the phase of the pipeline that decides where lines break (its position in the phase order is FMT-PIPE-001): brace placement, one statement and one member per line, the layout of argument, parameter, attribute, and type-argument lists, initializers and patterns, assignments, operators, conditionals, chains, generic constraints, attribute lists, accessor lists, and `case … when` guards. The phase only adds and removes line breaks; the columns the resulting lines start in are decided later by FMT-INDENT, and the spaces between tokens on a line by FMT-SPACE.
 
@@ -53,7 +53,9 @@ is left unchanged.
 
 The opening and the closing brace of every namespace, type, member body, accessor body, statement block, lambda or anonymous-method block, local function, and switch statement MUST each start their own line, and the first token after an opening brace MUST start a new line. An empty body MUST therefore span two lines.
 
-Why: The repository uses Allman style throughout: a brace on its own line makes the extent of every scope visible at the left margin. An empty `{ }` is expanded too, so a body looks the same before and after its first statement is added.
+This holds for the node a node-level entry point formats as it holds for a document: when the target is a member body, a block, or an event's accessor list, its braces are placed, whether the declaration that owns it lies inside the formatted node or not.
+
+Why: The repository uses Allman style throughout: a brace on its own line makes the extent of every scope visible at the left margin. An empty `{ }` is expanded too, so a body looks the same before and after its first statement is added. A node-level entry point formats its target as part of a document (FMT-PIPE-010), so the braces of a body it is given are its own to place, as they are when the whole file is formatted.
 
 Example:
 
@@ -88,6 +90,28 @@ namespace N
     }
 }
 ```
+
+Example — `FormatNodeInDocumentAsync` with the body block of `M` as target:
+
+```csharp
+class C
+{
+    void M()
+    { Foo(); }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        Foo();
+    }
+}
+```
+
+The same holds for the body of a constructor and of a local function, and for the accessor list of an event, each as the target.
 
 ### FMT-BREAK-003 — A comment behind an opening brace stays there
 

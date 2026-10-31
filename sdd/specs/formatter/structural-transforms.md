@@ -5,7 +5,7 @@
 | ID prefix | FMT-STRUCT |
 | Status | Active |
 | Code owners | `StructuralTransformPhase`, `ConfigurableStructuralTransforms`, `ControlFlowBraceTransform`, `ExpressionBodiedMethodTransform`, `ExpressionBodiedConstructorTransform`, `ExpressionBodiedOperatorTransform`, `ExpressionBodiedConversionTransform`, `ExpressionBodiedFinalizerTransform`, `ExpressionBodiedLocalFunctionTransform`, `ExpressionBodiedTransformUtilities`, `ExpressionBodyToBlockConverter`, `AccessorExpressionBodyTransform`, `GetOnlyMemberExpressionBodyTransform`, `EmptyTypeDeclarationSemicolonTransform`, `EnumTrailingCommaRemovalTransform`, `InitializerTrailingCommaRemovalTransform`, `TrailingCommaRemovalUtilities`, `FieldDeclarationSplitTransform` |
-| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021, FMT-SPACE-002 |
+| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021, FMT-SPACE-002, FMT-SPACE-012 |
 
 This spec covers the phase that rewrites syntax shape before any layout is decided, right after the tabs in whitespace are replaced (FMT-PIPE-001): braces for `if`/`else` bodies, block bodies for expression-bodied functions, expression bodies for simple accessors and get-only members, semicolon declarations for empty types, removal of trailing commas, and one field per declaration. Every rewrite produces equivalent code (FMT-PIPE-003) and is refused for a construct whose comments, directives, or disabled text it could not carry over (FMT-PIPE-002).
 
@@ -1163,16 +1163,16 @@ class C
 
 A structural transform MUST NOT write whitespace, a line break, or indentation next to a token it creates, nor into the trivia it carries over, except a separator without which its output would not parse back to its tree (FMT-PIPE-021) and the spaces around a created `=>` named below. These separators are decided:
 
-- one space between a token the transform creates and the token after it when the two would otherwise read as one token, such as `return` before `42`; no space where they read as two tokens without it, such as `{` before `return`, `)` before `{`, or `return` before a comment;
+- one space between a token the transform creates and the token after it when the two would otherwise read as one token, such as `return` before `42`, before `a`, or before an identifier that starts with a Unicode escape (`\u0061`); no space where they read as two tokens without it, such as `{` before `return`, `)` before `{`, `return` before `(`, before a string, before a verbatim identifier or string (`@a`, `@"s"`), or before a comment;
 - a line break between a single-line comment and a token the transform creates behind it, such as `// trailing` before an inserted `}`;
 - a line break between a token the transform creates and a comment behind it that leads the next token, such as an inserted `{` before the comment `// leading` above the braced statement, or an inserted `}` before a comment `// about Bar` that leads the next statement;
 - a line break between a token the transform creates and a preprocessor directive behind it, such as an inserted `}` before `#if`.
 
-No other line break follows a token the transform creates: none behind an inserted `{` that the braced statement follows without a leading comment, and none behind an inserted `}` that `else`, a statement without a leading comment, or the enclosing block's `}` follows.
+No other line break follows a token the transform creates: none behind an inserted `{` that the braced statement follows without a leading comment, and none behind an inserted `}` that `else`, a statement without a leading comment, or the enclosing block's `}` follows. The enclosing block's `}` is the `}` that follows in the transform's output, also when the transform inserted it itself, as around a nested unbraced `if`; the comment or directive behind the outer `}` decides the line break behind the outer `}` only.
 
 The accessor and get-only-member transforms (FMT-STRUCT-009, FMT-STRUCT-014) also write one space on each side of the `=>` they create, as in `get => _value;` and `int P => _value;`. The parser does not need these spaces, but no spacing rule covers the gap between an accessor keyword, a member name, or an indexer's `]` and the `=>` behind it, so the spacing phase keeps that gap as it finds it (FMT-SPACE-002), and without the spaces the final output would read `get=> _value;`. The transforms write them until a spacing rule owns that gap.
 
-A token a structural transform creates MUST carry no elastic trivia — the zero-width markers Roslyn gives a token built without explicit trivia. Its trivia is exactly what this requirement allows: the separators above, the spaces around a created `=>`, and the trivia it carries over. This requirement does not decide whether the phases after this one write elastic trivia.
+A token a structural transform creates MUST carry no elastic trivia — the zero-width markers Roslyn gives a token built without explicit trivia. This holds for every created token, also for the `(` and `)` the accessor transform writes around a `throw` operand (FMT-STRUCT-011). Its trivia is exactly what this requirement allows: the separators above, the spaces around a created `=>`, and the trivia it carries over. This requirement does not decide whether the phases after this one write elastic trivia.
 
 The trivia a transform carries over keeps what the author wrote:
 
@@ -1313,6 +1313,28 @@ class C
 ```
 
 Example — a comment that FMT-STRUCT-006 moves behind `return` keeps the whitespace in front of it: in `int Get() =>`, followed by a line holding `/* c */ 42;` indented by eight spaces, the transform's output holds `return` followed by the eight spaces and `/* c */ 42;`, which the spacing phase turns into `return /* c */ 42;`; when that line is not indented, the output holds `return/* c */ 42;`, and the final output keeps `return/* c */` as written.
+
+Example — nested unbraced `if` statements:
+
+```csharp
+class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+            if (b)
+                Foo();
+        // about Bar
+        Bar();
+    }
+}
+```
+
+The transform's output has no line break between the inner inserted `}` and the outer inserted `}` behind it, and a line break between the outer inserted `}` and `// about Bar`. The same holds when `#if DEBUG` follows instead of the comment, and when the inner `if` has an unbraced `else` body.
+
+Example — a created `return` and the expression behind it: `int A() => a;` gives `return a;` in the transform's output, `int B() => a;` gives `return a;`, `int C() => @a;` gives `return@a;`, `int D() => @"s";` gives `return@"s";`, and `int E() => (a);` gives `return(a);`. The final output of each has one space behind `return` (FMT-SPACE-012).
+
+Example — a comment directly at the arrow (FMT-STRUCT-006) keeps the other comments of the member where they are, and a comment that leads the expression keeps leading it: for `int Get() => // c` followed by a line `/* d */ 42;`, for `int Get() => // c` followed by a line `// d` and a line `42;`, and for `int Get()` followed by a line `/* c */ =>` and a line `/* d */ 42;`, the transform's output has a line break between the created `return` and `/* d */` or `// d`. This example decides the transform's output only; FMT-STRUCT-006 leaves the final place of these comments unspecified.
 
 ### FMT-STRUCT-027 — A removed comma's comment on a line of its own stays there
 
