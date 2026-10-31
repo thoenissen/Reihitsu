@@ -1,34 +1,55 @@
 Role: lead
-Commit: f9d475c
-Verdict: lane claimed
+Commit: ccb6669
+Verdict: lane claimed; implementer done
 
 # Run: thoenissen/Reihitsu#1489
 
-- Issue: thoenissen/Reihitsu#1489 — FMT-PIPE: node-level roots are detached, and their input facts are specified plain values (package B4 of thoenissen/Reihitsu#1482).
+- Issue: thoenissen/Reihitsu#1489 — FMT-PIPE: node-level roots are detached, and their input facts are specified plain values (package B4 of thoenissen/Reihitsu#1482). Not `agent-filed` (filed before the label existed; goals treated as binding).
 - Slug: `node-root-detached`
-- Branch: `claude/sleepy-goldberg-pli2uv` (the session's designated branch; the harness allows pushes only there, so it stands in for `claude/issue-1489-node-root-detached`).
+- Branch: `claude/sleepy-goldberg-pli2uv` (the session's designated branch; the harness allows pushes only there).
 - Draft PR: thoenissen/Reihitsu#1520
-- Base: `origin/main` at `e7853b6`. Blocker thoenissen/Reihitsu#1488 (B3) is merged (#1513).
+- Base: `origin/main` `e7853b6` at the claim; `origin/main` `c24bc1d` (new squad process) merged at `ccb6669`. The run follows the new process from here; the `squad/decisions/` entries it had written were removed at the maintainer's request, and their content lives in the sections below.
 
 ## Lane
 
-Behavior change. The issue requests changed behavior of the node-level entry points (detached root, specified input facts, a different base-depth rule) and states that a change doc under `sdd/changes/` is required.
-
-Roles: spec author → skeptic → test implementer → implementer → cleaner → spec checker → auditor → validator. None skipped.
+Behavior change: the issue requests changed behavior of the node-level entry points and requires a change doc. Roles: spec author → skeptic → test implementer → implementer → cleaner → spec checker → auditor → validator; issue manager before publishing. None skipped.
 
 ## Maintainer clarifications
 
-None yet. The issue asks the run to first check every statement about today's code against current `main` and to drop statements an earlier package already made true or moot, recording them in the handover; target behavior and "Done when" stay binding, and a difference that changes the target is an open question for the maintainer.
+- Only end-user-visible output reaches the maintainer (now the rule on `main`, #1528).
+- The node-level entry points are used only by this repository's code fixes; a node-level output no code fix reaches is not a visible output.
+- No `squad/decisions/` entries in this run.
 
-## Escalations
+## Maintainer answers
 
-- Escalation 2: change doc approved as written (`squad/decisions/2026-10-31-node-root-detached-change-doc.md`).
-- Escalation 1 (found in passing by the spec author): a member-body target that does not start its line keeps its brace behind the declaration; answered 2B, a follow-up outside this run (`squad/decisions/2026-10-31-node-root-detached-block-target-brace.md`).
+1. Change doc (first version): approved as written.
+2. Member-body target whose `{` stays on the declaration's line: follow-up thoenissen/Reihitsu#1521, behavior change (write back the line break).
+3. Node-in-document outputs that changed because decisions read outside a detached root: amend the change doc so FMT-PIPE-024 carries plain-value facts for them.
+4. Two owners of the leading trivia of a target that does not start its line: narrow fix in this run (the `else if` fact keeps the comment); the structural change is folded into #1521 (widened).
+5. RH5405 comment drop on `main`: separate follow-up thoenissen/Reihitsu#1527.
+6. Depth of a target behind a multi-line comment (zero offset): the indentation phase's depth; those outputs change.
+7. Amended change doc: approved as written.
 
-## Follow-ups
+## Decisions taken
 
-- thoenissen/Reihitsu#1521 — created after the maintainer approved its text.
-- Skeptic (`02-skeptic.md`): 334 node-in-document outputs change; answered 1B (escalation 5, amend the change doc with further plain-value facts; it returns for approval), 2A (escalation 12, narrow fix in this run, structural change folded into #1521), 3A (escalation 9, RH5405 comment drop as a separate follow-up). Decisions: `squad/decisions/2026-10-31-node-root-detached-missing-facts.md`, `-leading-trivia-owner.md`, `-rh5405-comment-drop.md`.
-- Spec author amendment (`03-spec-author.md`): zero-offset depth answered A; amended change doc approved as written; #1521 widened and the RH5405 comment drop filed as follow-ups (`squad/decisions/2026-10-31-node-root-detached-zero-offset-depth.md`, `-amended-change-doc.md`).
-- Maintainer clarification: for the rest of this run, only questions about end-user-visible output (formatter output, diagnostics, code-fix results, rule pages) are escalated; the lead decides internal questions on its recommendation and records them (`squad/decisions/2026-10-31-escalate-only-user-visible-output.md`).
-- Test implementer (`04-test-implementer.md`), lead decisions under the interim rule: (1) the column of the elements of an assigned collection initializer under `FormatNodeInDocumentAsync` is unchanged by the run and becomes a follow-up candidate, presented to the maintainer at publish time; (2) the column of `/* note` before an embedded `if` stays unpinned — the run does not change it and the spec gives no derivable column; (3) the uncovered list-element, `and`/`or` pattern, and context-entry-point cases stay as recorded, for the auditor to judge.
+| # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
+|---|---|---|---|---|---|---|
+| 1 | test implementer | Column of the elements of an assigned collection initializer under `FormatNodeInDocumentAsync` (same column as `{`) | Not changed in this run; follow-up candidate | The run does not change this output | Output identical before and after the run | — |
+| 2 | test implementer | Column of `/* note` before an embedded `if` target | Left unpinned by tests | No spec gives a derivable column; the run does not change it | Output identical before and after | — |
+| 3 | test implementer | Uncovered list-element, `and`/`or` pattern, and context-entry-point cases | Left as recorded in `04-test-implementer.md` for the auditor | Covered by the tab-equivalence rule; reasons in the handover | No asserted output changes | — |
+| 4 | implementer | 88 `FormatNodeInDocumentAsync` outputs differ from `main`, wider than the change doc says | Spec author corrects the change doc's What | They follow FMT-PIPE-023/024 (a target with a tab gets the output of the same target with spaces) | Node-level outputs reach users only through code fixes; no analyzer or code-fix test changed | pending |
+| 5 | implementer | One-line-property flag read more narrowly than the spec row (root holds no line break) | Spec row aligned with the implementation | Keeps today's output for those targets | Output equals `main` | pending |
+| 6 | implementer | FMT-PIPE-024 sentence "every phase answers what stands in front of the root's first token from the preceding-token fact" not implemented by some line-break and spacing readers | Narrow the sentence to the readers that use the fact; the remaining approximations become a follow-up candidate | No output difference found; implementing adds about eight production paths without a failing test | No output difference | pending |
+| 7 | implementer | Architecture finding: chain outermost-ness has two owners for an inner chain-part target (line-break phase reads the fact, `MethodChainAlignmentContributor` does not) | Narrow: no change in this run; structural change is a follow-up candidate; change doc names the case as out of scope | The chain code fixes (RH5112, RH5201) pass the outermost chain node (`FluentChainCodeFixHelper.FindChainNode`), so no code fix formats an inner chain part | Not reachable through any code fix; whole-document formatting unaffected | pending |
+| 8 | implementer | `ReihitsuFormatterHelpers.ComputeBaseIndentLevel` wrapper has no production caller, only its five tests | Adjacent fix: remove the wrapper and its tests | "Done when": the formatter no longer calls `ComputeBaseIndentLevel` | Dead code; no output | pending |
+
+## Follow-up candidates
+
+- Column of the elements of an assigned collection initializer under `FormatNodeInDocumentAsync` (`04-test-implementer.md`, finding 1).
+- FMT-PIPE-024 preceding-token readers that still approximate the root boundary: `LineBreakTriviaUtilities.HasLeadingEndOfLine`, `TokenLocator.TryGetPreviousToken`, `HorizontalSpacingRewriter.TrimGapBeforeToken` (`05-implementer.md`, finding 3).
+- Chain outermost-ness has two owners for an inner chain-part root: `MethodChainAlignmentContributor` / `FluentChain.Create` vs. the chain-continuation fact (`05-implementer.md`, architecture finding).
+- `Reihitsu.Core.AttributeTargetUtilities.IsAttributeListOnSingleLinePropertyAccessor` is a second statement of the formatter's one-line-property rule (`05-implementer.md`).
+- `SyntaxIndentationUtilities.ComputeBaseIndentLevel` stays as a second depth rule for `TargetAttributePlacementCodeFixProviderBase` (`02-skeptic.md`).
+- `FormatNodeInDocumentAsync` inserts a blank line between `if (a)` and an embedded-statement target with a leading comment (`02-skeptic.md`).
+
+Already filed during the run: thoenissen/Reihitsu#1521, thoenissen/Reihitsu#1527.
