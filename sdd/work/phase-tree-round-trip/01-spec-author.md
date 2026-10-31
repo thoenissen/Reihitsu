@@ -1,6 +1,6 @@
 Role: spec author
-Commit: 667c2ba
-Verdict: change doc written; open question (blocking for one part: Question 1, the context entry point's output for a target inside a moving raw string literal)
+Commit: bef340c
+Verdict: change doc written (Accepted); no open question — Question 1 answered (A) and carried into the spec
 
 The change doc `sdd/changes/2026-11/phase-tree-round-trip.md` (`Status: Draft`) needs the maintainer's approval of What and Why (escalation 2). It was put under `2026-11` because the run cannot merge before November; move it if it merges in October. My prompt carried no intended fix or verdict to ignore.
 
@@ -87,3 +87,12 @@ class C
 **Recommendation: A.** It is what FMT-PIPE-017, FMT-PIPE-018, and FMT-PIPE-010 already imply once the annotation survives. It adds no mechanism, and it leaves the alignment to the package that closes the gap (E1). B would be the better end state, but only through E1's restructuring. What would change the pick: if the maintainer wants this run to close the gap for this shape, B.
 
 Until this is answered, nothing about this input's output is in the spec. FMT-PIPE-022's example deliberately tests annotations at document level only, and FMT-PIPE-017 and FMT-PIPE-018 are unchanged. Everything else in the change doc and the spec diff is independent of the answer.
+
+## Round 2 — maintainer's answers carried in (from bef340c)
+
+- `squad/decisions/2026-10-31-phase-tree-round-trip-change-doc.md`: What and Why approved as written. The change doc's `Status` is now `Accepted`.
+- `squad/decisions/2026-10-31-phase-tree-round-trip-target-in-moving-literal.md`: option A.
+  - FMT-PIPE-017 — changed: its recorded gap has three known cases. The new third case is a target that does not start its line, on a line the phases move (a content line of a multi-line raw string literal moved under its opening quotes, FMT-RAW-001). The requirement also gains an example with the issue's second input and the expected output: the literal, `Call(1,` and `1` (column 20) stay as in the document, and `2` is written in column 25.
+  - Change doc: `Affected requirements` names FMT-PIPE-017. *What* states the outcome for the issue's second input. A new decision, "A target inside a moving literal is the third case of FMT-PIPE-017's gap", links the decision record. Options B, C, and D are added under *Alternatives considered*.
+- Examples for the tests, added: FMT-PIPE-017's third-case example. This is the Done-when test "the context entry point with a target inside a moving literal" and it asserts that output, tagged FMT-PIPE-017 and FMT-PIPE-022.
+- `SpecConsistencyTests` and `SpecStructureTests`: 26/26 passed after the change.

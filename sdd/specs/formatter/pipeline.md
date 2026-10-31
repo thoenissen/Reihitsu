@@ -451,14 +451,43 @@ The column of the first token in the document is the number of characters in fro
 
 So a tab in the whitespace in front of a node that does not start its line, which belongs to the code in front of the node and is kept, counts as one column, and so does a tab inside a comment or a literal, which is kept (FMT-TAB-003). The leading trivia that FMT-PIPE-010 and FMT-PIPE-018 keep is written back as it stands and is outside this requirement, and so are the lines of the context node outside the target, which `FormatNodeInDocumentWithContextAsync` does not write back.
 
-Recorded gap — a target of `FormatNodeInDocumentWithContextAsync` whose first token the phases place in another line or column than the one it keeps in the document. The entry point writes back only the target, with its leading trivia as in the document, the whitespace in front of its first token included (FMT-PIPE-010, FMT-PIPE-018), and keeps everything in front of it on its line as it stands. So the target's first token stays where it stood in the document, while the other lines of the target take the columns the phases gave them; a line aligned to an anchor on the target's first line stands where the anchor stood in the phases' layout, not where the anchor ends up. This requirement does not cover the target's first line or the lines whose column depends on it. The gap has two known cases:
+Recorded gap — a target of `FormatNodeInDocumentWithContextAsync` whose first token the phases place in another line or column than the one it keeps in the document. The entry point writes back only the target, with its leading trivia as in the document, the whitespace in front of its first token included (FMT-PIPE-010, FMT-PIPE-018), and keeps everything in front of it on its line as it stands. So the target's first token stays where it stood in the document, while the other lines of the target take the columns the phases gave them; a line aligned to an anchor on the target's first line stands where the anchor stood in the phases' layout, not where the anchor ends up. This requirement does not cover the target's first line or the lines whose column depends on it. The gap has three known cases:
 
 - The target starts a later line of its context, and the phases give that line another column than the whitespace in front of it in the document.
 - The target does not start its line, and the phases break the line in front of it. The line break they add is not written back, so the target stays on the line where it started, in its column in the document, while its other lines take the columns the phases gave them on the new line.
+- The target does not start its line, and the phases move the line it starts on, such as a content line of a multi-line raw string literal that the indentation phase moves under its opening quotes (FMT-RAW-001). What stands in front of the target on that line is outside the target and is written back as in the document, so the target's first token keeps its column in the document, while its other lines take the columns the phases gave them on the moved line.
 
 A target whose first token the phases leave in its line and column in the document is not in the gap: what stands in front of it is written back unchanged, and the phases laid the target out from that column. That covers a target that starts the context's first line, and a target that does not start its line and in front of which the phases change nothing on that line.
 
 Example — the second case: with the argument `Wrap(…)` of `        var x = Call(1, Wrap("""` / `    a` / `    """));` as target and the statement as context, the phases put the argument on a line of its own under `1`, in column 21, and the content line and the closing marker of the raw string literal under its opening quotes in column 26. The line break is not written back, so `Wrap(` stays on the first line, the opening quotes stand in column 29, and the content line and the closing marker stand in column 26, three columns left of them.
+
+Example — the third case: `FormatNodeInDocumentWithContextAsync` with the invocation `Call(1, 2)` as target and the local declaration as context. The phases move the literal's lines five columns to the right, under the opening quotes, and place `2` under `1` in column 25. Only the target is written back, so the literal's content line, its closing line, and `Call(1,` keep their columns in the document, with `1` in column 20, while `2` stands in the phases' column 25:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var s = $"""
+            a {Call(1,
+            2)} b
+            """;
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var s = $"""
+            a {Call(1,
+                         2)} b
+            """;
+    }
+}
+```
 
 Example — the first case: the RH5111 fix of the declarator `b` in `        int a = 1,` / `              b =` / `                  Other(1,` / `                        2);`, with the statement as context: the result is `              b = Other(1,` / `                  2);`, `b` keeps column 14, and `2` stands in column 18, under the column `1` had with `b` in the phases' column 8, while `1` ends up in 24.
 

@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | FMT-PIPE-021 (new), FMT-PIPE-022 (new), FMT-STRUCT-026 (new), FMT-BREAK-029 (new), FMT-PIPE-019 (example changed), the first non-goal of `structural-transforms.md` |
+| Affected requirements | FMT-PIPE-021 (new), FMT-PIPE-022 (new), FMT-STRUCT-026 (new), FMT-BREAK-029 (new), FMT-PIPE-017 (third gap case), FMT-PIPE-019 (example changed), the first non-goal of `structural-transforms.md` |
 | Depends on | [One line-start fact for analyzers and every formatter phase](../2026-10/line-start-fact.md) |
 
 ## What
@@ -12,7 +12,7 @@
 Every phase of the pipeline returns a tree whose text, parsed again, is that tree (FMT-PIPE-021), and keeps every annotation of its input on the elements it keeps (FMT-PIPE-022). Today two phases break this:
 
 - The structural-transform phase returns text that is another program. `int Get() => 42;` becomes `int Get(){return42;}`, where `return42` is one identifier, and `Foo(); // trailing` in an unbraced `if` body becomes `{Foo(); // trailing}`, where the inserted `}` is part of the comment. Later phases repair both by accident: the spacing phase writes a space after `return` because `return` is one of its keywords (FMT-SPACE-012), and the line-break phase puts `}` on its own line (FMT-BREAK-002).
-- The indentation phase moves a misaligned multi-line raw string literal by parsing a new literal from text. Every token of the literal is new, so the annotations of the old ones are gone. `FormatNodeInDocumentWithContextAsync` finds its target through such an annotation (FMT-PIPE-018); with a target inside a literal that moves, it finds none and returns the document unchanged.
+- The indentation phase moves a misaligned multi-line raw string literal by parsing a new literal from text. Every token of the literal is new, so the annotations of the old ones are gone. `FormatNodeInDocumentWithContextAsync` finds its target through such an annotation (FMT-PIPE-018); with a target inside a literal that moves, it finds none and returns the document unchanged. Once the annotation survives, the entry point formats such a target, and the result falls into the gap FMT-PIPE-017 records, as a third case: the phases move the line the target starts on, the text in front of the target on that line is written back as in the document, and the target's other lines take the phases' columns. For the invocation `Call(1, 2)` in `$"""` / `            a {Call(1,` / `            2)} b` / `            """`, with the local declaration as context, `1` stays in column 20 and `2` is written in column 25, where the phases place it under `1` in the moved literal. Closing the gap stays with thoenissen/Reihitsu#1501.
 
 The structural transforms write the separators their text needs and no other layout (FMT-STRUCT-026): one space after a created keyword that would otherwise fuse with the next token, a line break after a single-line comment that a created token follows, and a line break after a created token that a leading comment or a directive follows. They write no line break after an inserted `}` and none behind a comment that leads a braced statement; those comments keep the line breaks and spaces the author wrote, which FMT-PIPE-013 already asks of the final output. The field split keeps its own layout until the RH7101 fix stops running it alone (thoenissen/Reihitsu#1502).
 
@@ -61,9 +61,16 @@ FMT-BREAK-029 allows the line-break phase's output to keep the whitespace that e
 
 Which rewriter places the braces of a member body is not specified behavior and is not decided here.
 
+### A target inside a moving literal is the third case of FMT-PIPE-017's gap
+
+The context entry point keeps writing back only the target (FMT-PIPE-010, FMT-PIPE-018). For a target whose line the phases move, its first token keeps the document column and its other lines take the phases' columns, the same misalignment the two recorded cases of the gap produce. FMT-PIPE-017 lists the case and its example; laying out the target from its column in the document is the restructuring of thoenissen/Reihitsu#1501 (`squad/decisions/2026-10-31-phase-tree-round-trip-target-in-moving-literal.md`).
+
 ## Alternatives considered
 
 - **Require only the final output to be correct, and state in FMT-PIPE that later phases repair a structural transform's separators** — rejected: it writes the accidental repair into the spec, makes every later phase a co-owner of the separators, and still lets a fused pair that no spacing rule covers ship (FMT-SPACE-002).
 - **Full structural equality, the owner of every whitespace and line break included** — rejected: the line-break phase writes the line breaks it inserts into the moved token's leading trivia (FMT-BREAK-001), which the parser gives to the token before. The requirement would force every line-break rewriter to be rebuilt for a difference no phase relies on.
 - **Equal token sequences and equal trivia kinds, without the owner of a comment** — rejected: it accepts a comment behind an inserted `{` that reads back as trailing trivia of the brace, which the phases format differently from the tree they were given.
 - **Keep the line break the brace transform writes after an inserted `}`, as the line ending the statement's line moved there** — rejected: the line break phase places `}` and the token after it on their lines (FMT-BREAK); a line break the transform writes there is a second owner of that decision. A line break stays only where a directive follows, because the text needs it.
+- **Place `2` under `1` in its document column (20) for a target inside a moving literal** — rejected for this change: the entry point would have to lay out the target from its document column against the raw-string move, the restructuring left to thoenissen/Reihitsu#1501.
+- **Write back the moved literal lines outside the target** — rejected: FMT-PIPE-010 lets the entry point rewrite only its target.
+- **Keep returning the document unchanged for such a target** — rejected: the entry point would refuse a target it can find once annotations survive.
