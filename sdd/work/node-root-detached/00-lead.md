@@ -47,6 +47,7 @@ Behavior change: the issue requests changed behavior of the node-level entry poi
 | 10 | spec author | Process change doc `sdd/changes/2026-10/supported-inputs.md` (supported-inputs rule and intake reachability check, requested by the maintainer) | Accepted | It writes down the maintainer's clarification as asked | Process text only | pending |
 | 11 | spec author | This run keeps the `else if (y) // note` comment that the RH5405 fix drops on `main` (thoenissen/Reihitsu#1527) | Adjacent fix: add an RH5405 code-fix regression test, and add an RH5204 code-fix test for the converging embedded `if` behind a multi-line comment; the PR closes #1527 | Both are reachable code-fix results the run changes; SHARED-FIX-003 demands the kept comment, maintainer answer 6 covers the RH5204 columns | Decided by an unchanged requirement and a maintainer answer | pending |
 | 12 | spec author | Is thoenissen/Reihitsu#1521 reachable? | Kept open: the RH5405 fix reaches the `else if` braces in column 13 | Reachable through a code fix | Nothing changed in this run | — |
+| 13 | test implementer | The RH5204 code-fix test compares the whole document and so also pins the blank line after `while (a)` and `/* note` in column 12, which no requirement names | Accepted as pinned | The blank line is unchanged from `main` (skeptic, `02-skeptic.md`), and the comment column follows maintainer answer 6 | Unchanged output, or covered by answer 6 | f4ae2a4 |
 
 ## Follow-up candidates
 
