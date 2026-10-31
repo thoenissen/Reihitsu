@@ -4,7 +4,6 @@ using System.Threading;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Data;
@@ -511,8 +510,8 @@ public class RawStringMovedLineStartTests : FormatterTestsBase
 
     /// <summary>
     /// Asserts under LF and CRLF line endings, in this order so a failure names the first invariant that breaks: every phase
-    /// keeping the annotations on every token of each literal and on every node inside its holes (FMT-PIPE-022); the final
-    /// output of <see cref="ReihitsuFormatter.FormatSyntaxTree"/>, which does not compare the phases' trees; and, through
+    /// keeping the annotations on every node and token of the code (FMT-PIPE-022); the final output of
+    /// <see cref="ReihitsuFormatter.FormatSyntaxTree"/>, which does not compare the phases' trees; and, through
     /// <see cref="FormatterTestsBase.AssertRuleResult(string, string, CSharpParseOptions)"/>, the same output with a stable
     /// second pass and every phase's tree parsing back to itself with token values (FMT-PIPE-021)
     /// </summary>
@@ -538,9 +537,10 @@ public class RawStringMovedLineStartTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Puts one annotation of its own on every token of each interpolated string literal and on every node inside its
-    /// holes, formats the input through the production pipeline, and fails for every annotation a phase's output no longer
-    /// carries on exactly one element of the original kind
+    /// Puts one annotation of its own on every node and every token of the code, structured trivia excluded: the root, the
+    /// literal's node, its text elements and their tokens, its holes and every node and token inside them, and every node
+    /// and token around the literal. Formats the input through the production pipeline, and fails for every annotation a
+    /// phase's output no longer carries on exactly one element of the original kind
     /// </summary>
     /// <param name="input">The input with the line ending already applied</param>
     /// <param name="endOfLine">The end-of-line sequence of the formatting context</param>
@@ -548,15 +548,8 @@ public class RawStringMovedLineStartTests : FormatterTestsBase
     {
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
-        var literals = root.DescendantNodes().OfType<InterpolatedStringExpressionSyntax>().ToList();
-        var nodes = literals.SelectMany(literal => literal.Contents.OfType<InterpolationSyntax>())
-                            .SelectMany(hole => hole.DescendantNodesAndSelf())
-                            .Distinct()
-                            .ToList();
-        var tokens = literals.SelectMany(literal => literal.DescendantTokens())
-                             .Concat(root.DescendantTokens().Where(token => token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken) || token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken)))
-                             .Distinct()
-                             .ToList();
+        var nodes = root.DescendantNodesAndSelf().ToList();
+        var tokens = root.DescendantTokens().ToList();
         var annotations = new Dictionary<SyntaxNodeOrToken, SyntaxAnnotation>();
 
         foreach (var element in nodes.Select(node => (SyntaxNodeOrToken)node).Concat(tokens.Select(token => (SyntaxNodeOrToken)token)))
