@@ -318,6 +318,452 @@ public class RH6001KeywordsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTest
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that <c>if</c> directly followed by a documentation comment, which ends the line in front of the
+    /// <c>(</c>, is not reported; this is the formatter's output for it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6001-002")]
+    public async Task VerifyIfKeywordFollowedByStrayDocumentationCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal void M(bool c, int[] items)
+                                    {
+                                        if/// x
+                                        (c)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the control of the documentation-comment case: <c>if</c> directly followed by a single-line comment is
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyIfKeywordFollowedBySingleLineCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal void M(bool c, int[] items)
+                                    {
+                                        if// x
+                                        (c)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that <c>while</c> directly followed by a documentation comment, which ends the line in front of the
+    /// <c>(</c>, is not reported; this is the formatter's output for it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6001-002")]
+    public async Task VerifyWhileKeywordFollowedByStrayDocumentationCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal void M(bool c, int[] items)
+                                    {
+                                        while/// x
+                                        (c)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the control of the documentation-comment case: <c>while</c> directly followed by a single-line comment is
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyWhileKeywordFollowedBySingleLineCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal void M(bool c, int[] items)
+                                    {
+                                        while// x
+                                        (c)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the <c>while</c> of a <c>do</c> statement directly followed by a documentation comment, which ends the line in front of the
+    /// <c>(</c>, is not reported; this is the formatter's output for it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6001-002")]
+    public async Task VerifyDoWhileKeywordFollowedByStrayDocumentationCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal void M(bool c, int[] items)
+                                    {
+                                        do
+                                        {
+                                        }
+                                        while/// x
+                                        (c);
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the control of the documentation-comment case: the <c>while</c> of a <c>do</c> statement directly followed by a single-line comment is
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDoWhileKeywordFollowedBySingleLineCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal void M(bool c, int[] items)
+                                    {
+                                        do
+                                        {
+                                        }
+                                        while// x
+                                        (c);
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that <c>for</c> directly followed by a documentation comment, which ends the line in front of the
+    /// <c>(</c>, is not reported; this is the formatter's output for it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6001-002")]
+    public async Task VerifyForKeywordFollowedByStrayDocumentationCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal void M(bool c, int[] items)
+                                    {
+                                        for/// x
+                                        (var i = 0; i < 1; i++)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the control of the documentation-comment case: <c>for</c> directly followed by a single-line comment is
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyForKeywordFollowedBySingleLineCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal void M(bool c, int[] items)
+                                    {
+                                        for// x
+                                        (var i = 0; i < 1; i++)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that <c>foreach</c> directly followed by a documentation comment, which ends the line in front of the
+    /// <c>(</c>, is not reported; this is the formatter's output for it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6001-002")]
+    public async Task VerifyForEachKeywordFollowedByStrayDocumentationCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal void M(bool c, int[] items)
+                                    {
+                                        foreach/// x
+                                        (var i in items)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the control of the documentation-comment case: <c>foreach</c> directly followed by a single-line comment is
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyForEachKeywordFollowedBySingleLineCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal void M(bool c, int[] items)
+                                    {
+                                        foreach// x
+                                        (var i in items)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that <c>fixed</c> directly followed by a documentation comment, which ends the line in front of the
+    /// <c>(</c>, is not reported; this is the formatter's output for it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixedKeywordFollowedByStrayDocumentationCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal unsafe void M(bool c, int[] items)
+                                    {
+                                        fixed/// x
+                                        (int* p = items)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies the control of the documentation-comment case: <c>fixed</c> directly followed by a single-line comment is
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixedKeywordFollowedBySingleLineCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal unsafe void M(bool c, int[] items)
+                                    {
+                                        fixed// x
+                                        (int* p = items)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that <c>lock</c> directly followed by a documentation comment, which ends the line in front of the
+    /// <c>(</c>, is not reported; this is the formatter's output for it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6001-002")]
+    public async Task VerifyLockKeywordFollowedByStrayDocumentationCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal void M(bool c, int[] items)
+                                    {
+                                        lock/// x
+                                        (items)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the control of the documentation-comment case: <c>lock</c> directly followed by a single-line comment is
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLockKeywordFollowedBySingleLineCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal void M(bool c, int[] items)
+                                    {
+                                        lock// x
+                                        (items)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that <c>switch</c> directly followed by a documentation comment, which ends the line in front of the
+    /// <c>(</c>, is not reported; this is the formatter's output for it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6001-002")]
+    public async Task VerifySwitchKeywordFollowedByStrayDocumentationCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal void M(bool c, int[] items)
+                                    {
+                                        switch/// x
+                                        (c)
+                                        {
+                                            default:
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the control of the documentation-comment case: <c>switch</c> directly followed by a single-line comment is
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySwitchKeywordFollowedBySingleLineCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal void M(bool c, int[] items)
+                                    {
+                                        switch// x
+                                        (c)
+                                        {
+                                            default:
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that <c>using</c> directly followed by a documentation comment, which ends the line in front of the
+    /// <c>(</c>, is not reported; this is the formatter's output for it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6001-002")]
+    public async Task VerifyUsingKeywordFollowedByStrayDocumentationCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal void M(bool c, int[] items)
+                                    {
+                                        using/// x
+                                        (var d = new System.IO.MemoryStream())
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the control of the documentation-comment case: <c>using</c> directly followed by a single-line comment is
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyUsingKeywordFollowedBySingleLineCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal void M(bool c, int[] items)
+                                    {
+                                        using// x
+                                        (var d = new System.IO.MemoryStream())
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

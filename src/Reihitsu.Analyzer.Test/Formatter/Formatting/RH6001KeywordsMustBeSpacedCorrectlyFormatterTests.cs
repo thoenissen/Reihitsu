@@ -50,5 +50,30 @@ public class RH6001KeywordsMustBeSpacedCorrectlyFormatterTests : FormatterTestsB
                               Diagnostics(RH6001KeywordsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6001MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter's output for an <c>if</c> keyword directly followed by a documentation comment stays
+    /// unchanged and raises no diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6001-002")]
+    public async Task VerifyFormatterOutputWithStrayDocumentationCommentBehindKeywordIsNotReported()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal void M(bool c, int[] items)
+                                    {
+                                        if/// x
+                                        (c)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await VerifyFormatter(testData);
+    }
+
     #endregion // Tests
 }
