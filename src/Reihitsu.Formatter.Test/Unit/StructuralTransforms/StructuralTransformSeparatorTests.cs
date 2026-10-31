@@ -743,6 +743,463 @@ public class StructuralTransformSeparatorTests : FormatterTestsBase
         ForEachLineEnding(input, (output, _, description) => AssertNoElasticTrivia(output, description));
     }
 
+    /// <summary>
+    /// Verifies the nested-<c>if</c> example of FMT-STRUCT-026: no line break stands between the inner inserted <c>}</c> and
+    /// the outer inserted <c>}</c> behind it, and a line break stands between the outer inserted <c>}</c> and the comment that
+    /// leads the next statement
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void NestedInsertedCloseBracesInFrontOfACommentBreakOnlyBehindTheOuterBrace()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(bool a, bool b)
+                                 {
+                                     if (a)
+                                         if (b)
+                                             Foo();
+                                     // about Bar
+                                     Bar();
+                                 }
+                             }
+                             """;
+
+        ForEachLineEnding(input,
+                          (output, _, description) =>
+                          {
+                              var (inner, outer) = GetNestedIfBlocks(output);
+
+                              AssertNoLineBreak(GetGap(output, inner.CloseBraceToken, outer.CloseBraceToken), description);
+                              AssertLineBreakBefore(GetGap(output, outer.CloseBraceToken, outer.CloseBraceToken.GetNextToken()), "// about Bar", description);
+                              AssertSameTree(output, description);
+                          });
+    }
+
+    /// <summary>
+    /// Verifies the directive variant of the nested-<c>if</c> example of FMT-STRUCT-026: no line break between the two inserted
+    /// <c>}</c>, and a line break between the outer one and <c>#if DEBUG</c>
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void NestedInsertedCloseBracesInFrontOfADirectiveBreakOnlyBehindTheOuterBrace()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(bool a, bool b)
+                                 {
+                                     if (a)
+                                         if (b)
+                                             Foo();
+                             #if DEBUG
+                                     Bar();
+                             #endif
+                                 }
+                             }
+                             """;
+
+        foreach (var parseOptions in new[] { CSharpParseOptions.Default, CSharpParseOptions.Default.WithPreprocessorSymbols("DEBUG") })
+        {
+            ForEachLineEnding(input,
+                              (output, _, description) =>
+                              {
+                                  var (inner, outer) = GetNestedIfBlocks(output);
+
+                                  AssertNoLineBreak(GetGap(output, inner.CloseBraceToken, outer.CloseBraceToken), description);
+                                  AssertLineBreakBefore(GetGap(output, outer.CloseBraceToken, outer.CloseBraceToken.GetNextToken()), "#if DEBUG", description);
+                                  AssertSameTree(output, description, parseOptions);
+                              },
+                              parseOptions);
+        }
+    }
+
+    /// <summary>
+    /// Verifies the <c>else</c> variant of the nested-<c>if</c> example of FMT-STRUCT-026: no line break between the inserted
+    /// <c>}</c> of the inner <c>else</c> body and the outer inserted <c>}</c>, and a line break between the outer one and the
+    /// comment that leads the next statement
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void NestedElseBodyCloseBraceInFrontOfTheOuterInsertedBraceGetsNoLineBreak()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(bool a, bool b)
+                                 {
+                                     if (a)
+                                         if (b)
+                                             Foo();
+                                         else
+                                             Baz();
+                                     // about Bar
+                                     Bar();
+                                 }
+                             }
+                             """;
+
+        ForEachLineEnding(input,
+                          (output, _, description) =>
+                          {
+                              var outerIf = output.DescendantNodes().OfType<IfStatementSyntax>().First();
+                              var outer = (BlockSyntax)outerIf.Statement;
+                              var innerIf = outer.Statements.OfType<IfStatementSyntax>().Single();
+                              var innerElse = (BlockSyntax)innerIf.Else.Statement;
+
+                              AssertNoLineBreak(GetGap(output, innerElse.CloseBraceToken, outer.CloseBraceToken), description);
+                              AssertLineBreakBefore(GetGap(output, outer.CloseBraceToken, outer.CloseBraceToken.GetNextToken()), "// about Bar", description);
+                              AssertSameTree(output, description);
+                          });
+    }
+
+    /// <summary>
+    /// Verifies the other side of the nested-<c>if</c> example: three nested unbraced <c>if</c> statements in front of the
+    /// enclosing block's <c>}</c> get no line break behind any inserted <c>}</c>
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void ThreeNestedInsertedCloseBracesGetNoLineBreak()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(bool a, bool b, bool c)
+                                 {
+                                     if (a)
+                                         if (b)
+                                             if (c)
+                                                 Foo();
+                                 }
+                             }
+                             """;
+
+        ForEachLineEnding(input,
+                          (output, _, description) =>
+                          {
+                              var blocks = output.DescendantNodes().OfType<IfStatementSyntax>().Select(ifStatement => (BlockSyntax)ifStatement.Statement).ToList();
+
+                              Assert.HasCount(3, blocks, description);
+                              AssertNoLineBreak(GetGap(output, blocks[2].CloseBraceToken, blocks[1].CloseBraceToken), description);
+                              AssertNoLineBreak(GetGap(output, blocks[1].CloseBraceToken, blocks[0].CloseBraceToken), description);
+                              AssertNoLineBreak(GetGap(output, blocks[0].CloseBraceToken, blocks[0].CloseBraceToken.GetNextToken()), description);
+                              AssertSameTree(output, description);
+                          });
+    }
+
+    /// <summary>
+    /// Verifies the <c>return</c> example of FMT-STRUCT-026 for an identifier: <c>int A() =&gt; a;</c> gives <c>return a;</c>
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void CreatedReturnInFrontOfAnIdentifierGetsOneSpace()
+    {
+        AssertCreatedReturnStatement("int A() => a;", "return a;");
+    }
+
+    /// <summary>
+    /// Verifies the <c>return</c> example of FMT-STRUCT-026 for an identifier that starts with a Unicode escape:
+    /// <c>int B() =&gt; \u0061;</c> gives <c>return \u0061;</c>, because <c>return\u0061</c> reads as one identifier
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void CreatedReturnInFrontOfAUnicodeEscapeIdentifierGetsOneSpace()
+    {
+        AssertCreatedReturnStatement(@"int B() => \u0061;", @"return \u0061;");
+    }
+
+    /// <summary>
+    /// Verifies the <c>return</c> example of FMT-STRUCT-026 for a verbatim identifier: <c>int C() =&gt; @a;</c> gives
+    /// <c>return@a;</c>, because the two read as two tokens without a space
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void CreatedReturnInFrontOfAVerbatimIdentifierGetsNoSpace()
+    {
+        AssertCreatedReturnStatement("int C() => @a;", "return@a;");
+    }
+
+    /// <summary>
+    /// Verifies the <c>return</c> example of FMT-STRUCT-026 for a verbatim string: <c>int D() =&gt; @"s";</c> gives
+    /// <c>return@"s";</c>
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void CreatedReturnInFrontOfAVerbatimStringGetsNoSpace()
+    {
+        AssertCreatedReturnStatement("""int D() => @"s";""", """return@"s";""");
+    }
+
+    /// <summary>
+    /// Verifies the <c>return</c> example of FMT-STRUCT-026 for a parenthesized expression: <c>int E() =&gt; (a);</c> gives
+    /// <c>return(a);</c>
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void CreatedReturnInFrontOfAParenthesizedIdentifierGetsNoSpace()
+    {
+        AssertCreatedReturnStatement("int E() => (a);", "return(a);");
+    }
+
+    /// <summary>
+    /// Verifies the separator bullet of FMT-STRUCT-026 for a string: a created <c>return</c> in front of <c>"s"</c> gets no
+    /// space
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void CreatedReturnInFrontOfAStringGetsNoSpace()
+    {
+        AssertCreatedReturnStatement("""string F() => "s";""", """return"s";""");
+    }
+
+    /// <summary>
+    /// Verifies the at-arrow example of FMT-STRUCT-026 for a block comment that leads the expression on the line behind
+    /// <c>=&gt; // c</c>: a line break stands between the created <c>return</c> and <c>/* d */</c>, which keeps leading the
+    /// expression
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void BlockCommentLeadingTheExpressionBehindAnAtArrowCommentKeepsLeadingIt()
+    {
+        AssertLineBreakBehindCreatedReturn("""
+                                           class C
+                                           {
+                                               int Get() => // c
+                                                   /* d */ 42;
+                                           }
+                                           """,
+                                           "/* d */");
+    }
+
+    /// <summary>
+    /// Verifies the at-arrow example of FMT-STRUCT-026 for a single-line comment on a line of its own between the arrow's line
+    /// and the expression
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void OwnLineCommentLeadingTheExpressionBehindAnAtArrowCommentKeepsLeadingIt()
+    {
+        AssertLineBreakBehindCreatedReturn("""
+                                           class C
+                                           {
+                                               int Get() => // c
+                                                   // d
+                                                   42;
+                                           }
+                                           """,
+                                           "// d");
+    }
+
+    /// <summary>
+    /// Verifies the at-arrow example of FMT-STRUCT-026 for a comment that precedes the arrow on its line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void BlockCommentLeadingTheExpressionBehindACommentInFrontOfTheArrowKeepsLeadingIt()
+    {
+        AssertLineBreakBehindCreatedReturn("""
+                                           class C
+                                           {
+                                               int Get()
+                                                   /* c */ =>
+                                                   /* d */ 42;
+                                           }
+                                           """,
+                                           "/* d */");
+    }
+
+    /// <summary>
+    /// Verifies the at-arrow example of FMT-STRUCT-026 for a local function
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void LocalFunctionCommentLeadingTheExpressionBehindAnAtArrowCommentKeepsLeadingIt()
+    {
+        AssertLineBreakBehindCreatedReturn("""
+                                           class C
+                                           {
+                                               void M()
+                                               {
+                                                   int L() => // c
+                                                       /* d */ 42;
+                                               }
+                                           }
+                                           """,
+                                           "/* d */");
+    }
+
+    /// <summary>
+    /// Verifies the at-arrow example of FMT-STRUCT-026 for an operator
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void OperatorCommentLeadingTheExpressionBehindAnAtArrowCommentKeepsLeadingIt()
+    {
+        AssertLineBreakBehindCreatedReturn("""
+                                           class C
+                                           {
+                                               public static C operator +(C x, C y) => // c
+                                                   /* d */ x;
+                                           }
+                                           """,
+                                           "/* d */");
+    }
+
+    /// <summary>
+    /// Verifies the at-arrow example of FMT-STRUCT-026 for a conversion operator
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void ConversionCommentLeadingTheExpressionBehindAnAtArrowCommentKeepsLeadingIt()
+    {
+        AssertLineBreakBehindCreatedReturn("""
+                                           class C
+                                           {
+                                               public static implicit operator int(C c) => // c
+                                                   /* d */ 0;
+                                           }
+                                           """,
+                                           "/* d */");
+    }
+
+    /// <summary>
+    /// Verifies that a converted expression statement behind a comment at the arrow keeps the comment that leads it as its
+    /// leading trivia, with no created token in front of it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void ExpressionStatementBehindAnAtArrowCommentKeepsItsLeadingComment()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void Run() => // c
+                                     /* d */ Foo();
+                             }
+                             """;
+
+        ForEachLineEnding(input, (output, _, description) => AssertSameTree(output, description));
+    }
+
+    /// <summary>
+    /// Verifies that no token the transforms create around a parenthesized <c>throw</c> operand of an accessor carries elastic
+    /// trivia, the <c>(</c> and <c>)</c> included
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void ParenthesesAroundAThrowOperandOfAnAccessorCarryNoElasticTrivia()
+    {
+        const string input = """
+                             class C
+                             {
+                                 bool _b;
+
+                                 int P { get { throw _b ? new System.Exception() : null; } set { _b = true; } }
+                             }
+                             """;
+
+        ForEachLineEnding(input,
+                          (output, _, description) =>
+                          {
+                              Assert.IsNotEmpty(output.DescendantNodes().OfType<ThrowExpressionSyntax>().Where(throwExpression => throwExpression.Expression is ParenthesizedExpressionSyntax).ToList(), description);
+                              AssertNoElasticTrivia(output, description);
+                          });
+    }
+
+    /// <summary>
+    /// Verifies that no token the transforms create for a get-only property whose getter throws a parenthesized operand carries
+    /// elastic trivia
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void ParenthesesAroundAThrowOperandOfAGetOnlyPropertyCarryNoElasticTrivia()
+    {
+        const string input = """
+                             class C
+                             {
+                                 bool _b;
+
+                                 int P { get { throw _b ? new System.Exception() : null; } }
+                             }
+                             """;
+
+        ForEachLineEnding(input,
+                          (output, _, description) =>
+                          {
+                              Assert.IsNotEmpty(output.DescendantNodes().OfType<ThrowExpressionSyntax>().Where(throwExpression => throwExpression.Expression is ParenthesizedExpressionSyntax).ToList(), description);
+                              AssertNoElasticTrivia(output, description);
+                          });
+    }
+
+    /// <summary>
+    /// Verifies that no token the transforms create for a get-only indexer whose getter throws a parenthesized assignment
+    /// carries elastic trivia
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void ParenthesesAroundAThrowOperandOfAGetOnlyIndexerCarryNoElasticTrivia()
+    {
+        const string input = """
+                             class C
+                             {
+                                 System.Exception _e;
+
+                                 int this[int i] { get { throw _e = new System.Exception(); } }
+                             }
+                             """;
+
+        ForEachLineEnding(input,
+                          (output, _, description) =>
+                          {
+                              Assert.IsNotEmpty(output.DescendantNodes().OfType<ThrowExpressionSyntax>().Where(throwExpression => throwExpression.Expression is ParenthesizedExpressionSyntax).ToList(), description);
+                              AssertNoElasticTrivia(output, description);
+                          });
+    }
+
+    /// <summary>
+    /// Verifies that the semicolon the empty-type transform creates carries no elastic trivia
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void SemicolonCreatedForAnEmptyTypeCarriesNoElasticTrivia()
+    {
+        const string input = """
+                             class C
+                             {
+                             }
+                             """;
+
+        ForEachLineEnding(input,
+                          (output, _, description) =>
+                          {
+                              Assert.IsTrue(output.DescendantNodes().OfType<ClassDeclarationSyntax>().Single().SemicolonToken.IsKind(SyntaxKind.SemicolonToken), description);
+                              AssertNoElasticTrivia(output, description);
+                          });
+    }
+
+    /// <summary>
+    /// Verifies that no token the expression-body conversion creates for a <c>throw</c> body carries elastic trivia
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void TokensCreatedForAConvertedThrowBodyCarryNoElasticTrivia()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M() => throw new System.Exception();
+                             }
+                             """;
+
+        ForEachLineEnding(input,
+                          (output, _, description) =>
+                          {
+                              Assert.IsNotNull(output.DescendantNodes().OfType<MethodDeclarationSyntax>().Single().Body, description);
+                              AssertNoElasticTrivia(output, description);
+                          });
+    }
+
     #endregion // Tests
 
     #region Methods
@@ -811,6 +1268,54 @@ public class StructuralTransformSeparatorTests : FormatterTestsBase
 
         Assert.IsGreaterThanOrEqualTo(0, index, $"'{text}' should stand in '{gap}'. {description}");
         Assert.IsTrue(gap.Substring(index + text.Length).Contains('\n'), $"A line break should stand behind '{text}'. {description}");
+    }
+
+    /// <summary>
+    /// Returns the inserted blocks of an unbraced <c>if</c> nested in another
+    /// </summary>
+    /// <param name="output">The phase output</param>
+    /// <returns>The inner and the outer block</returns>
+    private static (BlockSyntax Inner, BlockSyntax Outer) GetNestedIfBlocks(SyntaxNode output)
+    {
+        var outer = (BlockSyntax)output.DescendantNodes().OfType<IfStatementSyntax>().First().Statement;
+        var inner = (BlockSyntax)outer.Statements.OfType<IfStatementSyntax>().Single().Statement;
+
+        return (inner, outer);
+    }
+
+    /// <summary>
+    /// Converts the member in a class and asserts the text of the statement the conversion creates in the phase output
+    /// </summary>
+    /// <param name="member">The expression-bodied member</param>
+    /// <param name="expectedStatement">The expected text of the created statement</param>
+    private static void AssertCreatedReturnStatement(string member, string expectedStatement)
+    {
+        ForEachLineEnding($"class C\n{{\n    {member}\n}}",
+                          (output, _, description) =>
+                          {
+                              var statement = output.DescendantNodes().OfType<ReturnStatementSyntax>().Single();
+
+                              Assert.AreEqual(expectedStatement, statement.ToString(), description);
+                              AssertSameTree(output, description);
+                          });
+    }
+
+    /// <summary>
+    /// Asserts that a line break stands between the created <c>return</c> and the comment that leads its expression in the
+    /// phase output, and that the output parses back to its tree
+    /// </summary>
+    /// <param name="input">The input with LF line endings</param>
+    /// <param name="comment">The comment that leads the expression</param>
+    private static void AssertLineBreakBehindCreatedReturn(string input, string comment)
+    {
+        ForEachLineEnding(input,
+                          (output, _, description) =>
+                          {
+                              var statement = output.DescendantNodes().OfType<ReturnStatementSyntax>().Single();
+
+                              AssertLineBreakBefore(GetGap(output, statement.ReturnKeyword, statement.Expression.GetFirstToken()), comment, description);
+                              AssertSameTree(output, description);
+                          });
     }
 
     /// <summary>

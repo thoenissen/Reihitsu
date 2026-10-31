@@ -433,5 +433,93 @@ public class StructuralTransformSeparatorFinalOutputTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies the final output of the <c>return</c> example of FMT-STRUCT-026: one space behind every created <c>return</c>,
+    /// whether the transform wrote it as a separator or the spacing phase writes it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void EveryCreatedReturnEndsUpOneSpaceInFrontOfItsExpression()
+    {
+        const string input = """
+                             class C
+                             {
+                                 int A() => a;
+
+                                 int B() => \u0061;
+
+                                 int C() => @a;
+
+                                 int D() => @"s";
+
+                                 int E() => (a);
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int A()
+                                    {
+                                        return a;
+                                    }
+
+                                    int B()
+                                    {
+                                        return \u0061;
+                                    }
+
+                                    int C()
+                                    {
+                                        return @a;
+                                    }
+
+                                    int D()
+                                    {
+                                        return @"s";
+                                    }
+
+                                    int E()
+                                    {
+                                        return (a);
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the members of the at-arrow example of FMT-STRUCT-026, whose final layout FMT-STRUCT-006 leaves
+    /// unspecified, reach a fixed point in which every phase's tree parses back to itself
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void MembersWithACommentAtTheArrowReachAStableOutput()
+    {
+        const string input = """
+                             class C
+                             {
+                                 int Get() => // c
+                                     /* d */ 42;
+
+                                 int Get2() => // c
+                                     // d
+                                     42;
+
+                                 int Get3()
+                                     /* c */ =>
+                                     /* d */ 42;
+
+                                 void M()
+                                 {
+                                     int L() => // c
+                                         /* d */ 42;
+                                 }
+                             }
+                             """;
+
+        AssertSecondPassIsStable(input);
+    }
+
     #endregion // Tests
 }

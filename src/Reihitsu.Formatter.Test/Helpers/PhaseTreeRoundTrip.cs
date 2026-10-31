@@ -12,7 +12,7 @@ namespace Reihitsu.Formatter.Test.Helpers;
 /// <summary>
 /// Compares the tree a formatter phase returned with the tree its text gives when it is parsed again with the parse options
 /// of the tree the formatter was given: the same nodes in the same structure, the same tokens with the same kinds, texts,
-/// and places, no syntax error, and every comment, documentation comment, directive, and disabled-text span as trivia of
+/// values, and places, no syntax error, and every comment, documentation comment, directive, and disabled-text span as trivia of
 /// the same token on the same side. Whitespace and line breaks are not compared beyond their places, which equal texts
 /// already fix
 /// </summary>
@@ -126,6 +126,11 @@ internal static class PhaseTreeRoundTrip
             return $"the tree holds {Describe(expected)} where the reparsed text holds {Describe(actual)}";
         }
 
+        if (HaveSameValue(expectedToken, actualToken) == false)
+        {
+            return $"{Describe(expected)} stands for {DescribeValue(expectedToken)} in the tree and for {DescribeValue(actualToken)} in the reparsed text";
+        }
+
         var leading = CompareTrivia(expectedToken.LeadingTrivia, actualToken.LeadingTrivia);
 
         if (leading != null)
@@ -138,6 +143,49 @@ internal static class PhaseTreeRoundTrip
         return trailing == null
                    ? null
                    : $"the trailing trivia of {Describe(expected)} differ: {trailing}";
+    }
+
+    /// <summary>
+    /// Determines whether two tokens stand for the same value: the same value text, and values of the same type that are
+    /// equal, element by element for an array such as the bytes of a UTF-8 string literal
+    /// </summary>
+    /// <param name="expected">The token of the phase's tree</param>
+    /// <param name="actual">The token of the reparsed tree</param>
+    /// <returns><see langword="true"/> when both tokens stand for the same value</returns>
+    private static bool HaveSameValue(SyntaxToken expected, SyntaxToken actual)
+    {
+        if (expected.ValueText != actual.ValueText)
+        {
+            return false;
+        }
+
+        var expectedValue = expected.Value;
+        var actualValue = actual.Value;
+
+        if (expectedValue == null
+            || actualValue == null)
+        {
+            return expectedValue == null && actualValue == null;
+        }
+
+        if (expectedValue.GetType() != actualValue.GetType())
+        {
+            return false;
+        }
+
+        return expectedValue is Array expectedArray
+                   ? expectedArray.Cast<object>().SequenceEqual(((Array)actualValue).Cast<object>())
+                   : expectedValue.Equals(actualValue);
+    }
+
+    /// <summary>
+    /// Describes the value of a token by its value text and the type of its value
+    /// </summary>
+    /// <param name="token">The token</param>
+    /// <returns>The description</returns>
+    private static string DescribeValue(SyntaxToken token)
+    {
+        return $"'{token.ValueText.Replace("\r", "\\r").Replace("\n", "\\n")}' ({token.Value?.GetType().Name ?? "no value"})";
     }
 
     /// <summary>

@@ -37,6 +37,23 @@ public class PhaseTreeRoundTripTests : FormatterTestsBase
                                                    }
                                                    """;
 
+    /// <summary>
+    /// The token-value example of FMT-PIPE-021: an interpolated raw string literal whose content lines, hole line, and closing
+    /// line start in column 0
+    /// </summary>
+    private const string ColumnZeroInterpolatedLiteral = """"
+                                                         class C
+                                                         {
+                                                             void M()
+                                                             {
+                                                                 var s = $"""
+                                                         a {Call(1,
+                                                         2)} b
+                                                         """;
+                                                             }
+                                                         }
+                                                         """";
+
     #endregion // Constants
 
     #region Tests
@@ -227,9 +244,189 @@ public class PhaseTreeRoundTripTests : FormatterTestsBase
         }
     }
 
+    /// <summary>
+    /// Verifies the token-value example of FMT-PIPE-021: after the indentation phase moves the lines of an interpolated raw
+    /// string literal whose lines start in column 0, the text token in front of the hole still stands for <c>a </c>
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-021")]
+    public void MovedInterpolatedTextTokenStillStandsForItsContent()
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var output = ObservedPipeline.GetPhaseOutput(NormalizeLineEndings(ColumnZeroInterpolatedLiteral, endOfLine), endOfLine, "IndentationPhase");
+            var textToken = output.DescendantNodes()
+                                  .OfType<InterpolatedStringExpressionSyntax>()
+                                  .Single()
+                                  .Contents
+                                  .OfType<InterpolatedStringTextSyntax>()
+                                  .First()
+                                  .TextToken;
+            var description = $"Under {DescribeLineEnding(endOfLine)} line endings:{Environment.NewLine}{output.ToFullString()}";
+
+            Assert.AreNotEqual("a ", textToken.Text, $"The literal should have moved. {description}");
+            Assert.AreEqual("a ", textToken.ValueText, description);
+            Assert.IsNull(PhaseTreeRoundTrip.FindDifference(output, CSharpParseOptions.Default), description);
+        }
+    }
+
+    /// <summary>
+    /// Verifies the final output of the token-value example of FMT-PIPE-021, with every phase's tree, token values included,
+    /// parsing back to itself
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-021")]
+    public void ColumnZeroInterpolatedLiteralMovesUnderItsOpeningQuotes()
+    {
+        const string expected = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var s = $"""
+                                                 a {Call(1,
+                                                         2)} b
+                                                 """;
+                                    }
+                                }
+                                """";
+
+        AssertRuleResult(ColumnZeroInterpolatedLiteral, expected);
+    }
+
+    /// <summary>
+    /// Verifies that every phase's tree keeps the values of the tokens of a moved interpolated raw string literal with an
+    /// indented closing line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-021")]
+    public void MovedInterpolatedLiteralWithIndentedClosingLineKeepsItsTokenValues()
+    {
+        const string input = """"
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var s = $"""
+                                         a {Call(1,
+                                         2)} b
+                                         c
+                                         """;
+                                 }
+                             }
+                             """";
+
+        AssertEveryLineEndingParsesBack(input);
+    }
+
+    /// <summary>
+    /// Verifies that every phase's tree keeps the values of the tokens of an interpolated raw string literal with two dollar
+    /// signs and two holes, whose lines start in column 0
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-021")]
+    public void MovedDoubleDollarInterpolatedLiteralAtColumnZeroKeepsItsTokenValues()
+    {
+        const string input = """"
+                             class C
+                             {
+                                 void M(int x, int y)
+                                 {
+                                     var s = $$"""
+                             {a} {{x}}
+                             b {{y}} c
+                             """;
+                                 }
+                             }
+                             """";
+
+        AssertEveryLineEndingParsesBack(input);
+    }
+
+    /// <summary>
+    /// Verifies that every phase's tree keeps the value of a plain multi-line raw string literal whose lines start in column 0
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-021")]
+    public void MovedPlainRawLiteralAtColumnZeroKeepsItsValue()
+    {
+        const string input = """"
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var s = """
+                             a
+                               b
+                             """;
+                                 }
+                             }
+                             """";
+
+        AssertEveryLineEndingParsesBack(input);
+    }
+
+    /// <summary>
+    /// Verifies that every phase's tree keeps the value of a UTF-8 multi-line raw string literal whose lines start in column 0
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-021")]
+    public void MovedUtf8RawLiteralAtColumnZeroKeepsItsValue()
+    {
+        const string input = """"
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var s = """
+                             a
+                             """u8;
+                                 }
+                             }
+                             """";
+
+        AssertEveryLineEndingParsesBack(input);
+    }
+
+    /// <summary>
+    /// Verifies that every phase's tree keeps the values of the tokens of an interpolated raw string literal that the
+    /// indentation phase moves to the left
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-021")]
+    public void InterpolatedLiteralMovedToTheLeftKeepsItsTokenValues()
+    {
+        const string input = """"
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var s = $"""
+                                                         a {Call(1,
+                                                         2)} b
+                                                         """;
+                                 }
+                             }
+                             """";
+
+        AssertEveryLineEndingParsesBack(input);
+    }
+
     #endregion // Tests
 
     #region Methods
+
+    /// <summary>
+    /// Asserts under LF and CRLF line endings that every phase's tree parses back to itself, token values included
+    /// </summary>
+    /// <param name="input">The input with LF line endings</param>
+    private void AssertEveryLineEndingParsesBack(string input)
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            AssertEveryPhaseParsesBack(NormalizeLineEndings(input, endOfLine), endOfLine, CSharpParseOptions.Default);
+        }
+    }
 
     /// <summary>
     /// Formats the input through the production pipeline and fails for every phase whose tree differs from the tree its
