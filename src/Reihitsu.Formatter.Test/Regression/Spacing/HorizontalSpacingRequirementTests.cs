@@ -660,5 +660,218 @@ public class HorizontalSpacingRequirementTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies the specification example: the <c>fixed</c> statement gets one space between the keyword and its
+    /// parenthesis
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-012")]
+    public void OneSpaceAfterFixedKeyword()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 unsafe void M(int[] items)
+                                 {
+                                     fixed(int* p = items)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    unsafe void M(int[] items)
+                                    {
+                                        fixed (int* p = items)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the change-doc example: a block comment the <c>fixed</c> keyword carries stays on it, and one space
+    /// is put between the comment and the parenthesis
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-012")]
+    [Requirement("FMT-SPACE-013")]
+    public void OneSpaceAfterFixedKeywordBehindBlockComment()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 unsafe void M(int[] items, int[] others)
+                                 {
+                                     fixed/* c */(int* p = items)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    unsafe void M(int[] items, int[] others)
+                                    {
+                                        fixed/* c */ (int* p = items)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that each of two nested <c>fixed</c> statements gets one space between the keyword and its parenthesis
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-012")]
+    public void OneSpaceAfterEachOfNestedFixedKeywords()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 unsafe void M(int[] items, int[] others)
+                                 {
+                                     fixed(int* p = items)
+                                     fixed(int* q = others)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    unsafe void M(int[] items, int[] others)
+                                    {
+                                        fixed (int* p = items)
+                                        fixed (int* q = others)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that several spaces between the <c>fixed</c> keyword and its parenthesis become one
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-012")]
+    public void SeveralSpacesAfterFixedKeywordBecomeOne()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 unsafe void M(int[] items, int[] others)
+                                 {
+                                     fixed   (int* p = items)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    unsafe void M(int[] items, int[] others)
+                                    {
+                                        fixed (int* p = items)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>fixed</c> statement with one space behind the keyword is left unchanged
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-012")]
+    public void SpacedFixedKeywordIsKept()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 unsafe void M(int[] items, int[] others)
+                                 {
+                                     fixed (int* p = items)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a fixed-size buffer keeps exactly one space behind <c>fixed</c>
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-012")]
+    public void FixedSizeBufferKeepsOneSpaceAfterFixedKeyword()
+    {
+        // Arrange
+        const string input = """
+                             unsafe struct S
+                             {
+                                 public fixed int _buffer[4];
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that several spaces behind <c>fixed</c> in a fixed-size buffer become one
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-012")]
+    public void SeveralSpacesInFixedSizeBufferBecomeOne()
+    {
+        // Arrange
+        const string input = """
+                             unsafe struct S
+                             {
+                                 public fixed  int _buffer[4];
+                             }
+                             """;
+        const string expected = """
+                                unsafe struct S
+                                {
+                                    public fixed int _buffer[4];
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Tests
 }
