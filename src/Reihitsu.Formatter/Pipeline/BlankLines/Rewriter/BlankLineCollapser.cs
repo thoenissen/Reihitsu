@@ -140,8 +140,8 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
     /// <inheritdoc/>
     /// <remarks>
     /// Whether the first trivia line continues the preceding token's line is read from the facts resolved through
-    /// <see cref="PrecedingTokenFacts.Resolve"/>. The first token of a formatting root that an earlier subphase detached
-    /// has no previous token in its tree, and reading the live previous token there would treat the line break that
+    /// <see cref="PrecedingTokenFacts.Resolve"/>. A node-level formatting root has no parent (FMT-PIPE-023), so its first
+    /// token has no previous token in its tree, and reading the live previous token there would treat the line break that
     /// ends the preceding token's line as a blank line and collapse a blank line the boundary rewriters just inserted
     /// </remarks>
     public override SyntaxToken VisitToken(SyntaxToken token)

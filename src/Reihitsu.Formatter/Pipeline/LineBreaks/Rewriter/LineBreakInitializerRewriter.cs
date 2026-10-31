@@ -3,6 +3,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Data.Enumerations;
+using Reihitsu.Formatter.Extensions;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
@@ -61,6 +63,42 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
+    /// Determines whether a pattern is introduced directly by a case label,
+    /// looking through enclosing combinator (<c>and</c>/<c>or</c>) and <c>not</c> patterns. When the walk reaches the
+    /// formatting root, which has no parent, the facts the entry point captured from the document answer instead
+    /// </summary>
+    /// <param name="node">The pattern</param>
+    /// <param name="rootConstruct">The facts about the construct the formatting root stands in</param>
+    /// <returns><see langword="true"/> if the pattern is introduced by a case label; otherwise, <see langword="false"/></returns>
+    internal static bool IsIntroducedByCaseLabel(SyntaxNode node, RootConstruct rootConstruct)
+    {
+        var current = node;
+
+        while (current.Parent is BinaryPatternSyntax or UnaryPatternSyntax)
+        {
+            current = current.Parent;
+        }
+
+        return current.Parent is CasePatternSwitchLabelSyntax
+               || rootConstruct.IsRootIn(current, RootConstruct.CaseLabelPattern);
+    }
+
+    /// <summary>
+    /// Determines whether an initializer is a collection initializer on the right of an assignment, whose opening brace
+    /// stays on the assignment's line. The formatting root has no parent, so for the root the facts the entry point
+    /// captured from the document answer instead
+    /// </summary>
+    /// <param name="node">The initializer, as it entered the rewriter</param>
+    /// <param name="rootConstruct">The facts about the construct the formatting root stands in</param>
+    /// <returns><see langword="true"/> if the initializer is an assigned collection initializer</returns>
+    internal static bool IsAssignedCollectionInitializer(InitializerExpressionSyntax node, RootConstruct rootConstruct)
+    {
+        return node.IsKind(SyntaxKind.CollectionInitializerExpression)
+               && (node.Parent is AssignmentExpressionSyntax
+                   || rootConstruct.IsRootIn(node, RootConstruct.AssignedCollectionInitializer));
+    }
+
+    /// <summary>
     /// Removes trailing whitespace from the token immediately before a brace or bracket when the line of that token
     /// ends directly behind it, before any comment in the brace or bracket's leading trivia
     /// </summary>
@@ -95,24 +133,6 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
         var newPreviousToken = previousToken.WithTrailingTrivia(newTrailing);
 
         return node.ReplaceToken(previousToken, newPreviousToken);
-    }
-
-    /// <summary>
-    /// Determines whether a recursive pattern is introduced directly by a case label,
-    /// looking through enclosing combinator (<c>and</c>/<c>or</c>) and <c>not</c> patterns
-    /// </summary>
-    /// <param name="node">The recursive pattern</param>
-    /// <returns><see langword="true"/> if the pattern is introduced by a case label; otherwise, <see langword="false"/></returns>
-    private static bool IsIntroducedByCaseLabel(RecursivePatternSyntax node)
-    {
-        SyntaxNode current = node;
-
-        while (current.Parent is BinaryPatternSyntax or UnaryPatternSyntax)
-        {
-            current = current.Parent;
-        }
-
-        return current.Parent is CasePatternSwitchLabelSyntax;
     }
 
     /// <summary>
@@ -174,7 +194,7 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
     {
         _cancellationToken.ThrowIfCancellationRequested();
 
-        var originalParent = node.Parent;
+        var isAssignedCollectionInitializer = IsAssignedCollectionInitializer(node, _context.RootConstruct);
 
         node = (InitializerExpressionSyntax)base.VisitInitializerExpression(node);
 
@@ -211,8 +231,7 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
             node = EnsureElementsOnSeparateLines(node, static initializer => initializer.Expressions);
         }
 
-        if (node.IsKind(SyntaxKind.CollectionInitializerExpression)
-            && originalParent is AssignmentExpressionSyntax)
+        if (isAssignedCollectionInitializer)
         {
             node = node.WithOpenBraceToken(LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(node.OpenBraceToken));
 
@@ -387,7 +406,7 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
         // A case label keeps its open brace on the case line so the label is not confused with the
         // section body. This is determined before the rewrite because the parent is unreachable once
         // the node is rebuilt
-        var keepOpenBraceInline = IsIntroducedByCaseLabel(node);
+        var keepOpenBraceInline = IsIntroducedByCaseLabel(node, _context.RootConstruct);
 
         node = (RecursivePatternSyntax)base.VisitRecursivePattern(node);
 

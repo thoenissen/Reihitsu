@@ -6,16 +6,19 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Core;
+using Reihitsu.Formatter.Data.Enumerations;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
+using Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 using Reihitsu.Formatter.Pipeline.TabReplacement;
 
 namespace Reihitsu.Formatter.Utilities;
 
 /// <summary>
 /// The entry-point code of <see cref="ReihitsuFormatter"/>: the guards that decide whether a tree is formatted at all, and
-/// what an entry point computes about its input before the pipeline runs — the line ending, the base indentation level,
-/// and the column of a formatting root in its document. Code fixes and the command-line tool apply the same guards and
-/// computations through it. Phases do not use it; the facts they share live in <c>Reihitsu.Core</c> and in
-/// <c>Pipeline/Core</c>
+/// what an entry point computes about its input before the pipeline runs — the line ending, the column of a formatting
+/// root's first token in its document, the construct it stands in, and its detached copy. Code fixes and the command-line
+/// tool apply the same guards and computations through it. Phases do not use it; the facts they share live in
+/// <c>Reihitsu.Core</c> and in <c>Pipeline/Core</c>
 /// </summary>
 internal static class ReihitsuFormatterHelpers
 {
@@ -74,14 +77,70 @@ internal static class ReihitsuFormatterHelpers
     }
 
     /// <summary>
-    /// Computes the base indentation level of a node from its position in the syntax tree.
-    /// Walks the parent chain and counts indenting constructs (types, namespaces, blocks, etc.)
+    /// Captures the facts about the construct a target stands in in its document (FMT-PIPE-024), one flag for each decision
+    /// of the line-break phase that reads the target's ancestors. Each flag is the answer that decision's own predicate gives
+    /// for the target while it is still part of its document
     /// </summary>
-    /// <param name="node">The node whose base indentation level to compute</param>
-    /// <returns>The number of indenting ancestor constructs</returns>
-    internal static int ComputeBaseIndentLevel(SyntaxNode node)
+    /// <param name="target">The target, still part of its document</param>
+    /// <returns>The facts</returns>
+    internal static RootConstruct CaptureRootConstruct(SyntaxNode target)
     {
-        return SyntaxIndentationUtilities.ComputeBaseIndentLevel(node);
+        var facts = RootConstruct.None;
+
+        if (target.Parent == null)
+        {
+            return facts;
+        }
+
+        if (LineBreakContainedBlockRewriter.IsElseIfBranch(target, RootConstruct.None))
+        {
+            facts |= RootConstruct.ElseIf;
+        }
+
+        if (target is AccessorDeclarationSyntax or AccessorListSyntax
+            && AttributeTargetFormattingRewriter.StandsInOneLineProperty(target))
+        {
+            facts |= RootConstruct.OneLineProperty;
+        }
+
+        if (ListElementInteriorUtilities.LiesInListElement(target))
+        {
+            facts |= RootConstruct.ListElement;
+        }
+
+        if (target is BracketedArgumentListSyntax argumentList
+            && LineBreakListRewriter.IsElementAccessArgumentList(argumentList, RootConstruct.None))
+        {
+            facts |= RootConstruct.ElementAccessArguments;
+        }
+
+        if (target is PatternSyntax
+            && LineBreakInitializerRewriter.IsIntroducedByCaseLabel(target, RootConstruct.None))
+        {
+            facts |= RootConstruct.CaseLabelPattern;
+        }
+
+        if (target is InitializerExpressionSyntax initializer
+            && LineBreakInitializerRewriter.IsAssignedCollectionInitializer(initializer, RootConstruct.None))
+        {
+            facts |= RootConstruct.AssignedCollectionInitializer;
+        }
+
+        return facts;
+    }
+
+    /// <summary>
+    /// Returns a node as the root of a tree of its own (FMT-PIPE-023), with the parse options of the tree it came from, so
+    /// that no phase reaches the code around it. A node without a parent is returned as it is
+    /// </summary>
+    /// <param name="node">The node</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The node without a parent</returns>
+    internal static SyntaxNode Detach(SyntaxNode node, CancellationToken cancellationToken)
+    {
+        return node.Parent == null
+                   ? node
+                   : CSharpSyntaxTree.Create((CSharpSyntaxNode)node, node.SyntaxTree.Options as CSharpParseOptions).GetRoot(cancellationToken);
     }
 
     /// <summary>

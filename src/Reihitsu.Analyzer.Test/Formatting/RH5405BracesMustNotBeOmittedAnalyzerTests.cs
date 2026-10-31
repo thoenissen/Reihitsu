@@ -18,6 +18,53 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
     #region Constants
 
     /// <summary>
+    /// An unbraced body of an <c>else if</c> whose condition carries a trailing line comment
+    /// </summary>
+    private const string ElseIfWithTrailingCommentTestCode = """
+                                                             class C
+                                                             {
+                                                                 void M(bool x, bool y)
+                                                                 {
+                                                                     if (x)
+                                                                     {
+                                                                         Foo();
+                                                                     }
+                                                                     else if (y) // note
+                                                                         {|RH5405:Foo();|}
+                                                                 }
+
+                                                                 void Foo()
+                                                                 {
+                                                                 }
+                                                             }
+                                                             """;
+
+    /// <summary>
+    /// Result of the fix on <see cref="ElseIfWithTrailingCommentTestCode"/>: the comment stays behind the condition; the braces
+    /// stand in the column of the <c>if</c>'s first token
+    /// </summary>
+    private const string ElseIfWithTrailingCommentFixedCode = """
+                                                              class C
+                                                              {
+                                                                  void M(bool x, bool y)
+                                                                  {
+                                                                      if (x)
+                                                                      {
+                                                                          Foo();
+                                                                      }
+                                                                      else if (y) // note
+                                                                           {
+                                                                               Foo();
+                                                                           }
+                                                                  }
+
+                                                                  void Foo()
+                                                                  {
+                                                                  }
+                                                              }
+                                                              """;
+
+    /// <summary>
     /// Input of the SHARED-FIX-008 example: a body on the line of its <c>if</c>, without markup
     /// </summary>
     private const string LineOfIfTestCode = """
@@ -615,6 +662,30 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
                                  """;
 
         await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix on the body of an <c>else if</c> whose condition carries a trailing line comment keeps the
+    /// comment behind the condition
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyFixKeepsTheTrailingCommentOfAnElseIfCondition()
+    {
+        await Verify(ElseIfWithTrailingCommentTestCode, ElseIfWithTrailingCommentFixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix on the body of an <c>else if</c> whose condition carries a trailing line comment keeps the
+    /// comment behind the condition, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyFixKeepsTheTrailingCommentOfAnElseIfConditionWithCarriageReturnLineFeed()
+    {
+        await Verify(NormalizeToCarriageReturnLineFeed(ElseIfWithTrailingCommentTestCode), NormalizeToCarriageReturnLineFeed(ElseIfWithTrailingCommentFixedCode));
     }
 
     /// <summary>

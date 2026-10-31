@@ -7,6 +7,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Reihitsu.Core;
 using Reihitsu.Core.Enumerations;
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Data.Enumerations;
+using Reihitsu.Formatter.Extensions;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
@@ -49,14 +51,21 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Determines whether the owner is an accessor whose attribute lists must stay on the property's single line
+    /// Determines whether an accessor or an accessor list belongs to a property, indexer, or event declaration that stands
+    /// on one line apart from its attribute lists
     /// </summary>
-    /// <param name="owner">Owner node</param>
-    /// <returns><see langword="true"/> when the accessor belongs to a single-line property; otherwise, <see langword="false"/></returns>
-    private static bool ShouldKeepAccessorListsSingleLine(SyntaxNode owner)
+    /// <param name="node">The accessor or accessor list</param>
+    /// <returns><see langword="true"/> when the node belongs to such a declaration; otherwise, <see langword="false"/></returns>
+    internal static bool StandsInOneLineProperty(SyntaxNode node)
     {
-        return owner is AccessorDeclarationSyntax accessorDeclaration
-               && accessorDeclaration.Parent?.Parent is BasePropertyDeclarationSyntax basePropertyDeclaration
+        var owner = node switch
+                    {
+                        AccessorDeclarationSyntax accessorDeclaration => accessorDeclaration.Parent?.Parent,
+                        AccessorListSyntax accessorList => accessorList.Parent,
+                        _ => null
+                    };
+
+        return owner is BasePropertyDeclarationSyntax basePropertyDeclaration
                && SyntaxNodeUtilities.IsSingleLineExcludingAttributeLists(basePropertyDeclaration);
     }
 
@@ -323,6 +332,36 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
         }
 
         return updatedLists;
+    }
+
+    /// <summary>
+    /// Determines whether the owner is an accessor whose attribute lists must stay on the property's single line. When the
+    /// accessor or its accessor list is the formatting root, which has no parent, the facts the entry point captured from
+    /// the document say whether the property stood on one line. The root itself is part of the property's line, so the
+    /// property still stands on one line only while an earlier rewrite has put no line break into the root, as the property
+    /// itself would show it in the document
+    /// </summary>
+    /// <param name="owner">Owner node</param>
+    /// <returns><see langword="true"/> when the accessor belongs to a single-line property; otherwise, <see langword="false"/></returns>
+    private bool ShouldKeepAccessorListsSingleLine(SyntaxNode owner)
+    {
+        if (owner is not AccessorDeclarationSyntax accessorDeclaration)
+        {
+            return false;
+        }
+
+        if (StandsInOneLineProperty(accessorDeclaration))
+        {
+            return true;
+        }
+
+        var root = accessorDeclaration.Parent is AccessorListSyntax accessorList
+                       ? accessorList
+                       : (SyntaxNode)accessorDeclaration;
+
+        return _context.RootConstruct.IsRootIn(root, RootConstruct.OneLineProperty)
+               && LineBreakDetection.IsMultiLine(root) == false
+               && root.GetLeadingTrivia().Any(SyntaxTriviaUtilities.EndsLine) == false;
     }
 
     #endregion // Methods

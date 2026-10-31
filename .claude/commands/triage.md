@@ -47,7 +47,7 @@ Everything else is a **minor bug**, for example a missing report, a fix that is 
 
 Treat the report as a hypothesis, as `Issue intake` in `AGENTS.md` requires. Assess severity from the reported behavior and say when you triaged without reproducing it. When the report is wrong or overstated, say so in the table rather than inflating or deflating the group.
 
-Also determine the **labels** to add: one of `bug`, `enhancement`, `maintenance` that matches the group, plus `analyzer`, `formatter`, `cli`, or `documentation` where the issue touches that surface. Never remove a label the issue already has.
+Also determine the **labels** to add: one of `bug`, `enhancement`, `maintenance` that matches the group, plus `analyzer`, `formatter`, `cli`, or `documentation` where the issue touches that surface. Never remove a label the issue already has. `agent-filed` in particular stays: it says the issue's text is not reviewed by the maintainer, and assigning a milestone is no such review. Only the maintainer removes it.
 
 ## 3. Propose
 

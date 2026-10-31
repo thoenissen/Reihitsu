@@ -100,9 +100,8 @@ public static class ReihitsuFormatter
     /// </summary>
     /// <param name="node">The syntax node to format</param>
     /// <param name="indentLevel">
-    /// The indentation level of the node within its containing document.
-    /// Required for newly generated nodes that are not yet inserted into a tree,
-    /// where the indentation level cannot be inferred from position
+    /// The indentation level of the node within its containing document. When it is negative, the node is laid out at the
+    /// depth the indentation phase gives its first token at its position in its tree, which is 0 for a node without a parent
     /// </param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A new SyntaxNode with formatting applied</returns>
@@ -115,19 +114,21 @@ public static class ReihitsuFormatter
     /// accessor blocks instead of converting them to expression bodies, and keeps the accessor list of get-only
     /// properties and indexers instead of converting them to expression-bodied members. Version-dependent rules follow the language version
     /// of the tree that Roslyn reports as the node's syntax tree, whether or not the node has a parent; a node that reports a tree
-    /// with the default parse options is formatted for the newest supported version
+    /// with the default parse options is formatted for the newest supported version. A node that is part of a tree is formatted as
+    /// a root without a parent: the code in front of it and behind it, and the construct it stands in, are not read, so it gets the
+    /// result the same node without a parent gets at the same depth, and its caller decides what stands around the result
     /// </remarks>
     public static SyntaxNode FormatNode(SyntaxNode node, int indentLevel = -1, CancellationToken cancellationToken = default)
     {
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(node);
-        var baseIndentLevel = indentLevel >= 0 ? indentLevel : ReihitsuFormatterHelpers.ComputeBaseIndentLevel(node);
+        var baseIndentLevel = indentLevel >= 0 ? indentLevel : SyntaxIndentationUtilities.ComputeIndentLevel(node);
         var context = new FormattingContext(endOfLine,
                                             baseIndentLevel,
                                             preserveRootDocumentationBoundary: node is not CompilationUnitSyntax,
                                             disabledStructuralTransforms: CodeFixDisabledStructuralTransforms,
                                             languageVersion: LanguageVersionResolver.Resolve(node.SyntaxTree.Options));
 
-        return FormattingPipeline.Execute(node, context, cancellationToken);
+        return FormattingPipeline.Execute(ReihitsuFormatterHelpers.Detach(node, cancellationToken), context, cancellationToken);
     }
 
     /// <summary>
@@ -146,9 +147,11 @@ public static class ReihitsuFormatter
     /// get-only properties and indexers keep their accessor list rather than becoming expression-bodied members,
     /// including when the target is the document root, because this entry point serves code fixes.
     /// Version-dependent rules follow the effective language version of the document's project, clamped to the newest
-    /// supported version. The blank lines above a target that starts its line are decided from its surroundings as they stand
-    /// in the document: the token that precedes it and, for a statement or switch section, the sibling that precedes it in its
-    /// list. That sibling is not formatted, so a decision that document-level formatting would base on a rewritten sibling can differ.
+    /// supported version. The target is formatted as a root without a parent; what the phases need from the document around it
+    /// is captured before they run, as plain values: the token that precedes it, its place in its statement or switch-section
+    /// list, its depth, the column of its first token, and the construct it stands in. The blank lines above a target that starts
+    /// its line are decided from those facts as the document stands; the preceding sibling is not formatted, so a decision that
+    /// document-level formatting would base on a rewritten sibling can differ.
     /// The one write outside the target is the whitespace that separated the preceding token from a documentation comment the
     /// target moves onto its own line: it would otherwise end that line, so it is removed as document-level formatting removes it
     /// </remarks>
@@ -183,7 +186,7 @@ public static class ReihitsuFormatter
                                         ? null
                                         : ReihitsuFormatterHelpers.ComputeDocumentColumn(originalFirstToken, keepsLeadingTrivia == false);
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
-        var baseIndentLevel = ReihitsuFormatterHelpers.ComputeBaseIndentLevel(targetNode);
+        var baseIndentLevel = SyntaxIndentationUtilities.ComputeIndentLevel(targetNode);
         var context = new FormattingContext(endOfLine,
                                             baseIndentLevel,
                                             preserveRootDocumentationBoundary: targetNode != root,
@@ -191,8 +194,10 @@ public static class ReihitsuFormatter
                                             languageVersion: LanguageVersionResolver.Resolve(document.Project.ParseOptions),
                                             rootPrecedingToken: PrecedingTokenFacts.From(precedingToken),
                                             rootListPosition: RootListPosition.From(targetNode),
-                                            rootFirstTokenColumn: rootFirstTokenColumn);
-        var formattedTarget = FormattingPipeline.Execute(targetNode, context, cancellationToken);
+                                            rootFirstTokenColumn: rootFirstTokenColumn,
+                                            rootChainBoundary: FluentChainBoundary.From(targetNode),
+                                            rootConstruct: ReihitsuFormatterHelpers.CaptureRootConstruct(targetNode));
+        var formattedTarget = FormattingPipeline.Execute(ReihitsuFormatterHelpers.Detach(targetNode, cancellationToken), context, cancellationToken);
 
         if (keepsLeadingTrivia)
         {
@@ -278,7 +283,7 @@ public static class ReihitsuFormatter
                                         ? null
                                         : ReihitsuFormatterHelpers.ComputeDocumentColumn(contextNode.GetFirstToken(), countsOwnWhitespaceTabsAsReplaced: false);
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
-        var baseIndentLevel = ReihitsuFormatterHelpers.ComputeBaseIndentLevel(contextNode);
+        var baseIndentLevel = SyntaxIndentationUtilities.ComputeIndentLevel(contextNode);
         var context = new FormattingContext(endOfLine,
                                             baseIndentLevel,
                                             preserveRootDocumentationBoundary: contextNode != root,
@@ -289,6 +294,8 @@ public static class ReihitsuFormatter
         var originalFirstToken = targetNode.GetFirstToken();
         var annotatedTarget = targetNode.ReplaceToken(originalFirstToken,
                                                       originalFirstToken.WithAdditionalAnnotations(targetTokenAnnotation));
+
+        // The copy of the context is the root of a tree of its own, so no phase reaches the code around it (FMT-PIPE-023)
         var annotatedContext = contextNode.ReplaceNode(targetNode, annotatedTarget);
         var formattedContext = FormattingPipeline.Execute(annotatedContext, context, cancellationToken);
 

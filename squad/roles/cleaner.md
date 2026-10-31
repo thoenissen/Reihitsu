@@ -22,7 +22,7 @@ Every lane except docs, after the implementer (or after the test implementer whe
 
 ## When a warning cannot be resolved cleanly
 
-A warning that only a suppression, a `#pragma`, `[SuppressMessage]`, or a ruleset change would resolve is escalation 6. A warning whose fix would change behavior goes back to the lead as a finding for the implementer. In both cases leave the code as it is and describe the warning, its location, and why each form-only fix fails.
+A warning that only a suppression, a `#pragma`, `[SuppressMessage]`, or a ruleset change would resolve is escalation 6 (`README.md`, *Escalations*). A warning whose fix would change behavior goes back to the lead as a finding for the implementer. In both cases leave the code as it is and describe the warning, its location, and why each form-only fix fails.
 
 ## Must not
 

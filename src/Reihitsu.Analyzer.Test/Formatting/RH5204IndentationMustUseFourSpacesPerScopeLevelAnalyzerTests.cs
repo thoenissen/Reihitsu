@@ -14,6 +14,57 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : BatchCodeFixTestsBase<RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer, RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider>
 {
+    #region Constants
+
+    /// <summary>
+    /// An unbraced embedded <c>if</c> inside <c>while (a)</c> that starts behind the last line of a multi-line comment, with
+    /// misindented braces and body
+    /// </summary>
+    private const string EmbeddedIfBehindMultiLineCommentTestData = """
+                                                                    class C
+                                                                    {
+                                                                        void M(bool a, bool b)
+                                                                        {
+                                                                            while (a)
+                                                                                /* note
+                                                                                */ if (b)
+                                                                            {|#0:{|}
+                                                                            X();
+                                                                            {|#1:}|}
+                                                                        }
+
+                                                                        void X()
+                                                                        {
+                                                                        }
+                                                                    }
+                                                                    """;
+
+    /// <summary>
+    /// Result of the fix on <see cref="EmbeddedIfBehindMultiLineCommentTestData"/>: the braces stand one level deeper than the
+    /// <c>while</c>, the body one level deeper than the braces
+    /// </summary>
+    private const string EmbeddedIfBehindMultiLineCommentFixedData = """
+                                                                     class C
+                                                                     {
+                                                                         void M(bool a, bool b)
+                                                                         {
+                                                                             while (a)
+
+                                                                                 /* note
+                                                                                 */ if (b)
+                                                                                 {
+                                                                                     X();
+                                                                                 }
+                                                                         }
+
+                                                                         void X()
+                                                                         {
+                                                                         }
+                                                                     }
+                                                                     """;
+
+    #endregion // Constants
+
     #region Tests
 
     /// <summary>
@@ -1786,6 +1837,48 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                  """;
 
         await Verify(testData, fixedData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifies that the fix on the misindented braces and body of an unbraced embedded <c>if</c> that starts behind the last
+    /// line of a multi-line comment places them in the columns of the embedded statement and corrects every diagnostic in one
+    /// application
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-006")]
+    [Requirement("SHARED-FIX-001")]
+    public async Task VerifyEmbeddedIfBehindMultiLineCommentIsFixedInOnePass()
+    {
+        await Verify(EmbeddedIfBehindMultiLineCommentTestData,
+                     EmbeddedIfBehindMultiLineCommentFixedData,
+                     static test =>
+                            {
+                                test.NumberOfIncrementalIterations = 1;
+                                test.NumberOfFixAllIterations = 1;
+                            },
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that the fix on the misindented braces and body of an unbraced embedded <c>if</c> that starts behind the last
+    /// line of a multi-line comment places them in the columns of the embedded statement and corrects every diagnostic in one
+    /// application, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-006")]
+    [Requirement("SHARED-FIX-001")]
+    public async Task VerifyEmbeddedIfBehindMultiLineCommentIsFixedInOnePassWithCarriageReturnLineFeed()
+    {
+        await Verify(NormalizeToCarriageReturnLineFeed(EmbeddedIfBehindMultiLineCommentTestData),
+                     NormalizeToCarriageReturnLineFeed(EmbeddedIfBehindMultiLineCommentFixedData),
+                     static test =>
+                            {
+                                test.NumberOfIncrementalIterations = 1;
+                                test.NumberOfFixAllIterations = 1;
+                            },
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat, 2));
     }
 
     #endregion // Tests
