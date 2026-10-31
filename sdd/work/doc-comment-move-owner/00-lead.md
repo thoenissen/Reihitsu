@@ -19,7 +19,11 @@ None yet.
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Branch name | Use the session's designated branch `claude/hopeful-dirac-8nqwtv` instead of `claude/issue-1491-<slug>` | The session environment forbids pushing to any other branch | Branch names are internal | ebba7a2 |
+| 2 | Spec author | Widen FMT-DOC-001 to `/** */` with the reach FMT-BLANK-012 gives them today, including the block-statement case, as the issue proposes? | Widen FMT-DOC-001 only to the delimited comments moved today; the statement / using-directive / expression cases stay open for both comment forms | Deciding the block-statement case for `/** */` alone would split one open question by comment form; the issue's goal is ownership, not a new decision | Every new spec example matches today's output; no output changes | 998810a |
+| 3 | Spec author | The issue's using-directive question (C4, #1497 input) | A `/** */` leading a using directive behind another is moved, as today and as `///` | Keeps today's output; the blank-line flip is #1497's case | Unchanged output | 998810a |
+| 4 | Spec author | The issue's statements about current code | Recorded in 01-spec-author.md: the blank-line phase does not move every `/** */` today; the `///` paths in the blank-line and brace phases are moot in today's order | The issue's "Before the run" section asks for this check | Facts only | 998810a |
 
 ## Follow-up candidates
 
-None yet.
+1. Should a delimited documentation comment behind `{`, behind a switch-label colon, or behind an earlier comment on its line move like `///`? Output question carried by the issue (changes FMT-INDENT-006's example). — 01-spec-author.md
+2. A documentation comment before a statement, behind an attribute, or inside an expression is moved with a blank line inserted inside code (`[Obsolete] /** d */ void M()`, `N(1, /** d */ 2)`); proposal: treat as documenting nothing and leave in place. Search duplicates first. — 01-spec-author.md
