@@ -75,5 +75,30 @@ public class RH6001KeywordsMustBeSpacedCorrectlyFormatterTests : FormatterTestsB
         await VerifyFormatter(testData);
     }
 
+    /// <summary>
+    /// Verifies that the formatter's output for an <c>if</c> keyword followed by a block comment and a documentation comment
+    /// stays unchanged and raises no diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6001-002")]
+    public async Task VerifyFormatterOutputWithBlockCommentAndStrayDocumentationCommentBehindKeywordIsNotReported()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal void M(bool c)
+                                    {
+                                        if/* c *//// x
+                                        (c)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await VerifyFormatter(testData);
+    }
+
     #endregion // Tests
 }
