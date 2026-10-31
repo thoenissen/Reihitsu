@@ -115,3 +115,82 @@ Input that shows the fact and Core's predicate disagreeing: RH6023 on `a?.B⏎  
 - `IndentationPhase.Execute` still re-roots a root that has a parent. Since FMT-PIPE-023, no production entry point passes one (`FormattingPipeline.Execute` callers pass tree roots or detached copies), so the branch is defensive only.
 - `PrecedingTokenFacts.Resolve` now copies an in-tree previous token's trailing trivia into `TriviaFact`s and rebuilds trivia on every `TrailingTrivia` read, also in whole-document formatting. That is an allocation only the root's first token needs; no slowdown was measurable.
 - Several construct flags (`OneLineProperty`, `AssignedCollectionInitializer`, and the inner-chain-part use of `ChainContinuation`; `CaseLabelPattern` and `ElementAccessArguments` were not settled) serve node-level inputs that, per the handovers, no code fix passes. They were added on maintainer answer 3, before `AGENTS.md`, *Supported inputs*, existed.
+
+## Round 2 (repair round 1)
+
+Commit: 906313ef22074c78730cfd7381591ee0b538b2b0
+Verdict: findings
+
+### Scope
+
+- Audit of the repair delta only: `git diff 4ebb825 906313e`.
+  - Handovers `13-test-implementer.md`, `14-implementer.md`, and `15-spec-author.md`; round 2 of `10-cleaner.md` and `11-spec-checker.md`; decisions 14–19 in `00-lead.md`.
+- `origin/main` is still `c24bc1d` (`ls-remote`) and is merged. The checkout is `906313e`.
+- Scope did not grow beyond the components the run already changes. Decision 14 moves the chain rule's input into Core (`FluentChain`, the new `FluentChainBoundary`) and has the chain alignment ask it too. Both are counterparts that round 1 named.
+- Evidence: a fresh `git archive` copy of `906313e` and the round-1 `main` copy, both in the scratchpad. `scripts/apply-fix.sh` was run on both trees:
+  - RH6023, RH6024, RH5111, RH5405, and RH5417 over every round-1 fixture;
+  - RH5204 over three new chain shapes;
+  - new fixtures `fxr2a` (RH6023) and `fxr2b` (RH5111).
+  
+  The coordinator's message carried no intended fix or hoped-for verdict.
+
+### Previous findings
+
+| # | Status | Evidence |
+|---|---|---|
+| 1 | closed | RH6023 over `fx6023` and `fx6023b` (wrapped `Left` behind a member binding and behind an element binding, nested conditional access, compound assignment, longer left chain, one-line `Left`, bare binding): head output equals `main` under LF and CRLF. One owner (`FluentChain.ContinuesChain` with `FluentChainBoundary`) now answers for every node of the root. The rule reads at most two levels up, and both reads that can leave the root (the root's parent, and the parent of a root assignment) are answered by the boundary. The two `FluentChain.Create(node)` calls in `ChainLineBreakRewriter` that act on visited, parentless copies keep `default`, so a copy is not mistaken for the root. `LayoutComputer` passes `MethodChainAlignmentContributor` only nodes of the attached layout tree (`root.DescendantNodesAndSelf()`), so only the root is parentless there. The 7 RH6023 tests and the formatter test pin `main`'s output under LF and CRLF, through whole-document `Verify` |
+| 2 | closed | `RootConstruct`, `RootConstructExtensions`, `TriviaFact`, and `FluentChainBoundary` are code owners of `formatter/pipeline.md` and in the index; architecture project 92/92 (`11-spec-checker.md`, round 2) |
+| 3 | closed | Both remarks now state that a node-level root has no parent (FMT-PIPE-023) |
+| 4 | closed | One loop, `SyntaxIndentationUtilities.ComputeIndentLevel`. `ComputeStatementIndentLevel` delegates to it, and `ReihitsuFormatterHelpers.ComputeDepth` is gone |
+
+### Findings
+
+| # | Severity | Location | Failure class | Repeats | Scope relation | What goes wrong | Suggested change |
+|---|---|---|---|---|---|---|---|
+| 5 | high | `src/Reihitsu.Core/FluentChain.cs` (`IsConditionalAccessBranch`, now read with the root's boundary); `sdd/changes/2026-10/node-root-detached.md` *What* and *Visible output changes* | FC-030, FC-032 | – (see below) | undecided output | Two code fixes now give a result that differs from `main`, and the change doc does not list it. The target is an assignment inside a conditional access whose root an earlier line-break rewriter changes. On `main` and in round 1, `LineBreakAssignmentRewriter` changed the root first, so the chain rewriter saw a parentless root and laid the wrapped left side out as a chain of its own (joined). The boundary now answers for that root as well, so the wrap is kept. Reached through RH5111, which formats the assignment, and through RH6023 when the value also stands on the next line. **Failing members (output differs from `main`, LF and CRLF):** RH5111 on `a?.B⏎  .C =⏎    5;` (`main`: `a?.B.C = 5;`; head: `a?.B⏎  .C = 5;`); RH5111 behind an element binding (`a?[0]⏎  .C =⏎5;`); RH5111 on a nested conditional access (`a?.B?.B⏎    .C =⏎5;`, head: `.C = 5;` in column 13); RH6023 on `a?.B⏎  .C=⏎    5;` (same split as RH5111). **Members that hold:** RH5111 with `Left` on one line (`a?.B.C =⏎5;`); RH6023 on a compound assignment with the value on the next line (`a?[0]⏎.C+=⏎5;`, which `LineBreakAssignmentRewriter` does not join on either tree); RH6023 without a wrapped value (finding 1's members). The new outputs keep the user's wrap, as whole-document formatting does (one column apart, as decision 17 records for RH6023). They converge in one iteration. But no unchanged requirement demands them; FMT-PIPE-024's conditional-access-branch row is this run's own requirement. No maintainer answer covers them, and no test pins them. The change doc's implementer-stage bullet ("a target that a phase before the line-break phase changes … Two kinds of target change") names only inner chain parts and assigned collection initializers. *Visible output changes* lists only RH5204 and RH5405. **Not a repeat of #1:** round 1 listed RH5111 as holding (equal to `main`). Its output now changes because the chain rule and the fact agree for a root an earlier rewriter changed: the intended effect of decision 14, under the mechanism of decision 4. It is not the same decision failing between the same components. | Ask the output question. If the new output is kept: the spec author adds the RH5111 case (and RH6023 with a wrapped value) to *Visible output changes* and to the implementer-stage bullet, and the test implementer adds an RH5111 code-fix test (LF and CRLF) on `a?.B⏎  .C =⏎    5;`. If `main`'s output is wanted, it cannot come back without making the chain decision depend on whether an earlier rewriter changed the root, which contradicts FMT-PIPE-023. Owners: lead, then spec author and test implementer. |
+
+### Guard scope
+
+| Decision | Inspected span | Counterpart predicate | Agreement | Verdict |
+|---|---|---|---|---|
+| Outermost chain node | `ContinuesChain(parent, child, boundary)`: the parent, and the grandparent through `IsConditionalAccessBranch` for an assignment; at a parentless node the boundary answers | `FluentChainBoundary.From`: the same two predicates on the attached target with `default` | same predicates, same span; complete for the rule's two-level reach | holds (finding 5 is its intended output, not a disagreement) |
+| Parentless node = root | `node.Parent == null` inside `ContinuesChain` / `IsConditionalAccessBranch` | "is the formatting root" | The boundary is passed only by `NormalizeIfOutermost` (original nodes) and `MethodChainAlignmentContributor` (attached layout tree). Visited copies and analyzer callers pass `default`, which reproduces the earlier behavior (`_ => false` for a null parent) | holds |
+| Depth | `ComputeIndentLevel`: sum of `GetChildIndentLevel` | `LayoutComputer` per-child step | same owner | holds |
+
+### Policy ownership
+
+| Policy | Owners found by rg | Verdict |
+|---|---|---|
+| Outermost chain node | `FluentChain.ContinuesChain` / `IsConditionalAccessBranch` (Core), called by `IsOutermostChainNode`, `GetOutermostChainNode`, `Create`, and `FluentChainBoundary.From`; formatter readers `ChainLineBreakRewriter`, `MethodChainAlignmentContributor` | one owner. `Reihitsu.Analyzer.Core.FluentChainAnalysisHelper.GetOutermostChainNode` is a pre-existing separate walk on attached trees that the run does not touch (hint) |
+| Node depth | `SyntaxIndentationUtilities.ComputeIndentLevel` (`ComputeStatementIndentLevel` delegates) | one owner |
+
+### Assertion adequacy
+
+| Test | Invariant | Falsifying observation | Helper | Verdict |
+|---|---|---|---|---|
+| 7 RH6023 tests (`VerifyFixKeeps…`, `VerifyFixOnAnAssignedMemberBinding…`) | the whole fixed document equals `main`'s, under LF then CRLF, default iterations | joined or re-laid chain, wrong column | `VerifyUnderBothLineEndings` → `Verify` | adequate; both sides of the boundary are tested |
+| `ConditionalAccessAssignmentTargetKeepsTheWrappedLinkOfItsAssignedMember` | exact document text with a space and a tab, LF and CRLF, and a second pass | joined link | `AssertFormatsTarget` | adequate |
+| (missing) RH5111 / RH6023 with a wrapped value | — | — | — | missing; part of finding 5 |
+
+### Failure classes dismissed (delta)
+
+- FC-001, FC-002: the boundary's two flags are the rule's own predicates.
+- FC-003: both sides of the `Left`-wrap boundary are tested for RH6023.
+- FC-004, FC-019 to FC-021: the repair touches no trivia decision. RH5405 still keeps every comment member, and #1527's example still gets column 8.
+- FC-007: finding 5's outputs converge in one iteration.
+- FC-010: the new formatter test has a second pass under LF and CRLF.
+- FC-013, FC-014: no analyzer changed.
+- FC-015: one owner (see the table).
+- FC-028: unchanged.
+- FC-031: the summaries of `FluentChain`, `FluentChainBoundary`, `RootConstruct`, `FormattingContext`, `MethodChainAlignmentContributor`, and `ReihitsuFormatterHelpers` describe the new code.
+- FC-032: the analyzer project passed after the last compiled change (`14-implementer.md`), and the cleaner rebuilt in Release.
+- Decision 18 (inner chain part no longer aligned as a chain): RH5204 reports no chain-link line, including a dangling `.` and argument lines (`fx5204c`; head equals `main`). RH5307 passes a statement, clause, argument, or bracketed list. The chain fixes pass the outermost node or a statement or member context. No caller reaches it.
+- RH6024, RH5417, and RH5204 over the round-1 fixtures: head equals `main`.
+
+### Architecture findings
+
+_None._ Decision 14 gave the outermost-chain decision one owner, and the line-break and indentation phases now ask it with the same boundary.
+
+### Hints
+
+- `FluentChainBoundary` is a Core type owned by `formatter/pipeline.md`, and its `From` is public API used only by the formatter. This is acceptable under `AGENTS.md`, *Supported inputs*. Noted because the shared spec `shared/fluent-chain-layout.md` names `FluentChain` but not the boundary.
