@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -193,7 +194,20 @@ public abstract class FormatterTestsBase
     {
         var (root, context) = SecondPassInput.Create(input, endOfLine, parseOptions);
 
-        var result = FormattingPipeline.Execute(root, context, CancellationToken.None);
+        if (root.ContainsDiagnostics
+            && root.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
+        {
+            return FormattingPipeline.Execute(root, context, CancellationToken.None).ToFullString();
+        }
+
+        // Every phase's tree has to parse back to itself with the fixture's parse options (FMT-PIPE-021), so every
+        // fixture of the formatter tests checks it on each pass
+        var (result, failures) = PhaseTreeRoundTrip.ExecuteAndCompare(root, context, (CSharpParseOptions)root.SyntaxTree.Options);
+
+        if (failures.Count > 0)
+        {
+            Assert.Fail(string.Join(Environment.NewLine, failures));
+        }
 
         return result.ToFullString();
     }

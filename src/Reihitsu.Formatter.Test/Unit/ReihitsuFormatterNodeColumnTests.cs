@@ -655,6 +655,64 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies the third case of the gap FMT-PIPE-017 records: an invocation target inside a hole of an interpolated raw
+    /// string literal whose lines the indentation phase moves under the opening quotes, with the local declaration as context.
+    /// The target is found and formatted; the literal and <c>Call(1,</c> keep their columns in the document, with <c>1</c> in
+    /// column 20, and <c>2</c> stands in the phases' column 25
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-PIPE-022")]
+    public async Task InvocationTargetInsideAMovingRawStringLiteralTakesThePhasesColumnOnItsSecondLine()
+    {
+        const string input = "class C\n{\n    void M()\n    {\n        var s = $\"\"\"\n            a {Call(1,\n            2)} b\n            \"\"\";\n    }\n}";
+        const string expected = "class C\n{\n    void M()\n    {\n        var s = $\"\"\"\n            a {Call(1,\n                         2)} b\n            \"\"\";\n    }\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             SelectSingle<InvocationExpressionSyntax>,
+                                             SelectSingle<LocalDeclarationStatementSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that the interpolated raw string literal itself, as target with the local declaration as context, is found and
+    /// formatted although the indentation phase moves its lines: its first token stays on the unmoved opening line, so it is
+    /// not in the gap FMT-PIPE-017 records, and its lines take the phases' columns under the opening quotes
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-022")]
+    public async Task RawStringLiteralTargetWhoseLinesMoveIsFormattedUnderItsOpeningQuotes()
+    {
+        const string input = "class C\n{\n    void M()\n    {\n        var s = $\"\"\"\n            a {Call(1,\n            2)} b\n            \"\"\";\n    }\n}";
+        const string expected = "class C\n{\n    void M()\n    {\n        var s = $\"\"\"\n                 a {Call(1,\n                         2)} b\n                 \"\"\";\n    }\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             SelectSingle<InterpolatedStringExpressionSyntax>,
+                                             SelectSingle<LocalDeclarationStatementSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies the other side of the third case of the gap FMT-PIPE-017 records: with the literal already under its opening
+    /// quotes, the phases change nothing in front of the invocation target on its line, and <c>2</c> is placed under <c>1</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task InvocationTargetInsideAnAlignedRawStringLiteralPlacesItsSecondLineUnderTheFirstArgument()
+    {
+        const string input = "class C\n{\n    void M()\n    {\n        var s = $\"\"\"\n                 a {Call(1,\n            2)} b\n                 \"\"\";\n    }\n}";
+        const string expected = "class C\n{\n    void M()\n    {\n        var s = $\"\"\"\n                 a {Call(1,\n                         2)} b\n                 \"\"\";\n    }\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             SelectSingle<InvocationExpressionSyntax>,
+                                             SelectSingle<LocalDeclarationStatementSyntax>);
+    }
+
+    /// <summary>
     /// Selects the only node of the given type in the root
     /// </summary>
     /// <typeparam name="TNode">Type of the node</typeparam>

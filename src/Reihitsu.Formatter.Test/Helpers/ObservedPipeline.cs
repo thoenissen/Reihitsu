@@ -42,7 +42,19 @@ public static class ObservedPipeline
     /// <returns>The phases in the order they ran</returns>
     public static IReadOnlyList<ObservedPhase> Run(string input, string endOfLine)
     {
-        var tree = CSharpSyntaxTree.ParseText(input);
+        return Run(input, endOfLine, null);
+    }
+
+    /// <summary>
+    /// Formats the input, parsed with the given parse options, through the production pipeline and records every phase
+    /// </summary>
+    /// <param name="input">The source text to format</param>
+    /// <param name="endOfLine">The end-of-line sequence of the formatting context</param>
+    /// <param name="parseOptions">The parse options, or <see langword="null"/> for the defaults</param>
+    /// <returns>The phases in the order they ran</returns>
+    public static IReadOnlyList<ObservedPhase> Run(string input, string endOfLine, CSharpParseOptions parseOptions)
+    {
+        var tree = CSharpSyntaxTree.ParseText(input, parseOptions);
         var context = new FormattingContext(endOfLine, languageVersion: LanguageVersionResolver.Resolve(tree.Options));
         var phases = new List<ObservedPhase>();
 
@@ -52,6 +64,23 @@ public static class ObservedPipeline
                                    CancellationToken.None);
 
         return phases;
+    }
+
+    /// <summary>
+    /// Formats the input through the production pipeline and returns the tree the named phase returned
+    /// </summary>
+    /// <param name="input">The source text to format</param>
+    /// <param name="endOfLine">The end-of-line sequence of the formatting context</param>
+    /// <param name="phaseName">The name under which the pipeline observer reports the phase</param>
+    /// <param name="parseOptions">The parse options, or <see langword="null"/> for the defaults</param>
+    /// <returns>The tree the phase returned</returns>
+    public static SyntaxNode GetPhaseOutput(string input, string endOfLine, string phaseName, CSharpParseOptions parseOptions = null)
+    {
+        var phase = Run(input, endOfLine, parseOptions).SingleOrDefault(observedPhase => observedPhase.Name == phaseName);
+
+        Assert.IsNotNull(phase, $"The pipeline should run the phase {phaseName}.");
+
+        return phase.Output;
     }
 
     /// <summary>
