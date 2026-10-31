@@ -4,10 +4,12 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-10 |
-| Affected requirements | SHARED-BLANK-008 (new), FMT-INDENT-002, FMT-INDENT-015, FMT-DOC-003, FMT-SPACE-001, FMT-SPACE-015 (retired), RH5203-001, RH5204-001, RH6002-001, RH6002-002, SHARED-CHAIN-002 |
+| Affected requirements | SHARED-BLANK-008 (new), FMT-INDENT-002, FMT-INDENT-015, FMT-DOC-003, FMT-SPACE-001, FMT-SPACE-015 (retired), RH5203-001, RH5204-001, RH6001-002, RH6002-001, RH6002-002, SHARED-CHAIN-002 |
 | Depends on | [A preparation phase replaces tabs and normalizes line endings first](preparation-phase.md) |
 
 Amendment for approval: the maintainer accepted this change doc on 2026-10-30. The passages marked *(amended)* below changed since then and were approved again on the same day. They make a wrapped type argument list of omitted type arguments join like any other list (FMT-BREAK-014) instead of staying wrapped with `>` in the block column; FMT-INDENT-015 keeps block indentation only for such a list that a comment or a directive keeps wrapped. Everything not marked is as accepted.
+
+The passage marked *(added 2026-10-31)* (RH6001) is provisionally accepted under the maintainer's standing instruction for this run (`squad/decisions/2026-10-31-line-start-fact-audit-2-repeat.md`).
 
 ## What
 
@@ -76,10 +78,11 @@ FMT-SPACE-001 leaves a gap unchanged when it holds a line break; the line break 
 
 ### Analyzer diagnostics follow the shared rule
 
-RH5203, RH5204, RH6002, and the fluent-chain rules RH5112, RH5201, and RH5048 ask whether a token starts or ends its line through the predicates this change unifies. With SHARED-BLANK-008:
+RH5203, RH5204, RH6001, RH6002, and the fluent-chain rules RH5112, RH5201, and RH5048 ask whether a token starts or ends its line through the predicates this change unifies. With SHARED-BLANK-008:
 
 - **RH5204** reports a namespace, type, block, accessor-list, or switch brace that starts its line behind a stranded `///` comment and is not in its scope column — the closing brace of `D` above. The formatter moves it to that column, so the diagnostic and the formatter agree (SHARED-DIAG-010).
 - **RH5203** checks an argument whose first token starts its line behind a `///` comment and reports it outside the alignment column, as it does behind a `//` comment.
+- *(added 2026-10-31)* **RH6001** stops reporting a keyword that a `///` comment ends the line behind, such as `if/// x` / `(c)`: the `(` starts its line, so a line break stands between the keyword and the `(` (RH6001-002), as behind `// x`. Today it reports the formatter's output for `if`, `while` (including that of a `do` statement), `for`, `foreach`, `fixed`, `lock`, `switch`, and `using`, and its fix writes `if /// x`.
 - **RH6002** stops reporting the whitespace in front of a `///` comment that stands between a token and a comma, and the whitespace between a comma and a `///` comment behind it: a `///` comment ends its line, so the comma starts its line (RH6002-001) or ends it (RH6002-002). Today it reports both and its fix removes the space in front of the comment (`N(1 /// x` becomes `N(1/// x`), against RH6002-004, while the formatter keeps both gaps.
 - **RH5201** and **RH5112** count a link behind a `///` comment as starting its line (SHARED-CHAIN-002). RH5201 reports such a link outside the chain's alignment column, and its fix aligns it without moving the comment, which is the formatter's output (SHARED-CHAIN-008); today the fix moves the comment onto its own line, as the formatter does. A first link behind a `///` comment keeps its line (SHARED-CHAIN-004), as behind any other comment.
 - **RH5048** reports an ordinary comment in front of a chain's first link when that link starts its line behind a `///` comment, as it does behind a `//` comment (RH5048-001): in `items /* c */ /// x` / `.Where(…)`, `/* c */` is reported, and today nothing is.
