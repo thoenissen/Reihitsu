@@ -54,3 +54,37 @@ scripts/test.sh --project formatter --filter "FullyQualifiedName~ConditionalAcce
 ## Repair (decision 19)
 
 `SelfReferentialTrackerReferenceTests.RepositoryCommentsContainNoSelfReferentialTrackerReferences` read the summary of `VerifyUnderBothLineEndings` (`<c>#0</c>`, line 839 of the RH6023 test file) as a tracker number. The summary now reads "Verifies the one diagnostic marked in the source and the fix result under LF and under CRLF". I checked every comment line this run added under `src/`, using a regex over `git diff 621b90e HEAD -- src` for comment lines containing `#` followed by a digit. That line was the only match. The change touches comments only; the test markup `{|#0:…|}` sits inside string literals and is unchanged. `scripts/test.sh --project architecture`: 92/92 pass.
+
+## Round 2 (repair round 2: auditor finding 5, maintainer answer 8)
+
+Commit: 26e6286a
+
+Maintainer answer 8 (A): when an assignment inside a conditional access has both its member and its value wrapped, the RH5111 and RH6023 fixes keep the line break in front of the member and move the value onto the operator's line. The expected values are the branch's output from `scripts/apply-fix.sh` over the auditor's fixtures (`fxr2a`, `fxr2b`, plus an `a?.B` variant of `eb5111.cs` that I derived), under LF and CRLF. Each converges in one iteration. I checked each one against answer A: every link line is kept, the operator gets one space on each side, and the value joins the operator's line. Columns:
+
+- `.C` stays in column 10 behind `a?.B` and behind `a?[0]`.
+- In the nested conditional access, `.C` moves from column 12 to 13, under the dot of the last binding. That matches round 1's RH6023 nested test and `main`'s fix alignment for that shape.
+
+Nothing contradicts answer A.
+
+| Test | Requirement / failure class | Helper | Expected now |
+|---|---|---|---|
+| `RH5111…Tests.VerifyFixKeepsTheWrappedLinkOfAnAssignedMemberBehindAMemberBinding` (`a?.B⏎  .C =⏎    5;` → `a?.B⏎  .C = 5;`) | RH5111-004, FMT-PIPE-024 | `VerifyUnderBothLineEndings` (new in the RH5111 class) | passes on branch |
+| `RH5111…Tests.VerifyFixKeepsTheWrappedLinkOfAnAssignedMemberBehindAnElementBinding` (`a?[0]⏎  .C =⏎    5;` → `a?[0]⏎  .C = 5;`) | RH5111-004, FMT-PIPE-024 | same | passes on branch |
+| `RH5111…Tests.VerifyFixKeepsTheWrappedLinkOfAnAssignedMemberInANestedConditionalAccess` (`a?.B?.B⏎    .C =⏎    5;` → `a?.B?.B⏎     .C = 5;`) | RH5111-004, FMT-PIPE-024 | same | passes on branch |
+| `RH6023…Tests.VerifyFixKeepsTheWrappedLinkOfAnAssignedMemberWhoseValueIsWrapped` (`a?.B⏎  .C=⏎    5;` → `a?.B⏎  .C = 5;`) | RH6023-002, FMT-PIPE-024 | `VerifyUnderBothLineEndings` | passes on branch |
+
+The RH5111 diagnostic is marked on the whole assignment expression (RH5111-003); the RH6023 diagnostic is marked on the operator. I did not rerun these on `main`. The auditor's run there gives the joined `a?.B.C = 5;`, so on `main` these tests would fail on the joined line.
+
+Not added:
+- RH5111 with the member on one line (`one5111.cs`, `a?.B.C =⏎5;` → `a?.B.C = 5;`): the auditor lists it as holding, and its output is unchanged.
+- RH6023 compound with a wrapped value (`eb6023.cs`): it holds on both trees, per the auditor.
+
+Results:
+- RH5111 and RH6023 classes on the branch: 86 of 86 pass.
+- Architecture project: 92 of 92 pass. No comment added in this round contains `#` followed by a digit.
+
+Commands:
+
+```shell
+scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests|FullyQualifiedName~RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests"
+```

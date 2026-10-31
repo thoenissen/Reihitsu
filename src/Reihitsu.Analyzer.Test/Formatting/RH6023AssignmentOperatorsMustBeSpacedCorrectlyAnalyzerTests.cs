@@ -836,6 +836,59 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
     }
 
     /// <summary>
+    /// Verifies that the fix on an assignment inside a conditional access, where the assigned member and the value each stand on their own line behind a member binding, keeps the line break in front
+    /// of the assigned member and moves the value onto the line of the operator, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6023-002")]
+    [Requirement("FMT-PIPE-024")]
+    public async Task VerifyFixKeepsTheWrappedLinkOfAnAssignedMemberWhoseValueIsWrapped()
+    {
+        const string testData = """
+                                class A
+                                {
+                                    public A B { get; set; }
+
+                                    public A this[int i] => this;
+
+                                    public int C { get; set; }
+                                }
+
+                                class C
+                                {
+                                    void M(A a)
+                                    {
+                                        a?.B
+                                          .C{|#0:=|}
+                                            5;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class A
+                                 {
+                                     public A B { get; set; }
+
+                                     public A this[int i] => this;
+
+                                     public int C { get; set; }
+                                 }
+
+                                 class C
+                                 {
+                                     void M(A a)
+                                     {
+                                         a?.B
+                                           .C = 5;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testData, fixedData);
+    }
+
+    /// <summary>
     /// Verifies the one diagnostic marked in the source and the fix result under LF and under CRLF
     /// </summary>
     /// <param name="testData">The source with LF line endings</param>
