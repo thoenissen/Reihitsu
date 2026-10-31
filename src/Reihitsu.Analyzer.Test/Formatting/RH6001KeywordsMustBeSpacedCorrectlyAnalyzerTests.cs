@@ -571,6 +571,7 @@ public class RH6001KeywordsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6001-002")]
     public async Task VerifyFixedKeywordFollowedByStrayDocumentationCommentIsNotReported()
     {
         const string testData = """
@@ -910,6 +911,46 @@ public class RH6001KeywordsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTest
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that <c>fixed</c> glued to its opening parenthesis is reported on the keyword, and the fix inserts one space
+    /// behind it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6001-001")]
+    [Requirement("RH6001-003")]
+    [Requirement("RH6001-004")]
+    public async Task VerifyFixedKeywordGluedToParenthesisIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    internal unsafe void M(int[] items)
+                                    {
+                                        {|#0:fixed|}(int* p = items)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class C
+                                 {
+                                     internal unsafe void M(int[] items)
+                                     {
+                                         fixed (int* p = items)
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     test => test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject),
+                     Diagnostics(RH6001KeywordsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6001MessageFormat));
     }
 
     #endregion // Tests
