@@ -91,8 +91,9 @@ internal static class LineBreakTriviaUtilities
     /// token's trailing trivia. The collapse is refused when a comment, preprocessor
     /// directive, or disabled text sits in the gap, because each must keep its own line,
     /// and the original node is returned unchanged. When the tokens directly in front of the token have
-    /// no text, such as omitted type arguments, the gap joined is the one to the token with text in front
-    /// of them, which holds the line break
+    /// no text, such as omitted type arguments, the gap joined reaches back to the token with text in
+    /// front of them: that token's trailing trivia and the token's leading trivia, wherever the line
+    /// breaks stand in it
     /// </summary>
     /// <typeparam name="TNode">The syntax node type containing the token</typeparam>
     /// <param name="node">The node containing the token</param>
@@ -105,11 +106,11 @@ internal static class LineBreakTriviaUtilities
         var hasPreviousToken = TokenLocator.TryGetPreviousToken(node, token, out var previousToken);
 
         if (hasPreviousToken
-            && previousToken.Span.IsEmpty
-            && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(previousToken, token) == false)
+            && previousToken.Span.IsEmpty)
         {
-            // Tokens without text, such as omitted type arguments, carry no trivia, so the line break in front of the
-            // token lies behind the token with text in front of them; the gap to join is the one to that token
+            // Tokens without text, such as omitted type arguments, carry no trivia, so the gap in front of the token
+            // reaches back to the token with text in front of them: its trailing trivia and the token's leading trivia
+            // hold the line breaks to join, wherever they stand
             previousToken = token.GetPreviousToken();
 
             if (previousToken.IsKind(SyntaxKind.None)

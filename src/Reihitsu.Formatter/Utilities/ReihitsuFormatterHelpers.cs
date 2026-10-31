@@ -85,17 +85,6 @@ internal static class ReihitsuFormatterHelpers
     }
 
     /// <summary>
-    /// Computes the zero-based column position of a token within a syntax root,
-    /// using the token's syntax tree's line table
-    /// </summary>
-    /// <param name="token">The token whose column to compute. Must belong to a syntax tree — every caller passes a node-derived token (for example <c>GetFirstToken()</c>), which always has one</param>
-    /// <returns>The zero-based column position of the token</returns>
-    internal static int ComputeTokenColumn(SyntaxToken token)
-    {
-        return token.SyntaxTree.GetLineSpan(token.Span).StartLinePosition.Character;
-    }
-
-    /// <summary>
     /// Computes the column of a node-level formatting root's first token in its document (FMT-PIPE-017): the number of
     /// characters in front of it on its line, each one column, except that a byte order mark at the start of the text
     /// counts as zero columns. When the entry point does not keep the token's own leading trivia, that trivia is measured
