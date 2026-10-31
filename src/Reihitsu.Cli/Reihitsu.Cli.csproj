@@ -29,6 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Reihitsu.Core\Reihitsu.Core.csproj" />
     <ProjectReference Include="..\Reihitsu.Formatter\Reihitsu.Formatter.csproj" />
   </ItemGroup>
 
