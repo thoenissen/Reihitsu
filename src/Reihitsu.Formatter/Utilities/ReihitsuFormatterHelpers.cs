@@ -77,17 +77,6 @@ internal static class ReihitsuFormatterHelpers
     }
 
     /// <summary>
-    /// Computes the base indentation level of a node from its position in the syntax tree.
-    /// Walks the parent chain and counts indenting constructs (types, namespaces, blocks, etc.)
-    /// </summary>
-    /// <param name="node">The node whose base indentation level to compute</param>
-    /// <returns>The number of indenting ancestor constructs</returns>
-    internal static int ComputeBaseIndentLevel(SyntaxNode node)
-    {
-        return SyntaxIndentationUtilities.ComputeBaseIndentLevel(node);
-    }
-
-    /// <summary>
     /// Computes the depth of a node-level formatting root (FMT-PIPE-012): the number of levels the indentation phase gives
     /// the node's first token at its position in its tree, through <see cref="SyntaxIndentationUtilities.GetChildIndentLevel"/>
     /// for the node and each of its ancestors, as <see cref="SyntaxIndentationUtilities.ComputeStatementIndentLevel"/> counts
