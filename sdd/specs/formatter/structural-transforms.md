@@ -1332,7 +1332,7 @@ class C
 
 The transform's output has no line break between the inner inserted `}` and the outer inserted `}` behind it, and a line break between the outer inserted `}` and `// about Bar`. The same holds when `#if DEBUG` follows instead of the comment, and when the inner `if` has an unbraced `else` body.
 
-Example — a created `return` and the expression behind it: `int A() => a;` gives `return a;` in the transform's output, `int B() => a;` gives `return a;`, `int C() => @a;` gives `return@a;`, `int D() => @"s";` gives `return@"s";`, and `int E() => (a);` gives `return(a);`. The final output of each has one space behind `return` (FMT-SPACE-012).
+Example — a created `return` and the expression behind it: `int A() => a;` gives `return a;` in the transform's output, `int B() => \u0061;` gives `return \u0061;`, `int C() => @a;` gives `return@a;`, `int D() => @"s";` gives `return@"s";`, and `int E() => (a);` gives `return(a);`. The final output of each has one space behind `return` (FMT-SPACE-012).
 
 Example — a comment directly at the arrow (FMT-STRUCT-006) keeps the other comments of the member where they are, and a comment that leads the expression keeps leading it: for `int Get() => // c` followed by a line `/* d */ 42;`, for `int Get() => // c` followed by a line `// d` and a line `42;`, and for `int Get()` followed by a line `/* c */ =>` and a line `/* d */ 42;`, the transform's output has a line break between the created `return` and `/* d */` or `// d`. This example decides the transform's output only; FMT-STRUCT-006 leaves the final place of these comments unspecified.
 

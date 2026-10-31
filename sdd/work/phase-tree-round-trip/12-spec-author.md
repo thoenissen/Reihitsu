@@ -13,7 +13,7 @@ Inputs: `11-auditor.md` and `squad/decisions/2026-10-31-phase-tree-round-trip-{w
 ## Structural decisions
 
 - **One lexer-based owner (would-merge-owner, B):** the change doc's *What* and a new decision, "Two tokens read as one: one owner that asks the lexer", carry the decision. FMT-STRUCT-026's first separator gives the decided shapes:
-  - space before `42`, `a`, and `a`;
+  - space before `42`, `a`, and `\u0061`;
   - no space before `(`, a string, `@a`, `@"s"`, or a comment.
 
   RH3002 needs no spec change. `RH3002-008` already states the outcome, a space where the content and the neighbour "would otherwise be read as one token", and the lexer-based helper keeps it. The shared helper is a general-purpose syntax utility, so it is a code owner of no spec. No spec names `TokenGapUtilities` either.
@@ -38,7 +38,7 @@ Re-derived with `scripts/format.sh` at the head on `if (a)` / `    Foo(); /* a` 
   - no line break between the inner and the outer inserted `}`;
   - a line break between the outer `}` and `// about Bar`;
   - the same for `#if DEBUG` and for an unbraced inner `else`.
-- **#3 (`return` before `a` / `@a`): decided by "would otherwise read as one token".** The first bullet now names `a`, `a`, `@a`, and `@"s"`, and a new example gives the phase output for `a`, `a`, `@a`, `@"s"`, and `(a)`, each with one space after `return` in the final output (FMT-SPACE-012; `Uses` gains FMT-SPACE-012).
+- **#3 (`return` before `a` / `@a`): decided by "would otherwise read as one token".** The first bullet now names `a`, `\u0061`, `@a`, and `@"s"`, and a new example gives the phase output for `a`, `\u0061`, `@a`, `@"s"`, and `(a)`, each with one space after `return` in the final output (FMT-SPACE-012; `Uses` gains FMT-SPACE-012).
 - **#4 (node-level member-body braces):** see FMT-BREAK-002 above.
 - **#5 (elastic trivia on the parentheses around a `throw` operand): already decided ("every created token"), made explicit.** FMT-STRUCT-026 now names the `(` and `)` written around a `throw` operand (FMT-STRUCT-011).
 - **#6 (value of a moved interpolated raw-string text token): not decided before; decided now.** FMT-PIPE-021 compared kinds and texts only. Its bullet now says "kinds, texts, and values", where a token's value is what the parser gives its text. A new example covers an interpolated raw literal whose lines start in column 0: the moved text token in front of the hole still stands for `a `.
@@ -130,3 +130,7 @@ class C
 ## Follow-up candidates
 
 - The auditor's hint: `ExpressionBodyToBlockConverter.ExtractSignificantTrivia` drops the whitespace in front of the arrow's trailing comment that it moves behind `{`. FMT-STRUCT-026 neither keeps nor permits that, so the spec is silent. Not decided here; it belongs with open question 1.
+
+## Correction after the test implementer's report (`13-test-implementer.md`)
+
+The `int B()` case of FMT-STRUCT-026's created-`return` example had lost its backslash and read like case A. It now reads `int B() => \u0061;` gives `return \u0061;` (`grep -n 'u0061' sdd/specs/formatter/structural-transforms.md` shows lines 1166 and 1335 with the backslash). The same loss in this handover's lines on finding #3 is repaired. Markdown only; no C# file changed, so `scripts/verify-text-only.sh` does not apply.
