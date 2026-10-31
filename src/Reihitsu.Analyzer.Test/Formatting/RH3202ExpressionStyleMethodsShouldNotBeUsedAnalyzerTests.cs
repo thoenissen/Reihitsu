@@ -658,6 +658,51 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
                      Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the fix moves the first of two delimited documentation comments behind the previous member onto a new
+    /// line below a blank line, keeps the second behind it, and lays out the converted method below them, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixMovesFirstOfTwoDelimitedDocumentationCommentsBehindPreviousMember()
+    {
+        const string testData = "internal class C\n{\n    private int _a; /** a */ /** b */\n    public int M() {|#0:=> 1|};\n}";
+        const string fixedData = "internal class C\n{\n    private int _a;\n\n    /** a */ /** b */\n    public int M()\n    {\n        return 1;\n    }\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps a delimited documentation comment behind the opening brace of the type when the converted
+    /// method starts behind it on the brace's line, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixKeepsDelimitedDocumentationBehindOpeningBraceWhenMethodSharesItsLine()
+    {
+        const string testData = "internal class C\n{ /** d */ public int M() {|#0:=> 1|};\n}";
+        const string fixedData = "internal class C\n{ /** d */ public int M()\n  {\n      return 1;\n  }\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps a delimited documentation comment behind the previous member when the converted method
+    /// starts behind it on its line, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixKeepsDelimitedDocumentationBehindPreviousMemberWhenMethodSharesItsLine()
+    {
+        const string testData = "internal class C\n{\n    private int _a; /** d */ public int M() {|#0:=> 1|};\n}";
+        const string fixedData = "internal class C\n{\n    private int _a; /** d */ public int M()\n                    {\n                        return 1;\n                    }\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -3007,6 +3007,61 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that of two delimited documentation comments behind the previous member, at the start of the target's
+    /// leading trivia, only the first starts a new line below a blank line, and the second stays behind it, as at
+    /// document level
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task MovesFirstOfTwoDelimitedDocumentationCommentsBehindPreviousMember()
+    {
+        const string input = "public class TestClass\n{\n    private string _d; /** a */ /** b */\n    public string Description { get; set; }\n}";
+        const string expected = "public class TestClass\n{\n    private string _d;\n\n    /** a */ /** b */\n    public string Description { get; set; }\n}";
+
+        await AssertFormatsTarget(input, expected, SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that two delimited documentation comments behind the previous member stay where they are when the target
+    /// starts behind them on their line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task KeepsTwoDelimitedDocumentationCommentsBehindPreviousMemberWhenTargetSharesTheirLine()
+    {
+        const string input = "public class TestClass\n{\n    private string _d; /** a */ /** b */ public string Description { get; set; }\n}";
+
+        await AssertFormatsTarget(input, input, SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment behind the previous member stays where it is when the target starts
+    /// behind it on its line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-010")]
+    public async Task KeepsDelimitedDocumentationBehindPreviousMemberWhenTargetSharesItsLine()
+    {
+        const string input = "public class TestClass\n{\n    private string _d; /** d */ public string Description { get; set; }\n}";
+
+        await AssertFormatsTarget(input, input, SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment behind the opening brace of a type stays where it is when the target
+    /// starts behind it on the brace's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task KeepsDelimitedDocumentationBehindOpeningBraceWhenTargetSharesItsLine()
+    {
+        const string input = "public class TestClass\n{ /** d */ public string Description { get; set; }\n}";
+
+        await AssertFormatsTarget(input, input, SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
     /// Selects the first node of the given type below the root
     /// </summary>
     /// <typeparam name="TNode">The node type</typeparam>
