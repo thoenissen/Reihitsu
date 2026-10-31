@@ -140,7 +140,19 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
                                                     ? scopeIndentation
                                                     : null;
 
-            result.Add(current.WithLeadingTrivia(UsingLeadingTriviaBuilder.CreateLeadingTrivia(current, firstLeadingTriviaPrefix, startsNewGroup, isFirst: false, lineIndentation, endOfLine))
+            var leadingTrivia = UsingLeadingTriviaBuilder.CreateLeadingTrivia(current, firstLeadingTriviaPrefix, startsNewGroup, isFirst: false, lineIndentation, endOfLine);
+
+            // The rebuilt leading trivia drops the layout in front of its first comment, because the line in front
+            // normally already ends. When it does not, a line break in that layout is the one that puts the comment
+            // on a line of its own behind the directive in front - the documentation-comment phase writes it there
+            // when it moves a delimited documentation comment written behind that directive - so it is kept
+            if (beginsLine == false
+                && UsingLeadingTriviaBuilder.HasLineBreakBeforeSignificantTrivia(current.GetLeadingTrivia()))
+            {
+                leadingTrivia = leadingTrivia.Insert(0, SyntaxFactory.EndOfLine(endOfLine));
+            }
+
+            result.Add(current.WithLeadingTrivia(leadingTrivia)
                               .WithTrailingTrivia(trailingTrivia));
         }
 

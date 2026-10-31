@@ -5,13 +5,13 @@
 | ID prefix | FMT-DOC |
 | Status | Active |
 | Code owners | `DocumentationCommentFormattingPhase`, `DocCommentElementNormalizer`, `DocumentationCommentUtilities` |
-| Uses | FMT-CLEAN-009, FMT-INDENT-002, FMT-INDENT-029, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-010, SHARED-DOC-017 |
+| Uses | FMT-BLANK-012, FMT-CLEAN-009, FMT-INDENT-002, FMT-INDENT-006, FMT-INDENT-029, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-010, SHARED-DOC-017 |
 
-This spec covers what the documentation-comment phase decides about single-line documentation comments (`///`): moving a comment written behind code onto its own line, the separator after each `///` exterior, and the line layout of the XML elements inside the comment. It is the normalization of documentation-comment text that FMT-PIPE-002 allows.
+This spec covers what the documentation-comment phase decides about documentation comments: moving a single-line (`///`) or delimited (`/** … */`) documentation comment written behind code onto a new line, and, for single-line comments only, the separator after each `///` exterior and the line layout of the XML elements inside the comment. It is the normalization of documentation-comment text that FMT-PIPE-002 allows.
 
 ## Non-goals
 
-- Delimited documentation comments (`/** … */`). This phase leaves their text and position alone (FMT-DOC-012); separating them from preceding code belongs to FMT-BLANK.
+- The text of delimited documentation comments (`/** … */`). This phase decides only where such a comment starts its line (FMT-DOC-001, FMT-DOC-003) and leaves its text alone (FMT-DOC-012).
 - Blank lines around a documentation comment, including the blank line that appears above a relocated comment — FMT-BLANK.
 - The column of the `///` exterior and of the documented code — FMT-INDENT.
 - The line-break sequence of the lines this phase writes — FMT-PIPE-007 and FMT-EOL.
@@ -20,11 +20,17 @@ This spec covers what the documentation-comment phase decides about single-line 
 
 ## Requirements
 
-### FMT-DOC-001 — Documentation written behind code moves onto its own line
+### FMT-DOC-001 — Documentation written behind code moves onto a new line
 
-When a single-line documentation comment starts on a line after other source text, and the token that follows the comment opens the syntax node it belongs to, the formatter MUST move the comment onto a line of its own directly before that token. The whitespace between the preceding code and the comment MUST be removed, and the preceding code MUST stay on its line. This requirement covers comments before type and member declarations; it does not yet decide comments before a statement or inside an expression, which document nothing even when the following token opens a node.
+When a documentation comment — single-line (`///`) or delimited (`/** … */`) — starts on a line after other source text, and the token that follows the comment opens the syntax node it belongs to, the formatter MUST start a new line directly in front of the comment. The whitespace between the preceding source text and the comment MUST be removed, and the preceding code MUST stay on its line. A single-line comment ends its line, so it then stands on a line of its own directly before that token; code that the author wrote behind a delimited comment on its line stays behind it.
 
-Why: The compiler attaches a documentation comment to the declaration that follows it, so a comment behind `int A;` documents `B`, not `A`. Putting it on its own line above `B` makes the layout say what the compiler already does. The blank line above the moved comment is FMT-BLANK's doing; the node-level exception for this whitespace is FMT-PIPE-010.
+For a single-line comment, the other source text is anything in front of it on its line, and FMT-DOC-002 decides where the line break goes when that text belongs to the same token's leading trivia. For a delimited comment, the other source text is the token in front of the comment, or a comment that trails that token: a delimited comment behind `int A; /* c */` moves like one directly behind `int A;`.
+
+This requirement decides comments in front of a type or member declaration, enum members included. It does not yet decide any other position, for either form, even where the token behind the comment opens its node: before a statement or a using directive, an `extern alias` directive, or an assembly attribute list; before an `else` or `catch` clause, an accessor, a parameter or type parameter, a base-list entry, or an initializer element; between an attribute list and the declaration it belongs to; and inside an expression. A documentation comment documents nothing in these positions.
+
+For a delimited comment, it also does not decide one behind an earlier comment of the same token's leading trivia, one behind the colon of a switch label, or one behind an opening brace. A delimited comment that ends the brace's line stays where it is (FMT-INDENT-006). One with code behind it on the brace's line, as in `class C { /** d */ void M() { } }`, is not moved by this requirement; when the line breaks behind the brace, the comment goes onto the next line together with that code.
+
+Why: The compiler attaches a documentation comment to the declaration that follows it, so a comment behind `int A;` documents `B`, not `A`. Starting a new line in front of it makes the layout say what the compiler already does. Moving the comment is this phase's decision for both forms, so it is taken once, before any phase that places lines or blank lines sees the comment; the blank line above the moved comment is FMT-BLANK-012's doing, and the node-level exception for the removed whitespace is FMT-PIPE-010. A delimited comment does not end its line, so the code behind it stays where the author wrote it; its text is not rewritten (FMT-DOC-012).
 
 Example:
 
@@ -67,9 +73,47 @@ class C
 }
 ```
 
+A delimited documentation comment behind an enum member:
+
+```csharp
+enum E
+{
+    First, /** doc */
+    Second
+}
+```
+
+```csharp
+enum E
+{
+    First,
+
+    /** doc */
+    Second
+}
+```
+
+A delimited documentation comment behind a comment that trails the code, with the documented member behind it on its line:
+
+```csharp
+class C
+{
+    int A; /* c */ /** doc */ int B;
+}
+```
+
+```csharp
+class C
+{
+    int A; /* c */
+
+    /** doc */ int B;
+}
+```
+
 ### FMT-DOC-002 — Comments before the documentation stay in front of it
 
-When the source text before a documentation comment on its line belongs to the leading trivia of the same token — for example a block comment at the start of a file — the formatter MUST insert the line break between that text and the documentation comment, keeping the earlier comment on its original line.
+When the source text before a single-line documentation comment on its line belongs to the leading trivia of the same token — for example a block comment at the start of a file — the formatter MUST insert the line break between that text and the documentation comment, keeping the earlier comment on its original line.
 
 Why: The earlier comment is not code the documentation could belong to, but it still must not end up between the documentation and the code it documents, and its text must survive (FMT-PIPE-002).
 
@@ -94,7 +138,7 @@ class C
 
 ### FMT-DOC-003 — Stranded documentation stays as it was written
 
-The formatter MUST NOT move a documentation comment written behind code when the token that follows it does not open the syntax node it belongs to — such as a `;`, `)`, `]`, or `}`, a binary operator such as `+`, or the `.` of a member access — and MUST leave the text of every line of that comment as written: FMT-DOC-005 to FMT-DOC-011 do not apply to it. The line that starts behind the comment is not part of it and is placed like any other line (FMT-INDENT-002).
+The formatter MUST NOT move a documentation comment, single-line or delimited, written behind code when the token that follows it does not open the syntax node it belongs to — such as a `;`, `)`, `]`, or `}`, a binary operator such as `+`, or the `.` of a member access — and MUST leave the text of every line of that comment as written: FMT-DOC-005 to FMT-DOC-011 do not apply to it. The line that starts behind the comment is not part of it and is placed like any other line (FMT-INDENT-002).
 
 Why: Such a comment documents nothing; the compiler reports CS1587 wherever it stands and does not read it as documentation, so it is an ordinary comment whose text the formatter keeps (FMT-PIPE-002). Moving it would change the author's layout without giving the comment a meaning, and laying out its elements would rewrite text that documents nothing, so the formatter keeps it as it is and leaves the decision to the author.
 
@@ -110,7 +154,19 @@ class C
 }
 ```
 
-is left unchanged. A comment before a `;` stays where it is, and the `;` behind it takes its declaration's column:
+and
+
+```csharp
+class C
+{
+    void M()
+    {
+        var x = 1; /** stray */
+    }
+}
+```
+
+are left unchanged. A comment before a `;` stays where it is, and the `;` behind it takes its declaration's column:
 
 ```csharp
 class C
@@ -179,7 +235,7 @@ are left unchanged.
 
 ### FMT-DOC-004 — Relocated documentation is normalized in the same run
 
-A documentation comment that FMT-DOC-001 or FMT-DOC-002 moves MUST also receive the element and exterior normalization of FMT-DOC-005 to FMT-DOC-011 in the same run, unless FMT-DOC-013 leaves its text as written.
+A single-line documentation comment that FMT-DOC-001 or FMT-DOC-002 moves MUST also receive the element and exterior normalization of FMT-DOC-005 to FMT-DOC-011 in the same run, unless FMT-DOC-013 leaves its text as written.
 
 Why: A single run must produce the final shape (FMT-PIPE-004); a moved comment that is normalized only on the next run would make the formatter non-idempotent.
 
@@ -467,9 +523,9 @@ class C
 
 ### FMT-DOC-012 — Delimited documentation comments are not rewritten
 
-The formatter MUST NOT rewrite the text of a delimited documentation comment (`/** … */`): FMT-DOC-001 to FMT-DOC-011 apply to single-line documentation comments only.
+The formatter MUST NOT rewrite the text of a delimited documentation comment (`/** … */`): FMT-DOC-002 and FMT-DOC-004 to FMT-DOC-011 apply to single-line documentation comments only. FMT-DOC-001 and FMT-DOC-003 decide where a delimited comment written behind code starts its line; moving it changes none of its text.
 
-Why: Rebuilding a delimited comment would require inventing a `*` continuation style the repository has not defined. Only the `///` form has a canonical layout here. Whether a delimited comment written behind code is separated from it is FMT-BLANK's decision.
+Why: Rebuilding a delimited comment would require inventing a `*` continuation style the repository has not defined. Only the `///` form has a canonical layout here. Where a delimited comment written behind code starts its line is a question of position, not of text, and this phase decides it for both forms (FMT-DOC-001).
 
 Example:
 

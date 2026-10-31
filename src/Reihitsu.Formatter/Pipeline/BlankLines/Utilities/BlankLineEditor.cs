@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
@@ -59,33 +60,10 @@ internal sealed class BlankLineEditor
     }
 
     /// <summary>
-    /// Determines whether the specified token is the first token in a block or switch section
-    /// </summary>
-    /// <param name="previousToken">The token that precedes the token being evaluated</param>
-    /// <returns><see langword="true"/> if the token is the first in its containing block</returns>
-    public static bool IsFirstInBlock(SyntaxToken previousToken)
-    {
-        return IsFirstInBlock(PrecedingTokenFacts.From(previousToken));
-    }
-
-    /// <summary>
-    /// Determines whether the token that follows the specified preceding token is the first token in a block or switch
-    /// section. A token without a known preceding token counts as first
-    /// </summary>
-    /// <param name="previousToken">The facts about the token that precedes the token being evaluated</param>
-    /// <returns><see langword="true"/> if the token is the first in its containing block</returns>
-    public static bool IsFirstInBlock(PrecedingTokenFacts previousToken)
-    {
-        return previousToken.Exists == false
-               || previousToken.Kind == SyntaxKind.OpenBraceToken
-               || previousToken.IsSwitchLabelColon;
-    }
-
-    /// <summary>
     /// Determines whether the specified token is exempt from requiring a blank line before a region or end
     /// region directive, matching the Core policy in
     /// <see cref="RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineBefore"/>. Unlike
-    /// <see cref="IsFirstInBlock(PrecedingTokenFacts)"/>, a switch-label colon is not exempt here. An opening brace is
+    /// <see cref="BlockStartUtilities.IsFirstInBlock(PrecedingTokenFacts)"/>, a switch-label colon is not exempt here. An opening brace is
     /// only exempt when nothing but whitespace follows it on its own line — Core's
     /// <see cref="FormattingTextAnalysisUtilities.GetLineIndicesEndingWithToken"/> excludes a brace line that
     /// carries a trailing comment, so the exemption must too.

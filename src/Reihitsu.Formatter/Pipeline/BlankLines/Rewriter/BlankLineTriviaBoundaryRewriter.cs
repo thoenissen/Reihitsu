@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.BlankLines.Rewriter;
 
@@ -63,33 +64,35 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether the specified token's leading trivia opens with a documentation comment that documents
-    /// nothing and shares its line with the code in front of it
+    /// Determines whether the specified token's leading trivia opens with a documentation comment that shares its line
+    /// with the code in front of it
     /// </summary>
     /// <param name="token">The token to inspect</param>
     /// <param name="previousTokenFacts">The facts about the token that precedes <paramref name="token"/>, resolved through <see cref="PrecedingTokenFacts.Resolve"/></param>
     /// <returns><see langword="true"/> if the boundary must not be enforced for the token</returns>
     /// <remarks>
-    /// Such a comment sits behind a <c>;</c>, <c>]</c> or <c>}</c> on a line the author already filled, so breaking
-    /// it onto its own line and separating it with a blank line is a placement decision rather than spacing - the
-    /// boundary insert produces both, which is why the boundary is skipped rather than adjusted. The exemption
-    /// deliberately stops at the line boundary: a documentation comment the author put on its own line still gets
-    /// its blank line, which is what keeps the formatter in step with RH8303.
+    /// Whether a documentation comment written behind code starts a new line is decided by the documentation-comment
+    /// phase alone (FMT-DOC-001), which runs before this phase. A documentation comment that still shares its line with
+    /// the code in front of it was left there on purpose - it documents nothing (FMT-DOC-003), or it stands in a
+    /// position that phase does not move - so breaking it onto its own line would be a placement decision rather than
+    /// spacing. The boundary insert would produce both the line break and the blank line, which is why the boundary is
+    /// skipped rather than adjusted (FMT-BLANK-012). The exemption deliberately stops at the line boundary: a
+    /// documentation comment that starts its own line still gets its blank line, which is what keeps the formatter in
+    /// step with RH8303.
     /// <para>
     /// A comment starts its own line only when a line break follows the last content in front of it, see
     /// <see cref="StartsOwnLine"/>. A multi-line comment in the gap that ends on the documentation comment's line
     /// therefore leaves it on the author's filled line, exactly like the same comment behind a single-line one
     /// </para>
     /// </remarks>
-    private static bool IsStrandedInlineDocumentation(SyntaxToken token, PrecedingTokenFacts previousTokenFacts)
+    private static bool IsInlineDocumentation(SyntaxToken token, PrecedingTokenFacts previousTokenFacts)
     {
-        if (previousTokenFacts.Exists == false
-            || DocumentationCommentUtilities.DocumentsFollowingCode(token))
+        if (previousTokenFacts.Exists == false)
         {
             return false;
         }
 
-        var commentIndex = FindFirstCommentIndex(token.LeadingTrivia);
+        var commentIndex = TriviaListUtilities.IndexOfFirstComment(token.LeadingTrivia);
 
         if (commentIndex < 0
             || SyntaxTriviaUtilities.IsDocumentationCommentTrivia(token.LeadingTrivia[commentIndex]) == false)
@@ -138,24 +141,6 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     private static bool HasEndRegionDirectiveInTrailingTrivia(SyntaxToken token)
     {
         return token.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia));
-    }
-
-    /// <summary>
-    /// Finds the first comment trivia index in the leading trivia list
-    /// </summary>
-    /// <param name="trivia">The trivia list to inspect</param>
-    /// <returns>The zero-based trivia index or -1 if no comment exists</returns>
-    private static int FindFirstCommentIndex(SyntaxTriviaList trivia)
-    {
-        for (var triviaIndex = 0; triviaIndex < trivia.Count; triviaIndex++)
-        {
-            if (SyntaxTriviaUtilities.IsCommentTrivia(trivia[triviaIndex]))
-            {
-                return triviaIndex;
-            }
-        }
-
-        return -1;
     }
 
     /// <summary>
@@ -225,12 +210,11 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     /// </para>
     /// <para>
     /// How many line breaks the boundary is short of depends on whether the comment starts its own line once the
-    /// removable gap is dropped, see <see cref="StartsOwnLine"/>. A documentation comment the author wrote behind
-    /// code - directly or behind a comment that trails that code, however many lines that comment spans - is filed
-    /// as the following token's leading trivia while still sitting on the filled line, so it needs two: one to end
-    /// that line and one for the blank line. Every other comment needs only the blank line. Emitting one break in
-    /// both cases left the first case finished a pass later, which made the formatter report a file it had just
-    /// written.
+    /// removable gap is dropped, see <see cref="StartsOwnLine"/>. A comment that does not start its own line needs two:
+    /// one to end the filled line and one for the blank line; every other comment needs only the blank line. A
+    /// documentation comment never takes the first branch: one that shares its line with code in front of it is
+    /// exempt from the boundary (<see cref="IsInlineDocumentation"/>), because the documentation-comment phase already
+    /// started a new line in front of every such comment it moves
     /// </para>
     /// <para>
     /// Both measures read <paramref name="previousTokenFacts"/> instead of the live previous token, because a node-level
@@ -242,7 +226,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     private SyntaxToken EnsureBlankLineBeforeFirstComment(SyntaxToken token, PrecedingTokenFacts previousTokenFacts)
     {
         var trivia = token.LeadingTrivia;
-        var commentIndex = FindFirstCommentIndex(trivia);
+        var commentIndex = TriviaListUtilities.IndexOfFirstComment(trivia);
 
         if (commentIndex < 0)
         {
@@ -369,12 +353,12 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
 
         var previousToken = token.GetPreviousToken();
         var previousTokenFacts = PrecedingTokenFacts.Resolve(previousToken, _context);
-        var isFirstInBlock = BlankLineEditor.IsFirstInBlock(previousTokenFacts);
+        var isFirstInBlock = BlockStartUtilities.IsFirstInBlock(previousTokenFacts);
         var isExemptFromPrecedingBlankLineBeforeRegionDirective = BlankLineEditor.IsExemptFromPrecedingBlankLineBeforeRegionDirective(previousTokenFacts);
 
         if (HasCommentInLeadingTrivia(token)
             && isFirstInBlock == false
-            && IsStrandedInlineDocumentation(token, previousTokenFacts) == false)
+            && IsInlineDocumentation(token, previousTokenFacts) == false)
         {
             token = EnsureBlankLineBeforeFirstComment(token, previousTokenFacts);
         }

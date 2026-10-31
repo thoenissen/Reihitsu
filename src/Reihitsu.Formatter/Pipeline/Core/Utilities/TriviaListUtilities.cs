@@ -1,6 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.Core.Utilities;
 
 /// <summary>
@@ -9,6 +11,26 @@ namespace Reihitsu.Formatter.Pipeline.Core.Utilities;
 internal static class TriviaListUtilities
 {
     #region Methods
+
+    /// <summary>
+    /// Finds the first comment in a trivia list. The blank-line boundary in front of a token's comments and the
+    /// documentation phase's decision which delimited documentation comment starts a new line both act on the first
+    /// comment of a token's leading trivia only, so both locate it here
+    /// </summary>
+    /// <param name="triviaList">The trivia list to inspect</param>
+    /// <returns>The zero-based index of the first comment trivia, or -1 if the list holds no comment</returns>
+    public static int IndexOfFirstComment(SyntaxTriviaList triviaList)
+    {
+        for (var triviaIndex = 0; triviaIndex < triviaList.Count; triviaIndex++)
+        {
+            if (SyntaxTriviaUtilities.IsCommentTrivia(triviaList[triviaIndex]))
+            {
+                return triviaIndex;
+            }
+        }
+
+        return -1;
+    }
 
     /// <summary>
     /// Removes whitespace trivia from the end of a trivia list, leaving interior whitespace (such as the space that separates

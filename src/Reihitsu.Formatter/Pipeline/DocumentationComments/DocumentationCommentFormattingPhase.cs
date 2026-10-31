@@ -13,7 +13,10 @@ using Reihitsu.Formatter.Pipeline.DocumentationComments.Utilities;
 namespace Reihitsu.Formatter.Pipeline.DocumentationComments;
 
 /// <summary>
-/// Normalizes XML documentation comments to repository-specific layout rules. Element-level layout
+/// Starts a new line in front of a documentation comment written behind the code in front of it when the comment documents
+/// the code following it (FMT-DOC-001): a single-line comment in every position, a delimited comment only as the first
+/// comment of its token's leading trivia and not behind an opening brace or the colon of a switch label. It also
+/// normalizes XML documentation comments to repository-specific layout rules. Element-level layout
 /// decisions live in <see cref="DocCommentElementNormalizer"/>; this phase locates the candidate
 /// elements, splices in their normalized text — repeating until no candidate is left, because only
 /// the outermost ones can be rebuilt per round — and fixes the <c>///</c> line prefixes. A comment stranded behind
@@ -71,7 +74,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// <param name="token">Owning token</param>
     /// <param name="documentationCommentTrivia">Documentation comment trivia owned by the token</param>
     /// <param name="endOfLine">Line-ending sequence</param>
-    /// <returns>The token with the documentation comment moved onto a line of its own</returns>
+    /// <returns>The token with each documentation comment moved onto a new line</returns>
     private static SyntaxToken MoveBeforeOwningToken(SyntaxToken token, IReadOnlyCollection<SyntaxTrivia> documentationCommentTrivia, string endOfLine)
     {
         var leadingTrivia = token.LeadingTrivia;
@@ -97,13 +100,15 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     }
 
     /// <summary>
-    /// Moves off-position single-line documentation trivia onto a line of its own before its following token
+    /// Starts a new line in front of every documentation comment written behind code that documents the code following
+    /// it: single-line comments in every position, delimited comments in the positions
+    /// <see cref="IsMovableDelimitedDocumentation"/> admits
     /// </summary>
     /// <param name="root">Root node</param>
     /// <param name="sourceText">Source text</param>
     /// <param name="context">The formatting context</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The root with trailing documentation comments moved before their Roslyn owner</returns>
+    /// <returns>The root with documentation comments written behind code moved onto a new line before their Roslyn owner</returns>
     private static SyntaxNode RelocateOffPositionDocumentationComments(SyntaxNode root, SourceText sourceText, FormattingContext context, CancellationToken cancellationToken)
     {
         var owningRelocations = new Dictionary<SyntaxToken, List<SyntaxTrivia>>();
@@ -153,7 +158,10 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// <param name="sourceText">Source text</param>
     /// <param name="context">The formatting context</param>
     /// <param name="owningRelocations">Relocations that split the owning token's leading trivia</param>
-    /// <param name="previousTokenRelocationCounts">Line breaks to append to previous tokens</param>
+    /// <param name="previousTokenRelocationCounts">
+    /// Line breaks to append to previous tokens, each of which first loses the whitespace that ends its trailing trivia;
+    /// a count of zero only removes that whitespace
+    /// </param>
     private static void RegisterRelocation(SyntaxNode root,
                                            SyntaxTrivia trivia,
                                            SourceText sourceText,
@@ -161,9 +169,15 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
                                            IDictionary<SyntaxToken, List<SyntaxTrivia>> owningRelocations,
                                            Dictionary<SyntaxToken, int> previousTokenRelocationCounts)
     {
-        if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) == false
+        if (SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia) == false
             || (DocumentationCommentUtilities.IsWrittenBehindSource(trivia, sourceText) == false
                 && IsWrittenBehindRootPrecedingToken(root, trivia, sourceText, context) == false))
+        {
+            return;
+        }
+
+        if (trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia)
+            && IsMovableDelimitedDocumentation(trivia, context) == false)
         {
             return;
         }
@@ -178,12 +192,29 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
         }
 
         var owningToken = trivia.Token;
-
         var previousToken = GetPreviousPresentToken(owningToken);
+        var isPreviousTokenInRoot = previousToken.RawKind != 0
+                                    && TokenContainmentUtilities.ContainsToken(root, previousToken);
+
+        // A delimited comment is the first comment of its owning token's leading trivia here, so its line break goes
+        // in front of it in that leading trivia, and the token in front only loses the whitespace that ended its line.
+        // That token then does not end its line in the trivia, so a later phase that reads whether it does - the
+        // line placement of a conditional operator reads it - sees the same trivia as before the move.
+        if (trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+        {
+            AddOwningRelocation(owningRelocations, owningToken, trivia);
+
+            if (isPreviousTokenInRoot)
+            {
+                previousTokenRelocationCounts.TryGetValue(previousToken, out var lineBreakCount);
+                previousTokenRelocationCounts[previousToken] = lineBreakCount;
+            }
+
+            return;
+        }
 
         if (HasOwningLeadingSourceOnSameLine(trivia, sourceText)
-            || previousToken.RawKind == 0
-            || TokenContainmentUtilities.ContainsToken(root, previousToken) == false)
+            || isPreviousTokenInRoot == false)
         {
             AddOwningRelocation(owningRelocations, owningToken, trivia);
 
@@ -192,6 +223,33 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
 
         previousTokenRelocationCounts.TryGetValue(previousToken, out var relocationCount);
         previousTokenRelocationCounts[previousToken] = relocationCount + 1;
+    }
+
+    /// <summary>
+    /// Determines whether a delimited documentation comment written behind code is one this phase starts a new line in
+    /// front of. FMT-DOC-001 leaves a delimited comment undecided when it stands behind an earlier comment of the same
+    /// leading trivia, behind an opening brace, or behind the colon of a switch label, so only the first comment of its
+    /// token's leading trivia is moved, and only when the token in front of it neither opens a block nor ends a switch
+    /// label. Both facts are the ones the blank-line boundary in front of a comment reads
+    /// (<see cref="TriviaListUtilities.IndexOfFirstComment"/>, <see cref="BlockStartUtilities.IsFirstInBlock(PrecedingTokenFacts)"/>)
+    /// </summary>
+    /// <param name="trivia">Delimited documentation trivia written behind code</param>
+    /// <param name="context">The formatting context</param>
+    /// <returns><see langword="true"/> if the comment starts a new line; otherwise, <see langword="false"/></returns>
+    private static bool IsMovableDelimitedDocumentation(SyntaxTrivia trivia, FormattingContext context)
+    {
+        var owningToken = trivia.Token;
+        var commentIndex = TriviaListUtilities.IndexOfFirstComment(owningToken.LeadingTrivia);
+
+        if (commentIndex < 0
+            || owningToken.LeadingTrivia[commentIndex] != trivia)
+        {
+            return false;
+        }
+
+        var previousTokenFacts = PrecedingTokenFacts.Resolve(owningToken.GetPreviousToken(), context);
+
+        return BlockStartUtilities.IsFirstInBlock(previousTokenFacts) == false;
     }
 
     /// <summary>

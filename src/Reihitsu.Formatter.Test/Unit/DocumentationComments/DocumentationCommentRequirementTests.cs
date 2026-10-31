@@ -20,6 +20,7 @@ public class DocumentationCommentRequirementTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-DOC-001")]
+    [Requirement("FMT-BLANK-012")]
     public void DocumentationBehindOpeningBraceMovesOntoItsOwnLine()
     {
         // Arrange
