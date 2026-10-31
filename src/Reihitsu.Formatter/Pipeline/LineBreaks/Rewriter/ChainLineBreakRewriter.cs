@@ -7,6 +7,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Reihitsu.Core;
 using Reihitsu.Core.Enumerations;
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Data.Enumerations;
+using Reihitsu.Formatter.Extensions;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
@@ -370,7 +372,7 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     private SyntaxNode NormalizeIfOutermost(SyntaxNode original, SyntaxNode visited)
     {
         if (visited is ExpressionSyntax expression
-            && FluentChain.IsOutermostChainNode(original))
+            && FluentChain.IsOutermostChainNode(original, _context.RootChainBoundary))
         {
             return NormalizeChain(expression);
         }

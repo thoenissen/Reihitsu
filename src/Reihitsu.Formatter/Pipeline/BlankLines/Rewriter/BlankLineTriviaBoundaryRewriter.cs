@@ -233,9 +233,10 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     /// written.
     /// </para>
     /// <para>
-    /// Both measures read <paramref name="previousTokenFacts"/> instead of the live previous token, because the first
-    /// token of a formatting root that an earlier phase detached has no previous token in its tree. The facts still
-    /// carry that token's trailing trivia, so the detached root is measured exactly like an attached one
+    /// Both measures read <paramref name="previousTokenFacts"/> instead of the live previous token, because a node-level
+    /// formatting root has no parent (FMT-PIPE-023), so its first token has no previous token in its tree. The facts carry
+    /// the trailing trivia of the token in front of the root in its document, so the root's first token is measured as the
+    /// document has it
     /// </para>
     /// </remarks>
     private SyntaxToken EnsureBlankLineBeforeFirstComment(SyntaxToken token, PrecedingTokenFacts previousTokenFacts)

@@ -21,8 +21,8 @@ internal sealed class TabReplacementPhase : IFormattingPhase
 
     /// <summary>
     /// Executes the tab replacement phase on the given syntax tree. Only the tokens and directives that hold a tab in
-    /// their whitespace are rebuilt; without such a tab the input node itself is returned, so a node formatted inside
-    /// its document keeps its place in the document's tree for the phases after this one
+    /// their whitespace are rebuilt; without such a tab the input node itself is returned. A node-level root already has
+    /// no parent (FMT-PIPE-023), so whether the phase returns its input or a copy is not visible to the phases after it
     /// </summary>
     /// <param name="root">The root syntax node to process</param>
     /// <param name="cancellationToken">Cancellation token</param>

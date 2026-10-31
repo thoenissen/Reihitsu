@@ -1,4 +1,7 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -7,11 +10,12 @@ using Reihitsu.Core;
 namespace Reihitsu.Formatter.Data;
 
 /// <summary>
-/// The position-free facts about the token that precedes another token, which the blank-line decisions and the comment
-/// alignment of the indentation phase read.
-/// A phase that replaces the formatting root detaches it, so the root's first token no longer reaches its preceding
-/// token through <see cref="SyntaxToken.GetPreviousToken"/>. These facts are captured before the pipeline runs and carry
-/// no position, so they stay valid across trees, whereas line or span arithmetic against the original token would not
+/// The facts about the token that precedes another token, which the blank-line decisions, the documentation phase, and the
+/// comment alignment of the indentation phase read. They are plain values (FMT-PIPE-024): the token's kind, whether it is
+/// the colon of a switch label, and the kind and text of each of its trailing trivia. A node-level formatting root has no
+/// parent (FMT-PIPE-023), so its first token reaches no preceding token through <see cref="SyntaxToken.GetPreviousToken"/>;
+/// for that token the facts come from <see cref="FormattingContext.RootPrecedingToken"/>, which the entry point captures
+/// from the document before the pipeline runs
 /// </summary>
 internal readonly struct PrecedingTokenFacts
 {
@@ -22,12 +26,16 @@ internal readonly struct PrecedingTokenFacts
     /// </summary>
     /// <param name="kind">The kind of the preceding token</param>
     /// <param name="isSwitchLabelColon">Whether the preceding token is the colon of a switch label</param>
-    /// <param name="trailingTrivia">The trailing trivia of the preceding token</param>
-    private PrecedingTokenFacts(SyntaxKind kind, bool isSwitchLabelColon, SyntaxTriviaList trailingTrivia)
+    /// <param name="trailingTrivia">The kind and text of each trailing trivia of the preceding token, in order</param>
+    /// <param name="endsLine">Whether a trailing trivia of the preceding token ends its line</param>
+    /// <param name="hasTrailingComment">Whether a trailing trivia of the preceding token is a comment</param>
+    private PrecedingTokenFacts(SyntaxKind kind, bool isSwitchLabelColon, ImmutableArray<TriviaFact> trailingTrivia, bool endsLine, bool hasTrailingComment)
     {
         Kind = kind;
         IsSwitchLabelColon = isSwitchLabelColon;
-        TrailingTrivia = trailingTrivia;
+        TrailingTriviaFacts = trailingTrivia;
+        EndsLine = endsLine;
+        HasTrailingComment = hasTrailingComment;
     }
 
     #endregion // Constructor
@@ -50,20 +58,44 @@ internal readonly struct PrecedingTokenFacts
     public bool IsSwitchLabelColon { get; }
 
     /// <summary>
-    /// The trailing trivia of the preceding token. Only its kinds and text may be read, never its positions
+    /// The kind and text of each trailing trivia of the preceding token, in order
     /// </summary>
-    public SyntaxTriviaList TrailingTrivia { get; }
+    public ImmutableArray<TriviaFact> TrailingTriviaFacts { get; }
 
     /// <summary>
-    /// Whether the trailing trivia of the preceding token contains a line break, which means the preceding token ends its line
-    /// (<see cref="SyntaxTriviaUtilities.EndsLine"/>)
+    /// The trailing trivia of the preceding token, created from <see cref="TrailingTriviaFacts"/> as trivia of no tree, for
+    /// the gap analyses that take a trivia list
     /// </summary>
-    public bool EndsLine => TrailingTrivia.Any(SyntaxTriviaUtilities.EndsLine);
+    public SyntaxTriviaList TrailingTrivia
+    {
+        get
+        {
+            if (TrailingTriviaFacts.IsDefaultOrEmpty)
+            {
+                return SyntaxFactory.TriviaList();
+            }
+
+            var trivia = new List<SyntaxTrivia>(TrailingTriviaFacts.Length);
+
+            foreach (var fact in TrailingTriviaFacts)
+            {
+                trivia.AddRange(fact.ToTrivia());
+            }
+
+            return SyntaxFactory.TriviaList(trivia);
+        }
+    }
+
+    /// <summary>
+    /// Whether the trailing trivia of the preceding token contains a trivia that ends its line, which means the preceding
+    /// token ends its line (<see cref="SyntaxTriviaUtilities.EndsLine"/>)
+    /// </summary>
+    public bool EndsLine { get; }
 
     /// <summary>
     /// Whether the trailing trivia of the preceding token contains a comment
     /// </summary>
-    public bool HasTrailingComment => TrailingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia);
+    public bool HasTrailingComment { get; }
 
     #endregion // Properties
 
@@ -81,15 +113,22 @@ internal readonly struct PrecedingTokenFacts
             return default;
         }
 
+        var trailingTrivia = previousToken.TrailingTrivia;
+        var trailingTriviaFacts = trailingTrivia.Count == 0
+                                      ? ImmutableArray<TriviaFact>.Empty
+                                      : trailingTrivia.Select(TriviaFact.From).ToImmutableArray();
+
         return new PrecedingTokenFacts(previousToken.Kind(),
                                        previousToken.IsKind(SyntaxKind.ColonToken) && previousToken.Parent is SwitchLabelSyntax,
-                                       previousToken.TrailingTrivia);
+                                       trailingTriviaFacts,
+                                       trailingTrivia.Any(SyntaxTriviaUtilities.EndsLine),
+                                       trailingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia));
     }
 
     /// <summary>
     /// Resolves the facts about the token that precedes a visited token. Only the first token of the visited root has no
     /// previous token in its tree; for that token the facts come from <see cref="FormattingContext.RootPrecedingToken"/>,
-    /// which holds the root's preceding token in its document when the caller supplied one
+    /// which holds the facts about the root's preceding token in its document when the caller supplied them
     /// </summary>
     /// <param name="previousToken">The result of <see cref="SyntaxToken.GetPreviousToken"/> on the visited token</param>
     /// <param name="context">The formatting context</param>

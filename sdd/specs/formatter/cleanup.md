@@ -5,7 +5,7 @@
 | ID prefix | FMT-CLEAN |
 | Status | Active |
 | Code owners | `CleanupPhase`, `EndOfLineWhitespace` |
-| Uses | FMT-BLANK-007, FMT-BLANK-008, FMT-PIPE-002, FMT-PIPE-010, FMT-PIPE-012, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003 |
+| Uses | FMT-BLANK-007, FMT-BLANK-008, FMT-PIPE-002, FMT-PIPE-010, FMT-PIPE-023, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003 |
 
 This spec covers `CleanupPhase`: the removal of whitespace that ends a line and the removal of the line breaks at the end of a file — including the cases where a file's final directive keeps its line break.
 
@@ -165,11 +165,13 @@ int ignored;
 #endif
 ```
 
-### FMT-CLEAN-008 — A detached node does not end with a line break
+### FMT-CLEAN-008 — A node-level root does not end with a line break
 
-When `FormatNode` formats a node that is not part of a syntax tree (FMT-PIPE-012), the formatter MUST remove the line breaks at the end of the node's last token.
+When `FormatNode`, `FormatNodeInDocumentAsync`, or `FormatNodeInDocumentWithContextAsync` formats a root other than a compilation unit, the formatter MUST remove the line breaks at the end of the root's last token. This holds for every such root, also for a node that `FormatNode` is given while it is part of a tree, because each of them is formatted as a root without a parent (FMT-PIPE-023). The end of a compilation unit is the end of its file, which FMT-CLEAN-005 covers.
 
-Why: A detached node has no following token, so it is treated like the end of a file. The caller inserts the node into its target and decides what follows it. The node-in-document entry points restore the target's original trailing trivia instead (FMT-PIPE-010).
+Why: A detached root has no following token, so it is treated like the end of a file. The caller of `FormatNode` inserts the node into its target and decides what follows it. The node-in-document entry points restore the target's original trailing trivia instead (FMT-PIPE-010).
+
+Example — `FormatNode` on the statement `Call(1, 2);` inside a method body returns `        Call(1, 2);` without the line break that ends the statement's line in the tree.
 
 ### FMT-CLEAN-009 — The byte order mark is kept
 

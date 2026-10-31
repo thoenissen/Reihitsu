@@ -7,6 +7,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Data.Enumerations;
+using Reihitsu.Formatter.Extensions;
 using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
@@ -54,6 +56,20 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     #endregion // Constructor
 
     #region Methods
+
+    /// <summary>
+    /// Determines whether a bracketed argument list is the argument list of an element access or of an implicit element
+    /// access, the lists whose arguments may be collapsed onto one line. The formatting root has no parent, so for the root
+    /// the facts the entry point captured from the document answer instead
+    /// </summary>
+    /// <param name="originalNode">The bracketed argument list as it entered this visit</param>
+    /// <param name="rootConstruct">The facts about the construct the formatting root stands in</param>
+    /// <returns><see langword="true"/> if the list belongs to an element access</returns>
+    internal static bool IsElementAccessArgumentList(BracketedArgumentListSyntax originalNode, RootConstruct rootConstruct)
+    {
+        return originalNode.Parent is ElementAccessExpressionSyntax or ImplicitElementAccessSyntax
+               || rootConstruct.IsRootIn(originalNode, RootConstruct.ElementAccessArguments);
+    }
 
     /// <summary>
     /// Collapses a parameter-list opener when the owning declaration contains the previous token whose trailing trivia
@@ -235,7 +251,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Determines whether a bracketed argument list can be safely collapsed to one line
     /// </summary>
-    /// <param name="originalNode">The bracketed argument list as it entered this visit, still attached to its owner</param>
+    /// <param name="originalNode">The bracketed argument list as it entered this visit</param>
     /// <param name="node">The bracketed argument list node after its elements were visited</param>
     /// <returns><see langword="true"/> if collapsing is safe; otherwise, <see langword="false"/></returns>
     /// <remarks>
@@ -245,12 +261,12 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     /// list apart. RH5307 applies the same interior-scoped guard in its analyzer and its code fix, so
     /// all three surfaces agree on the decision, including for the equivalent auto-property collapse.
     /// The owner is read from the original node, because a list rebuilt by visiting its elements no
-    /// longer has a parent
+    /// longer has a parent (<see cref="IsElementAccessArgumentList"/>)
     /// </remarks>
     private bool CanSafelyCollapseBracketedArguments(BracketedArgumentListSyntax originalNode,
                                                      BracketedArgumentListSyntax node)
     {
-        if (originalNode.Parent is not ElementAccessExpressionSyntax and not ImplicitElementAccessSyntax)
+        if (IsElementAccessArgumentList(originalNode, _context.RootConstruct) == false)
         {
             return false;
         }
