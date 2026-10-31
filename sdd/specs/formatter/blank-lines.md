@@ -13,7 +13,7 @@ This spec covers `BlankLinePhase`: where the formatter inserts a blank line (bef
 
 - Blank lines between type members. The phase neither inserts nor removes them; it only collapses runs (FMT-BLANK-014) and separates comments (FMT-BLANK-011).
 - Line breaks that are not blank lines — braces, statements, and members on their own lines are FMT-BREAK.
-- Moving documentation comments written behind code onto their own line (FMT-DOC-001) and deciding which of them document nothing (FMT-DOC-003).
+- Moving documentation comments written behind code, single-line or delimited, onto a new line (FMT-DOC-001) and deciding which of them document nothing (FMT-DOC-003). This phase inserts no line break in front of a documentation comment; it only decides the blank lines around one that starts its line.
 - The node-level preservation of a target's surrounding trivia (FMT-PIPE-010).
 
 ## Requirements
@@ -698,11 +698,11 @@ class C
 }
 ```
 
-### FMT-BLANK-012 — Documentation written behind code is separated from it
+### FMT-BLANK-012 — Documentation moved off code is separated from it
 
-The formatter MUST put one blank line above a documentation comment that FMT-DOC-001 moved onto its own line, and MUST move a delimited documentation comment (`/** */`) written behind code onto its own line below a blank line, when the comment precedes the code it documents. A documentation comment that documents nothing (FMT-DOC-003) MUST stay on the line where it was written; once the author put it on its own line, FMT-BLANK-011 applies.
+The formatter MUST give a documentation comment that FMT-DOC-001 moved onto a new line, single-line or delimited, the blank line of FMT-BLANK-011 in the same run, like a comment the author wrote on its own line: one blank line above it, none when it is the first content of a block, a type body, or a switch section. A documentation comment that FMT-DOC-003 keeps behind code does not start its line and gets no blank line; once the author put it on its own line, FMT-BLANK-011 applies.
 
-Why: Once a documentation comment stands on its own line it is a comment like any other and needs the separation of FMT-BLANK-011. Delimited documentation is not relocated by FMT-DOC, so this phase produces both line breaks at once, keeping the result stable in one run. A stranded comment sits on a line the author already filled; breaking it off is a placement decision the formatter leaves to the author.
+Why: Once a documentation comment stands at the start of its line it is a comment like any other and needs the separation of FMT-BLANK-011. FMT-DOC-001 moves it before this phase runs, so this phase only adds the blank line and never decides where the comment starts its line. A stranded comment sits on a line the author already filled; it is not separated from code it shares a line with.
 
 Example:
 
@@ -741,6 +741,27 @@ enum E
 
     /** doc */
     Second
+}
+```
+
+A comment moved off an opening brace is the first content of the type body and gets no blank line:
+
+```csharp
+class C
+{ /// <inheritdoc/>
+    void M()
+    {
+    }
+}
+```
+
+```csharp
+class C
+{
+    /// <inheritdoc/>
+    void M()
+    {
+    }
 }
 ```
 
