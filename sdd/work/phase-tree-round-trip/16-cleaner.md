@@ -15,4 +15,6 @@ _None._ The format script's own build printed RH0002/S1125 warnings in unchanged
 
 ## Checks
 - scripts/build.sh: 0 Warning(s), 0 Error(s)
-- formatter project tests and analyzer RH3002 tests: results in the report
+- scripts/format.sh --force <18 changed files>: Formatted 0 of 18 file(s).
+- scripts/test.sh --project formatter: Passed! - Failed: 0, Passed: 3373, Skipped: 0, Total: 3373
+- scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH3002": Passed! - Failed: 0, Passed: 239, Skipped: 0, Total: 239
