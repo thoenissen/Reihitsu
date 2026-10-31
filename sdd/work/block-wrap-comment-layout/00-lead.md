@@ -39,6 +39,7 @@ Output questions of 01-skeptic, asked before the test implementer:
 | 6 | Skeptic | Idempotency defect: `///` leading the first statement of a braced section gets a blank line in pass 1, removed in pass 2 | In scope: same cause, same component; gets a test | FMT-PIPE-004 demands idempotency | An unchanged requirement decides the output | — |
 | 7 | Spec author | Where the two maintainer answers live | FMT-SWITCH-007, not FMT-PIPE-013 | The maintainer answered for the braced switch section only; FMT-PIPE-013 would also bind the expression-body conversion, which was not traced | The answers are recorded where they take effect; no other output changes | a245f0c |
 | 8 | Spec author | Lane after the answers | Keep bug fix, no change doc | FMT-SWITCH-007 already applied FMT-PIPE-013 to these comments and FMT-PIPE-013's `Why:` already rules out a wrap that loses the layout; the answers settle the reading | Both outputs are maintainer answers | a245f0c |
+| 9 | Repair 1 | Spec checker finding 1 (code owner of `BlockWrapTriviaUtilities`); spec author lists it under FMT-PIPE rather than the two caller specs | Accept; skip the cleaner for this repair round | One type owns at most one spec (`sdd/README.md`); the type implements FMT-PIPE-013. The repair changes only Markdown, so the cleaner has nothing to format or build | Spec headers only | 50bf596 |
 
 ## Follow-up candidates
 
