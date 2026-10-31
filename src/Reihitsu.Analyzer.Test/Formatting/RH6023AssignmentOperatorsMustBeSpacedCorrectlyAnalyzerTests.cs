@@ -836,7 +836,7 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
     }
 
     /// <summary>
-    /// Verifies the diagnostic marked <c>#0</c> and the fix result under LF and under CRLF
+    /// Verifies the one diagnostic marked in the source and the fix result under LF and under CRLF
     /// </summary>
     /// <param name="testData">The source with LF line endings</param>
     /// <param name="fixedData">The fixed source with LF line endings</param>

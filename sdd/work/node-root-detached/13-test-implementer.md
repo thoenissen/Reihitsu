@@ -50,3 +50,7 @@ Each code-fix test reports one diagnostic, the operator marked `#0`, and runs un
 scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests"
 scripts/test.sh --project formatter --filter "FullyQualifiedName~ConditionalAccessAssignmentTargetKeepsTheWrappedLinkOfItsAssignedMember"
 ```
+
+## Repair (decision 19)
+
+`SelfReferentialTrackerReferenceTests.RepositoryCommentsContainNoSelfReferentialTrackerReferences` read the summary of `VerifyUnderBothLineEndings` (`<c>#0</c>`, line 839 of the RH6023 test file) as a tracker number. The summary now reads "Verifies the one diagnostic marked in the source and the fix result under LF and under CRLF". I checked every comment line this run added under `src/`, using a regex over `git diff 621b90e HEAD -- src` for comment lines containing `#` followed by a digit. That line was the only match. The change touches comments only; the test markup `{|#0:…|}` sits inside string literals and is unchanged. `scripts/test.sh --project architecture`: 92/92 pass.
