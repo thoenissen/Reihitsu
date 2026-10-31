@@ -2,6 +2,8 @@ Role: spec author
 Commit: d686a76
 Verdict: open question
 
+Resolution: the maintainer accepted the amended change doc as written and answered the zero-offset depth question with **A** (`squad/decisions/2026-10-31-node-root-detached-amended-change-doc.md`, `…-zero-offset-depth.md`). The change doc now states A as decided, and its status is `Accepted`; the spec needed no change, because FMT-PIPE-012 and FMT-PIPE-024 already give node-in-document roots the indentation phase's depth. The open question found in passing (the `else if` braces in column 13) went into the widened thoenissen/Reihitsu#1521; the RH5405 comment loss is thoenissen/Reihitsu#1527.
+
 This is a repair round after the skeptic's handover `02-skeptic.md` and the maintainer's answers in `squad/decisions/2026-10-31-node-root-detached-missing-facts.md` (B: add plain-value facts for the decisions that read outside a detached root; node-in-document outputs stay as they are with or without a tab), `…-leading-trivia-owner.md` (A: no change to who owns a target's leading trivia; close the `else if` comment loss narrowly through this run's facts; the structural change goes to thoenissen/Reihitsu#1521), and `…-rh5405-comment-drop.md` (A: the RH5405 comment loss on `main` is a separate follow-up). The change doc goes back to `Status: Draft` and returns for approval.
 
 The coordinator's message carried no intended fix beyond those answers; nothing was ignored.
