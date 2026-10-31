@@ -57,3 +57,4 @@ The maintainer answered the follow-up list:
 - RH6001 reporting `if/** d */(c)` stays as it is; no follow-up.
 
 Roles for this addition: spec author (spec), test implementer (tag), cleaner, spec checker, auditor (compiled test change after the audit), validator. Not a repair round.
+- Audit of the addition (05-auditor.md): finding #7 — the formatter keeps `fixed(`, so formatted code raises RH6001. Maintainer: A, `fixed` joins FMT-SPACE-012 and the formatter's keyword spacing; change doc accepted in advance (`squad/decisions/2026-10-31-line-start-fact-fixed-spacing.md`). Not a repair round: a maintainer-chosen extension. Roles: spec author (change doc, FMT-SPACE-012), test implementer, implementer, cleaner, spec checker, auditor, validator.
