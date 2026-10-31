@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
 
@@ -64,9 +65,11 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
             return statement;
         }
 
-        var leadingTrivia = GetCarriedLeadingTrivia(statement.GetLeadingTrivia());
+        // The statement carries its comments as written; the later phases lay out the line breaks in front of the first
+        // comment's line, and the closing brace starts a new line exactly when the author ended the statement's line
+        var leadingTrivia = BlockWrapTriviaUtilities.GetCarriedLeadingTrivia(statement.GetLeadingTrivia(), keepBlankLinesAboveFirstComment: false);
         var normalizedStatement = statement.WithLeadingTrivia(leadingTrivia)
-                                           .WithTrailingTrivia(GetCarriedTrailingTrivia(statement.GetTrailingTrivia(), endOfLine));
+                                           .WithTrailingTrivia(BlockWrapTriviaUtilities.GetCarriedTrailingTrivia(statement.GetTrailingTrivia(), SyntaxFactory.EndOfLine(endOfLine), endsLine: false));
 
         // A comment behind the opening brace on its line would trail the brace once the text is parsed again, so the
         // brace's line ends in front of the statement's first comment
@@ -137,61 +140,6 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
                                                                                                             : GetTokenBehindInsertedCloseBrace(ifStatement),
                    _ => ifStatement.GetLastToken().GetNextToken(includeZeroWidth: true)
                };
-    }
-
-    /// <summary>
-    /// Builds the leading trivia of a statement that is being wrapped in braces. Everything from the line the first comment
-    /// stands on is kept as written; the whitespace and line breaks in front of that line, and the whole trivia when it holds
-    /// no comment, are dropped, because the later phases lay out the statement
-    /// </summary>
-    /// <param name="leadingTrivia">The original leading trivia of the statement</param>
-    /// <returns>The carried leading trivia</returns>
-    private static SyntaxTriviaList GetCarriedLeadingTrivia(SyntaxTriviaList leadingTrivia)
-    {
-        var firstCommentIndex = -1;
-
-        for (var triviaIndex = 0; triviaIndex < leadingTrivia.Count; triviaIndex++)
-        {
-            if (SyntaxTriviaUtilities.IsCommentTrivia(leadingTrivia[triviaIndex]))
-            {
-                firstCommentIndex = triviaIndex;
-
-                break;
-            }
-        }
-
-        if (firstCommentIndex < 0)
-        {
-            return default;
-        }
-
-        var lineStartIndex = firstCommentIndex;
-
-        while (lineStartIndex > 0
-               && SyntaxTriviaUtilities.EndsLine(leadingTrivia[lineStartIndex - 1]) == false)
-        {
-            lineStartIndex--;
-        }
-
-        return SyntaxFactory.TriviaList(leadingTrivia.Skip(lineStartIndex));
-    }
-
-    /// <summary>
-    /// Builds the trailing trivia of a statement that is being wrapped in braces. The trivia is kept as written, its line
-    /// break included, so the inserted closing brace starts a new line exactly when the author ended the statement's line.
-    /// A single-line comment that ends the trivia without a line break, at the end of the file, gets one, because the
-    /// closing brace behind it would otherwise be part of the comment
-    /// </summary>
-    /// <param name="trailingTrivia">The original trailing trivia of the statement</param>
-    /// <param name="endOfLine">The end-of-line sequence of the separator line break</param>
-    /// <returns>The carried trailing trivia</returns>
-    private static SyntaxTriviaList GetCarriedTrailingTrivia(SyntaxTriviaList trailingTrivia, string endOfLine)
-    {
-        var lastTrivia = trailingTrivia.LastOrDefault(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false);
-
-        return lastTrivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
-                   ? trailingTrivia.Add(SyntaxFactory.EndOfLine(endOfLine))
-                   : trailingTrivia;
     }
 
     /// <summary>
