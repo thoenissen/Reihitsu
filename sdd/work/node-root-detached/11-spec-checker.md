@@ -41,3 +41,25 @@ Checked `git diff 3bd7303 HEAD`, handovers 12 to 15, the cleaner's round 2, and 
 7. Coverage: ok. The architecture result is quoted under 4, and no new requirement was added.
 8. Tags: ok. The 7 new RH6023 tests carry RH6023-002 and FMT-PIPE-024, and the new detached-root test carries FMT-PIPE-023 and FMT-PIPE-024, as the `Tests` table of `13-test-implementer.md` lists. The spec author's example for the tests is tagged.
 9. Nothing left behind: ok. `sdd/work/` holds only this run's directory. The tracker-reference comment of decision 19 was reworded in e1cc51c, and the architecture tests pass.
+
+## Round 3 (repair round 2)
+Commit: 22d2e716
+Verdict: consistent
+
+Checked `git diff 906313e HEAD`, the auditor's round 2, the round 2 sections of `13-test-implementer.md` and `10-cleaner.md`, `16-spec-author.md`, and maintainer answer 8. The prompt carried no intended fix or hoped-for verdict.
+
+### Findings
+| # | Check | Location | What does not match | Owner |
+|---|---|---|---|---|
+| _None._ | | | | |
+
+### Checked
+1. Change doc: ok. The repair-round-2 passages are marked and the amendment note names them. The new visible output (RH5111 and RH6023 on a wrapped member inside a conditional access) has before and after blocks and a `Decisions` section recording maintainer answer 8 (A). The change doc stays Accepted.
+2. Specs match the diff: ok. No spec text changed, and none has to: RH5111-004 and FMT-PIPE-024 already say the fix formats the construct and that the chain rule answers from the chain facts; neither contradicts the new output.
+3. IDs: ok. No ID added; RH5111-004 and RH6023-002 are in the ledger.
+4. Code owners: ok. No type was added or renamed. Architecture tests: Passed! - Failed: 0, Passed: 92, Skipped: 0, Total: 92.
+5. User documentation: ok. No rule page changed and none states the old join.
+6. Open questions: ok. Answer 8 is recorded in `00-lead.md`; the spec author has no open output questions.
+7. Coverage: ok. The architecture result is quoted under 4, and no requirement was added.
+8. Tags: ok. The 3 new RH5111 tests carry RH5111-004 and FMT-PIPE-024, and the new RH6023 test carries RH6023-002 and FMT-PIPE-024, as the table in round 2 of `13-test-implementer.md` lists.
+9. Nothing left behind: ok. `sdd/work/` holds only this run's directory.
