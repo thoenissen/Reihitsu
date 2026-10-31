@@ -4,7 +4,7 @@
 |---|---|
 | ID prefix | FMT-PIPE |
 | Status | Active |
-| Code owners | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `PreparationPhase`, `FormattingContext`, `PrecedingTokenFacts`, `RootListPosition`, `RootConstruct`, `RootConstructExtensions`, `TriviaFact`, `FluentChainBoundary`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities` |
+| Code owners | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `PreparationPhase`, `FormattingContext`, `PrecedingTokenFacts`, `RootListPosition`, `RootConstruct`, `RootConstructExtensions`, `TriviaFact`, `FluentChainBoundary`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities`, `BlockWrapTriviaUtilities` |
 | Uses | SHARED-CHAIN-001, SHARED-FIX-001, SHARED-FIX-006, SHARED-FIX-007, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BREAK-001, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-CLEAN-001, FMT-CLEAN-005, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-002, FMT-INDENT-003, FMT-INDENT-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-012, FMT-INDENT-022, FMT-INDENT-024, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-026, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003 |
 
 This spec covers what holds for the formatter as a whole: the public entry points, the fixed phase order, and the invariants every phase must keep. What an individual phase decides is specified in that phase's own spec.
