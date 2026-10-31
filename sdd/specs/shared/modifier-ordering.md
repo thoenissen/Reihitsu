@@ -120,9 +120,9 @@ class C
 
 ### SHARED-MODORDER-003 — A comment or directive between the modifiers withholds the fix
 
-The code fix MUST NOT be offered when a comment follows a modifier on that modifier's line, or when a comment or a directive other than `#if`, `#elif`, `#else`, and `#endif` precedes any modifier but the first. The diagnostic is still reported. A comment or directive in front of the first modifier does not withhold the fix (SHARED-MODORDER-002).
+The code fix MUST NOT be offered when a comment follows a modifier on that modifier's line, when a comment or a directive other than `#if`, `#elif`, `#else`, and `#endif` precedes any modifier but the first, or when a comment, or a directive of any kind, a conditional directive included, stands between the last modifier and the token after it. The diagnostic is still reported. A comment or directive in front of the first modifier does not withhold the fix (SHARED-MODORDER-002).
 
-Why: The fix writes each modifier with a single space after it, so trivia between the modifiers would be dropped, and a comment written next to one keyword cannot be placed next to the same keyword in the new order. A reported diagnostic without a fix is a supported end state.
+Why: The fix writes each modifier with a single space after it, so trivia between the modifiers would be dropped, and a comment written next to one keyword cannot be placed next to the same keyword in the new order. A directive behind the last modifier would end up on the line of the modifiers, where it does not parse, and a comment there could not keep its line without the fix changing the layout around it. A reported diagnostic without a fix is a supported end state.
 
 Example — a comment after a modifier:
 
@@ -143,6 +143,35 @@ class C
     internal
 #pragma warning disable CS0169
     {|RH7106:protected|} int _value;
+}
+```
+
+is reported, and no code fix is offered.
+
+Example — a directive behind the last modifier:
+
+```csharp
+class C
+{
+    {|RH7105:static|} public
+#pragma warning disable CS0169
+    int _a;
+}
+```
+
+is reported, and no code fix is offered.
+
+Example — a comment between the last modifier and the type:
+
+```csharp
+class C
+{
+    {|RH7105:static|} public
+    // the counter
+    int _a;
+
+    {|RH7105:static|} public
+    /* the total */ int _b;
 }
 ```
 
