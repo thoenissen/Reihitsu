@@ -194,3 +194,72 @@ _None._ Decision 14 gave the outermost-chain decision one owner, and the line-br
 ### Hints
 
 - `FluentChainBoundary` is a Core type owned by `formatter/pipeline.md`, and its `From` is public API used only by the formatter. This is acceptable under `AGENTS.md`, *Supported inputs*. Noted because the shared spec `shared/fluent-chain-layout.md` names `FluentChain` but not the boundary.
+
+## Round 3 (repair round 2)
+
+Commit: 49dc0ef221d310207571181395983762ac6b1cb4
+Verdict: pass
+
+### Scope
+
+This round audits the repair delta only: `git diff d57929d 49dc0ef`.
+
+- Head and base:
+  - `origin/main` is still `c24bc1d` (`ls-remote`) and is merged.
+  - The checkout is `49dc0ef`.
+- The delta holds tests and documentation only:
+  - three RH5111 code-fix tests;
+  - one RH6023 code-fix test;
+  - the change doc;
+  - the handovers `13` (round 2), `16`, `10` (round 3), `11` (round 3), and maintainer answer 8 in `00-lead.md`.
+- No file under `src/Reihitsu.Core`, `src/Reihitsu.Formatter`, `src/Reihitsu.Analyzer`, or `src/Reihitsu.Analyzer.CodeFixes` changed. So round 2's code-fix evidence for `906313e` still holds for this head.
+- The coordinator's message carried no intended fix or hoped-for verdict.
+
+### Previous findings
+
+| # | Status | Evidence |
+|---|---|---|
+| 1–4 | closed (round 2) | no production change since |
+| 5 | closed | Maintainer answer 8 decides A (the member keeps its line break). The four new tests pin exactly the outputs round 2 measured on `906313e` with `apply-fix.sh`: RH5111 `a?.B⏎  .C = 5;`, `a?[0]⏎  .C = 5;`, and `a?.B?.B⏎     .C = 5;` (`.C` in column 13), and RH6023 on `a?.B⏎  .C=⏎    5;` → `a?.B⏎  .C = 5;`. Each test checks the whole fixed document under LF and then CRLF with default iterations, through `VerifyUnderBothLineEndings`, with one marked diagnostic. `scripts/test.sh --project analyzer --filter "FullyQualifiedName~VerifyFixKeepsTheWrappedLinkOfAnAssignedMember"`: Passed 7/7 (the 3 new RH5111 tests and 4 RH6023 tests). The change doc lists the case in *What* (the implementer-stage bullet, a third kind) and under *Visible output changes* (input, before `a?.B.C = 5;`, after, plus the element-binding, nested, RH6023, and one-line variants). A *Decisions* section records answer A and why `main`'s join cannot return (FMT-PIPE-023). The change doc matches the measured outputs, and the one-line member (`a?.B.C =⏎5;` → `a?.B.C = 5;`) is correctly stated as unchanged |
+
+### Findings
+
+| # | Severity | Location | Failure class | Repeats | Scope relation | What goes wrong | Suggested change |
+|---|---|---|---|---|---|---|---|
+| _None._ | | | | | | | |
+
+### Guard scope
+
+_N/A — no predicate or guard changed in this round._
+
+### Policy ownership
+
+_N/A — no production code changed in this round; ownership is as in round 2._
+
+### Assertion adequacy
+
+| Test | Invariant | Falsifying observation | Helper | Verdict |
+|---|---|---|---|---|
+| `RH5111…Tests.VerifyFixKeepsTheWrappedLinkOfAnAssignedMember{BehindAMemberBinding,BehindAnElementBinding,InANestedConditionalAccess}` | whole fixed document per answer A, LF and CRLF | `main`'s join, a wrong `.C` column, a second iteration | `VerifyUnderBothLineEndings` → `Verify` | adequate |
+| `RH6023…Tests.VerifyFixKeepsTheWrappedLinkOfAnAssignedMemberWhoseValueIsWrapped` | same | same | same | adequate |
+
+### Visible output is decided
+
+Every expected value the delta adds is covered by maintainer answer 8 and recorded in the change doc's *Decisions*. No rule page changed.
+
+### Failure classes dismissed (delta)
+
+- FC-003: the boundary's other sides (member on the conditional access's line; compound assignment with a wrapped value) have unchanged output. The one-line side is pinned for RH6023 by round 1's `VerifyFixKeepsAnAssignedMemberOnOneLineBehindAMemberBinding`.
+- FC-017: see above.
+- FC-031: the new summaries describe their tests.
+- FC-032: no compiled production change.
+- FC-033: the inputs are the reported shapes under both line endings.
+- FC-035: the expected values were checked against `apply-fix.sh` on the branch, and against answer A by the test implementer. The tests fail on `main`, which joins.
+
+### Architecture findings
+
+_None._
+
+### Hints
+
+_None._
