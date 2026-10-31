@@ -45,3 +45,5 @@ The issue's Proposed Behavior and Done when — including its restructuring item
 - `ListElementInteriorJoinRewriter`'s tight-pair table for pairs no spacing rule covers (join-spacing-pairs decision).
 - `Data/RootListPosition` reads a line-break-phase helper.
 - RH6001 checks `fixed`, which RH6001-001 does not list.
+- Audit 3 (23-auditor.md, of ba5a99b): #4 closed; enumeration complete; finding #5 (medium, missing test for `if/* c *//// x` / `(c)`, not a repeat). Repair round 2 of 3: test implementer, cleaner, spec checker, auditor on the repair, validator.
+- Follow-up candidate from audit 3: RH6001 reports `if/** d */(c)`, which the formatter keeps; RH6001's spec leaves the shape undecided.
