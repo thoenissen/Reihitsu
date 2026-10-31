@@ -192,13 +192,16 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
             return accessor;
         }
 
-        var arrowExpressionClause = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken).WithTrailingTrivia(SyntaxFactory.Space),
+        // No spacing rule covers the gap between the accessor keyword and the created arrow, so the arrow gets one space on
+        // each side (FMT-STRUCT-026); the layout trivia that stood between the keyword and the removed body is dropped. The
+        // created tokens are built with explicit trivia, so they carry no elastic trivia
+        var arrowExpressionClause = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.Token(SyntaxFactory.TriviaList(SyntaxFactory.Space), SyntaxKind.EqualsGreaterThanToken, SyntaxFactory.TriviaList(SyntaxFactory.Space)),
                                                                         bodyExpression);
 
-        return accessor.WithKeyword(accessor.Keyword.WithTrailingTrivia(SyntaxFactory.Space))
+        return accessor.WithKeyword(accessor.Keyword.WithTrailingTrivia(default(SyntaxTriviaList)))
                        .WithBody(null)
                        .WithExpressionBody(arrowExpressionClause)
-                       .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(semicolonTrailingTrivia));
+                       .WithSemicolonToken(SyntaxFactory.Token(default, SyntaxKind.SemicolonToken, semicolonTrailingTrivia));
     }
 
     /// <summary>
@@ -255,7 +258,10 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
 
                     if (RequiresThrowExpressionParentheses(operand))
                     {
-                        operand = SyntaxFactory.ParenthesizedExpression(operand.WithoutTrivia())
+                        // The parentheses are built with explicit trivia, so they carry no elastic trivia (FMT-STRUCT-026)
+                        operand = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.Token(default, SyntaxKind.OpenParenToken, default),
+                                                                        operand.WithoutTrivia(),
+                                                                        SyntaxFactory.Token(default, SyntaxKind.CloseParenToken, default))
                                                .WithTriviaFrom(operand);
                     }
 

@@ -39,7 +39,7 @@ public class ExpressionBodiedLocalFunctionTransformTests : FormatterPhaseTestsBa
                                 {
                                     void M()
                                     {
-                                        int Add(int a, int b) {returna + b;}
+                                        int Add(int a, int b) {return a + b;}
                                     }
                                 }
                                 """;
@@ -149,7 +149,7 @@ public class ExpressionBodiedLocalFunctionTransformTests : FormatterPhaseTestsBa
                                 {
                                     void M()
                                     {
-                                        async Task<int> AwaitAndReturnValue() {returnawait Task.FromResult(1);}
+                                        async Task<int> AwaitAndReturnValue() {return await Task.FromResult(1);}
                                     }
                                 }
                                 """;
@@ -226,7 +226,7 @@ public class ExpressionBodiedLocalFunctionTransformTests : FormatterPhaseTestsBa
                                 {
                                     void M()
                                     {
-                                        Task PassThrough() {returnTask.CompletedTask;}
+                                        Task PassThrough() {return Task.CompletedTask;}
                                     }
                                 }
                                 """;
@@ -260,7 +260,7 @@ public class ExpressionBodiedLocalFunctionTransformTests : FormatterPhaseTestsBa
                                 {
                                     void M()
                                     {
-                                        T Local<T>() {returndefault;}
+                                        T Local<T>() {return default;}
                                     }
                                 }
                                 """;
@@ -294,7 +294,7 @@ public class ExpressionBodiedLocalFunctionTransformTests : FormatterPhaseTestsBa
                                 {
                                     void M()
                                     {
-                                        static int Local() {return1;}
+                                        static int Local() {return 1;}
                                     }
                                 }
                                 """;
@@ -399,7 +399,7 @@ public class ExpressionBodiedLocalFunctionTransformTests : FormatterPhaseTestsBa
                                     void M()
                                     {
                                         int Add(int a, int b) {// why
-                                returna + b;}
+                                return a + b;}
                                     }
                                 }
                                 """;
@@ -436,7 +436,7 @@ public class ExpressionBodiedLocalFunctionTransformTests : FormatterPhaseTestsBa
                                 {
                                     void M()
                                     {
-                                        int Add(int a, int b) {returna + b
+                                        int Add(int a, int b) {return a + b
                                 // why
                                 ;}
                                     }

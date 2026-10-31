@@ -43,7 +43,7 @@ public class StructuralTransformPhaseIntegrationTests
         const string expected = """
                                 class C
                                 {
-                                    int M(){return42;}
+                                    int M(){return 42;}
                                 }
 
                                 """;
@@ -162,7 +162,7 @@ public class StructuralTransformPhaseIntegrationTests
                                 {
                                     void M()
                                     {
-                                        int Add(int a, int b) {returna + b;}
+                                        int Add(int a, int b) {return a + b;}
                                     }
                                 }
 

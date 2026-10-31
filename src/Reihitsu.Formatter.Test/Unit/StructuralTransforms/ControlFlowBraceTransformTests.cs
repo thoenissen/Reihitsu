@@ -48,9 +48,11 @@ public class ControlFlowBraceTransformTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that a trailing comment on an unbraced if-body statement is kept when the body is wrapped in a block
+    /// Verifies that a trailing comment on an unbraced if-body statement is kept when the body is wrapped in a block, and that
+    /// the inserted closing brace stands outside the comment in the phase output, which parses without a syntax error
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
     public void TrailingCommentOnIfBodyIsPreserved()
     {
         // Arrange
@@ -70,7 +72,15 @@ public class ControlFlowBraceTransformTests : FormatterPhaseTestsBase
 
         // Assert
         Assert.Contains("// note", actual, "The trailing comment must not be deleted.");
-        Assert.IsInstanceOfType<BlockSyntax>(GetIfStatement(actual).Statement, "The if-body should be wrapped in a block.");
+        Assert.DoesNotContain("// note}", actual, "The inserted closing brace must not be part of the comment.");
+
+        var tree = CSharpSyntaxTree.ParseText(actual, cancellationToken: TestContext.CancellationToken);
+        var body = GetIfStatement(actual).Statement as BlockSyntax;
+
+        Assert.IsEmpty(tree.GetDiagnostics(TestContext.CancellationToken), "The phase output must parse without a syntax error.");
+        Assert.IsNotNull(body, "The if-body should be wrapped in a block.");
+        Assert.IsFalse(body.CloseBraceToken.IsMissing, "The inserted closing brace must stand outside the comment.");
+        Assert.Contains("// note", body.Statements.Single().GetTrailingTrivia().ToFullString(), "The comment must trail the braced statement.");
     }
 
     /// <summary>

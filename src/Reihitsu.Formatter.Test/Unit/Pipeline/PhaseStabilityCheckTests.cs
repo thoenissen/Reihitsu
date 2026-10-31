@@ -302,6 +302,42 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that the check catches the blank-line phase inserting a blank line above a comment glued to the <c>{</c> of a
+    /// member body behind the member's signature, which the line-break phase removes again
+    /// </summary>
+    [TestMethod]
+    public void CheckCatchesBlankLinePhaseInsertingBlankLineAboveCommentGluedToMemberBodyBrace()
+    {
+        // Arrange
+        const string source = """
+                              class C
+                              {
+                                  int Get3()
+                                  /* c */ {
+                                      return
+
+                                      /* d */ 42;
+                                  }
+                              }
+                              """;
+        const string phaseOutput = """
+                                   class C
+                                   {
+                                       int Get3()
+
+                                       /* c */ {
+                                           return
+
+                                           /* d */ 42;
+                                       }
+                                   }
+                                   """;
+
+        // Act & Assert
+        AssertOnlyPhaseChanges(source, nameof(BlankLinePhase), phaseOutput);
+    }
+
+    /// <summary>
     /// Verifies that the check catches the line-break phase stripping the indentation of a parenthesized lambda argument
     /// on its own line, which the indentation phase writes back
     /// </summary>

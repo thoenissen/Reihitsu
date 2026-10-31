@@ -5,7 +5,7 @@
 | ID prefix | FMT-PIPE |
 | Status | Active |
 | Code owners | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `PreparationPhase`, `FormattingContext`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities` |
-| Uses | SHARED-FIX-001, SHARED-FIX-006, SHARED-FIX-007, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-CLEAN-001, FMT-CLEAN-005, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-STRUCT-017, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003 |
+| Uses | SHARED-FIX-001, SHARED-FIX-006, SHARED-FIX-007, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BREAK-001, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-CLEAN-001, FMT-CLEAN-005, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-026, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003 |
 
 This spec covers what holds for the formatter as a whole: the public entry points, the fixed phase order, and the invariants every phase must keep. What an individual phase decides is specified in that phase's own spec.
 
@@ -451,14 +451,43 @@ The column of the first token in the document is the number of characters in fro
 
 So a tab in the whitespace in front of a node that does not start its line, which belongs to the code in front of the node and is kept, counts as one column, and so does a tab inside a comment or a literal, which is kept (FMT-TAB-003). The leading trivia that FMT-PIPE-010 and FMT-PIPE-018 keep is written back as it stands and is outside this requirement, and so are the lines of the context node outside the target, which `FormatNodeInDocumentWithContextAsync` does not write back.
 
-Recorded gap — a target of `FormatNodeInDocumentWithContextAsync` whose first token the phases place in another line or column than the one it keeps in the document. The entry point writes back only the target, with its leading trivia as in the document, the whitespace in front of its first token included (FMT-PIPE-010, FMT-PIPE-018), and keeps everything in front of it on its line as it stands. So the target's first token stays where it stood in the document, while the other lines of the target take the columns the phases gave them; a line aligned to an anchor on the target's first line stands where the anchor stood in the phases' layout, not where the anchor ends up. This requirement does not cover the target's first line or the lines whose column depends on it. The gap has two known cases:
+Recorded gap — a target of `FormatNodeInDocumentWithContextAsync` whose first token the phases place in another line or column than the one it keeps in the document. The entry point writes back only the target, with its leading trivia as in the document, the whitespace in front of its first token included (FMT-PIPE-010, FMT-PIPE-018), and keeps everything in front of it on its line as it stands. So the target's first token stays where it stood in the document, while the other lines of the target take the columns the phases gave them; a line aligned to an anchor on the target's first line stands where the anchor stood in the phases' layout, not where the anchor ends up. This requirement does not cover the target's first line or the lines whose column depends on it. The gap has three known cases:
 
 - The target starts a later line of its context, and the phases give that line another column than the whitespace in front of it in the document.
 - The target does not start its line, and the phases break the line in front of it. The line break they add is not written back, so the target stays on the line where it started, in its column in the document, while its other lines take the columns the phases gave them on the new line.
+- The target does not start its line, and the phases move the line it starts on, such as a content line of a multi-line raw string literal that the indentation phase moves under its opening quotes (FMT-RAW-001). What stands in front of the target on that line is outside the target and is written back as in the document, so the target's first token keeps its column in the document, while its other lines take the columns the phases gave them on the moved line.
 
 A target whose first token the phases leave in its line and column in the document is not in the gap: what stands in front of it is written back unchanged, and the phases laid the target out from that column. That covers a target that starts the context's first line, and a target that does not start its line and in front of which the phases change nothing on that line.
 
 Example — the second case: with the argument `Wrap(…)` of `        var x = Call(1, Wrap("""` / `    a` / `    """));` as target and the statement as context, the phases put the argument on a line of its own under `1`, in column 21, and the content line and the closing marker of the raw string literal under its opening quotes in column 26. The line break is not written back, so `Wrap(` stays on the first line, the opening quotes stand in column 29, and the content line and the closing marker stand in column 26, three columns left of them.
+
+Example — the third case: `FormatNodeInDocumentWithContextAsync` with the invocation `Call(1, 2)` as target and the local declaration as context. The phases move the literal's lines five columns to the right, under the opening quotes, and place `2` under `1` in column 25. Only the target is written back, so the literal's content line, its closing line, and `Call(1,` keep their columns in the document, with `1` in column 20, while `2` stands in the phases' column 25:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var s = $"""
+            a {Call(1,
+            2)} b
+            """;
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var s = $"""
+            a {Call(1,
+                         2)} b
+            """;
+    }
+}
+```
 
 Example — the first case: the RH5111 fix of the declarator `b` in `        int a = 1,` / `              b =` / `                  Other(1,` / `                        2);`, with the statement as context: the result is `              b = Other(1,` / `                  2);`, `b` keeps column 14, and `2` stands in column 18, under the column `1` had with `b` in the phases' column 8, while `1` ends up in 24.
 
@@ -580,7 +609,7 @@ class C
 
 when the indentation of every line is written with tabs, the output of the TabReplacement sub-phase holds four spaces for each of those tabs, every later phase receives that text without a tab, and the result is the block above.
 
-Example — in a file whose line breaks are `\n`, wrapping the statement below in braces (FMT-STRUCT) writes the line breaks behind the opening brace and behind the comment as `\n`, so the output of every phase holds only `\n`:
+Example — in a file whose line breaks are `\n`, wrapping the statement below in braces (FMT-STRUCT) writes the line break behind the opening brace as `\n` (FMT-STRUCT-026), and the line break behind the comment, which the author wrote, is `\n` as well, so the output of every phase holds only `\n`:
 
 ```csharp
 class C
@@ -651,3 +680,72 @@ class C
 ```
 
 The same holds when every line break is U+0085, U+2028, or U+2029 (not shown as blocks because the characters are invisible), and for a file whose line breaks mix `\r\n`, `\n`, and lone `\r`.
+
+### FMT-PIPE-021 — Every phase returns a tree its text parses back to
+
+Every phase, each sub-phase of the preparation phase included, MUST return a tree whose text, parsed again with the parse options of the syntax tree the formatter was given — its language version and its preprocessor symbols, as they stand, not as FMT-PIPE-008 resolves them — gives the same tree:
+
+- the same nodes in the same structure, and the same tokens with the same kinds, texts, and values at the same places — a token's value is what the parser gives its text, such as the string a raw-string text token stands for;
+- no token the parser has to add or skip, so no syntax error;
+- every comment, documentation comment, preprocessor directive, and disabled-text span as trivia of the same token, on the same side of it — leading or trailing.
+
+Whitespace and line breaks need only stand at the same places: the parser may give a line break or whitespace to the other of the two tokens around it, and may join two neighbouring runs of whitespace into one. This requirement covers the tree that `FormatDocumentAsync` and `FormatSyntaxTree` pass through the phases; it does not cover the node that `FormatNode`, `FormatNodeInDocumentAsync`, and `FormatNodeInDocumentWithContextAsync` pass through them.
+
+Why: Every phase after the one that wrote a tree, the documentation phase, which reads the text, and the trace, which prints the text and parses it again between passes, have to see the program the tree is. A tree whose text is another program — two tokens that read as one, or a token inside a comment — is formatted correctly only as long as a later phase happens to repair it, and a token pair that no spacing rule covers is never repaired (FMT-SPACE-002). Ownership of a comment decides what the phases do with it: a comment that trails a token stays at the end of that token's line (FMT-BREAK-001), while a comment that leads one starts its own line; a tree whose comment the parser gives to another token is formatted one way in memory and another way once its text is read. Which token holds a line break or whitespace decides nothing a phase relies on, and the line-break phase writes a line break in front of the token it moves, where the parser gives it to the token before (FMT-BREAK-001, FMT-BREAK-029). The text is parsed with the options the tree came with: with only the language version, a project symbol such as `DEBUG` would be missing, and the code under `#if DEBUG` would read back as disabled text.
+
+Example — in the class below, the structural-transform phase converts `Get` and braces both `if` bodies (FMT-STRUCT-001, FMT-STRUCT-004):
+
+```csharp
+class C
+{
+    int Get() => 42;
+
+    void M(bool a)
+    {
+        if (a)
+            Foo(); // trailing
+        else
+            Bar();
+    }
+}
+```
+
+The phase's output MUST NOT read `int Get(){return42;}`, where `return42` parses as one identifier, and MUST NOT put the inserted `}` directly behind `// trailing`, where it is part of the comment. It reads `int Get(){return 42;}`, and a line break stands between `// trailing` and the inserted `}` (FMT-STRUCT-026).
+
+Example — the same tree where the parser gives the whitespace and the line break to the other token: the line-break phase moves the `{` of `if (a) {` onto its own line by writing the line break in front of `{`, behind the space that ends `if (a) `; parsed again, the space and the line break are both trivia of `)`. The tree is the same. A tree in which `// leading` stands behind an inserted `{` on the brace's line, as leading trivia of the statement after it, is not the same: parsed again, the comment trails the brace.
+
+Example — a token's value: in `var s = $"""`, followed by the lines `a {Call(1,`, `2)} b`, and `""";`, each starting in column 0, the closing quotes strip no indentation, and the text token in front of the hole stands for `a `. When the indentation phase moves the literal's lines under its opening quotes, every line gains the same indentation, the closing line included, and the moved text token still stands for `a `, as its new text does when it is parsed again; a token that kept its new text, indentation included, as its value would not be the same token.
+
+### FMT-PIPE-022 — Every phase keeps the annotations it does not own
+
+Every phase MUST return each annotation that its input carries on a node or a token of the code on that node or token, for every one its output still holds — also where the phase changes the token's text, the trivia around it, or the node's children, or moves it into a node the phase creates. This holds for the start token, the content tokens, and the closing token of a multi-line raw string literal that the indentation phase moves (FMT-RAW-001), and for every node and token inside its holes. A node or token the phase removes takes its annotations with it, and one the phase creates carries none of the input's, also where it replaces a removed token of the same kind, such as the `;` of a converted expression body. This requirement covers the nodes and tokens of the code only: trivia, and the nodes and tokens inside structured trivia — documentation comments and directives — are outside it. The annotations a phase adds itself are outside it too, and so is a node or token the phase writes more than once, such as the modifiers each field of a split declaration repeats (FMT-STRUCT-021).
+
+Why: A caller marks the nodes it needs to find again with annotations, and the node-level entry points take nodes of the code as targets. `FormatNodeInDocumentWithContextAsync` finds its target in the phases' output through an annotation on the target's first token (FMT-PIPE-018), and a code fix may carry annotations of its own through the formatter. A phase that rebuilds an element instead of editing it drops them: the caller then finds nothing, or a node in another place, and an entry point that cannot find its target cannot format it.
+
+Example — an annotation on the token `Call` inside the interpolation hole of the literal below stays on that token after the indentation phase moves the literal's content lines, its hole line, and its closing line under the opening quotes, and so does an annotation on the text token that holds the content `a `:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var s = $"""
+            a {Call(1,
+            2)} b
+            """;
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var s = $"""
+                 a {Call(1,
+                         2)} b
+                 """;
+    }
+}
+```

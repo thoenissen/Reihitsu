@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Text;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -140,9 +139,13 @@ internal sealed class RawStringLineShifts
     /// <summary>
     /// Moves the lines of every multi-line raw string literal of an indented tree after its opening line by the number
     /// of columns <paramref name="getShift"/> gives each line. Only literals that are not nested in an interpolation
-    /// hole of another multi-line interpolated raw string are replaced; a nested literal moves within the replacement
-    /// of the outermost literal around it, so both move together. Placing lines changes no line break, so the line
-    /// numbers of the indented tree are those the shifts were computed for
+    /// hole of another multi-line interpolated raw string are walked; a nested literal's lines are lines of the outermost
+    /// literal around it, so both move together. The move edits the tokens and the whitespace trivia that hold the moved
+    /// indentation and keeps every other node and token, so the annotations of the literal and of its holes survive it
+    /// (FMT-PIPE-022). A content line that starts with a hole's opening brace has its moved indentation written as text of
+    /// the literal, as the parser reads it (FMT-PIPE-021): appended to the text token in front of the hole, or, on the
+    /// first content line, where only the start token stands in front of it, as a new text element in front of the hole.
+    /// Placing lines changes no line break, so the line numbers of the indented tree are those the shifts were computed for
     /// </summary>
     /// <param name="root">The indented syntax root</param>
     /// <param name="getShift">Gets the number of columns a line moves</param>
@@ -150,9 +153,9 @@ internal sealed class RawStringLineShifts
     /// <returns>The syntax root with the lines of its raw string literals moved</returns>
     public static SyntaxNode MoveLines(SyntaxNode root, Func<int, int> getShift, CancellationToken cancellationToken)
     {
-        var replacements = new Dictionary<SyntaxNode, SyntaxNode>();
+        var edits = new Dictionary<SyntaxToken, List<(int LineStart, int OldLength, int NewLength)>>();
+        var leadingTexts = new Dictionary<InterpolatedStringExpressionSyntax, int>();
         SourceText text = null;
-        CSharpParseOptions options = null;
 
         foreach (var node in root.DescendantNodesAndSelf())
         {
@@ -165,20 +168,22 @@ internal sealed class RawStringLineShifts
             }
 
             text ??= root.SyntaxTree.GetText(cancellationToken);
-            options ??= root.SyntaxTree.Options as CSharpParseOptions
-                            ?? CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
 
-            var replacement = ComputeMovedLiteral(root, node, text, getShift, options);
-
-            if (replacement != null)
-            {
-                replacements[node] = replacement;
-            }
+            CollectEdits(root, node, text, getShift, edits, leadingTexts);
         }
 
-        return replacements.Count == 0
-                   ? root
-                   : root.ReplaceNodes(replacements.Keys, (originalNode, _) => replacements[originalNode]);
+        if (edits.Count == 0
+            && leadingTexts.Count == 0)
+        {
+            return root;
+        }
+
+        return root.ReplaceSyntax(leadingTexts.Keys,
+                                  (originalNode, rewrittenNode) => InsertLeadingText((InterpolatedStringExpressionSyntax)rewrittenNode, leadingTexts[(InterpolatedStringExpressionSyntax)originalNode]),
+                                  edits.Keys,
+                                  (originalToken, _) => ApplyEdits(originalToken, edits[originalToken]),
+                                  [],
+                                  static (_, rewrittenTrivia) => rewrittenTrivia);
     }
 
     /// <summary>
@@ -205,22 +210,23 @@ internal sealed class RawStringLineShifts
     }
 
     /// <summary>
-    /// Computes the replacement for a multi-line raw string literal by moving each of its lines after the first by
-    /// the number of columns <paramref name="getShift"/> gives it
+    /// Collects the edits that move each line of a multi-line raw string literal after the first by the number of columns
+    /// <paramref name="getShift"/> gives it. Each edit belongs to the token that holds the start of the line: in its text,
+    /// on a content or closing line, or in its leading trivia, on a line of an interpolation hole. A content line that
+    /// starts with a hole's opening brace has no text in front of the brace, and the parser reads indentation there as
+    /// text of the literal: its edit belongs to the text token that ends at the line's start, or, when the start token
+    /// stands in front of the hole, it becomes a new text element of the literal
     /// </summary>
     /// <param name="root">The indented syntax root</param>
     /// <param name="node">The literal expression or interpolated string expression</param>
     /// <param name="text">The text of the indented syntax tree</param>
     /// <param name="getShift">Gets the number of columns a line moves</param>
-    /// <param name="options">Parse options used to reparse the moved literal</param>
-    /// <returns>A replacement node if any line of the literal moves; otherwise <see langword="null"/></returns>
-    private static SyntaxNode ComputeMovedLiteral(SyntaxNode root, SyntaxNode node, SourceText text, Func<int, int> getShift, CSharpParseOptions options)
+    /// <param name="edits">Receives the edits, by the token they change</param>
+    /// <param name="leadingTexts">Receives the number of spaces of the text element to insert in front of the first hole, by the literal that receives it</param>
+    private static void CollectEdits(SyntaxNode root, SyntaxNode node, SourceText text, Func<int, int> getShift, Dictionary<SyntaxToken, List<(int LineStart, int OldLength, int NewLength)>> edits, Dictionary<InterpolatedStringExpressionSyntax, int> leadingTexts)
     {
         var openingLineNumber = text.Lines.GetLineFromPosition(node.SpanStart).LineNumber;
         var closingLineNumber = text.Lines.GetLineFromPosition(node.Span.End).LineNumber;
-        var builder = new StringBuilder();
-        var position = node.SpanStart;
-        var changed = false;
 
         for (var lineNumber = openingLineNumber + 1; lineNumber <= closingLineNumber; lineNumber++)
         {
@@ -241,24 +247,199 @@ internal sealed class RawStringLineShifts
                 continue;
             }
 
-            builder.Append(text.ToString(TextSpan.FromBounds(position, line.Start)));
-            builder.Append(' ', newSpaces);
-            position = line.Start + indentation;
-            changed = true;
-        }
+            var token = root.FindToken(line.Start);
 
-        if (changed == false)
+            if (IsHoleOpeningLine(token, line.Start, out var interpolation))
+            {
+                var previousToken = token.GetPreviousToken();
+
+                if (previousToken.IsKind(SyntaxKind.InterpolatedStringTextToken) == false)
+                {
+                    leadingTexts[(InterpolatedStringExpressionSyntax)interpolation.Parent] = newSpaces;
+
+                    continue;
+                }
+
+                token = previousToken;
+            }
+
+            if (edits.TryGetValue(token, out var tokenEdits) == false)
+            {
+                tokenEdits = [];
+                edits[token] = tokenEdits;
+            }
+
+            tokenEdits.Add((line.Start, indentation, newSpaces));
+        }
+    }
+
+    /// <summary>
+    /// Determines whether a line starts with the opening brace of an interpolation hole, so no text of the interpolated
+    /// string stands in front of the brace on that line. The predicate does not check that the string is raw: only lines
+    /// that move reach it, and a line of a non-raw string gets no shift, so every hole it sees belongs to a raw string
+    /// </summary>
+    /// <param name="token">The token that holds the line's start</param>
+    /// <param name="lineStart">The position at which the line starts</param>
+    /// <param name="interpolation">The hole whose opening brace starts the line</param>
+    /// <returns><see langword="true"/> if the line starts with a hole's opening brace</returns>
+    private static bool IsHoleOpeningLine(SyntaxToken token, int lineStart, out InterpolationSyntax interpolation)
+    {
+        interpolation = token.Parent as InterpolationSyntax;
+
+        return interpolation != null
+               && interpolation.OpenBraceToken == token
+               && token.SpanStart == lineStart;
+    }
+
+    /// <summary>
+    /// Inserts the moved indentation of a first content line that starts with a hole as a text element in front of that
+    /// hole, where the parser reads it. Indentation is not part of the literal's value, so the element's value is empty
+    /// </summary>
+    /// <param name="node">The interpolated string expression, with its tokens already moved</param>
+    /// <param name="spaces">The number of spaces of the indentation</param>
+    /// <returns>The interpolated string expression with the text element in front of its first hole</returns>
+    private static InterpolatedStringExpressionSyntax InsertLeadingText(InterpolatedStringExpressionSyntax node, int spaces)
+    {
+        var textToken = SyntaxFactory.Token(default, SyntaxKind.InterpolatedStringTextToken, new string(' ', spaces), string.Empty, default);
+
+        return node.WithContents(node.Contents.Insert(0, SyntaxFactory.InterpolatedStringText(textToken)));
+    }
+
+    /// <summary>
+    /// Applies the indentation edits of one token. An edit at a position inside the token's text, or at its start when
+    /// the token holds the text of a raw string literal, replaces the leading spaces of that line of the text. An edit at
+    /// the token's end replaces nothing and appends the moved indentation of the line that starts behind the token, a
+    /// line that starts with an interpolation hole's opening brace. An edit in
+    /// the token's leading trivia replaces the whitespace trivia that starts the line, or inserts whitespace in front of the
+    /// trivia that does, or behind the trivia when the token itself starts the line; a line that starts inside a trivia,
+    /// such as a later line of a <c>///</c> comment, is moved inside that trivia's text. The token keeps its kind, its
+    /// value, and its annotations
+    /// </summary>
+    /// <param name="token">The token of the indented tree</param>
+    /// <param name="tokenEdits">The edits of the token</param>
+    /// <returns>The token with its lines moved</returns>
+    private static SyntaxToken ApplyEdits(SyntaxToken token, List<(int LineStart, int OldLength, int NewLength)> tokenEdits)
+    {
+        var tokenText = token.Text;
+        var leadingTrivia = token.LeadingTrivia.ToList();
+        var triviaStarts = token.LeadingTrivia.Select(static trivia => trivia.FullSpan.Start).ToList();
+        var textChanged = false;
+
+        // Later positions first, so the positions and indices in front of each edit stay valid
+        foreach (var edit in tokenEdits.OrderByDescending(static edit => edit.LineStart))
         {
-            return null;
+            if (edit.LineStart > token.SpanStart
+                || (edit.LineStart == token.SpanStart && HoldsRawStringText(token)))
+            {
+                tokenText = ReplaceIndentation(tokenText, edit.LineStart - token.SpanStart, edit);
+                textChanged = true;
+
+                continue;
+            }
+
+            var triviaIndex = triviaStarts.FindIndex(triviaStart => triviaStart >= edit.LineStart);
+
+            if (triviaIndex < 0)
+            {
+                triviaIndex = triviaStarts.Count;
+            }
+
+            if (triviaIndex > 0
+                && edit.LineStart < token.LeadingTrivia[triviaIndex - 1].FullSpan.End)
+            {
+                leadingTrivia[triviaIndex - 1] = MoveLineInsideTrivia(leadingTrivia[triviaIndex - 1], edit.LineStart - triviaStarts[triviaIndex - 1], edit);
+
+                continue;
+            }
+
+            if (triviaIndex < leadingTrivia.Count
+                && leadingTrivia[triviaIndex].IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                leadingTrivia.RemoveAt(triviaIndex);
+            }
+
+            if (edit.NewLength > 0)
+            {
+                leadingTrivia.Insert(triviaIndex, SyntaxFactory.Whitespace(new string(' ', edit.NewLength)));
+            }
         }
 
-        builder.Append(text.ToString(TextSpan.FromBounds(position, node.Span.End)));
+        var movedToken = textChanged
+                             ? CreateMovedTextToken(token, tokenText).WithLeadingTrivia(leadingTrivia)
+                             : token.WithLeadingTrivia(leadingTrivia);
 
-        var replacement = SyntaxFactory.ParseExpression(builder.ToString(), 0, options, true);
+        return token.CopyAnnotationsTo(movedToken);
+    }
 
-        return replacement.RawKind == node.RawKind
-                   ? replacement.WithTriviaFrom(node)
-                   : null;
+    /// <summary>
+    /// Creates the token that holds the moved text of a raw string literal token. The end token of an interpolated literal
+    /// stands for its own text, so its value is the moved text. Every other token keeps the value it had: the value of a
+    /// literal's content is its text without the closing line's indentation, and every line of one literal, the closing
+    /// line included, moves by the same number of columns, so the value does not change
+    /// </summary>
+    /// <param name="token">The token of the indented tree</param>
+    /// <param name="movedText">The moved text of the token</param>
+    /// <returns>The token with the moved text and the original trailing trivia, without leading trivia</returns>
+    private static SyntaxToken CreateMovedTextToken(SyntaxToken token, string movedText)
+    {
+        var valueText = token.IsKind(SyntaxKind.InterpolatedRawStringEndToken)
+                            ? movedText
+                            : token.ValueText;
+
+        return SyntaxFactory.Token(default, token.Kind(), movedText, valueText, token.TrailingTrivia);
+    }
+
+    /// <summary>
+    /// Moves a line that starts inside the text of a trivia, such as a later line of a <c>///</c> comment or a line of
+    /// disabled text. The trivia is built again from its moved text; a trivia whose moved text does not read back as one
+    /// trivia of its kind is kept as it is
+    /// </summary>
+    /// <param name="trivia">The trivia</param>
+    /// <param name="offset">The offset of the line's start in the trivia's text</param>
+    /// <param name="edit">The edit: the position the line starts at, the number of characters of indentation it replaces, and the number of spaces that replace them</param>
+    /// <returns>The trivia with the line moved</returns>
+    private static SyntaxTrivia MoveLineInsideTrivia(SyntaxTrivia trivia, int offset, (int LineStart, int OldLength, int NewLength) edit)
+    {
+        var movedText = ReplaceIndentation(trivia.ToFullString(), offset, edit);
+
+        if (trivia.IsKind(SyntaxKind.DisabledTextTrivia))
+        {
+            return SyntaxFactory.DisabledText(movedText);
+        }
+
+        var parsedTrivia = SyntaxFactory.ParseLeadingTrivia(movedText);
+
+        return parsedTrivia.Count == 1
+               && parsedTrivia[0].IsKind(trivia.Kind())
+                   ? parsedTrivia[0]
+                   : trivia;
+    }
+
+    /// <summary>
+    /// Replaces the indentation of a line inside a text by the number of spaces an edit gives it
+    /// </summary>
+    /// <param name="text">The text</param>
+    /// <param name="offset">The offset of the line's start in the text</param>
+    /// <param name="edit">The edit: the position the line starts at, the number of characters of indentation it replaces, and the number of spaces that replace them</param>
+    /// <returns>The text with the line's indentation replaced</returns>
+    private static string ReplaceIndentation(string text, int offset, (int LineStart, int OldLength, int NewLength) edit)
+    {
+        return $"{text.Substring(0, offset)}{new string(' ', edit.NewLength)}{text.Substring(offset + edit.OldLength)}";
+    }
+
+    /// <summary>
+    /// Determines whether the token holds text of a raw string literal that a line can start in: the token of a plain or
+    /// UTF-8 literal, a text token of an interpolated literal, or the end token of an interpolated literal, whose text
+    /// starts with the line break in front of the closing marker
+    /// </summary>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if the token holds such text</returns>
+    private static bool HoldsRawStringText(SyntaxToken token)
+    {
+        return token.Kind() is SyntaxKind.MultiLineRawStringLiteralToken
+                            or SyntaxKind.Utf8MultiLineRawStringLiteralToken
+                            or SyntaxKind.InterpolatedStringTextToken
+                            or SyntaxKind.InterpolatedRawStringEndToken;
     }
 
     /// <summary>

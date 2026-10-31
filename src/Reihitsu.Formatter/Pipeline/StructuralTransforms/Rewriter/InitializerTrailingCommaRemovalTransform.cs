@@ -61,11 +61,14 @@ internal sealed class InitializerTrailingCommaRemovalTransform : CSharpSyntaxRew
         }
 
         var lastExpression = node.Expressions[node.Expressions.Count - 1];
-        var updatedLastExpression = TrailingCommaRemovalUtilities.PreserveTrailingTrivia(lastExpression, TrailingCommaRemovalUtilities.GetTriviaToPreserve(lastSeparator));
+
+        TrailingCommaRemovalUtilities.PreserveSeparatorTrivia(lastExpression, lastSeparator, node.CloseBraceToken, out var updatedLastExpression, out var updatedCloseBraceToken);
+
         var updatedExpressions = node.Expressions.Replace(lastExpression, updatedLastExpression);
         var updatedExpressionsAndSeparators = updatedExpressions.GetWithSeparators().RemoveAt(updatedExpressions.GetWithSeparators().Count - 1);
 
-        return node.WithExpressions(SyntaxFactory.SeparatedList<ExpressionSyntax>(updatedExpressionsAndSeparators));
+        return node.WithExpressions(SyntaxFactory.SeparatedList<ExpressionSyntax>(updatedExpressionsAndSeparators))
+                   .WithCloseBraceToken(updatedCloseBraceToken);
     }
 
     #endregion // CSharpSyntaxVisitor
