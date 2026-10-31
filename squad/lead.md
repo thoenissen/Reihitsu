@@ -34,7 +34,7 @@ Run `scripts/lane-check.sh <lane> --head worktree` after each writing role. A mi
 
 ## 4. Run the roles
 
-Spawn each role of the lane in order, one fresh agent per role — for several issues, each role of the run, one agent per role for the whole run, never one per issue. The prompt names every issue number, the slug, the handovers to read, and the role file; it never carries your own idea of the fix. Continue the same agent with follow-up evidence, or with the maintainer's answer it waits on, instead of spawning a second one for the same question. Restart a role that errors or returns no handover at most once; then report what blocked it. If roles cannot be spawned at all, stop and report — never perform a role yourself.
+Spawn each role of the lane in order, one fresh agent per role — for several issues, each role of the run, one agent per role for the whole run, never one per issue. The prompt names every issue number, the slug, the handovers to read, and the role file; it never carries your own idea of the fix. Continue an agent only while its own reasoning is the input: the maintainer's answer it waits on, or evidence for a question it raised and has not yet answered. Every other follow-up — a repair round, an amendment, a status or wording change, a small correction — goes to a fresh agent of the same role, prompted like the first with the handovers to read (the role's own earlier handover among them), the commit, and the change asked for. Continuity lives in the handovers, not in an agent's context. Restart a role that errors or returns no handover at most once; then report what blocked it. If roles cannot be spawned at all, stop and report — never perform a role yourself.
 
 | Verdict | Your move |
 |---|---|
@@ -102,7 +102,7 @@ Watch the published PR until its CI is green. A failure caused by the PR is a fi
 
 ## Escalating
 
-Stop all role work — in a run of several issues, for every issue, not only the one that escalated. An output question is asked in the form of `Output questions` in [`AGENTS.md`](../AGENTS.md#output-questions); any other escalation in the format of `Asking the maintainer` there. Ask everything that is open at that point in one message, then wait for the answer in the chat. Record the answer under `Maintainer answers` in `00-lead.md` before continuing, and continue the waiting role's agent with it where that agent is still available.
+Stop all role work — in a run of several issues, for every issue, not only the one that escalated. An output question is asked in the form of `Output questions` in [`AGENTS.md`](../AGENTS.md#output-questions); any other escalation in the format of `Asking the maintainer` there. Ask everything that is open at that point in one message, then wait for the answer in the chat. Record the answer under `Maintainer answers` in `00-lead.md` before continuing, and continue the agent that waits on it where that agent is still available (section 4).
 
 ## Follow-ups
 
