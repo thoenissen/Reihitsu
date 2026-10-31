@@ -353,7 +353,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
 
         var previousToken = token.GetPreviousToken();
         var previousTokenFacts = PrecedingTokenFacts.Resolve(previousToken, _context);
-        var isFirstInBlock = BlankLineEditor.IsFirstInBlock(previousTokenFacts);
+        var isFirstInBlock = BlockStartUtilities.IsFirstInBlock(previousTokenFacts);
         var isExemptFromPrecedingBlankLineBeforeRegionDirective = BlankLineEditor.IsExemptFromPrecedingBlankLineBeforeRegionDirective(previousTokenFacts);
 
         if (HasCommentInLeadingTrivia(token)

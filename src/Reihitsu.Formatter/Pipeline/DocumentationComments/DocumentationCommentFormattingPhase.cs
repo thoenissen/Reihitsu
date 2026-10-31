@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
-using Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
 using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Pipeline.DocumentationComments.Utilities;
 
@@ -210,7 +209,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// leading trivia, behind an opening brace, or behind the colon of a switch label, so only the first comment of its
     /// token's leading trivia is moved, and only when the token in front of it neither opens a block nor ends a switch
     /// label. Both facts are the ones the blank-line boundary in front of a comment reads
-    /// (<see cref="TriviaListUtilities.IndexOfFirstComment"/>, <see cref="BlankLineEditor.IsFirstInBlock(PrecedingTokenFacts)"/>)
+    /// (<see cref="TriviaListUtilities.IndexOfFirstComment"/>, <see cref="BlockStartUtilities.IsFirstInBlock(PrecedingTokenFacts)"/>)
     /// </summary>
     /// <param name="trivia">Delimited documentation trivia written behind code</param>
     /// <param name="context">The formatting context</param>
@@ -228,7 +227,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
 
         var previousTokenFacts = PrecedingTokenFacts.Resolve(owningToken.GetPreviousToken(), context);
 
-        return BlankLineEditor.IsFirstInBlock(previousTokenFacts) == false;
+        return BlockStartUtilities.IsFirstInBlock(previousTokenFacts) == false;
     }
 
     /// <summary>
