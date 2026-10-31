@@ -10,7 +10,7 @@ The maintainer accepted this change in advance, when answering the decision reco
 
 ## What
 
-The formatter puts exactly one space after `fixed`, as it already does after `if`, `for`, `foreach`, `while`, `switch`, `catch`, `using`, `lock`, `return`, and `throw` (FMT-SPACE-012). `fixed(int* p = items)` becomes `fixed (int* p = items)`, and `fixed/* c */(int* p = items)` becomes `fixed/* c */ (int* p = items)`, as `if/* c */(c)` becomes `if/* c */ (c)` (FMT-SPACE-013).
+The formatter puts exactly one space after `fixed`, as it already does after `if`, `for`, `foreach`, `while`, `switch`, `catch`, `using`, `lock`, `return`, and `throw` (FMT-SPACE-012). `fixed(int* p = items)` becomes `fixed (int* p = items)`, and `fixed/* c */(int* p = items)` becomes `fixed/* c */ (int* p = items)`, as `if/* c */(c)` becomes `if/* c */ (c)` (FMT-SPACE-013). The same space follows `fixed` in a fixed-size buffer field, so a comment glued to the buffer's type gets one space behind it: `public fixed/* c */int _b[4];` becomes `public fixed/* c */ int _b[4];`, and `public fixed /* c */int _b[4];` becomes `public fixed /* c */ int _b[4];`. Today both are kept as written.
 
 ## Why
 
@@ -24,7 +24,12 @@ The keyword gets the same space as every other statement keyword whose parenthes
 
 ### No exception for the fixed-size buffer
 
-`fixed` also starts a fixed-size buffer field (`fixed int _buffer[4];`). There, too, exactly one space follows it. That is the same output the formatter gives today, because FMT-SPACE-002 collapses the whitespace between `fixed` and the type to one space and never removes it.
+`fixed` also starts a fixed-size buffer field (`fixed int _buffer[4];`), and there, too, exactly one space follows it.
+
+- **Whitespace only between `fixed` and the type.** The output is the same as today: FMT-SPACE-002 already collapses that whitespace to one space and never removes it. For example, `public fixed  int _c[4];` becomes `public fixed int _c[4];`, before and after this change.
+- **A comment glued to the type.** The output changes. FMT-SPACE-013 applies the one space between the comment and the type, so `fixed/* c */int` becomes `fixed/* c */ int`. Today no spacing rule covers the pair, so FMT-SPACE-002 keeps the missing gap.
+
+A comment in front of the buffer's type and a comment in front of the statement's `(` get the same treatment, so the keyword reads the same in both places.
 
 ## Alternatives considered
 

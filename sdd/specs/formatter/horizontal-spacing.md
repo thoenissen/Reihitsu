@@ -524,6 +524,22 @@ class C
 }
 ```
 
+and for a fixed-size buffer, where the space follows a comment glued to the type (FMT-SPACE-013):
+
+```csharp
+unsafe struct S
+{
+    public fixed/* c */int _b[4];
+}
+```
+
+```csharp
+unsafe struct S
+{
+    public fixed/* c */ int _b[4];
+}
+```
+
 The exceptions:
 
 ```csharp
