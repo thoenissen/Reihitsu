@@ -7,7 +7,7 @@
 | Affected requirements | FMT-PIPE-023 (new), FMT-PIPE-024 (new), FMT-PIPE-010 (reference to the facts), FMT-PIPE-012 (depth rule, title), FMT-CLEAN-008 (every node-level root, title) |
 | Depends on | [Every formatter phase returns a tree that round-trips and keeps foreign annotations](phase-tree-round-trip.md) |
 
-Amendment: the maintainer accepted this change doc on 2026-10-31. The skeptic then showed that its claim "the node-in-document entry points keep their output" did not hold: decisions of the line-break phase read the target's ancestors, and a detached root gives them no answer. The maintainer decided to add plain-value facts for those decisions, to keep the owner of a target's leading trivia as it is and close only the `else if` comment loss through those facts, to leave the comment loss of the RH5405 fix on `main` to a follow-up (thoenissen/Reihitsu#1527), and to give a target behind a multi-line comment the indentation phase's depth. The passages marked *(amended 2026-10-31, skeptic stage)* carry that amendment, which the maintainer accepted on 2026-10-31. The passages marked *(amended 2026-10-31, implementer stage)* correct the list of changed outputs to what the implementation measured, align the reading of one fact with the implementation, and name a case left out of scope. The passages marked *(amended 2026-10-31, audit stage)* give the outermost-chain rule one owner, which answers for every node of the root from two chain facts, and record what that changes. The passages marked *(amended 2026-10-31, process stage)* apply the rule that a component has to work only for the inputs the repository's own callers pass (`AGENTS.md`, *Supported inputs*): they drop the follow-ups this doc promised for cases no caller reaches and add the visible output changes. Everything not marked is as accepted.
+Amendment: the maintainer accepted this change doc on 2026-10-31. The skeptic then showed that its claim "the node-in-document entry points keep their output" did not hold: decisions of the line-break phase read the target's ancestors, and a detached root gives them no answer. The maintainer decided to add plain-value facts for those decisions, to keep the owner of a target's leading trivia as it is and close only the `else if` comment loss through those facts, to leave the comment loss of the RH5405 fix on `main` to a follow-up (thoenissen/Reihitsu#1527), and to give a target behind a multi-line comment the indentation phase's depth. The passages marked *(amended 2026-10-31, skeptic stage)* carry that amendment, which the maintainer accepted on 2026-10-31. The passages marked *(amended 2026-10-31, implementer stage)* correct the list of changed outputs to what the implementation measured, align the reading of one fact with the implementation, and name a case left out of scope. The passages marked *(amended 2026-10-31, audit stage)* give the outermost-chain rule one owner, which answers for every node of the root from two chain facts, and record what that changes. The passages marked *(amended 2026-10-31, repair round 2)* add the conditional-access assignment whose wrapped member now keeps its line, and record the maintainer's choice of that output. The passages marked *(amended 2026-10-31, process stage)* apply the rule that a component has to work only for the inputs the repository's own callers pass (`AGENTS.md`, *Supported inputs*): they drop the follow-ups this doc promised for cases no caller reaches and add the visible output changes. Everything not marked is as accepted.
 
 ## What
 
@@ -28,11 +28,12 @@ The outputs that change are those of `FormatNode`, and *(amended 2026-10-31, imp
 - `FormatNode` on a node inside an object or collection initializer or an anonymous object adds no level for that initializer: `P = Call(1,` inside `new D { … }` in a method body starts in column 8, where it starts in column 12 today. Document-level formatting aligns it to the initializer's brace (FMT-INDENT-022), which a depth cannot express.
 - *(amended 2026-10-31, skeptic stage)* `FormatNode` on a node whose layout today depends on the construct around it gets the layout of the same node standing alone, as it already does when the node holds a tab: an inner part of a longer member-access chain, such as `source.Where(…).Select(…)` in front of `.ToList()`, is laid out as a chain of its own; an accessor or accessor list of a one-line property puts each accessor attribute on its own line; a node inside an argument, parameter, or attribute list element keeps a wrap inside it that the list-element join removes in a document, such as the line break in `new⏎Example()`; and the `if` of `else if (y) // note` gets the trailing comment moved in front of it, so the result starts with `// note` on its own line above `if (y)`. No comment is lost: the caller decides where the node goes.
 - *(amended 2026-10-31, skeptic stage)* `FormatNodeInDocumentAsync` on a target whose first token stands behind the last line of a multi-line comment, which the indentation phase does not move (FMT-PIPE-017), places the target's other lines at the indentation phase's depth instead of Core's ancestor count, because nothing shifts them there. An `if` that is the unbraced body of `if (a)` and starts behind `*/` gets its braces and body one level deeper than today, in the columns FMT-INDENT-004 gives them; a node inside an initializer, one level shallower. The maintainer chose this output over keeping Core's count for the case.
-- *(amended 2026-10-31, implementer stage)* `FormatNodeInDocumentAsync` on a target that a phase before the line-break phase changes — the blank-line phase, or an earlier rewriter of the line-break phase — now gets the flags' answer where it got none. On `main`, such a target is already detached when the line-break phase reads its ancestors, so it is laid out as a construct of its own; the flags are captured before the pipeline runs, so it now gets the output it gets when no earlier phase changes it. Two kinds of target change:
+- *(amended 2026-10-31, implementer stage)* `FormatNodeInDocumentAsync` on a target that a phase before the line-break phase changes — the blank-line phase, or an earlier rewriter of the line-break phase — now gets the flags' answer where it got none. On `main`, such a target is already detached when the line-break phase reads its ancestors, so it is laid out as a construct of its own; the flags are captured before the pipeline runs, so it now gets the output it gets when no earlier phase changes it. Three kinds of target change *(amended 2026-10-31, repair round 2: the third)*:
   - An inner part of a longer member-access chain keeps its layout instead of being laid out as a chain of its own. Neither output is the one document-level formatting gives, which lays out the whole outer chain; this case is out of scope (see *Out of scope*). *(amended 2026-10-31, audit stage)* The chain alignment of the indentation phase now asks the same rule, so it no longer aligns such a target as a chain of its own either.
   - An assigned collection initializer gets the blank line in front of a comment that leads its closing brace that document-level formatting gives it. With `Values = {`, `1,`, `2`, and `/* Keep close. */ }` on lines of their own inside an object initializer, as target, `main` writes no blank line between `2` and `/* Keep close. */ }`; the change writes one, as document-level formatting does. Where the input holds that blank line, `main` removes it and the change keeps it.
+  - *(amended 2026-10-31, repair round 2)* An assignment inside a conditional access, whose member stands on its own line behind the conditional access and whose value stands on the next line, keeps the line break in front of the member. The assignment rewriter of the line-break phase changes that root before the chain rewriter reads it, so on `main` the chain rewriter laid the left side out as a chain of its own and joined `.C` to `a?.B`. The chain rule now answers for that root from the chain facts, so the member's line break stays, as in whole-document formatting. The RH5111 fix, which formats the assignment, reaches it, and so does the RH6023 fix when the value is wrapped (*Visible output changes*).
 
-  Run over the C# inputs of the formatter and analyzer test projects with up to 25 targets each, 88 of 66 351 `FormatNodeInDocumentAsync` outputs differ from `main`: 6 of the zero-offset case above, 80 inner chain parts, and 2 assigned collection initializers. No analyzer or code-fix test changes; a node-in-document output reaches a user only through a code fix, and no code fix formats an inner chain part.
+  Run over the C# inputs of the formatter and analyzer test projects with up to 25 targets each, 88 of 66 351 `FormatNodeInDocumentAsync` outputs differ from `main`: 6 of the zero-offset case above, 80 inner chain parts, and 2 assigned collection initializers. No analyzer or code-fix test changes; a node-in-document output reaches a user only through a code fix, and no code fix formats an inner chain part. *(amended 2026-10-31, repair round 2)* That count was taken before the outermost-chain rule got one owner. The conditional-access assignments above were not among the changed outputs then; the round-2 audit found them through the RH5111 and RH6023 fixes, whose tests now pin the new output.
 
 A simulation that detached every node-level root and applied the depth rule, run against the formatter and analyzer test projects at `7586822`, changed one expectation, the documentation test named above; every other test of the two projects — the code-fix tests included — kept its expectation. *(amended 2026-10-31, skeptic stage)* The test suites do not pin the decisions that read the target's ancestors: run over every C# input of the formatter and analyzer test projects with up to 25 targets each, the same simulation changed 334 of 80 726 `FormatNodeInDocumentAsync` outputs and 11 542 of 80 726 `FormatNode` outputs. The 334, and the `FormatNode` outputs other than leading line breaks and depth, come from the decisions the seven flags above now answer, and from the comment case of FMT-PIPE-017's zero offset. Each of them is today's output for the same target with a tab in it.
 
@@ -48,7 +49,7 @@ The facts that replace those reads — the token in front of the root, the root'
 
 ## Visible output changes
 
-*(amended 2026-10-31, process stage)* A node-level output is visible only where a caller of the repository passes its input (`AGENTS.md`, *Supported inputs*): the code fixes for `FormatNodeInDocumentAsync`, `FormatNodeInDocumentWithContextAsync`, and `FormatNode`. The CLI and whole-document formatting do not call the node-level entry points, and this change does not change what `FormatDocumentAsync` and `FormatSyntaxTree` do. Of the outputs listed under *What*, two are reached through a code fix.
+*(amended 2026-10-31, process stage)* A node-level output is visible only where a caller of the repository passes its input (`AGENTS.md`, *Supported inputs*): the code fixes for `FormatNodeInDocumentAsync`, `FormatNodeInDocumentWithContextAsync`, and `FormatNode`. The CLI and whole-document formatting do not call the node-level entry points, and this change does not change what `FormatDocumentAsync` and `FormatSyntaxTree` do. Of the outputs listed under *What*, these are reached through a code fix: the two below, and *(amended 2026-10-31, repair round 2)* the conditional-access assignment after them.
 
 The RH5204 fix on an unbraced embedded `if` that starts behind the last line of a multi-line comment. The fix formats that `if`, whose first token keeps its column (FMT-PIPE-017), and its braces and body take the indentation phase's depth, as the maintainer decided:
 
@@ -132,6 +133,43 @@ class C
              }
 ```
 
+*(amended 2026-10-31, repair round 2)* The RH5111 fix on an assignment inside a conditional access whose member stands on its own line behind `a?.B` and whose value stands on the next line. The fix formats the assignment; the member keeps its line break, and the value joins the operator's line:
+
+```csharp
+// input
+class A
+{
+    public A B { get; set; }
+
+    public A this[int i] => this;
+
+    public int C { get; set; }
+}
+
+class C
+{
+    void M(A a)
+    {
+        a?.B
+          .C =
+            5;
+    }
+}
+```
+
+```csharp
+// before: the member is joined to the conditional access
+        a?.B.C = 5;
+```
+
+```csharp
+// after: the member keeps its line
+        a?.B
+          .C = 5;
+```
+
+The same holds behind an element binding, `a?[0]` followed by `.C =` and `5;`, which gives `a?[0]` and `  .C = 5;` instead of `a?[0].C = 5;`, and in a nested conditional access, `a?.B?.B` followed by `    .C =` and `5;`, which gives `a?.B?.B` and `     .C = 5;`, with `.C` under the dot of the last binding, instead of `a?.B?.B.C = 5;`. The RH6023 fix on `a?.B` followed by `  .C=` and `    5;` gives `a?.B` and `  .C = 5;` instead of `a?.B.C = 5;`. Every result converges in one iteration, under LF and CRLF. An assignment whose member stands on the conditional access's line, `a?.B.C =` followed by `5;`, gives `a?.B.C = 5;` before and after.
+
 No other listed output is reached:
 
 - `FormatNode`: its one caller, the RH5401 fix, passes a property declaration and reads only whether the result is one line. A property declaration is never an embedded statement or an initializer member, and none of the construct-dependent classes applies to it.
@@ -182,6 +220,10 @@ The flags make `FormatNodeInDocumentAsync` independent of whether an earlier pha
 ### The comment behind `else if` stays without a new owner of the leading trivia *(amended 2026-10-31, skeptic stage)*
 
 The phases and `FormatNodeInDocumentAsync` both decide what stands in front of a target that does not start its line: the phases may move a line break or a comment there, and the entry point writes the document's leading trivia back over it (FMT-PIPE-010). This change does not change that ownership; the maintainer folded it into thoenissen/Reihitsu#1521. Within this change, the `else if` flag keeps the line-break phase from moving the comment of `else if (y) // note` in front of the `if`, so nothing the entry point discards holds a comment. Whether the flag also closes the comment loss of the RH5405 fix, which braces the body first and so detaches the target on `main` today, is not claimed; that loss is a separate follow-up. *(amended 2026-10-31, process stage)* The implementation shows that it does: the RH5405 fix keeps the comment (see *Visible output changes*).
+
+### A wrapped member of an assignment inside a conditional access keeps its line *(amended 2026-10-31, repair round 2)*
+
+Once the outermost-chain rule answers for every node of a root from the chain facts, an assignment inside a conditional access gets the same chain decision whether or not the line-break phase's assignment rewriter changed it first. Where the member and the value are both wrapped, that rewriter does change it, so `main` joined the member to the conditional access and the change keeps the member's line break. The maintainer chose the new output for the RH5111 and RH6023 fixes: `a?.B`, `  .C =`, `    5;` gives `a?.B` and `  .C = 5;`, where `main` gives `a?.B.C = 5;`. It keeps the author's wrap, as whole-document formatting does. Bringing back `main`'s join would make the chain decision depend on whether an earlier rewriter changed the root, which FMT-PIPE-023 rules out.
 
 ### Which entry point supplies which fact
 
