@@ -15,6 +15,7 @@ This spec covers what holds for the formatter as a whole: the public entry point
 - File and directory walking, skipped file names, `--check`, `--dry-run`, and exit codes — those belong to the CLI specs.
 - Configuration. The formatter applies one fixed style and reads no `.editorconfig`, rule set, or option.
 - Formatting of code with syntax errors or of generated code (see FMT-PIPE-005 and FMT-PIPE-006).
+- Node-level inputs that none of the repository's own callers passes (`AGENTS.md`, *Supported inputs*). The node-level requirements decide the nodes a code fix passes. Their examples call the entry points directly with such nodes, and a node no caller passes is decided only as far as a requirement names it.
 
 ## Requirements
 

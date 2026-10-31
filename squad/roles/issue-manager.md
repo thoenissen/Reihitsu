@@ -16,10 +16,11 @@ Once per run, before the lead publishes the PR, when `00-lead.md` lists follow-u
 
 For each candidate:
 
-1. **Search first.** Search open and closed issues for the same concern. An exact match is reused: when the candidate adds facts to an open issue, add them as a comment or, for an `agent-filed` issue, extend its text; never rewrite an issue without the `agent-filed` label — comment on it instead. A closed match is reported, not reopened.
-2. **Otherwise create it**, in English, in the format of [`sdd/templates/follow-up-issue.md`](../../sdd/templates/follow-up-issue.md) — spec bug, clarification, or internal — or, for a behavior change, a new rule, or a bug in behavior no spec covers, from the matching `.github/ISSUE_TEMPLATE/` form. An open question outside the run's issues is filed with its input, the output today, and the output each reading would give, in the form of `Output questions` in [`AGENTS.md`](../../AGENTS.md#output-questions), with the recommendation.
-3. **Label it** `agent-filed`, plus `bug`, `enhancement`, or `maintenance` and the surface labels (`analyzer`, `formatter`, `cli`, `documentation`) that fit. A defect that drops, relocates, or alters user code is a `bug`. Set no milestone; `/triage` assigns one.
-4. **Attach it** as a sub-issue where the candidate names a parent issue, or where the run's issue has a parent the candidate belongs to.
+1. **Check reachability.** A candidate whose case none of the repository's own callers reaches is not filed (`AGENTS.md`, *Supported inputs*); report it back as dropped, with the reason.
+2. **Search first.** Search open and closed issues for the same concern. An exact match is reused: when the candidate adds facts to an open issue, add them as a comment or, for an `agent-filed` issue, extend its text; never rewrite an issue without the `agent-filed` label — comment on it instead. A closed match is reported, not reopened.
+3. **Otherwise create it**, in English, in the format of [`sdd/templates/follow-up-issue.md`](../../sdd/templates/follow-up-issue.md) — spec bug, clarification, or internal — or, for a behavior change, a new rule, or a bug in behavior no spec covers, from the matching `.github/ISSUE_TEMPLATE/` form. An open question outside the run's issues is filed with its input, the output today, and the output each reading would give, in the form of `Output questions` in [`AGENTS.md`](../../AGENTS.md#output-questions), with the recommendation.
+4. **Label it** `agent-filed`, plus `bug`, `enhancement`, or `maintenance` and the surface labels (`analyzer`, `formatter`, `cli`, `documentation`) that fit. A defect that drops, relocates, or alters user code is a `bug`. Set no milestone; `/triage` assigns one.
+5. **Attach it** as a sub-issue where the candidate names a parent issue, or where the run's issue has a parent the candidate belongs to.
 
 Every issue is self-contained: no "see the PR", no pointer to `sdd/work/`, which is deleted before merge, and no tracker number in place of a quoted fact.
 

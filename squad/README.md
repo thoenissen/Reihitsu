@@ -67,6 +67,7 @@ Most issues are written by agents, not by the maintainer. An issue an agent writ
 
 - For an `agent-filed` issue, the premise, the goals, the "Done when" items, the target behavior, and any prescribed solution are proposals. The skeptic challenges them, and any role reports a goal that turns out not to make sense once the work shows more than the issue knew. The lead drops or adjusts such a goal on its own when no visible output is in question, records it under *Decisions taken*, and the PR states how the result differs from the issue: `Closes #<N>` when the issue's purpose is met, `Refs #<N>` otherwise. A goal whose change would put a visible output in question is an output question.
 - For an issue without the label, the premise is still checked (`AGENTS.md`, *Issue intake*), but its goals are binding: a departure from them is a question for the maintainer.
+- For every issue, the premise includes whether one of the repository's own callers reaches the reported case (`AGENTS.md`, [*Supported inputs*](../AGENTS.md#supported-inputs)). The skeptic checks it before anything is built; an issue whose case no caller reaches is handled as that section states, and the lead reports it as the run's result ([`lead.md`](lead.md), section 4).
 
 ## What reaches the maintainer
 
@@ -78,7 +79,7 @@ The maintainer decides what an end user sees; the lead decides everything else. 
 - rule pages under `documentation/rules/`;
 - CLI behavior — options, exit codes, and messages.
 
-Everything else is internal: spec wording, requirement IDs and spec ownership, which input facts or which component carries a decision, structure, tests, tooling, scope, lanes, change-doc text, and the text of follow-up issues. No assembly of this repository is used as a library, so its API is internal too.
+Everything else is internal: spec wording, requirement IDs and spec ownership, which input facts or which component carries a decision, structure, tests, tooling, scope, lanes, change-doc text, and the text of follow-up issues. No assembly of this repository is used as a library, so its API is internal too, and a component only has to work for the inputs the repository's own callers pass (`AGENTS.md`, [*Supported inputs*](../AGENTS.md#supported-inputs)): an output no such caller reaches is never in question.
 
 A visible output is **in question** when its change is not decided yet: no unchanged spec requirement demands it, and no maintainer answer covers it. A bug fix that brings the code back to an unchanged requirement puts nothing in question. In question are:
 
@@ -129,7 +130,7 @@ The run implements the issues the prompt names, but its scope is not frozen. The
 - it puts no visible output in question;
 - the lane check still admits the diff.
 
-Every other find becomes a follow-up. A role that sees the change grow — a shared helper with other consumers, more than double the production paths the handovers name, or an adjacent fix — reports it in its handover and keeps working; the lead decides and records it. Only a new rule stops the run (escalation 5).
+Every other find becomes a follow-up, unless no caller of the repository reaches it (`AGENTS.md`, *Supported inputs*); such a find is dropped. A role that sees the change grow — a shared helper with other consumers, more than double the production paths the handovers name, or an adjacent fix — reports it in its handover and keeps working; the lead decides and records it. Only a new rule stops the run (escalation 5).
 
 ## Notes
 
@@ -155,7 +156,7 @@ A role that finds one reports it in its handover under `## Architecture findings
 
 Whether a structural defect gets a narrow fix is the lead's decision, never a role's.
 
-**Failure classes, not instances.** When the skeptic or the auditor finds a defect, it enumerates the defect's class: the axes along which the failing shape can vary, and every member they span — for a column that two phases compute, the direction of the shift, what the varying character stands in front of, and whether another line is aligned to it. It traces or constructs every member and reports all failing members together in one finding, naming the members that hold. Where [`failure-classes.md`](failure-classes.md) carries a matrix for the class, the enumeration starts from it.
+**Failure classes, not instances.** When the skeptic or the auditor finds a defect, it enumerates the defect's class: the axes along which the failing shape can vary, and every member they span that one of the repository's own callers reaches (`AGENTS.md`, *Supported inputs*) — for a column that two phases compute, the direction of the shift, what the varying character stands in front of, and whether another line is aligned to it. It traces or constructs every member and reports all failing members together in one finding, naming the members that hold. Where [`failure-classes.md`](failure-classes.md) carries a matrix for the class, the enumeration starts from it.
 
 **A repeated class is an architecture signal.** Two findings are of the same class when they share their mechanism — the same decision, failing between the same components — and differ only in the input shape; a shared catalog ID alone does not make two findings one class. An audit finding of the same class as a finding of an earlier audit of the same run is handled as an architecture finding instead of another repair round: one enumeration already missed a member, and repairing one member per round only finds the next.
 
@@ -183,7 +184,7 @@ A run implements the issues the maintainer names in the prompt — usually one, 
 - Commit your own files and your handover with a subject ending in `[skip ci]`; stage only the files you wrote, never `git add -A`. Only the lead pushes and manages the pull request; only the issue manager writes issues.
 - Use the repository scripts (`scripts/README.md`), not hand-written `dotnet` commands; use focused `--filter` runs while working.
 - Never silence, skip, or `[Ignore]` a test, and never change `TargetFramework` or add a `global.json`.
-- Edit nothing outside the run's scope; an out-of-scope find goes into your handover as a follow-up candidate.
+- Edit nothing outside the run's scope; an out-of-scope find goes into your handover as a follow-up candidate, unless no caller of the repository reaches it (`AGENTS.md`, *Supported inputs*).
 - Source carries no `TODO` and no reference to this repository's issue or PR numbers (`AGENTS.md`).
 - Work frugally: `rg` instead of browsing, batch independent reads, read a file once, keep build and test output minimal, send large output to a file and quote the actionable tail, do not narrate unchanged state. Never trim a failing result.
 - English only.

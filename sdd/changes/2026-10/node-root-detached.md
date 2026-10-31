@@ -7,7 +7,7 @@
 | Affected requirements | FMT-PIPE-023 (new), FMT-PIPE-024 (new), FMT-PIPE-010 (reference to the facts), FMT-PIPE-012 (depth rule, title), FMT-CLEAN-008 (every node-level root, title) |
 | Depends on | [Every formatter phase returns a tree that round-trips and keeps foreign annotations](phase-tree-round-trip.md) |
 
-Amendment: the maintainer accepted this change doc on 2026-10-31. The skeptic then showed that its claim "the node-in-document entry points keep their output" did not hold: decisions of the line-break phase read the target's ancestors, and a detached root gives them no answer. The maintainer decided to add plain-value facts for those decisions, to keep the owner of a target's leading trivia as it is and close only the `else if` comment loss through those facts, to leave the comment loss of the RH5405 fix on `main` to a follow-up (thoenissen/Reihitsu#1527), and to give a target behind a multi-line comment the indentation phase's depth. The passages marked *(amended 2026-10-31, skeptic stage)* carry that amendment, which the maintainer accepted on 2026-10-31. The passages marked *(amended 2026-10-31, implementer stage)* correct the list of changed outputs to what the implementation measured, align the reading of one fact with the implementation, and name a case left out of scope. Everything not marked is as accepted.
+Amendment: the maintainer accepted this change doc on 2026-10-31. The skeptic then showed that its claim "the node-in-document entry points keep their output" did not hold: decisions of the line-break phase read the target's ancestors, and a detached root gives them no answer. The maintainer decided to add plain-value facts for those decisions, to keep the owner of a target's leading trivia as it is and close only the `else if` comment loss through those facts, to leave the comment loss of the RH5405 fix on `main` to a follow-up (thoenissen/Reihitsu#1527), and to give a target behind a multi-line comment the indentation phase's depth. The passages marked *(amended 2026-10-31, skeptic stage)* carry that amendment, which the maintainer accepted on 2026-10-31. The passages marked *(amended 2026-10-31, implementer stage)* correct the list of changed outputs to what the implementation measured, align the reading of one fact with the implementation, and name a case left out of scope. The passages marked *(amended 2026-10-31, process stage)* apply the rule that a component has to work only for the inputs the repository's own callers pass (`AGENTS.md`, *Supported inputs*): they drop the follow-ups this doc promised for cases no caller reaches and add the visible output changes. Everything not marked is as accepted.
 
 ## What
 
@@ -46,6 +46,99 @@ The facts that replace those reads — the token in front of the root, the root'
 
 *(amended 2026-10-31, skeptic stage)* A reader of the target's ancestors that gets no fact decides as if the target were a construct of its own. For the `if` of `else if (y) // note`, the line-break phase then moves the trailing comment in front of the `if`, and `FormatNodeInDocumentAsync` writes the document's leading trivia back over it, because that target does not start its line (FMT-PIPE-010): the comment is gone. Facts for those readers keep the target's layout as the document has it and keep the comment where it is.
 
+## Visible output changes
+
+*(amended 2026-10-31, process stage)* A node-level output is visible only where a caller of the repository passes its input (`AGENTS.md`, *Supported inputs*): the code fixes for `FormatNodeInDocumentAsync`, `FormatNodeInDocumentWithContextAsync`, and `FormatNode`. The CLI and whole-document formatting do not call the node-level entry points, and this change does not change what `FormatDocumentAsync` and `FormatSyntaxTree` do. Of the outputs listed under *What*, two are reached through a code fix.
+
+The RH5204 fix on an unbraced embedded `if` that starts behind the last line of a multi-line comment. The fix formats that `if`, whose first token keeps its column (FMT-PIPE-017), and its braces and body take the indentation phase's depth, as the maintainer decided:
+
+```csharp
+// input
+class C
+{
+    void M(bool a, bool b)
+    {
+        while (a)
+            /* note
+            */ if (b)
+        {
+        X();
+        }
+    }
+
+    void X()
+    {
+    }
+}
+```
+
+```csharp
+// before: the fix does not converge; after two iterations
+        while (a)
+
+        /* note
+            */ if (b)
+        {
+            X();
+        }
+```
+
+```csharp
+// after: the fix converges in one iteration
+        while (a)
+
+            /* note
+            */ if (b)
+            {
+                X();
+            }
+```
+
+The RH5405 fix on an `else if` whose condition carries a trailing comment. The fix formats the `if`, and the `else if` fact keeps the comment where it stands. The braces in column 13 are the same before and after (thoenissen/Reihitsu#1521):
+
+```csharp
+// input
+class C
+{
+    void M(bool x, bool y)
+    {
+        if (x)
+        {
+            Foo();
+        }
+        else if (y) // note
+            Foo();
+    }
+
+    void Foo()
+    {
+    }
+}
+```
+
+```csharp
+// before: the comment is lost
+        else if (y)
+             {
+                 Foo();
+             }
+```
+
+```csharp
+// after: the comment stays
+        else if (y) // note
+             {
+                 Foo();
+             }
+```
+
+No other listed output is reached:
+
+- `FormatNode`: its one caller, the RH5401 fix, passes a property declaration and reads only whether the result is one line. A property declaration is never an embedded statement or an initializer member, and none of the construct-dependent classes applies to it.
+- The inner chain part: the chain code fixes pass the outermost chain node.
+- The assigned collection initializer as target: the initializer fixes (RH5301, RH5303, RH5304) pass the object creation or the statement, equals-value clause, or arrow clause that holds it, so the initializer is never the root. The RH5204 fix reports no line of the probed initializer.
+- The node inside an initializer behind a multi-line comment: no code fix was found that passes such a target.
+
 ## Decisions
 
 ### Every node-level root is detached
@@ -80,7 +173,7 @@ Seven decisions of the structural-transform and line-break phases read the targe
 - **Case-label pattern** — whether a `case` label introduces the target as its pattern, directly or through `and`, `or`, and `not` patterns. A recursive pattern a case label introduces keeps its opening brace on the label's line.
 - **Assigned collection initializer** — whether the target is a collection initializer on the right of an assignment, whose opening brace stays on the assignment's line.
 
-The list comes from reading every access to a parent, an ancestor, or a neighbouring token in the phases that run on the attached root today — every phase before the indentation phase, which detaches the root for itself — and keeping those that can leave the root. The accesses to the token in front of the root's first token read the preceding-token fact, which already carries what they use: the token's kind and whether its trailing trivia ends the line. *(amended 2026-10-31, implementer stage)* The blank-line phase, the documentation phase, and the comment alignment of the indentation phase read it. Some line-break and spacing helpers still ask whether a token without a previous token in its tree starts its line from that token's own leading trivia; no output was found where that answer differs from the fact's, and moving them onto the fact is a follow-up candidate rather than part of this change. The accesses to the token behind the root's last token decide only the trivia behind that token — the line break the brace transform writes behind an inserted `}` and the spacing behind the last token — which `FormatNodeInDocumentAsync` replaces with the document's trailing trivia (FMT-PIPE-010) and which `FormatNode` leaves to its caller; they get no fact and decide as at the end of a file.
+The list comes from reading every access to a parent, an ancestor, or a neighbouring token in the phases that run on the attached root today — every phase before the indentation phase, which detaches the root for itself — and keeping those that can leave the root. The accesses to the token in front of the root's first token read the preceding-token fact, which already carries what they use: the token's kind and whether its trailing trivia ends the line. *(amended 2026-10-31, implementer stage)* The blank-line phase, the documentation phase, and the comment alignment of the indentation phase read it. Some line-break and spacing helpers still ask whether a token without a previous token in its tree starts its line from that token's own leading trivia; no output was found where that answer differs from the fact's. *(amended 2026-10-31, process stage)* No caller of the repository was shown to reach a difference there, so the helpers stay as they are and no follow-up is filed. The accesses to the token behind the root's last token decide only the trivia behind that token — the line break the brace transform writes behind an inserted `}` and the spacing behind the last token — which `FormatNodeInDocumentAsync` replaces with the document's trailing trivia (FMT-PIPE-010) and which `FormatNode` leaves to its caller; they get no fact and decide as at the end of a file.
 
 `FormatNodeInDocumentAsync` supplies the seven flags; `FormatNode` and `FormatNodeInDocumentWithContextAsync` do not. `FormatNode` keeps the result of the same node without a parent (FMT-PIPE-012), as accepted. The context entry point's root is detached today and reads none of these ancestors; the skeptic's corpus run found no output of it that changes.
 
@@ -88,7 +181,7 @@ The flags make `FormatNodeInDocumentAsync` independent of whether an earlier pha
 
 ### The comment behind `else if` stays without a new owner of the leading trivia *(amended 2026-10-31, skeptic stage)*
 
-The phases and `FormatNodeInDocumentAsync` both decide what stands in front of a target that does not start its line: the phases may move a line break or a comment there, and the entry point writes the document's leading trivia back over it (FMT-PIPE-010). This change does not change that ownership; the maintainer folded it into thoenissen/Reihitsu#1521. Within this change, the `else if` flag keeps the line-break phase from moving the comment of `else if (y) // note` in front of the `if`, so nothing the entry point discards holds a comment. Whether the flag also closes the comment loss of the RH5405 fix, which braces the body first and so detaches the target on `main` today, is not claimed; that loss is a separate follow-up.
+The phases and `FormatNodeInDocumentAsync` both decide what stands in front of a target that does not start its line: the phases may move a line break or a comment there, and the entry point writes the document's leading trivia back over it (FMT-PIPE-010). This change does not change that ownership; the maintainer folded it into thoenissen/Reihitsu#1521. Within this change, the `else if` flag keeps the line-break phase from moving the comment of `else if (y) // note` in front of the `if`, so nothing the entry point discards holds a comment. Whether the flag also closes the comment loss of the RH5405 fix, which braces the body first and so detaches the target on `main` today, is not claimed; that loss is a separate follow-up. *(amended 2026-10-31, process stage)* The implementation shows that it does: the RH5405 fix keeps the comment (see *Visible output changes*).
 
 ### Which entry point supplies which fact
 
@@ -116,7 +209,7 @@ Today the requirement names a node that is not part of a syntax tree. The indent
 - FMT-PIPE-021 keeps excluding the roots of the node-level entry points.
 - *(amended 2026-10-31, skeptic stage)* Who owns what stands in front of a target that does not start its line (thoenissen/Reihitsu#1521), and the comment loss of the RH5405 fix on `main` (thoenissen/Reihitsu#1527).
 - *(amended 2026-10-31, skeptic stage)* The construct facts for `FormatNode` and `FormatNodeInDocumentWithContextAsync`.
-- *(amended 2026-10-31, implementer stage)* A target that is an inner part of a longer member-access chain. The line-break phase reads the chain-continuation fact and keeps the part's layout, while the chain alignment of the indentation phase still aligns the part as a chain of its own, so the two decisions disagree and neither gives the layout of document-level formatting. No code fix formats an inner chain part — the chain code fixes pass the outermost chain node — so the case is left to a follow-up that gives chain outermost-ness one owner.
+- *(amended 2026-10-31, implementer stage)* A target that is an inner part of a longer member-access chain. The line-break phase reads the chain-continuation fact and keeps the part's layout, while the chain alignment of the indentation phase still aligns the part as a chain of its own, so the two decisions disagree and neither gives the layout of document-level formatting. No code fix formats an inner chain part — the chain code fixes pass the outermost chain node — so the case is left to a follow-up that gives chain outermost-ness one owner. *(amended 2026-10-31, process stage)* No caller of the repository reaches the case, so it stays as it is and no follow-up is filed.
 
 ## Alternatives considered
 

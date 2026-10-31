@@ -44,6 +44,7 @@ Spawn each role of the lane in order, one fresh agent per role — for several i
 | Any role: an internal choice with a recommendation | Decide, record under *Decisions taken*, continue |
 | Skeptic: do not make the change | For an `agent-filed` issue, decide; drop it only when nothing visible is in question. Otherwise escalation 3 |
 | Skeptic or any role: an issue goal that does not make sense | Decide for an `agent-filed` issue when nothing visible is in question; otherwise an output question or a question about a binding goal |
+| Skeptic: no caller of the repository reaches the issue's case | *Not reachable* (below) |
 | Test implementer: not reproduced, or no concrete scenario | Escalation 4 (below) |
 | Test implementer or implementer: a test or the spec is wrong | Decide when the asserted output is internal or an unchanged requirement decides it; otherwise an output question |
 | Any role: scope grows, or an adjacent fix | Decide under `README.md`, *Scope*; a new rule is escalation 5 |
@@ -56,6 +57,8 @@ Spawn each role of the lane in order, one fresh agent per role — for several i
 | Validator: a failure that also exists on `main` | Decide: a follow-up, or an adjacent fix under *Scope* |
 
 **Not reproduced.** Keep the test as a characterization test, change the PR's `Closes #<N>` to `Refs #<N>`, and skip every remaining role except the spec checker and the validator. Then ask the maintainer (escalation 4), quoting the scenarios that ran green and the evidence that would change the verdict (exact input, line endings, surface, tool version): request that evidence from the author, accept the behavior and close the issue, or continue anyway. In a run of several issues, only the issue that did not reproduce changes to `Refs #<N>`, and only it skips the remaining roles; they run for the other issues once the maintainer has answered.
+
+**Not reachable.** When the skeptic shows that none of the repository's own callers reaches an issue's case (`AGENTS.md`, *Supported inputs*), the issue is not implemented. Keep a test only if one was already written, change the PR's `Closes #<N>` to `Refs #<N>`, skip every remaining role except the spec checker and the validator, and state in the run report, as the run's result, that no caller reaches the case and which callers were checked, so the maintainer can close the issue. This is not an escalation; the run does not stop for it. In a run of several issues, only that issue changes to `Refs #<N>` and skips the remaining roles.
 
 ## 5. Output questions
 
@@ -103,7 +106,7 @@ Stop all role work — in a run of several issues, for every issue, not only the
 
 ## Follow-ups
 
-Every follow-up candidate — from a handover, an open question outside the run's issues, a narrow fix's structural change, a narrowed part of the run, a failure on `main` — goes into `Follow-up candidates` in `00-lead.md`. You do not ask the maintainer about any of them, and you do not write issues: before publishing, you spawn the issue manager once with the whole list ([`roles/issue-manager.md`](roles/issue-manager.md)). It searches for duplicates, creates or extends each issue labeled `agent-filed`, and returns the issue numbers, which the PR lists under `Follow-up work`. A safety-rail defect that exists only on `main` is filed as a `bug` and named first in the run report. A follow-up never joins the run; an adjacent fix does, under `README.md`, *Scope*.
+Every follow-up candidate — from a handover, an open question outside the run's issues, a narrow fix's structural change, a narrowed part of the run, a failure on `main` — goes into `Follow-up candidates` in `00-lead.md`. You do not ask the maintainer about any of them, and you do not write issues: before publishing, you spawn the issue manager once with the whole list ([`roles/issue-manager.md`](roles/issue-manager.md)). It searches for duplicates, creates or extends each issue labeled `agent-filed`, and returns the issue numbers, which the PR lists under `Follow-up work`. A safety-rail defect that exists only on `main` is filed as a `bug` and named first in the run report. A follow-up never joins the run; an adjacent fix does, under `README.md`, *Scope*. A candidate that no caller of the repository reaches (`AGENTS.md`, *Supported inputs*) is not a follow-up: drop it, record the drop under *Decisions taken*, and do not pass it to the issue manager.
 
 ## Never
 

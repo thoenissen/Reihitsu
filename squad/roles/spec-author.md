@@ -37,7 +37,7 @@ Read [`../README.md`](../README.md) and [`sdd/README.md`](../../sdd/README.md) f
 Specs describe current behavior. When the real output looks wrong, do not write it into the spec — no requirement, no non-goal, no note — and do not change it. Three cases:
 
 - **Within the run's issues** — an issue's own behavior depends on the answer, or the case is part of what an issue asks for. Put the question in your handover under `Output questions`: the input, the real output, why it looks wrong, the requirement IDs it touches, the output each competing reading gives, as C#, and your recommendation. When the run cannot write its specs or tests without the answer, set `Verdict: open question`; otherwise the run continues. The lead asks the maintainer in its next batch (`README.md`, *What reaches the maintainer*).
-- **Outside the run's issues** — the question goes under `Follow-up candidates` in the same form. The lead has it filed as an `agent-filed` issue; it is not asked in the run.
+- **Outside the run's issues** — the question goes under `Follow-up candidates` in the same form. The lead has it filed as an `agent-filed` issue; it is not asked in the run. A case that none of the repository's own callers reaches is not a candidate at all (`AGENTS.md`, *Supported inputs*): leave it out.
 - **Not about visible output** — a question of spec wording, requirement scope, or which spec owns a rule is yours to propose and the lead's to decide: put it under `Internal choices` with your recommendation, and write the spec on that recommendation.
 
 Two readings that would produce different visible output for the same input are always an output question, never a choice you make.

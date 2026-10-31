@@ -49,10 +49,20 @@ A code fix is never required to correct every case its diagnostic reports. Some 
 - None of this licenses an imprecise guard. A fix that refuses inputs it could rewrite safely is still worth narrowing, but the defect there is the guard's scope — how much safe ground it gives away — and not the bare fact that a diagnostic went unfixed.
 - When a rule's fix deliberately leaves a class of inputs to manual correction, `documentation/rules/general-notes.md` already covers it ("A diagnostic without a code fix") and the rule page is not changed for it. Record the gap in the rule's spec, `sdd/specs/analyzer/RH####.md`, where it reads as a decision rather than an oversight.
 
+## Supported inputs
+
+No assembly of this repository is a public API, the formatter included. Its public methods — `ReihitsuFormatter.FormatDocumentAsync`, `FormatSyntaxTree`, `FormatNode`, `FormatNodeInDocumentAsync`, `FormatNodeInDocumentWithContextAsync` — and every other public member exist for this repository's own callers: the analyzers and their code fixes, the CLI, and whole-document formatting. A component has to work for the inputs these callers pass, not for every input its signature admits. This section is the one statement of the rule; other documents point here.
+
+- **A case no caller reaches is neither a defect nor a follow-up.** No issue is filed for it, no spec requirement has to decide it, and no test has to cover it. A find, a failure-class member, or a review finding whose input no caller produces is dropped, not reported as a defect.
+- **Reachability is part of the premise.** When work on an issue starts, before anything is built, it is checked together with the premise (*Issue intake* below): can the reported case occur through a code fix, the CLI, or whole-document formatting? An issue whose case no caller reaches is not implemented. A test that was already written stays as a characterization test; none is written for that purpose. The pull request links the issue with `Refs #<N>` and states as its result that no caller reaches the case, so the maintainer can close the issue.
+- **"A caller reaches it" is a claim like any other.** Name the caller and the path — the code fix and the node it formats, the CLI option, the document shape. An input that only a direct call of a method produces does not count.
+- **Tests may still call a method directly.** A test or a spec example that calls a node-level entry point with what a code fix would pass is a way to check that input; the rule limits which inputs must work, not how they are tested.
+
 ## Issue intake — question the report
 
 Issues here are filed under the maintainer's GitHub account, but most of them are generated — drafted by an agent from a source audit rather than observed by a person running the tool. The account name is not evidence that a human confirmed the behavior. An issue an agent writes carries the label `agent-filed`, which only the maintainer removes, from an issue whose text they wrote or reviewed. Treat every issue as a hypothesis to be checked, never as a specification to be executed, and apply that regardless of who filed it:
 
+- Check that a caller reaches the reported case before anything is built ([Supported inputs](#supported-inputs)); an issue whose case no caller reaches is not implemented.
 - Verify the premise before implementing it. A bug report is confirmed only by a test that reproduces its reported behavior; a report that says it was derived from reading code rather than from running it has confirmed nothing yet, however precise its file-and-line references look.
 - Check the reasoning, not only the example. A report can reproduce and still be wrong about why it matters, how far it generalizes, or how severe it is. Its severity argument is a claim like any other and gets tested like one.
 - Reject a framing the repository's own policy contradicts. A report that treats a diagnostic without a fix as a defect in itself is arguing against `Code-fix coverage` above, and that argument does not become correct by being written in an issue.
