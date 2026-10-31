@@ -186,11 +186,12 @@ internal sealed class GetOnlyMemberExpressionBodyTransform : CSharpSyntaxRewrite
             return false;
         }
 
-        // The created arrow reads as a separate token next to the signature and the expression without whitespace, so no
-        // space is written around it (FMT-STRUCT-026)
-        arrowExpressionClause = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken),
+        // No spacing rule covers the gap between the member name or the indexer's bracket and the created arrow, so the
+        // arrow gets one space on each side (FMT-STRUCT-026). The created tokens are built with explicit trivia, so they
+        // carry no elastic trivia
+        arrowExpressionClause = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.Token(SyntaxFactory.TriviaList(SyntaxFactory.Space), SyntaxKind.EqualsGreaterThanToken, SyntaxFactory.TriviaList(SyntaxFactory.Space)),
                                                                     bodyExpression);
-        semicolonToken = SyntaxFactory.Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(semicolonTrailingTrivia);
+        semicolonToken = SyntaxFactory.Token(default, SyntaxKind.SemicolonToken, semicolonTrailingTrivia);
 
         return true;
     }

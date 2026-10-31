@@ -77,23 +77,22 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
         var normalizedStatement = statement.WithLeadingTrivia(leadingTrivia)
                                            .WithTrailingTrivia(GetCarriedTrailingTrivia(statement.GetTrailingTrivia(), endOfLine));
 
-        var block = SyntaxFactory.Block(SyntaxFactory.SingletonList(normalizedStatement));
+        // A comment behind the opening brace on its line would trail the brace once the text is parsed again, so the
+        // brace's line ends in front of the statement's first comment
+        var openBraceTrailingTrivia = leadingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia)
+                                          ? SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(endOfLine))
+                                          : default;
 
-        if (leadingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia))
-        {
-            // A comment behind the opening brace on its line would trail the brace once the text is parsed again,
-            // so the brace's line ends in front of the statement's first comment
-            block = block.WithOpenBraceToken(block.OpenBraceToken.WithTrailingTrivia(SyntaxFactory.EndOfLine(endOfLine)));
-        }
+        // The comment or directive in front of the next token starts its line in the original text; behind the closing
+        // brace on its line, a comment would trail the brace and a directive would not start a line
+        var closeBraceTrailingTrivia = StartsWithCommentOrDirective(nextToken.LeadingTrivia)
+                                           ? SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(endOfLine))
+                                           : default;
 
-        if (StartsWithCommentOrDirective(nextToken.LeadingTrivia))
-        {
-            // The comment or directive in front of the next token starts its line in the original text; behind the
-            // closing brace on its line, a comment would trail the brace and a directive would not start a line
-            block = block.WithCloseBraceToken(block.CloseBraceToken.WithTrailingTrivia(SyntaxFactory.EndOfLine(endOfLine)));
-        }
-
-        return block;
+        // The braces are built with explicit trivia, so they carry no elastic trivia (FMT-STRUCT-026)
+        return SyntaxFactory.Block(SyntaxFactory.Token(default, SyntaxKind.OpenBraceToken, openBraceTrailingTrivia),
+                                   SyntaxFactory.SingletonList(normalizedStatement),
+                                   SyntaxFactory.Token(default, SyntaxKind.CloseBraceToken, closeBraceTrailingTrivia));
     }
 
     /// <summary>

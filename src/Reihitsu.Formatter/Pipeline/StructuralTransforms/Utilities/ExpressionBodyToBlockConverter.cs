@@ -71,13 +71,12 @@ internal static class ExpressionBodyToBlockConverter
             statement = statement.WithLeadingTrivia(SyntaxFactory.TriviaList(commentLinesTrivia).AddRange(statement.GetLeadingTrivia()));
         }
 
-        var openBrace = SyntaxFactory.Token(SyntaxKind.OpenBraceToken)
-                                     .WithLeadingTrivia(openBraceLeadingTrivia)
-                                     .WithTrailingTrivia(openBraceTrailingTrivia);
+        // The created tokens are built with explicit trivia, so they carry no elastic trivia (FMT-STRUCT-026)
+        var openBrace = SyntaxFactory.Token(openBraceLeadingTrivia, SyntaxKind.OpenBraceToken, openBraceTrailingTrivia);
 
         return SyntaxFactory.Block(openBrace,
                                    SyntaxFactory.SingletonList(statement),
-                                   SyntaxFactory.Token(SyntaxKind.CloseBraceToken).WithTrailingTrivia(semicolonToken.TrailingTrivia));
+                                   SyntaxFactory.Token(default, SyntaxKind.CloseBraceToken, semicolonToken.TrailingTrivia));
     }
 
     /// <summary>
@@ -200,8 +199,7 @@ internal static class ExpressionBodyToBlockConverter
                                                    SyntaxToken semicolonToken,
                                                    bool moveComments)
     {
-        var newSemicolonToken = SyntaxFactory.Token(SyntaxKind.SemicolonToken)
-                                             .WithLeadingTrivia(ExtractSignificantTrivia(semicolonToken.LeadingTrivia));
+        var newSemicolonToken = SyntaxFactory.Token(ExtractSignificantTrivia(semicolonToken.LeadingTrivia), SyntaxKind.SemicolonToken, default);
 
         if (expression is ThrowExpressionSyntax throwExpression)
         {
@@ -233,7 +231,7 @@ internal static class ExpressionBodyToBlockConverter
     /// <returns>The <c>return</c> statement</returns>
     private static ReturnStatementSyntax CreateReturnStatement(ExpressionSyntax expression, SyntaxToken semicolonToken, bool moveComments)
     {
-        var returnKeyword = SyntaxFactory.Token(SyntaxKind.ReturnKeyword);
+        var returnKeyword = SyntaxFactory.Token(default, SyntaxKind.ReturnKeyword, default);
         var leadingTrivia = expression.GetLeadingTrivia();
 
         if (leadingTrivia.Count > 0
@@ -248,8 +246,7 @@ internal static class ExpressionBodyToBlockConverter
             expression = expression.WithLeadingTrivia(default(SyntaxTriviaList));
         }
 
-        // The created keyword carries zero-width elastic markers, so the separation is decided by the text around it
-        if (returnKeyword.TrailingTrivia.FullSpan.Length == 0
+        if (returnKeyword.TrailingTrivia.Count == 0
             && expression.GetLeadingTrivia().FullSpan.Length == 0
             && TokenGapUtilities.WouldMergeWhenTight(returnKeyword, expression.GetFirstToken()))
         {
