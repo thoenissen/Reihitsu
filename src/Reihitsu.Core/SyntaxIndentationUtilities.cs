@@ -55,8 +55,22 @@ public static class SyntaxIndentationUtilities
     /// <returns>Number of indentation levels owned by the statement's syntax ancestors</returns>
     public static int ComputeStatementIndentLevel(StatementSyntax statement)
     {
+        return ComputeIndentLevel(statement);
+    }
+
+    /// <summary>
+    /// Computes the indentation level the full-tree layout gives a node at its position: the sum of
+    /// <see cref="GetChildIndentLevel"/> over the node and each of its ancestors. That is one level per enclosing brace
+    /// scope or switch section and one per unbraced embedded statement the node is or lies in, none for an <c>else if</c>,
+    /// and none for an initializer or anonymous object (see <see cref="ComputeStatementIndentLevel"/>). A node without a
+    /// parent has level 0. The formatter takes this as the depth of a node-level formatting root
+    /// </summary>
+    /// <param name="node">Node whose indentation level should be computed</param>
+    /// <returns>Number of indentation levels owned by the node's syntax ancestors</returns>
+    public static int ComputeIndentLevel(SyntaxNode node)
+    {
         var indentLevel = 0;
-        SyntaxNode child = statement;
+        var child = node;
         var parent = child.Parent;
 
         while (parent != null)

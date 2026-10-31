@@ -83,20 +83,6 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Determines whether a node is the outermost node of its chain (<see cref="FluentChain.IsOutermostChainNode"/>). The
-    /// formatting root has no parent, so for the root the facts the entry point captured from the document say whether its
-    /// parent continues its chain
-    /// </summary>
-    /// <param name="original">The node before its children were visited</param>
-    /// <param name="rootConstruct">The facts about the construct the formatting root stands in</param>
-    /// <returns><see langword="true"/> if the node is the outermost node of its chain</returns>
-    internal static bool IsOutermostChainNode(SyntaxNode original, RootConstruct rootConstruct)
-    {
-        return FluentChain.IsOutermostChainNode(original)
-               && rootConstruct.IsRootIn(original, RootConstruct.ChainContinuation) == false;
-    }
-
-    /// <summary>
     /// Returns the pending replacement recorded for a token, or the token itself when none exists. Several rules may
     /// touch the same token — one clears its leading trivia, another its trailing trivia — so every rule composes on the
     /// pending token instead of letting the last writer discard an earlier edit
@@ -386,7 +372,7 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     private SyntaxNode NormalizeIfOutermost(SyntaxNode original, SyntaxNode visited)
     {
         if (visited is ExpressionSyntax expression
-            && IsOutermostChainNode(original, _context.RootConstruct))
+            && FluentChain.IsOutermostChainNode(original, _context.RootChainBoundary))
         {
             return NormalizeChain(expression);
         }

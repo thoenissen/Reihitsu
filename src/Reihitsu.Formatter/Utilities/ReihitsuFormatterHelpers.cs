@@ -15,10 +15,10 @@ namespace Reihitsu.Formatter.Utilities;
 
 /// <summary>
 /// The entry-point code of <see cref="ReihitsuFormatter"/>: the guards that decide whether a tree is formatted at all, and
-/// what an entry point computes about its input before the pipeline runs — the line ending, the depth of a formatting
-/// root, the column of its first token in its document, the construct it stands in, and its detached copy. Code fixes and
-/// the command-line tool apply the same guards and computations through it. Phases do not use it; the facts they share live in <c>Reihitsu.Core</c> and in
-/// <c>Pipeline/Core</c>
+/// what an entry point computes about its input before the pipeline runs — the line ending, the column of a formatting
+/// root's first token in its document, the construct it stands in, and its detached copy. Code fixes and the command-line
+/// tool apply the same guards and computations through it. Phases do not use it; the facts they share live in
+/// <c>Reihitsu.Core</c> and in <c>Pipeline/Core</c>
 /// </summary>
 internal static class ReihitsuFormatterHelpers
 {
@@ -77,29 +77,6 @@ internal static class ReihitsuFormatterHelpers
     }
 
     /// <summary>
-    /// Computes the depth of a node-level formatting root (FMT-PIPE-012): the number of levels the indentation phase gives
-    /// the node's first token at its position in its tree, through <see cref="SyntaxIndentationUtilities.GetChildIndentLevel"/>
-    /// for the node and each of its ancestors, as <see cref="SyntaxIndentationUtilities.ComputeStatementIndentLevel"/> counts
-    /// it for a statement. That is one level
-    /// per enclosing scope and one per unbraced embedded statement the node is or lies in, none for an <c>else if</c>, and
-    /// none for an initializer or anonymous object, whose members the indentation phase aligns to an anchor. A node without a
-    /// parent has depth 0
-    /// </summary>
-    /// <param name="node">The node</param>
-    /// <returns>The depth of the node</returns>
-    internal static int ComputeDepth(SyntaxNode node)
-    {
-        var depth = 0;
-
-        for (var child = node; child.Parent != null; child = child.Parent)
-        {
-            depth = SyntaxIndentationUtilities.GetChildIndentLevel(child.Parent, child, depth);
-        }
-
-        return depth;
-    }
-
-    /// <summary>
     /// Captures the facts about the construct a target stands in in its document (FMT-PIPE-024), one flag for each decision
     /// of the line-break phase that reads the target's ancestors. Each flag is the answer that decision's own predicate gives
     /// for the target while it is still part of its document
@@ -118,11 +95,6 @@ internal static class ReihitsuFormatterHelpers
         if (LineBreakContainedBlockRewriter.IsElseIfBranch(target, RootConstruct.None))
         {
             facts |= RootConstruct.ElseIf;
-        }
-
-        if (FluentChain.GetOutermostChainNode(target) != target)
-        {
-            facts |= RootConstruct.ChainContinuation;
         }
 
         if (target is AccessorDeclarationSyntax or AccessorListSyntax

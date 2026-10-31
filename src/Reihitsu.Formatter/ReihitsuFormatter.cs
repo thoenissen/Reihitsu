@@ -121,7 +121,7 @@ public static class ReihitsuFormatter
     public static SyntaxNode FormatNode(SyntaxNode node, int indentLevel = -1, CancellationToken cancellationToken = default)
     {
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(node);
-        var baseIndentLevel = indentLevel >= 0 ? indentLevel : ReihitsuFormatterHelpers.ComputeDepth(node);
+        var baseIndentLevel = indentLevel >= 0 ? indentLevel : SyntaxIndentationUtilities.ComputeIndentLevel(node);
         var context = new FormattingContext(endOfLine,
                                             baseIndentLevel,
                                             preserveRootDocumentationBoundary: node is not CompilationUnitSyntax,
@@ -186,7 +186,7 @@ public static class ReihitsuFormatter
                                         ? null
                                         : ReihitsuFormatterHelpers.ComputeDocumentColumn(originalFirstToken, keepsLeadingTrivia == false);
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
-        var baseIndentLevel = ReihitsuFormatterHelpers.ComputeDepth(targetNode);
+        var baseIndentLevel = SyntaxIndentationUtilities.ComputeIndentLevel(targetNode);
         var context = new FormattingContext(endOfLine,
                                             baseIndentLevel,
                                             preserveRootDocumentationBoundary: targetNode != root,
@@ -195,6 +195,7 @@ public static class ReihitsuFormatter
                                             rootPrecedingToken: PrecedingTokenFacts.From(precedingToken),
                                             rootListPosition: RootListPosition.From(targetNode),
                                             rootFirstTokenColumn: rootFirstTokenColumn,
+                                            rootChainBoundary: FluentChainBoundary.From(targetNode),
                                             rootConstruct: ReihitsuFormatterHelpers.CaptureRootConstruct(targetNode));
         var formattedTarget = FormattingPipeline.Execute(ReihitsuFormatterHelpers.Detach(targetNode, cancellationToken), context, cancellationToken);
 
@@ -282,7 +283,7 @@ public static class ReihitsuFormatter
                                         ? null
                                         : ReihitsuFormatterHelpers.ComputeDocumentColumn(contextNode.GetFirstToken(), countsOwnWhitespaceTabsAsReplaced: false);
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
-        var baseIndentLevel = ReihitsuFormatterHelpers.ComputeDepth(contextNode);
+        var baseIndentLevel = SyntaxIndentationUtilities.ComputeIndentLevel(contextNode);
         var context = new FormattingContext(endOfLine,
                                             baseIndentLevel,
                                             preserveRootDocumentationBoundary: contextNode != root,
