@@ -832,6 +832,87 @@ public class HorizontalSpacingRequirementTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies the specification example: a fixed-size buffer whose <c>fixed</c> keyword carries a block comment glued
+    /// to the type gets one space between the comment and the type
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-012")]
+    [Requirement("FMT-SPACE-013")]
+    public void OneSpaceBehindCommentGluedToFixedSizeBufferType()
+    {
+        // Arrange
+        const string input = """
+                             unsafe struct S
+                             {
+                                 public fixed/* c */int _b[4];
+                             }
+                             """;
+        const string expected = """
+                                unsafe struct S
+                                {
+                                    public fixed/* c */ int _b[4];
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a fixed-size buffer with a space between <c>fixed</c> and a block comment glued to the type keeps
+    /// that space and gets one space between the comment and the type
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-012")]
+    [Requirement("FMT-SPACE-013")]
+    public void OneSpaceBehindSpacedCommentGluedToFixedSizeBufferType()
+    {
+        // Arrange
+        const string input = """
+                             unsafe struct S
+                             {
+                                 public fixed /* c */int _c[4];
+                             }
+                             """;
+        const string expected = """
+                                unsafe struct S
+                                {
+                                    public fixed /* c */ int _c[4];
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that several spaces between a block comment behind <c>fixed</c> and the type of a fixed-size buffer
+    /// become one
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-012")]
+    [Requirement("FMT-SPACE-013")]
+    public void SeveralSpacesBehindCommentInFixedSizeBufferBecomeOne()
+    {
+        // Arrange
+        const string input = """
+                             unsafe struct S
+                             {
+                                 public fixed /* d */  int _d[4];
+                             }
+                             """;
+        const string expected = """
+                                unsafe struct S
+                                {
+                                    public fixed /* d */ int _d[4];
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a fixed-size buffer keeps exactly one space behind <c>fixed</c>
     /// </summary>
     [TestMethod]
