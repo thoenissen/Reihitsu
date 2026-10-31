@@ -19,6 +19,7 @@ Behavior change: the issue requests changed behavior of the node-level entry poi
 - Only end-user-visible output reaches the maintainer (now the rule on `main`, #1528).
 - The node-level entry points are used only by this repository's code fixes; a node-level output no code fix reaches is not a visible output.
 - No `squad/decisions/` entries in this run.
+- Public methods of the repository's assemblies (formatter entry points, analyzer and Core helpers) are not a public API. They must work for the inputs this repository's own callers — the code fixes, the CLI, whole-document formatting — pass, not for every input their signature admits. A case no such caller reaches is neither a defect nor a follow-up. The maintainer wants this rule written down in this PR (process text in `AGENTS.md` and `squad/`, with a process change doc).
 
 ## Maintainer answers
 
@@ -41,15 +42,11 @@ Behavior change: the issue requests changed behavior of the node-level entry poi
 | 5 | implementer | One-line-property flag read more narrowly than the spec row (root holds no line break) | Spec row aligned with the implementation | Keeps today's output for those targets | Output equals `main` | pending |
 | 6 | implementer | FMT-PIPE-024 sentence "every phase answers what stands in front of the root's first token from the preceding-token fact" not implemented by some line-break and spacing readers | Narrow the sentence to the readers that use the fact; the remaining approximations become a follow-up candidate | No output difference found; implementing adds about eight production paths without a failing test | No output difference | pending |
 | 7 | implementer | Architecture finding: chain outermost-ness has two owners for an inner chain-part target (line-break phase reads the fact, `MethodChainAlignmentContributor` does not) | Narrow: no change in this run; structural change is a follow-up candidate; change doc names the case as out of scope | The chain code fixes (RH5112, RH5201) pass the outermost chain node (`FluentChainCodeFixHelper.FindChainNode`), so no code fix formats an inner chain part | Not reachable through any code fix; whole-document formatting unaffected | pending |
+| 9 | lead | The six follow-up candidates of the handovers (initializer column, preceding-token approximations, chain outermost-ness, Core's one-line-property copy, Core's depth rule for attribute placement, blank line above an embedded target) | Dropped; none is filed | No code fix, CLI path, or whole-document formatting was shown to reach any of them, and the maintainer wants no follow-ups for cases nobody needs | Nothing filed, nothing changed | — |
 | 8 | implementer | `ReihitsuFormatterHelpers.ComputeBaseIndentLevel` wrapper has no production caller, only its five tests | Adjacent fix: remove the wrapper and its tests | "Done when": the formatter no longer calls `ComputeBaseIndentLevel` | Dead code; no output | pending |
 
 ## Follow-up candidates
 
-- Column of the elements of an assigned collection initializer under `FormatNodeInDocumentAsync` (`04-test-implementer.md`, finding 1).
-- FMT-PIPE-024 preceding-token readers that still approximate the root boundary: `LineBreakTriviaUtilities.HasLeadingEndOfLine`, `TokenLocator.TryGetPreviousToken`, `HorizontalSpacingRewriter.TrimGapBeforeToken` (`05-implementer.md`, finding 3).
-- Chain outermost-ness has two owners for an inner chain-part root: `MethodChainAlignmentContributor` / `FluentChain.Create` vs. the chain-continuation fact (`05-implementer.md`, architecture finding).
-- `Reihitsu.Core.AttributeTargetUtilities.IsAttributeListOnSingleLinePropertyAccessor` is a second statement of the formatter's one-line-property rule (`05-implementer.md`).
-- `SyntaxIndentationUtilities.ComputeBaseIndentLevel` stays as a second depth rule for `TargetAttributePlacementCodeFixProviderBase` (`02-skeptic.md`).
-- `FormatNodeInDocumentAsync` inserts a blank line between `if (a)` and an embedded-statement target with a leading comment (`02-skeptic.md`).
+None. Every candidate the handovers named was dropped under the maintainer's clarification (decision 9).
 
 Already filed during the run: thoenissen/Reihitsu#1521, thoenissen/Reihitsu#1527.
