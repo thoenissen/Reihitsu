@@ -307,7 +307,9 @@ internal sealed class RawStringLineShifts
 
     /// <summary>
     /// Applies the indentation edits of one token. An edit at a position inside the token's text, or at its start when
-    /// the token holds the text of a raw string literal, replaces the leading spaces of that line of the text. An edit in
+    /// the token holds the text of a raw string literal, replaces the leading spaces of that line of the text. An edit at
+    /// the token's end replaces nothing and appends the moved indentation of the line that starts behind the token, a
+    /// line that starts with an interpolation hole's opening brace. An edit in
     /// the token's leading trivia replaces the whitespace trivia that starts the line, or inserts whitespace in front of the
     /// trivia that does, or behind the trivia when the token itself starts the line; a line that starts inside a trivia,
     /// such as a later line of a <c>///</c> comment, is moved inside that trivia's text. The token keeps its kind, its
