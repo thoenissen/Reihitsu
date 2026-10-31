@@ -196,8 +196,8 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
 
     /// <summary>
     /// Determines whether a documentation comment on the first line of a detached formatting root is written behind the
-    /// token that precedes the root in its document. A phase that replaces the root detaches it, so the root's text
-    /// starts with the comment and the token in front of it is no longer part of the tree; the facts captured for that
+    /// token that precedes the root in its document. A node-level root has no parent (FMT-PIPE-023), so the root's text
+    /// starts with the comment and the token in front of it is not part of the tree; the facts captured for that
     /// token (<see cref="FormattingContext.RootPrecedingToken"/>) say whether it shares the comment's line
     /// </summary>
     /// <param name="root">Root node</param>

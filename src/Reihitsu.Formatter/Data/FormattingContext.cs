@@ -43,6 +43,12 @@ internal record FormattingContext
     /// <param name="rootFirstTokenColumn">
     /// The column of the formatting root's first token in its document, or <see langword="null"/> when the root is laid out at its depth alone
     /// </param>
+    /// <param name="rootChainBoundary">
+    /// The facts about the code above the formatting root that the member-access chain rule reads, or <see langword="default"/> when the caller supplies none
+    /// </param>
+    /// <param name="rootConstruct">
+    /// The facts about the construct the formatting root stands in in its document, or <see cref="RootConstruct.None"/> when the caller supplies none
+    /// </param>
     public FormattingContext(string endOfLine,
                              int baseIndentLevel = 0,
                              bool preserveRootDocumentationBoundary = false,
@@ -50,7 +56,9 @@ internal record FormattingContext
                              LanguageVersion languageVersion = LanguageVersion.Default,
                              PrecedingTokenFacts rootPrecedingToken = default,
                              RootListPosition rootListPosition = default,
-                             int? rootFirstTokenColumn = null)
+                             int? rootFirstTokenColumn = null,
+                             FluentChainBoundary rootChainBoundary = default,
+                             RootConstruct rootConstruct = RootConstruct.None)
     {
         EndOfLine = endOfLine;
         BaseIndentLevel = baseIndentLevel;
@@ -60,6 +68,8 @@ internal record FormattingContext
         RootPrecedingToken = rootPrecedingToken;
         RootListPosition = rootListPosition;
         RootFirstTokenColumn = rootFirstTokenColumn;
+        RootChainBoundary = rootChainBoundary;
+        RootConstruct = rootConstruct;
     }
 
     #endregion // Constructor
@@ -72,10 +82,9 @@ internal record FormattingContext
     public string EndOfLine { get; }
 
     /// <summary>
-    /// The base indentation level for isolated node formatting.
-    /// When formatting a node that is detached from its original tree
-    /// (e.g., after a structural transform), this offset accounts for the
-    /// parent context that is no longer reachable via the syntax tree
+    /// The depth of the formatting root, in indentation levels. A node-level entry point formats its root without a parent
+    /// (FMT-PIPE-023), so this level stands for the scopes around the root that the root no longer reaches: the depth the
+    /// indentation phase gives the root's first token at its position in its document (FMT-PIPE-012)
     /// </summary>
     public int BaseIndentLevel { get; }
 
@@ -97,10 +106,10 @@ internal record FormattingContext
     public LanguageVersion LanguageVersion { get; }
 
     /// <summary>
-    /// The facts about the token that precedes the formatting root in its document. A phase that replaces the root detaches
-    /// it, so the root's first token no longer reaches this token through
-    /// <see cref="Microsoft.CodeAnalysis.SyntaxToken.GetPreviousToken"/>; the facts are captured before the pipeline runs so
-    /// that detachment does not change the blank-line decisions or the comment alignment for that token. Only
+    /// The facts about the token that precedes the formatting root in its document. A node-level root has no parent
+    /// (FMT-PIPE-023), so the root's first token does not reach this token through
+    /// <see cref="Microsoft.CodeAnalysis.SyntaxToken.GetPreviousToken"/>; the facts are captured before the pipeline runs, as
+    /// plain values (FMT-PIPE-024), for the blank-line decisions, the documentation phase, and the comment alignment. Only
     /// <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> supplies them. Every other entry point leaves them at
     /// <see langword="default"/>, which means no preceding token is known — not that the root starts its file
     /// </summary>
@@ -123,6 +132,24 @@ internal record FormattingContext
     /// <see langword="null"/>, which lays out the root at its depth
     /// </summary>
     public int? RootFirstTokenColumn { get; }
+
+    /// <summary>
+    /// The facts about the code above the formatting root that the member-access chain rule reads (FMT-PIPE-024): whether
+    /// the root's parent continues the root's chain, and whether the root is the branch of a conditional access. The rule
+    /// (<see cref="FluentChain.IsOutermostChainNode(Microsoft.CodeAnalysis.SyntaxNode, FluentChainBoundary)"/>) reads them for
+    /// every node of the root whose decision reads above the root, not only for the root itself. Only
+    /// <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> supplies them. Every other entry point leaves them at
+    /// <see langword="default"/>, which decides the root as a chain of its own
+    /// </summary>
+    public FluentChainBoundary RootChainBoundary { get; }
+
+    /// <summary>
+    /// The facts about the construct the formatting root stands in in its document (FMT-PIPE-024): one flag for each decision
+    /// of the line-break phase that reads the root's ancestors, which a root without a parent does not reach. Only
+    /// <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> supplies them. Every other entry point leaves them at
+    /// <see cref="RootConstruct.None"/>, which decides the root as a construct of its own
+    /// </summary>
+    public RootConstruct RootConstruct { get; }
 
     #endregion // Properties
 

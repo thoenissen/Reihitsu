@@ -2085,6 +2085,177 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
                      Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the fix on an assignment inside a conditional access, where the assigned member and the value each stand on their own line behind a member binding, keeps the line break in front
+    /// of the assigned member and moves the value onto the line of the operator, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-004")]
+    [Requirement("FMT-PIPE-024")]
+    public async Task VerifyFixKeepsTheWrappedLinkOfAnAssignedMemberBehindAMemberBinding()
+    {
+        const string testData = """
+                                class A
+                                {
+                                    public A B { get; set; }
+
+                                    public A this[int i] => this;
+
+                                    public int C { get; set; }
+                                }
+
+                                class C
+                                {
+                                    void M(A a)
+                                    {
+                                        a?{|#0:.B
+                                          .C =
+                                            5|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class A
+                                 {
+                                     public A B { get; set; }
+
+                                     public A this[int i] => this;
+
+                                     public int C { get; set; }
+                                 }
+
+                                 class C
+                                 {
+                                     void M(A a)
+                                     {
+                                         a?.B
+                                           .C = 5;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix on an assignment inside a conditional access, where the assigned member and the value each stand on their own line behind an element binding, keeps the line break in front
+    /// of the assigned member and moves the value onto the line of the operator, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-004")]
+    [Requirement("FMT-PIPE-024")]
+    public async Task VerifyFixKeepsTheWrappedLinkOfAnAssignedMemberBehindAnElementBinding()
+    {
+        const string testData = """
+                                class A
+                                {
+                                    public A B { get; set; }
+
+                                    public A this[int i] => this;
+
+                                    public int C { get; set; }
+                                }
+
+                                class C
+                                {
+                                    void M(A a)
+                                    {
+                                        a?{|#0:[0]
+                                          .C =
+                                            5|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class A
+                                 {
+                                     public A B { get; set; }
+
+                                     public A this[int i] => this;
+
+                                     public int C { get; set; }
+                                 }
+
+                                 class C
+                                 {
+                                     void M(A a)
+                                     {
+                                         a?[0]
+                                           .C = 5;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix on an assignment inside a conditional access, where the assigned member and the value each stand on their own line behind a nested conditional access, keeps the line break in front
+    /// of the assigned member and moves the value onto the line of the operator, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-004")]
+    [Requirement("FMT-PIPE-024")]
+    public async Task VerifyFixKeepsTheWrappedLinkOfAnAssignedMemberInANestedConditionalAccess()
+    {
+        const string testData = """
+                                class A
+                                {
+                                    public A B { get; set; }
+
+                                    public A this[int i] => this;
+
+                                    public int C { get; set; }
+                                }
+
+                                class C
+                                {
+                                    void M(A a)
+                                    {
+                                        a?.B?{|#0:.B
+                                            .C =
+                                            5|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class A
+                                 {
+                                     public A B { get; set; }
+
+                                     public A this[int i] => this;
+
+                                     public int C { get; set; }
+                                 }
+
+                                 class C
+                                 {
+                                     void M(A a)
+                                     {
+                                         a?.B?.B
+                                              .C = 5;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies the one diagnostic marked in the source and the fix result under LF and under CRLF
+    /// </summary>
+    /// <param name="testData">The source with LF line endings</param>
+    /// <param name="fixedData">The fixed source with LF line endings</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyUnderBothLineEndings(string testData, string fixedData)
+    {
+        await Verify(testData, fixedData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

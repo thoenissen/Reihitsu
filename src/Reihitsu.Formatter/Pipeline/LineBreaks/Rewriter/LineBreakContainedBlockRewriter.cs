@@ -5,6 +5,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Data.Enumerations;
+using Reihitsu.Formatter.Extensions;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
@@ -55,6 +57,20 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
     #endregion // Constructor
 
     #region Methods
+
+    /// <summary>
+    /// Determines whether a node is the <see langword="if"/> statement of an <see langword="else"/> clause. The formatting
+    /// root has no parent, so for the root the facts the entry point captured from the document answer instead
+    /// </summary>
+    /// <param name="node">The node, as it entered the rewriter</param>
+    /// <param name="rootConstruct">The facts about the construct the formatting root stands in</param>
+    /// <returns><see langword="true"/> if the node is the <see langword="if"/> of an <see langword="else if"/></returns>
+    internal static bool IsElseIfBranch(SyntaxNode node, RootConstruct rootConstruct)
+    {
+        return node is IfStatementSyntax
+               && (node.Parent is ElseClauseSyntax
+                   || rootConstruct.IsRootIn(node, RootConstruct.ElseIf));
+    }
 
     /// <summary>
     /// Gets the block contained by a body-bearing statement, clause, accessor, or lambda
@@ -259,7 +275,7 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
 
         // Captured from the original node before recursing: rewriting can detach descendant nodes from
         // the tree, but the original node's parent link is still reliable at this point
-        var isElseIfBranch = node is IfStatementSyntax && node.Parent is ElseClauseSyntax;
+        var isElseIfBranch = IsElseIfBranch(node, _context.RootConstruct);
 
         var visited = base.Visit(node);
 

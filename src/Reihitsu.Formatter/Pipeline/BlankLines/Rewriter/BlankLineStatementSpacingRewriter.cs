@@ -62,7 +62,7 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
     /// Determines whether a statement needs the blank line that RH5030 requires after a closing brace, from its preceding
     /// statement and whether the statement itself is exempt as the terminal <see langword="break"/> of its switch section
     /// </summary>
-    /// <param name="previous">The preceding statement</param>
+    /// <param name="previousLastTokenKind">The kind of the last token of the preceding statement</param>
     /// <param name="isTerminalDirectSwitchSectionBreak">Whether the current statement is the terminal <see langword="break"/> directly inside its switch section</param>
     /// <returns><see langword="true"/> if the statement follows a closing brace and needs a blank line</returns>
     /// <remarks>
@@ -70,9 +70,9 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
     /// <see cref="NeedsBlankLineForStatementKind"/>. Callers must reposition the insertion past a leading
     /// directive rather than skip it.
     /// </remarks>
-    private static bool IsAfterClosingBrace(StatementSyntax previous, bool isTerminalDirectSwitchSectionBreak)
+    private static bool IsAfterClosingBrace(SyntaxKind previousLastTokenKind, bool isTerminalDirectSwitchSectionBreak)
     {
-        return previous.GetLastToken().IsKind(SyntaxKind.CloseBraceToken)
+        return previousLastTokenKind == SyntaxKind.CloseBraceToken
                && isTerminalDirectSwitchSectionBreak == false;
     }
 
@@ -80,15 +80,15 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
     /// Determines whether a blank line is required before the specified statement based on its own kind
     /// </summary>
     /// <param name="statement">The current statement</param>
-    /// <param name="previous">The preceding statement</param>
+    /// <param name="previousKind">The kind of the preceding statement</param>
     /// <param name="isTerminalDirectSwitchSectionBreak">Whether the current statement is the terminal <see langword="break"/> directly inside its switch section</param>
     /// <returns><see langword="true"/> if a blank line should be inserted before the statement</returns>
-    private static bool NeedsBlankLineForStatementKind(StatementSyntax statement, StatementSyntax previous, bool isTerminalDirectSwitchSectionBreak)
+    private static bool NeedsBlankLineForStatementKind(StatementSyntax statement, SyntaxKind previousKind, bool isTerminalDirectSwitchSectionBreak)
     {
         switch (statement)
         {
             case LocalDeclarationStatementSyntax:
-                return previous is LocalDeclarationStatementSyntax == false;
+                return previousKind != SyntaxKind.LocalDeclarationStatement;
 
             case TryStatementSyntax:
             case IfStatementSyntax:
@@ -111,10 +111,10 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
                 return isTerminalDirectSwitchSectionBreak == false;
 
             case YieldStatementSyntax:
-                return previous is YieldStatementSyntax == false;
+                return previousKind is not (SyntaxKind.YieldReturnStatement or SyntaxKind.YieldBreakStatement);
 
             case ExpressionStatementSyntax expressionStatement:
-                return previous is LocalDeclarationStatementSyntax
+                return previousKind == SyntaxKind.LocalDeclarationStatement
                        && expressionStatement.Expression is AssignmentExpressionSyntax == false;
 
             default:
@@ -126,17 +126,18 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
     /// Ensures the blank line the statement-spacing rules require before a statement
     /// </summary>
     /// <param name="statement">The current statement</param>
-    /// <param name="previous">The preceding statement</param>
+    /// <param name="previousKind">The kind of the preceding statement</param>
+    /// <param name="previousLastTokenKind">The kind of the last token of the preceding statement</param>
     /// <param name="isTerminalDirectSwitchSectionBreak">Whether the current statement is the terminal <see langword="break"/> directly inside its switch section</param>
     /// <returns>The statement with a blank line inserted before it, or the original if none is required or one already exists</returns>
-    private StatementSyntax ApplyStatementSpacing(StatementSyntax statement, StatementSyntax previous, bool isTerminalDirectSwitchSectionBreak)
+    private StatementSyntax ApplyStatementSpacing(StatementSyntax statement, SyntaxKind previousKind, SyntaxKind previousLastTokenKind, bool isTerminalDirectSwitchSectionBreak)
     {
-        if (IsAfterClosingBrace(previous, isTerminalDirectSwitchSectionBreak))
+        if (IsAfterClosingBrace(previousLastTokenKind, isTerminalDirectSwitchSectionBreak))
         {
             return _editor.EnsureBlankLineAfterClosingBrace(statement);
         }
 
-        return NeedsBlankLineForStatementKind(statement, previous, isTerminalDirectSwitchSectionBreak)
+        return NeedsBlankLineForStatementKind(statement, previousKind, isTerminalDirectSwitchSectionBreak)
                    ? _editor.EnsureBlankLineBeforeStatement(statement)
                    : statement;
     }
@@ -164,8 +165,10 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
         for (var statementIndex = 1; statementIndex < statements.Count; statementIndex++)
         {
             var currentStatement = newStatements[statementIndex];
+            var previousStatement = newStatements[statementIndex - 1];
             var updatedStatement = ApplyStatementSpacing(currentStatement,
-                                                         newStatements[statementIndex - 1],
+                                                         previousStatement.Kind(),
+                                                         previousStatement.GetLastToken().Kind(),
                                                          BlankLineSpacingPolicy.IsTerminalDirectSwitchSectionBreak(currentStatement));
 
             if (updatedStatement == currentStatement)
@@ -202,9 +205,9 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
         var position = _context.RootListPosition;
 
         if (visited is StatementSyntax statement
-            && position.PreviousStatement != null)
+            && position.HasPreviousStatement)
         {
-            return ApplyStatementSpacing(statement, position.PreviousStatement, position.IsTerminalDirectSwitchSectionBreak);
+            return ApplyStatementSpacing(statement, position.PreviousStatementKind, position.PreviousStatementLastTokenKind, position.IsTerminalDirectSwitchSectionBreak);
         }
 
         return visited;

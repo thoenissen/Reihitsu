@@ -4,8 +4,8 @@
 |---|---|
 | ID prefix | FMT-PIPE |
 | Status | Active |
-| Code owners | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `PreparationPhase`, `FormattingContext`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities` |
-| Uses | SHARED-FIX-001, SHARED-FIX-006, SHARED-FIX-007, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BREAK-001, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-CLEAN-001, FMT-CLEAN-005, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-026, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003 |
+| Code owners | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `PreparationPhase`, `FormattingContext`, `PrecedingTokenFacts`, `RootListPosition`, `RootConstruct`, `RootConstructExtensions`, `TriviaFact`, `FluentChainBoundary`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities` |
+| Uses | SHARED-CHAIN-001, SHARED-FIX-001, SHARED-FIX-006, SHARED-FIX-007, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BREAK-001, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-CLEAN-001, FMT-CLEAN-005, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-002, FMT-INDENT-003, FMT-INDENT-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-012, FMT-INDENT-022, FMT-INDENT-024, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-026, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003 |
 
 This spec covers what holds for the formatter as a whole: the public entry points, the fixed phase order, and the invariants every phase must keep. What an individual phase decides is specified in that phase's own spec.
 
@@ -15,6 +15,7 @@ This spec covers what holds for the formatter as a whole: the public entry point
 - File and directory walking, skipped file names, `--check`, `--dry-run`, and exit codes — those belong to the CLI specs.
 - Configuration. The formatter applies one fixed style and reads no `.editorconfig`, rule set, or option.
 - Formatting of code with syntax errors or of generated code (see FMT-PIPE-005 and FMT-PIPE-006).
+- Node-level inputs that none of the repository's own callers passes (`AGENTS.md`, *Supported inputs*). The node-level requirements decide the nodes a code fix passes. Their examples call the entry points directly with such nodes, and a node no caller passes is decided only as far as a requirement names it.
 
 ## Requirements
 
@@ -257,7 +258,7 @@ Why: The CLI, the analyzer code fixes, and the Playground share one engine. Keep
 
 ### FMT-PIPE-010 — Node-level entry points format only their target
 
-`FormatNodeInDocumentAsync` and `FormatNodeInDocumentWithContextAsync` MUST rewrite only the target node and keep the rest of the document as it is. The one exception is the whitespace that ended the line before a documentation comment the target moves onto its own line, which MUST be removed as document-level formatting removes it. `FormatNodeInDocumentAsync` MUST keep the target's leading trivia when the target does not start its line or is a direct child of the root; `FormatNodeInDocumentWithContextAsync` MUST keep it in every case (FMT-PIPE-018). Both MUST keep the target's trailing trivia in every case.
+`FormatNodeInDocumentAsync` and `FormatNodeInDocumentWithContextAsync` MUST rewrite only the target node and keep the rest of the document as it is. The one exception is the whitespace that ended the line before a documentation comment the target moves onto its own line, which MUST be removed as document-level formatting removes it. `FormatNodeInDocumentAsync` MUST keep the target's leading trivia when the target does not start its line or is a direct child of the root; `FormatNodeInDocumentWithContextAsync` MUST keep it in every case (FMT-PIPE-018). Both MUST keep the target's trailing trivia in every case. They format the target, or the context that holds it, as a root of its own (FMT-PIPE-023), and what the phases know of the document around that root is the facts FMT-PIPE-024 lists.
 
 Why: These entry points serve code fixes, which change only the code their diagnostic is about (SHARED-FIX-006). Reformatting the surrounding document would turn a one-line fix into an unrelated diff.
 
@@ -291,11 +292,50 @@ class C
 
 Why: A code fix that reformats the member it changed must not also change the member's shape — that is a separate decision the user did not ask the fix to make. The example under FMT-PIPE-010 shows the accessor block kept.
 
-### FMT-PIPE-012 — Detached nodes skip the file-level guards
+### FMT-PIPE-012 — `FormatNode` skips the file-level guards and lays out the node at its depth
 
-`FormatNode` MUST format the node it is given without checking for syntax errors or the generated-code marker, and MUST take the indentation level from its `indentLevel` argument when that is zero or greater, otherwise from the node's position in its tree.
+`FormatNode` MUST format the node it is given without checking for syntax errors or the generated-code marker. It MUST lay out the node at the depth its `indentLevel` argument gives when that is zero or greater, and otherwise at the depth the indentation phase gives the node's first token at its position in its tree: one level per enclosing scope (FMT-INDENT-002, FMT-INDENT-003) and one per unbraced embedded statement that the node is or lies in (FMT-INDENT-004), so an `else if` adds none. An object or collection initializer or an anonymous object that the node lies in MUST NOT add a level. A node without a parent has depth 0.
 
-Why: `FormatNode` receives freshly generated or detached subtrees that have no file header and whose tree diagnostics say nothing about the file they will be inserted into. The caller is responsible for passing a node that is safe to format.
+`FormatNode` MUST NOT read the code in front of the node or behind it: it supplies no preceding token and no list position (FMT-PIPE-024), so a node that is part of a tree gets the result that the same node without a parent gets at the same depth.
+
+Why: `FormatNode` receives freshly generated or detached subtrees that have no file header and whose tree diagnostics say nothing about the file they will be inserted into. The caller is responsible for passing a node that is safe to format, and it inserts the result where it decides, so the code around the node in the tree it came from says nothing about the result's surroundings. The depth is the indentation phase's own, so a node that the indentation phase places by its depth lands in the column document-level formatting gives it; a second depth rule would disagree with it. A node that the indentation phase aligns to an anchor outside the node instead — a member of an initializer (FMT-INDENT-022 to FMT-INDENT-024), a statement in a lambda block passed as an argument, an arm of a switch expression — lands where its depth puts it, not where the anchor would: no depth expresses the anchor's column, and `FormatNode` does not read the code around the node.
+
+Example — `FormatNode` on the embedded statement of `if (a)`:
+
+```csharp
+class C
+{
+    void M(bool a)
+    {
+        if (a)
+            Call(1,
+            2);
+    }
+}
+```
+
+returns the statement one level deeper than the `if`, with `2` aligned under `1` (FMT-INDENT-012):
+
+```csharp
+            Call(1,
+                 2);
+```
+
+The same holds for the embedded statement of `else` and of a loop. With `indentLevel: 0`, the result is `Call(1,` and `     2);` with five spaces; with `indentLevel: 3`, it is the block above.
+
+Example — `FormatNode` on the assignment `P = Call(1,` / `2)` inside `var x = new D` / `{` / … / `};` in the body of `M`: the initializer adds no level, so `P` starts in column 8 and `2` in column 17. Document-level formatting puts `P` in column 20, four columns right of the initializer's brace, which `new` places in column 16 (FMT-INDENT-022).
+
+Example — `FormatNode` on the property `Other`, whose documentation comment is written behind the closing brace of the property above it:
+
+```csharp
+class C
+{
+    public int Value { get; set; } /// <summary>Trailing summary.</summary>
+    public int Other { get; set; }
+}
+```
+
+returns the property with the comment in front of it and no line break in front of the comment, because the token in front of the node is not read; the result starts with `    /// <summary>`, followed by `    /// Trailing summary.`, `    /// </summary>`, and `    public int Other { get; set; }`.
 
 ### FMT-PIPE-013 — Wrapping code in a block keeps the comments' layout
 
@@ -749,3 +789,120 @@ class C
     }
 }
 ```
+
+### FMT-PIPE-023 — Node-level entry points format a detached root
+
+`FormatNode`, `FormatNodeInDocumentAsync`, and `FormatNodeInDocumentWithContextAsync` MUST give the pipeline a root without a parent — the node, the target, or the copy of the context that marks the target — as the root of a tree of its own. A phase MUST NOT read a token, a trivia, a node, or the text of the document outside that root, neither through the root's ancestors or its neighbouring tokens nor through the text of the tree the root came from; what a phase needs from there MUST come from the facts FMT-PIPE-024 lists. So the output of a node-level entry point MUST NOT depend on whether a phase changes the root before another phase reads it: a target that holds a tab in its whitespace, which the preparation phase replaces (FMT-PIPE-019), MUST get the output the same target with spaces gets.
+
+Why: A root that is still part of its document has two answers to every read across its boundary: the document's neighbour while no phase has changed the root, and none once a phase has returned a changed copy. Which answer a phase gets would depend on whether an earlier phase changed something, such as a tab the preparation phase replaces (FMT-PIPE-019), and the same code would be formatted in two ways. A detached root gives one answer, and the facts say what the document holds.
+
+Example — `FormatNode` on the statement `Call(1, 2);`:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = 1;
+
+        Call(1, 2);
+    }
+}
+```
+
+returns `        Call(1, 2);`, without a line break in front of it, and returns the same when the statement holds a tab after the comma instead of the space. `FormatNodeInDocumentAsync` with the same statement as target keeps the blank line above it in both cases, as it decides that blank line from the facts about the code in front of the target (FMT-PIPE-024), and returns the document as it is, the tab replaced by one space.
+
+Example — `FormatNodeInDocumentAsync` with the `if` of the `else if` as target keeps `// note` behind its condition, with and without a tab in the target's condition:
+
+```csharp
+class C
+{
+    void M(bool x, bool y)
+    {
+        if (x)
+        {
+        }
+        else if (y) // note
+        {
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(bool x, bool y)
+    {
+        if (x)
+        {
+        }
+        else if (y) // note
+             {
+             }
+    }
+}
+```
+
+The braces follow the target's first token, which keeps its column in the document (FMT-PIPE-017).
+
+### FMT-PIPE-024 — Node-level input facts are plain values
+
+The node-level entry points MUST give the phases the facts in the table below about the document around their root, and no other, besides the line ending (FMT-PIPE-007), the language version (FMT-PIPE-008), and the transforms they skip (FMT-PIPE-011). Every fact MUST be a plain value — a kind, a flag, a number, or the kind and text of a trivia — and MUST NOT hold a node, a token, or a trivia of the document.
+
+| Fact | Value | `FormatNode` | `FormatNodeInDocumentAsync` | `FormatNodeInDocumentWithContextAsync` |
+|---|---|---|---|---|
+| Depth | The number of levels of the root, as FMT-PIPE-012 states it for a root without an explicit `indentLevel` | the node, or its `indentLevel` | the target | the context |
+| First-token column | The column of the root's first token in the document (FMT-PIPE-017), or none when the root is the document's root | none | the target | the context |
+| Documentation boundary | Whether the root is something other than a compilation unit; when it is, one line break in front of a single-line documentation comment that leads the root is kept while the root's leading blank lines are removed | yes | yes | yes |
+| Preceding token | The kind of the token in front of the root in the document, whether it is the colon of a switch label, and the kind and text of each of its trailing trivia, in order; none when no token stands in front of the root | none | the target | none |
+| List position | The kind of the statement in front of the root in its block or switch section and the kind of that statement's last token, whether the switch section in front of the root ends in a `break` statement, and whether the root is a `break` statement that ends its switch section | none | the target, when it starts its line | none |
+| `else if` | Whether the root is the `if` statement of an `else` clause | none | the target | none |
+| Chain continuation | Whether the root's parent continues the root's member-access chain (SHARED-CHAIN-001), so that the root is not the outermost node of its chain | none | the target | none |
+| Conditional-access branch | Whether the root is the part of a conditional access behind its `?`, so that an assignment that is the root continues the chain of its left side | none | the target | none |
+| One-line property | Whether the root is an accessor or an accessor list of a property, indexer, or event declaration that stands on one line apart from its attribute lists; it counts only while the root itself holds no line break, in its text or its leading trivia | none | the target | none |
+| List element | Whether the root is, or lies inside, an element of an argument, attribute-argument, parameter, type-parameter, function-pointer-parameter, tuple, attribute, or type-argument list, with no construct between the root and that element that lays out the lines inside it: a brace scope, an initializer, an anonymous object, a switch expression, a collection expression, a recursive, list, or parenthesized pattern, an accessor list, an interpolation hole, or a query body | none | the target | none |
+| Element-access arguments | Whether the root is the bracketed argument list of an element access or of an implicit element access | none | the target | none |
+| Case-label pattern | Whether a `case` label introduces the root as its pattern, directly or through `and`, `or`, and `not` patterns | none | the target | none |
+| Assigned collection initializer | Whether the root is a collection initializer on the right of an assignment | none | the target | none |
+
+`FormatNodeInDocumentAsync` gives a list position only to a target that starts its line and is a statement directly inside a block or a switch section, or a switch section. A block statement gets one only when an own-line comment is the last content in front of its opening brace, because the line-break phase decides the gap above that brace itself; that exception stays until the blank-line phase is the only owner of blank lines (thoenissen/Reihitsu#1496).
+
+These decisions MUST read the facts instead of the neighbour or the ancestor they would read if the root were part of the document:
+
+- the blank-line phase decides the root's leading blank lines from the preceding token — its kind, and whether it ends its line — the list position, and the documentation boundary;
+- the documentation phase decides from the preceding token whether a documentation comment that leads the root is written behind code;
+- the rule of SHARED-CHAIN-001 that only the outermost node of a chain is laid out as a chain decides, for every node of the root, whether that node is the outermost node of its chain; where the rule would read above the root, it reads the chain-continuation and conditional-access-branch facts instead. The line-break phase lays out, and the indentation phase aligns, a chain only at the node the rule names;
+- the line-break phase, from the other construct facts, leaves a comment behind the condition of an `else if` root where it stands, keeps the attribute lists of an accessor of a one-line property on the property's line while the root holds no line break, joins the interior wraps of a root inside a list element, may collapse the arguments of an element access onto one line, keeps the opening brace of a recursive pattern a `case` label introduces on the label's line, and keeps the opening brace of an assigned collection initializer on the assignment's line;
+- the indentation phase lays out the root from the depth and the first-token column and aligns the comments that lead the root from the preceding token.
+
+What follows the root's last token MUST be decided as at the end of a file: the node-in-document entry points write back the target's trailing trivia from the document (FMT-PIPE-010), and the caller of `FormatNode` decides what follows the node.
+
+Why: A fact that holds a node or trivia of the document carries positions in a tree the root no longer belongs to, and a rule that forbids reading them cannot be enforced. The values in the table are what the phases use: whether the token in front ends its line, whether a comment trails it, where a line starts behind it, the kinds the blank-line rules compare, and, for the construct the root stands in, the one answer each line-break decision takes from the root's ancestors. A decision that got no fact would decide as if the root were a construct of its own: the `if` of `else if (y) // note` would get the comment moved in front of it, where `FormatNodeInDocumentAsync` writes the document's leading trivia back over it (FMT-PIPE-010), and the comment would be lost. The entry points differ because their results do: `FormatNodeInDocumentAsync` writes its target back into the document and decides the target's blank lines, documentation, and layout from it, `FormatNodeInDocumentWithContextAsync` writes back its target's leading trivia as it stands in the document (FMT-PIPE-018), and the caller of `FormatNode` decides what stands around the node (FMT-PIPE-012).
+
+Example — `FormatNodeInDocumentAsync` with the statement `Call(1, 2);` as target, behind `var a = 1;` without a blank line: the list position says that a local declaration stands in front of the statement, so the blank line that FMT-BLANK requires there is inserted, as document-level formatting inserts it:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = 1;
+        Call(1, 2);
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = 1;
+
+        Call(1, 2);
+    }
+}
+```
+
+`FormatNode` with the same statement returns `        Call(1, 2);`: it supplies no list position, and its caller decides what stands in front of the node.

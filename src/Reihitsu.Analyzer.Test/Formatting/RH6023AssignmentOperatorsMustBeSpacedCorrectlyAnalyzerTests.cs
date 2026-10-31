@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -471,6 +471,433 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
                                  """;
 
         await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix on an assignment inside a conditional access, where the assigned member stands on its own line behind a member binding, puts one space on both
+    /// sides of the operator and keeps the layout of the chain, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6023-002")]
+    [Requirement("FMT-PIPE-024")]
+    public async Task VerifyFixKeepsTheWrappedLinkOfAnAssignedMemberBehindAMemberBinding()
+    {
+        const string testData = """
+                                class A
+                                {
+                                    public A B { get; set; }
+
+                                    public A this[int i] => this;
+
+                                    public int C { get; set; }
+                                }
+
+                                class C
+                                {
+                                    void M(A a)
+                                    {
+                                        a?.B
+                                          .C{|#0:=|}5;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class A
+                                 {
+                                     public A B { get; set; }
+
+                                     public A this[int i] => this;
+
+                                     public int C { get; set; }
+                                 }
+
+                                 class C
+                                 {
+                                     void M(A a)
+                                     {
+                                         a?.B
+                                           .C = 5;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix on an assignment inside a conditional access, where the member of a compound assignment stands on its own line behind a member binding, puts one space on both
+    /// sides of the operator and keeps the layout of the chain, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6023-002")]
+    [Requirement("FMT-PIPE-024")]
+    public async Task VerifyFixKeepsTheWrappedLinkOfACompoundAssignedMemberBehindAMemberBinding()
+    {
+        const string testData = """
+                                class A
+                                {
+                                    public A B { get; set; }
+
+                                    public A this[int i] => this;
+
+                                    public int C { get; set; }
+                                }
+
+                                class C
+                                {
+                                    void M(A a)
+                                    {
+                                        a?.B
+                                         .C{|#0:+=|}5;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class A
+                                 {
+                                     public A B { get; set; }
+
+                                     public A this[int i] => this;
+
+                                     public int C { get; set; }
+                                 }
+
+                                 class C
+                                 {
+                                     void M(A a)
+                                     {
+                                         a?.B
+                                           .C += 5;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix on an assignment inside a conditional access, where the assigned member stands on its own line behind an element binding, puts one space on both
+    /// sides of the operator and keeps the layout of the chain, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6023-002")]
+    [Requirement("FMT-PIPE-024")]
+    public async Task VerifyFixKeepsTheWrappedLinkOfAnAssignedMemberBehindAnElementBinding()
+    {
+        const string testData = """
+                                class A
+                                {
+                                    public A B { get; set; }
+
+                                    public A this[int i] => this;
+
+                                    public int C { get; set; }
+                                }
+
+                                class C
+                                {
+                                    void M(A a)
+                                    {
+                                        a?[0]
+                                          .C{|#0:=|}5;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class A
+                                 {
+                                     public A B { get; set; }
+
+                                     public A this[int i] => this;
+
+                                     public int C { get; set; }
+                                 }
+
+                                 class C
+                                 {
+                                     void M(A a)
+                                     {
+                                         a?[0]
+                                           .C = 5;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix on an assignment inside a conditional access, where the assigned member stands on its own line behind a nested conditional access, puts one space on both
+    /// sides of the operator and keeps the layout of the chain, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6023-002")]
+    [Requirement("FMT-PIPE-024")]
+    public async Task VerifyFixKeepsTheWrappedLinkOfAnAssignedMemberInANestedConditionalAccess()
+    {
+        const string testData = """
+                                class A
+                                {
+                                    public A B { get; set; }
+
+                                    public A this[int i] => this;
+
+                                    public int C { get; set; }
+                                }
+
+                                class C
+                                {
+                                    void M(A a)
+                                    {
+                                        a?.B?.B
+                                            .C{|#0:=|}5;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class A
+                                 {
+                                     public A B { get; set; }
+
+                                     public A this[int i] => this;
+
+                                     public int C { get; set; }
+                                 }
+
+                                 class C
+                                 {
+                                     void M(A a)
+                                     {
+                                         a?.B?.B
+                                              .C = 5;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix on an assignment inside a conditional access, where the assigned member ends a longer chain whose links stand on their own lines, puts one space on both
+    /// sides of the operator and keeps the layout of the chain, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6023-002")]
+    [Requirement("FMT-PIPE-024")]
+    public async Task VerifyFixKeepsTheWrappedLinksOfALongerAssignedChain()
+    {
+        const string testData = """
+                                class A
+                                {
+                                    public A B() => this;
+
+                                    public A D => this;
+
+                                    public int C { get; set; }
+                                }
+
+                                class C
+                                {
+                                    void M(A a)
+                                    {
+                                        a?.B()
+                                          .D
+                                          .C {|#0:=|}5;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class A
+                                 {
+                                     public A B() => this;
+
+                                     public A D => this;
+
+                                     public int C { get; set; }
+                                 }
+
+                                 class C
+                                 {
+                                     void M(A a)
+                                     {
+                                         a?.B()
+                                           .D
+                                           .C = 5;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix on an assignment inside a conditional access, where the assigned member stands on the line of its member binding, puts one space on both
+    /// sides of the operator and keeps the layout of the chain, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6023-002")]
+    [Requirement("FMT-PIPE-024")]
+    public async Task VerifyFixKeepsAnAssignedMemberOnOneLineBehindAMemberBinding()
+    {
+        const string testData = """
+                                class A
+                                {
+                                    public A B { get; set; }
+
+                                    public A this[int i] => this;
+
+                                    public int C { get; set; }
+                                }
+
+                                class C
+                                {
+                                    void M(A a)
+                                    {
+                                        a?.B.C{|#0:=|}5;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class A
+                                 {
+                                     public A B { get; set; }
+
+                                     public A this[int i] => this;
+
+                                     public int C { get; set; }
+                                 }
+
+                                 class C
+                                 {
+                                     void M(A a)
+                                     {
+                                         a?.B.C = 5;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix on an assignment inside a conditional access, where the assigned member is the member binding itself, puts one space on both
+    /// sides of the operator and keeps the layout of the chain, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6023-002")]
+    [Requirement("FMT-PIPE-024")]
+    public async Task VerifyFixOnAnAssignedMemberBindingKeepsItOnItsLine()
+    {
+        const string testData = """
+                                class A
+                                {
+                                    public A B { get; set; }
+
+                                    public A this[int i] => this;
+
+                                    public int C { get; set; }
+                                }
+
+                                class C
+                                {
+                                    void M(A a)
+                                    {
+                                        a?.B{|#0:=|}a;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class A
+                                 {
+                                     public A B { get; set; }
+
+                                     public A this[int i] => this;
+
+                                     public int C { get; set; }
+                                 }
+
+                                 class C
+                                 {
+                                     void M(A a)
+                                     {
+                                         a?.B = a;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix on an assignment inside a conditional access, where the assigned member and the value each stand on their own line behind a member binding, keeps the line break in front
+    /// of the assigned member and moves the value onto the line of the operator, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6023-002")]
+    [Requirement("FMT-PIPE-024")]
+    public async Task VerifyFixKeepsTheWrappedLinkOfAnAssignedMemberWhoseValueIsWrapped()
+    {
+        const string testData = """
+                                class A
+                                {
+                                    public A B { get; set; }
+
+                                    public A this[int i] => this;
+
+                                    public int C { get; set; }
+                                }
+
+                                class C
+                                {
+                                    void M(A a)
+                                    {
+                                        a?.B
+                                          .C{|#0:=|}
+                                            5;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class A
+                                 {
+                                     public A B { get; set; }
+
+                                     public A this[int i] => this;
+
+                                     public int C { get; set; }
+                                 }
+
+                                 class C
+                                 {
+                                     void M(A a)
+                                     {
+                                         a?.B
+                                           .C = 5;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies the one diagnostic marked in the source and the fix result under LF and under CRLF
+    /// </summary>
+    /// <param name="testData">The source with LF line endings</param>
+    /// <param name="fixedData">The fixed source with LF line endings</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyUnderBothLineEndings(string testData, string fixedData)
+    {
+        await Verify(testData, fixedData, Diagnostics(RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6023MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6023MessageFormat));
     }
 
     #endregion // Tests

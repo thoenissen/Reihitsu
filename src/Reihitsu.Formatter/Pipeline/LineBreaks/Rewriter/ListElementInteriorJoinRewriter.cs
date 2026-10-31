@@ -5,6 +5,9 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
+using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Data.Enumerations;
+using Reihitsu.Formatter.Extensions;
 using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
@@ -40,6 +43,11 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
     #region Fields
 
     /// <summary>
+    /// The formatting context
+    /// </summary>
+    private readonly FormattingContext _context;
+
+    /// <summary>
     /// Cancellation token
     /// </summary>
     private readonly CancellationToken _cancellationToken;
@@ -51,9 +59,11 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
+    /// <param name="context">The formatting context</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public ListElementInteriorJoinRewriter(CancellationToken cancellationToken)
+    public ListElementInteriorJoinRewriter(FormattingContext context, CancellationToken cancellationToken)
     {
+        _context = context;
         _cancellationToken = cancellationToken;
     }
 
@@ -66,10 +76,11 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
     /// previous token's line
     /// </summary>
     /// <param name="root">The root being formatted</param>
+    /// <param name="rootConstruct">The facts about the construct the formatting root stands in</param>
     /// <param name="token">The token that would be pulled onto the previous line</param>
     /// <param name="previousToken">The previous token, whose line the token would join</param>
     /// <returns><see langword="true"/> if the token may be joined; otherwise, <see langword="false"/></returns>
-    private static bool CanJoin(SyntaxNode root, SyntaxToken token, out SyntaxToken previousToken)
+    private static bool CanJoin(SyntaxNode root, RootConstruct rootConstruct, SyntaxToken token, out SyntaxToken previousToken)
     {
         previousToken = default;
 
@@ -92,7 +103,7 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
             return false;
         }
 
-        var element = FindInnermostListElement(token);
+        var element = FindInnermostListElement(root, rootConstruct, token);
 
         if (element == null || element.GetFirstToken() == token)
         {
@@ -105,11 +116,16 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Finds the innermost ancestor of a token that is an element of an argument-, parameter-, attribute-, tuple-, or
-    /// type-argument-like list
+    /// type-argument-like list. The formatting root has no parent, so when no element lies inside the root, the facts the
+    /// entry point captured from the document say whether the root is, or lies inside, such an element with no owning
+    /// construct between (<see cref="ListElementInteriorUtilities.LiesInListElement"/>); the root then stands for that
+    /// element, and only the constructs inside the root are left to decide whether a gap is owned
     /// </summary>
+    /// <param name="root">The root being formatted</param>
+    /// <param name="rootConstruct">The facts about the construct the formatting root stands in</param>
     /// <param name="token">The token</param>
     /// <returns>The innermost list element containing the token, or <see langword="null"/> if there is none</returns>
-    private static SyntaxNode FindInnermostListElement(SyntaxToken token)
+    private static SyntaxNode FindInnermostListElement(SyntaxNode root, RootConstruct rootConstruct, SyntaxToken token)
     {
         for (var node = token.Parent; node != null; node = node.Parent)
         {
@@ -119,7 +135,9 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
             }
         }
 
-        return null;
+        return rootConstruct.IsRootIn(root, RootConstruct.ListElement)
+                   ? root
+                   : null;
     }
 
     /// <summary>
@@ -304,7 +322,7 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            if (CanJoin(root, token, out var previousToken) == false)
+            if (CanJoin(root, _context.RootConstruct, token, out var previousToken) == false)
             {
                 continue;
             }

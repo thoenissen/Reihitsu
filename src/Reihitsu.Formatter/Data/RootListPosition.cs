@@ -1,7 +1,9 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
+using Reihitsu.Formatter.Pipeline.BlankLines.Rewriter;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 namespace Reihitsu.Formatter.Data;
@@ -9,9 +11,10 @@ namespace Reihitsu.Formatter.Data;
 /// <summary>
 /// The facts about the position of a formatting root inside the statement list or switch-section list of its document,
 /// which the list-level blank-line decisions read. Those decisions run in the visitor of the list's parent, and that parent
-/// lies outside a formatting run rooted at the list element itself. These facts are captured before the pipeline runs, from
-/// the document as it stands, so that a phase replacing the root does not change them. Only kinds and last tokens of the
-/// captured nodes may be read, never their positions
+/// lies outside a formatting run rooted at the list element itself. The facts are plain values (FMT-PIPE-024), captured
+/// before the pipeline runs from the document as it stands: the kind of the statement in front of the root and of that
+/// statement's last token, whether the switch section in front of the root ends in a <see langword="break"/> statement, and
+/// whether the root is the terminal <see langword="break"/> directly inside its switch section
 /// </summary>
 internal readonly struct RootListPosition
 {
@@ -20,13 +23,15 @@ internal readonly struct RootListPosition
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="previousStatement">The statement that precedes the root statement in its block or switch section</param>
-    /// <param name="previousSection">The switch section that precedes the root switch section in its switch statement</param>
+    /// <param name="previousStatementKind">The kind of the statement that precedes the root statement in its block or switch section</param>
+    /// <param name="previousStatementLastTokenKind">The kind of the last token of that statement</param>
+    /// <param name="isBehindSectionEndingInBreak">Whether the switch section that precedes the root switch section ends in a <see langword="break"/> statement</param>
     /// <param name="isTerminalDirectSwitchSectionBreak">Whether the root is the terminal <see langword="break"/> directly inside its switch section</param>
-    private RootListPosition(StatementSyntax previousStatement, SwitchSectionSyntax previousSection, bool isTerminalDirectSwitchSectionBreak)
+    private RootListPosition(SyntaxKind previousStatementKind, SyntaxKind previousStatementLastTokenKind, bool isBehindSectionEndingInBreak, bool isTerminalDirectSwitchSectionBreak)
     {
-        PreviousStatement = previousStatement;
-        PreviousSection = previousSection;
+        PreviousStatementKind = previousStatementKind;
+        PreviousStatementLastTokenKind = previousStatementLastTokenKind;
+        IsBehindSectionEndingInBreak = isBehindSectionEndingInBreak;
         IsTerminalDirectSwitchSectionBreak = isTerminalDirectSwitchSectionBreak;
     }
 
@@ -35,20 +40,31 @@ internal readonly struct RootListPosition
     #region Properties
 
     /// <summary>
-    /// The statement that precedes the root statement in its block or switch section in the document, or
-    /// <see langword="null"/> when the root is no statement of such a list, is the first one, or does not start its line
+    /// The kind of the statement that precedes the root statement in its block or switch section in the document, or
+    /// <see cref="SyntaxKind.None"/> when the root is no statement of such a list, is the first one, or does not start its line
     /// </summary>
-    public StatementSyntax PreviousStatement { get; }
+    public SyntaxKind PreviousStatementKind { get; }
 
     /// <summary>
-    /// The switch section that precedes the root switch section in its switch statement in the document, or
-    /// <see langword="null"/> when the root is no switch section, is the first one, or does not start its line
+    /// The kind of the last token of the statement that precedes the root statement, or <see cref="SyntaxKind.None"/> when
+    /// there is no such statement
     /// </summary>
-    public SwitchSectionSyntax PreviousSection { get; }
+    public SyntaxKind PreviousStatementLastTokenKind { get; }
+
+    /// <summary>
+    /// Whether a statement precedes the root statement in its block or switch section
+    /// </summary>
+    public bool HasPreviousStatement => PreviousStatementKind != SyntaxKind.None;
+
+    /// <summary>
+    /// Whether the root is a switch section that starts its line and the switch section in front of it in its switch statement
+    /// ends in a <see langword="break"/> statement
+    /// </summary>
+    public bool IsBehindSectionEndingInBreak { get; }
 
     /// <summary>
     /// Whether the root is the terminal <see langword="break"/> directly inside its switch section, evaluated in the document
-    /// because a replaced root no longer reaches its parent
+    /// because a detached root no longer reaches its parent
     /// </summary>
     public bool IsTerminalDirectSwitchSectionBreak { get; }
 
@@ -82,19 +98,23 @@ internal readonly struct RootListPosition
 
             case StatementSyntax statement when statement.Parent is BlockSyntax block:
                 {
-                    return new RootListPosition(GetPrevious(block.Statements, statement), null, false);
+                    return ForStatement(GetPrevious(block.Statements, statement), false);
                 }
 
             case StatementSyntax statement when statement.Parent is SwitchSectionSyntax section:
                 {
-                    return new RootListPosition(GetPrevious(section.Statements, statement),
-                                                null,
-                                                BlankLineSpacingPolicy.IsTerminalDirectSwitchSectionBreak(statement));
+                    return ForStatement(GetPrevious(section.Statements, statement),
+                                        BlankLineSpacingPolicy.IsTerminalDirectSwitchSectionBreak(statement));
                 }
 
             case SwitchSectionSyntax section when section.Parent is SwitchStatementSyntax switchStatement:
                 {
-                    return new RootListPosition(null, GetPrevious(switchStatement.Sections, section), false);
+                    var previousSection = GetPrevious(switchStatement.Sections, section);
+
+                    return new RootListPosition(SyntaxKind.None,
+                                                SyntaxKind.None,
+                                                previousSection != null && BlankLineBreakSpacingRewriter.EndsInBreak(previousSection),
+                                                false);
                 }
 
             default:
@@ -127,6 +147,19 @@ internal readonly struct RootListPosition
         }
 
         return leadingTrivia[SyntaxTriviaUtilities.FindLastSignificantTriviaIndex(leadingTrivia)].IsDirective == false;
+    }
+
+    /// <summary>
+    /// Creates the position of a root statement from the statement in front of it
+    /// </summary>
+    /// <param name="previousStatement">The statement in front of the root statement, or <see langword="null"/> when there is none</param>
+    /// <param name="isTerminalDirectSwitchSectionBreak">Whether the root is the terminal <see langword="break"/> directly inside its switch section</param>
+    /// <returns>The position</returns>
+    private static RootListPosition ForStatement(StatementSyntax previousStatement, bool isTerminalDirectSwitchSectionBreak)
+    {
+        return previousStatement == null
+                   ? new RootListPosition(SyntaxKind.None, SyntaxKind.None, false, isTerminalDirectSwitchSectionBreak)
+                   : new RootListPosition(previousStatement.Kind(), previousStatement.GetLastToken().Kind(), false, isTerminalDirectSwitchSectionBreak);
     }
 
     /// <summary>

@@ -328,9 +328,11 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> preserves off-position documentation when its preceding token is outside the target subtree
+    /// Verifies the spec example: <see cref="ReihitsuFormatter.FormatNode"/> keeps a documentation comment written behind the token in
+    /// front of its node in front of the node, and adds no line break in front of the comment, because it does not read that token
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-012")]
     public void FormatNodeWithPreviousTokenOutsideTargetPreservesTrailingDocumentation()
     {
         const string input = """
@@ -340,7 +342,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                                  public int Other { get; set; }
                              }
                              """;
-        const string expectedWithLf = "\n    /// <summary>\n    /// Trailing summary.\n    /// </summary>\n    public int Other { get; set; }";
+        const string expectedWithLf = "    /// <summary>\n    /// Trailing summary.\n    /// </summary>\n    public int Other { get; set; }";
 
         foreach (var endOfLine in _lineEndings)
         {
