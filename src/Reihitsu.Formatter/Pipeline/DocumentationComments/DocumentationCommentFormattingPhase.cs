@@ -7,13 +7,15 @@ using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
 using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Pipeline.DocumentationComments.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.DocumentationComments;
 
 /// <summary>
-/// Normalizes XML documentation comments to repository-specific layout rules. Element-level layout
+/// Starts a new line in front of every documentation comment, single-line or delimited, written behind the code in front
+/// of it (FMT-DOC-001), and normalizes XML documentation comments to repository-specific layout rules. Element-level layout
 /// decisions live in <see cref="DocCommentElementNormalizer"/>; this phase locates the candidate
 /// elements, splices in their normalized text — repeating until no candidate is left, because only
 /// the outermost ones can be rebuilt per round — and fixes the <c>///</c> line prefixes. A comment stranded behind
@@ -97,13 +99,15 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     }
 
     /// <summary>
-    /// Moves off-position single-line documentation trivia onto a line of its own before its following token
+    /// Starts a new line in front of every documentation comment written behind code that documents the code following
+    /// it: single-line comments in every position, delimited comments in the positions
+    /// <see cref="IsMovableDelimitedDocumentation"/> admits
     /// </summary>
     /// <param name="root">Root node</param>
     /// <param name="sourceText">Source text</param>
     /// <param name="context">The formatting context</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The root with trailing documentation comments moved before their Roslyn owner</returns>
+    /// <returns>The root with documentation comments written behind code moved onto a new line before their Roslyn owner</returns>
     private static SyntaxNode RelocateOffPositionDocumentationComments(SyntaxNode root, SourceText sourceText, FormattingContext context, CancellationToken cancellationToken)
     {
         var owningRelocations = new Dictionary<SyntaxToken, List<SyntaxTrivia>>();
@@ -161,9 +165,15 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
                                            IDictionary<SyntaxToken, List<SyntaxTrivia>> owningRelocations,
                                            Dictionary<SyntaxToken, int> previousTokenRelocationCounts)
     {
-        if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) == false
+        if (SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia) == false
             || (DocumentationCommentUtilities.IsWrittenBehindSource(trivia, sourceText) == false
                 && IsWrittenBehindRootPrecedingToken(root, trivia, sourceText, context) == false))
+        {
+            return;
+        }
+
+        if (trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia)
+            && IsMovableDelimitedDocumentation(trivia, context) == false)
         {
             return;
         }
@@ -192,6 +202,33 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
 
         previousTokenRelocationCounts.TryGetValue(previousToken, out var relocationCount);
         previousTokenRelocationCounts[previousToken] = relocationCount + 1;
+    }
+
+    /// <summary>
+    /// Determines whether a delimited documentation comment written behind code is one this phase starts a new line in
+    /// front of. FMT-DOC-001 leaves a delimited comment undecided when it stands behind an earlier comment of the same
+    /// leading trivia, behind an opening brace, or behind the colon of a switch label, so only the first comment of its
+    /// token's leading trivia is moved, and only when the token in front of it neither opens a block nor ends a switch
+    /// label. Both facts are the ones the blank-line boundary in front of a comment reads
+    /// (<see cref="TriviaListUtilities.IndexOfFirstComment"/>, <see cref="BlankLineEditor.IsFirstInBlock(PrecedingTokenFacts)"/>)
+    /// </summary>
+    /// <param name="trivia">Delimited documentation trivia written behind code</param>
+    /// <param name="context">The formatting context</param>
+    /// <returns><see langword="true"/> if the comment starts a new line; otherwise, <see langword="false"/></returns>
+    private static bool IsMovableDelimitedDocumentation(SyntaxTrivia trivia, FormattingContext context)
+    {
+        var owningToken = trivia.Token;
+        var commentIndex = TriviaListUtilities.IndexOfFirstComment(owningToken.LeadingTrivia);
+
+        if (commentIndex < 0
+            || owningToken.LeadingTrivia[commentIndex] != trivia)
+        {
+            return false;
+        }
+
+        var previousTokenFacts = PrecedingTokenFacts.Resolve(owningToken.GetPreviousToken(), context);
+
+        return BlankLineEditor.IsFirstInBlock(previousTokenFacts) == false;
     }
 
     /// <summary>
