@@ -28,3 +28,4 @@ None yet. The issue asks the run to first check every statement about today's co
 ## Follow-ups
 
 - thoenissen/Reihitsu#1521 — created after the maintainer approved its text.
+- Skeptic (`02-skeptic.md`): 334 node-in-document outputs change; answered 1B (escalation 5, amend the change doc with further plain-value facts; it returns for approval), 2A (escalation 12, narrow fix in this run, structural change folded into #1521), 3A (escalation 9, RH5405 comment drop as a separate follow-up). Decisions: `squad/decisions/2026-10-31-node-root-detached-missing-facts.md`, `-leading-trivia-owner.md`, `-rh5405-comment-drop.md`.
