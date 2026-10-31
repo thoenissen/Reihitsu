@@ -45,8 +45,8 @@ public class PhaseCombinationTests
         const string expected = """
                                 class C
                                 {
-                                    int M(){return42;}
-                                    int N(){return99;}
+                                    int M(){return 42;}
+                                    int N(){return 99;}
                                 }
 
                                 """;

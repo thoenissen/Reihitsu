@@ -72,5 +72,40 @@ public class LineBreakResidueWhitespaceTests : FormatterTestsBase
         AssertRuleResult(Input, expected);
     }
 
+    /// <summary>
+    /// Verifies the reach FMT-BREAK-029 states: where the phase normalizes the gap in front of a <c>}</c> it places behind
+    /// <c>M();</c>, the whitespace in front of that line break may go with the rewrite, and the final output holds none
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-029")]
+    public void FinalOutputHoldsNoWhitespaceInFrontOfANormalizedBraceGap()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     if (true)
+                                     {
+                                         M();   }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        if (true)
+                                        {
+                                            M();
+                                        }
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Tests
 }

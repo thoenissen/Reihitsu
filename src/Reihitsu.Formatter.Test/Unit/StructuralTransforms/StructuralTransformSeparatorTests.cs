@@ -583,12 +583,12 @@ public class StructuralTransformSeparatorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the accessor transform writes no whitespace around the <c>=&gt;</c> it creates where the author wrote
-    /// none around the removed tokens
+    /// Verifies that the accessor transform writes one space on each side of the <c>=&gt;</c> it creates, also where the author
+    /// wrote no whitespace around the removed tokens
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-026")]
-    public void AccessorTransformWritesNoSpaceAroundTheCreatedArrow()
+    public void AccessorTransformWritesOneSpaceOnEachSideOfTheCreatedArrow()
     {
         const string input = """
                              class C
@@ -609,19 +609,19 @@ public class StructuralTransformSeparatorTests : FormatterTestsBase
                               foreach (var arrow in arrows)
                               {
                                   Assert.IsNotNull(arrow, description);
-                                  Assert.AreEqual(string.Empty, GetGap(output, arrow.ArrowToken.GetPreviousToken(), arrow.ArrowToken), description);
-                                  Assert.AreEqual(string.Empty, GetGap(output, arrow.ArrowToken, arrow.Expression.GetFirstToken()), description);
+                                  Assert.AreEqual(" ", GetGap(output, arrow.ArrowToken.GetPreviousToken(), arrow.ArrowToken), description);
+                                  Assert.AreEqual(" ", GetGap(output, arrow.ArrowToken, arrow.Expression.GetFirstToken()), description);
                               }
                           });
     }
 
     /// <summary>
-    /// Verifies that the get-only-member transform writes no whitespace around the <c>=&gt;</c> it creates where the author
-    /// wrote none around the removed tokens
+    /// Verifies that the get-only-member transform writes one space on each side of the <c>=&gt;</c> it creates, also where the
+    /// author wrote no whitespace around the removed tokens
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-026")]
-    public void GetOnlyMemberTransformWritesNoSpaceAroundTheCreatedArrow()
+    public void GetOnlyMemberTransformWritesOneSpaceOnEachSideOfTheCreatedArrow()
     {
         const string input = """
                              class C
@@ -636,9 +636,111 @@ public class StructuralTransformSeparatorTests : FormatterTestsBase
                               var arrow = output.DescendantNodes().OfType<PropertyDeclarationSyntax>().Single().ExpressionBody;
 
                               Assert.IsNotNull(arrow, description);
-                              Assert.AreEqual(string.Empty, GetGap(output, arrow.ArrowToken.GetPreviousToken(), arrow.ArrowToken), description);
-                              Assert.AreEqual(string.Empty, GetGap(output, arrow.ArrowToken, arrow.Expression.GetFirstToken()), description);
+                              Assert.AreEqual(" ", GetGap(output, arrow.ArrowToken.GetPreviousToken(), arrow.ArrowToken), description);
+                              Assert.AreEqual(" ", GetGap(output, arrow.ArrowToken, arrow.Expression.GetFirstToken()), description);
                           });
+    }
+
+    /// <summary>
+    /// Verifies that the get-only-member transform writes one space on each side of the <c>=&gt;</c> it creates behind an
+    /// indexer's <c>]</c>, where the author wrote none around the removed tokens
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void GetOnlyMemberTransformWritesOneSpaceOnEachSideOfTheArrowBehindAnIndexer()
+    {
+        const string input = """
+                             class C
+                             {
+                                 int[] _data;
+
+                                 int this[int i]{get{return _data[i];}}
+                             }
+                             """;
+
+        ForEachLineEnding(input,
+                          (output, _, description) =>
+                          {
+                              var arrow = output.DescendantNodes().OfType<IndexerDeclarationSyntax>().Single().ExpressionBody;
+
+                              Assert.IsNotNull(arrow, description);
+                              Assert.AreEqual(" ", GetGap(output, arrow.ArrowToken.GetPreviousToken(), arrow.ArrowToken), description);
+                              Assert.AreEqual(" ", GetGap(output, arrow.ArrowToken, arrow.Expression.GetFirstToken()), description);
+                          });
+    }
+
+    /// <summary>
+    /// Verifies that no token the accessor and get-only-member transforms create carries elastic trivia
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void TokensCreatedForConvertedAccessorsCarryNoElasticTrivia()
+    {
+        const string input = """
+                             class C
+                             {
+                                 string _s;
+
+                                 string P{get{return"";}set{_s=value;}}
+
+                                 string Q { get { return _s; } }
+                             }
+                             """;
+
+        ForEachLineEnding(input, (output, _, description) => AssertNoElasticTrivia(output, description));
+    }
+
+    /// <summary>
+    /// Verifies that no token the brace transform creates carries elastic trivia, with and without comments around the braced
+    /// statements
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void TokensCreatedForBracedBodiesCarryNoElasticTrivia()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(bool a)
+                                 {
+                                     if (a)
+                                         Foo();
+                                     else
+                                         Bar();
+                                     if (a)
+                                         // leading
+                                         Foo(); // trailing
+                                     // about Bar
+                                     Bar();
+                                 }
+                             }
+                             """;
+
+        ForEachLineEnding(input, (output, _, description) => AssertNoElasticTrivia(output, description));
+    }
+
+    /// <summary>
+    /// Verifies that no token the expression-body conversion creates carries elastic trivia, for a converted value expression,
+    /// a converted statement expression, and a comment moved in front of the created statement
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void TokensCreatedForConvertedExpressionBodiesCarryNoElasticTrivia()
+    {
+        const string input = """
+                             class C
+                             {
+                                 int Get() => 42;
+
+                                 void Run() => Get();
+
+                                 int Other() =>
+                                     // c
+                                     42;
+                             }
+                             """;
+
+        ForEachLineEnding(input, (output, _, description) => AssertNoElasticTrivia(output, description));
     }
 
     #endregion // Tests
@@ -709,6 +811,24 @@ public class StructuralTransformSeparatorTests : FormatterTestsBase
 
         Assert.IsGreaterThanOrEqualTo(0, index, $"'{text}' should stand in '{gap}'. {description}");
         Assert.IsTrue(gap.Substring(index + text.Length).Contains('\n'), $"A line break should stand behind '{text}'. {description}");
+    }
+
+    /// <summary>
+    /// Asserts that no token of the phase output carries elastic trivia. The parsed input carries none, so any elastic trivia
+    /// in the output stands on a token the phase created
+    /// </summary>
+    /// <param name="output">The phase output</param>
+    /// <param name="description">The description of the case</param>
+    private static void AssertNoElasticTrivia(SyntaxNode output, string description)
+    {
+        var elastic = output.DescendantTokens()
+                            .SelectMany(token => token.LeadingTrivia.Select(trivia => (Token: token, Side: "leading", Trivia: trivia))
+                                                                    .Concat(token.TrailingTrivia.Select(trivia => (Token: token, Side: "trailing", Trivia: trivia))))
+                            .Where(entry => entry.Trivia.HasAnnotation(SyntaxAnnotation.ElasticAnnotation))
+                            .Select(entry => $"{entry.Side} trivia of {entry.Token.Kind()} '{entry.Token.Text}' at {entry.Token.SpanStart}")
+                            .ToList();
+
+        Assert.IsEmpty(elastic, $"{string.Join(Environment.NewLine, elastic)}{Environment.NewLine}{description}");
     }
 
     /// <summary>

@@ -397,5 +397,41 @@ public class StructuralTransformSeparatorFinalOutputTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies the example of FMT-STRUCT-026's elastic-trivia paragraph: a hand-written <c>get=&gt;"";</c> keeps its zero gaps,
+    /// while a converted setter gets one space on each side of its created <c>=&gt;</c>
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void HandWrittenArrowKeepsItsGapsWhileAConvertedAccessorGetsSpacesAroundItsArrow()
+    {
+        const string input = """
+                             class C
+                             {
+                                 string _s;
+
+                                 string P
+                                 {
+                                     get=>"";
+                                     set{_s = value;}
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    string _s;
+
+                                    string P
+                                    {
+                                        get=>"";
+                                        set => _s = value;
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Tests
 }
