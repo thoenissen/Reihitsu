@@ -765,8 +765,8 @@ public class RH6001KeywordsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTest
     }
 
     /// <summary>
-    /// Verifies that a block comment written directly behind the keyword, followed by a documentation comment, which ends the
-    /// line in front of the <c>(</c>, is not reported; this is the formatter's output for it
+    /// Verifies that the keyword is not reported when a block comment is written directly behind it and a documentation comment ends the
+    /// line in front of the <c>(</c>; this is the formatter's output for it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -790,8 +790,8 @@ public class RH6001KeywordsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTest
     }
 
     /// <summary>
-    /// Verifies the control of the documentation-comment case: a block comment written directly behind the keyword, followed by a single-line comment, which ends the
-    /// line in front of the <c>(</c>, is not reported; this is the formatter's output for it
+    /// Verifies the control of the documentation-comment case: the keyword is not reported when a block comment is written directly behind it and a single-line comment ends the
+    /// line in front of the <c>(</c>; this is the formatter's output for it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -814,8 +814,8 @@ public class RH6001KeywordsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTest
     }
 
     /// <summary>
-    /// Verifies that two block comments written directly behind the keyword, followed by a documentation comment, which ends the
-    /// line in front of the <c>(</c>, is not reported; this is the formatter's output for it
+    /// Verifies that the keyword is not reported when two block comments are written directly behind it and a documentation comment ends the
+    /// line in front of the <c>(</c>; this is the formatter's output for it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -839,8 +839,8 @@ public class RH6001KeywordsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTest
     }
 
     /// <summary>
-    /// Verifies the control of the documentation-comment case: two block comments written directly behind the keyword, followed by a single-line comment, which ends the
-    /// line in front of the <c>(</c>, is not reported; this is the formatter's output for it
+    /// Verifies the control of the documentation-comment case: the keyword is not reported when two block comments are written directly behind it and a single-line comment ends the
+    /// line in front of the <c>(</c>; this is the formatter's output for it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
