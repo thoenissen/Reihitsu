@@ -12,7 +12,7 @@
 
 ## Maintainer answers
 
-None yet.
+None. Output-question batch before the test implementer: nothing open (the change doc lists no visible output change; decision #5 removes the one conditional question).
 
 ## Decisions taken
 
@@ -22,8 +22,13 @@ None yet.
 | 2 | Spec author | Widen FMT-DOC-001 to `/** */` with the reach FMT-BLANK-012 gives them today, including the block-statement case, as the issue proposes? | Widen FMT-DOC-001 only to the delimited comments moved today; the statement / using-directive / expression cases stay open for both comment forms | Deciding the block-statement case for `/** */` alone would split one open question by comment form; the issue's goal is ownership, not a new decision | Every new spec example matches today's output; no output changes | 998810a |
 | 3 | Spec author | The issue's using-directive question (C4, #1497 input) | A `/** */` leading a using directive behind another is moved, as today and as `///` | Keeps today's output; the blank-line flip is #1497's case | Unchanged output | 998810a |
 | 4 | Spec author | The issue's statements about current code | Recorded in 01-spec-author.md: the blank-line phase does not move every `/** */` today; the `///` paths in the blank-line and brace phases are moot in today's order | The issue's "Before the run" section asks for this check | Facts only | 998810a |
+| 5 | Skeptic | Issue goal "brace placement no longer moves a documentation comment" and the `BracePlacer` part of Done-when 1, for `{ /** d */ code` on one line | Dropped: brace placement keeps carrying a delimited comment along with the code it moves onto a new line | Brace placement is today's only mover of that shape and no phase order changes its result; keeping the goal literally would change output (`agent-filed` goal) | Dropping keeps today's output `{` / `/** d */ void M()` | 85c8b5e |
+| 6 | Skeptic | Done-when 2 ("pipeline without the documentation phase moves no documentation comment") | Narrowed to: the blank-line phase inserts no line break in front of a documentation comment | Follows from #5; brace placement still carries the shape above | Internal test goal | 85c8b5e |
+| 7 | Skeptic | Spec amendments 1 (FMT-DOC-001 / change-doc claim that a delimited comment behind `{` stays where it is) and 2 (FMT-DOC-001 coverage sentence) | Accepted; routed to a fresh spec author. FMT-DOC-001 states it decides type and member declarations (enum members included) and leaves every other position open | Makes the spec true of today's output | Wording only; no output changes | pending |
+| 8 | Skeptic | Architecture finding: the issue's own duplicate ownership; risk of a new private copy of the "behind `{` or switch-label colon" and "first comment of the leading trivia" checks inside the documentation phase | Change the structure in this run (the issue's purpose). The documentation phase must not add a private copy of a check another component already owns; it uses the existing shared fact | A narrow fix that adds a copy is itself an architecture finding (README, *Architecture findings*) | Internal structure | pending |
+| 9 | Skeptic | Unpinned shapes: node-level N1 (`/** a */ /** b */` at the start of the target), N2 (`{ /** d */ int M() => 1;` with the method as target), `/* c */ /** d */` on its own line, `/** a */ /// b` | Tests pin today's output for each before the implementer starts | The issue keeps every output; these are the shapes where a straight widening would differ | Today's output kept | pending |
 
 ## Follow-up candidates
 
-1. Should a delimited documentation comment behind `{`, behind a switch-label colon, or behind an earlier comment on its line move like `///`? Output question carried by the issue (changes FMT-INDENT-006's example). — 01-spec-author.md
-2. A documentation comment before a statement, behind an attribute, or inside an expression is moved with a blank line inserted inside code (`[Obsolete] /** d */ void M()`, `N(1, /** d */ 2)`); proposal: treat as documenting nothing and leave in place. Search duplicates first. — 01-spec-author.md
+1. Should a delimited documentation comment behind `{`, behind a switch-label colon, or behind an earlier comment on its line move like `///`? Output question carried by the issue (changes FMT-INDENT-006's example). — 01-spec-author.md; extended by 02-skeptic.md with `{ /** d */ code` on one line and its conflict with FMT-BREAK-003 (options A today / B FMT-BREAK-003 literally / C like `///`; skeptic recommends C)
+2. A documentation comment before a statement, behind an attribute, or inside an expression is moved with a blank line inserted inside code (`[Obsolete] /** d */ void M()`, `N(1, /** d */ 2)`); proposal: treat as documenting nothing and leave in place. Search duplicates first. — 01-spec-author.md; extended by 02-skeptic.md (`get; /** d */ set;`, `C<T, /** d */ U>`, base list, `} /** d */ else`, `} /** d */ catch`)
