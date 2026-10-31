@@ -1,6 +1,6 @@
 Role: lead
 Commit: ccb6669
-Verdict: repair round 1 of 3
+Verdict: repair round 2 of 3
 
 # Run: thoenissen/Reihitsu#1489
 
@@ -30,6 +30,7 @@ Behavior change: the issue requests changed behavior of the node-level entry poi
 5. RH5405 comment drop on `main`: separate follow-up thoenissen/Reihitsu#1527.
 6. Depth of a target behind a multi-line comment (zero offset): the indentation phase's depth; those outputs change.
 7. Amended change doc: approved as written.
+8. Output question after audit round 2 (finding #5): RH5111 and RH6023 on `a?.B⏎  .C =⏎    5;` keep the member's line break (`a?.B⏎  .C = 5;`) instead of `main`'s join — answer A (the maintainer replied "ok, continue" to the recommendation).
 
 ## Decisions taken
 
