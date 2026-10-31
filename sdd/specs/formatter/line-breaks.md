@@ -1155,9 +1155,9 @@ class C
 
 ### FMT-BREAK-029 — Whitespace in front of an inserted line break is left to the cleanup phase
 
-The phase's output MAY keep the whitespace that ends a line in front of a line break the phase inserts; the cleanup phase MUST remove that whitespace (FMT-CLEAN-001), so the final output holds none.
+When the phase moves a token onto a new line by writing a line break in front of it and leaves the trailing trivia of the token before it in place, it MUST NOT remove the whitespace that ends that trivia; the cleanup phase removes it (FMT-CLEAN-001), so the final output holds none. This holds wherever the token before the line break stands, inside the node the phase lays out or outside it. A line break the phase moves out of the trailing trivia of the token before, as when it rewraps a list, is outside this requirement.
 
-Why: The phase writes the line break in front of the token it moves (FMT-BREAK-001), and the token in front of it may belong to another node than the one the phase lays out, such as the `)` in front of a block's `{`. Removing the whitespace behind it only where the phase can reach that token makes the phase's output depend on where a node starts, while the cleanup phase removes whitespace before every line break, wherever it stands. Whitespace that ends a line decides nothing in the phases between: the spacing phase leaves a gap with a line break as it is (FMT-SPACE-001), and the indentation phase places lines by their first token.
+Why: Whitespace at the end of a line has one owner, the cleanup phase, which removes it in front of every line break. A second removal in this phase, which reaches only the tokens of the node it rewrites, makes the phase's output depend on where a node starts. Whitespace that ends a line decides nothing in the phases between: the spacing phase leaves a gap with a line break as it is (FMT-SPACE-001), and the indentation phase places lines by their first token.
 
 Example — in
 
@@ -1172,7 +1172,7 @@ class C
 }
 ```
 
-the phase moves both `{` onto lines of their own. Its output may keep the space behind `void M()` and the space behind `if (true)`; the final output holds neither:
+the phase moves both `{` onto lines of their own. Its output keeps the space behind `void M()` and the space behind `if (true)`; the final output holds neither:
 
 ```csharp
 class C

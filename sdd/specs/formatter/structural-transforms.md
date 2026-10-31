@@ -1163,17 +1163,26 @@ class C
 
 A structural transform MUST NOT write whitespace, a line break, or indentation next to a token it creates, nor into the trivia it carries over, except a separator without which its output would not parse back to its tree (FMT-PIPE-021). These separators are decided:
 
-- one space between a token the transform creates and the token after it when the two would otherwise read as one token, such as `return` before `42`; no space where they read as two tokens without it, such as `{` before `return` or `)` before `{`;
-- a line break between a single-line comment and a token the transform creates behind it, such as `// trailing` before an inserted `}`; none between a statement and an inserted `}` that no single-line comment separates, such as `Bar();` before `}`;
-- a line break between a token the transform creates and a comment behind it that leads the next token, such as an inserted `{` before the comment `// leading` above the braced statement, and between a token the transform creates and a preprocessor directive behind it, such as an inserted `}` before `#if`; none between an inserted `{` and a statement that no comment leads, and none behind an inserted `}` that no directive follows.
+- one space between a token the transform creates and the token after it when the two would otherwise read as one token, such as `return` before `42`; no space where they read as two tokens without it, such as `{` before `return`, `)` before `{`, or `return` before a comment;
+- a line break between a single-line comment and a token the transform creates behind it, such as `// trailing` before an inserted `}`;
+- a line break between a token the transform creates and a comment behind it that leads the next token, such as an inserted `{` before the comment `// leading` above the braced statement, or an inserted `}` before a comment `// about Bar` that leads the next statement;
+- a line break between a token the transform creates and a preprocessor directive behind it, such as an inserted `}` before `#if`.
 
-The comments that lead a braced statement keep the whitespace and line breaks the author wrote between them and in front of the statement, as FMT-PIPE-013 states for the final output; the transform writes no line break behind such a comment. Other whitespace and line breaks of the trivia a transform rebuilds or removes — the indentation and the line breaks in front of the first comment that leads a braced statement, or the trivia of a removed `=>` — may be dropped, as long as FMT-PIPE-002 and FMT-PIPE-013 hold for the final output.
+No other line break follows a token the transform creates: none behind an inserted `{` that the braced statement follows without a leading comment, and none behind an inserted `}` that `else`, a statement without a leading comment, or the enclosing block's `}` follows.
 
-The field split (FMT-STRUCT-021) is outside this requirement: it writes the line break and indentation in front of each field it creates and the line break behind each comment it moves onto its own line, because the RH7101 code fix runs it without the phases after it. That exception is recorded until the fix formats through an entry point the pipeline spec names (thoenissen/Reihitsu#1502).
+The trivia a transform carries over keeps what the author wrote:
 
-Why: The phases after this one, the trace, and the documentation phase read the text of this phase's tree, so the text has to be that tree (FMT-PIPE-021). Every other piece of layout is decided again by the phase that owns it — line breaks by FMT-BREAK, spaces by FMT-SPACE, columns by FMT-INDENT — so a transform that writes it makes one decision in two places (FMT-PIPE-001), and the two can disagree.
+- The whitespace in front of and between the comments the transform carries over — the comments that lead or trail a braced statement, and a comment that FMT-STRUCT-006 moves behind `return` or in front of the converted statement — stays as the author wrote it; the transform writes none there and drops none.
+- The trailing trivia of a braced statement stays on the statement, its line break included, so a line break ends the statement's line in front of the inserted `}` exactly when the author wrote one.
+- The trailing trivia of the `;` that a converted expression body ends with moves to the created `}`, its line break included.
 
-Example — the transform's output for the class of FMT-PIPE-021's first example holds `int Get(){return 42;}`, a line break between `// trailing` and the inserted `}` behind it, and no line break behind either inserted `}`. The final output is unchanged by this requirement:
+The transform MAY drop the line breaks in front of the first comment that leads a braced statement, and the whitespace and line breaks of a token it removes when no carried comment stands next to them, such as the line break behind a removed `=>` or the whitespace in front of an expression that has no comment in front of it.
+
+The field split (FMT-STRUCT-021) is outside this requirement: it writes the line break and indentation in front of each field it creates, a space in front of each comment it carries over, and the line break behind each comment it moves onto its own line, because the RH7101 code fix runs it without the phases after it. That exception is recorded until the fix formats through an entry point the pipeline spec names (thoenissen/Reihitsu#1502).
+
+Why: The phases after this one, the trace, and the documentation phase read the text of this phase's tree, so the text has to be that tree (FMT-PIPE-021). Every other piece of layout is decided again by the phase that owns it — line breaks by FMT-BREAK, spaces by FMT-SPACE, columns by FMT-INDENT — so a transform that writes it makes one decision in two places (FMT-PIPE-001), and the two can disagree. A wrap is not a decision about the comments it carries (FMT-PIPE-013): the gaps the author left around them are what the phases see in code that needs no wrap, and the spacing phase keeps a gap in front of a comment as it finds it.
+
+Example — the transform's output for the class of FMT-PIPE-021's first example holds `int Get(){return 42;}` followed by the line break the author wrote behind `;`, the author's line break between `// trailing` and the inserted `}` behind it, and no line break behind either inserted `}` of `M`. The final output is unchanged by this requirement:
 
 ```csharp
 class C
@@ -1214,8 +1223,131 @@ class C
 #if DEBUG
         Bar();
 #endif
+        if (a)
+            Foo();
+        // about Bar
+        Bar();
     }
 }
 ```
 
-the transform's output has a line break behind the first inserted `{`, in front of `// leading`, and keeps the line break the author wrote behind that comment; it has a line break behind the second inserted `{`, in front of `/* x */`, and keeps `/* x */ /* y */ Foo();` on one line with the spaces the author wrote; it has no line break behind the third inserted `{`, and a line break between the third inserted `}` and `#if DEBUG`.
+the transform's output has a line break behind the first inserted `{`, in front of `// leading`, and keeps the line break the author wrote behind that comment; it has a line break behind the second inserted `{`, in front of `/* x */`, and keeps `/* x */ /* y */ Foo();` on one line with the spaces the author wrote; it has no line break behind the third inserted `{`, and a line break between the third inserted `}` and `#if DEBUG`; and it has a line break between the fourth inserted `}` and `// about Bar`, so the comment keeps leading `Bar();`. The final output keeps the comments where the author put them (FMT-PIPE-013):
+
+```csharp
+class C
+{
+    void M(bool a)
+    {
+        if (a)
+        {
+            // leading
+            Foo();
+        }
+
+        if (a)
+        {
+            /* x */ /* y */ Foo();
+        }
+
+        if (a)
+        {
+            Foo();
+        }
+#if DEBUG
+        Bar();
+#endif
+
+        if (a)
+        {
+            Foo();
+        }
+
+        // about Bar
+        Bar();
+    }
+}
+```
+
+Example — the gaps in front of carried trailing comments stay as written:
+
+```csharp
+class C
+{
+    void M(bool a)
+    {
+        if (a)
+            Foo();    // x
+        if (a)
+            Foo();// y
+        if (a)
+            Foo(); /* a */ // b
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(bool a)
+    {
+        if (a)
+        {
+            Foo();    // x
+        }
+
+        if (a)
+        {
+            Foo();// y
+        }
+
+        if (a)
+        {
+            Foo(); /* a */ // b
+        }
+    }
+}
+```
+
+Example — a comment that FMT-STRUCT-006 moves behind `return` keeps the whitespace in front of it: in `int Get() =>`, followed by a line holding `/* c */ 42;` indented by eight spaces, the transform's output holds `return` followed by the eight spaces and `/* c */ 42;`, which the spacing phase turns into `return /* c */ 42;`; when that line is not indented, the output holds `return/* c */ 42;`, and the final output keeps `return/* c */` as written.
+
+### FMT-STRUCT-027 — A removed comma's comment on a line of its own stays there
+
+When the formatter removes a trailing comma under FMT-STRUCT-019 or FMT-STRUCT-020, a comment of that comma that stands on a line below the line the last element ends on — because the comma stood on a later line, or the comment led the comma on a line of its own — MUST stay on a line of its own and lead the closing brace. A comment of the comma on the line the last element ends on stays behind the last element, as FMT-STRUCT-019 states.
+
+Why: A line break already ends the last element's line, so a comment behind it starts a new line, and in the text that line belongs to the closing brace (FMT-PIPE-021). Joining it to the last element's line would move a comment between lines, and behind a `//` comment it is not possible at all. The closing brace's leading comment is then laid out like any other comment in front of a closing brace, in one pass, which is what a second pass gives today.
+
+Example:
+
+```csharp
+enum E { A,
+B // about B
+    , // comma
+}
+
+class C
+{
+    int[] _a = new[] { 1,
+2 /* two */
+// before comma
+, };
+}
+```
+
+```csharp
+enum E
+{
+    A,
+    B // about B
+
+    // comma
+}
+
+class C
+{
+    int[] _a = new[] { 1,
+                   2 /* two */
+
+                   // before comma
+               };
+}
+```
