@@ -22,7 +22,10 @@ None.
 
 ## Maintainer answers
 
-Output questions 1 and 2 of 01-skeptic asked before the test implementer; awaiting answers.
+Output questions of 01-skeptic, asked before the test implementer:
+
+1. Gap in front of a trailing comment in a braced switch section (label, last wrapped statement, terminal `break`) — **A**: the gap stays as written, as in a plain block and a braced `if`/`else` body (FMT-SPACE-001). The maintainer added that no extra logic is wanted: the wrap does not normalize this gap at all; it carries it.
+2. Comments around the terminal `break` of a braced switch section — **A**: their layout is kept as written (`/* b1 */ /* b2 */ break; /* x */ // y` stays on one line with its spaces).
 
 ## Decisions taken
 
