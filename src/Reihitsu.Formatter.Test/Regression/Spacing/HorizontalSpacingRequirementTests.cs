@@ -734,7 +734,9 @@ public class HorizontalSpacingRequirementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that each of two nested <c>fixed</c> statements gets one space between the keyword and its parenthesis
+    /// Verifies that each of two nested <c>fixed</c> statements gets one space between the keyword and its parenthesis.
+    /// The inner statement is written at the column FMT-INDENT-004 gives an unbraced embedded statement, so only the
+    /// spacing changes
     /// </summary>
     [TestMethod]
     [Requirement("FMT-SPACE-012")]
@@ -747,9 +749,9 @@ public class HorizontalSpacingRequirementTests : FormatterTestsBase
                                  unsafe void M(int[] items, int[] others)
                                  {
                                      fixed(int* p = items)
-                                     fixed(int* q = others)
-                                     {
-                                     }
+                                         fixed(int* q = others)
+                                         {
+                                         }
                                  }
                              }
                              """;
@@ -759,9 +761,9 @@ public class HorizontalSpacingRequirementTests : FormatterTestsBase
                                     unsafe void M(int[] items, int[] others)
                                     {
                                         fixed (int* p = items)
-                                        fixed (int* q = others)
-                                        {
-                                        }
+                                            fixed (int* q = others)
+                                            {
+                                            }
                                     }
                                 }
                                 """;
