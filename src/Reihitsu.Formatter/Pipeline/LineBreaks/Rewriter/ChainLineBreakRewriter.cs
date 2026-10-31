@@ -7,6 +7,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Reihitsu.Core;
 using Reihitsu.Core.Enumerations;
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Data.Enumerations;
+using Reihitsu.Formatter.Extensions;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
@@ -79,6 +81,20 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     #endregion // Constructor
 
     #region Methods
+
+    /// <summary>
+    /// Determines whether a node is the outermost node of its chain (<see cref="FluentChain.IsOutermostChainNode"/>). The
+    /// formatting root has no parent, so for the root the facts the entry point captured from the document say whether its
+    /// parent continues its chain
+    /// </summary>
+    /// <param name="original">The node before its children were visited</param>
+    /// <param name="rootConstruct">The facts about the construct the formatting root stands in</param>
+    /// <returns><see langword="true"/> if the node is the outermost node of its chain</returns>
+    internal static bool IsOutermostChainNode(SyntaxNode original, RootConstruct rootConstruct)
+    {
+        return FluentChain.IsOutermostChainNode(original)
+               && rootConstruct.IsRootIn(original, RootConstruct.ChainContinuation) == false;
+    }
 
     /// <summary>
     /// Returns the pending replacement recorded for a token, or the token itself when none exists. Several rules may
@@ -370,7 +386,7 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     private SyntaxNode NormalizeIfOutermost(SyntaxNode original, SyntaxNode visited)
     {
         if (visited is ExpressionSyntax expression
-            && FluentChain.IsOutermostChainNode(original))
+            && IsOutermostChainNode(original, _context.RootConstruct))
         {
             return NormalizeChain(expression);
         }
