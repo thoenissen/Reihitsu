@@ -442,7 +442,7 @@ class C
 
 ### FMT-SPACE-012 — One space after statement keywords, `new`, and `operator`
 
-The formatter MUST put exactly one space after `if`, `for`, `foreach`, `while`, `switch`, `catch`, `using`, `lock`, `return`, `throw`, `new`, and `operator`, with these exceptions, where it MUST put no space: `return` or `throw` directly before `;`; a keyword used as an attribute target before its `:` (`[return: A]`); `new` before the `(` of a target-typed `new()` or of a `new()` constraint; and `new` before the `[` of an implicitly typed array `new[]`.
+The formatter MUST put exactly one space after `if`, `for`, `foreach`, `while`, `switch`, `catch`, `fixed`, `using`, `lock`, `return`, `throw`, `new`, and `operator`, with these exceptions, where it MUST put no space: `return` or `throw` directly before `;`; a keyword used as an attribute target before its `:` (`[return: A]`); `new` before the `(` of a target-typed `new()` or of a `new()` constraint; and `new` before the `[` of an implicitly typed array `new[]`.
 
 Why: Without the space, `if(x)` and `return(x)` look like calls to methods named `if` and `return`, and `operator+` like an identifier. The exceptions are the forms where the keyword and the next token make up a single construct.
 
@@ -494,6 +494,32 @@ class C
     public static C operator +(C a, C b)
     {
         return a;
+    }
+}
+```
+
+The same holds for the `fixed` statement:
+
+```csharp
+class C
+{
+    unsafe void M(int[] items)
+    {
+        fixed(int* p = items)
+        {
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    unsafe void M(int[] items)
+    {
+        fixed (int* p = items)
+        {
+        }
     }
 }
 ```
