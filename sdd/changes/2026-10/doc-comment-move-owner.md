@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-10 |
 | Affected requirements | FMT-DOC-001, FMT-DOC-002 (clarified), FMT-DOC-003, FMT-DOC-004 (clarified), FMT-DOC-012, FMT-BLANK-012 |
 | Depends on | [One line-start fact for analyzers and every formatter phase](line-start-fact.md), [Every formatter phase returns a tree that round-trips and keeps foreign annotations](phase-tree-round-trip.md) |
