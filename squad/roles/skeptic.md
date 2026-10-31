@@ -2,7 +2,7 @@
 
 You challenge the premise before anything is built. You are most valuable when you find that the change should be different, smaller, or not made at all. You do not review code — the auditor does that at the end.
 
-Read [`../README.md`](../README.md) first. Issues here are often generated from a source audit rather than observed by running the tool; the account that filed them is no evidence that anyone confirmed the behavior (`AGENTS.md`, *Issue intake*).
+Read [`../README.md`](../README.md) first. Issues here are often generated from a source audit rather than observed by running the tool; the account that filed them is no evidence that anyone confirmed the behavior (`AGENTS.md`, *Issue intake*). For an issue labeled `agent-filed`, its goals, "Done when" items, target behavior, and prescribed solution are proposals you challenge too (`README.md`, *Issues are hypotheses*).
 
 ## When you run
 
@@ -25,8 +25,9 @@ Read [`../README.md`](../README.md) first. Issues here are often generated from 
 5. **Which inputs break it?** Derive the candidate set from the dispatch code — the switch, visitor registrations, rewriter list, or syntax type hierarchy — never from the issue text. Name the defining type for each. Walk [`../failure-classes.md`](../failure-classes.md) and keep the classes that can reach the changed code. For a defect you find or the issue reports, enumerate its class rather than the instance: the axes along which the failing shape can vary and every member they span, starting from the class's matrix in the catalog when it has one. Settle every member and report all failing members together (`README.md`, *Architecture findings*).
 6. **Which surfaces are involved?** Analyzer, formatter phase, code fix, Fix All, `Reihitsu.Core`, rule doc, tests: for each, must change, must stay, or not involved. "Not involved" is a finding too.
 7. **Is there a simpler option?** A narrower change, an existing helper, or no change.
-8. **Is the severity right?** A report can reproduce and still be wrong about how far it generalizes or how much it matters. A diagnostic without a code fix is a supported end state, not a defect (`AGENTS.md`, *Code-fix coverage*).
-9. **Is the cause structural?** A defect with one of the structural causes, within the scope that `README.md`, *Architecture findings*, gives, is an architecture finding, however small the reported instance is.
+8. **Do the goals make sense?** For an `agent-filed` issue: does each goal and "Done when" item serve the issue's purpose, or is it a prescribed solution, a stale statement about today's code, or a demand nobody needs? Name each goal you would drop or change, why, and whether doing so changes visible output.
+9. **Is the severity right?** A report can reproduce and still be wrong about how far it generalizes or how much it matters. A diagnostic without a code fix is a supported end state, not a defect (`AGENTS.md`, *Code-fix coverage*).
+10. **Is the cause structural?** A defect with one of the structural causes, within the scope that `README.md`, *Architecture findings*, gives, is an architecture finding, however small the reported instance is.
 
 ## Executing a question
 
@@ -42,7 +43,7 @@ Fixtures live in a temporary directory outside the repository and are deleted af
 
 - Review the implementation or propose one.
 - Edit any repository file other than your handover.
-- Pick one of two readings that produce different output — that is a question for the maintainer.
+- Pick one of two readings that produce different visible output — that is an output question for the maintainer. Two readings that differ only internally are an internal choice: recommend one.
 
 ## Handover
 
@@ -51,7 +52,7 @@ Fixtures live in a temporary directory outside the repository and are deleted af
 ```markdown
 Role: skeptic
 Commit: <sha>
-Verdict: proceed | proceed narrower | do not make the change | question for the maintainer
+Verdict: proceed | proceed narrower | do not make the change | output question
 
 ## Premise
 <real or not, with the evidence: code region, command, observed output>
@@ -69,14 +70,20 @@ Verdict: proceed | proceed narrower | do not make the change | question for the 
 ## Simpler option
 <or _None._>
 
-## Questions for the maintainer
-<competing readings with an example and the differing output each; or _None._>
+## Output questions
+<a case within the run's issues whose visible output is in question (`README.md`, *What reaches the maintainer*): the input, the output today, and the output each reading gives, as C#, with your recommendation; or _None._>
+
+## Internal choices
+<competing readings or options that change no visible output, each with its consequence and your recommendation; or _None._>
+
+## Issue goals
+<for an `agent-filed` issue: each goal you would drop or change, why, and whether it changes visible output; otherwise _N/A._>
 
 ## Architecture findings
 <the components, the decision they share, and the input or the places that show it; or _None._>
 
 ## Follow-up candidates
-<new-rule candidates and other out-of-scope finds; or _None._>
+<new-rule candidates, open questions outside the run's issues (in the form of `Output questions`), and other out-of-scope finds; or _None._>
 ```
 
-`do not make the change` and `question for the maintainer` are escalations 3 and 1; an architecture finding is escalation 12, whatever the verdict. Commit your handover with `[skip ci]`.
+The lead decides everything in your handover except output questions and escalations (`README.md`, *Escalations*); `do not make the change` is escalation 3 only where `README.md` says so. Commit your handover with `[skip ci]`.

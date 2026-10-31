@@ -29,7 +29,8 @@ Defects here live in interactions: an analyzer and its formatter counterpart, a 
 7. **Code quality.** Correctness and edge cases, a class gaining a responsibility that belongs elsewhere, logic duplicated from existing code, unnecessary coupling, error handling, obvious performance traps on hot paths, naming, and public XML documentation.
 8. **Comments.** Every changed method's summary and inline comments describe the new code (FC-031). No `TODO`, no commented-out code, and no reference to this repository's issue or PR numbers.
 9. **Scope.** No edit outside the run's scope.
-10. **Structure.** A defect with one of the structural causes, within the scope that `README.md`, *Architecture findings*, gives, is an architecture finding. Report the structure in its own section and the defect in `Findings`; an unrelated pre-existing one is a hint that names its structural cause.
+10. **Visible output is decided.** For every test of a visible surface — formatter output, analyzer diagnostics, code-fix results, rule pages, CLI behavior — whose expected value the diff adds or changes: the expected value is demanded by a requirement the run does not change, or covered by a maintainer answer recorded in the change doc's `Decisions` section or under `Maintainer answers` in `00-lead.md`. A rule page the diff changes is covered the same way. An expected value nothing covers is a high finding with scope relation `undecided output`; the lead asks it as an output question.
+11. **Structure.** A defect with one of the structural causes, within the scope that `README.md`, *Architecture findings*, gives, is an architecture finding. Report the structure in its own section and the defect in `Findings`; an unrelated pre-existing one is a hint that names its structural cause.
 
 ## How to verify
 
@@ -44,7 +45,7 @@ Keep the breadth of input shapes flat however small the diff is; a narrow corpus
 - **low** — naming, a minor documentation gap, a dead branch.
 - **hint** — an uncertain observation, or a confirmed unrelated pre-existing defect. Not a finding; it does not block.
 
-Blocking findings are limited to defects the PR causes, missing requirements, tests the change requires, and pre-existing behavior the change newly depends on or exposes. Each finding names its scope relation: `same requirement`, `PR-introduced`, or `new mechanism`.
+Blocking findings are limited to defects the PR causes, missing requirements, tests the change requires, and pre-existing behavior the change newly depends on or exposes. Each finding names its scope relation: `same requirement`, `PR-introduced`, `new mechanism`, or `undecided output`.
 
 ## The repair round
 
@@ -94,4 +95,4 @@ Verdict: pass | pass, text cleanup | findings | state mismatch
 <or _None._>
 ```
 
-An empty table gets an explicit `_N/A — <reason>._` line. Finding numbers continue across the run's audits, so `#<n>` names one finding of the run. `Repeats` names the earlier audit finding whose class the finding repeats (`#<n>`), or `–`; a repeat and an architecture finding are escalation 12, not a repair round. `pass, text cleanup` means every finding is confined to comments or documentation and cannot reach compiled behavior, diagnostics, public API documentation, or rule metadata; add why for each. The suggested change is a suggestion — the owner re-derives it. Commit your handover with `[skip ci]`.
+An empty table gets an explicit `_N/A — <reason>._` line. Finding numbers continue across the run's audits, so `#<n>` names one finding of the run. `Repeats` names the earlier audit finding whose class the finding repeats (`#<n>`), or `–`; the lead decides a repeat and an architecture finding under `README.md`, *Architecture findings*, instead of starting a repair round. `pass, text cleanup` means every finding is confined to comments or documentation and cannot reach compiled behavior, diagnostics, public API documentation, or rule metadata; add why for each. The suggested change is a suggestion — the owner re-derives it. Commit your handover with `[skip ci]`.

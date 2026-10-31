@@ -93,34 +93,35 @@ Not required:
 - a bug fix — the code is brought back to the spec;
 - a clarification — the spec gains a requirement that writes down behavior that already exists, for example a gap a bug fix exposed. Add it in the same PR.
 
-When in doubt, ask the maintainer.
+When in doubt, the author of the change decides and states the reason in the pull request; in a squad run, the lead decides ([`squad/README.md`](../squad/README.md#decisions-taken)).
 
 ## Change docs
 
 Start from [`templates/change.md`](templates/change.md).
 
 - Written **before** implementation and checked in with the PR that implements it.
-- Records **what** changes in intended behavior and **why**, the decisions taken, and the alternatives rejected.
+- Records **what** changes in intended behavior and **why**, the visible output changes, the decisions taken, and the alternatives rejected.
+- `Visible output changes` lists every change of what an end user sees — the formatter's output, a diagnostic, a code-fix result, a rule page, CLI behavior — as an input with its output before and after, or states that none changes. Each listed change is the maintainer's to decide, and the answer is recorded in the doc's `Decisions` section; everything else in the doc is decided by its author.
 - Header: `Status`, `Date`, `Affected requirements` (IDs, the specs a new surface creates, or `none — process change`), and `Depends on` when it builds on another change doc.
-- Status is `Draft` while under discussion and `Accepted` once the maintainer has approved it. Set `Accepted` before the PR is marked ready for review.
+- Status is `Draft` while under discussion and `Accepted` once every visible output change it lists has the maintainer's answer; a change doc needs no approval of its own. In a squad run, the lead sets `Accepted`. Set it before the PR is marked ready for review.
 - File: `changes/yyyy-mm/<slug>.md`, by the month the change is merged.
 - No task lists and no implementation plan — they are noise once the change is merged.
 - Change docs are history. Once merged, they are not edited to track later changes; a later change gets its own doc.
 
 ## Open questions
 
-A spec describes current behavior. When the real output looks wrong while a spec is written or extended, the intended behavior is an open question, and only the maintainer answers it. No GitHub issue is filed for it; it is an escalation to the maintainer:
+A spec describes current behavior. When the real output looks wrong while a spec is written or extended, the intended behavior is an open question. Only the maintainer answers it, because it decides what an end user sees:
 
-- A question that blocks the run — an issue's own behavior depends on the answer, or two readings give different output for the same input — stops the run at once.
-- A question found in passing does not stop the run. The case is left out of the spec and the question is collected; all questions of a run are asked together in one chat message before the run's final audit, and the run waits for the answer. In the squad workflow, the spec author lists them and the lead asks them.
-- Each question stands on its own: input, real output, why it looks wrong, the requirement IDs it touches, the competing readings, and a recommendation.
-- The answer decides what happens. A bug fix or a clarification within the run's issues is done in this run: a bug fix brings the code in line with the spec, a clarification adds the current behavior as a requirement. A different intended behavior needs a change doc first (see [When a change doc is required](#when-a-change-doc-is-required)). A case outside the run's issues becomes a follow-up issue whose text the maintainer approves. "Leave it unspecified" records nothing.
-- While a question is undecided, the case never goes into a spec — no requirement, no non-goal, no note — and its behavior is not changed. A question or its answer is never recorded only in a PR description, which nobody reads after the merge; what is recorded is the outcome: a spec change, a change doc, or an approved follow-up issue.
+- A question about a case within the run's issues is asked in the form of [`Output questions`](../AGENTS.md#output-questions): input, today's output, and the output of each reading, as C#, with a recommendation. The questions of a run are batched; in the squad workflow, the lead asks them before the tests are written and again before the final audit, and a question that blocks writing a test stops the run at once ([`squad/README.md`](../squad/README.md#what-reaches-the-maintainer)). Two readings that give different output for the same input are such a question too.
+- A question about a case outside the run's issues is not asked in the run. It becomes a follow-up issue labeled `agent-filed` when an agent writes it, carrying the question in the same form, and the maintainer takes it up from the tracker.
+- A question that changes no visible output — spec wording, a requirement's scope, which spec owns a rule — is not an open question; the author of the change decides it.
+- The answer decides what happens. A bug fix or a clarification within the run's issues is done in this run: a bug fix brings the code in line with the spec, a clarification adds the current behavior as a requirement. A different intended behavior needs a change doc (see [When a change doc is required](#when-a-change-doc-is-required)), whose `Decisions` section records the answer. "Leave it unspecified" records nothing.
+- While a question is undecided, the case never goes into a spec — no requirement, no non-goal, no note — and its behavior is not changed. A question or its answer is never recorded only in a PR description, which nobody reads after the merge; what is recorded is the outcome: a spec change, a change doc, or a follow-up issue.
 - A rule that stays silent where the formatter rewrites is not an open question about the formatter; [The formatter may do more than the analyzers (P11)](#the-formatter-may-do-more-than-the-analyzers-p11) says what it is instead.
 
 ## The formatter may do more than the analyzers (P11)
 
-The formatter may do more than the sum of the analyzer rules. When a run finds the formatter rewriting a construct that no rule reports, the formatter's behavior is intended, and the case is not an open question about the formatter. It is one of two kinds, decided by the construct, and a case outside the run's issues becomes a follow-up issue whose text the maintainer approves:
+The formatter may do more than the sum of the analyzer rules. When a run finds the formatter rewriting a construct that no rule reports, the formatter's behavior is intended, and the case is not an open question about the formatter. It is one of two kinds, decided by the construct, and a case outside the run's issues becomes a follow-up issue, labeled `agent-filed` when an agent writes it:
 
 - **The rule's own gap.** The construct is the one the rule names, and the rule skips only a form of it. That gap belongs to the rule: a bug against the rule's spec when the spec already covers that form, otherwise a behavior change of the rule, which adds diagnostics and needs a change doc. Example: RH5110 names generic type constraints, yet it does not report the constraint below, which the formatter moves to its own line — a behavior change of RH5110.
 
