@@ -45,3 +45,4 @@ Output questions of 01-skeptic, asked before the test implementer:
 - Narrow the directive guards of `ControlFlowBraceTransform` and `SwitchCaseBraceRewriter` to the cases where a directive cannot move into a block, as a behavior change with its own change doc (01-skeptic).
 - FMT-STRUCT-003's `Why:` is stale since #1513 (text-only) (01-skeptic).
 - A comment directly at an expression body's arrow lands on the new brace's line as `{/* one */`; FMT-STRUCT-006 leaves it unspecified — file only if not already tracked (01-skeptic).
+- `ExpressionBodyToBlockConverter` is a third carrier of comment trivia across inserted braces, not routed through `BlockWrapTriviaUtilities` because its trivia shape differs (04-implementer; also 01-skeptic, architecture finding).
