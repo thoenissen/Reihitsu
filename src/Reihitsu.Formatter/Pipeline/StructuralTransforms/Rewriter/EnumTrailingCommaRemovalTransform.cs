@@ -58,11 +58,14 @@ internal sealed class EnumTrailingCommaRemovalTransform : CSharpSyntaxRewriter
         }
 
         var lastMember = node.Members[node.Members.Count - 1];
-        var updatedLastMember = TrailingCommaRemovalUtilities.PreserveTrailingTrivia(lastMember, TrailingCommaRemovalUtilities.GetTriviaToPreserve(lastSeparator));
+
+        TrailingCommaRemovalUtilities.PreserveSeparatorTrivia(lastMember, lastSeparator, node.CloseBraceToken, out var updatedLastMember, out var updatedCloseBraceToken);
+
         var updatedMembers = node.Members.Replace(lastMember, updatedLastMember);
         var updatedMembersAndSeparators = updatedMembers.GetWithSeparators().RemoveAt(updatedMembers.GetWithSeparators().Count - 1);
 
-        return node.WithMembers(SyntaxFactory.SeparatedList<EnumMemberDeclarationSyntax>(updatedMembersAndSeparators));
+        return node.WithMembers(SyntaxFactory.SeparatedList<EnumMemberDeclarationSyntax>(updatedMembersAndSeparators))
+                   .WithCloseBraceToken(updatedCloseBraceToken);
     }
 
     #endregion // CSharpSyntaxVisitor

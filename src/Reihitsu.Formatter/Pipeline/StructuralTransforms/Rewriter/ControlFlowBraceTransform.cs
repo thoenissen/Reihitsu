@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -47,12 +45,18 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Wraps a statement in a block when it is not already braced
+    /// Wraps a statement in a block when it is not already braced. The block's braces carry only the separators the text
+    /// needs to parse back to the block (FMT-STRUCT-026): a line break behind the opening brace when a comment leads the
+    /// statement, a line break behind a single-line comment that ends the statement's trailing trivia without one, and a line
+    /// break behind the closing brace when a comment or a directive leads the token that follows it. The statement keeps the
+    /// comments around it together with the whitespace and line breaks the author wrote in front of and between them
     /// </summary>
     /// <param name="statement">The statement to inspect</param>
-    /// <param name="endOfLine">The end-of-line sequence written behind the opening brace, behind each kept leading comment, and after the inserted closing brace</param>
+    /// <param name="nextToken">The token that follows the statement in the original tree, whose leading trivia decides whether the closing brace needs a line break behind it</param>
+    /// <param name="endOfLine">The end-of-line sequence of a separator line break</param>
     /// <returns>The braced statement</returns>
     private static StatementSyntax WrapWithBraces(StatementSyntax statement,
+                                                  SyntaxToken nextToken,
                                                   string endOfLine)
     {
         if (statement is null or BlockSyntax)
@@ -60,105 +64,113 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
             return statement;
         }
 
-        // The brace insertion rebuilds the statement's leading and trailing trivia from comments only.
-        // A preprocessor directive or disabled text in that trivia would be dropped, silently changing
-        // which code compiles under which configuration, so leave such a statement unbraced instead.
+        // A preprocessor directive or disabled text in the statement's trivia would end up between the statement and a
+        // brace on a line the directive does not own, silently changing which code compiles under which configuration, so
+        // leave such a statement unbraced instead.
         if (statement.GetLeadingTrivia().Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia)
             || statement.GetTrailingTrivia().Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia))
         {
             return statement;
         }
 
-        var leadingComments = CollectComments(statement.GetLeadingTrivia());
-
-        var normalizedStatement = statement.WithLeadingTrivia(NormalizeLeadingTrivia(leadingComments, endOfLine))
-                                           .WithTrailingTrivia(NormalizeTrailingTrivia(statement.GetTrailingTrivia()));
+        var leadingTrivia = GetCarriedLeadingTrivia(statement.GetLeadingTrivia());
+        var normalizedStatement = statement.WithLeadingTrivia(leadingTrivia)
+                                           .WithTrailingTrivia(GetCarriedTrailingTrivia(statement.GetTrailingTrivia(), endOfLine));
 
         var block = SyntaxFactory.Block(SyntaxFactory.SingletonList(normalizedStatement));
 
-        // The token that used to follow the statement (an else keyword, a directive, or the next
-        // statement) keeps its own leading trivia verbatim, which never carries the line terminator
-        // that separated it from the statement — that terminator lived in the statement's own trailing
-        // trivia, discarded above. Without restoring it here, that token is glued to the inserted
-        // closing brace instead of starting its own line
-        block = block.WithCloseBraceToken(block.CloseBraceToken.WithTrailingTrivia(SyntaxFactory.EndOfLine(endOfLine)));
-
-        if (leadingComments.Count > 0)
+        if (leadingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia))
         {
-            // The end-of-line after the open brace must live on the brace token (mirroring
-            // normally-parsed code); otherwise the blank-line phase treats a leading end-of-line
-            // on the first statement as a blank line and strips it, gluing the comment to the brace.
-            block = block.WithOpenBraceToken(block.OpenBraceToken.WithTrailingTrivia(SyntaxFactory.ElasticEndOfLine(endOfLine)));
+            // A comment behind the opening brace on its line would trail the brace once the text is parsed again,
+            // so the brace's line ends in front of the statement's first comment
+            block = block.WithOpenBraceToken(block.OpenBraceToken.WithTrailingTrivia(SyntaxFactory.EndOfLine(endOfLine)));
+        }
+
+        if (StartsWithCommentOrDirective(nextToken.LeadingTrivia))
+        {
+            // The comment or directive in front of the next token starts its line in the original text; behind the
+            // closing brace on its line, a comment would trail the brace and a directive would not start a line
+            block = block.WithCloseBraceToken(block.CloseBraceToken.WithTrailingTrivia(SyntaxFactory.EndOfLine(endOfLine)));
         }
 
         return block;
     }
 
     /// <summary>
-    /// Builds the leading trivia for a statement that is being wrapped in braces.
-    /// Whitespace and end-of-line trivia are dropped because the pipeline re-applies layout,
-    /// but comments are preserved so they are not silently deleted
+    /// Builds the leading trivia of a statement that is being wrapped in braces. Everything from the line the first comment
+    /// stands on is kept as written; the whitespace and line breaks in front of that line, and the whole trivia when it holds
+    /// no comment, are dropped, because the later phases lay out the statement
     /// </summary>
-    /// <param name="leadingComments">The comments collected from the original leading trivia of the statement</param>
-    /// <param name="endOfLine">The end-of-line sequence to terminate each comment's line with</param>
-    /// <returns>The normalized leading trivia</returns>
-    private static SyntaxTriviaList NormalizeLeadingTrivia(List<SyntaxTrivia> leadingComments, string endOfLine)
+    /// <param name="leadingTrivia">The original leading trivia of the statement</param>
+    /// <returns>The carried leading trivia</returns>
+    private static SyntaxTriviaList GetCarriedLeadingTrivia(SyntaxTriviaList leadingTrivia)
     {
-        if (leadingComments.Count == 0)
+        var firstCommentIndex = -1;
+
+        for (var triviaIndex = 0; triviaIndex < leadingTrivia.Count; triviaIndex++)
         {
-            return SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker);
+            if (SyntaxTriviaUtilities.IsCommentTrivia(leadingTrivia[triviaIndex]))
+            {
+                firstCommentIndex = triviaIndex;
+
+                break;
+            }
         }
 
-        var result = new List<SyntaxTrivia>();
-
-        foreach (var comment in leadingComments)
+        if (firstCommentIndex < 0)
         {
-            result.Add(comment);
-            result.Add(SyntaxFactory.ElasticEndOfLine(endOfLine));
+            return default;
         }
 
-        return SyntaxFactory.TriviaList(result);
+        var lineStartIndex = firstCommentIndex;
+
+        while (lineStartIndex > 0
+               && SyntaxTriviaUtilities.EndsLine(leadingTrivia[lineStartIndex - 1]) == false)
+        {
+            lineStartIndex--;
+        }
+
+        return SyntaxFactory.TriviaList(leadingTrivia.Skip(lineStartIndex));
     }
 
     /// <summary>
-    /// Builds the trailing trivia for a statement that is being wrapped in braces.
-    /// A trailing comment (for example <c>Foo(); // note</c>) is preserved on the same line as the statement
+    /// Builds the trailing trivia of a statement that is being wrapped in braces. The trivia is kept as written, its line
+    /// break included, so the inserted closing brace starts a new line exactly when the author ended the statement's line.
+    /// A single-line comment that ends the trivia without a line break, at the end of the file, gets one, because the
+    /// closing brace behind it would otherwise be part of the comment
     /// </summary>
     /// <param name="trailingTrivia">The original trailing trivia of the statement</param>
-    /// <returns>The normalized trailing trivia</returns>
-    private static SyntaxTriviaList NormalizeTrailingTrivia(SyntaxTriviaList trailingTrivia)
+    /// <param name="endOfLine">The end-of-line sequence of the separator line break</param>
+    /// <returns>The carried trailing trivia</returns>
+    private static SyntaxTriviaList GetCarriedTrailingTrivia(SyntaxTriviaList trailingTrivia, string endOfLine)
     {
-        var comments = CollectComments(trailingTrivia);
+        var lastTrivia = trailingTrivia.LastOrDefault(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false);
 
-        if (comments.Count == 0)
-        {
-            return SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker);
-        }
-
-        var result = new List<SyntaxTrivia>
-                     {
-                         SyntaxFactory.Space
-                     };
-
-        foreach (var comment in comments)
-        {
-            result.Add(comment);
-        }
-
-        result.Add(SyntaxFactory.ElasticMarker);
-
-        return SyntaxFactory.TriviaList(result);
+        return lastTrivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
+                   ? trailingTrivia.Add(SyntaxFactory.EndOfLine(endOfLine))
+                   : trailingTrivia;
     }
 
     /// <summary>
-    /// Collects the comment trivia from a trivia list, preserving their order
+    /// Determines whether a comment, a directive, or disabled text is the first trivia on the line a leading trivia list
+    /// starts on, in front of any line break
     /// </summary>
-    /// <param name="triviaList">The trivia list to inspect</param>
-    /// <returns>The comment trivia contained in the list</returns>
-    private static List<SyntaxTrivia> CollectComments(SyntaxTriviaList triviaList)
+    /// <param name="leadingTrivia">The leading trivia of the token that follows the braced statement</param>
+    /// <returns><see langword="true"/> if the first trivia other than whitespace, in front of any line break, is a comment, a directive, or disabled text; otherwise, <see langword="false"/></returns>
+    private static bool StartsWithCommentOrDirective(SyntaxTriviaList leadingTrivia)
     {
-        return triviaList.Where(SyntaxTriviaUtilities.IsCommentTrivia)
-                         .ToList();
+        foreach (var trivia in leadingTrivia)
+        {
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                continue;
+            }
+
+            return SyntaxTriviaUtilities.IsCommentTrivia(trivia)
+                   || SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia);
+        }
+
+        return false;
     }
 
     #endregion // Methods
@@ -170,6 +182,10 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
     {
         _cancellationToken.ThrowIfCancellationRequested();
 
+        // The token behind each body is read from the original tree, because the visited node is detached from it
+        var statementNextToken = node.Statement.GetLastToken().GetNextToken(includeZeroWidth: true);
+        var elseNextToken = node.Else?.Statement.GetLastToken().GetNextToken(includeZeroWidth: true) ?? default;
+
         node = (IfStatementSyntax)base.VisitIfStatement(node);
 
         if (node == null)
@@ -177,11 +193,11 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
             return null;
         }
 
-        node = node.WithStatement(WrapWithBraces(node.Statement, _context.EndOfLine));
+        node = node.WithStatement(WrapWithBraces(node.Statement, statementNextToken, _context.EndOfLine));
 
         if (node.Else is { Statement: not null and not BlockSyntax and not IfStatementSyntax } elseClause)
         {
-            node = node.WithElse(elseClause.WithStatement(WrapWithBraces(elseClause.Statement, _context.EndOfLine)));
+            node = node.WithElse(elseClause.WithStatement(WrapWithBraces(elseClause.Statement, elseNextToken, _context.EndOfLine)));
         }
 
         return node;

@@ -116,8 +116,9 @@ internal static class ExpressionBodyToBlockConverter
     /// Splits a leading trivia list into the comments that stand on lines of their own and the trivia of the last line,
     /// the one that holds the token the list leads. A line counts as a comment line when it holds nothing but whitespace
     /// and ordinary comments and ends with a line break; a line holding only whitespace is a blank line. The comment
-    /// lines come back without their indentation, each ended by its line break, with the blank lines between two of them;
-    /// blank lines in front of the first and behind the last comment line are dropped
+    /// lines come back with the whitespace the author wrote in front of and between their comments (FMT-STRUCT-026), each
+    /// ended by its line break, with the blank lines between two of them; the whitespace behind a line's last comment, and
+    /// blank lines in front of the first and behind the last comment line, are dropped
     /// </summary>
     /// <param name="leadingTrivia">The leading trivia to split</param>
     /// <param name="commentLinesTrivia">The comment lines, in source order</param>
@@ -152,7 +153,7 @@ internal static class ExpressionBodyToBlockConverter
                         commentLinesTrivia.AddRange(pendingBlankLines);
                     }
 
-                    commentLinesTrivia.AddRange(lineTrivia.GetRange(firstContentIndex, lastContentIndex - firstContentIndex + 1));
+                    commentLinesTrivia.AddRange(lineTrivia.GetRange(0, lastContentIndex + 1));
                     commentLinesTrivia.Add(trivia);
                     pendingBlankLines.Clear();
                 }
@@ -219,10 +220,12 @@ internal static class ExpressionBodyToBlockConverter
     /// Wraps the expression in a <c>return</c> statement that the expression joins on the keyword's line. When the
     /// expression's leading trivia holds no line break, it is the indentation of an expression that started its own line
     /// after the arrow, possibly with comments written in front of the expression on that line: the line break itself
-    /// belonged to the discarded arrow token, so the indentation is dropped, and the comments move behind the keyword,
-    /// where the parser places a comment written between <c>return</c> and its value. When comments must not move, only
-    /// leading trivia of whitespace alone is dropped. Leading trivia that carries a line break is kept, because the layout
-    /// it describes is then the author's
+    /// belonged to the discarded arrow token. Indentation alone is dropped, and comments move behind the keyword, where the
+    /// parser places a comment written between <c>return</c> and its value, together with the whitespace the author wrote in
+    /// front of, between, and behind them (FMT-STRUCT-026). When comments must not move, only leading trivia of whitespace
+    /// alone is dropped. Leading trivia that carries a line break is kept, because the layout it describes is then the
+    /// author's. The keyword gets one space behind it only when nothing separates it from the expression and the two would
+    /// otherwise read as one token, as in <c>return42</c>
     /// </summary>
     /// <param name="expression">The expression to wrap</param>
     /// <param name="semicolonToken">The semicolon token of the created statement</param>
@@ -237,20 +240,20 @@ internal static class ExpressionBodyToBlockConverter
             && leadingTrivia.All(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)
                                            || (moveComments && trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))))
         {
-            var comments = leadingTrivia.SkipWhile(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia))
-                                        .Reverse()
-                                        .SkipWhile(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia))
-                                        .Reverse()
-                                        .ToList();
-
-            if (comments.Count > 0)
+            if (leadingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia))
             {
-                returnKeyword = returnKeyword.WithTrailingTrivia(SyntaxFactory.TriviaList(comments)
-                                                                              .Insert(0, SyntaxFactory.Space)
-                                                                              .Add(SyntaxFactory.Space));
+                returnKeyword = returnKeyword.WithTrailingTrivia(leadingTrivia);
             }
 
             expression = expression.WithLeadingTrivia(default(SyntaxTriviaList));
+        }
+
+        // The created keyword carries zero-width elastic markers, so the separation is decided by the text around it
+        if (returnKeyword.TrailingTrivia.FullSpan.Length == 0
+            && expression.GetLeadingTrivia().FullSpan.Length == 0
+            && TokenGapUtilities.WouldMergeWhenTight(returnKeyword, expression.GetFirstToken()))
+        {
+            returnKeyword = returnKeyword.WithTrailingTrivia(SyntaxFactory.Space);
         }
 
         return SyntaxFactory.ReturnStatement(returnKeyword, expression, semicolonToken);

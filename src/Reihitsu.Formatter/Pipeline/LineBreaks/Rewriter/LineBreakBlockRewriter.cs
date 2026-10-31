@@ -54,6 +54,22 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
+    /// Determines whether a block is the body of a method, constructor, destructor, operator, conversion operator, or
+    /// local function, whose braces <see cref="DeclarationBraceLineBreakRewriter"/> places on the declaration
+    /// </summary>
+    /// <param name="block">The block of the tree being visited</param>
+    /// <returns><see langword="true"/> if the block is such a member body; otherwise, <see langword="false"/></returns>
+    private static bool IsMemberBody(BlockSyntax block)
+    {
+        return block.Parent switch
+               {
+                   BaseMethodDeclarationSyntax method => method.Body == block,
+                   LocalFunctionStatementSyntax localFunction => localFunction.Body == block,
+                   _ => false
+               };
+    }
+
+    /// <summary>
     /// Determines whether the gap between two adjacent statement tokens carries a preprocessor directive or
     /// disabled text
     /// </summary>
@@ -136,6 +152,9 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
     {
         _cancellationToken.ThrowIfCancellationRequested();
 
+        // The braces of a member body are placed by DeclarationBraceLineBreakRewriter, on the declaration that owns them
+        var isMemberBody = IsMemberBody(node);
+
         node = (BlockSyntax)base.VisitBlock(node);
 
         if (node == null)
@@ -143,8 +162,12 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        node = _bracePlacer.EnsureBraceOnOwnLine(node, owner => owner.OpenBraceToken, (owner, token) => owner.WithOpenBraceToken(token), owner => owner.CloseBraceToken, (owner, token) => owner.WithCloseBraceToken(token));
-        node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
+        if (isMemberBody == false)
+        {
+            node = _bracePlacer.EnsureBraceOnOwnLine(node, owner => owner.OpenBraceToken, (owner, token) => owner.WithOpenBraceToken(token), owner => owner.CloseBraceToken, (owner, token) => owner.WithCloseBraceToken(token));
+            node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
+        }
+
         node = EnsureStatementsStartOnSeparateLines(node, static block => block.Statements, static (block, statements) => block.WithStatements(statements));
 
         return node;
@@ -155,6 +178,9 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
     {
         _cancellationToken.ThrowIfCancellationRequested();
 
+        // The braces of an event's accessor list are placed by DeclarationBraceLineBreakRewriter, on the event declaration
+        var isEventAccessorList = node.Parent is EventDeclarationSyntax;
+
         node = (AccessorListSyntax)base.VisitAccessorList(node);
 
         if (node == null)
@@ -162,7 +188,8 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        if (LineBreakDetection.ShouldNormalizeAccessorListBraces(node) == false)
+        if (isEventAccessorList
+            || LineBreakDetection.ShouldNormalizeAccessorListBraces(node) == false)
         {
             return node;
         }

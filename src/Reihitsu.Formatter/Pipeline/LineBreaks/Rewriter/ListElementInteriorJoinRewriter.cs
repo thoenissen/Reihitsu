@@ -240,7 +240,7 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
     {
         var isTight = IsTightBefore(token) || IsTightAfter(previousToken);
 
-        return isTight && WouldMergeWhenTight(previousToken, token) == false
+        return isTight && TokenGapUtilities.WouldMergeWhenTight(previousToken, token) == false
                    ? SyntaxFactory.TriviaList()
                    : SyntaxFactory.TriviaList(SyntaxFactory.Space);
     }
@@ -289,33 +289,6 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
                    SyntaxKind.CloseParenToken => token.Parent is CastExpressionSyntax,
                    _ => token.Parent is PrefixUnaryExpressionSyntax prefixUnary && token == prefixUnary.OperatorToken
                };
-    }
-
-    /// <summary>
-    /// Determines whether two tokens written without a space between them would lex as different tokens: two
-    /// identifier or keyword characters meeting, two slashes or a slash and an asterisk starting a comment, or a prefix
-    /// operator gluing into an increment, decrement, or logical operator with its operand
-    /// </summary>
-    /// <param name="previousToken">The first token</param>
-    /// <param name="token">The second token</param>
-    /// <returns><see langword="true"/> if the tokens must keep a space between them; otherwise, <see langword="false"/></returns>
-    private static bool WouldMergeWhenTight(SyntaxToken previousToken, SyntaxToken token)
-    {
-        var last = previousToken.Text[previousToken.Text.Length - 1];
-        var first = token.Text[0];
-
-        if (SyntaxFacts.IsIdentifierPartCharacter(last)
-            && (SyntaxFacts.IsIdentifierPartCharacter(first) || first == '@'))
-        {
-            return true;
-        }
-
-        if (last == '/' && (first is '/' or '*'))
-        {
-            return true;
-        }
-
-        return UnaryOperatorSpacingUtilities.WouldGlueIntoDifferentOperator(previousToken, token);
     }
 
     /// <summary>

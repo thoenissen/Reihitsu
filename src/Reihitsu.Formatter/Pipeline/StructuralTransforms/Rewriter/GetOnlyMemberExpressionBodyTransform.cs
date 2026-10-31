@@ -186,9 +186,9 @@ internal sealed class GetOnlyMemberExpressionBodyTransform : CSharpSyntaxRewrite
             return false;
         }
 
-        arrowExpressionClause = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken)
-                                                                                 .WithLeadingTrivia(SyntaxFactory.Space)
-                                                                                 .WithTrailingTrivia(SyntaxFactory.Space),
+        // The created arrow reads as a separate token next to the signature and the expression without whitespace, so no
+        // space is written around it (FMT-STRUCT-026)
+        arrowExpressionClause = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken),
                                                                     bodyExpression);
         semicolonToken = SyntaxFactory.Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(semicolonTrailingTrivia);
 

@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Core;
 
@@ -31,6 +32,33 @@ internal static class TokenGapUtilities
     public static int CountBlankLinesBetween(SyntaxToken previousToken, SyntaxToken token)
     {
         return TokenGapAnalysis.Between(previousToken, token).BlankLineCount;
+    }
+
+    /// <summary>
+    /// Determines whether two tokens written without a space between them would lex as different tokens: two
+    /// identifier or keyword characters meeting, two slashes or a slash and an asterisk starting a comment, or a prefix
+    /// operator gluing into an increment, decrement, or logical operator with its operand
+    /// </summary>
+    /// <param name="previousToken">The first token</param>
+    /// <param name="token">The second token</param>
+    /// <returns><see langword="true"/> if the tokens must keep a space between them; otherwise, <see langword="false"/></returns>
+    public static bool WouldMergeWhenTight(SyntaxToken previousToken, SyntaxToken token)
+    {
+        var last = previousToken.Text[previousToken.Text.Length - 1];
+        var first = token.Text[0];
+
+        if (SyntaxFacts.IsIdentifierPartCharacter(last)
+            && (SyntaxFacts.IsIdentifierPartCharacter(first) || first == '@'))
+        {
+            return true;
+        }
+
+        if (last == '/' && (first is '/' or '*'))
+        {
+            return true;
+        }
+
+        return UnaryOperatorSpacingUtilities.WouldGlueIntoDifferentOperator(previousToken, token);
     }
 
     #endregion // Methods

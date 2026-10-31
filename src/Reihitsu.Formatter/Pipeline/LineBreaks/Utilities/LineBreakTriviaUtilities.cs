@@ -42,8 +42,9 @@ internal static class LineBreakTriviaUtilities
     }
 
     /// <summary>
-    /// Moves a token to a new line by prepending an end-of-line trivia to its leading trivia.
-    /// Also strips any trailing whitespace from the previous token to avoid orphaned spaces
+    /// Moves a token to a new line by prepending an end-of-line trivia to its leading trivia. The trailing trivia of the
+    /// previous token stays as it is, whitespace at its end included; the cleanup phase removes whitespace in front of every
+    /// line break (FMT-BREAK-029)
     /// </summary>
     /// <typeparam name="TNode">The syntax node type containing the token</typeparam>
     /// <param name="node">The node containing the token</param>
@@ -55,34 +56,7 @@ internal static class LineBreakTriviaUtilities
                                                   string endOfLine)
         where TNode : SyntaxNode
     {
-        var newToken = PrependEndOfLine(token, endOfLine);
-        var previousToken = token.GetPreviousToken();
-
-        if (previousToken != default
-            && previousToken.IsKind(SyntaxKind.None) == false
-            && HasTrailingEndOfLine(previousToken) == false
-            && previousToken.TrailingTrivia.Any(SyntaxKind.WhitespaceTrivia))
-        {
-            if (TokenContainmentUtilities.ContainsToken(node, previousToken) == false)
-            {
-                return node.ReplaceToken(token, newToken);
-            }
-
-            var newPreviousToken = previousToken.WithTrailingTrivia(RemoveTrailingWhitespace(previousToken.TrailingTrivia));
-
-            return node.ReplaceTokens([previousToken, token],
-                                      (original, _) =>
-                                      {
-                                          if (original == previousToken)
-                                          {
-                                              return newPreviousToken;
-                                          }
-
-                                          return newToken;
-                                      });
-        }
-
-        return node.ReplaceToken(token, newToken);
+        return node.ReplaceToken(token, PrependEndOfLine(token, endOfLine));
     }
 
     /// <summary>
