@@ -142,8 +142,10 @@ internal sealed class RawStringLineShifts
     /// hole of another multi-line interpolated raw string are walked; a nested literal's lines are lines of the outermost
     /// literal around it, so both move together. The move edits the tokens and the whitespace trivia that hold the moved
     /// indentation and keeps every other node and token, so the annotations of the literal and of its holes survive it
-    /// (FMT-PIPE-022). Placing lines changes no line break, so the line numbers of the indented tree are those the shifts
-    /// were computed for
+    /// (FMT-PIPE-022). A content line that starts with a hole's opening brace has its moved indentation written as text of
+    /// the literal, as the parser reads it (FMT-PIPE-021): appended to the text token in front of the hole, or, on the
+    /// first content line, where only the start token stands in front of it, as a new text element in front of the hole.
+    /// Placing lines changes no line break, so the line numbers of the indented tree are those the shifts were computed for
     /// </summary>
     /// <param name="root">The indented syntax root</param>
     /// <param name="getShift">Gets the number of columns a line moves</param>
@@ -152,6 +154,7 @@ internal sealed class RawStringLineShifts
     public static SyntaxNode MoveLines(SyntaxNode root, Func<int, int> getShift, CancellationToken cancellationToken)
     {
         var edits = new Dictionary<SyntaxToken, List<(int LineStart, int OldLength, int NewLength)>>();
+        var leadingTexts = new Dictionary<InterpolatedStringExpressionSyntax, int>();
         SourceText text = null;
 
         foreach (var node in root.DescendantNodesAndSelf())
@@ -166,12 +169,21 @@ internal sealed class RawStringLineShifts
 
             text ??= root.SyntaxTree.GetText(cancellationToken);
 
-            CollectEdits(root, node, text, getShift, edits);
+            CollectEdits(root, node, text, getShift, edits, leadingTexts);
         }
 
-        return edits.Count == 0
-                   ? root
-                   : root.ReplaceTokens(edits.Keys, (originalToken, _) => ApplyEdits(originalToken, edits[originalToken]));
+        if (edits.Count == 0
+            && leadingTexts.Count == 0)
+        {
+            return root;
+        }
+
+        return root.ReplaceSyntax(leadingTexts.Keys,
+                                  (originalNode, rewrittenNode) => InsertLeadingText((InterpolatedStringExpressionSyntax)rewrittenNode, leadingTexts[(InterpolatedStringExpressionSyntax)originalNode]),
+                                  edits.Keys,
+                                  (originalToken, _) => ApplyEdits(originalToken, edits[originalToken]),
+                                  [],
+                                  static (_, rewrittenTrivia) => rewrittenTrivia);
     }
 
     /// <summary>
@@ -200,14 +212,18 @@ internal sealed class RawStringLineShifts
     /// <summary>
     /// Collects the edits that move each line of a multi-line raw string literal after the first by the number of columns
     /// <paramref name="getShift"/> gives it. Each edit belongs to the token that holds the start of the line: in its text,
-    /// on a content or closing line, or in its leading trivia, on a line of an interpolation hole
+    /// on a content or closing line, or in its leading trivia, on a line of an interpolation hole. A content line that
+    /// starts with a hole's opening brace has no text in front of the brace, and the parser reads indentation there as
+    /// text of the literal: its edit belongs to the text token that ends at the line's start, or, when the start token
+    /// stands in front of the hole, it becomes a new text element of the literal
     /// </summary>
     /// <param name="root">The indented syntax root</param>
     /// <param name="node">The literal expression or interpolated string expression</param>
     /// <param name="text">The text of the indented syntax tree</param>
     /// <param name="getShift">Gets the number of columns a line moves</param>
     /// <param name="edits">Receives the edits, by the token they change</param>
-    private static void CollectEdits(SyntaxNode root, SyntaxNode node, SourceText text, Func<int, int> getShift, Dictionary<SyntaxToken, List<(int LineStart, int OldLength, int NewLength)>> edits)
+    /// <param name="leadingTexts">Receives the number of spaces of the text element to insert in front of the first hole, by the literal that receives it</param>
+    private static void CollectEdits(SyntaxNode root, SyntaxNode node, SourceText text, Func<int, int> getShift, Dictionary<SyntaxToken, List<(int LineStart, int OldLength, int NewLength)>> edits, Dictionary<InterpolatedStringExpressionSyntax, int> leadingTexts)
     {
         var openingLineNumber = text.Lines.GetLineFromPosition(node.SpanStart).LineNumber;
         var closingLineNumber = text.Lines.GetLineFromPosition(node.Span.End).LineNumber;
@@ -233,6 +249,20 @@ internal sealed class RawStringLineShifts
 
             var token = root.FindToken(line.Start);
 
+            if (IsHoleOpeningLine(token, line.Start, out var interpolation))
+            {
+                var previousToken = token.GetPreviousToken();
+
+                if (previousToken.IsKind(SyntaxKind.InterpolatedStringTextToken) == false)
+                {
+                    leadingTexts[(InterpolatedStringExpressionSyntax)interpolation.Parent] = newSpaces;
+
+                    continue;
+                }
+
+                token = previousToken;
+            }
+
             if (edits.TryGetValue(token, out var tokenEdits) == false)
             {
                 tokenEdits = [];
@@ -241,6 +271,38 @@ internal sealed class RawStringLineShifts
 
             tokenEdits.Add((line.Start, indentation, newSpaces));
         }
+    }
+
+    /// <summary>
+    /// Determines whether a content line of an interpolated raw string literal starts with the opening brace of one of its
+    /// holes, so no text of the literal stands in front of the brace on that line
+    /// </summary>
+    /// <param name="token">The token that holds the line's start</param>
+    /// <param name="lineStart">The position at which the line starts</param>
+    /// <param name="interpolation">The hole whose opening brace starts the line</param>
+    /// <returns><see langword="true"/> if the line starts with a hole's opening brace</returns>
+    private static bool IsHoleOpeningLine(SyntaxToken token, int lineStart, out InterpolationSyntax interpolation)
+    {
+        interpolation = token.Parent as InterpolationSyntax;
+
+        return interpolation != null
+               && interpolation.OpenBraceToken == token
+               && token.SpanStart == lineStart
+               && interpolation.Parent is InterpolatedStringExpressionSyntax;
+    }
+
+    /// <summary>
+    /// Inserts the moved indentation of a first content line that starts with a hole as a text element in front of that
+    /// hole, where the parser reads it. Indentation is not part of the literal's value, so the element's value is empty
+    /// </summary>
+    /// <param name="node">The interpolated string expression, with its tokens already moved</param>
+    /// <param name="spaces">The number of spaces of the indentation</param>
+    /// <returns>The interpolated string expression with the text element in front of its first hole</returns>
+    private static InterpolatedStringExpressionSyntax InsertLeadingText(InterpolatedStringExpressionSyntax node, int spaces)
+    {
+        var textToken = SyntaxFactory.Token(default, SyntaxKind.InterpolatedStringTextToken, new string(' ', spaces), string.Empty, default);
+
+        return node.WithContents(node.Contents.Insert(0, SyntaxFactory.InterpolatedStringText(textToken)));
     }
 
     /// <summary>
