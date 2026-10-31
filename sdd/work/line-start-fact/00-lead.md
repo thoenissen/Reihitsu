@@ -33,3 +33,15 @@ The issue's Proposed Behavior and Done when — including its restructuring item
 - Escalation 12 (join tight-pair table): A — kept in this run, follow-up candidate (`squad/decisions/2026-10-30-line-start-fact-join-spacing-pairs.md`).
 - Audit 1 (12-auditor.md): findings. Escalation 12 for finding 2 — B, both copies go through the shared fact (`squad/decisions/2026-10-30-line-start-fact-audit-1-copies.md`). Repair round 1 of 3: findings 1 (blank line in a wrapped omitted-type-argument list needs two passes), 2 (RH6021/RH6005 copies), 3 (`ReihitsuFormatterHelpers.ComputeTokenColumn` left in the entry-point class) — test implementer, then implementer, cleaner, spec checker, auditor on the repair, validator.
 - Audit 2 (17-auditor.md): findings #1–#3 closed; #4 (RH6001) repeats #2's class → escalation 12, B: full sweep of analyzer/code-fix line-break copies decided by trivia kind, every failing member routed through the shared fact; not a repair round (`squad/decisions/2026-10-31-line-start-fact-audit-2-repeat.md`). Order: test implementer (enumeration and reproductions) → spec author (change-doc listing) → implementer → cleaner → spec checker → auditor on the structural change → validator.
+- Spec checker 22 finding (lead-owned): RH6001 checks `fixed`, which RH6001-001 does not list; predates the run, so it is a follow-up candidate drafted for the maintainer, not changed here.
+
+## Follow-up candidates (drafted for the maintainer, not created)
+
+- RH5204 fix does not converge (behind a stranded `///` with an over-indented block; at the start of a file behind a doc comment or directive).
+- RH5204 does not report a misindented field whose first token is a predefined-type keyword (`int B;`).
+- The documentation-comment phase relocates `///` comments that FMT-DOC-001 leaves undecided (spec gap).
+- RH5048 treats every documentation-looking comment as documentation, while SHARED-COMMENT-001 counts a `///`/`/** */` that documents nothing as ordinary.
+- `AttributeTargetUtilities.StartsLine` and the terminator sets of RH5202, RH5401, RH5603, RH8402, and the copyright-header helpers (decision 3A).
+- `ListElementInteriorJoinRewriter`'s tight-pair table for pairs no spacing rule covers (join-spacing-pairs decision).
+- `Data/RootListPosition` reads a line-break-phase helper.
+- RH6001 checks `fixed`, which RH6001-001 does not list.
