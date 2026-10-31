@@ -2,7 +2,7 @@ Role: spec author
 Commit: 7586822
 Verdict: change doc written
 
-Change doc: `sdd/changes/2026-10/node-root-detached.md` (`Status: Draft`). It needs the maintainer's approval of What and Why before tests are written (escalation 2). The decisions the maintainer should look at most closely are listed under *Decisions inside the change doc* below.
+Change doc: `sdd/changes/2026-10/node-root-detached.md`. The maintainer approved it as written (escalation 2, `squad/decisions/2026-10-31-node-root-detached-change-doc.md`); its status is now `Accepted`. The decisions the maintainer should look at most closely are listed under *Decisions inside the change doc* below.
 
 The prompt carried no intended fix or suspected cause beyond the issue text; nothing was ignored.
 
