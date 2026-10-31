@@ -1155,7 +1155,9 @@ class C
 
 ### FMT-BREAK-029 — Whitespace in front of an inserted line break is left to the cleanup phase
 
-When the phase moves a token onto a new line by writing a line break in front of it and leaves the trailing trivia of the token before it in place, it MUST NOT remove the whitespace that ends that trivia; the cleanup phase removes it (FMT-CLEAN-001), so the final output holds none. This holds wherever the token before the line break stands, inside the node the phase lays out or outside it. A line break the phase moves out of the trailing trivia of the token before, as when it rewraps a list, is outside this requirement.
+When the phase moves a token onto a new line by writing a line break into that token's leading trivia and leaves the trailing trivia of the token before it in place, it MUST NOT remove the whitespace that ends that trivia; the cleanup phase removes it (FMT-CLEAN-001), so the final output holds none. This holds wherever the token before the line break stands, inside the node the phase lays out or outside it.
+
+This requirement reaches only that case. Where the phase rewrites the trailing trivia of the token before — it moves a line break out of it, as when it rewraps a list, or it normalizes the gap in front of a token it places, such as a `}` behind `M();` or a brace of an initializer — it may remove the whitespace together with that rewrite; the final output is the same, because FMT-CLEAN-001 removes whatever whitespace is left.
 
 Why: Whitespace at the end of a line has one owner, the cleanup phase, which removes it in front of every line break. A second removal in this phase, which reaches only the tokens of the node it rewrites, makes the phase's output depend on where a node starts. Whitespace that ends a line decides nothing in the phases between: the spacing phase leaves a gap with a line break as it is (FMT-SPACE-001), and the indentation phase places lines by their first token.
 

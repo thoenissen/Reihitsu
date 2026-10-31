@@ -5,7 +5,7 @@
 | ID prefix | FMT-STRUCT |
 | Status | Active |
 | Code owners | `StructuralTransformPhase`, `ConfigurableStructuralTransforms`, `ControlFlowBraceTransform`, `ExpressionBodiedMethodTransform`, `ExpressionBodiedConstructorTransform`, `ExpressionBodiedOperatorTransform`, `ExpressionBodiedConversionTransform`, `ExpressionBodiedFinalizerTransform`, `ExpressionBodiedLocalFunctionTransform`, `ExpressionBodiedTransformUtilities`, `ExpressionBodyToBlockConverter`, `AccessorExpressionBodyTransform`, `GetOnlyMemberExpressionBodyTransform`, `EmptyTypeDeclarationSemicolonTransform`, `EnumTrailingCommaRemovalTransform`, `InitializerTrailingCommaRemovalTransform`, `TrailingCommaRemovalUtilities`, `FieldDeclarationSplitTransform` |
-| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021 |
+| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021, FMT-SPACE-002 |
 
 This spec covers the phase that rewrites syntax shape before any layout is decided, right after the tabs in whitespace are replaced (FMT-PIPE-001): braces for `if`/`else` bodies, block bodies for expression-bodied functions, expression bodies for simple accessors and get-only members, semicolon declarations for empty types, removal of trailing commas, and one field per declaration. Every rewrite produces equivalent code (FMT-PIPE-003) and is refused for a construct whose comments, directives, or disabled text it could not carry over (FMT-PIPE-002).
 
@@ -1161,7 +1161,7 @@ class C
 
 ### FMT-STRUCT-026 — The phase writes only the separators its text needs
 
-A structural transform MUST NOT write whitespace, a line break, or indentation next to a token it creates, nor into the trivia it carries over, except a separator without which its output would not parse back to its tree (FMT-PIPE-021). These separators are decided:
+A structural transform MUST NOT write whitespace, a line break, or indentation next to a token it creates, nor into the trivia it carries over, except a separator without which its output would not parse back to its tree (FMT-PIPE-021) and the spaces around a created `=>` named below. These separators are decided:
 
 - one space between a token the transform creates and the token after it when the two would otherwise read as one token, such as `return` before `42`; no space where they read as two tokens without it, such as `{` before `return`, `)` before `{`, or `return` before a comment;
 - a line break between a single-line comment and a token the transform creates behind it, such as `// trailing` before an inserted `}`;
@@ -1169,6 +1169,10 @@ A structural transform MUST NOT write whitespace, a line break, or indentation n
 - a line break between a token the transform creates and a preprocessor directive behind it, such as an inserted `}` before `#if`.
 
 No other line break follows a token the transform creates: none behind an inserted `{` that the braced statement follows without a leading comment, and none behind an inserted `}` that `else`, a statement without a leading comment, or the enclosing block's `}` follows.
+
+The accessor and get-only-member transforms (FMT-STRUCT-009, FMT-STRUCT-014) also write one space on each side of the `=>` they create, as in `get => _value;` and `int P => _value;`. The parser does not need these spaces, but no spacing rule covers the gap between an accessor keyword, a member name, or an indexer's `]` and the `=>` behind it, so the spacing phase keeps that gap as it finds it (FMT-SPACE-002), and without the spaces the final output would read `get=> _value;`. The transforms write them until a spacing rule owns that gap.
+
+A token a structural transform creates MUST carry no elastic trivia — the zero-width markers Roslyn gives a token built without explicit trivia. Its trivia is exactly what this requirement allows: the separators above, the spaces around a created `=>`, and the trivia it carries over. This requirement does not decide whether the phases after this one write elastic trivia.
 
 The trivia a transform carries over keeps what the author wrote:
 
@@ -1180,7 +1184,7 @@ The transform MAY drop the line breaks in front of the first comment that leads 
 
 The field split (FMT-STRUCT-021) is outside this requirement: it writes the line break and indentation in front of each field it creates, a space in front of each comment it carries over, and the line break behind each comment it moves onto its own line, because the RH7101 code fix runs it without the phases after it. That exception is recorded until the fix formats through an entry point the pipeline spec names (thoenissen/Reihitsu#1502).
 
-Why: The phases after this one, the trace, and the documentation phase read the text of this phase's tree, so the text has to be that tree (FMT-PIPE-021). Every other piece of layout is decided again by the phase that owns it — line breaks by FMT-BREAK, spaces by FMT-SPACE, columns by FMT-INDENT — so a transform that writes it makes one decision in two places (FMT-PIPE-001), and the two can disagree. A wrap is not a decision about the comments it carries (FMT-PIPE-013): the gaps the author left around them are what the phases see in code that needs no wrap, and the spacing phase keeps a gap in front of a comment as it finds it.
+Why: The phases after this one, the trace, and the documentation phase read the text of this phase's tree, so the text has to be that tree (FMT-PIPE-021). Every other piece of layout is decided again by the phase that owns it — line breaks by FMT-BREAK, spaces by FMT-SPACE, columns by FMT-INDENT — so a transform that writes it makes one decision in two places (FMT-PIPE-001), and the two can disagree. A wrap is not a decision about the comments it carries (FMT-PIPE-013): the gaps the author left around them are what the phases see in code that needs no wrap, and the spacing phase keeps a gap in front of a comment as it finds it. An elastic marker is whitespace to the spacing phase but no character of the text, so a tree that carries one is spaced differently from its own text: a created `=>` with elastic trivia behind it ends up as `get=> "";` in one pass while the same text written by hand stays `get=>"";`, the difference FMT-PIPE-021 rules out between a phase's tree and its text. The spaces around a created `=>` are the one piece of layout the transforms keep, because no spacing rule owns that gap yet and the final output must not change for it.
 
 Example — the transform's output for the class of FMT-PIPE-021's first example holds `int Get(){return 42;}` followed by the line break the author wrote behind `;`, the author's line break between `// trailing` and the inserted `}` behind it, and no line break behind either inserted `}` of `M`. The final output is unchanged by this requirement:
 
