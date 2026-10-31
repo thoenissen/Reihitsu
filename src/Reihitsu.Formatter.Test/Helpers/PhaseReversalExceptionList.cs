@@ -5,6 +5,7 @@ using Reihitsu.Formatter.Test.Regression.BlankLines;
 using Reihitsu.Formatter.Test.Regression.FullPipeline;
 using Reihitsu.Formatter.Test.Regression.Indentation;
 using Reihitsu.Formatter.Test.Regression.LineBreaks;
+using Reihitsu.Formatter.Test.Regression.Structural;
 using Reihitsu.Formatter.Test.Regression.UsingDirectives;
 
 namespace Reihitsu.Formatter.Test.Helpers;
@@ -26,6 +27,7 @@ public static class PhaseReversalExceptionList
                                                                            new(typeof(UsingDirectiveOrderingTests), nameof(UsingDirectiveOrderingTests.SameGroupDirectiveBehindMultiLineDelimitedDocumentationCommentKeepsTheCommentWithIt), "855e76f82f59bced", PhaseReversalCauses.BlankLineAboveCommentLedUsingDirective, "4048e372d9c31c30", PhaseReversalLineEndings.Both),
                                                                            new(typeof(CommentLedFirstTokenAnchorTests), nameof(CommentLedFirstTokenAnchorTests.CreationInitializerBraceBehindCommentThatLeadsTheLineMovesNoOtherLine), "d98468a6e06d824b", PhaseReversalCauses.BlankLineNextToBrace, "052e3d7440412572", PhaseReversalLineEndings.Both),
                                                                            new(typeof(CommentLedFirstTokenAnchorTests), nameof(CommentLedFirstTokenAnchorTests.NestedInitializerAlignsToItsBraceBehindCommentThatLeadsTheLine), "79b71c9b01485d74", PhaseReversalCauses.BlankLineNextToBrace, "d52681f567f0de42", PhaseReversalLineEndings.Both),
+                                                                           new(typeof(StructuralTransformSeparatorFinalOutputTests), nameof(StructuralTransformSeparatorFinalOutputTests.MembersWithACommentAtTheArrowReachAStableOutput), "77770a4201eb2019", PhaseReversalCauses.BlankLineNextToBrace, "921052f14d6bb85f", PhaseReversalLineEndings.Both),
                                                                            new(typeof(ArgumentFormattingFullPipelineTests), nameof(ArgumentFormattingFullPipelineTests.FormatsMethodChainWithArguments), "c328bbe3d627fc17", PhaseReversalCauses.LineStartIndentation, "fd65937e92e8ef79", PhaseReversalLineEndings.Both),
                                                                            new(typeof(IndentationTests), nameof(IndentationTests.LambdaBlockBodyInArgumentListIndentsCorrectly), "bcc307cbab39d7a4", PhaseReversalCauses.LineStartIndentation, "ef1fbcc3d5a16c25", PhaseReversalLineEndings.Both),
                                                                            new(typeof(IndentationTests), nameof(IndentationTests.SwitchExpressionInsideLambdaBreaksAndAligns), "c3d9f70128b65ace", PhaseReversalCauses.LineStartIndentation, "3385ba8051c36fd0", PhaseReversalLineEndings.Both),
