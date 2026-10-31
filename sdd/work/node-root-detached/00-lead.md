@@ -1,6 +1,6 @@
 Role: lead
 Commit: ccb6669
-Verdict: lane claimed; implementer done
+Verdict: repair round 1 of 3
 
 # Run: thoenissen/Reihitsu#1489
 
@@ -48,6 +48,9 @@ Behavior change: the issue requests changed behavior of the node-level entry poi
 | 11 | spec author | This run keeps the `else if (y) // note` comment that the RH5405 fix drops on `main` (thoenissen/Reihitsu#1527) | Adjacent fix: add an RH5405 code-fix regression test, and add an RH5204 code-fix test for the converging embedded `if` behind a multi-line comment; the PR closes #1527 | Both are reachable code-fix results the run changes; SHARED-FIX-003 demands the kept comment, maintainer answer 6 covers the RH5204 columns | Decided by an unchanged requirement and a maintainer answer | pending |
 | 12 | spec author | Is thoenissen/Reihitsu#1521 reachable? | Kept open: the RH5405 fix reaches the `else if` braces in column 13 | Reachable through a code fix | Nothing changed in this run | — |
 | 13 | test implementer | The RH5204 code-fix test compares the whole document and so also pins the blank line after `while (a)` and `/* note` in column 12, which no requirement names | Accepted as pinned | The blank line is unchanged from `main` (skeptic, `02-skeptic.md`), and the comment column follows maintainer answer 6 | Unchanged output, or covered by answer 6 | f4ae2a4 |
+| 14 | auditor (round 1) | Architecture finding: the outermost-chain decision has several owners (Core's `FluentChain.ContinuesChain`/`IsOutermostChainNode` reading `Parent`, the root-only `ChainContinuation` fact); finding #1 is a reachable case (RH6023 on an assignment inside a conditional access) | Change the structure in this run: one owner of the outermost-chain decision that answers for every node of a detached root, not only the root; `MethodChainAlignmentContributor` joins it where that costs nothing extra | The narrow repair would copy `ContinuesChain`'s assignment branch, a second statement of the rule; the components are ones the run already changes | Restores `main`'s RH6023 output; no new output | pending |
+| 15 | auditor (round 1) | Findings #2 (code owners of `RootConstruct`, `TriviaFact`, `RootConstructExtensions`), #3 (stale attachment remarks in two blank-line files), #4 (`ComputeDepth` repeats Core's `ComputeStatementIndentLevel` loop) | Repair all three in round 1: #2 spec author, #3 and #4 implementer | Same requirement / PR-introduced; #4 removes a second loop | Text or no-output refactor | pending |
+| 16 | auditor (round 1) | Hints: construct flags serving inputs no caller passes; `IndentationPhase` re-rooting branch; `PrecedingTokenFacts.Resolve` allocation | No change | They serve FMT-PIPE-023's tab rule or are harmless; churn would cost more than it saves | Nothing changed | — |
 
 ## Follow-up candidates
 
