@@ -136,6 +136,22 @@ public class ReihitsuFormatterDetachedRootTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that an assignment inside a conditional access as target keeps the link of its assigned member on its own line,
+    /// with and without a tab in the target
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-023")]
+    [Requirement("FMT-PIPE-024")]
+    public async Task ConditionalAccessAssignmentTargetKeepsTheWrappedLinkOfItsAssignedMember()
+    {
+        const string input = "class C\n{\n    void M(A a)\n    {\n        a?.B\n          .C =⇥5;\n    }\n}";
+        const string expected = "class C\n{\n    void M(A a)\n    {\n        a?.B\n          .C = 5;\n    }\n}";
+
+        await AssertFormatsTarget(input, expected, Select<AssignmentExpressionSyntax>());
+    }
+
+    /// <summary>
     /// Verifies that the accessor list of a one-line property as target keeps the accessor's attribute list on the property's line,
     /// with and without a tab in the target
     /// </summary>
