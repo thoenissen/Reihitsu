@@ -47,3 +47,4 @@ The issue's Proposed Behavior and Done when — including its restructuring item
 - RH6001 checks `fixed`, which RH6001-001 does not list.
 - Audit 3 (23-auditor.md, of ba5a99b): #4 closed; enumeration complete; finding #5 (medium, missing test for `if/* c *//// x` / `(c)`, not a repeat). Repair round 2 of 3: test implementer, cleaner, spec checker, auditor on the repair, validator.
 - Follow-up candidate from audit 3: RH6001 reports `if/** d */(c)`, which the formatter keeps; RH6001's spec leaves the shape undecided.
+- Audit 4 (27-auditor.md, of f57c5d7): pass, text cleanup (#5 closed; #6 low, wording of four RH6001 test summaries). Cleaner reworded them (28-cleaner.md); `verify-text-only.sh --strict-docs` fails only because the summaries sit on public test methods (non-strict proof passes, token stream identical). Per the playbook a failing proof makes this repair round 3 of 3: spec checker, auditor on the text change, validator.
