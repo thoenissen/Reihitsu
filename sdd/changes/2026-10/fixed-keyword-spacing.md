@@ -6,7 +6,7 @@
 | Date | 2026-10 |
 | Affected requirements | FMT-SPACE-012 |
 
-The maintainer accepted this change in advance, when answering the decision recorded in `squad/decisions/2026-10-31-line-start-fact-fixed-spacing.md`.
+The maintainer accepted this change in advance, when answering a question of the line-start run.
 
 ## What
 

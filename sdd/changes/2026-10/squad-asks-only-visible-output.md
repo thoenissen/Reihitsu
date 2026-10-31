@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Status | Accepted |
-| Date | 2026-11 |
+| Date | 2026-10 |
 | Affected requirements | none — process change |
 
 ## What
