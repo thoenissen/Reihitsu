@@ -26,6 +26,7 @@ Output questions of 01-skeptic, asked before the test implementer:
 
 1. Gap in front of a trailing comment in a braced switch section (label, last wrapped statement, terminal `break`) — **A**: the gap stays as written, as in a plain block and a braced `if`/`else` body (FMT-SPACE-001). The maintainer added that no extra logic is wanted: the wrap does not normalize this gap at all; it carries it.
 2. Comments around the terminal `break` of a braced switch section — **A**: their layout is kept as written (`/* b1 */ /* b2 */ break; /* x */ // y` stays on one line with its spaces).
+3. (asked at the audit, 09-auditor finding 1) Blank line between the last leading comment and its statement — first wrapped statement and terminal `break` of a braced switch section — awaiting answer.
 
 ## Decisions taken
 
@@ -47,3 +48,4 @@ Output questions of 01-skeptic, asked before the test implementer:
 - FMT-STRUCT-003's `Why:` is stale since #1513 (text-only) (01-skeptic).
 - A comment directly at an expression body's arrow lands on the new brace's line as `{/* one */`; FMT-STRUCT-006 leaves it unspecified — file only if not already tracked (01-skeptic).
 - `ExpressionBodyToBlockConverter` is a third carrier of comment trivia across inserted braces, not routed through `BlockWrapTriviaUtilities` because its trivia shape differs (04-implementer; also 01-skeptic, architecture finding).
+- A section that gets braces with `case 1: /* c */ A();` leaves `/* c */` on the label line and moves `A();` into the block (same on `main`); FMT-SWITCH-007's first sentence demands it, FMT-PIPE-013 could be read otherwise — follow-up carrying an output question (09-auditor, hint).
