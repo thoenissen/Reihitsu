@@ -4,7 +4,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 
 | Spec | ID prefix | Code owners |
 |---|---|---|
-| [formatter/pipeline.md](formatter/pipeline.md) | FMT-PIPE | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `PreparationPhase`, `FormattingContext`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities` |
+| [formatter/pipeline.md](formatter/pipeline.md) | FMT-PIPE | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `PreparationPhase`, `FormattingContext`, `PrecedingTokenFacts`, `RootListPosition`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities` |
 | [formatter/tab-replacement.md](formatter/tab-replacement.md) | FMT-TAB | `TabReplacementPhase` |
 | [formatter/structural-transforms.md](formatter/structural-transforms.md) | FMT-STRUCT | `StructuralTransformPhase`, `ConfigurableStructuralTransforms`, `ControlFlowBraceTransform`, `ExpressionBodiedMethodTransform`, `ExpressionBodiedConstructorTransform`, `ExpressionBodiedOperatorTransform`, `ExpressionBodiedConversionTransform`, `ExpressionBodiedFinalizerTransform`, `ExpressionBodiedLocalFunctionTransform`, `ExpressionBodiedTransformUtilities`, `ExpressionBodyToBlockConverter`, `AccessorExpressionBodyTransform`, `GetOnlyMemberExpressionBodyTransform`, `EmptyTypeDeclarationSemicolonTransform`, `EnumTrailingCommaRemovalTransform`, `InitializerTrailingCommaRemovalTransform`, `TrailingCommaRemovalUtilities`, `FieldDeclarationSplitTransform` |
 | [formatter/region-formatting.md](formatter/region-formatting.md) | FMT-REGION | `RegionFormattingPhase`, `RegionNamingRewriter`, `RegionDirectiveUtilities` |
