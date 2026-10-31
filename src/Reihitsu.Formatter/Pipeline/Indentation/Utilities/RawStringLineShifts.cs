@@ -274,8 +274,9 @@ internal sealed class RawStringLineShifts
     }
 
     /// <summary>
-    /// Determines whether a content line of an interpolated raw string literal starts with the opening brace of one of its
-    /// holes, so no text of the literal stands in front of the brace on that line
+    /// Determines whether a line starts with the opening brace of an interpolation hole, so no text of the interpolated
+    /// string stands in front of the brace on that line. The predicate does not check that the string is raw: only lines
+    /// that move reach it, and a line of a non-raw string gets no shift, so every hole it sees belongs to a raw string
     /// </summary>
     /// <param name="token">The token that holds the line's start</param>
     /// <param name="lineStart">The position at which the line starts</param>
@@ -287,8 +288,7 @@ internal sealed class RawStringLineShifts
 
         return interpolation != null
                && interpolation.OpenBraceToken == token
-               && token.SpanStart == lineStart
-               && interpolation.Parent is InterpolatedStringExpressionSyntax;
+               && token.SpanStart == lineStart;
     }
 
     /// <summary>
