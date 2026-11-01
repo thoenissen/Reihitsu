@@ -159,3 +159,33 @@ Base: bce245d. Lead decision 13 put question 1's positions outside this run, and
 ## Answer 14A carried out
 
 Base: a08958f. The change doc's `Decisions` section gains *One-line keyword positions no join reaches* (14A), and entry 9 shows the one-line before/after forms. The spec already matched 14A and is unchanged. Sdd tests: 51 of 51 passed.
+
+## Row 19 carried out
+
+Base: 324c27e. The prompt asked for the widening of row 19 and named the implementer's item 8; it carried no suspected cause or hoped-for verdict beyond the lead's decision, which this round carries out. Outputs below were run with `scripts/format.sh` on 324c27e and, for "Before", in a detached `origin/main` worktree.
+
+- **FMT-SPACE-014 — changed.** The whitespace in front of a right-carried `/** */` stays as written, also when the left token carries a comment of its own in the gap (checked: `b /* x */   /** y */+b` keeps the three spaces between the comments). When a rule decides the pair, its decision applies to the whitespace behind the comment: removed when no space is allowed, otherwise exactly the demanded number of spaces, inserted where none was written. `Why` now names both directions and FMT-SPACE-013. The example adds `b /** sum */+b`, `b /** sum */   + b`, `b  /** sum */+ b` (FMT-SPACE-010) and `c ? b /** yes */:b` (FMT-SPACE-018). The example's input gives the example's output through the full pipeline.
+- **Consistency.** FMT-SPACE-013 is unchanged; it applies the same decision behind a left-carried comment, and the new sentence on a gap with comments on both sides sits in FMT-SPACE-014. The comment sentences of FMT-SPACE-016 (`[return /** x */ :Obsolete]` → `[return /** x */: Obsolete]`) and FMT-SPACE-019 (`M(b /** x */ :b)` → `M(b /** x */: b)`) are removal cases and still hold; both checked through the full pipeline. RH6002, RH6003, RH6008, and RH6012 cite FMT-SPACE-014 for removal only, which still holds. No analyzer reports a gap that holds a comment (SHARED-OPSPACE-001/-002), so no rule spec changes.
+- **Change doc — a stated output changes.** On `main`, the gap behind the comment was only ever emptied: `b /** sum */+b` gave `b /** sum */+ b`, and `b /** sum */   + b` kept its three spaces. Now it gives `b /** sum */ + b`. Changes made:
+  - `FMT-SPACE-014 (changed)` is added to the affected requirements.
+  - A `What` bullet and a new entry 14 show the input, Before, and After.
+  - A `Decisions` entry records row 19 as a lead decision.
+  - `Unchanged` and the `What` summary now say "11 to 14".
+  - The `Visible output changes` intro names entry 14.
+  - Status stays `Accepted`.
+- **For the lead:** entry 14 includes a visible change for a pair whose rule exists on `main` (FMT-SPACE-010, the binary operator), and no maintainer answer of this run names that pair. Row 19 records this as following the maintainer's answers, so the lead decides whether entry 14 needs an output question. The doc's status was not changed, so that call stays with the lead.
+- **Where the case is visible:** whole-document formatting shows it only where the documentation-comment phase leaves the comment on the line. Behind an operator, a `:` of a conditional, or a `;` or `]`, it stays. In front of a token that starts a node, it moves to its own line: the relational operand (as the implementer found for item 7), `when`, a declared name, the expression behind `=>`, and a cast operand. Those cases are visible at phase level only.
+- **Spec tests:** `scripts/test.sh --project architecture --filter "FullyQualifiedName~Sdd"` gives 51 of 51 passed.
+
+### Examples for the tests
+
+- FMT-SPACE-014: the full example can be tested with `AssertRuleResult`. No existing test covers the insertion cases `b /** sum */+b`, `b /** sum */   + b`, and `c ? b /** yes */:b`, or the kept `b  /** sum */`. No existing test expectation contradicts the new text.
+
+### Follow-up candidates
+
+- **A gap behind a right-carried comment that no rule decides keeps runs of spaces.** This is true on `main` and on this branch. FMT-SPACE-002's literal text would collapse them, and its `Why` calls a double space accidental.
+  - Input: `var r = new[] { /** z */   1 };`
+  - Real output: unchanged.
+  - Readings: A — keep as written, an exception like the whitespace in front of the comment; B — collapse to one space (FMT-SPACE-002).
+  - Recommendation: B, for FMT-SPACE-002's reason.
+  - Whole-document formatting reaches it. It is not part of row 19, and FMT-SPACE-014 does not state it, so the spec does not write down behavior that looks wrong.

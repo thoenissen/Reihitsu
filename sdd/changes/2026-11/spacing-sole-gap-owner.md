@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | FMT-SPACE-002 (changed), FMT-SPACE-012 (changed), FMT-SPACE-016 to FMT-SPACE-027 (added), the fourth non-goal of `horizontal-spacing.md` (narrowed), FMT-BREAK-024 (reworded), FMT-BREAK-026 (changed), FMT-BREAK-031 (added), FMT-STRUCT-026 (changed) |
+| Affected requirements | FMT-SPACE-002 (changed), FMT-SPACE-012 (changed), FMT-SPACE-014 (changed), FMT-SPACE-016 to FMT-SPACE-027 (added), the fourth non-goal of `horizontal-spacing.md` (narrowed), FMT-BREAK-024 (reworded), FMT-BREAK-026 (changed), FMT-BREAK-031 (added), FMT-STRUCT-026 (changed) |
 | Depends on | [Every formatter phase returns a tree that round-trips and keeps foreign annotations](../2026-10/phase-tree-round-trip.md) |
 
 ## What
@@ -26,9 +26,10 @@ The spacing phase decides the whitespace of every gap between two tokens on one 
   - `with`: one space on each side (FMT-SPACE-025);
   - an explicit lambda return type and the lambda's `(`: one space (FMT-SPACE-026);
   - a function pointer's `*` and its `managed` or `unmanaged`: one space (FMT-SPACE-027).
+- **The gap behind a `/** */` comment the right token carries follows the pair's rule.** Today a rule's decision reaches that gap only when the rule allows no space, and the whitespace there is removed; a gap the rule wants spaced keeps what the author wrote, none or several spaces. The decision now applies in both directions, as it does behind a comment the left token carries (FMT-SPACE-013), so the comment cases of the rules above read like their pairs without a comment (FMT-SPACE-014, entry 14). The whitespace in front of the comment stays as written.
 - **Arrows created by a structural transform are spaced by the spacing phase.** FMT-STRUCT-026 kept one space on each side of the `=>` the accessor and get-only-member transforms create until a spacing rule owns that gap. FMT-SPACE-017 owns it now, so the transforms write no whitespace there; the final output does not change.
 
-Every pair the line-break phase spaced today and that would read back without a space is decided by one of these rules, so no joined output changes; the rules change the same pairs where the author wrote them on one line (entries 1 to 9, 11 to 13). The pairs that no rule covers keep the gap the spacing phase finds and only have their runs of whitespace collapsed (FMT-SPACE-002); for a joined pair, that gap is the minimal separator, which equals today's separator for every such pair.
+Every pair the line-break phase spaced today and that would read back without a space is decided by one of these rules, so no joined output changes; the rules change the same pairs where the author wrote them on one line (entries 1 to 9, 11 to 13), also behind a `/** */` comment the right token carries (entry 14). The pairs that no rule covers keep the gap the spacing phase finds and only have their runs of whitespace collapsed (FMT-SPACE-002); for a joined pair, that gap is the minimal separator, which equals today's separator for every such pair.
 
 ## Why
 
@@ -44,7 +45,7 @@ The minimal separator follows the phase-boundary contract of FMT-STRUCT-026: a p
 
 ## Visible output changes
 
-Every entry shows the output the maintainer chose; the answers are recorded in `Decisions`. Entry 10 was not a choice.
+Every entry shows the output the maintainer chose; the answers are recorded in `Decisions`. Entry 10 was not a choice. Entry 14 applies the rules of the other entries and FMT-SPACE-010 behind a comment; it is a lead decision (see `Decisions`).
 
 ### 1. Every attribute-target colon: no space before, one space after (FMT-SPACE-016)
 
@@ -704,9 +705,59 @@ unsafe class C
 }
 ```
 
+### 14. The gap behind a `/** */` comment in front of a token follows the pair's rule (FMT-SPACE-014)
+
+```csharp
+class C
+{
+    int M(bool c, int b)
+    {
+        var d = b /** sum */+b;
+        var e = b /** sum */   + b;
+        var f = b  /** sum */+ b;
+
+        return c ? b /** yes */:b;
+    }
+}
+```
+
+Before:
+
+```csharp
+class C
+{
+    int M(bool c, int b)
+    {
+        var d = b /** sum */+ b;
+        var e = b /** sum */   + b;
+        var f = b  /** sum */+ b;
+
+        return c ? b /** yes */:b;
+    }
+}
+```
+
+After:
+
+```csharp
+class C
+{
+    int M(bool c, int b)
+    {
+        var d = b /** sum */ + b;
+        var e = b /** sum */ + b;
+        var f = b  /** sum */ + b;
+
+        return c ? b /** yes */ : b;
+    }
+}
+```
+
+The whitespace in front of each comment stays as written (`b  /** sum */`). A gap behind the comment that the rule wants empty was already emptied and stays so (`[Obsolete /** why */ ]` gives `[Obsolete /** why */]`). The new rules' comment cases follow the same way, for example `M(b /** x */ :b)` gives `M(b /** x */: b)`. Where the documentation-comment phase moves the comment onto its own line in front of the token — in front of a token that starts a node, such as the operand of a relational pattern or a `when` — no same-line gap is left.
+
 ### Unchanged
 
-Every joined output of the line-break phase stays as it is: the joins that were tight stay tight under the minimal separator, and every pair the joins and the line-break phase spaced is spaced by one of the rules above. The examples of FMT-BREAK-011, FMT-BREAK-015, FMT-BREAK-016, FMT-BREAK-018, FMT-BREAK-020, FMT-BREAK-024, FMT-BREAK-026, and FMT-BREAK-028 keep their output. Every final output that changes is a pair one of the rules decides and that the author wrote on one line (entries 1 to 9 and 11 to 13), the one-line attributed accessor list of entry 7, and the non-compiling output of entry 10. Code-fix outputs change only through the formatter, where the fixed node holds such a pair. No rule page changes; no analyzer reports any of the pairs above.
+Every joined output of the line-break phase stays as it is: the joins that were tight stay tight under the minimal separator, and every pair the joins and the line-break phase spaced is spaced by one of the rules above. The examples of FMT-BREAK-011, FMT-BREAK-015, FMT-BREAK-016, FMT-BREAK-018, FMT-BREAK-020, FMT-BREAK-024, FMT-BREAK-026, and FMT-BREAK-028 keep their output. Every final output that changes is a pair one of the rules decides and that the author wrote on one line (entries 1 to 9 and 11 to 14), the one-line attributed accessor list of entry 7, and the non-compiling output of entry 10. Code-fix outputs change only through the formatter, where the fixed node holds such a pair. No rule page changes; no analyzer reports any of the pairs above.
 
 ## Decisions
 
@@ -737,6 +788,10 @@ Every joined output of the line-break phase stays as it is: the joins that were 
 ### The rules are keyed by construct and apply to every gap on one line
 
 The spacing phase cannot tell a joined gap from one the author wrote, and it must not: a rule that applied only to joined gaps would keep the difference this change removes. Each new rule therefore also changes one-line input, and each covers its whole family (FMT-PIPE-014; the maintainer chose the whole family for `when` and declared names, 6C and 7C): the `catch` filter's `when` with the other guards, the `foreach`, `catch`, and range variables with the other declared names, the `in` of `foreach` with the `in` of a query.
+
+### A rule decides the gap behind a right-carried comment in both directions
+
+*Lead decision in this run (row 19), following the maintainer's answers for each pair.* The rule's decision was already applied behind a comment the left token carries (FMT-SPACE-013) and, when it allows no space, behind one the right token carries. Applying it only in that one direction would leave `/** yes */:b` and `/** sum */+b` tighter than the conditional-operator and operator rules demand, while the same pairs without a comment are spaced. The whitespace in front of the comment stays the author's, as before.
 
 ### Structural transforms create the arrow without spaces
 

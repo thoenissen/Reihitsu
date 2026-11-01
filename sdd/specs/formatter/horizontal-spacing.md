@@ -632,9 +632,9 @@ class C
 
 ### FMT-SPACE-014 — A comment the right token carries is not moved
 
-When the right token carries a comment in its own leading trivia on the same line (a delimited documentation comment `/** */` written between two tokens), the formatter MUST NOT change the whitespace in front of that comment. When no space is allowed before the right token, the formatter MUST remove the whitespace between that comment and the token.
+When the right token carries a comment in its own leading trivia on the same line (a delimited documentation comment `/** */` written between two tokens), the formatter MUST NOT change the whitespace in front of that comment, also when the left token carries a comment of its own in the gap (FMT-SPACE-013). When a spacing rule decides the token pair, the formatter MUST apply that decision to the whitespace between the comment and the right token: it MUST remove that whitespace when the rule allows no space, and it MUST make it exactly the number of spaces the rule demands otherwise, inserting the space where the author wrote none.
 
-Why: The rules see only the token pair, not the comment. Applying a "no space before `;`" decision to the whitespace in front of the comment would glue the comment to the left token (`_a/** x */;`). The whitespace after the comment is the part the rule actually answers for; leaving it would keep a space the analyzer rules for semicolons, commas, and attribute brackets report.
+Why: The rules see only the token pair, not the comment. Applying a "no space before `;`" decision to the whitespace in front of the comment would glue the comment to the left token (`_a/** x */;`). The whitespace after the comment is the part the rule actually answers for: leaving a space there would keep one the analyzer rules for semicolons, commas, and attribute brackets report, and leaving it out would keep the pair tighter than the rule demands (`/** sum */+b`). The decision is the same one FMT-SPACE-013 applies behind a comment the left token carries.
 
 Example:
 
@@ -647,8 +647,13 @@ class C
     int _b /** y */ ;
 
     [Obsolete /** why */ ]
-    void M()
+    int M(bool c, int b)
     {
+        var d = b /** sum */+b;
+        var e = b /** sum */   + b;
+        var f = b  /** sum */+ b;
+
+        return c ? b /** yes */:b;
     }
 }
 ```
@@ -662,11 +667,18 @@ class C
     int _b /** y */;
 
     [Obsolete /** why */]
-    void M()
+    int M(bool c, int b)
     {
+        var d = b /** sum */ + b;
+        var e = b /** sum */ + b;
+        var f = b  /** sum */ + b;
+
+        return c ? b /** yes */ : b;
     }
 }
 ```
+
+The two spaces in front of the comment in `f` stay; the operator rule (FMT-SPACE-010) and the conditional-operator rule (FMT-SPACE-018) decide the gap behind each comment.
 
 ### FMT-SPACE-015 — Indentation after a single-line documentation comment is kept
 
