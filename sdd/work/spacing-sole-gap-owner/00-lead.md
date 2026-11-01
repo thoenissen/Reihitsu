@@ -25,7 +25,21 @@ Roles run: spec author → skeptic → test implementer → implementer → clea
 
 ## Maintainer answers
 
-(none yet)
+Batch 1 (before the test implementer), 13 output questions from `03-spec-author.md`. The maintainer answered that the recommendations are correct: **1B, 2B, 3B, 4B, 5B, 6C, 7C, 8B, 9B, 10B, 11B, 12B, 13B**.
+
+1. Join separator: no space unless the two tokens would run together (1B).
+2. One space on each side of every `=>` (2B).
+3. Attribute-target colon: no space before, one space behind, for every target (3B).
+4. Conditional `? :`: one space on each side (4B).
+5. Name colons of arguments, tuple elements, subpatterns: `name: value` (5B).
+6. One space in front of every `when`, catch filter included (6C).
+7. One space between a type and every declared name, including `foreach`, `catch`, query, and pattern designations (7C).
+8. One-line accessor list spaced `{ get; set; }`, attributed lists too (8B).
+9. Relational pattern `is > 5` (9B).
+10. One space behind the listed keywords in front of their operand (10B).
+11. One space on each side of `with` (11B).
+12. One space between an explicit lambda return type and its parameter list (12B).
+13. `delegate* managed` / `delegate* unmanaged` (13B).
 
 ## Decisions taken
 
