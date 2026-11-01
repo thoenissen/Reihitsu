@@ -27,10 +27,18 @@ internal sealed class AccessorListSpacingRule : ISpacingRule
             return true;
         }
 
-        return right.Parent?.FirstAncestorOrSelf<AccessorDeclarationSyntax>() is { Parent: AccessorListSyntax accessorList } accessor
+        // The first token of an accessor is its keyword, a modifier, or the opening bracket of an attribute list
+        var accessor = right.Parent switch
+                       {
+                           AccessorDeclarationSyntax accessorDeclaration => accessorDeclaration,
+                           AttributeListSyntax { Parent: AccessorDeclarationSyntax accessorDeclaration } => accessorDeclaration,
+                           _ => null
+                       };
+
+        return accessor is { Parent: AccessorListSyntax accessorList }
                && right == accessor.GetFirstToken()
                && accessorList.Accessors.IndexOf(accessor) > 0
-               && left == accessor.GetFirstToken().GetPreviousToken();
+               && left == right.GetPreviousToken();
     }
 
     #endregion // Methods

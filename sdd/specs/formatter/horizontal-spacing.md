@@ -4,7 +4,7 @@
 |---|---|
 | ID prefix | FMT-SPACE |
 | Status | Active |
-| Code owners | `HorizontalSpacingPhase`, `HorizontalSpacingRewriter`, `SpacingPolicy`, `ISpacingRule`, `AttributeListCloseBracketSpacingRule`, `NoSpaceSpacingRule`, `CommaSpacingRule`, `SingleSpaceSpacingRule`, `OperatorSpacingRule`, `ForLoopSemicolonSpacingRule`, `KeywordSpacingRule`, `TrailingWhitespaceWriter`, `CommaSpacingUtilities`, `UnaryOperatorSpacingUtilities` |
+| Code owners | `HorizontalSpacingPhase`, `HorizontalSpacingRewriter`, `SpacingPolicy`, `ISpacingRule`, `AttributeListCloseBracketSpacingRule`, `NoSpaceSpacingRule`, `CommaSpacingRule`, `SingleSpaceSpacingRule`, `OperatorSpacingRule`, `ForLoopSemicolonSpacingRule`, `KeywordSpacingRule`, `AttributeTargetColonSpacingRule`, `ArrowSpacingRule`, `ConditionalOperatorSpacingRule`, `NameColonSpacingRule`, `WhenSpacingRule`, `DeclaredNameSpacingRule`, `AccessorListSpacingRule`, `RelationalPatternSpacingRule`, `PrefixKeywordSpacingRule`, `WithSpacingRule`, `LambdaReturnTypeSpacingRule`, `FunctionPointerCallingConventionSpacingRule`, `TrailingWhitespaceWriter`, `CommaSpacingUtilities`, `UnaryOperatorSpacingUtilities` |
 | Uses | FMT-BREAK-015, FMT-BREAK-018, FMT-BREAK-021, FMT-BREAK-024, FMT-BREAK-031, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-014, SHARED-BLANK-008 |
 
 This spec covers `HorizontalSpacingPhase`: the whitespace between two adjacent tokens on the same line, as decided by the ordered spacing rules of `SpacingPolicy`, how that decision is applied when a comment sits in the gap, and the gaps the phase leaves alone.

@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -11,7 +9,7 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 /// <summary>
 /// Lays out the accessor list of a property or an indexer: a simple auto-accessor list collapses to a single
-/// line, a single-line declaration whose auto accessors carry attributes stays as written, and every other
+/// line, a single-line declaration whose auto accessors carry attributes stays on its line, and every other
 /// accessor list is laid out over several lines with each accessor starting its own line
 /// </summary>
 internal sealed class AccessorListLayout
@@ -48,7 +46,7 @@ internal sealed class AccessorListLayout
     /// <returns>The declaration with its accessor list laid out</returns>
     /// <remarks>
     /// An attribute on an accessor makes the auto-accessor list no longer simple: RH5530/RH5531 own that
-    /// accessor's attribute layout instead, so the list is never collapsed. It stays as written while the
+    /// accessor's attribute layout instead, so the list is never collapsed. It stays on its line while the
     /// declaration occupies a single line — the same condition under which <c>AttributeTargetFormattingRewriter</c>
     /// keeps the accessor attributes inline — and is laid out like every other list otherwise, so the attribute
     /// placement that follows never meets a list that is neither single-line nor laid out.
