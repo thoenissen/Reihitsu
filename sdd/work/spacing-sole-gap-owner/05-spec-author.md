@@ -142,3 +142,16 @@ Why B: the same `ref (int, int)` gets the space as a parameter (`ref (int, int) 
 
 - A local function's modifier in front of a tuple return type (`static(int, int) K()`) keeps the author's gap. It belongs to the existing candidate "A member's own modifier in front of a tuple type" (for #1440) and is not a new candidate.
 - A wrapped `ref⏎(int, int)` of a local, field, property or `foreach` variable is not joined: `ref` stays alone on its line. This is a line-break question outside the run, and it is reachable by whole-document formatting. Readings: A — leave it as it is; B — join it like the lambda's `ref⏎(int, int)` inside an argument. No recommendation from this role. It belongs with the line-break follow-ups (FMT-BREAK).
+
+## Row 13 carried out
+
+Base: bce245d. Lead decision 13 put question 1's positions outside this run, and I wrote the text for answer A:
+- **FMT-SPACE-024.**
+  - The bullet now reads "a modifier of an argument, a parameter, or an expression"; "a type" is gone.
+  - The list of positions gains a line: the `ref` and the `readonly` of any other type (a local's, a `foreach` variable's, a field's, a return type's) are outside this rule and keep the author's spacing, like a declaration's modifier. The examples are `ref(int, int) r = ref t;`, `ref readonly(int, int) M()` and `ref(int, int) F;`.
+  - The second example gains `ref(int, int) r = ref s_t;` in `L()`, which keeps its gap.
+  - Run through `scripts/format.sh`, the example's input gives the example's output except for the spacing the rule adds.
+- **Change doc entry 9** gains one sentence: these positions are outside the rule, keep the author's spacing as on `main`, and no join reaches them.
+- **Spec tests:** `--project architecture --filter Sdd` gives 51 of 51 passed.
+- **Tests:** none has to change. `MemberModifiersInFrontOfATupleTypeKeepTheirGap` or a sibling can pin `ref(int, int) r = ref t;` as kept.
+- The output question has moved to the follow-up the lead recorded. The test implementer should take the answer-B text under *Row 12* no further.

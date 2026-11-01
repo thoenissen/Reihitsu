@@ -1071,7 +1071,7 @@ class C
 The formatter MUST put exactly one space between each of these keywords and the token behind it:
 
 - a lambda modifier: `static`, `async`;
-- a modifier of an argument, a parameter, a type, or an expression: `ref`, `out`, `in`, `readonly`, `scoped`, `this`, `params`;
+- a modifier of an argument, a parameter, or an expression: `ref`, `out`, `in`, `readonly`, `scoped`, `this`, `params`;
 - `await` and `stackalloc`;
 - `var` in front of a parenthesized designation (`var (x, y)`);
 - the `not` of a pattern;
@@ -1086,6 +1086,7 @@ Each of these positions is decided as follows, wherever the token behind the key
 - The `ref` and the `readonly` of a lambda's return type get the space: `ref (int, int) () => ref t`.
 - The `ref` of a ref expression gets the space wherever the expression stands, in an argument as in a statement: `ref (b ? ref x : ref y)`, `return ref (x);`, `return ref *p;`.
 - `var` in front of the designation of a deconstruction gets the space as in a pattern: `var (u, w) = t;`.
+- The `ref` and the `readonly` of any other type — a local's, a `foreach` variable's, a field's, a return type's — are outside this rule and keep the author's spacing, like a declaration's modifier: `ref(int, int) r = ref t;`, `ref readonly(int, int) M()`, and `ref(int, int) F;` keep their gap.
 - The modifiers of a local function are modifiers of a declaration, like a member's: `static(int, int) K()` keeps its gap, and so does a member's `readonly` in `public readonly(int, int) M()`.
 - The `this` and `base` of a constructor initializer and the `this` of an indexer declaration are not modifiers and are not decided by this rule: `: this(a)`, `: base(a)`, and `int this[int i]` keep their gap.
 
@@ -1165,7 +1166,7 @@ static class C
 
 `typeof(C)`, `default(int)`, and `nameof(a)` keep their gap.
 
-Example — a lambda's return type, a function pointer's parameter, ref expressions, and a deconstruction get the space; a local function's modifier keeps its gap:
+Example — a lambda's return type, a function pointer's parameter, ref expressions, and a deconstruction get the space; a local's `ref` type and a local function's modifier keep their gap:
 
 ```csharp
 unsafe class C
@@ -1185,6 +1186,8 @@ unsafe class C
 
     static void L()
     {
+        ref(int, int) r = ref s_t;
+
         static(int, int) K()
         {
             return default;
@@ -1211,6 +1214,8 @@ unsafe class C
 
     static void L()
     {
+        ref(int, int) r = ref s_t;
+
         static(int, int) K()
         {
             return default;

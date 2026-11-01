@@ -506,7 +506,7 @@ static class C
 }
 ```
 
-The same pairs wrapped inside an argument or parameter, such as `N(await⏎(t));` or `N(o is not⏎"x");`, are joined with the space, as before. The same holds in front of a lambda's return type (`static (int, int) () => (1, 2)`, `ref (int, int) () => ref s_t`), behind the `ref` of a function pointer's parameter (`delegate*<ref (int, int), void>`) and of a ref expression (`return ref (x);`), and behind the `var` of a deconstruction (`var (u, w) = s_t;`). `typeof(C)`, `default(int)`, and `nameof(a)` keep their gap, and so does a local function's modifier (`static(int, int) K()`).
+The same pairs wrapped inside an argument or parameter, such as `N(await⏎(t));` or `N(o is not⏎"x");`, are joined with the space, as before. The same holds in front of a lambda's return type (`static (int, int) () => (1, 2)`, `ref (int, int) () => ref s_t`), behind the `ref` of a function pointer's parameter (`delegate*<ref (int, int), void>`) and of a ref expression (`return ref (x);`), and behind the `var` of a deconstruction (`var (u, w) = s_t;`). `typeof(C)`, `default(int)`, and `nameof(a)` keep their gap, and so does a local function's modifier (`static(int, int) K()`). The `ref` and `readonly` of a local's, a `foreach` variable's, a field's, or a return type's type are outside the rule and keep the author's spacing, as on `main` (`ref(int, int) r = ref t;`, like `public(int, int) G;`); no join reaches them.
 
 ### 10. An accessor modifier pair on two lines compiles (FMT-BREAK-031)
 
