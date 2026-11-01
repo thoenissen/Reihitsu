@@ -47,6 +47,8 @@ Output-question batch before the test implementer (2026-11-01): the maintainer c
 
 Output question during the implementer stage (2026-11-01), from 05-implementer.md D3: a non-region directive starts and a region directive ends the gap before a closing brace, with a blank line between them (`int x;⏎#pragma warning restore …⏎⏎#endregion⏎}`; also in a method body and with `#if … #endif`). The maintainer chose A: no blank line is inserted above the directive; output equals input. The existing test `ReihitsuFormatterLineEndingTests.LineBreaksEndingPragmaAndRegionDirectivesAreRewritten` gets the new expected output.
 
+Pre-auditor output question (2026-11-01), from Decisions taken row 16 and 09-spec-checker.md finding 1: the same directive-before-`#endregion` gap before a collection expression's `]` (and through the same rule the `)` of a parenthesized pattern). The maintainer chose A: no blank line is inserted above the directive, as for a closing brace.
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
@@ -66,7 +68,7 @@ Output question during the implementer stage (2026-11-01), from 05-implementer.m
 | 13 | Implementer | Code owners: `BraceBlankLinePolicy` new owner of FMT-BLANK; new public Core member `BlankLineSpacingPolicy.IsBlockStatementAfterStatement` | Accept the scope growth; spec author adds the code owner; test implementer adds a direct Core test | One owner for the exemption shared by RH5025 and the formatter | Internal | pending |
 | 14 | Implementer | Stale XML comment about `TokenGapNormalizer` in `BlankLineBeforeIfDirectiveAfterStatementTests.cs` | Adjacent fix: the cleaner corrects it | The run's change made it stale; a comment-only edit | Comment only | a98b099 |
 | 15 | Spec author (06) | Owner of `BlankLineSpacingPolicy.IsBlockStatementAfterStatement` | Keep it under SHARED-BLANK's existing ownership of `BlankLineSpacingPolicy`; no new requirement | A type owns one spec (`sdd/README.md`); RH5025-005 and FMT-BLANK-017 tests cover it, plus a direct Core test | Internal | 1d6970e |
-| 16 | Spec author (06) | D3 also occurs before a collection expression's `]` | Open output question for the pre-auditor batch; tests do not pin that case until answered | The maintainer's answer named a closing brace only | Asked, not decided by the lead | — |
+| 16 | Spec author (06) | D3 also occurs before a collection expression's `]` | Open output question for the pre-auditor batch; tests do not pin that case until answered | The maintainer's answer named a closing brace only | Asked; maintainer answered A (see Maintainer answers) | repair round 1 |
 
 ## Follow-up candidates
 
