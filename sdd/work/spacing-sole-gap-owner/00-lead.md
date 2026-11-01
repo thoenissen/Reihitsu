@@ -38,10 +38,12 @@ Roles run: spec author → skeptic → test implementer → implementer → clea
 | 5 | Spec author | Scope: the rules for arrows, conditional operator, name colons, relational patterns, attribute-target colon complete parts of #958, #1514, #1440, #1383 | Take them into the run as far as the separator choice needs them; link those issues with `Refs`, not `Closes` | Without them a neutral join changes outputs the maintainer already decided; the other issues are not in the run | Each visible change is still asked in the batch | pending |
 | 6 | Skeptic | Present Q2, Q4, Q5 (arguments), Q9 as decided? | Ask them in the batch, with the earlier answer as the recommendation and its citation | The issue proposes otherwise for arrows; one answer confirms them cheaply | Asked | — |
 | 7 | Spec author / skeptic | Issue goals: "SpacingPolicy only in the spacing phase" already true; "arrow keeps author's spacing" superseded by Q2; `NoSpaceSpacingRule` remark premise wrong | Drop the first, follow Q2's answer for the second, keep the third as a comment fix explaining why the pairs are tight | Facts on `main` | Not visible except through Q2 | pending |
+| 8 | Spec author (amendment) | Accept the amended change doc (dfb3dd8) | Accepted; its 13 output questions asked as one batch before the test implementer | The skeptic has run and the amendment it caused is written | Every visible change is asked | dfb3dd8 |
 
 ## Follow-up candidates
 
 - A wrap inside a declaration's attribute list (`[return` ⏎ `:Obsolete]`) is never joined — 01-spec-author, 02-skeptic.
 - Wrapped pattern parts lose their column (property-pattern member `{ X:` ⏎ `1 }`); check against #1542 / #953 — 01-spec-author, 02-skeptic.
+- A member's own modifier in front of a tuple type (`public(int, int) G;`) keeps the author's spacing — candidate for #1440 — 03-spec-author.
 - Wrapped `with` expression loses its column — same class as #953, comment there at most — 02-skeptic.
 - The space behind `when` (`when(x)`, catch filter) is undecided — candidate for #1440 — 02-skeptic.
