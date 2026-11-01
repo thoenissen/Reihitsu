@@ -25,6 +25,35 @@ public static class BlankLineSpacingPolicy
     }
 
     /// <summary>
+    /// Determines whether a block is a block statement that follows another statement of the same block or switch section.
+    /// The opening brace of such a block starts a statement and continues no header above it, so the blank lines above it
+    /// are decided by the rules between statements (FMT-BLANK-017, RH5025-005). The first statement of a list and a block
+    /// that stands in no statement list are not such a block
+    /// </summary>
+    /// <param name="block">Block to inspect</param>
+    /// <returns><see langword="true"/> if the block follows another statement of its block or switch section</returns>
+    public static bool IsBlockStatementAfterStatement(BlockSyntax block)
+    {
+        switch (block.Parent)
+        {
+            case BlockSyntax parentBlock:
+                {
+                    return parentBlock.Statements.IndexOf(block) > 0;
+                }
+
+            case SwitchSectionSyntax section:
+                {
+                    return section.Statements.IndexOf(block) > 0;
+                }
+
+            default:
+                {
+                    return false;
+                }
+        }
+    }
+
+    /// <summary>
     /// Determines whether a blank line is required between a statement that ends with a closing brace and the
     /// statement that follows it in the same list. No blank line is required when the statement does not end with a
     /// closing brace, when one already separates the two, when both share a line, or when the following statement is

@@ -124,6 +124,37 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Determines whether the trivia at the specified index is an ordinary comment that shares its line with the token behind
+    /// it, so that nothing but whitespace and ordinary comments stands between the two. A documentation comment on that line
+    /// keeps the blank line above the comment, as it has in the formatter's output
+    /// </summary>
+    /// <param name="token">The token whose leading trivia contains the index</param>
+    /// <param name="commentIndex">The index of the comment in the leading trivia</param>
+    /// <returns><see langword="true"/> if the comment is glued to the token</returns>
+    private static bool IsOrdinaryCommentGluedToToken(SyntaxToken token, int commentIndex)
+    {
+        var trivia = token.LeadingTrivia;
+
+        if (trivia[commentIndex].IsKind(SyntaxKind.SingleLineCommentTrivia) == false
+            && trivia[commentIndex].IsKind(SyntaxKind.MultiLineCommentTrivia) == false)
+        {
+            return false;
+        }
+
+        for (var triviaIndex = commentIndex; triviaIndex < trivia.Count; triviaIndex++)
+        {
+            if (trivia[triviaIndex].IsKind(SyntaxKind.WhitespaceTrivia) == false
+                && trivia[triviaIndex].IsKind(SyntaxKind.SingleLineCommentTrivia) == false
+                && trivia[triviaIndex].IsKind(SyntaxKind.MultiLineCommentTrivia) == false)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// Determines whether the leading trivia of the specified token contains an end region directive
     /// </summary>
     /// <param name="token">The token to inspect</param>
@@ -198,10 +229,13 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     /// </summary>
     /// <param name="token">The token whose leading trivia should be checked</param>
     /// <param name="previousTokenFacts">The facts about the token that precedes <paramref name="token"/>, resolved through <see cref="PrecedingTokenFacts.Resolve"/></param>
+    /// <param name="skipsGluedCommentBoundary">Whether a comment glued to the token gets no blank line of its own above it (FMT-BLANK-017, FMT-BLANK-018)</param>
     /// <returns>The token with a single blank line before the first comment</returns>
     /// <remarks>
     /// No blank line is inserted when the comment is immediately preceded by a preprocessor directive,
-    /// mirroring the exemption RH5020 applies.
+    /// mirroring the exemption RH5020 applies, and none when the comment shares its line with a token that
+    /// <see cref="BraceBlankLinePolicy.KeepsGluedCommentWithoutBlankLine"/> names (FMT-BLANK-018) or with the opening brace
+    /// of a block statement that follows a statement, above which the statement rules decide (FMT-BLANK-017).
     /// <para>
     /// Blank lines are counted on the trivia between the preceding token and the comment, so a line break inside
     /// comment text - such as the inner line of a multi-line block comment behind the preceding token - is never
@@ -223,12 +257,19 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     /// document has it
     /// </para>
     /// </remarks>
-    private SyntaxToken EnsureBlankLineBeforeFirstComment(SyntaxToken token, PrecedingTokenFacts previousTokenFacts)
+    private SyntaxToken EnsureBlankLineBeforeFirstComment(SyntaxToken token, PrecedingTokenFacts previousTokenFacts, bool skipsGluedCommentBoundary)
     {
         var trivia = token.LeadingTrivia;
         var commentIndex = TriviaListUtilities.IndexOfFirstComment(trivia);
 
         if (commentIndex < 0)
+        {
+            return token;
+        }
+
+        if (skipsGluedCommentBoundary
+            && IsOrdinaryCommentGluedToToken(token, commentIndex)
+            && StartsOwnLine(token, commentIndex, previousTokenFacts))
         {
             return token;
         }
@@ -351,6 +392,10 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
 
         token = base.VisitToken(token);
 
+        // Above a comment glued to the opening brace of a block statement that follows a statement, the statement rules
+        // decide the blank line (FMT-BLANK-017), so FMT-BLANK-011 inserts none there either
+        var skipsGluedCommentBoundary = BraceBlankLinePolicy.KeepsGluedCommentWithoutBlankLine(token, _context)
+                                        || BraceBlankLinePolicy.IsOpeningBraceOfBlockStatementAfterStatement(token, _context);
         var previousToken = token.GetPreviousToken();
         var previousTokenFacts = PrecedingTokenFacts.Resolve(previousToken, _context);
         var isFirstInBlock = BlockStartUtilities.IsFirstInBlock(previousTokenFacts);
@@ -360,7 +405,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
             && isFirstInBlock == false
             && IsInlineDocumentation(token, previousTokenFacts) == false)
         {
-            token = EnsureBlankLineBeforeFirstComment(token, previousTokenFacts);
+            token = EnsureBlankLineBeforeFirstComment(token, previousTokenFacts, skipsGluedCommentBoundary);
         }
 
         if (HasEndRegionDirectiveInLeadingTrivia(token))

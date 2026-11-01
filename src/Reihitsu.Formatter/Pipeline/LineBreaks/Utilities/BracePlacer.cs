@@ -71,14 +71,14 @@ internal sealed class BracePlacer
 
         if (openBrace.IsMissing == false)
         {
-            node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, openBrace, withOpenBrace, blankLineCount: 0);
+            node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, openBrace, withOpenBrace);
         }
 
         var closeBrace = getCloseBrace(node);
 
         if (closeBrace.IsMissing == false)
         {
-            node = _gapNormalizer.NormalizeGapBeforeOwnedToken(node, closeBrace, withCloseBrace, blankLineCount: 0);
+            node = _gapNormalizer.NormalizeGapBeforeOwnedToken(node, closeBrace, withCloseBrace);
         }
 
         return node;
@@ -168,10 +168,9 @@ internal sealed class BracePlacer
     {
         node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node,
                                                                                    getOpenBrace(node),
-                                                                                   (owner, openBrace) => owner.ReplaceToken(getOpenBrace(owner), openBrace),
-                                                                                   blankLineCount: 0);
+                                                                                   (owner, openBrace) => owner.ReplaceToken(getOpenBrace(owner), openBrace));
         node = EnsureFirstContentOnNewLine(node, getOpenBrace(node));
-        node = _gapNormalizer.NormalizeGapBeforeToken(node, getCloseBrace(node), blankLineCount: 0);
+        node = _gapNormalizer.NormalizeGapBeforeToken(node, getCloseBrace(node));
 
         return node;
     }
@@ -201,7 +200,7 @@ internal sealed class BracePlacer
 
             if (TokenGapUtilities.HasLineBreakBetween(previousToken, currentToken) == false)
             {
-                node = _gapNormalizer.NormalizeGapBeforeToken(node, currentToken, blankLineCount: 0);
+                node = _gapNormalizer.NormalizeGapBeforeToken(node, currentToken);
             }
         }
 
@@ -226,13 +225,13 @@ internal sealed class BracePlacer
         node = node.ReplaceNode(block, block.WithAdditionalAnnotations(blockAnnotation));
 
         block = TokenLocator.GetAnnotatedNode<BlockSyntax>(node, blockAnnotation);
-        node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, block.OpenBraceToken, (owner, token) => owner.ReplaceToken(TokenLocator.GetAnnotatedNode<BlockSyntax>(owner, blockAnnotation).OpenBraceToken, token), blankLineCount: 0);
+        node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, block.OpenBraceToken, (owner, token) => owner.ReplaceToken(TokenLocator.GetAnnotatedNode<BlockSyntax>(owner, blockAnnotation).OpenBraceToken, token));
 
         block = TokenLocator.GetAnnotatedNode<BlockSyntax>(node, blockAnnotation);
         node = EnsureFirstContentOnNewLine(node, block.OpenBraceToken);
 
         block = TokenLocator.GetAnnotatedNode<BlockSyntax>(node, blockAnnotation);
-        node = _gapNormalizer.NormalizeGapBeforeToken(node, block.CloseBraceToken, blankLineCount: 0);
+        node = _gapNormalizer.NormalizeGapBeforeToken(node, block.CloseBraceToken);
 
         block = TokenLocator.GetAnnotatedNode<BlockSyntax>(node, blockAnnotation);
 

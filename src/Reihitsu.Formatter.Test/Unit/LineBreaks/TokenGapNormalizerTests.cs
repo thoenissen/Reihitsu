@@ -37,7 +37,7 @@ public class TokenGapNormalizerTests
         var normalizer = new TokenGapNormalizer("\n");
 
         // Act
-        var result = normalizer.NormalizeGapBeforeToken(block, secondStatementToken, blankLineCount: 0);
+        var result = normalizer.NormalizeGapBeforeToken(block, secondStatementToken);
 
         // Assert
         Assert.Contains("\n", result.ToFullString(), "A line break should be inserted before the second statement.");
