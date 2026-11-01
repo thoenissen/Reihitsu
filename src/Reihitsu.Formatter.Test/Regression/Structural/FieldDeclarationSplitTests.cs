@@ -1016,7 +1016,6 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
                                 internal class TestClass
                                 {
                                     private int
-
                                     /* c */ _first;
                                     private int
                                     _second;
@@ -1141,7 +1140,6 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
                                 internal class TestClass
                                 {
                                     private int
-
                                     /* a */ /* b */ _first;
                                     private int
                                     _second;
@@ -1170,7 +1168,6 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
                                 internal class TestClass
                                 {
                                     private int
-
                                     /* c */ _first;
                                     private int
                                     _second;
@@ -1208,7 +1205,6 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
                                     /// Fields.
                                     /// </summary>
                                     private int
-
                                     /* c */ _first;
                                     private int
                                     _second;
@@ -1240,7 +1236,6 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
                                 {
                                     [System.Obsolete]
                                     private int
-
                                     /* c */ _first;
                                     [System.Obsolete]
                                     private int
@@ -1271,7 +1266,6 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
                                 internal class TestClass
                                 {
                                     private int
-
                                     /* c */ _first = 1;
                                     private int
                                     _second = 2;
@@ -1302,7 +1296,6 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
                                 internal class TestClass
                                 {
                                     private int
-
                                     /* a */ _first; // b
                                     private int
                                     _second;
@@ -1331,7 +1324,6 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
                                 internal struct TestStruct
                                 {
                                     private int
-
                                     /* c */ _first;
                                     private int
                                     _second;
@@ -1360,7 +1352,6 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
                                 internal record struct TestRecord
                                 {
                                     private int
-
                                     /* c */ _first;
                                     private int
                                     _second;
@@ -1389,7 +1380,6 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
                                 internal interface ITestInterface
                                 {
                                     static int
-
                                     /* c */ _first;
                                     static int
                                     _second;
@@ -1424,7 +1414,6 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
                                     private class Inner
                                     {
                                         private int
-
                                         /* c */ _first;
                                         private int
                                         _second;
@@ -1456,7 +1445,6 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
                                 internal class TestClass
                                 {
                                     private int
-
                                     /* c */ _first;
                                     private int
                                     _second;

@@ -1806,7 +1806,6 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
                                       private static object Run(int[] items)
                                       {
                                           var list = items.Where(value => value > 0)
-
                                                           /* all */ .Select(value => value)
                                                           .ToList();
 
@@ -1851,7 +1850,6 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
                                       private static object Run(int[] items)
                                       {
                                           var list = items.Where(value => value > 0)
-
                                                           /* all */ .Select(value => value)
                                                           .ToList();
 

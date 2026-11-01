@@ -130,12 +130,13 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment glued to an array initializer's brace or to the closing parenthesis of an argument list is
-    /// separated by a blank line
+    /// Verifies that no blank line is inserted above a comment glued to an array initializer's brace or to the closing
+    /// parenthesis of an argument list
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-011")]
     [Requirement("FMT-BLANK-018")]
-    public void SeparatesCommentGluedToArrayInitializerBraceAndArgumentListParenthesis()
+    public void InsertsNoBlankLineAboveCommentGluedToArrayInitializerBraceOrArgumentListParenthesis()
     {
         const string input = """
                              class C
@@ -151,33 +152,17 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
                                  }
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    int[] G =
 
-                                    /* b */ { 1, 2 };
-
-                                    void M()
-                                    {
-                                        Foo(1,
-                                            2
-
-                                            /* e */ );
-                                    }
-                                }
-                                """;
-
-        AssertRuleResult(input, expected);
+        AssertRuleResult(input);
     }
 
     /// <summary>
-    /// Verifies that a comment glued to the opening brace of a complex element initializer is separated by a blank line,
-    /// and that the author's blank line there is kept
+    /// Verifies that no blank line is inserted above a comment glued to the opening brace of a complex element initializer
+    /// on one line, and that the author's blank line there is removed
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-018")]
-    public void SeparatesCommentGluedToComplexElementInitializerBrace()
+    public void RemovesBlankLineAboveCommentGluedToComplexElementInitializerBrace()
     {
         const string input = """
                              using System.Collections.Generic;
@@ -206,14 +191,12 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
                                     Dictionary<int, int> D = new()
                                                              {
                                                                  { 1, 2 },
-
                                                                  /* c */ { 3, 4 }
                                                              };
 
                                     Dictionary<int, int> E = new()
                                                              {
                                                                  { 1, 2 },
-
                                                                  /* c */ { 3, 4 }
                                                              };
                                 }
@@ -223,11 +206,12 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that comments glued to the braces of an extension block are separated by a blank line
+    /// Verifies that no blank line is inserted above comments glued to the braces of an extension block, and that the
+    /// author's blank lines there are removed
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-018")]
-    public void SeparatesCommentsGluedToExtensionBlockBraces()
+    public void RemovesBlankLinesAboveCommentsGluedToExtensionBlockBraces()
     {
         const string input = """
                              static class E
@@ -236,17 +220,27 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
                                  /* c */ {
                                      public int L => s.Length;
                                  /* d */ }
+
+                                 extension(int i)
+
+                                 /* e */ {
+                                     public int M => i;
+
+                                 /* f */ }
                              }
                              """;
         const string expected = """
                                 static class E
                                 {
                                     extension(string s)
-
                                     /* c */ {
                                         public int L => s.Length;
-
                                     /* d */ }
+
+                                    extension(int i)
+                                    /* e */ {
+                                        public int M => i;
+                                    /* f */ }
                                 }
                                 """;
 
@@ -254,11 +248,11 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment glued to the closing brace of an interpolation is separated by a blank line
+    /// Verifies that no blank line is inserted above a comment glued to the closing brace of an interpolation
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-018")]
-    public void SeparatesCommentGluedToInterpolationClosingBrace()
+    public void InsertsNoBlankLineAboveCommentGluedToInterpolationClosingBrace()
     {
         const string input = """
                              class C
@@ -271,7 +265,29 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
                              }
                              """;
 
-        AssertBlankLinesAbove(input, ("/* d */ }", true));
+        AssertBlankLinesAbove(input, ("/* d */ }", false));
+    }
+
+    /// <summary>
+    /// Verifies that the author's blank line above a comment glued to the closing brace of an interpolation is removed
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-018")]
+    public void RemovesAuthorBlankLineAboveCommentGluedToInterpolationClosingBrace()
+    {
+        const string input = """
+                             class C
+                             {
+                                 string I(int x)
+                                 {
+                                     return $"{x
+
+                                         /* d */ }";
+                                 }
+                             }
+                             """;
+
+        AssertBlankLinesAbove(input, ("/* d */ }", false));
     }
 
     /// <summary>
@@ -748,12 +764,12 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the spec example: a comment glued to the opening brace of a complex element initializer that spans several
-    /// lines gets no blank line, and one glued to a complex element initializer on one line is separated
+    /// Verifies the spec example: the opening brace of a complex element initializer is decided like any other opening
+    /// brace, whether the element stays on one line or spans several, so no blank line stands above a comment glued to it
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-018")]
-    public void SeparatesCommentGluedToOneLineComplexElementInitializerOnly()
+    public void DecidesCommentGluedToComplexElementInitializerBraceIndependentOfLayout()
     {
         const string input = """
                              class C
@@ -765,6 +781,7 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
                                                                   3,
                                                                   4
                                                               },
+
                                                               /* c2 */ { 5, 6 }
                                                           };
                              }
@@ -779,7 +796,6 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
                                                                               3,
                                                                               4
                                                                           },
-
                                                                  /* c2 */ { 5, 6 }
                                                              };
                                 }
@@ -828,12 +844,12 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the spec example: a comment glued to the closing brace of a collection initializer assigned to a member is
-    /// separated, and one glued to the closing brace of a collection initializer that is not assigned is not
+    /// Verifies that no blank line is inserted above a comment glued to the closing brace of a collection initializer,
+    /// whether or not the initializer is assigned to a member
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-018")]
-    public void SeparatesCommentGluedToClosingBraceOfAssignedCollectionInitializerOnly()
+    public void InsertsNoBlankLineAboveCommentGluedToClosingBraceOfCollectionInitializer()
     {
         const string input = """
                              class C
@@ -853,37 +869,17 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
                                  }
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var p = new P
-                                                {
-                                                    L = {
-                                                            1
 
-                                                        /* l */ }
-                                                };
-                                        var q = new List<int>
-                                                {
-                                                    1
-                                                /* m */ };
-                                    }
-                                }
-                                """;
-
-        AssertRuleResult(input, expected);
+        AssertRuleResult(input);
     }
 
     /// <summary>
-    /// Verifies that the author's blank line above a comment glued to the closing brace of a collection initializer that
-    /// is not assigned is removed, and the one above a comment glued to an assigned collection initializer's closing brace
-    /// is kept
+    /// Verifies the spec example: the author's blank line above a comment glued to the closing brace of a collection
+    /// initializer is removed, whether or not the initializer is assigned to a member
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-018")]
-    public void RemovesAuthorBlankLineAboveCommentGluedToClosingBraceOfUnassignedCollectionInitializerOnly()
+    public void RemovesAuthorBlankLineAboveCommentGluedToClosingBraceOfCollectionInitializer()
     {
         const string input = """
                              class C
@@ -914,7 +910,6 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
                                                 {
                                                     L = {
                                                             1
-
                                                         /* l */ }
                                                 };
                                         var q = new List<int>
@@ -929,34 +924,543 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the spec example: a comment in front of a documentation comment on a brace's line is separated, and a
-    /// comment glued to the brace without one is not
+    /// Verifies the spec example: a documentation comment between a glued comment and the brace does not change what the
+    /// comment is glued to, so the author's blank line above it is removed, while a documentation comment that starts the
+    /// brace's line is not glued and is separated by a blank line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-011")]
+    [Requirement("FMT-BLANK-018")]
+    public void RemovesBlankLineAboveCommentGluedThroughDocumentationCommentAndSeparatesDocumentationCommentLeadingBraceLine()
+    {
+        const string input = """
+                             public class TestClass
+
+                             /* x */ /** Doc */ {
+                             }
+
+                             public class TestClass2
+                             /** Doc */ {
+                             }
+                             """;
+        const string expected = """
+                                public class TestClass
+                                /* x */ /** Doc */ {
+                                }
+
+                                public class TestClass2
+
+                                /** Doc */ {
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above a comment glued to a brace through a documentation comment
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-018")]
-    public void SeparatesCommentInFrontOfDocumentationCommentOnBraceLineOnly()
+    public void InsertsNoBlankLineAboveCommentGluedThroughDocumentationComment()
     {
         const string input = """
                              public class TestClass
                              /* x */ /** Doc */ {
                              }
+                             """;
 
-                             public class TestClass2
-                             /* y */ {
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: the author's blank line above a comment glued to an array initializer's brace or to a
+    /// chained keyword is removed, and above a comment glued to a statement, a member, or the closing parenthesis of an
+    /// argument list none is inserted and the author's is kept
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-011")]
+    [Requirement("FMT-BLANK-018")]
+    public void DecidesBlankLinesAboveGluedCommentAsDirectlyBeforeItsToken()
+    {
+        const string input = """
+                             class C
+                             {
+                                 int[] G =
+
+                                 /* b */ { 1, 2 };
+                                 int H;
+                                 /* m */ int I;
+
+                                 void M(int a)
+                                 {
+                                     a++;
+
+                                     /* s */ a++;
+                                     Foo(1,
+                                         2
+                                         /* e */ );
+
+                                     if (a > 0)
+                                     {
+                                         a++;
+                                     }
+
+                                     /* k */ else
+                                     {
+                                         a--;
+                                     }
+                                 }
                              }
                              """;
         const string expected = """
-                                public class TestClass
+                                class C
+                                {
+                                    int[] G =
+                                    /* b */ { 1, 2 };
+                                    int H;
+                                    /* m */ int I;
 
-                                /* x */ /** Doc */ {
-                                }
+                                    void M(int a)
+                                    {
+                                        a++;
 
-                                public class TestClass2
-                                /* y */ {
+                                        /* s */ a++;
+                                        Foo(1,
+                                            2
+                                            /* e */ );
+
+                                        if (a > 0)
+                                        {
+                                            a++;
+                                        }
+                                        /* k */ else
+                                        {
+                                            a--;
+                                        }
+                                    }
                                 }
                                 """;
 
         AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above a comment glued to a chained keyword
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-018")]
+    public void InsertsNoBlankLineAboveCommentGluedToChainedKeyword()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(int a)
+                                 {
+                                     if (a > 0)
+                                     {
+                                         a++;
+                                     }
+                                     /* k */ else
+                                     {
+                                         a--;
+                                     }
+
+                                     try
+                                     {
+                                         a++;
+                                     }
+                                     /* c */ catch
+                                     {
+                                         a--;
+                                     }
+                                     /* f */ finally
+                                     {
+                                         a++;
+                                     }
+
+                                     do
+                                     {
+                                         a--;
+                                     }
+                                     /* w */ while (a > 0);
+                                 }
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that the author's blank line above a comment glued to <c>catch</c>, <c>finally</c>, or the
+    /// <c>while</c> of a do statement is removed
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-018")]
+    public void RemovesAuthorBlankLineAboveCommentGluedToCatchFinallyOrDoWhile()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(int a)
+                                 {
+                                     try
+                                     {
+                                         a++;
+                                     }
+
+                                     /* c */ catch
+                                     {
+                                         a--;
+                                     }
+
+                                     /* f */ finally
+                                     {
+                                         a++;
+                                     }
+
+                                     do
+                                     {
+                                         a--;
+                                     }
+
+                                     /* w */ while (a > 0);
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        try
+                                        {
+                                            a++;
+                                        }
+                                        /* c */ catch
+                                        {
+                                            a--;
+                                        }
+                                        /* f */ finally
+                                        {
+                                            a++;
+                                        }
+
+                                        do
+                                        {
+                                            a--;
+                                        }
+                                        /* w */ while (a > 0);
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above a comment glued to the opening brace of a property pattern
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-018")]
+    public void InsertsNoBlankLineAboveCommentGluedToPropertyPatternBrace()
+    {
+        const string input = """
+                             class C
+                             {
+                                 bool M(object o)
+                                 {
+                                     return o is string
+                                            /* p */ { Length: 1 };
+                                 }
+                             }
+                             """;
+
+        AssertBlankLinesAbove(input, ("/* p */", false));
+    }
+
+    /// <summary>
+    /// Verifies that the author's blank line above a comment glued to the opening brace of a property pattern is removed
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-018")]
+    public void RemovesAuthorBlankLineAboveCommentGluedToPropertyPatternBrace()
+    {
+        const string input = """
+                             class C
+                             {
+                                 bool M(object o)
+                                 {
+                                     return o is string
+
+                                            /* p */ { Length: 1 };
+                                 }
+                             }
+                             """;
+
+        AssertBlankLinesAbove(input, ("/* p */", false));
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above a comment glued to a statement after a statement, to a member, or to
+    /// the closing parenthesis of an argument list
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-011")]
+    [Requirement("FMT-BLANK-018")]
+    public void InsertsNoBlankLineAboveCommentGluedToStatementMemberOrArgumentListParenthesis()
+    {
+        const string input = """
+                             class C
+                             {
+                                 int H;
+                                 /* m */ int I;
+
+                                 void M(int a)
+                                 {
+                                     a++;
+                                     /* s */ a++;
+                                     Foo(1,
+                                         2
+                                         /* e */ );
+                                 }
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that the author's blank line above a comment glued to a member or to the closing parenthesis of an argument
+    /// list is kept
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-018")]
+    public void KeepsAuthorBlankLineAboveCommentGluedToMemberOrArgumentListParenthesis()
+    {
+        const string input = """
+                             class C
+                             {
+                                 int H;
+
+                                 /* m */ int I;
+
+                                 void M(int a)
+                                 {
+                                     Foo(1,
+                                         2
+
+                                         /* e */ );
+                                 }
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line a statement rule asks for goes above a comment glued to the statement: after a statement
+    /// that ends with a closing brace, the blank line of SHARED-BLANK-003 is inserted above the comment
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-018")]
+    public void InsertsStatementBlankLineAboveCommentGluedToStatementAfterClosingBrace()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(int a)
+                                 {
+                                     if (a > 0)
+                                     {
+                                         a--;
+                                     }
+                                     /* s */ a++;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        if (a > 0)
+                                        {
+                                            a--;
+                                        }
+
+                                        /* s */ a++;
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that no blank line stands above a comment glued to the opening brace of a complex element initializer
+    /// whose lambda block body the line-break phase expands, in the first pass and in the second
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-018")]
+    public void InsertsNoBlankLineAboveCommentGluedToComplexElementWithLambdaBlockBody()
+    {
+        const string input = """
+                             using System;
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 object M()
+                                 {
+                                     return new Dictionary<int, Action>
+                                            {
+                                                { 1, null },
+                                                /* c */ { 2, () => { Console.WriteLine(); } }
+                                            };
+                                 }
+                             }
+                             """;
+
+        AssertBlankLinesAbove(input, ("/* c */", false));
+    }
+
+    /// <summary>
+    /// Verifies that no blank line stands above a comment glued to the opening brace of a complex element initializer
+    /// whose object initializer the line-break phase expands, in the first pass and in the second
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-018")]
+    public void InsertsNoBlankLineAboveCommentGluedToComplexElementWithObjectInitializer()
+    {
+        const string input = """
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 object M()
+                                 {
+                                     return new Dictionary<int, P>
+                                            {
+                                                { 1, null },
+                                                /* c */ { 2, new P { A = 2 } }
+                                            };
+                                 }
+                             }
+                             """;
+
+        AssertBlankLinesAbove(input, ("/* c */", false));
+    }
+
+    /// <summary>
+    /// Verifies that no blank line stands above a comment glued to the opening brace of a complex element initializer
+    /// whose collection initializer the line-break phase expands, in the first pass and in the second
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-018")]
+    public void InsertsNoBlankLineAboveCommentGluedToComplexElementWithCollectionInitializer()
+    {
+        const string input = """
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 object M()
+                                 {
+                                     return new Dictionary<int, List<int>>
+                                            {
+                                                { 1, null },
+                                                /* c */ { 2, new List<int> { 3 } }
+                                            };
+                                 }
+                             }
+                             """;
+
+        AssertBlankLinesAbove(input, ("/* c */", false));
+    }
+
+    /// <summary>
+    /// Verifies that no blank line stands above a comment glued to the opening brace of a complex element initializer
+    /// whose anonymous object the line-break phase expands, in the first pass and in the second
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-018")]
+    public void InsertsNoBlankLineAboveCommentGluedToComplexElementWithAnonymousObject()
+    {
+        const string input = """
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 object M()
+                                 {
+                                     return new Dictionary<int, object>
+                                            {
+                                                { 1, null },
+                                                /* c */ { 2, new { A = 2 } }
+                                            };
+                                 }
+                             }
+                             """;
+
+        AssertBlankLinesAbove(input, ("/* c */", false));
+    }
+
+    /// <summary>
+    /// Verifies that the author's blank line above a comment glued to the opening brace of a complex element initializer
+    /// whose object initializer the line-break phase expands is removed in the first pass and stays removed in the second
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-018")]
+    public void RemovesAuthorBlankLineAboveCommentGluedToComplexElementWithObjectInitializer()
+    {
+        const string input = """
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 object M()
+                                 {
+                                     return new Dictionary<int, P>
+                                            {
+                                                { 1, null },
+
+                                                /* c */ { 2, new P { A = 2 } }
+                                            };
+                                 }
+                             }
+                             """;
+
+        AssertBlankLinesAbove(input, ("/* c */", false));
+    }
+
+    /// <summary>
+    /// Verifies that the author's blank line above a comment glued to the opening brace of a complex element initializer
+    /// whose lambda block body the line-break phase expands is removed in the first pass and stays removed in the second
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-018")]
+    public void RemovesAuthorBlankLineAboveCommentGluedToComplexElementWithLambdaBlockBody()
+    {
+        const string input = """
+                             using System;
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 object M()
+                                 {
+                                     return new Dictionary<int, Action>
+                                            {
+                                                { 1, null },
+
+                                                /* c */ { 2, () => { Console.WriteLine(); } }
+                                            };
+                                 }
+                             }
+                             """;
+
+        AssertBlankLinesAbove(input, ("/* c */", false));
     }
 
     #endregion // Methods
