@@ -5,9 +5,9 @@
 | ID prefix | FMT-BLANK |
 | Status | Active |
 | Code owners | `BlankLinePhase`, `BlankLineTokenCleanupRewriter`, `BlankLineTriviaBoundaryRewriter`, `BlankLineRegionDirectiveRewriter`, `BlankLineStatementSpacingRewriter`, `BlankLineBreakSpacingRewriter`, `BlankLineCollapser`, `BlankLineEditor` |
-| Uses | FMT-PIPE-002, SHARED-USING-008, SHARED-BLANK-001, SHARED-BLANK-002, SHARED-BLANK-003, SHARED-BLANK-004, SHARED-BLANK-005, SHARED-BLANK-006, SHARED-BLANK-007, FMT-DOC-001, FMT-DOC-003 |
+| Uses | FMT-PIPE-002, FMT-BREAK-022, SHARED-USING-008, SHARED-BLANK-001, SHARED-BLANK-002, SHARED-BLANK-003, SHARED-BLANK-004, SHARED-BLANK-005, SHARED-BLANK-006, SHARED-BLANK-007, FMT-DOC-001, FMT-DOC-003 |
 
-This spec covers `BlankLinePhase`: where the formatter inserts a blank line (before statements and comments, after closing braces and `break`, around region directives), where it removes one (next to braces, chained keywords, and documentation comments), and how it collapses runs of blank lines. What counts as a blank line, the closing-brace and terminal-`break` rules, and the region-directive rules are shared with the analyzer and specified in SHARED-BLANK.
+This spec covers `BlankLinePhase`: where the formatter inserts a blank line (before statements and comments, after closing braces and `break`, around region directives), where it removes one (next to braces, closing brackets, chained keywords, and documentation comments), and how it collapses runs of blank lines. What counts as a blank line, the closing-brace and terminal-`break` rules, and the region-directive rules are shared with the analyzer and specified in SHARED-BLANK.
 
 ## Non-goals
 
@@ -420,7 +420,7 @@ class C
 
 ### FMT-BLANK-008 — No blank line before an opening brace or a chained keyword
 
-The formatter MUST remove the blank lines directly before an opening brace and before the `else`, `catch`, `finally`, and do-statement `while` keywords.
+The formatter MUST remove the blank lines directly before an opening brace and before the `else`, `catch`, `finally`, and do-statement `while` keywords. This does not apply to the opening brace of a block statement that follows another statement (FMT-BLANK-017).
 
 Why: These tokens continue the statement above them; a blank line would visually detach the continuation from the part it belongs to. The formatter mirrors RH5025, RH5026, and RH5027.
 
@@ -492,7 +492,7 @@ class C
 
 ### FMT-BLANK-009 — Around a directive, only the blank line next to the token is removed
 
-When a non-region directive or disabled text stands in the gap before a brace or a chained keyword covered by FMT-BLANK-007 or FMT-BLANK-008, the formatter MUST keep the blank line before the directive, collapsed to one, and MUST remove the blank lines between the last directive and the token.
+When a non-region directive or disabled text stands in the gap before a brace or a chained keyword covered by FMT-BLANK-007 or FMT-BLANK-008 — not the opening brace of a block statement that FMT-BLANK-017 names — the formatter MUST keep the blank line before the directive, collapsed to one, and MUST remove the blank lines between the last directive and the token.
 
 Why: The blank line above the directive is the author's separator in front of the conditional code, not a blank line next to the brace, and the analyzer rules do not report it. Only the blank line that actually touches the token is the one RH5024–RH5027 forbid.
 
@@ -614,7 +614,7 @@ class C
 
 ### FMT-BLANK-011 — A comment on its own line is preceded by exactly one blank line
 
-The formatter MUST ensure exactly one blank line before the first comment that starts its own line (SHARED-BLANK-002) in a token's leading trivia, counted as SHARED-BLANK-001 defines it. It MUST NOT insert one when the comment is the first content of a block, a type body, or a switch section, or when a preprocessor directive directly precedes the comment. This applies to ordinary and documentation comments alike, including a comment before a closing brace. This requirement does not yet decide a comment that leads a using directive of the same group as the directive above it; the blank lines inside a using block are SHARED-USING-008.
+The formatter MUST ensure exactly one blank line before the first comment that starts its own line (SHARED-BLANK-002) in a token's leading trivia, counted as SHARED-BLANK-001 defines it. It MUST NOT insert one when the comment is the first content of a block, a type body, or a switch section, when a preprocessor directive directly precedes the comment, or when the comment shares its line with a token FMT-BLANK-018 names. This applies to ordinary and documentation comments alike, including a comment before a closing brace. This requirement does not yet decide a comment that leads a using directive of the same group as the directive above it; the blank lines inside a using block are SHARED-USING-008.
 
 Why: A comment introduces the code below it; the blank line groups it with that code instead of with the code above. At the start of a block the opening brace or the case label already provides the boundary, and after a directive the comment belongs to the directive's group. The formatter mirrors RH5020 and RH8303.
 
@@ -1106,6 +1106,402 @@ class C
 
         // why
         a++;
+    }
+}
+```
+
+### FMT-BLANK-017 — The opening brace of a block statement that follows a statement keeps the statement rules
+
+The formatter MUST decide the blank lines above the opening brace of a block statement that follows another statement of the same block or switch section as it decides them above any other statement: it MUST insert the blank line of SHARED-BLANK-003 after a statement that ends with `}` (placed as FMT-BLANK-005 and FMT-BLANK-016 state) and the blank line of FMT-BLANK-004 after a `break` statement, and after any other statement it MUST keep a blank line the author wrote, collapsed to one (FMT-BLANK-014), and MUST NOT insert one. FMT-BLANK-008 and FMT-BLANK-009 do not apply to that brace. A block statement is a block that stands in the statement list of a block or a switch section. A block that does not follow another statement of its list — the first statement of a block or a switch section — stays under FMT-BLANK-007 and FMT-BLANK-008, and so does a block that is not in such a list, such as the body of an `if` statement or a method.
+
+Why: The opening brace of a block statement starts a statement; it continues no header above it, which is what FMT-BLANK-008 protects. Deciding the blank line above it by the statement rules gives the output that RH5030 and RH5011 ask for, and RH5025 does not report it. The first statement of a list has its boundary in the brace or the case label above it, which FMT-BLANK-007 and FMT-BLANK-008 keep tight.
+
+Example — after a statement that ends with `}`:
+
+```csharp
+class C
+{
+    void M(bool a)
+    {
+        if (a)
+        {
+            A();
+        }
+        {
+            B();
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(bool a)
+    {
+        if (a)
+        {
+            A();
+        }
+
+        {
+            B();
+        }
+    }
+}
+```
+
+After a statement that does not end with `}`, the author's blank line is kept and none is inserted:
+
+```csharp
+class C
+{
+    void M()
+    {
+        A();
+
+        {
+            B();
+        }
+
+        A();
+        {
+            B();
+        }
+    }
+}
+```
+
+is left unchanged.
+
+After a `break` statement:
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        while (a > 0)
+        {
+            break;
+            {
+                a++;
+            }
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        while (a > 0)
+        {
+            break;
+
+            {
+                a++;
+            }
+        }
+    }
+}
+```
+
+Behind a directive, the blank line of SHARED-BLANK-003 goes after the directive, and a blank line the author wrote between a directive and the brace is kept:
+
+```csharp
+class C
+{
+    void M(bool a)
+    {
+        if (a)
+        {
+        }
+#if DEBUG
+        {
+            B();
+        }
+#endif
+        A();
+#pragma warning disable CS0168
+
+        {
+            B();
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(bool a)
+    {
+        if (a)
+        {
+        }
+#if DEBUG
+
+        {
+            B();
+        }
+#endif
+
+        A();
+#pragma warning disable CS0168
+
+        {
+            B();
+        }
+    }
+}
+```
+
+The first statement of a switch section and the body of an `if` statement are not block statements that follow a statement; their blank lines are removed:
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        switch (a)
+        {
+            case 1:
+
+                {
+                    a++;
+                }
+                break;
+        }
+
+        if (a > 0)
+
+        {
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        switch (a)
+        {
+            case 1:
+                {
+                    a++;
+                }
+                break;
+        }
+
+        if (a > 0)
+        {
+        }
+    }
+}
+```
+
+### FMT-BLANK-018 — A comment glued to a brace gets no blank line of its own
+
+Above a comment that starts its line and shares that line with the token behind it, the formatter MUST NOT insert the blank line of FMT-BLANK-011 and MUST remove the blank lines the author wrote, when that token is:
+
+- an opening or closing brace, other than a brace of an array initializer and the opening brace of a property pattern;
+- the closing bracket of a collection expression or a list pattern;
+- the closing parenthesis of a parenthesized pattern.
+
+Above a comment glued to any other token, FMT-BLANK-011 applies. A comment glued to the opening brace of a block statement that follows another statement is not affected: FMT-BLANK-017 decides the blank lines above it, so it gets the blank line of SHARED-BLANK-003 after a statement that ends with `}` and keeps the author's blank line after any other statement.
+
+Why: A comment that shares its line with a brace or a closing token is not a comment that introduces the code below it; it is glued to the token that opens or closes a construct, and a blank line above it would split that construct's layout. The author is expected to move such a comment by hand — RH5020 keeps reporting it. The tokens named are the ones whose glued comment has had no blank line above it in the formatter's output; array initializers and property-pattern opening braces keep the author's layout of the construct and have had one.
+
+Example — no blank line is inserted above a comment glued to the brace of an initializer, a block statement, or a closing brace, and the author's blank line above a comment glued to an initializer's brace is removed:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var p = new P
+                {
+                    Child =
+
+                    /* c */ {
+                                X = 2
+                            }
+                };
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var p = new P
+                {
+                    Child =
+                    /* c */ {
+                                X = 2
+                            }
+                };
+    }
+}
+```
+
+Without a blank line in the input, nothing changes:
+
+```csharp
+class C
+{
+    void M()
+    {
+        A();
+        /* a */ {
+            B();
+        }
+
+        var p = new P
+                {
+                    Child =
+                    /* c */ {
+                                X = 2
+                            }
+                /* d */ };
+    }
+}
+```
+
+is left unchanged.
+
+A comment glued to an array initializer's brace or to the closing parenthesis of an argument list is separated:
+
+```csharp
+class C
+{
+    int[] G =
+    /* b */ { 1, 2 };
+
+    void M()
+    {
+        Foo(1,
+            2
+            /* e */ );
+    }
+}
+```
+
+```csharp
+class C
+{
+    int[] G =
+
+    /* b */ { 1, 2 };
+
+    void M()
+    {
+        Foo(1,
+            2
+
+            /* e */ );
+    }
+}
+```
+
+Above a comment glued to a block statement's brace, FMT-BLANK-017 decides: after a statement that ends with `}`, the blank line of SHARED-BLANK-003 goes above the comment, and after any other statement the author's blank line is kept:
+
+```csharp
+class C
+{
+    void M(bool a)
+    {
+        if (a)
+        {
+        }
+        /* c */ {
+            B();
+        }
+
+        A();
+
+        /* d */ {
+            B();
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(bool a)
+    {
+        if (a)
+        {
+        }
+
+        /* c */ {
+            B();
+        }
+
+        A();
+
+        /* d */ {
+            B();
+        }
+    }
+}
+```
+
+### FMT-BLANK-019 — No blank line before the closing bracket of a collection expression or pattern
+
+The formatter MUST remove the blank lines directly before the closing bracket of a collection expression or a list pattern and before the closing parenthesis of a parenthesized pattern. A blank line behind the opening bracket or parenthesis is kept.
+
+Why: The closing token ends a construct that FMT-BREAK-022 lays out one element per line; a blank line in front of it adds height without separating two elements, as a blank line before a closing brace does (FMT-BLANK-007). The blank line behind the opening token is the author's, and no rule has removed it.
+
+Example:
+
+```csharp
+class C
+{
+    int[] F = [
+        1,
+        2
+
+    ];
+
+    void M(object o)
+    {
+        if (o is [
+                1,
+                2
+
+            ])
+        {
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    int[] F = [
+                  1,
+                  2
+              ];
+
+    void M(object o)
+    {
+        if (o is [
+                     1,
+                     2
+                 ])
+        {
+        }
     }
 }
 ```

@@ -866,7 +866,7 @@ The node-level entry points MUST give the phases the facts in the table below ab
 | Case-label pattern | Whether a `case` label introduces the root as its pattern, directly or through `and`, `or`, and `not` patterns | none | the target | none |
 | Assigned collection initializer | Whether the root is a collection initializer on the right of an assignment | none | the target | none |
 
-`FormatNodeInDocumentAsync` gives a list position only to a target that starts its line and is a statement directly inside a block or a switch section, or a switch section. A block statement gets one only when an own-line comment is the last content in front of its opening brace, because the line-break phase decides the gap above that brace itself; that exception stays until the blank-line phase is the only owner of blank lines (thoenissen/Reihitsu#1496).
+`FormatNodeInDocumentAsync` gives a list position only to a target that starts its line and is a statement directly inside a block or a switch section, or a switch section. A block statement gets one like any other statement.
 
 These decisions MUST read the facts instead of the neighbour or the ancestor they would read if the root were part of the document:
 
