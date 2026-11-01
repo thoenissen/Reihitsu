@@ -102,8 +102,8 @@ public class AttributeListStructuralTransformTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the first created list holds nothing between its <c>[</c> and its attribute: whitespace and line breaks
-    /// behind the original list's <c>[</c> are dropped
+    /// Verifies that the first created list holds nothing between its <c>[</c> and its specifier or attribute: whitespace and
+    /// line breaks behind the original list's <c>[</c> are dropped, also when a target specifier follows them
     /// </summary>
     /// <param name="list">The attribute list in front of the method, with LF line endings</param>
     /// <param name="expected">The expected text from the first created <c>[</c> to the last created <c>]</c></param>
@@ -112,6 +112,8 @@ public class AttributeListStructuralTransformTests : FormatterTestsBase
     [DataRow("[\n        A, B]", "[A][B]", DisplayName = "LineBreakBehindOpeningBracket")]
     [DataRow("[\n     A,\n     B]", "[A][B]", DisplayName = "LineBreakBehindOpeningBracketAndComma")]
     [DataRow("[  A, B]", "[A][B]", DisplayName = "SpacesBehindOpeningBracket")]
+    [DataRow("[\n        method: A, B]", "[method: A][method: B]", DisplayName = "LineBreakBehindOpeningBracketInFrontOfSpecifier")]
+    [DataRow("[ return: A, B]", "[return: A][return: B]", DisplayName = "SpaceBehindOpeningBracketInFrontOfSpecifier")]
     public void NothingBehindTheOpeningBracketStaysInTheFirstCreatedList(string list, string expected)
     {
         AssertAttributeListText($"class C\n{{\n    {list} void M()\n    {{\n    }}\n}}\n", expected);

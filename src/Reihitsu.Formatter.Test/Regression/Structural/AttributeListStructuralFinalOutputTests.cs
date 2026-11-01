@@ -1009,6 +1009,41 @@ public class AttributeListStructuralFinalOutputTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a line break behind the original <c>[</c> of an accessor's list with a target specifier, in an accessor
+    /// list laid out over several lines, settles in one pass with nothing between the first created <c>[</c> and its specifier
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-032")]
+    public void AccessorSplitDropsTheLineBreakBehindTheOpeningBracketInFrontOfTheSpecifier()
+    {
+        const string input = """
+                             class C
+                             {
+                                 int G
+                                 {
+                                     [
+                                      method: C, D] get;
+                                     set;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int G
+                                    {
+                                        [method: C]
+                                        [method: D]
+                                        get;
+                                        set;
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that the attribute lists of a lambda with a line break behind the original <c>[</c> settle in one pass at the
     /// output the formatter reached before the split moved; no requirement specifies the attribute lists of a lambda, so the
     /// phase-level check is not applied, as for <see cref="LambdaAttributeListKeepsItsOutput"/>
