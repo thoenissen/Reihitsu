@@ -1134,7 +1134,7 @@ class C
 }
 ```
 
-After: the input is kept unchanged. A blank line the author wrote above `/* g` or `/* k` is removed, as directly before an array initializer's brace or `else` (entry 16), and one above `/* m` or `/* s` is kept (entry 17). The same holds for every other token: above a comment glued to the brace of an extension block, an interpolation, a property pattern, or a complex element initializer (entry 12), the closing brace of an assigned collection initializer (entry 14), and `catch`, `finally`, or a do-statement `while` (entry 16), the blank lines are removed; above a comment glued to an attribute list, a constraint clause, a parameter, an argument, a binary or conditional operator, an array element, a query clause, a switch-expression arm, a lambda arrow, the closing parenthesis of an argument list, or the first link of a chain, none is inserted and the author's is kept (entry 17). `/* x⏎ */ /** d */ {` is glued through the documentation comment (entry 15). Where a statement rule asks for a blank line above the statement — `return` (FMT-BLANK-001), `case` after `break` (FMT-BLANK-004), a member or statement after `}` (SHARED-BLANK-003) — it goes above the comment, before and after.
+After: the input is kept unchanged. A blank line the author wrote above `/* g` or `/* k` is removed, as directly before an array initializer's brace or `else` (entry 16), and one above `/* m` or `/* s` is kept (entry 17). The same holds for every other token: above a comment glued to the brace of an extension block, an interpolation, a property pattern, or a complex element initializer (entry 12), the closing brace of an assigned collection initializer (entry 14), and `catch`, `finally`, or a do-statement `while` (entry 16), the blank lines are removed; above a comment glued to an attribute list, a constraint clause, a parameter, an argument, a binary or conditional operator, an array element, a query clause, a switch-expression arm, a lambda arrow, the closing parenthesis of an argument list, or the first link of a chain, none is inserted and the author's is kept (entry 17). `/* x⏎ */ /** d */ {` is glued through the documentation comment (entry 15). Where a statement rule asks for a blank line above the statement — `return` (FMT-BLANK-001), `case` after `break` (FMT-BLANK-004), a statement after `}` (SHARED-BLANK-003) — it goes above the comment, before and after. No rule asks for a blank line in front of a member after `}`: SHARED-BLANK-003 covers statements only, so above a comment glued to such a member (`}⏎/* x⏎ */ int I;`) none is inserted and the author's is kept, as above `/* m`.
 
 Before the tokens whose blank lines today's line-break phase normalized, the output is `main`'s, unchanged: no blank line above the comment, and the author's removed, before every opening and closing brace that FMT-BLANK-020 names (a method body's or a type's `{`, a closing brace, an object initializer's braces, an assigned collection initializer's `{`), the closing bracket of a collection expression or a list pattern, and the closing parenthesis of a parenthesized pattern:
 
@@ -1195,6 +1195,58 @@ class C
                  /* c
                   */
                  .D();
+    }
+}
+```
+
+Code fixes that format through the formatter change with it. The RH5204 code fix on an unbraced embedded statement behind such a comment gave a blank line between `while (a)` and the comment; it now keeps the author's lines, because the comment is glued to the statement and no statement rule asks for a blank line in front of an embedded statement:
+
+```csharp
+class C
+{
+    void M(bool a, bool b)
+    {
+        while (a)
+            /* note
+            */ if (b)
+        {
+        X();
+        }
+    }
+}
+```
+
+gives, before:
+
+```csharp
+class C
+{
+    void M(bool a, bool b)
+    {
+        while (a)
+
+            /* note
+            */ if (b)
+            {
+                X();
+            }
+    }
+}
+```
+
+and after:
+
+```csharp
+class C
+{
+    void M(bool a, bool b)
+    {
+        while (a)
+            /* note
+            */ if (b)
+            {
+                X();
+            }
     }
 }
 ```
