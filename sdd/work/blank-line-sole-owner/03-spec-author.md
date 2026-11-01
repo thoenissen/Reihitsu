@@ -141,3 +141,7 @@ class C
 ```
 
 Both blank lines around the braces stay, while the direct form `=⏎⏎{` / `2⏎⏎}` is removed. `apply-fix.sh` reports and fixes this output for RH5024 and RH5025 (FC-013). The same holds for extension-block braces and property-pattern `{` (verified), and by the same code path for complex-element `{`. Readings: FMT-BLANK-020 extends to these braces (the blank lines are removed and the analyzers are silent), or the analyzers do not report a blank line behind a comment. Recommendation: extend FMT-BLANK-020, which matches what the formatter does for every other brace. This is the brace counterpart of the skeptic's chained-keyword candidate (RH5026), and both can be one issue.
+
+## Maintainer answers (follow-up, head 2331bd4)
+
+The maintainer chose option A for all seven questions of the batch: this handover's 1–5, plus 6 (directive in front of a block statement after `}`) and 7 (comment glued to a block statement's brace after `}`). The change doc records them under `Decisions`, its `Pending output question` notes now read as decided, and its status is `Accepted`, set for the lead per `sdd/README.md`. The spec already matched option A everywhere and is unchanged: FMT-BLANK-017 covers 1, 2, 3 and 6, FMT-BLANK-018 covers 4, 5 and 7, and FMT-BLANK-020 also covers 3.

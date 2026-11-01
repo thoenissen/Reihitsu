@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-BLANK-008 (changed), FMT-BLANK-009 (changed), FMT-BLANK-011 (changed), FMT-BLANK-017 (added), FMT-BLANK-018 (added), FMT-BLANK-019 (added, clarification), FMT-BLANK-020 (added, clarification), FMT-BREAK-030 (added), FMT-PIPE-024 (changed), RH5025-005 (added) |
 
@@ -42,7 +42,7 @@ A block statement's `{` starts a statement; it continues no header, which is wha
 
 ## Visible output changes
 
-Entries that depend on an output question still open in the run name it. The run numbers them: 1 — a block statement after `break`; 2 — which block statements are exempt; 3 — an own-line comment and a blank line above a block statement; 4 — an own-line comment in front of a comment glued to a brace; 5 — a directive in front of a comment glued to a brace. Every entry shows the output of the option the spec is written on.
+Entries that the maintainer decided through an output question of the run name it (all answered with option A on 2026-11-01; see `Decisions`). The run numbers them: 1 — a block statement after `break`; 2 — which block statements are exempt; 3 — an own-line comment and a blank line above a block statement; 4 — an own-line comment in front of a comment glued to a brace; 5 — a directive in front of a comment glued to a brace. Every entry shows the chosen output.
 
 ### 1. A block statement after a statement that ends in `}` gets the blank line
 
@@ -266,7 +266,7 @@ After: the input is kept unchanged.
 
 ### 5. A block statement after `break` gets the FMT-BLANK-004 blank line
 
-This entry depends on output question 1 (see `Decisions`).
+Decided with output question 1 (see `Decisions`).
 
 ```csharp
 class C
@@ -325,7 +325,7 @@ Before: RH5025 reports the blank line above `{`. After: not reported. The blank 
 
 ### 7. An own-line comment and a blank line above a block statement keep the author's blank line
 
-This entry depends on output question 3, and its `break` case also on output question 1.
+Decided with output question 3, and its `break` case also with output question 1.
 
 ```csharp
 class C
@@ -437,7 +437,7 @@ class C
 
 ### 8. After `break`, a comment glued to the block's brace is separated by the FMT-BLANK-004 blank line
 
-This entry depends on output question 1.
+Decided with output question 1.
 
 ```csharp
 class C
@@ -478,7 +478,7 @@ class C
 
 ### 9. An own-line comment in front of a glued comment gets the FMT-BLANK-011 blank line
 
-This entry depends on output question 4.
+Decided with output question 4.
 
 ```csharp
 class C
@@ -609,7 +609,7 @@ class C
 
 ### 10. No blank line is inserted in front of a directive that precedes a glued comment
 
-This entry depends on output question 5.
+Decided with output question 5.
 
 ```csharp
 class C
@@ -713,6 +713,20 @@ Today the line-break phase inserts the blank line in front of the first directiv
 
 ## Decisions
 
+### The maintainer's answers to the run's output questions
+
+On 2026-11-01 the maintainer chose option A for every output question of the run:
+
+1. A block statement after `break` gets the FMT-BLANK-004 blank line, also with a comment glued to its brace (visible output changes 5 and 8).
+2. Only a block statement that follows another statement of its block or switch section is exempt from FMT-BLANK-008 and RH5025; the first statement of a block or switch section, a top-level block, and a labeled block are unchanged (visible output change 6).
+3. Behind an own-line comment above a block statement that follows a statement, the author's blank line above `{` is kept (visible output change 7).
+4. An own-line comment in front of a comment glued to a brace gets the FMT-BLANK-011 blank line, and the glued comment gets none (visible output change 9).
+5. No blank line is inserted in front of a directive that precedes a comment glued to a brace; the output equals the input (visible output change 10).
+6. Behind a directive, the SHARED-BLANK-003 blank line above a block statement after `}` goes after the directive (visible output change 2).
+7. A comment glued to the brace of a block statement after `}` gets the SHARED-BLANK-003 blank line above the comment (visible output change 3).
+
+The spec is written on these answers.
+
 ### The opening brace of a block statement is exempt from FMT-BLANK-008 and RH5025
 
 Decided by the maintainer (revision of thoenissen/Reihitsu#1496, 2026-10-28): FMT-BLANK-008 and RH5025 do not apply to the `{` of a block statement, not only after `}`. After a statement that ends in `}` the SHARED-BLANK-003 blank line is required; after any other statement the author's blank line is kept and not reported. This supersedes two earlier decisions:
@@ -726,11 +740,11 @@ Decided by the maintainer: RH5020 gets no exemption. A comment that starts its l
 
 ### "Follows a statement" bounds the exemption
 
-The exemption covers a block statement that follows another statement of the same block or switch section — the two cases the maintainer named, after `}` and after any other statement. A block statement that is the first statement of its block or switch section, and a block that is not in a statement list (a top-level block of a file with top-level statements, the block of a labeled statement), stay under FMT-BLANK-008 and RH5025. Pending output question 2.
+The exemption covers a block statement that follows another statement of the same block or switch section — the two cases the maintainer named, after `}` and after any other statement. A block statement that is the first statement of its block or switch section, and a block that is not in a statement list (a top-level block of a file with top-level statements, the block of a labeled statement), stay under FMT-BLANK-008 and RH5025. Decided by the maintainer: option A of output question 2.
 
 ### FMT-BLANK-004 applies above a block statement after `break`
 
-The maintainer's "after any other statement, the author's blank line is kept" is read as "no rule of the brace removes or demands it": FMT-BLANK-004's blank line after `break` asks for one above a block statement like above any other statement, as RH5011 does. Pending output question 1.
+The maintainer's "after any other statement, the author's blank line is kept" is read as "no rule of the brace removes or demands it": FMT-BLANK-004's blank line after `break` asks for one above a block statement like above any other statement, as RH5011 does. Decided by the maintainer: option A of output question 1.
 
 ### FMT-BLANK-018 keeps today's output for glued comments instead of following the issue's wording
 
@@ -738,7 +752,7 @@ The issue exempts a comment that shares its line with "the `{` behind it". Today
 
 ### A directive in front of a glued comment keeps its blank lines
 
-FMT-BLANK-018 removes no blank line of a gap that holds a directive. Below a region directive, SHARED-BLANK-006 requires the blank line, since the next line starts with the comment, not with `}`; removing it would make RH5032 report the formatter's output, and FMT-BLANK-013 would insert what FMT-BLANK-018 removes. Below any other directive, today's output keeps the author's blank line. What changes is only the blank line today's line-break phase inserts in front of the first directive of such a gap (visible output change 10): no blank-line rule asks for it, and FMT-BLANK-016's reason — a blank line in front of a directive lands inside the region of the directive above or separates the directive from code grouped with it — speaks against writing one. Pending output question 5.
+FMT-BLANK-018 removes no blank line of a gap that holds a directive. Below a region directive, SHARED-BLANK-006 requires the blank line, since the next line starts with the comment, not with `}`; removing it would make RH5032 report the formatter's output, and FMT-BLANK-013 would insert what FMT-BLANK-018 removes. Below any other directive, today's output keeps the author's blank line. What changes is only the blank line today's line-break phase inserts in front of the first directive of such a gap (visible output change 10): no blank-line rule asks for it, and FMT-BLANK-016's reason — a blank line in front of a directive lands inside the region of the directive above or separates the directive from code grouped with it — speaks against writing one. Decided by the maintainer: option A of output question 5.
 
 ### FMT-BLANK-020 is a clarification with FMT-BLANK-018's tokens
 
@@ -746,11 +760,11 @@ The removal of the blank lines between an own-line comment and the brace, bracke
 
 ### The blank lines below an own-line comment above a block statement follow the statement rules
 
-FMT-BLANK-017 excludes the opening brace of a block statement that follows a statement from FMT-BLANK-020 as from FMT-BLANK-008: after a statement, the author's blank line between a comment and the next statement is kept (`A();⏎// c⏎⏎B();` keeps it today), and a block statement is decided like any other statement (visible output change 7). Pending output question 3.
+FMT-BLANK-017 excludes the opening brace of a block statement that follows a statement from FMT-BLANK-020 as from FMT-BLANK-008: after a statement, the author's blank line between a comment and the next statement is kept (`A();⏎// c⏎⏎B();` keeps it today), and a block statement is decided like any other statement (visible output change 7). Decided by the maintainer: option A of output question 3.
 
 ### An own-line comment in front of a glued comment is separated like any other
 
-`// note` in front of `/* d */ };` does not share its line with a brace, so FMT-BLANK-011 asks for a blank line above it, and FMT-BLANK-018 removes the blank line between it and the glued comment (visible output change 9). Today the line-break phase removes the line above `// note` and keeps the one below it, because it normalizes the run in front of the gap's first content as if the gap were empty. The maintainer's RH5020 decision covers a comment glued to a brace, not a comment on its own line. Pending output question 4.
+`// note` in front of `/* d */ };` does not share its line with a brace, so FMT-BLANK-011 asks for a blank line above it, and FMT-BLANK-018 removes the blank line between it and the glued comment (visible output change 9). Today the line-break phase removes the line above `// note` and keeps the one below it, because it normalizes the run in front of the gap's first content as if the gap were empty. The maintainer's RH5020 decision covers a comment glued to a brace, not a comment on its own line. Decided by the maintainer: option A of output question 4.
 
 ### FMT-BLANK-019 is a clarification
 
@@ -768,4 +782,4 @@ The page describes the blank line between a declaration and its opening brace. T
 - **Leave the blank line before a closing bracket to the author once the line-break phase stops removing it** — rejected: it would change today's output without a request to change it.
 - **FMT-BLANK-020 for every brace and chained keyword** — not part of this change: it would remove blank lines today's output keeps behind a comment, before the braces FMT-BLANK-018 excludes and before `else`, `catch`, `finally`, and `while`, which no request asks for. RH5024, RH5025, and RH5026 report several of those outputs today; that is a separate question.
 - **State the comment rule inside FMT-BLANK-007, FMT-BLANK-008, and FMT-BLANK-019** — rejected: their scope is every brace or bracket directly in front of the token, the comment rule's is FMT-BLANK-018's, so each would have to repeat the exceptions.
-- **Keep the blank line the line-break phase inserts in front of a directive** — rejected on the spec's recommendation, pending output question 5: it needs a rule that inserts a blank line in front of a directive, which FMT-BLANK-016 forbids for the blank lines FMT-BLANK-001 to FMT-BLANK-005 insert.
+- **Keep the blank line the line-break phase inserts in front of a directive** — rejected by the maintainer (output question 5, option A): it needs a rule that inserts a blank line in front of a directive, which FMT-BLANK-016 forbids for the blank lines FMT-BLANK-001 to FMT-BLANK-005 insert.
