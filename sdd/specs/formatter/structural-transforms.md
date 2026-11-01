@@ -5,9 +5,9 @@
 | ID prefix | FMT-STRUCT |
 | Status | Active |
 | Code owners | `StructuralTransformPhase`, `ConfigurableStructuralTransforms`, `ControlFlowBraceTransform`, `ExpressionBodiedMethodTransform`, `ExpressionBodiedConstructorTransform`, `ExpressionBodiedOperatorTransform`, `ExpressionBodiedConversionTransform`, `ExpressionBodiedFinalizerTransform`, `ExpressionBodiedLocalFunctionTransform`, `ExpressionBodiedTransformUtilities`, `ExpressionBodyToBlockConverter`, `AccessorExpressionBodyTransform`, `GetOnlyMemberExpressionBodyTransform`, `EmptyTypeDeclarationSemicolonTransform`, `EnumTrailingCommaRemovalTransform`, `InitializerTrailingCommaRemovalTransform`, `TrailingCommaRemovalUtilities`, `FieldDeclarationSplitTransform` |
-| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021, FMT-SPACE-012, FMT-SPACE-017 |
+| Uses | FMT-BREAK-027, FMT-BREAK-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-012, FMT-SPACE-017, SHARED-ATTR-013 |
 
-This spec covers the phase that rewrites syntax shape before any layout is decided, right after the tabs in whitespace are replaced (FMT-PIPE-001): braces for `if`/`else` bodies, block bodies for expression-bodied functions, expression bodies for simple accessors and get-only members, semicolon declarations for empty types, removal of trailing commas, and one field per declaration. Every rewrite produces equivalent code (FMT-PIPE-003) and is refused for a construct whose comments, directives, or disabled text it could not carry over (FMT-PIPE-002).
+This spec covers the phase that rewrites syntax shape before any layout is decided, right after the tabs in whitespace are replaced (FMT-PIPE-001): braces for `if`/`else` bodies, block bodies for expression-bodied functions, expression bodies for simple accessors and get-only members, semicolon declarations for empty types, removal of trailing commas, one field per declaration, one attribute per list on declarations, and one list per target on parameters and type parameters. Every rewrite produces equivalent code (FMT-PIPE-003) and is refused for a construct whose comments, directives, or disabled text it could not carry over (FMT-PIPE-002).
 
 ## Non-goals
 
@@ -18,6 +18,7 @@ This spec covers the phase that rewrites syntax shape before any layout is decid
 - Trailing commas in object initializers, anonymous object creations, collection expressions, switch expressions, and list patterns.
 - Splitting event field declarations or local variable declarations with several declarators.
 - Which language version applies — FMT-PIPE-008 decides it; this spec only names the version each transform needs.
+- Where an attribute list stands — FMT-BREAK owns the placement of every attribute list, and the shape of the attribute lists of accessors, which follows the layout of their accessor list.
 
 ## Requirements
 
@@ -1375,5 +1376,81 @@ class C
 
                    // before comma
                };
+}
+```
+
+### FMT-STRUCT-028 — A declaration's attribute list holds one attribute
+
+The formatter MUST split an attribute list that holds several attributes into one list per attribute, in the order the attributes were written, when the list belongs to the compilation unit (`assembly:`, `module:`), a type, a delegate, a member, an enum member, or a local function. Each created list MUST keep the original list's target specifier; the first created list MUST keep the original list's leading trivia, and the last one its trailing trivia.
+
+The formatter MUST NOT split such a list when a comment or a preprocessor directive lies between its brackets (`[A /* c */, B]`), or when its specifier names no target the compiler knows (`[unknown: A, B]`). A list without a comment or directive between its brackets is split also when a comment stands in front of it or behind it, and a list with a known specifier that is not the default target of its declaration (`[method: A, B]`, `[return: A, B]`) is split like one without a specifier.
+
+The split writes nothing between the lists it creates (FMT-STRUCT-026); each of them starts its own line by FMT-BREAK-027. The attribute lists of a parameter or type parameter are never split (FMT-STRUCT-029), and the attribute lists of an accessor are shaped by FMT-BREAK-032. This requirement specifies the outcome only for the owners it names and leaves the attribute lists of a lambda unspecified.
+
+Why: On a declaration every attribute gets a line of its own, so a change to one attribute changes exactly one line; the attribute list-shape rules report a list with several attributes (SHARED-ATTR-013). How many attributes a list holds depends on no layout, so it is decided with the other shape rewrites, before any layout (FMT-PIPE-001), and the line-break phase only places the lists. A comment between the brackets belongs to no single attribute, so no created list could take it without moving it next to other code (FMT-STRUCT-024). A list whose specifier names no known target applies to nothing the formatter can lay out, so it is left as written.
+
+Example:
+
+```csharp
+[assembly: A, B]
+
+class C
+{
+    [method: A, B] [C] void M() { }
+
+    [A, B] int P { get; set; }
+}
+```
+
+```csharp
+[assembly: A]
+[assembly: B]
+
+class C
+{
+    [method: A]
+    [method: B]
+    [C]
+    void M()
+    {
+    }
+
+    [A]
+    [B]
+    int P { get; set; }
+}
+```
+
+The lists `[A /* c */, B]` and `[unknown: A, B]` on a method stay one list each.
+
+### FMT-STRUCT-029 — The lists of one target on a parameter are merged
+
+The formatter MUST merge the attribute lists of a parameter or type parameter that name the same target into the first of them. The first list MUST keep its place, its specifier, and its leading trivia, and MUST hold the attributes of every merged list in the order they were written; the other lists of the target are removed. Lists of another target between them do not keep them apart, and the lists of each target of one parameter are merged on their own. A list without a specifier names the parameter or type parameter itself, `param:` names the parameter, `typevar:` the type parameter, and any other known specifier the target it names, such as `property:` on a record parameter. A `type:` list and a list whose specifier names no target the compiler knows name no target and MUST NOT be merged.
+
+The formatter MUST NOT merge the lists of a target when a comment or a preprocessor directive lies between the opening bracket of the first of them and the end of the trivia behind the last of them, leads the token behind one of them, or when a directive leads the first of them. A comment in front of the first list does not block the merge. A list of a parameter or type parameter MUST NOT be split.
+
+The merge writes no whitespace (FMT-STRUCT-026): the space behind the merged list and behind each of its commas is the spacing phase's (FMT-SPACE-003, FMT-SPACE-008), and the merged list stays on the parameter's line by FMT-BREAK-027.
+
+Why: A parameter's attributes stay on its line, so that a parameter list keeps one parameter per line; there a second list of the same target only repeats the brackets. The compiler applies every list of one target alike, so merging them changes nothing, while merging lists of different targets would move an attribute to another target, and the compiler ignores a `type:` list on a parameter, so merging it would start applying its attributes. A comment or directive in the stretch the merge rewrites would be dropped or moved next to other code (FMT-STRUCT-024).
+
+Example:
+
+```csharp
+record R([A] [property: B] [C] [property: D] int Id);
+
+class C<[A] [B] T>
+{
+    void M([A] [B] int a, [A] /* c */ [B] int b, [param: A] [B] int c, [type: A] [B] int d) { }
+}
+```
+
+```csharp
+record R([A, C] [property: B, D] int Id);
+
+class C<[A, B] T>
+{
+    void M([A, B] int a, [A] /* c */ [B] int b, [param: A, B] int c, [type: A] [B] int d)
+    {
+    }
 }
 ```

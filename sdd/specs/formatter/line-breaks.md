@@ -5,7 +5,7 @@
 | ID prefix | FMT-BREAK |
 | Status | Active |
 | Code owners | `LineBreakPhase`, `LineBreakBlockRewriter`, `LineBreakInitializerRewriter`, `LineBreakContainedBlockRewriter`, `LineBreakAssignmentRewriter`, `DeclarationSemicolonLineBreakRewriter`, `ListElementInteriorJoinRewriter`, `ListElementInteriorUtilities`, `LineBreakListRewriter`, `PropertyLayoutLineBreakRewriter`, `GenericConstraintLineBreakRewriter`, `DeclarationBraceLineBreakRewriter`, `MemberLineStartRewriter`, `AttributeTargetFormattingRewriter`, `AttributeTargetFormattingShared`, `BinaryOperatorLineBreakRewriter`, `ChainLineBreakRewriter`, `TernaryLineBreakRewriter`, `SwitchCaseWhenLineBreakRewriter`, `BracePlacer`, `TokenGapNormalizer`, `AccessorListLayout`, `LineBreakDetection`, `LineBreakTriviaUtilities` |
-| Uses | FMT-CLEAN-001, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-010, FMT-PIPE-021, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012 |
+| Uses | FMT-CLEAN-001, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-010, FMT-PIPE-021, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, SHARED-ATTR-014, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012 |
 
 This spec covers `LineBreakPhase`, the phase of the pipeline that decides where lines break (its position in the phase order is FMT-PIPE-001): brace placement, one statement and one member per line, the layout of argument, parameter, attribute, and type-argument lists, initializers and patterns, assignments, operators, conditionals, chains, generic constraints, attribute lists, accessor lists, and `case … when` guards. The phase only adds and removes line breaks and keeps the blank lines it finds (FMT-BREAK-030); the columns the resulting lines start in are decided later by FMT-INDENT, and the spaces between tokens on a line by FMT-SPACE.
 
@@ -1107,9 +1107,9 @@ class C
 
 ### FMT-BREAK-027 — Attribute lists of declarations start their own line
 
-Each attribute list of a type, member, accessor, or other declaration MUST start its own line, and a list with several attributes MUST be split into one list per attribute. Attribute lists of parameters and type parameters MUST stay on the parameter's line and keep their attributes in one list. Lists are only split or merged when no comment or directive is in the way, and lists of different targets are never merged.
+Each attribute list of a type, member, accessor, or other declaration MUST start its own line, and the declaration MUST start its own line behind its last list. Attribute lists of parameters and type parameters MUST stay on the parameter's line. The attribute lists of an accessor whose accessor list stays on the declaration's line (FMT-BREAK-024) MUST stay on that line. How many attributes a list holds is decided before this phase (FMT-STRUCT-028, FMT-STRUCT-029), and for the lists of an accessor by FMT-BREAK-032. This requirement leaves the placement of a list with a comment or directive between its brackets unspecified.
 
-Why: One attribute per line keeps each attribute visible and diffable on declarations, while parameter attributes stay inline so that a parameter list keeps one parameter per line. The RH55xx attribute placement and list-shape rules report the same shapes.
+Why: A list on its own line keeps each attribute visible and diffable on declarations, while parameter attributes stay inline so that a parameter list keeps one parameter per line. The RH55xx attribute placement rules report the same shapes.
 
 Example:
 
@@ -1314,4 +1314,56 @@ class C
 
 A gap the phase does not join keeps its whitespace: `public int R =>1;` and `public int S {get;set;}` written on one line leave the phase as they are.
 
-One join is a recorded exception: where the phase merges the attribute lists of a declaration (FMT-BREAK-027), the shared merge that the attribute-list code fixes also use writes one space behind the merged list's `]` and behind a token it leaves touching a joined token. The spacing phase decides the same space for both pairs (FMT-SPACE-003, FMT-SPACE-008), so the final output does not depend on it. The exception is recorded until the merge moves into the phase that owns it (thoenissen/Reihitsu#1492).
+One join is a recorded exception: where the phase merges the attribute lists of an accessor (FMT-BREAK-032), the shared merge that the attribute-list code fixes also use writes one space behind the merged list's `]` and behind a token it leaves touching a joined token. The spacing phase decides the same space for both pairs (FMT-SPACE-003, FMT-SPACE-008), so the final output does not depend on it. The exception is recorded as long as the phase merges the attribute lists of accessors.
+
+### FMT-BREAK-032 — The attribute lists of an accessor follow its accessor list's layout
+
+In an accessor list that this phase lays out over several lines (FMT-BREAK-024, FMT-BREAK-025), an attribute list of an accessor that holds several attributes MUST be split into one list per attribute, as FMT-STRUCT-028 states for a declaration and with its conditions. In an accessor list that stays on the declaration's line (FMT-BREAK-024), the attribute lists of an accessor MUST NOT be split, and its lists of one target MUST be merged into the first of them, as FMT-STRUCT-029 states for a parameter and with its conditions. Which of the two layouts an accessor list has is the layout this phase gives it, not the one it was written in: an accessor list written on one line that the phase lays out over several lines is split, and one written over several lines that the phase joins onto the declaration's line is merged. This holds for the accessors of properties, indexers, and events.
+
+Why: The shape follows from where the lists stand. On lines of their own, each attribute gets a line, as on any other declaration; on the declaration's line, a second list only repeats the brackets, and the list-shape rules do not report it there (SHARED-ATTR-014). Whether an accessor list stays on the declaration's line is decided by this phase, after it joins an initializer's value (FMT-BREAK-016) and lays out the accessor list, so the shape of its attribute lists is decided here, behind that layout; a structural transform would have to predict it.
+
+Example:
+
+```csharp
+class C
+{
+    int P { [A] [B] get; [C, D] set; }
+
+    int Q
+    {
+        [A, B] get;
+        [C] [D] set;
+    }
+
+    int R { [A, B] get => 1; }
+
+    int S { [A] [B] get; set; } =
+        1;
+}
+```
+
+```csharp
+class C
+{
+    int P { [A, B] get; [C, D] set; }
+
+    int Q
+    {
+        [A]
+        [B]
+        get;
+        [C]
+        [D]
+        set;
+    }
+
+    int R
+    {
+        [A]
+        [B]
+        get => 1;
+    }
+
+    int S { [A, B] get; set; } = 1;
+}
+```

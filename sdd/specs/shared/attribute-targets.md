@@ -5,9 +5,9 @@
 | ID prefix | SHARED-ATTR |
 | Status | Active |
 | Code owners | `AttributeTargetRuleAnalyzerBase`, `TargetAttributePlacementAnalyzerBase`, `TargetAttributePlacementCodeFixProviderBase`, `TargetAttributeListShapeAnalyzerBase`, `TargetAttributeListShapeCodeFixProviderBase`, `AttributeTargetUtilities` |
-| Uses | FMT-BREAK-001, FMT-BREAK-024, FMT-BREAK-027, SHARED-FIX-008 |
+| Uses | FMT-BREAK-001, FMT-BREAK-024, FMT-BREAK-027, FMT-BREAK-032, FMT-STRUCT-028, FMT-STRUCT-029, SHARED-FIX-008 |
 
-This spec covers the rules that check attribute lists by the target the attributes apply to: how the target of an attribute list is resolved, how a placement rule decides whether a list is placed on its own line or on the line of what follows it, how a list-shape rule decides whether a list holds one attribute or the lists of one target are merged, where the diagnostic is, and what the placement and list-shape fixes produce. Each rule that uses this spec names its target, the declarations that carry it, its placement or its list shape, and any exception of its own. The formatter's counterpart is FMT-BREAK-027.
+This spec covers the rules that check attribute lists by the target the attributes apply to: how the target of an attribute list is resolved, how a placement rule decides whether a list is placed on its own line or on the line of what follows it, how a list-shape rule decides whether a list holds one attribute or the lists of one target are merged, where the diagnostic is, and what the placement and list-shape fixes produce. Each rule that uses this spec names its target, the declarations that carry it, its placement or its list shape, and any exception of its own. The formatter's counterparts are FMT-BREAK-027 for the placement, and FMT-STRUCT-028, FMT-STRUCT-029, and FMT-BREAK-032 for the list shape.
 
 ## Non-goals
 
@@ -460,7 +460,7 @@ is reported, and no code fix is offered.
 
 A rule that requires one attribute per list MUST report every attribute list of its target that holds more than one attribute and is not attached to an accessor, whether the list is on its own line or shares its line with other code, and whatever comments surround it. A list attached to an accessor is reported as SHARED-ATTR-014 specifies. It MUST NOT report a list that holds one attribute.
 
-Why: On a declaration every attribute gets a line of its own (FMT-BREAK-027), so a change to one attribute changes exactly one line. A list with several attributes ties unrelated attributes to one line; where the list is placed is the placement rule's decision, not this one's.
+Why: On a declaration every attribute gets a line of its own (FMT-STRUCT-028), so a change to one attribute changes exactly one line. A list with several attributes ties unrelated attributes to one line; where the list is placed is the placement rule's decision, not this one's.
 
 Example — RH5514:
 
