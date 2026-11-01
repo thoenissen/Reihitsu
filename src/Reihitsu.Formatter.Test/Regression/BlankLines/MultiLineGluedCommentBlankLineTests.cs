@@ -1131,11 +1131,11 @@ public class MultiLineGluedCommentBlankLineTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that the blank line required after a closing brace goes above a multi-line comment glued to the following
-    /// statement or member
+    /// statement, and that above a multi-line comment glued to a member after a closing brace none is inserted
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-018")]
-    public void InsertsBlankLineAfterClosingBraceAboveMultiLineCommentGluedToStatementOrMember()
+    public void InsertsBlankLineAfterClosingBraceAboveMultiLineCommentGluedToStatementButNotMember()
     {
         const string input = """
                              class C
@@ -1164,7 +1164,6 @@ public class MultiLineGluedCommentBlankLineTests : FormatterTestsBase
                                         /* z
                                          */ int i = 0;
                                     }
-
                                     /* x
                                      */ int I;
                                 }
