@@ -49,6 +49,12 @@ Output question during the implementer stage (2026-11-01), from 05-implementer.m
 
 Pre-auditor output question (2026-11-01), from Decisions taken row 16 and 09-spec-checker.md finding 1: the same directive-before-`#endregion` gap before a collection expression's `]` (and through the same rule the `)` of a parenthesized pattern). The maintainer chose A: no blank line is inserted above the directive, as for a closing brace.
 
+Pre-auditor-repair output questions (2026-11-01), from 14-auditor.md findings 1 and 3:
+1. Comment glued to the `{` of a complex element initializer — A: every complex element `{` is treated like the other initializer braces (no blank line above the glued comment; an author's blank line there is removed), independent of whether the element spans lines.
+2. Own-line comment plus blank line above the `{` of a collection initializer assigned to a member — A: the blank line is removed, as for an assigned object initializer.
+
+Maintainer guidance with these answers (binding for the rest of the run): comments glued to braces are unwanted code; the formatter must not be made more complex to give them a particular layout. Where a rule or exception exists only to keep a specific output for such comments, prefer the simplest uniform rule, and an output change for glued comments that follows from the simpler rule is covered by this guidance (list it in the change doc).
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
@@ -69,6 +75,11 @@ Pre-auditor output question (2026-11-01), from Decisions taken row 16 and 09-spe
 | 14 | Implementer | Stale XML comment about `TokenGapNormalizer` in `BlankLineBeforeIfDirectiveAfterStatementTests.cs` | Adjacent fix: the cleaner corrects it | The run's change made it stale; a comment-only edit | Comment only | a98b099 |
 | 15 | Spec author (06) | Owner of `BlankLineSpacingPolicy.IsBlockStatementAfterStatement` | Keep it under SHARED-BLANK's existing ownership of `BlankLineSpacingPolicy`; no new requirement | A type owns one spec (`sdd/README.md`); RH5025-005 and FMT-BLANK-017 tests cover it, plus a direct Core test | Internal | 1d6970e |
 | 16 | Spec author (06) | D3 also occurs before a collection expression's `]` | Open output question for the pre-auditor batch; tests do not pin that case until answered | The maintainer's answer named a closing brace only | Asked; maintainer answered A (see Maintainer answers) | repair round 1 |
+| 17 | Auditor (14) | Architecture finding: `BraceBlankLinePolicy` copies the line-break phase's multi-line complex-element condition (finding 1) | Change the structure in this run: drop the layout qualifier, per maintainer answer 1A; no blank-line decision reads a layout a later phase changes | Run-introduced copy inside the run's components; the purpose of the issue is one owner per decision | Answered by the maintainer (1A) | pending |
+| 18 | Auditor (14) | Finding 2: FMT-BLANK-020 trigger narrower than `main` (two comments on the comment line) | Repair: widen to a line holding only ordinary comments, in the simplest form | PR-introduced; restores `main`'s output; RH5024/RH5025 would report formatter output otherwise | Restores `main`'s output | pending |
+| 19 | Auditor (14) | Finding 4: two private copies of the "glued comment" predicate | Repair: one predicate in `BraceBlankLinePolicy` (or `TokenGapAnalysis`), both rewriters read it | One owner; simplifies, as the maintainer's guidance asks | Internal | pending |
+| 20 | Auditor (14) | Finding 5: stale `RootConstruct` summaries | Repair: name the blank-line phase reader | Comment accuracy | Comment only | pending |
+| 21 | Maintainer guidance | Other glued-comment special cases from D4 (assigned collection initializer `}` exclusion, documentation-comment condition) | Spec author and implementer drop each special case that exists only to keep a specific glued-comment output, in favor of the simplest uniform rule; the change doc lists the resulting glued-comment output changes | Maintainer guidance: no formatter complexity for unwanted glued comments | Covered by the maintainer's guidance; listed in the change doc and the PR | pending |
 
 ## Follow-up candidates
 
