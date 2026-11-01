@@ -97,7 +97,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
+        var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.CreateJoinedTrailingTrivia(previousToken, openParenToken));
         var newOpenParen = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(openParenToken);
 
         return node.ReplaceTokens([previousToken, openParenToken],
@@ -146,7 +146,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
+        var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.CreateJoinedTrailingTrivia(previousToken, node.OpenParenToken));
         var newOpenParen = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(node.OpenParenToken);
 
         if (TokenContainmentUtilities.ContainsToken(node, previousToken) == false)
@@ -187,7 +187,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
                 continue;
             }
 
-            var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
+            var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.CreateJoinedTrailingTrivia(previousToken, separator));
             var newSeparator = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(separator);
 
             if (LineBreakTriviaUtilities.HasTrailingEndOfLine(newSeparator) == false && LineBreakTriviaUtilities.HasLeadingEndOfLine(nextParameter) == false)
@@ -222,7 +222,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
+        var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.CreateJoinedTrailingTrivia(previousToken, node.CloseParenToken));
         var newCloseParen = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(node.CloseParenToken);
 
         return node.ReplaceTokens([previousToken, node.CloseParenToken],

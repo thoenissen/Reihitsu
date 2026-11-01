@@ -169,7 +169,10 @@ internal sealed class AccessorListLayout
     }
 
     /// <summary>
-    /// Collapses a multi-line auto-accessor list to a single line
+    /// Collapses a multi-line auto-accessor list to a single line. Each join writes the minimal separator (FMT-BREAK-031),
+    /// so modifiers such as <c>protected</c> and <c>internal</c> on two lines stay two keywords, and every gap that is
+    /// already on one line keeps its whitespace; the spaces inside the list are the horizontal-spacing phase's
+    /// (FMT-SPACE-022)
     /// </summary>
     /// <typeparam name="TNode">The declaration type</typeparam>
     /// <param name="node">The property or indexer declaration with an auto-accessor list</param>
@@ -185,11 +188,8 @@ internal sealed class AccessorListLayout
         var updatedNode = LineBreakTriviaUtilities.CollapseTokenToSameLine(node, node.AccessorList.OpenBraceToken);
 
         updatedNode = CollapseAccessorTokensToSingleLine(updatedNode);
-        updatedNode = LineBreakTriviaUtilities.CollapseTokenToSameLine(updatedNode, updatedNode.AccessorList.CloseBraceToken);
 
-        var replacementMap = BuildAccessorTriviaReplacementMap(updatedNode.AccessorList);
-
-        return updatedNode.ReplaceTokens(replacementMap.Keys, (original, _) => replacementMap[original]);
+        return LineBreakTriviaUtilities.CollapseTokenToSameLine(updatedNode, updatedNode.AccessorList.CloseBraceToken);
     }
 
     /// <summary>
@@ -230,53 +230,6 @@ internal sealed class AccessorListLayout
         }
 
         return updatedNode;
-    }
-
-    /// <summary>
-    /// Builds the trivia replacement map that normalizes the spacing of a collapsed accessor list
-    /// </summary>
-    /// <param name="accessorList">The collapsed accessor list</param>
-    /// <returns>The token replacement map</returns>
-    private static Dictionary<SyntaxToken, SyntaxToken> BuildAccessorTriviaReplacementMap(AccessorListSyntax accessorList)
-    {
-        var previousToken = accessorList.OpenBraceToken.GetPreviousToken();
-        var replacementMap = new Dictionary<SyntaxToken, SyntaxToken>
-                             {
-                                 [accessorList.OpenBraceToken] = accessorList.OpenBraceToken.WithLeadingTrivia(SyntaxFactory.TriviaList())
-                                                                                            .WithTrailingTrivia(SyntaxFactory.Space),
-                                 [accessorList.CloseBraceToken] = accessorList.CloseBraceToken.WithLeadingTrivia(SyntaxFactory.TriviaList()),
-                             };
-
-        if (previousToken != default && previousToken.IsKind(SyntaxKind.None) == false)
-        {
-            replacementMap[previousToken] = previousToken.WithTrailingTrivia(SyntaxFactory.Space);
-        }
-
-        foreach (var accessor in accessorList.Accessors)
-        {
-            foreach (var openBracketToken in accessor.AttributeLists.Select(attributeList => attributeList.OpenBracketToken))
-            {
-                replacementMap[openBracketToken] = openBracketToken.WithLeadingTrivia(SyntaxFactory.TriviaList());
-            }
-
-            var tokenBeforeKeyword = accessor.Keyword.GetPreviousToken();
-
-            if (tokenBeforeKeyword != default && tokenBeforeKeyword.IsKind(SyntaxKind.None) == false)
-            {
-                replacementMap[tokenBeforeKeyword] = tokenBeforeKeyword.WithTrailingTrivia(SyntaxFactory.Space);
-            }
-
-            replacementMap[accessor.Keyword] = accessor.Keyword.WithLeadingTrivia(SyntaxFactory.TriviaList())
-                                                               .WithTrailingTrivia(SyntaxFactory.TriviaList());
-
-            if (accessor.SemicolonToken.IsMissing == false)
-            {
-                replacementMap[accessor.SemicolonToken] = accessor.SemicolonToken.WithLeadingTrivia(SyntaxFactory.TriviaList())
-                                                                                 .WithTrailingTrivia(SyntaxFactory.Space);
-            }
-        }
-
-        return replacementMap;
     }
 
     #endregion // Methods

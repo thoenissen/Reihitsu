@@ -49,8 +49,10 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Moves the arrow of an expression-bodied property or indexer and the first token of its expression onto the
-    /// line of the token that precedes the arrow — the property name or the indexer's closing bracket. The layout is
-    /// kept when either join would cross a comment, a directive, or disabled text
+    /// line of the token that precedes the arrow — the property name or the indexer's closing bracket. Each join writes
+    /// the minimal separator (FMT-BREAK-031), and a gap that is already on one line keeps its whitespace: the spaces
+    /// around the arrow are the horizontal-spacing phase's (FMT-SPACE-017). The layout is kept when either join would
+    /// cross a comment, a directive, or disabled text
     /// </summary>
     /// <typeparam name="TNode">The declaration type</typeparam>
     /// <param name="node">The property or indexer declaration</param>
@@ -78,12 +80,6 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
         if (LineBreakTriviaUtilities.HasLeadingEndOfLine(arrowToken) || LineBreakTriviaUtilities.HasTrailingEndOfLine(arrowToken.GetPreviousToken()))
         {
             updatedNode = LineBreakTriviaUtilities.CollapseTokenToSameLine(updatedNode, arrowToken);
-            arrowToken = getExpressionBody(updatedNode).ArrowToken;
-        }
-
-        if (arrowToken.LeadingTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
-        {
-            updatedNode = updatedNode.ReplaceToken(arrowToken, arrowToken.WithLeadingTrivia(arrowToken.LeadingTrivia.Add(SyntaxFactory.Space)));
         }
 
         var firstExpressionToken = getExpressionBody(updatedNode).Expression.GetFirstToken();
@@ -93,23 +89,7 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
             updatedNode = LineBreakTriviaUtilities.CollapseTokenToSameLine(updatedNode, firstExpressionToken);
         }
 
-        arrowToken = getExpressionBody(updatedNode).ArrowToken;
-        firstExpressionToken = getExpressionBody(updatedNode).Expression.GetFirstToken();
-
-        var previousToken = arrowToken.GetPreviousToken();
-        var replacementMap = new Dictionary<SyntaxToken, SyntaxToken>
-                             {
-                                 [arrowToken] = arrowToken.WithLeadingTrivia(SyntaxFactory.Space)
-                                                          .WithTrailingTrivia(SyntaxFactory.Space),
-                                 [firstExpressionToken] = firstExpressionToken.WithLeadingTrivia(SyntaxFactory.TriviaList()),
-                             };
-
-        if (previousToken != default && previousToken.IsKind(SyntaxKind.None) == false)
-        {
-            replacementMap[previousToken] = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
-        }
-
-        return updatedNode.ReplaceTokens(replacementMap.Keys, (original, _) => replacementMap[original]);
+        return updatedNode;
     }
 
     #endregion // Methods

@@ -87,7 +87,9 @@ internal sealed class BinaryOperatorLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Normalizes binary operator position by moving end-of-line trivia to the left operand
+    /// Normalizes binary operator position by moving end-of-line trivia to the left operand. The operator and the right
+    /// operand are joined with the minimal separator (FMT-BREAK-031), so an operand such as <c>-a</c> behind <c>-</c> stays
+    /// a separate token; the spaces of the joined gap are the horizontal-spacing phase's
     /// </summary>
     /// <param name="node">The binary expression node</param>
     /// <returns>The binary expression with the operator at the beginning of the continuation line</returns>
@@ -106,11 +108,10 @@ internal sealed class BinaryOperatorLineBreakRewriter : CSharpSyntaxRewriter
         }
 
         var leftLastToken = node.Left.GetLastToken();
-        var newOperatorTrailing = LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(operatorToken.TrailingTrivia);
+        var rightFirstToken = node.Right.GetFirstToken();
         var newLeftTrailing = LineBreakTriviaUtilities.AppendEndOfLine(leftLastToken.TrailingTrivia, _context.EndOfLine);
         var newLeftLastToken = leftLastToken.WithTrailingTrivia(newLeftTrailing);
-        var newOperatorToken = operatorToken.WithTrailingTrivia(newOperatorTrailing);
-        var rightFirstToken = node.Right.GetFirstToken();
+        var newOperatorToken = operatorToken.WithTrailingTrivia(LineBreakTriviaUtilities.CreateJoinedTrailingTrivia(operatorToken, rightFirstToken));
         var newRightFirstToken = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(rightFirstToken);
 
         return node.ReplaceTokens([leftLastToken, operatorToken, rightFirstToken],

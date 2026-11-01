@@ -192,10 +192,10 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
             return accessor;
         }
 
-        // No spacing rule covers the gap between the accessor keyword and the created arrow, so the arrow gets one space on
-        // each side (FMT-STRUCT-026); the layout trivia that stood between the keyword and the removed body is dropped. The
-        // created tokens are built with explicit trivia, so they carry no elastic trivia
-        var arrowExpressionClause = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.Token(SyntaxFactory.TriviaList(SyntaxFactory.Space), SyntaxKind.EqualsGreaterThanToken, SyntaxFactory.TriviaList(SyntaxFactory.Space)),
+        // The created arrow gets no whitespace on either side; the spacing phase spaces it like every arrow (FMT-STRUCT-026,
+        // FMT-SPACE-017), and the layout trivia that stood between the keyword and the removed body is dropped. The created
+        // tokens are built with explicit trivia, so they carry no elastic trivia
+        var arrowExpressionClause = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.Token(SyntaxFactory.TriviaList(), SyntaxKind.EqualsGreaterThanToken, SyntaxFactory.TriviaList()),
                                                                         bodyExpression);
 
         return accessor.WithKeyword(accessor.Keyword.WithTrailingTrivia(default(SyntaxTriviaList)))

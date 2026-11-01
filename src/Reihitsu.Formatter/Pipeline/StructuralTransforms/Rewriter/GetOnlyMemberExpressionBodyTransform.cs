@@ -186,10 +186,9 @@ internal sealed class GetOnlyMemberExpressionBodyTransform : CSharpSyntaxRewrite
             return false;
         }
 
-        // No spacing rule covers the gap between the member name or the indexer's bracket and the created arrow, so the
-        // arrow gets one space on each side (FMT-STRUCT-026). The created tokens are built with explicit trivia, so they
-        // carry no elastic trivia
-        arrowExpressionClause = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.Token(SyntaxFactory.TriviaList(SyntaxFactory.Space), SyntaxKind.EqualsGreaterThanToken, SyntaxFactory.TriviaList(SyntaxFactory.Space)),
+        // The created arrow gets no whitespace on either side; the spacing phase spaces it like every arrow (FMT-STRUCT-026,
+        // FMT-SPACE-017). The created tokens are built with explicit trivia, so they carry no elastic trivia
+        arrowExpressionClause = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.Token(SyntaxFactory.TriviaList(), SyntaxKind.EqualsGreaterThanToken, SyntaxFactory.TriviaList()),
                                                                     bodyExpression);
         semicolonToken = SyntaxFactory.Token(default, SyntaxKind.SemicolonToken, semicolonTrailingTrivia);
 

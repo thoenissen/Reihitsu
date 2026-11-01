@@ -36,26 +36,22 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Removes an end-of-line from a token's trailing trivia and ensures a trailing space remains
+    /// Joins the gap behind a token: removes the end-of-line and the whitespace around it from the token's trailing trivia
+    /// and writes the minimal separator in front of the token that moves onto its line (FMT-BREAK-031). The spaces of the
+    /// joined gap are left to the horizontal-spacing phase
     /// </summary>
-    /// <param name="token">The token to normalize</param>
+    /// <param name="token">The token in front of the gap</param>
+    /// <param name="nextToken">The token behind the gap</param>
     /// <returns>The normalized token</returns>
-    private static SyntaxToken NormalizeTrailingTriviaToSameLine(SyntaxToken token)
+    private static SyntaxToken NormalizeTrailingTriviaToSameLine(SyntaxToken token, SyntaxToken nextToken)
     {
-        var newTrailingTrivia = LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(token.TrailingTrivia);
-
-        if (newTrailingTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
-        {
-            newTrailingTrivia = newTrailingTrivia.Add(SyntaxFactory.Space);
-        }
-
-        return token.WithTrailingTrivia(newTrailingTrivia);
+        return token.WithTrailingTrivia(LineBreakTriviaUtilities.CreateJoinedTrailingTrivia(token, nextToken));
     }
 
     /// <summary>
-    /// Moves a token onto the same line as the previous token. The separating space is left to the
-    /// horizontal-spacing phase: attaching it here as leading trivia would stack with the trailing
-    /// space that phase adds to the previous token, producing a double space
+    /// Moves a token onto the same line as the previous token by removing its leading end-of-line and whitespace. The
+    /// separator in the gap is written into the previous token's trailing trivia
+    /// (<see cref="NormalizeTrailingTriviaToSameLine"/>)
     /// </summary>
     /// <param name="token">The token to normalize</param>
     /// <returns>The normalized token</returns>
@@ -107,7 +103,7 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        var newOperatorToken = NormalizeTrailingTriviaToSameLine(operatorToken);
+        var newOperatorToken = NormalizeTrailingTriviaToSameLine(operatorToken, openBracket);
         var newOpenBracket = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(openBracket);
 
         return node.ReplaceTokens([operatorToken, openBracket],
@@ -144,7 +140,7 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
             && previousToken.IsKind(SyntaxKind.None) == false
             && LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken))
         {
-            var newPreviousToken = NormalizeTrailingTriviaToSameLine(previousToken);
+            var newPreviousToken = NormalizeTrailingTriviaToSameLine(previousToken, operatorToken);
 
             return node.ReplaceTokens([previousToken, operatorToken],
                                       (original, _) => original == previousToken
@@ -198,7 +194,7 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
         }
 
         var operatorToken = node.OperatorToken;
-        var newOperatorToken = NormalizeTrailingTriviaToSameLine(operatorToken);
+        var newOperatorToken = NormalizeTrailingTriviaToSameLine(operatorToken, rightFirstToken);
         var newRightFirstToken = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(rightFirstToken);
 
         return node.ReplaceTokens([operatorToken, rightFirstToken],
@@ -228,7 +224,7 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        var newEqualsToken = NormalizeTrailingTriviaToSameLine(equalsToken);
+        var newEqualsToken = NormalizeTrailingTriviaToSameLine(equalsToken, openBracket);
         var newOpenBracket = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(openBracket);
 
         return node.ReplaceTokens([equalsToken, openBracket],
@@ -263,7 +259,7 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
         }
 
         var equalsToken = node.EqualsToken;
-        var newEqualsToken = NormalizeTrailingTriviaToSameLine(equalsToken);
+        var newEqualsToken = NormalizeTrailingTriviaToSameLine(equalsToken, valueFirstToken);
         var newValueFirstToken = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(valueFirstToken);
 
         return node.ReplaceTokens([equalsToken, valueFirstToken],

@@ -38,26 +38,29 @@ internal sealed class HorizontalSpacingRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Removes the whitespace a token carries between the last comment in its own leading trivia and the token
-    /// itself, when no space is allowed in front of it
+    /// Applies the spacing decision for the gap in front of a token to the whitespace the token carries between the last
+    /// comment in its own leading trivia and the token itself: removed when no space is allowed in front of the token, and
+    /// set to the decided number of spaces otherwise
     /// </summary>
-    /// <param name="token">The token whose leading trivia should be trimmed</param>
-    /// <returns>The token with the trailing gap of its leading trivia removed</returns>
+    /// <param name="token">The token whose leading trivia should be normalized</param>
+    /// <returns>The token with the gap behind the comment in its leading trivia normalized</returns>
     /// <remarks>
     /// The gap in front of a token is split across two trivia lists once a comment sits in it: the part before the
     /// comment belongs to the previous token's trailing trivia, the part after it to this token's leading trivia.
-    /// The spacing rules only ever rewrite the first, so <c>[Obsolete /** why */ ]</c> keeps a space RH6014 reports
-    /// however the previous token is normalized. Trimming here is what the exemption above owes the analyzers.
-    /// A gap that holds a line break — also the one that ends a <c>///</c> comment — is indentation and stays as it is
-    /// (FMT-SPACE-001)
+    /// The whitespace in front of the comment is kept as written (FMT-SPACE-014), so the rule's decision is applied
+    /// to the part behind the comment: <c>[Obsolete /** why */ ]</c> loses the space RH6014 reports, and
+    /// <c>case (1, 2) /** why */when b:</c> gets the space in front of <c>when</c>. A gap without a decision keeps its
+    /// whitespace. A gap that holds a line break — also the one that ends a <c>///</c> comment — is indentation and stays
+    /// as it is (FMT-SPACE-001)
     /// </remarks>
-    private static SyntaxToken TrimGapBeforeToken(SyntaxToken token)
+    private static SyntaxToken NormalizeGapBehindLeadingComment(SyntaxToken token)
     {
         var leadingTrivia = token.LeadingTrivia;
+        var whitespaceCount = leadingTrivia.Count > 0 && leadingTrivia[leadingTrivia.Count - 1].IsKind(SyntaxKind.WhitespaceTrivia) ? 1 : 0;
+        var commentIndex = leadingTrivia.Count - whitespaceCount - 1;
 
-        if (leadingTrivia.Count < 2
-            || leadingTrivia[leadingTrivia.Count - 1].IsKind(SyntaxKind.WhitespaceTrivia) == false
-            || SyntaxTriviaUtilities.IsCommentTrivia(leadingTrivia[leadingTrivia.Count - 2]) == false)
+        if (commentIndex < 0
+            || SyntaxTriviaUtilities.IsCommentTrivia(leadingTrivia[commentIndex]) == false)
         {
             return token;
         }
@@ -65,13 +68,36 @@ internal sealed class HorizontalSpacingRewriter : CSharpSyntaxRewriter
         var previousToken = token.GetPreviousToken();
 
         if (previousToken.RawKind == 0
-            || SyntaxTriviaUtilities.AreSeparatedByEndOfLine(previousToken, token)
-            || SpacingPolicy.GetDesiredSpacesAfter(previousToken, token) != 0)
+            || SyntaxTriviaUtilities.AreSeparatedByEndOfLine(previousToken, token))
         {
             return token;
         }
 
-        return token.WithLeadingTrivia(leadingTrivia.RemoveAt(leadingTrivia.Count - 1));
+        var desiredSpaces = SpacingPolicy.GetDesiredSpacesAfter(previousToken, token);
+
+        if (desiredSpaces.HasValue == false)
+        {
+            return token;
+        }
+
+        var desiredWhitespace = new string(' ', desiredSpaces.Value);
+        var currentWhitespace = whitespaceCount == 1 ? leadingTrivia[leadingTrivia.Count - 1].ToFullString() : string.Empty;
+
+        if (currentWhitespace == desiredWhitespace)
+        {
+            return token;
+        }
+
+        var newLeadingTrivia = whitespaceCount == 1
+                                   ? leadingTrivia.RemoveAt(leadingTrivia.Count - 1)
+                                   : leadingTrivia;
+
+        if (desiredSpaces.Value > 0)
+        {
+            newLeadingTrivia = newLeadingTrivia.Add(SyntaxFactory.Whitespace(desiredWhitespace));
+        }
+
+        return token.WithLeadingTrivia(newLeadingTrivia);
     }
 
     #endregion // Methods
@@ -90,16 +116,19 @@ internal sealed class HorizontalSpacingRewriter : CSharpSyntaxRewriter
             return token;
         }
 
-        token = TrimGapBeforeToken(token);
+        // The gap behind the token is decided from the token as it stands in the tree: a rewritten token is detached, so
+        // it has no parent and no next token for the rules to inspect
+        var originalToken = token;
+        var nextToken = originalToken.GetNextToken();
 
-        var nextToken = token.GetNextToken();
+        token = NormalizeGapBehindLeadingComment(token);
 
         if (nextToken.RawKind == 0)
         {
             return token;
         }
 
-        if (SyntaxTriviaUtilities.AreSeparatedByEndOfLine(token, nextToken))
+        if (SyntaxTriviaUtilities.AreSeparatedByEndOfLine(originalToken, nextToken))
         {
             return token;
         }
@@ -117,7 +146,7 @@ internal sealed class HorizontalSpacingRewriter : CSharpSyntaxRewriter
             return token;
         }
 
-        var desiredSpaces = SpacingPolicy.GetDesiredSpacesAfter(token, nextToken);
+        var desiredSpaces = SpacingPolicy.GetDesiredSpacesAfter(originalToken, nextToken);
 
         if (desiredSpaces.HasValue)
         {
