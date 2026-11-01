@@ -45,7 +45,7 @@ The minimal separator follows the phase-boundary contract of FMT-STRUCT-026: a p
 
 ## Visible output changes
 
-Every entry shows the output the maintainer chose; the answers are recorded in `Decisions`. Entry 10 was not a choice. Entry 14 applies the rules of the other entries and FMT-SPACE-010 behind a comment; it is a lead decision (see `Decisions`).
+Every entry shows the output the maintainer chose; the answers are recorded in `Decisions`. Entry 10 was not a choice: the output on `main` does not compile. Entry 14 applies the rules of the other entries and FMT-SPACE-010 behind a comment; it was decided on the recommendation, under the maintainer's standing instruction for this run (see `Decisions`).
 
 ### 1. Every attribute-target colon: no space before, one space after (FMT-SPACE-016)
 
@@ -783,7 +783,7 @@ Every joined output of the line-break phase stays as it is: the joins that were 
 
 ### One-line keyword positions no join reaches
 
-*Decided by the maintainer in this run (14A).* One space also goes behind the keyword where the pair is written on one line, outside an argument: the `ref` of a ref expression in a statement (`return ref (x);`, `ref var z = ref (_x);`), a lambda's `static`, `async`, or `ref` in front of a tuple return type (`static (int, int) () => (1, 2)`, `ref (int, int) () => ref s_t`), and the `ref` of a function pointer's parameter (`delegate*<ref (int, int), void>`). Question 10 had shown only arguments and parameters; these positions are the same keywords in front of the same operands. The `ref` and `readonly` of a local's, a field's, a `foreach` variable's, or a return type's type stay outside the rule (lead decision; the output question goes to a follow-up).
+*Decided by the maintainer in this run (14A).* One space also goes behind the keyword where the pair is written on one line, outside an argument: the `ref` of a ref expression in a statement (`return ref (x);`, `ref var z = ref (_x);`), a lambda's `static`, `async`, or `ref` in front of a tuple return type (`static (int, int) () => (1, 2)`, `ref (int, int) () => ref s_t`), and the `ref` of a function pointer's parameter (`delegate*<ref (int, int), void>`). The examples answered with 10B had shown only arguments and parameters; these positions are the same keywords in front of the same operands. The `ref` and `readonly` of a local's, a field's, a `foreach` variable's, or a return type's type stay outside the rule and keep today's output: no join reaches these positions, so the minimal separator changes nothing there, and how they are spaced is an output question outside this change, left to a separate issue.
 
 ### The rules are keyed by construct and apply to every gap on one line
 
@@ -791,7 +791,7 @@ The spacing phase cannot tell a joined gap from one the author wrote, and it mus
 
 ### A rule decides the gap behind a right-carried comment in both directions
 
-*Lead decision in this run (row 19), following the maintainer's answers for each pair.* The rule's decision was already applied behind a comment the left token carries (FMT-SPACE-013) and, when it allows no space, behind one the right token carries. Applying it only in that one direction would leave `/** yes */:b` and `/** sum */+b` tighter than the conditional-operator and operator rules demand, while the same pairs without a comment are spaced. The whitespace in front of the comment stays the author's, as before.
+*Decided on the recommendation, under the maintainer's standing instruction for this run: an output question raised after the answers above is settled by its recommended option and reported to the maintainer at the end of the run.* Chosen output: the pair's rule decides the gap behind the comment in both directions, so `b /** sum */+b` gives `b /** sum */ + b` (`main`: `b /** sum */+ b`) and `c ? b /** yes */:b` gives `c ? b /** yes */ : b` (entry 14). The alternative, keeping the author's whitespace behind the comment wherever the rule wants a space, was rejected. The choice follows the maintainer's answers for each pair: a comment in a gap does not change how the pair is spaced. The rule's decision was already applied behind a comment the left token carries (FMT-SPACE-013) and, when it allows no space, behind one the right token carries. Applying it only in that one direction would leave `/** yes */:b` and `/** sum */+b` tighter than the conditional-operator and operator rules demand, while the same pairs without a comment are spaced. The whitespace in front of the comment stays the author's, as before.
 
 ### Structural transforms create the arrow without spaces
 
