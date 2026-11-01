@@ -608,6 +608,305 @@ public class UsingDirectivePhaseCommentBlankLineTests
     }
 
     /// <summary>
+    /// Verifies that the blank line ending the header counts for the comment that moves away from the top when the directive
+    /// in front of it after the reorder ends with a trailing comment that spans lines and is followed by no line break
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-USING-010")]
+    public void HeaderBlankLineCountsForTheCommentThatMovesBehindATrailingCommentSpanningLines()
+    {
+        const string input = """
+                             // Header
+
+                             // About Linq
+                             using System.Linq;
+                             using System.Collections; /* a
+                                b */using System;
+
+                             class C
+                             {
+                                 int x;
+                             }
+                             """;
+        const string expected = """
+                                // Header
+
+                                using System;
+                                using System.Collections; /* a
+                                   b */
+
+                                // About Linq
+                                using System.Linq;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        AssertResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line ending the header counts for the comment that moves away from the top behind a trailing
+    /// comment that spans lines, also when a whitespace-only line stands between the header's blank line and the comment
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-USING-010")]
+    public void HeaderBlankLineAndWhitespaceOnlyLineBecomeOneBlankLineBehindATrailingCommentSpanningLines()
+    {
+        const string input = """
+                             // Header
+
+                             <ws>
+                             // About Linq
+                             using System.Linq;
+                             using System.Collections; /* a
+                                b */using System;
+
+                             class C
+                             {
+                                 int x;
+                             }
+                             """;
+        const string expected = """
+                                // Header
+
+                                using System;
+                                using System.Collections; /* a
+                                   b */
+
+                                // About Linq
+                                using System.Linq;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        AssertResult(input.Replace("<ws>", "    "), expected);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line above a comment that leads a directive of the same group is kept when the directive in
+    /// front of it after the reorder ends with a trailing comment that spans lines and is followed by no line break
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-USING-010")]
+    public void BlankLineAboveCommentIsKeptBehindATrailingCommentSpanningLines()
+    {
+        const string input = """
+                             using System.Collections; /* a
+                                b */using System;
+
+                             // About Text
+                             using System.Text;
+
+                             class C
+                             {
+                                 int x;
+                             }
+                             """;
+        const string expected = """
+                                using System;
+                                using System.Collections; /* a
+                                   b */
+
+                                // About Text
+                                using System.Text;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        AssertResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a comment on a line of its own above a directive of the same group, with no blank line above it, stays
+    /// on a line of its own when the directive in front of it after the reorder ends with a trailing comment that spans lines
+    /// and is followed by no line break
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-USING-008")]
+    [Requirement("FMT-USING-010")]
+    public void CommentOnALineOfItsOwnStaysThereBehindATrailingCommentSpanningLines()
+    {
+        const string input = """
+                             using System.Collections; /* a
+                                b */using System;
+                             // About Linq
+                             using System.Linq;
+
+                             class C
+                             {
+                                 int x;
+                             }
+                             """;
+        const string expected = """
+                                using System;
+                                using System.Collections; /* a
+                                   b */
+                                // About Linq
+                                using System.Linq;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        AssertResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a directive of the same group without a leading comment gets no line break behind a trailing comment
+    /// that spans lines, because the line break inside that comment already separates the two
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-USING-005")]
+    public void DirectiveWithoutCommentGetsNoLineBreakBehindATrailingCommentSpanningLines()
+    {
+        const string input = """
+                             using System.Collections; /* a
+                                b */using System;
+                             using System.Linq;
+
+                             class C
+                             {
+                                 int x;
+                             }
+                             """;
+        const string expected = """
+                                using System;
+                                using System.Collections; /* a
+                                   b */using System.Linq;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        AssertResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the whitespace that separated a trailing comment spanning lines from the directive behind it is not left
+    /// at the end of the comment's line when the header's blank line is kept above a comment that moves there
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-USING-010")]
+    public void NoTrailingWhitespaceIsLeftWhenTheHeaderBlankLineIsKeptBehindATrailingCommentSpanningLines()
+    {
+        const string input = """
+                             // Header
+
+                             // About Linq
+                             using System.Linq;
+                             using System.Collections; /* a
+                                b */ using System;
+
+                             class C
+                             {
+                                 int x;
+                             }
+                             """;
+        const string expected = """
+                                // Header
+
+                                using System;
+                                using System.Collections; /* a
+                                   b */
+
+                                // About Linq
+                                using System.Linq;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        AssertResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the whitespace that separated a trailing comment spanning lines from the directive behind it is not left
+    /// at the end of the comment's line when the blank line above a comment is kept there
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-USING-010")]
+    public void NoTrailingWhitespaceIsLeftWhenTheBlankLineAboveACommentIsKeptBehindATrailingCommentSpanningLines()
+    {
+        const string input = """
+                             using System.Collections; /* a
+                                b */ using System;
+
+                             // About Text
+                             using System.Text;
+
+                             class C
+                             {
+                                 int x;
+                             }
+                             """;
+        const string expected = """
+                                using System;
+                                using System.Collections; /* a
+                                   b */
+
+                                // About Text
+                                using System.Text;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        AssertResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the whitespace that separated a trailing comment spanning lines from the directive behind it is not left
+    /// at the end of the comment's line when a comment on a line of its own is placed there
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-USING-008")]
+    public void NoTrailingWhitespaceIsLeftWhenACommentOnALineOfItsOwnIsPlacedBehindATrailingCommentSpanningLines()
+    {
+        const string input = """
+                             using System.Collections; /* a
+                                b */ using System;
+                             // About Linq
+                             using System.Linq;
+
+                             class C
+                             {
+                                 int x;
+                             }
+                             """;
+        const string expected = """
+                                using System;
+                                using System.Collections; /* a
+                                   b */
+                                // About Linq
+                                using System.Linq;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        AssertResult(input, expected);
+    }
+
+    /// <summary>
     /// Runs the phase under every line ending, asserts its output, and asserts that the phase run again on its own output
     /// changes nothing
     /// </summary>

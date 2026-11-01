@@ -652,6 +652,41 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
         await Verify(testCode, fixedCode, Diagnostics(RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer.DiagnosticId, AnalyzerResources.RH7203MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the code fix leaves a comment on a line of its own, with no blank line above it, on a line of its own
+    /// when the directive in front of it after the reorder ends with a trailing comment that spans lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    public async Task CodeFixKeepsCommentOnALineOfItsOwnBehindATrailingCommentSpanningLines()
+    {
+        const string testCode = """
+                                using System.Collections; /* a
+                                   b */using {|#0:System|};
+                                // About Linq
+                                using System.Linq;
+
+                                public class TestClass
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using System.Collections; /* a
+                                    b */
+                                 // About Linq
+                                 using System.Linq;
+
+                                 public class TestClass
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer.DiagnosticId, AnalyzerResources.RH7203MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
