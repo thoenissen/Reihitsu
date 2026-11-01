@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | SHARED-USING-008 (changed), SHARED-USING-011 (added), FMT-USING-002 (changed), FMT-USING-010 (added), FMT-BLANK-011 (changed), RH7207-001 (changed), RH7207-002 (changed), RH7201-004, RH7202-004, RH7203-004, RH7204-004, RH7205-004, RH7206-004, RH7207-004 (changed) |
 | Depends on | [The blank-line phase is the only owner of blank lines](blank-line-sole-owner.md) |
