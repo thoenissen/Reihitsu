@@ -22,7 +22,15 @@ Roles: spec author → skeptic → test implementer → implementer → cleaner 
 
 ## Maintainer answers
 
-None yet.
+Batch 1 (before the test implementer), answered "as recommended":
+
+1. RH7207 does not report one or more blank lines above a comment that leads a same-group directive (both issue examples) — A, accepted.
+2. A fix keeps the blank line above the comment of a directive it moves — A, accepted (change doc change 2).
+3. A fix keeps that blank line for a directive that stays in place — A, accepted (change 3).
+4. A fix writes exactly one blank line where several stood above such a comment — A, accepted (change 4).
+5. A fix keeps the file header's ending blank line above a comment that moves away from the top — A, accepted (change 5).
+6. A comment-led directive moved into the middle of its group with no blank line above the comment in the source: the fix writes none (as today); RH5020 keeps reporting it — A.
+7. A blank line above an ordinary comment on the directive's line (`using System;⏎⏎/* c */ using System.Linq;`): **B** — RH7207 does not report it, and the RH7201–RH7207 fixes and the formatter keep the blank line. RH5020 still reports the glued comment. This is a formatter output change, a departure from the issue's "the formatter's output does not change", decided by the maintainer.
 
 ## Decisions taken
 
