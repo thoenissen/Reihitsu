@@ -31,7 +31,10 @@ None yet.
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Branch name | Use the session-designated branch `claude/brave-curie-dwg8sl` instead of `claude/issue-1492-<slug>` | The session environment only permits pushing to its designated branch | Branch names are internal | claim commit |
+| 2 | Spec author | Accessor attribute lists: move their split/merge too (B: predict line-break layout; C: decide on written layout) or keep them in the line-break phase (A)? | A — accessor list shape stays in the line-break phase (FMT-BREAK-032); the issue's first "Done when" item is narrowed to declarations, parameters and type parameters | The accessor decision depends on layout the line-break phase produces; B would add a prediction of a later phase (an architecture smell), C changes output and is not idempotent | Formatter output is unchanged under A | 91e64ce |
+| 3 | Spec author | When to update code-owner rows and `AGENTS.md` phase-ownership rows | After the implementer, by a fresh spec-author agent, once the new transform types exist (`SpecConsistencyTests` rejects unknown type names) | Ordering constraint of the consistency test | Internal documentation | — |
 
 ## Follow-up candidates
 
-None yet.
+1. Lambda attribute lists are split onto their own lines (`var f = [A, B] (int x) => x;`) — outside the run's issue; carries an output question. Source: `01-spec-author.md`.
+2. One accessor attribute expands a one-line auto-property whose object initializer spans several lines (`X P { [A] get; set; } = new X { A = 1 };`), apparent conflict with FMT-BREAK-024 — outside the run's issue; carries an output question. Source: `01-spec-author.md`.
