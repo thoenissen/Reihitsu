@@ -24,7 +24,7 @@ None. The issue text asks the run to first check every statement about today's c
 
 ## Maintainer answers
 
-None yet.
+1. (pending) Output question: splitting an attribute list whose attributes are separated by a line break that is not right after the comma (`[A⏎ , B]`, `[A,⏎⏎ B]`).
 
 ## Decisions taken
 
@@ -32,9 +32,16 @@ None yet.
 |---|---|---|---|---|---|---|
 | 1 | Claim | Branch name | Use the session-designated branch `claude/brave-curie-dwg8sl` instead of `claude/issue-1492-<slug>` | The session environment only permits pushing to its designated branch | Branch names are internal | claim commit |
 | 2 | Spec author | Accessor attribute lists: move their split/merge too (B: predict line-break layout; C: decide on written layout) or keep them in the line-break phase (A)? | A — accessor list shape stays in the line-break phase (FMT-BREAK-032); the issue's first "Done when" item is narrowed to declarations, parameters and type parameters | The accessor decision depends on layout the line-break phase produces; B would add a prediction of a later phase (an architecture smell), C changes output and is not idempotent | Formatter output is unchanged under A | 91e64ce |
+| 4 | Skeptic | `[A,⏎ B]` needs two passes to settle (`[A]⏎[     B]` after pass 1) | Fix in this run: the split leaves no whitespace between a created bracket and its attribute; the change doc names the changed first-pass output | FMT-PIPE-004 (idempotency) and FMT-SPACE-004 demand it; unchanged requirements | The fixed point is unchanged; only a non-idempotent intermediate output changes, which unchanged requirements decide |
+| 5 | Skeptic | Does the structural merge keep a line break the author wrote between merged lists? | Yes — FMT-STRUCT-029 keeps it, so output stays unchanged | Keeps today's output and the consistency with the placement-only neighbor | Output unchanged |
+| 6 | Skeptic | Lambda attribute-list split | Moves with the declaration split; the change doc states it | Output unchanged; only accessor shape stays in FMT-BREAK | Output unchanged |
+| 7 | Skeptic | Architecture findings: two splits (structural + accessor `BuildSplitAttributeLists`) and two merges (structural + Core `MergeAttributeListGroup`) | Change the structure in this run: one shared split and one shared merge, callers differing only in the separators FMT-STRUCT-026 and SHARED-ATTR-017/018 give them | The narrow fix would itself add a copy; both stay within the run's components (formatter attribute rewriter, Core attribute utilities) and their counterparts | Code-fix output is held by SHARED-ATTR-017/018; formatter output unchanged except the answered output question |
 | 3 | Spec author | When to update code-owner rows and `AGENTS.md` phase-ownership rows | After the implementer, by a fresh spec-author agent, once the new transform types exist (`SpecConsistencyTests` rejects unknown type names) | Ordering constraint of the consistency test | Internal documentation | — |
 
 ## Follow-up candidates
 
 1. Lambda attribute lists are split onto their own lines (`var f = [A, B] (int x) => x;`) — outside the run's issue; carries an output question. Source: `01-spec-author.md`.
 2. One accessor attribute expands a one-line auto-property whose object initializer spans several lines (`X P { [A] get; set; } = new X { A = 1 };`), apparent conflict with FMT-BREAK-024 — outside the run's issue; carries an output question. Source: `01-spec-author.md`.
+3. Spacing phase never normalizes same-line whitespace held as the right token's leading trivia (general cause behind decision 4). Source: `02-skeptic.md`.
+4. Line breaks inside attribute-list brackets are never joined (`[A⏎ ]` stays on two lines). Source: `02-skeptic.md`.
+5. A blank line is inserted before a `///` comment inside a parameter's attribute group (CS1587 input). Source: `02-skeptic.md`.
