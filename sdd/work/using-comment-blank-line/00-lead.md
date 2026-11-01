@@ -37,6 +37,7 @@ Batch 1 (before the test implementer), answered "as recommended":
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Branch name | Use the session's designated branch `claude/great-pasteur-ur6nr8` instead of `claude/issue-1497-<slug>` | The session environment permits pushes only to that branch | Branch names are internal | claim commit |
+| 2 | Test implementer | A comment-led directive with a blank line above it that the reorder makes the block's first directive (`using System.Linq;⏎⏎// About System⏎using System;`): in scope? | Out of scope; `main`'s behavior stays and no test is added | SHARED-USING-011 and FMT-USING-010 cover a directive that continues the group of its predecessor; the block's first directive has none, and FMT-USING-009 already decides the top of the block | No requirement changes for it, so its output stays as on `main` | 8f0adca |
 
 ## Follow-up candidates
 
