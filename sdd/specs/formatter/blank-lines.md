@@ -1878,7 +1878,7 @@ class C
 }
 ```
 
-Behind two comments on a line of their own, behind a comment above the opening brace of a collection initializer assigned to a member, and behind a comment above the opening brace of a complex element initializer that stays on one line:
+Behind two comments on a line of their own, behind a comment above the opening brace of a collection initializer assigned to a member, and behind a comment above the opening brace of a complex element initializer that stays on one line. FMT-BLANK-011 puts a blank line above the comment that follows the `=` of the assignment, as above any other comment that starts its own line:
 
 ```csharp
 class C
@@ -1918,6 +1918,7 @@ class C
         var p = new P
                 {
                     L =
+
                     // c
                     {
                         1
