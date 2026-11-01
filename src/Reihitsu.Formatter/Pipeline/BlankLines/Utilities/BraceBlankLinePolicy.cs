@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 
 namespace Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
@@ -12,8 +13,9 @@ namespace Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
 /// The one owner of the token and comment facts the blank-line rules around braces, brackets, and comments read: the
 /// opening brace of a block statement that follows a statement (FMT-BLANK-017), the tokens directly before which no blank
 /// line stands (FMT-BLANK-007, FMT-BLANK-008, FMT-BLANK-019), the comment glued to a token (FMT-BLANK-018), and the tokens
-/// behind an own-line comment that no blank line separates from it (FMT-BLANK-020). The blank-line subphases read these
-/// facts from here
+/// behind an own-line comment that no blank line separates from it (FMT-BLANK-020), and the one classification of a
+/// comment's position relative to the token behind it that FMT-BLANK-011, FMT-BLANK-018, and FMT-BLANK-020 read. The
+/// blank-line subphases read these facts from here
 /// </summary>
 internal static class BraceBlankLinePolicy
 {
@@ -108,36 +110,61 @@ internal static class BraceBlankLinePolicy
     }
 
     /// <summary>
-    /// Finds the comment glued to a token (FMT-BLANK-018): an ordinary comment that starts its line and shares that line
-    /// with the token, with nothing but whitespace and comments, ordinary or documentation, between the two. A comment that
-    /// ends on the token's line but starts on an earlier one does not share its line with the token, and a token without
-    /// text, such as the end of the file, shares no line with a comment
+    /// Classifies the position of every comment in a token's leading trivia relative to that token (FMT-BLANK-018): the
+    /// comments from the returned index on are on the token's line, every comment in front of it is on its own line. A line
+    /// break inside the text of a delimited comment does not end a line, so a comment that starts on an earlier line and
+    /// ends on the token's line is on the token's line, and so is every comment in front of it on the line it starts on.
+    /// Every comment is on its own line in front of a token without text, such as the end of the file, which starts no line,
+    /// and in front of a token that the chain layout moves off the closing line of a multi-line comment
+    /// (<see cref="ChainLineBreakRewriter.BreaksLineBehindMultiLineCommentTail"/>)
     /// </summary>
-    /// <param name="token">The token whose leading trivia is inspected</param>
+    /// <param name="token">The token whose leading trivia is classified, still part of its tree</param>
+    /// <param name="context">The formatting context, which carries the facts about the code above the formatting root</param>
+    /// <returns>The index of the first content trivia on the token's line; <c>-1</c> when every comment of the gap is on its own line</returns>
+    /// <remarks>
+    /// FMT-BLANK-011, FMT-BLANK-018, and FMT-BLANK-020 read this one classification, so every comment shape falls into
+    /// exactly one of the two positions
+    /// </remarks>
+    public static int FindTokenLineStartIndex(SyntaxToken token, FormattingContext context)
+    {
+        if (token.Span.IsEmpty
+            || ChainLineBreakRewriter.BreaksLineBehindMultiLineCommentTail(token, context.RootChainBoundary))
+        {
+            return -1;
+        }
+
+        return TriviaListUtilities.FindFirstContentIndexOnLine(token.LeadingTrivia, token.LeadingTrivia.Count);
+    }
+
+    /// <summary>
+    /// Finds the comment glued to a token (FMT-BLANK-018): the first comment on the token's line
+    /// (<see cref="FindTokenLineStartIndex"/>) when it is an ordinary comment that starts its line, with nothing but
+    /// whitespace and comments, ordinary or documentation, between it and the token
+    /// </summary>
+    /// <param name="token">The token whose leading trivia is inspected, still part of its tree</param>
     /// <param name="previousTokenFacts">The facts about the token that precedes <paramref name="token"/>, which decide whether the comment starts its line when nothing in front of it does</param>
+    /// <param name="context">The formatting context, which carries the facts about the code above the formatting root</param>
     /// <returns>The leading-trivia index of the glued comment; <c>-1</c> when no comment is glued to the token</returns>
     /// <remarks>
-    /// Only the trivia decides, never the kind of the token: what the blank lines above a glued comment are is decided by
-    /// the rules for the blank lines directly before its token. The blank-line subphases that insert and remove those blank
-    /// lines read this one predicate
+    /// Only the trivia and the position classification decide, never the kind of the token: what the blank lines above a
+    /// glued comment are is decided by the rules for the blank lines directly before its token. The blank-line subphases
+    /// that insert and remove those blank lines read this one predicate
     /// </remarks>
-    public static int FindGluedCommentIndex(SyntaxToken token, PrecedingTokenFacts previousTokenFacts)
+    public static int FindGluedCommentIndex(SyntaxToken token, PrecedingTokenFacts previousTokenFacts, FormattingContext context)
     {
         var trivia = token.LeadingTrivia;
-        var gluedCommentIndex = FindFirstContentIndexOnLine(trivia, trivia.Count);
+        var gluedCommentIndex = FindTokenLineStartIndex(token, context);
 
-        if (token.Span.IsEmpty
-            || gluedCommentIndex < 0
-            || IsOrdinaryComment(trivia[gluedCommentIndex]) == false)
+        if (gluedCommentIndex < 0
+            || TriviaListUtilities.IsOrdinaryComment(trivia[gluedCommentIndex]) == false)
         {
             return -1;
         }
 
         for (var triviaIndex = gluedCommentIndex; triviaIndex < trivia.Count; triviaIndex++)
         {
-            if ((trivia[triviaIndex].IsKind(SyntaxKind.WhitespaceTrivia) == false
-                 && SyntaxTriviaUtilities.IsCommentTrivia(trivia[triviaIndex]) == false)
-                || LineEndingUtilities.ContainsLineTerminator(trivia[triviaIndex].ToFullString()))
+            if (trivia[triviaIndex].IsKind(SyntaxKind.WhitespaceTrivia) == false
+                && SyntaxTriviaUtilities.IsCommentTrivia(trivia[triviaIndex]) == false)
             {
                 return -1;
             }
@@ -146,45 +173,6 @@ internal static class BraceBlankLinePolicy
         return TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, gluedCommentIndex, previousTokenFacts.Exists, previousTokenFacts.TrailingTrivia)
                    ? gluedCommentIndex
                    : -1;
-    }
-
-    /// <summary>
-    /// Finds the first content trivia on the line that ends at the specified index of a leading trivia list. The line starts
-    /// behind the nearest preceding line break, whether that is end-of-line trivia or the line break a documentation comment
-    /// or a directive carries inside its structure
-    /// </summary>
-    /// <param name="trivia">The leading trivia to inspect</param>
-    /// <param name="endExclusive">The exclusive end of the line's inspected part; the count of the list for the token's own line</param>
-    /// <returns>The index of the first content trivia on that line in front of <paramref name="endExclusive"/>; <c>-1</c> when nothing but whitespace stands there</returns>
-    public static int FindFirstContentIndexOnLine(SyntaxTriviaList trivia, int endExclusive)
-    {
-        var firstContentIndex = -1;
-
-        for (var triviaIndex = endExclusive - 1; triviaIndex >= 0; triviaIndex--)
-        {
-            if (trivia[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia)
-                || SyntaxTriviaUtilities.EndsWithLineBreak(trivia[triviaIndex]))
-            {
-                break;
-            }
-
-            if (trivia[triviaIndex].IsKind(SyntaxKind.WhitespaceTrivia) == false)
-            {
-                firstContentIndex = triviaIndex;
-            }
-        }
-
-        return firstContentIndex;
-    }
-
-    /// <summary>
-    /// Determines whether a trivia is an ordinary, non-documentation <c>//</c> or <c>/* … */</c> comment
-    /// </summary>
-    /// <param name="trivia">The trivia to check</param>
-    /// <returns><see langword="true"/> if the trivia is an ordinary comment</returns>
-    public static bool IsOrdinaryComment(SyntaxTrivia trivia)
-    {
-        return trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia);
     }
 
     /// <summary>

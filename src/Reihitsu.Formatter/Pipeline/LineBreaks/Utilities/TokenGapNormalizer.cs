@@ -89,47 +89,6 @@ internal sealed class TokenGapNormalizer
     }
 
     /// <summary>
-    /// Determines whether a trivia is an ordinary, non-documentation <c>//</c> or <c>/* … */</c> comment
-    /// </summary>
-    /// <param name="trivia">The trivia to check</param>
-    /// <returns><see langword="true"/> if the trivia is an ordinary comment; otherwise, <see langword="false"/></returns>
-    private static bool IsOrdinaryComment(SyntaxTrivia trivia)
-    {
-        return trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia);
-    }
-
-    /// <summary>
-    /// Finds the first content trivia on the line of the trivia at the specified index of a leading trivia list. The line
-    /// starts behind the nearest preceding line break, whether that is end-of-line trivia or the line break a
-    /// documentation comment or a directive carries inside its structure
-    /// </summary>
-    /// <param name="leadingTrivia">The leading trivia to inspect</param>
-    /// <param name="index">The index of a content trivia</param>
-    /// <returns>The index of the first content trivia on the same line</returns>
-    private static int FindLineStartIndex(SyntaxTriviaList leadingTrivia, int index)
-    {
-        var lineStartIndex = index;
-
-        for (var triviaIndex = index - 1; triviaIndex >= 0; triviaIndex--)
-        {
-            var trivia = leadingTrivia[triviaIndex];
-
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia)
-                || SyntaxTriviaUtilities.EndsWithLineBreak(trivia))
-            {
-                break;
-            }
-
-            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false)
-            {
-                lineStartIndex = triviaIndex;
-            }
-        }
-
-        return lineStartIndex;
-    }
-
-    /// <summary>
     /// Finds the last structured trivia (a documentation comment or a directive) in a leading trivia list. The search is
     /// confined to the list itself, so it does not depend on whether the preceding code lies inside the node being
     /// rewritten
@@ -257,7 +216,7 @@ internal sealed class TokenGapNormalizer
                 continue;
             }
 
-            if (IsOrdinaryComment(trivia) == false)
+            if (TriviaListUtilities.IsOrdinaryComment(trivia) == false)
             {
                 return false;
             }
@@ -268,7 +227,7 @@ internal sealed class TokenGapNormalizer
 
         if (trailingRunHasLineBreak
             || SyntaxTriviaUtilities.EndsWithLineBreak(token.LeadingTrivia[lastContentIndex])
-            || TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, FindLineStartIndex(token.LeadingTrivia, lastContentIndex)))
+            || TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, TriviaListUtilities.FindFirstContentIndexOnLine(token.LeadingTrivia, lastContentIndex + 1)))
         {
             return true;
         }

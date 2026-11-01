@@ -377,14 +377,14 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     /// directive or disabled text stands in the gap, nothing is removed: the blank line below a region directive is the
     /// region's (SHARED-BLANK-006), and the others are the author's
     /// </summary>
-    /// <param name="token">The token to update; the caller has established that no blank line stands directly before it</param>
+    /// <param name="token">The token to update; the caller has established that it is one whose blank lines directly before it are removed</param>
     /// <param name="previousToken">The facts about the token that precedes <paramref name="token"/></param>
-    /// <param name="endOfLine">The detected line ending, written for the line break that is kept</param>
+    /// <param name="context">The formatting context, which carries the detected line ending and the facts about the formatting root</param>
     /// <returns>The updated token</returns>
-    private static SyntaxToken RemoveBlankLinesAboveGluedComment(SyntaxToken token, PrecedingTokenFacts previousToken, string endOfLine)
+    private static SyntaxToken RemoveBlankLinesAboveGluedComment(SyntaxToken token, PrecedingTokenFacts previousToken, FormattingContext context)
     {
         var trivia = token.LeadingTrivia;
-        var gluedCommentIndex = BraceBlankLinePolicy.FindGluedCommentIndex(token, previousToken);
+        var gluedCommentIndex = BraceBlankLinePolicy.FindGluedCommentIndex(token, previousToken, context);
 
         if (gluedCommentIndex < 0
             || trivia.Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia))
@@ -395,33 +395,34 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
         var previousContentIndex = FindLastContentIndexBefore(trivia, gluedCommentIndex);
 
         return previousContentIndex < 0
-                   ? CollapseLeadingBlankLines(token, endOfLine, keepSingleLineBreak: previousToken.EndsLine == false)
-                   : RemoveExcessBlankLinesBetweenIndices(token, previousContentIndex, gluedCommentIndex, endOfLine);
+                   ? CollapseLeadingBlankLines(token, context.EndOfLine, keepSingleLineBreak: previousToken.EndsLine == false)
+                   : RemoveExcessBlankLinesBetweenIndices(token, previousContentIndex, gluedCommentIndex, context.EndOfLine);
     }
 
     /// <summary>
-    /// Removes the blank lines between an ordinary comment that ends its line and the token behind it, when that comment is
-    /// the last content of the gap and its line starts a line of its own (FMT-BLANK-020). What stands in front of the comment
-    /// on its line does not matter
+    /// Removes the blank lines between an ordinary comment on its own line and the token behind it, when that comment is the
+    /// last content of the gap and its line starts a line of its own (FMT-BLANK-020). The position is the one
+    /// <see cref="BraceBlankLinePolicy.FindTokenLineStartIndex"/> classifies: a comment on the token's line, also one that
+    /// starts on an earlier line, is FMT-BLANK-018's. What stands in front of the comment on its line does not matter
     /// </summary>
     /// <param name="token">The token to update; the caller has established that it is one FMT-BLANK-020 names</param>
     /// <param name="previousToken">The facts about the token that precedes <paramref name="token"/></param>
-    /// <param name="endOfLine">The detected line ending, written for the line break that is kept</param>
+    /// <param name="context">The formatting context, which carries the detected line ending and the facts about the formatting root</param>
     /// <returns>The updated token</returns>
-    private static SyntaxToken RemoveBlankLinesBehindLastOwnLineComment(SyntaxToken token, PrecedingTokenFacts previousToken, string endOfLine)
+    private static SyntaxToken RemoveBlankLinesBehindLastOwnLineComment(SyntaxToken token, PrecedingTokenFacts previousToken, FormattingContext context)
     {
         var trivia = token.LeadingTrivia;
         var lastContentIndex = FindLastContentIndexBefore(trivia, trivia.Count);
 
         if (lastContentIndex < 0
-            || BraceBlankLinePolicy.IsOrdinaryComment(trivia[lastContentIndex]) == false
-            || BraceBlankLinePolicy.FindFirstContentIndexOnLine(trivia, trivia.Count) >= 0
-            || TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, BraceBlankLinePolicy.FindFirstContentIndexOnLine(trivia, lastContentIndex + 1), previousToken.Exists, previousToken.TrailingTrivia) == false)
+            || TriviaListUtilities.IsOrdinaryComment(trivia[lastContentIndex]) == false
+            || BraceBlankLinePolicy.FindTokenLineStartIndex(token, context) >= 0
+            || TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, TriviaListUtilities.FindFirstContentIndexOnLine(trivia, lastContentIndex + 1), previousToken.Exists, previousToken.TrailingTrivia) == false)
         {
             return token;
         }
 
-        return RemoveExcessBlankLinesAfterIndex(token, lastContentIndex, endOfLine);
+        return RemoveExcessBlankLinesAfterIndex(token, lastContentIndex, context.EndOfLine);
     }
 
     /// <summary>
@@ -634,12 +635,12 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
         // directly before the token
         if (removesBlankLinesBehindOwnLineComment)
         {
-            token = RemoveBlankLinesBehindLastOwnLineComment(token, previousToken, _context.EndOfLine);
+            token = RemoveBlankLinesBehindLastOwnLineComment(token, previousToken, _context);
         }
 
         if (removesBlankLinesDirectlyBefore)
         {
-            token = RemoveBlankLinesAboveGluedComment(token, previousToken, _context.EndOfLine);
+            token = RemoveBlankLinesAboveGluedComment(token, previousToken, _context);
         }
 
         if (HasDocumentationCommentInLeadingTrivia(token))

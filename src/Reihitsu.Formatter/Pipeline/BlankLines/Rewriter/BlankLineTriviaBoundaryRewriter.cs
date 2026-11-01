@@ -231,7 +231,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
         var commentIndex = TriviaListUtilities.IndexOfFirstComment(trivia);
 
         if (commentIndex < 0
-            || commentIndex == BraceBlankLinePolicy.FindGluedCommentIndex(token, previousTokenFacts))
+            || commentIndex == BraceBlankLinePolicy.FindGluedCommentIndex(token, previousTokenFacts, _context))
         {
             return token;
         }
