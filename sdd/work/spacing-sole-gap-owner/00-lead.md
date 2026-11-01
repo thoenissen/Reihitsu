@@ -32,7 +32,16 @@ Roles run: spec author → skeptic → test implementer → implementer → clea
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Branch name: playbook's `claude/issue-1493-<slug>` or the session-designated branch | Use `claude/focused-brown-4e3k0u` | The session environment permits pushing only to that branch | Branch names are internal | claim commit |
+| 2 | Skeptic | Amend change doc before the batch? | Yes: the skeptic's OQ-1 (complete list of pairs spaced today that 1B would make tight) replaces Q10; OQ-2 (`foreach`/`catch`/`from` declarations under FMT-SPACE-021) and OQ-3 (catch-filter `when` under FMT-SPACE-020) join the batch; the change doc's "Unchanged" paragraph and "Why" are corrected | The skeptic showed them false under 1B; the batch must be complete before tests | Internal step; every visible change is asked | pending |
+| 3 | Skeptic | `MergeAttributeListGroup` writes a space into a joined gap | Record it as an exception in FMT-BREAK-031 pointing at #1492; do not change the Core helper | Output identical either way (FMT-SPACE-003); the helper is shared with code fixes and its move is #1492 | Output identical | pending |
+| 4 | Skeptic | FMT-BREAK-024 "MUST stay as written" | Reword to "stays on its line" | FMT-SPACE-022 changes the list's spacing | Spec wording | pending |
+| 5 | Spec author | Scope: the rules for arrows, conditional operator, name colons, relational patterns, attribute-target colon complete parts of #958, #1514, #1440, #1383 | Take them into the run as far as the separator choice needs them; link those issues with `Refs`, not `Closes` | Without them a neutral join changes outputs the maintainer already decided; the other issues are not in the run | Each visible change is still asked in the batch | pending |
+| 6 | Skeptic | Present Q2, Q4, Q5 (arguments), Q9 as decided? | Ask them in the batch, with the earlier answer as the recommendation and its citation | The issue proposes otherwise for arrows; one answer confirms them cheaply | Asked | — |
+| 7 | Spec author / skeptic | Issue goals: "SpacingPolicy only in the spacing phase" already true; "arrow keeps author's spacing" superseded by Q2; `NoSpaceSpacingRule` remark premise wrong | Drop the first, follow Q2's answer for the second, keep the third as a comment fix explaining why the pairs are tight | Facts on `main` | Not visible except through Q2 | pending |
 
 ## Follow-up candidates
 
-(none yet)
+- A wrap inside a declaration's attribute list (`[return` ⏎ `:Obsolete]`) is never joined — 01-spec-author, 02-skeptic.
+- Wrapped pattern parts lose their column (property-pattern member `{ X:` ⏎ `1 }`); check against #1542 / #953 — 01-spec-author, 02-skeptic.
+- Wrapped `with` expression loses its column — same class as #953, comment there at most — 02-skeptic.
+- The space behind `when` (`when(x)`, catch filter) is undecided — candidate for #1440 — 02-skeptic.
