@@ -492,7 +492,7 @@ class C
 
 ### FMT-BLANK-009 — Around a directive, only the blank line next to the token is removed
 
-When a non-region directive or disabled text stands in the gap before a brace or a chained keyword covered by FMT-BLANK-007 or FMT-BLANK-008 — not the opening brace of a block statement that FMT-BLANK-017 names — or before a closing bracket or parenthesis covered by FMT-BLANK-019, the formatter MUST keep the blank line before the directive, collapsed to one, and MUST remove the blank lines between the last directive and the token when nothing but whitespace stands between the two. When a comment stands between the last directive and the token, the blank lines between the directive and the comment are kept, and FMT-BLANK-020 decides the ones between the comment and the token. The formatter MUST NOT insert a blank line in front of the first non-region directive or disabled text of such a gap when the author wrote none, also when a region directive ends the gap and FMT-BLANK-013 inserts the blank line between the two. In front of a directive that stands directly below a region directive, FMT-BLANK-013 decides (SHARED-BLANK-006).
+When a non-region directive or disabled text stands in the gap before a brace or a chained keyword covered by FMT-BLANK-007 or FMT-BLANK-008 — not the opening brace of a block statement that FMT-BLANK-017 names — or before a closing bracket or parenthesis covered by FMT-BLANK-019, the formatter MUST keep the blank line before the directive, collapsed to one, and MUST remove the blank lines between the last directive and the token when nothing but whitespace stands between the two. When a comment stands between the last directive and the token, the blank lines between the directive and the comment are kept, and FMT-BLANK-020 decides the ones between the comment and the token. The formatter MUST NOT insert a blank line in front of the first non-region directive or disabled text of such a gap when the author wrote none, also when a region directive ends the gap and FMT-BLANK-013 inserts the blank line between the two; this holds before a closing brace, the closing bracket of a collection expression or list pattern, and the closing parenthesis of a parenthesized pattern alike. In front of a directive that stands directly below a region directive, FMT-BLANK-013 decides (SHARED-BLANK-006).
 
 Why: The blank line above the directive is the author's separator in front of the conditional code, not a blank line next to the brace, and the analyzer rules do not report it. Only the blank line that actually touches the token is the one RH5024–RH5027 forbid. No rule asks for a blank line in front of the directive; one inserted there would separate the directive from the code the author grouped with it, as FMT-BLANK-016 states for the blank lines the statement rules insert. A region directive at the end of the gap is framed by its own blank lines and does not change that.
 
@@ -624,7 +624,7 @@ class C
 
 is left unchanged.
 
-When a region directive ends the gap, no blank line is inserted in front of the first directive; the blank line between the two is the region's, kept in the type body and inserted in the method body:
+When a region directive ends the gap, no blank line is inserted in front of the first directive; the blank line between the two is the region's, kept in the type body and inserted in the method body. The same holds in front of the `]` of a collection expression and the `)` of a parenthesized pattern:
 
 ```csharp
 class C

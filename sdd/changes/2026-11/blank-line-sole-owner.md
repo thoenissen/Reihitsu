@@ -14,7 +14,7 @@ The blank-line phase decides every blank line of the formatter's output; the lin
 - **RH5025 gets the matching exemption** (RH5025-005): it does not report the blank line above the `{` of such a block statement.
 - **A comment glued to a brace gets no FMT-BLANK-011 blank line** (FMT-BLANK-018). An ordinary comment that starts its line and shares it with the brace, bracket, or parenthesis behind it, with nothing but ordinary comments between — the braces of every construct except the braces of an array initializer, an extension block, and an interpolation, the opening brace of a property pattern, the opening brace of a complex element initializer that stays on one line, and the closing brace of a collection initializer assigned to a member (`L = { 1 }`); the closing bracket of a collection expression or list pattern; and the closing parenthesis of a parenthesized pattern — gets no blank line above it from FMT-BLANK-011, and a blank line the author wrote above it is removed. This keeps today's output for such a comment: today the blank-line phase inserts or keeps the line and the line-break phase removes it again. When a directive stands in the gap, FMT-BLANK-018 removes nothing: below a region directive SHARED-BLANK-006 asks for the blank line (FMT-BLANK-013), and the other blank lines are the author's. A comment glued to the opening brace of a block statement that follows a statement is the exception: FMT-BLANK-017 decides the blank lines above it, and FMT-BLANK-011 inserts none above it either. The blank lines of SHARED-BLANK-003 and FMT-BLANK-004 are not affected.
 - **The blank line before a closing bracket moves to the blank-line phase** (FMT-BLANK-019). Today only the line-break phase removes a blank line before the closing `]` of a collection expression or a list pattern and before the closing `)` of a parenthesized pattern. FMT-BLANK-019 writes that output down as a blank-line rule, so it stays when the line-break phase stops removing blank lines. Behind a non-region directive, FMT-BLANK-009 now covers these tokens too, as it does braces; below a region directive the blank line stays, as SHARED-BLANK-006 requires.
-- **No blank line is inserted in front of a directive that a region directive follows in the gap before a closing token** (FMT-BLANK-009). Today the line-break phase inserts a blank line in front of the first directive of a gap before a closing brace or bracket when a non-region directive or disabled text starts the gap, a region directive ends it, and a blank line stands between the two. No blank-line rule asks for it; FMT-BLANK-009 now states that it is not inserted.
+- **No blank line is inserted in front of a directive that a region directive follows in the gap before a closing token** (FMT-BLANK-009). Today the line-break phase inserts a blank line in front of the first directive of a gap before a closing brace, bracket, or parenthesis when a non-region directive or disabled text starts the gap, a region directive ends it, and a blank line stands between the two. No blank-line rule asks for it; FMT-BLANK-009 now states that it is not inserted.
 - **The blank line behind a comment before a brace moves to the blank-line phase** (FMT-BLANK-020). Today only the line-break phase removes the blank lines between an own-line comment and the brace or bracket behind it (`// c⏎⏎}`); the blank-line phase reads FMT-BLANK-007 and FMT-BLANK-008 as "directly before the token" and keeps them. FMT-BLANK-020 writes that output down for the tokens FMT-BLANK-018 names — the same tokens, for the same reason: the line-break phase normalizes exactly these. The opening brace of a block statement that follows a statement is the exception: FMT-BLANK-017 decides the blank lines above it.
 - **The line-break phase keeps blank lines** (FMT-BREAK-030). FMT-BREAK's non-goal "Where this phase moves a token onto a new line it inserts no blank line" becomes a requirement: in every gap the phase does not join, it leaves the number of blank lines as it found it.
 - **Node-level formatting gives a block statement a list position like any other statement** (FMT-PIPE-024). The exception that FMT-PIPE-024 recorded until this change — a block statement got a list position only behind an own-line comment, because the line-break phase decided the gap above its brace — is removed.
@@ -43,7 +43,7 @@ A block statement's `{` starts a statement; it continues no header, which is wha
 
 ## Visible output changes
 
-Entries that the maintainer decided through an output question of the run name it (all answered with option A on 2026-11-01; see `Decisions`). The run numbers them: 1 — a block statement after `break`; 2 — which block statements are exempt; 3 — an own-line comment and a blank line above a block statement; 4 — an own-line comment in front of a comment glued to a brace; 5 — a directive in front of a comment glued to a brace; and, asked during the implementer stage, a directive in front of a region directive that ends the gap before a closing brace (entry 11). Every entry shows the chosen output.
+Entries that the maintainer decided through an output question of the run name it (all answered with option A on 2026-11-01; see `Decisions`). The run numbers them: 1 — a block statement after `break`; 2 — which block statements are exempt; 3 — an own-line comment and a blank line above a block statement; 4 — an own-line comment in front of a comment glued to a brace; 5 — a directive in front of a comment glued to a brace; and, asked during the implementer stage, a directive in front of a region directive that ends the gap before a closing brace (entry 11), whose collection-expression `]` and parenthesized-pattern `)` case was asked before the audit. Every entry shows the chosen output.
 
 ### 1. A block statement after a statement that ends in `}` gets the blank line
 
@@ -643,9 +643,9 @@ After: the input is kept unchanged.
 
 Today the line-break phase inserts the blank line in front of the first directive of the gap whenever a blank line stands between a directive and a comment glued to the token behind it; it does so for `#if`/`#endif` and in initializers as well. No analyzer reports either output. A blank line the author wrote in front of the directive is kept, before and after.
 
-### 11. No blank line is inserted in front of a directive that a region directive follows before a closing brace
+### 11. No blank line is inserted in front of a directive that a region directive follows before a closing brace, bracket, or parenthesis
 
-Decided with the output question asked during the implementer stage.
+Decided with the output question asked during the implementer stage for a closing brace, and with the output question asked before the audit for the closing `]` of a collection expression and the closing `)` of a parenthesized pattern.
 
 ```csharp
 class C
@@ -730,7 +730,7 @@ class D
 }
 ```
 
-The blank line between the directive and `#endregion` is the region's (SHARED-BLANK-005): it is kept where the author wrote it and inserted where not, before and after. Today the line-break phase additionally inserts a blank line in front of the first directive of the gap, the same mechanism as entry 10. The same holds for `#if … #endif` in front of the region directive, and before the closing `]` of a collection expression whose last element is followed by such directives. A blank line the author wrote in front of the first directive is kept, before and after. No analyzer reports either output.
+The blank line between the directive and `#endregion` is the region's (SHARED-BLANK-005): it is kept where the author wrote it and inserted where not, before and after. Today the line-break phase additionally inserts a blank line in front of the first directive of the gap, the same mechanism as entry 10. The same holds for `#if … #endif` in front of the region directive. It holds as decided before the closing `]` of a collection expression and the closing `)` of a parenthesized pattern whose last element is followed by such directives: today a blank line is inserted in front of the first directive, and after the change none is. The example shows braces only, because the column of a region directive inside a collection expression or pattern is not decided by any requirement. A blank line the author wrote in front of the first directive is kept, before and after. No analyzer reports either output.
 
 ### Unchanged
 
@@ -817,6 +817,8 @@ On 2026-11-01 the maintainer chose option A for every output question of the run
 
 On 2026-11-01, during the implementer stage, the maintainer chose option A for one more output question: no blank line is inserted in front of a non-region directive that starts the gap before a closing brace when a region directive ends it and a blank line stands between the two; the output equals the input (visible output change 11).
 
+On 2026-11-01, before the audit, the maintainer chose option A for the same case before the closing `]` of a collection expression and, through the same rule, the closing `)` of a parenthesized pattern: no blank line is inserted in front of the directive, as before a closing brace (visible output change 11).
+
 The spec is written on these answers.
 
 ### The opening brace of a block statement is exempt from FMT-BLANK-008 and RH5025
@@ -848,7 +850,7 @@ FMT-BLANK-018 removes no blank line of a gap that holds a directive. Below a reg
 
 ### A region directive at the end of the gap does not bring a blank line in front of the first directive
 
-FMT-BLANK-009 keeps the author's blank line in front of the first non-region directive of a gap before a closing token and inserts none. A region directive that ends the gap gets its own blank line above it from FMT-BLANK-013 (SHARED-BLANK-005), which does not reach the directive in front of it; only the line-break phase inserted a blank line there, by treating the gap as if it held nothing but the region directive. With FMT-BREAK-030 that insertion goes, and FMT-BLANK-009 says so explicitly, with the exception of a directive directly below a region directive, where FMT-BLANK-013 decides. Decided by the maintainer: option A of the output question asked during the implementer stage (visible output change 11).
+FMT-BLANK-009 keeps the author's blank line in front of the first non-region directive of a gap before a closing token and inserts none. A region directive that ends the gap gets its own blank line above it from FMT-BLANK-013 (SHARED-BLANK-005), which does not reach the directive in front of it; only the line-break phase inserted a blank line there, by treating the gap as if it held nothing but the region directive. With FMT-BREAK-030 that insertion goes, and FMT-BLANK-009 says so explicitly, with the exception of a directive directly below a region directive, where FMT-BLANK-013 decides. Decided by the maintainer: option A of the output question asked during the implementer stage for a closing brace, and option A of the output question asked before the audit for a collection expression's `]` and a parenthesized pattern's `)` (visible output change 11).
 
 ### FMT-BLANK-020 is a clarification with FMT-BLANK-018's tokens
 
