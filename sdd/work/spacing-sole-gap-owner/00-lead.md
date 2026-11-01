@@ -57,6 +57,8 @@ Batch 1 (before the test implementer), 13 output questions from `03-spec-author.
 | 10 | Test implementer | `x!⏎with { }` is not joined today | Test only the one-line form | Fact on `main` | Covered by answer 11B | 0920f3c |
 | 11 | Test implementer | Doc-comment-on-the-right and operator/conversion/constructor/finalizer arrows tested at phase level only | Accept | Earlier phases move or convert these inputs before spacing; whole-document formatting never presents them to the spacing phase as such | Internal test level | 0920f3c |
 | 12 | Test implementer | FMT-SPACE-024 ambiguous for `ref` in front of a local's tuple type | Spec author decides from the existing requirements and the answers; if no answer decides it, it becomes an output question | — | Pending check | pending |
+| 13 | Spec author | `ref`/`ref readonly` in front of a local's, field's, `foreach` variable's or return type's tuple type: undecided, and no join reaches it today | Outside the run's issue: FMT-SPACE-024 states these positions are outside the rule (today's output kept, as for `public(int, int) G;`); the output question goes to a follow-up issue | The issue is about pairs a join produces; these are one-line-only cases with no change from `main` | Output unchanged from `main`; the question is carried by the follow-up | pending |
+| 14 | Spec author | `SameLineGapRulePhaseTests.WithRequirementExampleGetsOneSpaceOnEachSide` no longer matches the example; newly decided positions of FMT-SPACE-024 need one-line tests | Test implementer renames the test and adds a full-pipeline test of the example, and the one-line tests for the positions `05-spec-author.md` lists | Coverage for decided positions | Tests only | pending |
 
 ## Follow-up candidates
 
@@ -64,5 +66,8 @@ Batch 1 (before the test implementer), 13 output questions from `03-spec-author.
 - Wrapped pattern parts lose their column (property-pattern member `{ X:` ⏎ `1 }`); check against #1542 / #953 — 01-spec-author, 02-skeptic.
 - A member's own modifier in front of a tuple type (`public(int, int) G;`) keeps the author's spacing — candidate for #1440 — 03-spec-author.
 - A lambda with an attribute list is broken after it in whole-document formatting (`[return:Obsolete]` ⏎ `(int x) => x;`) — 04-test-implementer.
+- Output question: spacing of `ref`/`ref readonly` in front of a local's, field's, `foreach` variable's or return type's tuple type (`ref(int, int) r`), with the question in `05-spec-author.md` — 05-spec-author.
+- A wrapped `ref` ⏎ `(int, int)` of a local, field, property or `foreach` variable is never joined — 05-spec-author.
+- A local function's modifier in front of a tuple type (`static(int, int) K()`) keeps the author's spacing — add to the #1440 member-modifier candidate — 05-spec-author.
 - Wrapped `with` expression loses its column — same class as #953, comment there at most — 02-skeptic.
 - The space behind `when` (`when(x)`, catch filter) is undecided — candidate for #1440 — 02-skeptic.
