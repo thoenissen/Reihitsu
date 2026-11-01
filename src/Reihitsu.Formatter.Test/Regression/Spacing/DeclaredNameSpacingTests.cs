@@ -389,6 +389,485 @@ public class DeclaredNameSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that the names of fields get one space behind their type
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-021")]
+    public void FieldNamesGetOneSpaceBehindTheirType()
+    {
+        // Arrange
+        const string input = """
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 private int?_f;
+                                 private static readonly int[]_g = null;
+                                 private List<int>_h;
+                                 private (int, int)_i;
+                                 private int  _j;
+                             }
+                             """;
+        const string expected = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    private int? _f;
+                                    private static readonly int[] _g = null;
+                                    private List<int> _h;
+                                    private (int, int) _i;
+                                    private int _j;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the name of a <c>const</c> field gets one space behind its type
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-021")]
+    public void ConstFieldNameGetsOneSpaceBehindItsType()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private const int  A = 1;
+                                 private const string?B = null;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private const int A = 1;
+                                    private const string? B = null;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the name of a fixed-size buffer gets one space behind its element type
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-021")]
+    public void FixedSizeBufferNameGetsOneSpaceBehindItsType()
+    {
+        // Arrange
+        const string input = """
+                             unsafe struct S
+                             {
+                                 private fixed int  _buf[4];
+                                 private fixed byte    _bytes[2];
+                             }
+                             """;
+        const string expected = """
+                                unsafe struct S
+                                {
+                                    private fixed int _buf[4];
+                                    private fixed byte _bytes[2];
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the names of an event field get one space behind its type
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-021")]
+    public void EventFieldNamesGetOneSpaceBehindTheirType()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+
+                             class C
+                             {
+                                 private event Action?E;
+                                 public event Action<int>F, G;
+                                 public event Action  H;
+                             }
+                             """;
+        const string expected = """
+                                using System;
+
+                                class C
+                                {
+                                    private event Action? E;
+                                    public event Action<int> F, G;
+                                    public event Action H;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the names of <c>const</c> and <c>ref</c> locals get one space behind their type
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-021")]
+    public void ConstAndRefLocalNamesGetOneSpaceBehindTheirType()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int[] xs)
+                                 {
+                                     const int  a = 1;
+                                     const string?b = null;
+                                     ref int  c = ref xs[0];
+                                     ref int[]d = ref xs;
+                                     ref readonly int  e = ref xs[0];
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int[] xs)
+                                    {
+                                        const int a = 1;
+                                        const string? b = null;
+                                        ref int c = ref xs[0];
+                                        ref int[] d = ref xs;
+                                        ref readonly int e = ref xs[0];
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the names of a <c>using</c> declaration get one space behind their type
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-021")]
+    public void UsingDeclarationNamesGetOneSpaceBehindTheirType()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+                             using System.IO;
+                             using System.Threading.Tasks;
+
+                             class C
+                             {
+                                 async Task M()
+                                 {
+                                     using Stream?t = null, u = null;
+                                     using Stream  v = null;
+                                     await using IAsyncDisposable?w = null;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System;
+                                using System.IO;
+                                using System.Threading.Tasks;
+
+                                class C
+                                {
+                                    async Task M()
+                                    {
+                                        using Stream? t = null, u = null;
+                                        using Stream v = null;
+                                        await using IAsyncDisposable? w = null;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the names declared by a <c>fixed</c> statement get one space behind the pointer type
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-021")]
+    public void FixedStatementNamesGetOneSpaceBehindTheirType()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 unsafe void M(int[] xs, byte[] ys)
+                                 {
+                                     fixed (int*p = xs, q = xs)
+                                     {
+                                     }
+
+                                     fixed (byte*  r = ys)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    unsafe void M(int[] xs, byte[] ys)
+                                    {
+                                        fixed (int* p = xs, q = xs)
+                                        {
+                                        }
+
+                                        fixed (byte* r = ys)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the names declared by a <c>for</c> initializer get one space behind their type
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-021")]
+    public void ForInitializerNamesGetOneSpaceBehindTheirType()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     for (int?i = 0, j = 0; i < 1; i++)
+                                     {
+                                     }
+
+                                     for (int  k = 0; k < 1; k++)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        for (int? i = 0, j = 0; i < 1; i++)
+                                        {
+                                        }
+
+                                        for (int k = 0; k < 1; k++)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the name declared by a <c>using</c> statement gets one space behind its type
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-021")]
+    public void UsingStatementNameGetsOneSpaceBehindItsType()
+    {
+        // Arrange
+        const string input = """
+                             using System.IO;
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     using (Stream?s = null)
+                                     {
+                                     }
+
+                                     using (Stream  t = null)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System.IO;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        using (Stream? s = null)
+                                        {
+                                        }
+
+                                        using (Stream t = null)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the specification's example for the members and statements that declare a variable: a field, an event
+    /// field, a fixed-size buffer, a <c>fixed</c> statement, a <c>for</c> initializer, a <c>using</c> statement, and a
+    /// <c>using</c> declaration
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-021")]
+    public void MembersAndStatementsThatDeclareAVariableAreSpacedLikeTheSpecificationExample()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+                             using System.IO;
+
+                             unsafe class C
+                             {
+                                 private int?_f;
+                                 private event Action?E;
+                                 private fixed int  _buf[4];
+
+                                 void M(int[] xs)
+                                 {
+                                     fixed (int*p = xs)
+                                     {
+                                     }
+
+                                     for (int?i = 0; i < 1; i++)
+                                     {
+                                     }
+
+                                     using (Stream?s = null)
+                                     {
+                                     }
+
+                                     using Stream?t = null;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System;
+                                using System.IO;
+
+                                unsafe class C
+                                {
+                                    private int? _f;
+                                    private event Action? E;
+                                    private fixed int _buf[4];
+
+                                    void M(int[] xs)
+                                    {
+                                        fixed (int* p = xs)
+                                        {
+                                        }
+
+                                        for (int? i = 0; i < 1; i++)
+                                        {
+                                        }
+
+                                        using (Stream? s = null)
+                                        {
+                                        }
+
+                                        using Stream? t = null;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the parameters of a primary constructor, a constructor, an operator, an indexer, a delegate, a local
+    /// function, and an explicitly typed lambda get one space behind their type
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-021")]
+    public void ParameterNamesOfEveryParameterListGetOneSpaceBehindTheirType()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+
+                             class C(int?a, int[]b)
+                             {
+                                 C(int?x)
+                                     : this(x, null)
+                                 {
+                                 }
+
+                                 public static C operator +(C?l, int[]r) => l;
+
+                                 int this[int?i] => 0;
+
+                                 delegate void D(int?p, int[]q);
+
+                                 void M()
+                                 {
+                                     void L(int?u)
+                                     {
+                                     }
+
+                                     Func<int?, int[], int> f = (int?g, int[]h) => 0;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System;
+
+                                class C(int? a, int[] b)
+                                {
+                                    C(int? x)
+                                        : this(x, null)
+                                    {
+                                    }
+
+                                    public static C operator +(C? l, int[] r)
+                                    {
+                                        return l;
+                                    }
+
+                                    int this[int? i] => 0;
+
+                                    delegate void D(int? p, int[] q);
+
+                                    void M()
+                                    {
+                                        void L(int? u)
+                                        {
+                                        }
+
+                                        Func<int?, int[], int> f = (int? g, int[] h) => 0;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a gap inside the type is decided by its own rule while the gap in front of the name gets one space
     /// </summary>
     [TestMethod]
