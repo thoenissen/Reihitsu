@@ -239,7 +239,7 @@ A line break in front of the original `]` (`[A, B⏎]`) does not separate two at
 
 ### FMT-BREAK-027 is split into shape and placement
 
-The shape becomes FMT-STRUCT-028 (split on declarations) and FMT-STRUCT-029 (merge on parameters and type parameters), each with its guards. FMT-BREAK-027 keeps its ID and title and states the placement only, so the analyzer specs and SHARED-ATTR that cite it for placement keep their links. SHARED-ATTR-013 cited it for the one-attribute-per-line shape and now cites FMT-STRUCT-028.
+The shape becomes FMT-STRUCT-028 (the split) and FMT-STRUCT-029 (the merge), each with its guards and the owners it names. FMT-BREAK-027 keeps its ID and title and states the placement only, so the analyzer specs and SHARED-ATTR that cite it for placement keep their links. SHARED-ATTR-013 cited it for the one-attribute-per-line shape and now cites FMT-STRUCT-028.
 
 ### The accessor shape stays in the line-break phase
 
