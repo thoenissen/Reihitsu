@@ -1,11 +1,9 @@
 ﻿using System.Collections.Generic;
 
 using Reihitsu.Formatter.Test.Helpers.Enumerations;
-using Reihitsu.Formatter.Test.Regression.BlankLines;
 using Reihitsu.Formatter.Test.Regression.FullPipeline;
 using Reihitsu.Formatter.Test.Regression.Indentation;
 using Reihitsu.Formatter.Test.Regression.LineBreaks;
-using Reihitsu.Formatter.Test.Regression.UsingDirectives;
 
 namespace Reihitsu.Formatter.Test.Helpers;
 
@@ -22,8 +20,6 @@ public static class PhaseReversalExceptionList
     /// The known phase reversals, one entry per fixture and phase, each with the output the phase returns
     /// </summary>
     public static readonly IReadOnlyList<PhaseReversalEntry> Entries = [
-                                                                           new(typeof(DelimitedDocumentationBlankLineConvergenceTests), nameof(DelimitedDocumentationBlankLineConvergenceTests.SeparatesDelimitedDocumentationFromPrecedingUsingDirectiveInOnePass), "c258de221e30fadf", PhaseReversalCauses.BlankLineAboveCommentLedUsingDirective, "9631d3fcb3a10b34", PhaseReversalLineEndings.Both),
-                                                                           new(typeof(UsingDirectiveOrderingTests), nameof(UsingDirectiveOrderingTests.SameGroupDirectiveBehindMultiLineDelimitedDocumentationCommentKeepsTheCommentWithIt), "855e76f82f59bced", PhaseReversalCauses.BlankLineAboveCommentLedUsingDirective, "4048e372d9c31c30", PhaseReversalLineEndings.Both),
                                                                            new(typeof(ArgumentFormattingFullPipelineTests), nameof(ArgumentFormattingFullPipelineTests.FormatsMethodChainWithArguments), "c328bbe3d627fc17", PhaseReversalCauses.LineStartIndentation, "fd65937e92e8ef79", PhaseReversalLineEndings.Both),
                                                                            new(typeof(IndentationTests), nameof(IndentationTests.LambdaBlockBodyInArgumentListIndentsCorrectly), "bcc307cbab39d7a4", PhaseReversalCauses.LineStartIndentation, "ef1fbcc3d5a16c25", PhaseReversalLineEndings.Both),
                                                                            new(typeof(IndentationTests), nameof(IndentationTests.SwitchExpressionInsideLambdaBreaksAndAligns), "c3d9f70128b65ace", PhaseReversalCauses.LineStartIndentation, "3385ba8051c36fd0", PhaseReversalLineEndings.Both),

@@ -614,6 +614,44 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
         await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
     }
 
+    /// <summary>
+    /// Verifies that the code fix writes one blank line where several stood above a comment that leads a directive of the
+    /// same group
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    public async Task CodeFixWritesOneBlankLineWhereSeveralStoodAboveCommentLeadingDirectiveOfTheSameGroup()
+    {
+        const string testCode = """
+                                using System.Linq;
+                                using {|#0:System|};
+
+
+
+                                // About Text
+                                using System.Text;
+
+                                public class TestClass
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using System.Linq;
+
+                                 // About Text
+                                 using System.Text;
+
+                                 public class TestClass
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer.DiagnosticId, AnalyzerResources.RH7203MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
