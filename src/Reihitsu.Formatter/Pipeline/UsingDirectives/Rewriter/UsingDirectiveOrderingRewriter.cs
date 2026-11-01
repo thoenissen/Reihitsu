@@ -50,7 +50,9 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Organizes the provided using directives into grouped canonical order. A block that cannot be
+    /// Organizes the provided using directives into grouped canonical order, with one blank line between two
+    /// groups and none within a group other than one kept above a comment that leads a directive, where one
+    /// stood in the source (FMT-USING-010). A block that cannot be
     /// reordered safely keeps its order and blank lines, and only has directives that share a line
     /// separated, see <see cref="SeparateDirectivesSharingALine"/>
     /// </summary>
@@ -78,10 +80,18 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
 
         var directivesStartingTheirLine = new HashSet<UsingDirectiveSyntax>(usingDirectives.Where(UsingDirectiveOrderingUtilities.StartsItsLine));
         var sourceIndices = new Dictionary<UsingDirectiveSyntax, int>();
+        var directivesWithBlankLineAboveComment = new HashSet<UsingDirectiveSyntax>();
 
         for (var sourceIndex = 0; sourceIndex < usingDirectives.Count; sourceIndex++)
         {
             sourceIndices[usingDirectives[sourceIndex]] = sourceIndex;
+
+            if (sourceIndex > 0
+                && UsingDirectiveOrderingUtilities.IsLedByComment(usingDirectives[sourceIndex])
+                && UsingDirectiveOrderingUtilities.HasBlankLineAbove(usingDirectives[sourceIndex - 1], usingDirectives[sourceIndex]))
+            {
+                directivesWithBlankLineAboveComment.Add(usingDirectives[sourceIndex]);
+            }
         }
 
         var canonical = UsingGrouping.ComputeCanonicalOrder(usingDirectives);
@@ -102,6 +112,13 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
                 }
 
                 sourceIndices[detachedFirst] = sourceIndices[originalFirst];
+
+                // The header ends with a blank line, so when a comment is left to lead the directive that moves
+                // away from the top, that blank line stood directly above the comment
+                if (UsingDirectiveOrderingUtilities.IsLedByComment(detachedFirst))
+                {
+                    directivesWithBlankLineAboveComment.Add(detachedFirst);
+                }
 
                 canonical = canonical.ConvertAll(current => ReferenceEquals(current, originalFirst) ? detachedFirst : current);
             }
@@ -141,6 +158,15 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
                                                     : null;
 
             var leadingTrivia = UsingLeadingTriviaBuilder.CreateLeadingTrivia(current, firstLeadingTriviaPrefix, startsNewGroup, isFirst: false, lineIndentation, endOfLine);
+
+            // A directive that continues its group gets no blank line, except the one kept above the comment that
+            // leads it when a blank line stood directly above that comment in the source - however many stood
+            // there, exactly one is written (FMT-USING-010)
+            if (startsNewGroup == false
+                && directivesWithBlankLineAboveComment.Contains(current))
+            {
+                leadingTrivia = leadingTrivia.Insert(0, SyntaxFactory.EndOfLine(endOfLine));
+            }
 
             // The rebuilt leading trivia drops the layout in front of its first comment, because the line in front
             // normally already ends. When it does not, a line break in that layout is the one that puts the comment

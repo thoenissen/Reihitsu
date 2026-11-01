@@ -147,6 +147,50 @@ public static class UsingDirectiveOrderingUtilities
     }
 
     /// <summary>
+    /// Determines whether a comment leads the using directive: the first trivia of its leading trivia that is
+    /// neither whitespace nor a line break is a comment — single-line or delimited, ordinary or documentation,
+    /// on a line of its own or on the directive's line. A blank line in front of that comment does not split
+    /// the directive's group from the group of its predecessor (SHARED-USING-011); the analyzers and the
+    /// formatter share this predicate so both decide the same directives
+    /// </summary>
+    /// <param name="usingDirective">Using directive</param>
+    /// <returns><see langword="true"/> if a comment leads the directive; otherwise, <see langword="false"/></returns>
+    public static bool IsLedByComment(UsingDirectiveSyntax usingDirective)
+    {
+        var leadingTrivia = usingDirective.GetLeadingTrivia();
+        var firstSignificantTriviaIndex = SyntaxTriviaUtilities.FindFirstSignificantTriviaIndex(leadingTrivia);
+
+        return firstSignificantTriviaIndex >= 0
+               && SyntaxTriviaUtilities.IsCommentTrivia(leadingTrivia[firstSignificantTriviaIndex]);
+    }
+
+    /// <summary>
+    /// Determines whether a blank line stands directly above the using directive, or, when trivia such as a comment
+    /// leads it, directly above the first of that trivia. The line breaks in front of that point are the one that
+    /// ends the line of the directive's predecessor, when the predecessor's trailing trivia holds it, and those in
+    /// the layout at the start of the directive's own leading trivia; two or more of them leave a blank line. Parsed
+    /// source always ends a line in the trailing trivia of its last token, but inside the formatter's pipeline that
+    /// line break can stand in the successor's leading trivia instead, so counting both sides keeps one line break
+    /// from reading as a blank line. RH7207 and the using-directive phase share this measurement, so both decide the
+    /// same blank lines (SHARED-USING-008, SHARED-USING-011)
+    /// </summary>
+    /// <param name="predecessor">Using directive that precedes <paramref name="usingDirective"/></param>
+    /// <param name="usingDirective">Using directive</param>
+    /// <returns><see langword="true"/> if a blank line stands directly above the directive or its leading trivia; otherwise, <see langword="false"/></returns>
+    public static bool HasBlankLineAbove(UsingDirectiveSyntax predecessor, UsingDirectiveSyntax usingDirective)
+    {
+        var leadingTrivia = usingDirective.GetLeadingTrivia();
+        var firstSignificantTriviaIndex = SyntaxTriviaUtilities.FindFirstSignificantTriviaIndex(leadingTrivia);
+        var layoutTriviaCount = firstSignificantTriviaIndex < 0 ? leadingTrivia.Count : firstSignificantTriviaIndex;
+        var lineBreakCount = predecessor.GetTrailingTrivia().Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)) ? 1 : 0;
+
+        lineBreakCount += leadingTrivia.Take(layoutTriviaCount)
+                                       .Count(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+
+        return lineBreakCount >= 2;
+    }
+
+    /// <summary>
     /// Computes the canonical (sorted and grouped) order shared by the analyzers, code fixes and formatter
     /// </summary>
     /// <param name="usingDirectives">Using directives</param>

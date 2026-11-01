@@ -1,5 +1,7 @@
 ﻿using System.Linq;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -448,6 +450,245 @@ public class UsingDirectiveOrderingUtilitiesTests
         Assert.AreSequenceEqual(_commentDirectiveOrder, orderedUsings.Select(obj => obj.ToString()).ToArray());
         Assert.Contains("Keep with Charlie", charlie.GetLeadingTrivia().ToFullString());
         Assert.DoesNotContain("Keep with Charlie", alpha.GetLeadingTrivia().ToFullString());
+    }
+
+    /// <summary>
+    /// Verifies that a single-line comment on a line of its own leads the directive below it
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-USING-011")]
+    public void IsLedByCommentIsTrueForSingleLineComment()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("using System;\n\n// About Linq\nusing System.Linq;").Usings;
+
+        Assert.IsTrue(UsingDirectiveOrderingUtilities.IsLedByComment(usingDirectives[1]));
+    }
+
+    /// <summary>
+    /// Verifies that a delimited comment on a line of its own leads the directive below it
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-USING-011")]
+    public void IsLedByCommentIsTrueForDelimitedComment()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("using System;\n/* About Linq */\nusing System.Linq;").Usings;
+
+        Assert.IsTrue(UsingDirectiveOrderingUtilities.IsLedByComment(usingDirectives[1]));
+    }
+
+    /// <summary>
+    /// Verifies that a single-line documentation comment leads the directive below it
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-USING-011")]
+    public void IsLedByCommentIsTrueForSingleLineDocumentationComment()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("using System;\n/// <summary>About Linq</summary>\nusing System.Linq;").Usings;
+
+        Assert.IsTrue(UsingDirectiveOrderingUtilities.IsLedByComment(usingDirectives[1]));
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment leads the directive below it
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-USING-011")]
+    public void IsLedByCommentIsTrueForDelimitedDocumentationComment()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("using System;\n/** About Text */\nusing System.Text;").Usings;
+
+        Assert.IsTrue(UsingDirectiveOrderingUtilities.IsLedByComment(usingDirectives[1]));
+    }
+
+    /// <summary>
+    /// Verifies that an ordinary comment on the directive's own line leads the directive
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-USING-011")]
+    public void IsLedByCommentIsTrueForCommentOnTheDirectivesLine()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("using System;\n\n/* c */ using System.Linq;").Usings;
+
+        Assert.IsTrue(UsingDirectiveOrderingUtilities.IsLedByComment(usingDirectives[1]));
+    }
+
+    /// <summary>
+    /// Verifies that a directive whose leading trivia holds only whitespace and line breaks is not led by a comment
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-USING-011")]
+    public void IsLedByCommentIsFalseForWhitespaceAndLineBreaksOnly()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("using System;\n\n    using System.Linq;").Usings;
+
+        Assert.IsFalse(UsingDirectiveOrderingUtilities.IsLedByComment(usingDirectives[1]));
+    }
+
+    /// <summary>
+    /// Verifies that a directive without leading trivia is not led by a comment
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-USING-011")]
+    public void IsLedByCommentIsFalseWithoutLeadingTrivia()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("using System; using System.Linq;").Usings;
+
+        Assert.AreEqual(0, usingDirectives[1].GetLeadingTrivia().Count);
+        Assert.IsFalse(UsingDirectiveOrderingUtilities.IsLedByComment(usingDirectives[1]));
+    }
+
+    /// <summary>
+    /// Verifies that the line break ending the predecessor's line alone leaves no blank line above the directive
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-USING-008")]
+    public void HasBlankLineAboveIsFalseForOneLineBreakFromThePredecessor()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("using System;\nusing System.Linq;").Usings;
+
+        Assert.IsFalse(UsingDirectiveOrderingUtilities.HasBlankLineAbove(usingDirectives[0], usingDirectives[1]));
+    }
+
+    /// <summary>
+    /// Verifies that the line break ending the predecessor's line and one line break in the directive's leading trivia leave a
+    /// blank line above the directive
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-USING-008")]
+    public void HasBlankLineAboveIsTrueForOneLineBreakFromThePredecessorAndOneFromTheDirective()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("using System;\n\nusing System.Linq;").Usings;
+
+        Assert.IsTrue(UsingDirectiveOrderingUtilities.HasBlankLineAbove(usingDirectives[0], usingDirectives[1]));
+    }
+
+    /// <summary>
+    /// Verifies that a whitespace-only line in front of the directive counts as a blank line
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-USING-008")]
+    public void HasBlankLineAboveIsTrueForWhitespaceOnlyLine()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("using System;\n    \nusing System.Linq;").Usings;
+
+        Assert.IsTrue(UsingDirectiveOrderingUtilities.HasBlankLineAbove(usingDirectives[0], usingDirectives[1]));
+    }
+
+    /// <summary>
+    /// Verifies that a directive sharing its predecessor's line has no blank line above it
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-USING-008")]
+    public void HasBlankLineAboveIsFalseForDirectiveSharingItsPredecessorsLine()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("using System; using System.Linq;").Usings;
+
+        Assert.IsFalse(UsingDirectiveOrderingUtilities.HasBlankLineAbove(usingDirectives[0], usingDirectives[1]));
+    }
+
+    /// <summary>
+    /// Verifies that a blank line directly above the comment that leads the directive is found
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-USING-011")]
+    public void HasBlankLineAboveIsTrueForBlankLineAboveTheLeadingComment()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("using System;\n\n// About Linq\nusing System.Linq;").Usings;
+
+        Assert.IsTrue(UsingDirectiveOrderingUtilities.HasBlankLineAbove(usingDirectives[0], usingDirectives[1]));
+    }
+
+    /// <summary>
+    /// Verifies that no blank line directly above the comment that leads the directive is found when the comment follows the
+    /// predecessor's line directly
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-USING-011")]
+    public void HasBlankLineAboveIsFalseWithoutBlankLineAboveTheLeadingComment()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("using System;\n// About Linq\nusing System.Linq;").Usings;
+
+        Assert.IsFalse(UsingDirectiveOrderingUtilities.HasBlankLineAbove(usingDirectives[0], usingDirectives[1]));
+    }
+
+    /// <summary>
+    /// Verifies that only the line breaks in front of the first leading comment count, so a blank line between the comment and
+    /// the directive is not found
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-USING-011")]
+    public void HasBlankLineAboveIgnoresBlankLineBelowTheLeadingComment()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("using System;\n// About Linq\n\nusing System.Linq;").Usings;
+
+        Assert.IsFalse(UsingDirectiveOrderingUtilities.HasBlankLineAbove(usingDirectives[0], usingDirectives[1]));
+    }
+
+    /// <summary>
+    /// Verifies that only the line breaks in front of the first leading comment count, so a blank line between two leading
+    /// comments is not found
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-USING-011")]
+    public void HasBlankLineAboveIgnoresBlankLineBetweenTwoLeadingComments()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("using System;\n// A\n\n// B\nusing System.Linq;").Usings;
+
+        Assert.IsFalse(UsingDirectiveOrderingUtilities.HasBlankLineAbove(usingDirectives[0], usingDirectives[1]));
+    }
+
+    /// <summary>
+    /// Verifies that one line break in the directive's leading trivia leaves no blank line when the predecessor's trailing
+    /// trivia ends no line, as inside the formatter's pipeline
+    /// </summary>
+    [TestMethod]
+    public void HasBlankLineAboveIsFalseForOneLeadingLineBreakBehindAPredecessorWhoseLineDoesNotEnd()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("using System;\nusing System.Linq;").Usings;
+        var predecessor = usingDirectives[0].WithTrailingTrivia(SyntaxFactory.Space, SyntaxFactory.Comment("/** About Linq */"));
+        var usingDirective = usingDirectives[1].WithLeadingTrivia(SyntaxFactory.EndOfLine("\n"), SyntaxFactory.Comment("// About Linq"), SyntaxFactory.EndOfLine("\n"));
+
+        Assert.IsFalse(UsingDirectiveOrderingUtilities.HasBlankLineAbove(predecessor, usingDirective));
+    }
+
+    /// <summary>
+    /// Verifies that two line breaks in the directive's leading trivia leave a blank line when the predecessor's trailing
+    /// trivia ends no line, as inside the formatter's pipeline
+    /// </summary>
+    [TestMethod]
+    public void HasBlankLineAboveIsTrueForTwoLeadingLineBreaksBehindAPredecessorWhoseLineDoesNotEnd()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("using System;\nusing System.Linq;").Usings;
+        var predecessor = usingDirectives[0].WithTrailingTrivia(SyntaxFactory.Space, SyntaxFactory.Comment("/** About Linq */"));
+        var usingDirective = usingDirectives[1].WithLeadingTrivia(SyntaxFactory.EndOfLine("\n"), SyntaxFactory.EndOfLine("\n"), SyntaxFactory.Comment("// About Linq"), SyntaxFactory.EndOfLine("\n"));
+
+        Assert.IsTrue(UsingDirectiveOrderingUtilities.HasBlankLineAbove(predecessor, usingDirective));
+    }
+
+    /// <summary>
+    /// Verifies that the line breaks in the whole leading trivia count when the directive has no significant leading trivia
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-USING-008")]
+    public void HasBlankLineAboveCountsTheWholeLeadingTriviaWithoutSignificantTrivia()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("using System;\n\n\n    using System.Linq;").Usings;
+
+        Assert.IsTrue(UsingDirectiveOrderingUtilities.HasBlankLineAbove(usingDirectives[0], usingDirectives[1]));
+    }
+
+    /// <summary>
+    /// Verifies the measurement under CRLF line endings on both sides of the one-versus-two line-break boundary
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-USING-011")]
+    public void HasBlankLineAboveMeasuresCarriageReturnLineFeedLineBreaks()
+    {
+        var withoutBlankLine = CoreSyntaxTestHelper.ParseCompilationUnit("using System;\r\n// About Linq\r\nusing System.Linq;").Usings;
+        var withBlankLine = CoreSyntaxTestHelper.ParseCompilationUnit("using System;\r\n\r\n// About Linq\r\nusing System.Linq;").Usings;
+
+        Assert.IsFalse(UsingDirectiveOrderingUtilities.HasBlankLineAbove(withoutBlankLine[0], withoutBlankLine[1]));
+        Assert.IsTrue(UsingDirectiveOrderingUtilities.HasBlankLineAbove(withBlankLine[0], withBlankLine[1]));
     }
 
     #endregion // Tests

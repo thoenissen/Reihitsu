@@ -64,6 +64,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-USING-011")]
     public async Task NoDiagnosticWhenCommentSeparatesSameGroupUsings()
     {
         const string testCode = """
@@ -1122,6 +1123,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     [TestMethod]
     [Requirement("RH7207-001")]
     [Requirement("SHARED-USING-008")]
+    [Requirement("SHARED-USING-011")]
     public async Task BlankLineInsideAGroupIsReported()
     {
         const string testCode = """
@@ -1721,6 +1723,722 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
                                  """;
 
         await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line above a single-line comment that leads a directive of the same group is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-002")]
+    [Requirement("SHARED-USING-011")]
+    public async Task BlankLineAboveSingleLineCommentLeadingDirectiveOfTheSameGroupIsNotReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                // About Linq
+                                using System.Linq;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line above a delimited documentation comment that leads a directive of the same group is not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-002")]
+    [Requirement("SHARED-USING-011")]
+    public async Task BlankLineAboveDelimitedDocumentationCommentLeadingDirectiveOfTheSameGroupIsNotReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                /** About Text */
+                                using System.Text;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that blank lines above a single-line comment and a documentation comment that lead directives of the same
+    /// group are not reported in one block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-002")]
+    public async Task BlankLinesAboveSeveralCommentsLeadingDirectivesOfTheSameGroupAreNotReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                // About Linq
+                                using System.Linq;
+
+                                /** About Text */
+                                using System.Text;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line above a single-line documentation comment that leads a directive of the same group is
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-011")]
+    public async Task BlankLineAboveSingleLineDocumentationCommentLeadingDirectiveOfTheSameGroupIsNotReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                /// About Linq
+                                using System.Linq;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line above a delimited comment on its own line that leads a directive of the same group is
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-011")]
+    public async Task BlankLineAboveDelimitedCommentLeadingDirectiveOfTheSameGroupIsNotReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                /* About Linq */
+                                using System.Linq;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that several blank lines above a comment that leads a directive of the same group are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-002")]
+    [Requirement("SHARED-USING-011")]
+    public async Task SeveralBlankLinesAboveCommentLeadingDirectiveOfTheSameGroupAreNotReported()
+    {
+        const string testCode = """
+                                using System;
+
+
+
+                                // About Linq
+                                using System.Linq;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line above an ordinary comment on the directive's line is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-002")]
+    [Requirement("SHARED-USING-011")]
+    public async Task BlankLineAboveOrdinaryCommentOnTheDirectivesLineIsNotReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                /* c */ using System.Linq;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line above a delimited documentation comment that spans lines and ends on the directive's
+    /// line is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-011")]
+    public async Task BlankLineAboveMultiLineDocumentationCommentOnTheDirectivesLineIsNotReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                /** first
+                                   second */ using System.Linq;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line below a comment that leads a directive of the same group is not reported, with and
+    /// without a blank line above the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-002")]
+    [Requirement("SHARED-USING-011")]
+    public async Task BlankLineBelowCommentLeadingDirectiveOfTheSameGroupIsNotReported()
+    {
+        const string withBlankLineAbove = """
+                                          using System;
+
+                                          // About Linq
+
+                                          using System.Linq;
+
+                                          class C
+                                          {
+                                          }
+                                          """;
+        const string withoutBlankLineAbove = """
+                                             using System;
+                                             // About Linq
+
+                                             using System.Linq;
+
+                                             class C
+                                             {
+                                             }
+                                             """;
+
+        await Verify(withBlankLineAbove);
+        await Verify(withoutBlankLineAbove);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line between two comments that lead a directive of the same group is not reported, with and
+    /// without a blank line above the first comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-011")]
+    public async Task BlankLineBetweenTwoCommentsLeadingDirectiveOfTheSameGroupIsNotReported()
+    {
+        const string withoutBlankLineAbove = """
+                                             using System;
+                                             // A
+
+                                             // B
+                                             using System.Linq;
+
+                                             class C
+                                             {
+                                             }
+                                             """;
+        const string withBlankLineAbove = """
+                                          using System;
+
+                                          // A
+
+                                          // B
+                                          using System.Linq;
+
+                                          class C
+                                          {
+                                          }
+                                          """;
+
+        await Verify(withoutBlankLineAbove);
+        await Verify(withBlankLineAbove);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line above a comment that leads a directive of the same group behind a predecessor with a
+    /// trailing comment is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-011")]
+    public async Task BlankLineAboveCommentBehindPredecessorWithTrailingCommentIsNotReported()
+    {
+        const string testCode = """
+                                using System; // trailing
+
+                                // About Linq
+                                using System.Linq;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line above a comment that leads a directive of the same group is not reported inside a
+    /// block-scoped namespace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-011")]
+    public async Task BlankLineAboveCommentInsideBlockScopedNamespaceIsNotReported()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    using System;
+
+                                    // About Linq
+                                    using System.Linq;
+
+                                    class C
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line above a comment that leads a directive of the same group is not reported inside a
+    /// file-scoped namespace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-011")]
+    public async Task BlankLineAboveCommentInsideFileScopedNamespaceIsNotReported()
+    {
+        const string testCode = """
+                                namespace N;
+
+                                using System;
+
+                                // About Linq
+                                using System.Linq;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line above a directive of the same group that a comment does not lead is still reported,
+    /// also when a comment leads another directive of the block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("SHARED-USING-011")]
+    public async Task BlankLineAboveDirectiveWithoutCommentNextToCommentLedDirectiveIsReported()
+    {
+        const string testCode = """
+                                using {|RH7207:System|};
+
+                                // About Linq
+                                using System.Linq;
+
+                                using System.Text;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 // About Linq
+                                 using System.Linq;
+                                 using System.Text;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix keeps the blank line above the comment of a directive it moves
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-004")]
+    public async Task CodeFixKeepsBlankLineAboveCommentOfMovedDirective()
+    {
+        const string testCode = """
+                                using {|RH7207:Microsoft.CodeAnalysis|};
+
+                                // About Linq
+                                using System.Linq;
+                                using System;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 // About Linq
+                                 using System.Linq;
+
+                                 using Microsoft.CodeAnalysis;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix keeps the blank line above the comment of a directive that stays in place
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-004")]
+    public async Task CodeFixKeepsBlankLineAboveCommentOfDirectiveThatStaysInPlace()
+    {
+        const string testCode = """
+                                using {|RH7207:Microsoft.CodeAnalysis|};
+                                using System;
+
+                                // About Linq
+                                using System.Linq;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 // About Linq
+                                 using System.Linq;
+
+                                 using Microsoft.CodeAnalysis;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix writes one blank line where several stood above the comment of a directive of the same
+    /// group
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-004")]
+    public async Task CodeFixWritesOneBlankLineWhereSeveralStoodAboveComment()
+    {
+        const string testCode = """
+                                using {|RH7207:System.Linq|};
+                                using System;
+
+
+
+                                // About Text
+                                using System.Text;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using System.Linq;
+
+                                 // About Text
+                                 using System.Text;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix keeps the blank line that ends a file header above a comment that moves away from the top
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-004")]
+    public async Task CodeFixKeepsHeaderBlankLineAboveCommentThatMovesAwayFromTheTop()
+    {
+        const string testCode = """
+                                // Header
+
+                                // About Linq
+                                using {|RH7207:System.Linq|};
+                                using System;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 // Header
+
+                                 using System;
+
+                                 // About Linq
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix keeps the blank line above an ordinary comment on the directive's line through a reorder
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-004")]
+    public async Task CodeFixKeepsBlankLineAboveOrdinaryCommentOnTheDirectivesLine()
+    {
+        const string testCode = """
+                                using {|RH7207:Microsoft.CodeAnalysis|};
+                                using System;
+
+                                /* c */ using System.Linq;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 /* c */ using System.Linq;
+
+                                 using Microsoft.CodeAnalysis;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix writes no blank line above a comment that had none in the source, also when it moves the
+    /// directive into the middle of its group
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-004")]
+    public async Task CodeFixWritesNoBlankLineAboveCommentThatHadNone()
+    {
+        const string testCode = """
+                                using {|RH7207:System|};
+                                using Microsoft.CodeAnalysis;
+                                // About Linq
+                                using System.Linq;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 // About Linq
+                                 using System.Linq;
+
+                                 using Microsoft.CodeAnalysis;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix keeps the blank line above the comment of a moved directive under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-004")]
+    public async Task CodeFixKeepsBlankLineAboveCommentOfMovedDirectiveUnderCarriageReturnLineFeed()
+    {
+        var testCode = NormalizeToCarriageReturnLineFeed("""
+                                                         using Microsoft.CodeAnalysis;
+
+                                                         // About Linq
+                                                         using System.Linq;
+                                                         using System;
+
+                                                         class C
+                                                         {
+                                                         }
+                                                         """);
+        var expected = NormalizeToCarriageReturnLineFeed("""
+                                                         using System;
+
+                                                         // About Linq
+                                                         using System.Linq;
+
+                                                         using Microsoft.CodeAnalysis;
+
+                                                         class C
+                                                         {
+                                                         }
+                                                         """);
+
+        var actual = await ApplyCodeFixAsync(testCode);
+
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix writes one blank line where several stood above a comment under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-004")]
+    public async Task CodeFixWritesOneBlankLineWhereSeveralStoodAboveCommentUnderCarriageReturnLineFeed()
+    {
+        var testCode = NormalizeToCarriageReturnLineFeed("""
+                                                         using System.Linq;
+                                                         using System;
+
+
+
+                                                         // About Text
+                                                         using System.Text;
+
+                                                         class C
+                                                         {
+                                                         }
+                                                         """);
+        var expected = NormalizeToCarriageReturnLineFeed("""
+                                                         using System;
+                                                         using System.Linq;
+
+                                                         // About Text
+                                                         using System.Text;
+
+                                                         class C
+                                                         {
+                                                         }
+                                                         """);
+
+        var actual = await ApplyCodeFixAsync(testCode);
+
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All keeps the blank line above a comment that leads a directive of the same group in every block
+    /// it organizes
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-004")]
+    public async Task FixAllKeepsBlankLineAboveCommentInEveryBlock()
+    {
+        const string testCode = """
+                                using {|RH7207:System.Linq|};
+                                using System;
+
+                                // About Text
+                                using System.Text;
+
+                                namespace N
+                                {
+                                    using {|RH7207:System.Linq|};
+                                    using System;
+
+                                    /* c */ using System.IO;
+
+                                    class C
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using System.Linq;
+
+                                 // About Text
+                                 using System.Text;
+
+                                 namespace N
+                                 {
+                                     using System;
+
+                                     /* c */ using System.IO;
+                                     using System.Linq;
+
+                                     class C
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
     }
 
     #endregion // Tests

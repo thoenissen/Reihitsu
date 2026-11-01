@@ -9,7 +9,6 @@ using Reihitsu.Formatter.Pipeline;
 using Reihitsu.Formatter.Pipeline.BlankLines;
 using Reihitsu.Formatter.Pipeline.Indentation;
 using Reihitsu.Formatter.Pipeline.LineBreaks;
-using Reihitsu.Formatter.Pipeline.UsingDirectives;
 using Reihitsu.Formatter.Test.Helpers;
 using Reihitsu.Formatter.Test.Helpers.Enumerations;
 
@@ -163,11 +162,12 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the check catches the using phase removing the blank line above a delimited documentation comment
-    /// that leads a using directive of the same group, which the blank-line phase inserts again
+    /// Verifies that a delimited documentation comment that leads a using directive of the same group, with a blank line
+    /// above it, passes the check: the using phase keeps that blank line, so no phase run alone changes the output
     /// </summary>
     [TestMethod]
-    public void CheckCatchesUsingPhaseRemovingBlankLineAboveDelimitedDocumentationLedUsingDirective()
+    [Requirement("FMT-USING-010")]
+    public void CheckFindsNoChangeAboveDelimitedDocumentationLedUsingDirectiveOfTheSameGroup()
     {
         // Arrange
         const string source = """
@@ -176,22 +176,18 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
                               /** doc */
                               using System.Text;
                               """;
-        const string phaseOutput = """
-                                   using System;
-                                   /** doc */
-                                   using System.Text;
-                                   """;
 
         // Act & Assert
-        AssertOnlyPhaseChanges(source, nameof(UsingDirectiveOrderingPhase), phaseOutput);
+        AssertNoPhaseChanges(source);
     }
 
     /// <summary>
-    /// Verifies that the check catches the using phase removing the blank line above a single-line comment that leads a
-    /// using directive of the same group, which the blank-line phase inserts again
+    /// Verifies that a single-line comment that leads a using directive of the same group, with a blank line above it,
+    /// passes the check: the using phase keeps that blank line, so no phase run alone changes the output
     /// </summary>
     [TestMethod]
-    public void CheckCatchesUsingPhaseRemovingBlankLineAboveCommentLedUsingDirective()
+    [Requirement("FMT-USING-010")]
+    public void CheckFindsNoChangeAboveCommentLedUsingDirectiveOfTheSameGroup()
     {
         // Arrange
         const string source = """
@@ -200,14 +196,9 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
                               // comment
                               using System.Text;
                               """;
-        const string phaseOutput = """
-                                   using System;
-                                   // comment
-                                   using System.Text;
-                                   """;
 
         // Act & Assert
-        AssertOnlyPhaseChanges(source, nameof(UsingDirectiveOrderingPhase), phaseOutput);
+        AssertNoPhaseChanges(source);
     }
 
     /// <summary>

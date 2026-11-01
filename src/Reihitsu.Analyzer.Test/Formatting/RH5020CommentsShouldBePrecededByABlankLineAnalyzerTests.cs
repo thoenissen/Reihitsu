@@ -659,6 +659,72 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode), actual);
     }
 
+    /// <summary>
+    /// Verifies that a comment on its own line that leads a using directive of the same group is reported without a blank
+    /// line above it, and that the fix inserts one
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5020-001")]
+    [Requirement("RH5020-005")]
+    public async Task VerifyDiagnosticForCommentLeadingUsingDirectiveOfTheSameGroup()
+    {
+        const string testCode = """
+                                using System;
+                                {|#0:// About Linq|}
+                                using System.Linq;
+
+                                internal class RH5020
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 // About Linq
+                                 using System.Linq;
+
+                                 internal class RH5020
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an ordinary comment on the line of a using directive of the same group is reported without a blank
+    /// line above it, and that the fix inserts one
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5020-001")]
+    [Requirement("RH5020-005")]
+    public async Task VerifyDiagnosticForCommentOnTheLineOfUsingDirectiveOfTheSameGroup()
+    {
+        const string testCode = """
+                                using System;
+                                {|#0:/* c */|} using System.Linq;
+
+                                internal class RH5020
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 /* c */ using System.Linq;
+
+                                 internal class RH5020
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

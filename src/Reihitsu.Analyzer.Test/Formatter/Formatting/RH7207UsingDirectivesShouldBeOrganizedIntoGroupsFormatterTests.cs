@@ -621,5 +621,139 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsFormatterTests : Fo
         await VerifyFormatter(input, fixedData);
     }
 
+    /// <summary>
+    /// Verifies that the formatter's output for a single-line comment that leads a directive of the same group, with the
+    /// blank line above it, stays unchanged and is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-002")]
+    public async Task FormattedBlankLineAboveSingleLineCommentIsNotReported()
+    {
+        const string input = """
+                             using System;
+
+                             // About Linq
+                             using System.Linq;
+
+                             internal class Example;
+                             """;
+
+        await VerifyFormatter(input);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter's output for a delimited documentation comment that leads a directive of the same group,
+    /// with the blank line above it, stays unchanged and is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-002")]
+    public async Task FormattedBlankLineAboveDelimitedDocumentationCommentIsNotReported()
+    {
+        const string input = """
+                             using System;
+
+                             /** About Text */
+                             using System.Text;
+
+                             internal class Example;
+                             """;
+
+        await VerifyFormatter(input);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter keeps the blank line above an ordinary comment on the directive's line and that the
+    /// analyzer does not report it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-002")]
+    public async Task FormattedBlankLineAboveOrdinaryCommentOnTheDirectivesLineIsNotReported()
+    {
+        const string input = """
+                             using System;
+
+                             /* c */ using System.Linq;
+
+                             internal class Example;
+                             """;
+
+        await VerifyFormatter(input);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter adds the blank line above a comment that leads a directive of the same group and that
+    /// the analyzer does not report its output
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-002")]
+    public async Task FormatterOutputWithBlankLineAddedAboveCommentIsNotReported()
+    {
+        const string input = """
+                             using System;
+                             // About Linq
+                             using System.Linq;
+
+                             internal class Example;
+                             """;
+        const string fixedData = """
+                                 using System;
+
+                                 // About Linq
+                                 using System.Linq;
+
+                                 internal class Example;
+                                 """;
+
+        await VerifyFormatter(input, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter keeps the blank line above the comment of a directive it moves and that the analyzer
+    /// does not report its output
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-002")]
+    public async Task FormatterOutputOfReorderWithBlankLineAboveCommentIsNotReported()
+    {
+        const string input = """
+                             using {|#0:Alpha|};
+
+                             // About Linq
+                             using System.Linq;
+                             using System;
+
+                             internal class Example;
+
+                             namespace Alpha
+                             {
+                                 internal class Placeholder;
+                             }
+                             """;
+        const string fixedData = """
+                                 using System;
+
+                                 // About Linq
+                                 using System.Linq;
+
+                                 using Alpha;
+
+                                 internal class Example;
+
+                                 namespace Alpha
+                                 {
+                                     internal class Placeholder;
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat));
+    }
+
     #endregion // Tests
 }

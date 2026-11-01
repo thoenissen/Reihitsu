@@ -5,14 +5,14 @@
 | ID prefix | FMT-USING |
 | Status | Active |
 | Code owners | `UsingDirectiveOrderingPhase`, `UsingDirectiveOrderingRewriter`, `UsingGrouping`, `UsingLeadingTriviaBuilder`, `UsingTrailingTriviaBuilder` |
-| Uses | SHARED-USING-001, SHARED-USING-004, SHARED-USING-007, SHARED-USING-008, SHARED-USING-009, SHARED-USING-010, FMT-PIPE-003 |
+| Uses | SHARED-USING-001, SHARED-USING-004, SHARED-USING-007, SHARED-USING-008, SHARED-USING-009, SHARED-USING-010, SHARED-USING-011, FMT-PIPE-003, FMT-BLANK-011, SHARED-FIX-006, SHARED-FIX-007 |
 
 This spec covers what the `UsingDirectiveOrderingPhase` decides on its own: how a using block is rebuilt once its canonical order is known — blank lines between groups, one directive per line, and where header, leading, and trailing comments end up. The order itself and the safety guard are the shared policy in SHARED-USING. The code fixes of RH7201–RH7207 run this phase on the one block they fix, so its output is also their output.
 
 ## Non-goals
 
 - The canonical group order, the order within a group, and when a block is safe to reorder — SHARED-USING-001 to SHARED-USING-009.
-- The blank line the blank-line phase inserts before a comment, also before a comment that leads a using directive, and the blank lines between the using block and the code around it (FMT-BLANK).
+- The blank line the blank-line phase inserts before a comment where none stood, also before a comment that leads a using directive, and the blank lines between the using block and the code around it (FMT-BLANK).
 - The final indentation of each directive (FMT-INDENT). This phase only places a split-off directive at the scope's indentation (SHARED-USING-010); the indentation phase decides the column.
 - Adding, removing, or deduplicating using directives, and moving them into or out of a namespace.
 
@@ -26,7 +26,7 @@ Why: The formatter and the RH72xx code fixes must produce the order the analyzer
 
 ### FMT-USING-002 — Exactly one blank line between groups
 
-In a block it reorders, the formatter MUST separate two adjacent groups (SHARED-USING-004) by exactly one blank line and MUST remove every blank line between two directives of the same group, also one above a comment that leads the second directive. This applies whether or not the order changed. The blank line the blank-line phase later inserts before such a comment is not this phase's decision (see Non-goals).
+In a block it reorders, the formatter MUST separate two adjacent groups (SHARED-USING-004) by exactly one blank line and MUST remove every blank line between two directives of the same group, except the blank line FMT-USING-010 keeps above a comment that leads the second directive. This applies whether or not the order changed.
 
 Why: The block's layout is derived from its groups alone, which is what SHARED-USING-008 and RH7207 require. Rebuilding it from scratch also means stray blank lines inside a group and extra blank lines between groups disappear in one pass.
 
@@ -422,6 +422,183 @@ class C
 // About Linq
 using System;
 using System.Linq;
+
+class C
+{
+    int x;
+}
+```
+
+### FMT-USING-010 — The blank line above a comment that leads a directive of the same group is kept
+
+In a block it reorders, the formatter MUST place exactly one blank line above the first comment that leads a directive continuing the group of its predecessor when, in the source, a blank line stood directly above that comment, and MUST place none when no blank line stood there. Every comment counts, on a line of its own or on the directive's line (SHARED-USING-011). This applies whether the directive moves or stays, and whether or not the order changed. When the directive is the block's original first directive and the comment is the first that moves with it (FMT-USING-009), the blank line that ends the header kept at the top stood directly above the comment and counts. The trivia from that comment to the directive is kept as written (FMT-USING-008).
+
+Why: SHARED-USING-011 accepts this blank line; removing it would make this phase undo the blank-line phase (FMT-BLANK-011) in every pass and leave the RH7201–RH7207 code fixes with an output that RH5020 reports for an ordinary comment. The phase keeps what the author wrote instead of inserting the blank line itself, so the blank line above a comment keeps one owner, the blank-line phase, which inserts it where none stood. Where none stood, the code fixes therefore leave the comment without one, and formatting their result may add it: that blank line lies between the comment and the code above, which is not what the using rules report, so SHARED-FIX-006 and the *Blank lines* bullet of SHARED-FIX-007 keep it as the author wrote it. Several blank lines become one, as at a group boundary (FMT-USING-002).
+
+Example — the blank line stays, also when the block is reordered around it:
+
+```csharp
+using Microsoft.CodeAnalysis;
+using System;
+
+// About Linq
+using System.Linq;
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+using System;
+
+// About Linq
+using System.Linq;
+
+using Microsoft.CodeAnalysis;
+
+class C
+{
+    int x;
+}
+```
+
+and when its directive moves:
+
+```csharp
+using Microsoft.CodeAnalysis;
+
+// About Linq
+using System.Linq;
+using System;
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+using System;
+
+// About Linq
+using System.Linq;
+
+using Microsoft.CodeAnalysis;
+
+class C
+{
+    int x;
+}
+```
+
+and above a comment on the directive's line:
+
+```csharp
+using Microsoft.CodeAnalysis;
+using System;
+
+/* c */ using System.Linq;
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+using System;
+
+/* c */ using System.Linq;
+
+using Microsoft.CodeAnalysis;
+
+class C
+{
+    int x;
+}
+```
+
+and several blank lines become one:
+
+```csharp
+using System.Linq;
+using System;
+
+
+
+// About Text
+using System.Text;
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+using System;
+using System.Linq;
+
+// About Text
+using System.Text;
+
+class C
+{
+    int x;
+}
+```
+
+and the blank line that ends a header counts for the comment that moves away from the top:
+
+```csharp
+// Header
+
+// About Linq
+using System.Linq;
+using System;
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+// Header
+
+using System;
+
+// About Linq
+using System.Linq;
+
+class C
+{
+    int x;
+}
+```
+
+while a comment without a blank line above it in the source gets none, also when its directive moves into the middle of its group:
+
+```csharp
+using System;
+using Microsoft.CodeAnalysis;
+// About Linq
+using System.Linq;
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+using System;
+// About Linq
+using System.Linq;
+
+using Microsoft.CodeAnalysis;
 
 class C
 {
