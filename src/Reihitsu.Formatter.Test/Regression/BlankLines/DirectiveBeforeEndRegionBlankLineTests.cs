@@ -5,7 +5,8 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.BlankLines;
 
 /// <summary>
-/// Full-pipeline tests for the blank lines of a gap before a closing brace that a non-region directive or disabled text
+/// Full-pipeline tests for the blank lines of a gap before a closing brace, the closing bracket of a collection expression
+/// or list pattern, or the closing parenthesis of a parenthesized pattern that a non-region directive or disabled text
 /// starts and a region directive ends
 /// </summary>
 [TestClass]
@@ -253,6 +254,165 @@ public class DirectiveBeforeEndRegionBlankLineTests : FormatterTestsBase
                              """;
 
         AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted in front of a directive that starts a gap a region directive ends before
+    /// the closing bracket of a collection expression. Only the blank lines are asserted: no requirement decides the
+    /// column of a region directive inside a collection expression
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-009")]
+    public void InsertsNoBlankLineInFrontOfDirectiveWhenRegionDirectiveEndsTheGapBeforeClosingBracket()
+    {
+        const string input = """
+                             class C
+                             {
+                                 int[] G = [
+                                     #region R
+                                     1,
+                             #pragma warning disable CS0168
+                                     #endregion // R
+                                 ];
+                             }
+                             """;
+
+        AssertBlankLinesAbove(input, ("#pragma", false));
+    }
+
+    /// <summary>
+    /// Verifies that the author's blank line in front of a directive that starts a gap a region directive ends before the
+    /// closing bracket of a collection expression is kept. Only the blank lines are asserted: no requirement decides the
+    /// column of a region directive inside a collection expression
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-009")]
+    public void KeepsAuthorBlankLineInFrontOfDirectiveWhenRegionDirectiveEndsTheGapBeforeClosingBracket()
+    {
+        const string input = """
+                             class C
+                             {
+                                 int[] G = [
+                                     #region R
+                                     1,
+
+                             #pragma warning disable CS0168
+
+                                     #endregion // R
+                                 ];
+                             }
+                             """;
+
+        AssertBlankLinesAbove(input, ("#pragma", true));
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted in front of an <c>#if</c> whose disabled branch and <c>#endif</c> stand in
+    /// front of an <c>#endregion</c> before the closing bracket of a collection expression. Only the blank lines are
+    /// asserted: no requirement decides the column of a region directive inside a collection expression
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-009")]
+    public void InsertsNoBlankLineInFrontOfConditionalBlockWhenRegionDirectiveEndsTheGapBeforeClosingBracket()
+    {
+        const string input = """
+                             class C
+                             {
+                                 int[] G = [
+                                     #region R
+                                     1,
+                             #if NEVER
+                                     2,
+                             #endif
+                                     #endregion // R
+                                 ];
+                             }
+                             """;
+
+        AssertBlankLinesAbove(input, ("#if", false));
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted in front of a directive that starts a gap a region directive ends before
+    /// the closing bracket of a list pattern. Only the blank lines are asserted: no requirement decides the columns of a
+    /// list pattern's lines
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-009")]
+    public void InsertsNoBlankLineInFrontOfDirectiveWhenRegionDirectiveEndsTheGapBeforeClosingBracketOfListPattern()
+    {
+        const string input = """
+                             class C
+                             {
+                                 bool M(object o)
+                                 {
+                                     return o is [
+                                         #region R
+                                         1,
+                             #pragma warning disable CS0168
+                                         #endregion // R
+                                         ];
+                                 }
+                             }
+                             """;
+
+        AssertBlankLinesAbove(input, ("#pragma", false));
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted in front of a directive that starts a gap a region directive ends before
+    /// the closing parenthesis of a parenthesized pattern. Only the blank lines are asserted: no requirement decides the
+    /// columns of a parenthesized pattern's lines
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-009")]
+    public void InsertsNoBlankLineInFrontOfDirectiveWhenRegionDirectiveEndsTheGapBeforeClosingParenthesisOfPattern()
+    {
+        const string input = """
+                             class C
+                             {
+                                 bool M(object o)
+                                 {
+                                     return o is (
+                                         #region R
+                                         1 or 2
+                             #pragma warning disable CS0168
+                                         #endregion // R
+                                         );
+                                 }
+                             }
+                             """;
+
+        AssertBlankLinesAbove(input, ("#pragma", false));
+    }
+
+    /// <summary>
+    /// Verifies that the author's blank line in front of a directive that starts a gap a region directive ends before the
+    /// closing parenthesis of a parenthesized pattern is kept. Only the blank lines are asserted: no requirement decides
+    /// the columns of a parenthesized pattern's lines
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-009")]
+    public void KeepsAuthorBlankLineInFrontOfDirectiveWhenRegionDirectiveEndsTheGapBeforeClosingParenthesisOfPattern()
+    {
+        const string input = """
+                             class C
+                             {
+                                 bool M(object o)
+                                 {
+                                     return o is (
+                                         #region R
+                                         1 or 2
+
+                             #pragma warning disable CS0168
+
+                                         #endregion // R
+                                         );
+                                 }
+                             }
+                             """;
+
+        AssertBlankLinesAbove(input, ("#pragma", true));
     }
 
     #endregion // Methods
