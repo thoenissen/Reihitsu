@@ -79,7 +79,7 @@ public class ReihitsuFormatterLineEndingTests
     public void LineBreaksEndingPragmaAndRegionDirectivesAreRewritten()
     {
         const string input = "class C\r\n{\r\n    #region Fields\n\r\n#pragma warning disable CS0169\n    int x;\r\n#pragma warning restore CS0169\n\r\n    #endregion // Fields\n}";
-        const string expected = "class C\r\n{\r\n    #region Fields\r\n\r\n#pragma warning disable CS0169\r\n    int x;\r\n\r\n#pragma warning restore CS0169\r\n\r\n    #endregion // Fields\r\n}";
+        const string expected = "class C\r\n{\r\n    #region Fields\r\n\r\n#pragma warning disable CS0169\r\n    int x;\r\n#pragma warning restore CS0169\r\n\r\n    #endregion // Fields\r\n}";
 
         AssertFormatted(input, expected);
     }

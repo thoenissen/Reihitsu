@@ -300,7 +300,7 @@ public class BlockStatementBlankLineTests : FormatterTestsBase
                                      if (a)
                                      {
                                      }
-                             #if DEBUG
+                             #if !NEVER
                                      {
                                          B();
                                      }
@@ -322,7 +322,7 @@ public class BlockStatementBlankLineTests : FormatterTestsBase
                                         if (a)
                                         {
                                         }
-                                #if DEBUG
+                                #if !NEVER
 
                                         {
                                             B();
@@ -384,21 +384,22 @@ public class BlockStatementBlankLineTests : FormatterTestsBase
                                         switch (a)
                                         {
                                             case 1:
-                                                if (a > 0)
                                                 {
+                                                    if (a > 0)
+                                                    {
+                                                        a++;
+                                                    }
+
+                                                    {
+                                                        a--;
+                                                    }
+
                                                     a++;
+
+                                                    {
+                                                        a--;
+                                                    }
                                                 }
-
-                                                {
-                                                    a--;
-                                                }
-
-                                                a++;
-
-                                                {
-                                                    a--;
-                                                }
-
                                                 break;
                                         }
                                     }

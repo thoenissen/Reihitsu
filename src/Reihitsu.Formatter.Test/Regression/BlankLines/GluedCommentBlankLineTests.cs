@@ -747,5 +747,217 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies the spec example: a comment glued to the opening brace of a complex element initializer that spans several
+    /// lines gets no blank line, and one glued to a complex element initializer on one line is separated
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-018")]
+    public void SeparatesCommentGluedToOneLineComplexElementInitializerOnly()
+    {
+        const string input = """
+                             class C
+                             {
+                                 Dictionary<int, int> D = new()
+                                                          {
+                                                              { 1, 2 },
+                                                              /* c1 */ {
+                                                                  3,
+                                                                  4
+                                                              },
+                                                              /* c2 */ { 5, 6 }
+                                                          };
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    Dictionary<int, int> D = new()
+                                                             {
+                                                                 { 1, 2 },
+                                                                 /* c1 */ {
+                                                                              3,
+                                                                              4
+                                                                          },
+
+                                                                 /* c2 */ { 5, 6 }
+                                                             };
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the author's blank line above a comment glued to the opening brace of a complex element initializer
+    /// that spans several lines is removed
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-018")]
+    public void RemovesAuthorBlankLineAboveCommentGluedToMultiLineComplexElementInitializer()
+    {
+        const string input = """
+                             class C
+                             {
+                                 Dictionary<int, int> D = new()
+                                                          {
+                                                              { 1, 2 },
+
+                                                              /* c1 */ {
+                                                                           3,
+                                                                           4
+                                                                       }
+                                                          };
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    Dictionary<int, int> D = new()
+                                                             {
+                                                                 { 1, 2 },
+                                                                 /* c1 */ {
+                                                                              3,
+                                                                              4
+                                                                          }
+                                                             };
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a comment glued to the closing brace of a collection initializer assigned to a member is
+    /// separated, and one glued to the closing brace of a collection initializer that is not assigned is not
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-018")]
+    public void SeparatesCommentGluedToClosingBraceOfAssignedCollectionInitializerOnly()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var p = new P
+                                             {
+                                                 L = {
+                                                         1
+                                                     /* l */ }
+                                             };
+                                     var q = new List<int>
+                                             {
+                                                 1
+                                             /* m */ };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var p = new P
+                                                {
+                                                    L = {
+                                                            1
+
+                                                        /* l */ }
+                                                };
+                                        var q = new List<int>
+                                                {
+                                                    1
+                                                /* m */ };
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the author's blank line above a comment glued to the closing brace of a collection initializer that
+    /// is not assigned is removed, and the one above a comment glued to an assigned collection initializer's closing brace
+    /// is kept
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-018")]
+    public void RemovesAuthorBlankLineAboveCommentGluedToClosingBraceOfUnassignedCollectionInitializerOnly()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var p = new P
+                                             {
+                                                 L = {
+                                                         1
+
+                                                     /* l */ }
+                                             };
+                                     var q = new List<int>
+                                             {
+                                                 1
+
+                                             /* m */ };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var p = new P
+                                                {
+                                                    L = {
+                                                            1
+
+                                                        /* l */ }
+                                                };
+                                        var q = new List<int>
+                                                {
+                                                    1
+                                                /* m */ };
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a comment in front of a documentation comment on a brace's line is separated, and a
+    /// comment glued to the brace without one is not
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-018")]
+    public void SeparatesCommentInFrontOfDocumentationCommentOnBraceLineOnly()
+    {
+        const string input = """
+                             public class TestClass
+                             /* x */ /** Doc */ {
+                             }
+
+                             public class TestClass2
+                             /* y */ {
+                             }
+                             """;
+        const string expected = """
+                                public class TestClass
+
+                                /* x */ /** Doc */ {
+                                }
+
+                                public class TestClass2
+                                /* y */ {
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
