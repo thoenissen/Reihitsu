@@ -51,3 +51,4 @@ None. The issue text asks the run to first check every statement about today's c
 4. Line breaks inside attribute-list brackets are never joined (`[A⏎ ]` stays on two lines). Source: `02-skeptic.md`.
 5. A blank line is inserted before a `///` comment inside a parameter's attribute group (CS1587 input). Source: `02-skeptic.md`.
 6. The code fix's attribute-list split (SHARED-ATTR-017) is a separate implementation beside the formatter's single split. Source: `03-spec-author.md`, lead decision 11.
+7. `void M(/* c */ [A] int a)` loses the space behind the comment on `main` (spacing, outside the run). Source: `04-test-implementer.md`.
