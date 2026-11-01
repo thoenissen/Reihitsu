@@ -590,3 +590,14 @@ Not a question, for the lead's record: two accessor modifiers on separate lines 
 
 - **A member's modifier in front of a tuple type** — `public(int, int) G;` and `static(int, int) F() => default;` keep the author's gap (reachable by whole-document formatting; never joined). Readings: A — keep; B — one space behind every member modifier. Recommendation: B, as part of thoenissen/Reihitsu#1440's keyword list.
 - The lead's four candidates stand unchanged.
+
+## Answers carried out
+
+Base: 0556279. The maintainer answered 1B, 2B, 3B, 4B, 5B, 6C, 7C, 8B, 9B, 10B, 11B, 12B, 13B, which are the recommended answers. The spec diff was already written on those answers, so no requirement text changed in this step: no requirement still describes a non-chosen option, and the spec diff contains no "pending", "recommended", or "asked" wording.
+
+- Change doc `sdd/changes/2026-11/spacing-sole-gap-owner.md`:
+  - `Status: Accepted` (`sdd/README.md`: every visible output change it lists has the maintainer's answer).
+  - `Decisions`: each "Pending" entry now records the answer with its question number. Question 3 records that this run decided the space behind the colon. Questions 4, 5, and 9 record a confirmation of #920 and #912.
+  - `What`, `Why`, and the preface of `Visible output changes` no longer speak of questions still to be asked.
+  - `Alternatives considered`: "rejected as recommended" is now "rejected".
+- Spec tests (`--project architecture --filter Sdd`): 50 passed, 1 failed. The failure is the expected one, `EveryRequirementOfAnEnforcedSpecIsCovered`: FMT-SPACE-016 to -027 and FMT-BREAK-031 have no tests yet. The test implementer writes them next.
