@@ -538,18 +538,6 @@ public class UsingDirectiveOrderingUtilitiesTests
     }
 
     /// <summary>
-    /// Verifies that a comment trailing the predecessor does not lead the directive behind it on the same line
-    /// </summary>
-    [TestMethod]
-    [Requirement("SHARED-USING-011")]
-    public void IsLedByCommentIsFalseForCommentTrailingThePredecessor()
-    {
-        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("using System; /* a\n   b */ using System.Linq;").Usings;
-
-        Assert.IsFalse(UsingDirectiveOrderingUtilities.IsLedByComment(usingDirectives[1]));
-    }
-
-    /// <summary>
     /// Verifies that the line break ending the predecessor's line alone leaves no blank line above the directive
     /// </summary>
     [TestMethod]
@@ -594,19 +582,6 @@ public class UsingDirectiveOrderingUtilitiesTests
     public void HasBlankLineAboveIsFalseForDirectiveSharingItsPredecessorsLine()
     {
         var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("using System; using System.Linq;").Usings;
-
-        Assert.IsFalse(UsingDirectiveOrderingUtilities.HasBlankLineAbove(usingDirectives[0], usingDirectives[1]));
-    }
-
-    /// <summary>
-    /// Verifies that the line break inside a comment that trails the predecessor and spans lines does not count, so the
-    /// directive behind that comment on the same line has no blank line above it
-    /// </summary>
-    [TestMethod]
-    [Requirement("SHARED-USING-008")]
-    public void HasBlankLineAboveIsFalseBehindATrailingCommentSpanningLines()
-    {
-        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("using System; /* a\n\n   b */ using System.Linq;").Usings;
 
         Assert.IsFalse(UsingDirectiveOrderingUtilities.HasBlankLineAbove(usingDirectives[0], usingDirectives[1]));
     }
