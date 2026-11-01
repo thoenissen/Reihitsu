@@ -21,7 +21,7 @@ Roles run: spec author → skeptic → test implementer → implementer → clea
 ## Maintainer clarifications for this run
 
 - The maintainer expects the issue to be complex and asks the run to plan carefully up front, so that repair rounds do not keep finding new cases at the end. Every role therefore enumerates complete inventories and failure classes in its first pass (every rewriter of the line-break phase and every token pair it can join or space; every attribute-target and arrow construct; existing formatter, code-fix, and analyzer tests whose expected output depends on the changed gaps), rather than sampling.
-- Context from earlier runs (`squad/notes/2026-11-01-blank-line-sole-owner.md`, `squad/notes/2026-11-01-using-comment-blank-line.md`): the maintainer considers comments that share a line with code, and comments around `=`, unwanted; the formatter must not grow complexity to lay them out. Reachability (`AGENTS.md`, *Supported inputs*) is checked before any case is measured.
+- Context from earlier runs (the blank-line and using-comment runs of 2026-11-01): the maintainer considers comments that share a line with code, and comments around `=`, unwanted; the formatter must not grow complexity to lay them out. Reachability (`AGENTS.md`, *Supported inputs*) is checked before any case is measured.
 
 ## Maintainer answers
 
@@ -53,11 +53,16 @@ Batch 1 (before the test implementer), 13 output questions from `03-spec-author.
 | 6 | Skeptic | Present Q2, Q4, Q5 (arguments), Q9 as decided? | Ask them in the batch, with the earlier answer as the recommendation and its citation | The issue proposes otherwise for arrows; one answer confirms them cheaply | Asked | — |
 | 7 | Spec author / skeptic | Issue goals: "SpacingPolicy only in the spacing phase" already true; "arrow keeps author's spacing" superseded by Q2; `NoSpaceSpacingRule` remark premise wrong | Drop the first, follow Q2's answer for the second, keep the third as a comment fix explaining why the pairs are tight | Facts on `main` | Not visible except through Q2 | pending |
 | 8 | Spec author (amendment) | Accept the amended change doc (dfb3dd8) | Accepted; its 13 output questions asked as one batch before the test implementer | The skeptic has run and the amendment it caused is written | Every visible change is asked | dfb3dd8 |
+| 9 | Test implementer | FMT-SPACE-025's example and change-doc entry 11 show a one-line `with` initializer the pipeline never produces | Spec author corrects the example and entry to the real multi-line layout; answer 11B (which showed that layout) stands | Text error; the asked question showed the real layout | Answer 11B covers the output | pending |
+| 10 | Test implementer | `x!⏎with { }` is not joined today | Test only the one-line form | Fact on `main` | Covered by answer 11B | 0920f3c |
+| 11 | Test implementer | Doc-comment-on-the-right and operator/conversion/constructor/finalizer arrows tested at phase level only | Accept | Earlier phases move or convert these inputs before spacing; whole-document formatting never presents them to the spacing phase as such | Internal test level | 0920f3c |
+| 12 | Test implementer | FMT-SPACE-024 ambiguous for `ref` in front of a local's tuple type | Spec author decides from the existing requirements and the answers; if no answer decides it, it becomes an output question | — | Pending check | pending |
 
 ## Follow-up candidates
 
 - A wrap inside a declaration's attribute list (`[return` ⏎ `:Obsolete]`) is never joined — 01-spec-author, 02-skeptic.
 - Wrapped pattern parts lose their column (property-pattern member `{ X:` ⏎ `1 }`); check against #1542 / #953 — 01-spec-author, 02-skeptic.
 - A member's own modifier in front of a tuple type (`public(int, int) G;`) keeps the author's spacing — candidate for #1440 — 03-spec-author.
+- A lambda with an attribute list is broken after it in whole-document formatting (`[return:Obsolete]` ⏎ `(int x) => x;`) — 04-test-implementer.
 - Wrapped `with` expression loses its column — same class as #953, comment there at most — 02-skeptic.
 - The space behind `when` (`when(x)`, catch filter) is undecided — candidate for #1440 — 02-skeptic.
