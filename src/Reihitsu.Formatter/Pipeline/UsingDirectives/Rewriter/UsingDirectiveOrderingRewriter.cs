@@ -87,7 +87,8 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
             sourceIndices[usingDirectives[sourceIndex]] = sourceIndex;
 
             if (sourceIndex > 0
-                && UsingLeadingTriviaBuilder.HasBlankLineAboveLeadingComment(usingDirectives[sourceIndex - 1].GetTrailingTrivia(), usingDirectives[sourceIndex]))
+                && UsingDirectiveOrderingUtilities.IsLedByComment(usingDirectives[sourceIndex])
+                && UsingDirectiveOrderingUtilities.HasBlankLineAbove(usingDirectives[sourceIndex - 1], usingDirectives[sourceIndex]))
             {
                 directivesWithBlankLineAboveComment.Add(usingDirectives[sourceIndex]);
             }

@@ -39,28 +39,6 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer : Diagnost
     #region Methods
 
     /// <summary>
-    /// Determines whether the using directive has a blank line before it (based on its leading trivia)
-    /// </summary>
-    /// <param name="usingDirective">Using directive</param>
-    /// <returns><see langword="true"/> if there is a blank line before the directive</returns>
-    private static bool HasBlankLineBefore(UsingDirectiveSyntax usingDirective)
-    {
-        var leadingTrivia = usingDirective.GetLeadingTrivia();
-        var firstSignificantTriviaIndex = SyntaxTriviaUtilities.FindFirstSignificantTriviaIndex(leadingTrivia);
-        var whitespaceTriviaCount = firstSignificantTriviaIndex < 0 ? leadingTrivia.Count : firstSignificantTriviaIndex;
-
-        for (var triviaIndex = 0; triviaIndex < whitespaceTriviaCount; triviaIndex++)
-        {
-            if (leadingTrivia[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
     /// Determines whether the given using directives are properly organized into groups: they are in canonical
     /// order, a directive that starts a new group has a blank line before it, and a directive that continues its
     /// group has none, unless a comment leads it, which may have one or more blank lines above it (SHARED-USING-011)
@@ -87,7 +65,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer : Diagnost
         for (var index = 1; index < usings.Count; index++)
         {
             var sameGroup = UsingDirectiveOrderingUtilities.AreInSameGroup(usings[index - 1], usings[index]);
-            var hasBlankLine = HasBlankLineBefore(usings[index]);
+            var hasBlankLine = UsingDirectiveOrderingUtilities.HasBlankLineAbove(usings[index - 1], usings[index]);
 
             if (sameGroup
                 && hasBlankLine
