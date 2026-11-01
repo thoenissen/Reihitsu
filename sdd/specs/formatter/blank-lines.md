@@ -5,7 +5,7 @@
 | ID prefix | FMT-BLANK |
 | Status | Active |
 | Code owners | `BlankLinePhase`, `BlankLineTokenCleanupRewriter`, `BlankLineTriviaBoundaryRewriter`, `BlankLineRegionDirectiveRewriter`, `BlankLineStatementSpacingRewriter`, `BlankLineBreakSpacingRewriter`, `BlankLineCollapser`, `BlankLineEditor`, `BraceBlankLinePolicy` |
-| Uses | FMT-PIPE-002, FMT-PIPE-004, FMT-BREAK-019, FMT-BREAK-022, SHARED-USING-008, SHARED-BLANK-001, SHARED-BLANK-002, SHARED-BLANK-003, SHARED-BLANK-004, SHARED-BLANK-005, SHARED-BLANK-006, SHARED-BLANK-007, SHARED-COMMENT-012, FMT-DOC-001, FMT-DOC-003 |
+| Uses | FMT-PIPE-002, FMT-PIPE-004, FMT-BREAK-019, FMT-BREAK-022, SHARED-USING-011, SHARED-BLANK-001, SHARED-BLANK-002, SHARED-BLANK-003, SHARED-BLANK-004, SHARED-BLANK-005, SHARED-BLANK-006, SHARED-BLANK-007, SHARED-COMMENT-012, FMT-DOC-001, FMT-DOC-003 |
 
 This spec covers `BlankLinePhase`: where the formatter inserts a blank line (before statements and comments, after closing braces and `break`, around region directives), where it removes one (next to braces, closing brackets, chained keywords, and documentation comments, and between a comment and the brace or bracket behind it), and how it collapses runs of blank lines. What counts as a blank line, the closing-brace and terminal-`break` rules, and the region-directive rules are shared with the analyzer and specified in SHARED-BLANK.
 
@@ -714,7 +714,7 @@ class C
 
 ### FMT-BLANK-011 — A comment on its own line is preceded by exactly one blank line
 
-The formatter MUST ensure exactly one blank line before the first comment in a token's leading trivia that is not glued to the token — a comment on its own line, or a documentation comment that starts the token's line, in the positions FMT-BLANK-018 classifies every comment into (SHARED-BLANK-002) — counted as SHARED-BLANK-001 defines it. It MUST NOT insert one when the comment is the first content of a block, a type body, or a switch section, or when a preprocessor directive directly precedes the comment. When the first comment of the gap is glued to the token, whatever that token is, this requirement inserts no blank line in the gap; FMT-BLANK-018 decides the blank lines above that comment. This applies to ordinary and documentation comments alike, including a comment before a closing brace. This requirement does not yet decide a comment that leads a using directive of the same group as the directive above it; the blank lines inside a using block are SHARED-USING-008.
+The formatter MUST ensure exactly one blank line before the first comment in a token's leading trivia that is not glued to the token — a comment on its own line, or a documentation comment that starts the token's line, in the positions FMT-BLANK-018 classifies every comment into (SHARED-BLANK-002) — counted as SHARED-BLANK-001 defines it. It MUST NOT insert one when the comment is the first content of a block, a type body, or a switch section, or when a preprocessor directive directly precedes the comment. When the first comment of the gap is glued to the token, whatever that token is, this requirement inserts no blank line in the gap; FMT-BLANK-018 decides the blank lines above that comment. This applies to ordinary and documentation comments alike, including a comment before a closing brace. A comment that leads a using directive of the same group as the directive above it is no exception; the using rules accept the blank line above it (SHARED-USING-011).
 
 Why: A comment introduces the code below it; the blank line groups it with that code instead of with the code above. At the start of a block the opening brace or the case label already provides the boundary, and after a directive the comment belongs to the directive's group. The formatter mirrors RH5020 and RH8303.
 
@@ -795,6 +795,37 @@ class C
                 break;
         }
     }
+}
+```
+
+A comment that leads a using directive of the same group as the directive above it, with or without a blank line in the input, a single-line comment and a documentation comment alike:
+
+```csharp
+using System;
+// About Linq
+using System.Linq;
+
+/** About Text */
+using System.Text;
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+using System;
+
+// About Linq
+using System.Linq;
+
+/** About Text */
+using System.Text;
+
+class C
+{
+    int x;
 }
 ```
 

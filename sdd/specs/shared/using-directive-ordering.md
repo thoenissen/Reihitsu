@@ -5,7 +5,7 @@
 | ID prefix | SHARED-USING |
 | Status | Active |
 | Code owners | `UsingDirectiveOrderingUtilities`, `UsingDirectiveOrderingSafety`, `UsingDirectiveOrderingGroup` |
-| Uses | — |
+| Uses | FMT-BLANK-011, FMT-BLANK-018 |
 
 This spec covers the using-directive policy that the analyzer and the formatter must agree on: which using blocks may be reordered at all, how directives are grouped, the order of the groups, and the order within a group. The analyzer rules RH7201 (System directives first), RH7202 (alias directives last), RH7203 (alphabetical by namespace), RH7204 (aliases alphabetical by alias name), RH7205 (static directives between regular and alias directives), RH7206 (static directives alphabetical), and RH7207 (organized into groups) report against this policy; their code fixes and the formatter's FMT-USING phase produce it.
 
@@ -365,7 +365,7 @@ class C
 
 ### SHARED-USING-008 — A blank line between groups, none within a group
 
-In an organized block, a directive that starts a new group (SHARED-USING-004) MUST be preceded by a blank line, and a directive that continues the group of its predecessor MUST NOT be. Only the line breaks before the first comment that leads the directive count; a comment attached to the directive stays directly above it.
+In an organized block, a directive that starts a new group (SHARED-USING-004) MUST be preceded by a blank line, and a directive that continues the group of its predecessor MUST NOT be, except where SHARED-USING-011 allows one above a comment that leads it. Only the line breaks before the first comment that leads the directive count; a comment attached to the directive stays directly above it.
 
 Why: The blank line makes the group structure visible, and RH7207 checks exactly this. Counting only the space before an attached comment lets a group-starting directive keep its comment while still being separated from the group above.
 
@@ -468,3 +468,87 @@ class C
 When a directive that shared a line with its predecessor is moved onto a line of its own — by the RH5114 code fix or by the formatter (FMT-USING) — it MUST be placed at the indentation of the line on which the block's first directive starts. When that line begins inside a comment that started on an earlier line, the indentation of the line on which the comment starts MUST be used instead.
 
 Why: The whitespace in front of a directive that did not start its line is the gap after the previous token, not an indentation, so it cannot be kept. The first directive's line is the best evidence of how the user indents the block. In the formatter's final output the indentation phase (FMT-INDENT) re-indents every line anyway, so this rule is visible only in the RH5114 code fix and in the output of the using-directive phase on its own.
+
+### SHARED-USING-011 — A blank line may stand above a comment that leads a directive of the same group
+
+In an organized block, a directive that continues the group of its predecessor MAY be preceded by one or more blank lines when the first comment of its leading trivia is on a line of its own — a line break outside the text of a comment stands between that comment and the directive — or is a documentation comment, also one on the directive's line. The blank lines MUST stand above that comment, and the comment stays directly above the directive. The same directive without a blank line is organized too. A directive whose first leading comment is an ordinary comment on the directive's line, and a directive without a leading comment, MUST NOT be preceded by a blank line, as SHARED-USING-008 states.
+
+Why: These are exactly the comments that the comment rule separates from the code above (FMT-BLANK-011, RH5020); a comment glued to the directive is not one of them (FMT-BLANK-018). If the using rules rejected that blank line, every layout of such a comment would be reported by one rule or the other, and the formatter and the RH7201–RH7207 code fixes would undo each other. The blank line is allowed rather than required because the comment rule already requires it; a second rule asking for it would report the same line twice.
+
+Example — a single-line comment and a documentation comment on lines of their own:
+
+```csharp
+using System;
+
+// About Linq
+using System.Linq;
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+using System;
+
+/** About Text */
+using System.Text;
+
+class C
+{
+    int x;
+}
+```
+
+are organized, and so is the same block without the blank line:
+
+```csharp
+using System;
+// About Linq
+using System.Linq;
+
+class C
+{
+    int x;
+}
+```
+
+and a documentation comment that spans lines and ends on the directive's line:
+
+```csharp
+using System;
+
+/** first
+   second */ using System.Linq;
+
+class C
+{
+    int x;
+}
+```
+
+while an ordinary comment on the directive's line does not allow the blank line:
+
+```csharp
+using System;
+
+/* c */ using System.Linq;
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+using System;
+/* c */ using System.Linq;
+
+class C
+{
+    int x;
+}
+```
+
+and neither does a directive without a comment (SHARED-USING-008).
