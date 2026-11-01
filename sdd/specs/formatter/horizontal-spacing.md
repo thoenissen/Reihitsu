@@ -5,7 +5,7 @@
 | ID prefix | FMT-SPACE |
 | Status | Active |
 | Code owners | `HorizontalSpacingPhase`, `HorizontalSpacingRewriter`, `SpacingPolicy`, `ISpacingRule`, `AttributeListCloseBracketSpacingRule`, `NoSpaceSpacingRule`, `CommaSpacingRule`, `SingleSpaceSpacingRule`, `OperatorSpacingRule`, `ForLoopSemicolonSpacingRule`, `KeywordSpacingRule`, `TrailingWhitespaceWriter`, `CommaSpacingUtilities`, `UnaryOperatorSpacingUtilities` |
-| Uses | FMT-BREAK-015, FMT-BREAK-018, FMT-BREAK-024, FMT-BREAK-031, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-014, SHARED-BLANK-008 |
+| Uses | FMT-BREAK-015, FMT-BREAK-018, FMT-BREAK-021, FMT-BREAK-024, FMT-BREAK-031, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-014, SHARED-BLANK-008 |
 
 This spec covers `HorizontalSpacingPhase`: the whitespace between two adjacent tokens on the same line, as decided by the ordered spacing rules of `SpacingPolicy`, how that decision is applied when a comment sits in the gap, and the gaps the phase leaves alone.
 
@@ -1079,6 +1079,16 @@ The formatter MUST put exactly one space between each of these keywords and the 
 
 A keyword whose next token is its own parenthesis, such as `typeof`, `sizeof`, `default`, `checked`, `unchecked`, `nameof`, or `__arglist`, is not one of these keywords, and `new` is decided by FMT-SPACE-012. A modifier of a member or local declaration is not decided by this rule either: in `static (int, int) F() => default;` and `public(int, int) G;` the gap behind `static` and `public` is kept as written, while in `N(static(int v) => v)` and `static void E(this(int, int) t)` the lambda modifier and the parameter modifier get the space.
 
+Each of these positions is decided as follows, wherever the token behind the keyword is a `(`, a `[`, or a `*`:
+
+- A lambda modifier gets the space also in front of the lambda's return type: `static (int, int) () => (1, 2)`.
+- A parameter modifier is also one of a function pointer's parameter: `delegate*<ref (int, int), void>`.
+- The `ref` and the `readonly` of a lambda's return type get the space: `ref (int, int) () => ref t`.
+- The `ref` of a ref expression gets the space wherever the expression stands, in an argument as in a statement: `ref (b ? ref x : ref y)`, `return ref (x);`, `return ref *p;`.
+- `var` in front of the designation of a deconstruction gets the space as in a pattern: `var (u, w) = t;`.
+- The modifiers of a local function are modifiers of a declaration, like a member's: `static(int, int) K()` keeps its gap, and so does a member's `readonly` in `public readonly(int, int) M()`.
+- The `this` and `base` of a constructor initializer and the `this` of an indexer declaration are not modifiers and are not decided by this rule: `: this(a)`, `: base(a)`, and `int this[int i]` keep their gap.
+
 Why: Each of these keywords modifies or introduces the operand behind it and is not called with it: `await(t)` and `async(x) => x` read like calls to methods named `await` and `async`, and `not"x"` or `out*p` glue the keyword to an operand of another kind. A keyword followed by an identifier or another keyword needs the space anyway; one followed by `(`, `[`, `*`, `@`, a literal, or an operator does not, so a join leaves that gap empty (FMT-BREAK-031) and only this rule keeps the space a joined pair had before.
 
 Example:
@@ -1155,11 +1165,65 @@ static class C
 
 `typeof(C)`, `default(int)`, and `nameof(a)` keep their gap.
 
+Example — a lambda's return type, a function pointer's parameter, ref expressions, and a deconstruction get the space; a local function's modifier keeps its gap:
+
+```csharp
+unsafe class C
+{
+    static (int, int) s_t;
+
+    static ref int M(bool b, ref int x, ref int y)
+    {
+        var(u, w) = s_t;
+        N(ref(int, int) () => ref s_t, static(int, int) () => (1, 2));
+
+        delegate*<ref(int, int), void> f = null;
+        ref var z = ref(b ? ref x : ref y);
+
+        return ref(x);
+    }
+
+    static void L()
+    {
+        static(int, int) K()
+        {
+            return default;
+        }
+    }
+}
+```
+
+```csharp
+unsafe class C
+{
+    static (int, int) s_t;
+
+    static ref int M(bool b, ref int x, ref int y)
+    {
+        var (u, w) = s_t;
+        N(ref (int, int) () => ref s_t, static (int, int) () => (1, 2));
+
+        delegate*<ref (int, int), void> f = null;
+        ref var z = ref (b ? ref x : ref y);
+
+        return ref (x);
+    }
+
+    static void L()
+    {
+        static(int, int) K()
+        {
+            return default;
+        }
+    }
+}
+```
+
 ### FMT-SPACE-025 — One space on each side of `with`
 
 The formatter MUST put exactly one space on each side of the `with` of a `with` expression.
 
-Why: `with` is a binary operator written as a word; `p.Q()with { X = 1 }` glues it to its left operand, which an identifier in front of it would not allow. The space in front of its initializer's `{` is decided by FMT-SPACE-009.
+Why: `with` is a binary operator written as a word; `p.Q()with { X = 1 }` glues it to its left operand, which an identifier in front of it would not allow. The initializer behind it starts its own line (FMT-BREAK-021); where it shares the line, the space in front of its `{` is decided by FMT-SPACE-009.
 
 Example:
 
@@ -1180,9 +1244,18 @@ class C
 {
     void M(P p, P[] ps)
     {
-        var a = p.Q() with { X = 1 };
-        var b = ps[0] with { X = 2 };
-        var c = p! with { X = 3 };
+        var a = p.Q() with
+                      {
+                          X = 1
+                      };
+        var b = ps[0] with
+                      {
+                          X = 2
+                      };
+        var c = p! with
+                   {
+                       X = 3
+                   };
     }
 }
 ```

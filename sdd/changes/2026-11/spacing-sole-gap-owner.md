@@ -506,7 +506,7 @@ static class C
 }
 ```
 
-The same pairs wrapped inside an argument or parameter, such as `N(await⏎(t));` or `N(o is not⏎"x");`, are joined with the space, as before. `typeof(C)`, `default(int)`, and `nameof(a)` keep their gap.
+The same pairs wrapped inside an argument or parameter, such as `N(await⏎(t));` or `N(o is not⏎"x");`, are joined with the space, as before. The same holds in front of a lambda's return type (`static (int, int) () => (1, 2)`, `ref (int, int) () => ref s_t`), behind the `ref` of a function pointer's parameter (`delegate*<ref (int, int), void>`) and of a ref expression (`return ref (x);`), and behind the `var` of a deconstruction (`var (u, w) = s_t;`). `typeof(C)`, `default(int)`, and `nameof(a)` keep their gap, and so does a local function's modifier (`static(int, int) K()`).
 
 ### 10. An accessor modifier pair on two lines compiles (FMT-BREAK-031)
 
@@ -566,7 +566,24 @@ class C
 }
 ```
 
-Before: unchanged.
+Before:
+
+```csharp
+class C
+{
+    void M(P p, P[] ps)
+    {
+        var a = p.Q()with
+                     {
+                         X = 1
+                     };
+        var b = ps[0]with
+                     {
+                         X = 2
+                     };
+    }
+}
+```
 
 After:
 
@@ -575,11 +592,19 @@ class C
 {
     void M(P p, P[] ps)
     {
-        var a = p.Q() with { X = 1 };
-        var b = ps[0] with { X = 2 };
+        var a = p.Q() with
+                      {
+                          X = 1
+                      };
+        var b = ps[0] with
+                      {
+                          X = 2
+                      };
     }
 }
 ```
+
+The initializer is laid out over several lines before and after (FMT-BREAK-021); only the space in front of `with` and the column of the initializer behind it change.
 
 ### 12. One space between an explicit lambda return type and its parameter list (FMT-SPACE-026)
 
