@@ -1767,6 +1767,303 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
         await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
     }
 
+    /// <summary>
+    /// Verifies that the fix keeps the accessor modifiers <c>protected</c> and <c>internal</c> on two lines apart when it collapses the
+    /// accessor list, so the fixed code compiles
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-031")]
+    public async Task VerifyFixKeepsProtectedInternalAccessorModifiersOnTwoLinesApart()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    {|#0:public int Value
+                                    {
+                                        get;
+                                        protected
+                                        internal set;
+                                    }|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH5408
+                                 {
+                                     public int Value { get; protected internal set; }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the accessor modifiers <c>protected</c> and <c>internal</c> on two lines apart when it collapses the
+    /// accessor list, so the fixed code compiles, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-031")]
+    public async Task VerifyFixKeepsProtectedInternalAccessorModifiersOnTwoLinesApartWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    {|#0:public int Value
+                                    {
+                                        get;
+                                        protected
+                                        internal set;
+                                    }|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH5408
+                                 {
+                                     public int Value { get; protected internal set; }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData),
+                     NormalizeToCarriageReturnLineFeed(fixedData),
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the accessor modifiers <c>internal</c> and <c>protected</c> on two lines apart when it collapses the
+    /// accessor list, so the fixed code compiles
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-031")]
+    public async Task VerifyFixKeepsInternalProtectedAccessorModifiersOnTwoLinesApart()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    {|#0:public int Value
+                                    {
+                                        get;
+                                        internal
+                                        protected set;
+                                    }|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH5408
+                                 {
+                                     public int Value { get; internal protected set; }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the accessor modifiers <c>internal</c> and <c>protected</c> on two lines apart when it collapses the
+    /// accessor list, so the fixed code compiles, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-031")]
+    public async Task VerifyFixKeepsInternalProtectedAccessorModifiersOnTwoLinesApartWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    {|#0:public int Value
+                                    {
+                                        get;
+                                        internal
+                                        protected set;
+                                    }|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH5408
+                                 {
+                                     public int Value { get; internal protected set; }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData),
+                     NormalizeToCarriageReturnLineFeed(fixedData),
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the accessor modifiers <c>private</c> and <c>protected</c> on two lines apart when it collapses the
+    /// accessor list, so the fixed code compiles
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-031")]
+    public async Task VerifyFixKeepsPrivateProtectedAccessorModifiersOnTwoLinesApart()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    {|#0:public int Value
+                                    {
+                                        get;
+                                        private
+                                        protected set;
+                                    }|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH5408
+                                 {
+                                     public int Value { get; private protected set; }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the accessor modifiers <c>private</c> and <c>protected</c> on two lines apart when it collapses the
+    /// accessor list, so the fixed code compiles, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-031")]
+    public async Task VerifyFixKeepsPrivateProtectedAccessorModifiersOnTwoLinesApartWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    {|#0:public int Value
+                                    {
+                                        get;
+                                        private
+                                        protected set;
+                                    }|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH5408
+                                 {
+                                     public int Value { get; private protected set; }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData),
+                     NormalizeToCarriageReturnLineFeed(fixedData),
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the accessor modifiers <c>protected</c> and <c>private</c> on two lines apart when it collapses the
+    /// accessor list, so the fixed code compiles
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-031")]
+    public async Task VerifyFixKeepsProtectedPrivateAccessorModifiersOnTwoLinesApart()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    {|#0:public int Value
+                                    {
+                                        get;
+                                        protected
+                                        private set;
+                                    }|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH5408
+                                 {
+                                     public int Value { get; protected private set; }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the accessor modifiers <c>protected</c> and <c>private</c> on two lines apart when it collapses the
+    /// accessor list, so the fixed code compiles, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-031")]
+    public async Task VerifyFixKeepsProtectedPrivateAccessorModifiersOnTwoLinesApartWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    {|#0:public int Value
+                                    {
+                                        get;
+                                        protected
+                                        private set;
+                                    }|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH5408
+                                 {
+                                     public int Value { get; protected private set; }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData),
+                     NormalizeToCarriageReturnLineFeed(fixedData),
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps split accessor modifiers apart in every property it collapses when several are reported in one
+    /// document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-031")]
+    public async Task VerifyFixKeepsSplitAccessorModifiersApartInSeveralProperties()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    {|#0:public int A
+                                    {
+                                        get;
+                                        protected
+                                        internal set;
+                                    }|}
+
+                                    {|#1:public int B
+                                    {
+                                        private
+                                        protected get;
+                                        set;
+                                    }|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH5408
+                                 {
+                                     public int A { get; protected internal set; }
+
+                                     public int B { private protected get; set; }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat, 2));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

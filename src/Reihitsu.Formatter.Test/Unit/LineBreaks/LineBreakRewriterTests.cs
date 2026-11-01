@@ -512,9 +512,11 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
-    /// Verifies that a multi-line auto-property with only <c>get;</c> collapses to one line
+    /// Verifies that a multi-line auto-property with only <c>get;</c> collapses to one line, joined to the declaration without
+    /// whitespace while the gaps already on one line keep theirs
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-031")]
     public void CollapsesGetOnlyAutoPropertyToSingleLine()
     {
         // Arrange
@@ -530,14 +532,16 @@ public class LineBreakRewriterTests
         var result = ExecuteLineBreakPhase(input);
 
         // Assert
-        Assert.Contains("public int Prop { get; }", result, "Get-only auto-property should be on one line.");
+        Assert.Contains("public int Prop{ get; }", result, "Get-only auto-property should be on one line.");
         Assert.DoesNotContain($"Prop{Environment.NewLine}                                 {{ get; }}", result, "Get-only auto-property should not remain split across lines.");
     }
 
     /// <summary>
-    /// Verifies that a multi-line auto-property with <c>get;</c>/<c>set;</c> collapses to one line
+    /// Verifies that a multi-line auto-property with <c>get;</c>/<c>set;</c> collapses to one line, joined to the declaration
+    /// without whitespace while the gaps already on one line keep theirs
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-031")]
     public void CollapsesGetSetAutoPropertyToSingleLine()
     {
         // Arrange
@@ -553,7 +557,7 @@ public class LineBreakRewriterTests
         var result = ExecuteLineBreakPhase(input);
 
         // Assert
-        Assert.Contains("public int Prop { get; set; }", result, "Get/set auto-property should be on one line.");
+        Assert.Contains("public int Prop{ get; set; }", result, "Get/set auto-property should be on one line.");
         Assert.DoesNotContain($"Prop{Environment.NewLine}                                 {{ get; set; }}", result, "Get/set auto-property should not remain split across lines.");
     }
 
@@ -581,9 +585,11 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
-    /// Verifies that a multi-line auto-property with property attributes collapses to one line
+    /// Verifies that a multi-line auto-property with property attributes collapses to one line, every join written without
+    /// whitespace
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-031")]
     public void CollapsesPropertyAttributedAutoPropertyToSingleLine()
     {
         // Arrange
@@ -608,7 +614,7 @@ public class LineBreakRewriterTests
 
         // Assert
         Assert.Contains("[Test]", result, "Property attribute should be preserved.");
-        Assert.Contains("public int Prop { get; set; }", result, "Property-attributed auto-property should be on one line.");
+        Assert.Contains("public int Prop{get;set;}", result, "Property-attributed auto-property should be on one line.");
     }
 
     /// <summary>
@@ -788,6 +794,7 @@ public class LineBreakRewriterTests
     /// collapsed, since the joined signature becomes single-line.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-031")]
     public void CollapsesAutoPropertyWithJoinableWrappedSignature()
     {
         // Arrange
@@ -809,11 +816,11 @@ public class LineBreakRewriterTests
         var result = ExecuteLineBreakPhase(input);
 
         // Assert
-        // No space after the comma: HorizontalSpacingPhase runs after LineBreakPhase, so this
-        // phase-level result is unspaced. Only the join and the accessor-list collapse belong to
-        // LineBreakPhase; the comma spacing belongs to a later phase and is covered separately by
-        // the full-pipeline regression tests.
-        Assert.Contains("Dictionary<string,string> Prop { get; set; }", result, "A joinable signature should collapse onto one line.");
+        // No space after the comma and none at the joins of the accessor list: HorizontalSpacingPhase
+        // runs after LineBreakPhase, so this phase-level result is unspaced. Only the join and the
+        // accessor-list collapse belong to LineBreakPhase; the spaces belong to a later phase and are
+        // covered separately by the full-pipeline regression tests.
+        Assert.Contains("Dictionary<string,string> Prop{get;set;}", result, "A joinable signature should collapse onto one line.");
     }
 
     /// <summary>
@@ -1007,9 +1014,11 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
-    /// Verifies that multi-line expression-bodied properties collapse to a single line
+    /// Verifies that multi-line expression-bodied properties collapse to a single line, the arrow joined to the name without
+    /// whitespace while the gap behind it, already on one line, keeps its space
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-031")]
     public void CollapsesExpressionBodiedProperty()
     {
         // Arrange — expression-bodied property split across lines
@@ -1025,7 +1034,7 @@ public class LineBreakRewriterTests
         var result = ExecuteLineBreakPhase(input);
 
         // Assert — property should be collapsed to a single line
-        Assert.Contains("Value => 42;", result, "Expression-bodied property should be collapsed to a single line.");
+        Assert.Contains("Value=> 42;", result, "Expression-bodied property should be collapsed to a single line.");
 
         Assert.DoesNotContain($"Value{Environment.NewLine}", result, "Expression-bodied property should not keep the property name on a separate line.");
     }
