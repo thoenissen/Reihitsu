@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-BREAK-027 (changed), FMT-BREAK-031 (changed), FMT-BREAK-032 (added), FMT-STRUCT-028 (added), FMT-STRUCT-029 (added), the introduction and non-goals of `structural-transforms.md` (extended), SHARED-ATTR-013 (reference changed) |
 
