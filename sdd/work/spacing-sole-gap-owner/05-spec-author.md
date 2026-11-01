@@ -155,3 +155,7 @@ Base: bce245d. Lead decision 13 put question 1's positions outside this run, and
 - **Spec tests:** `--project architecture --filter Sdd` gives 51 of 51 passed.
 - **Tests:** none has to change. `MemberModifiersInFrontOfATupleTypeKeepTheirGap` or a sibling can pin `ref(int, int) r = ref t;` as kept.
 - The output question has moved to the follow-up the lead recorded. The test implementer should take the answer-B text under *Row 12* no further.
+
+## Answer 14A carried out
+
+Base: a08958f. The change doc's `Decisions` section gains *One-line keyword positions no join reaches* (14A), and entry 9 shows the one-line before/after forms. The spec already matched 14A and is unchanged. Sdd tests: 51 of 51 passed.

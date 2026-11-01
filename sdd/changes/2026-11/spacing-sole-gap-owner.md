@@ -508,6 +508,50 @@ static class C
 
 The same pairs wrapped inside an argument or parameter, such as `N(await⏎(t));` or `N(o is not⏎"x");`, are joined with the space, as before. The same holds in front of a lambda's return type (`static (int, int) () => (1, 2)`, `ref (int, int) () => ref s_t`), behind the `ref` of a function pointer's parameter (`delegate*<ref (int, int), void>`) and of a ref expression (`return ref (x);`), and behind the `var` of a deconstruction (`var (u, w) = s_t;`). `typeof(C)`, `default(int)`, and `nameof(a)` keep their gap, and so does a local function's modifier (`static(int, int) K()`). The `ref` and `readonly` of a local's, a `foreach` variable's, a field's, or a return type's type are outside the rule and keep the author's spacing, as on `main` (`ref(int, int) r = ref t;`, like `public(int, int) G;`); no join reaches them.
 
+The one-line forms of these positions (14A):
+
+```csharp
+unsafe class C
+{
+    static (int, int) s_t;
+    static int _x;
+
+    static ref int M(bool b, ref int x, ref int y)
+    {
+        var(u, w) = s_t;
+        N(ref(int, int) () => ref s_t, static(int, int) () => (1, 2));
+
+        delegate*<ref(int, int), void> f = null;
+        ref var z = ref(_x);
+
+        return ref(x);
+    }
+}
+```
+
+Before: unchanged.
+
+After:
+
+```csharp
+unsafe class C
+{
+    static (int, int) s_t;
+    static int _x;
+
+    static ref int M(bool b, ref int x, ref int y)
+    {
+        var (u, w) = s_t;
+        N(ref (int, int) () => ref s_t, static (int, int) () => (1, 2));
+
+        delegate*<ref (int, int), void> f = null;
+        ref var z = ref (_x);
+
+        return ref (x);
+    }
+}
+```
+
 ### 10. An accessor modifier pair on two lines compiles (FMT-BREAK-031)
 
 ```csharp
@@ -685,6 +729,10 @@ Every joined output of the line-break phase stays as it is: the joins that were 
 ### Every pair the join spaced today gets a rule
 
 *Decided by the maintainer in this run (6C, 7C, 8B, 10B, 11B, 12B, 13B).* `when`, a type and its name, a modifier or prefix keyword and its operand, `with`, a lambda return type, and a function pointer's calling convention get a rule each, so that the join's output stays and the same pair written on one line reads alike. Without the rules, the minimal separator would write `case (1, 2)when b:`, `int?a`, `not"x"`, `await(t)`, `out*p`, `p.Q()with`, `List<int>(x) => x`, and `delegate*unmanaged`.
+
+### One-line keyword positions no join reaches
+
+*Decided by the maintainer in this run (14A).* One space also goes behind the keyword where the pair is written on one line, outside an argument: the `ref` of a ref expression in a statement (`return ref (x);`, `ref var z = ref (_x);`), a lambda's `static`, `async`, or `ref` in front of a tuple return type (`static (int, int) () => (1, 2)`, `ref (int, int) () => ref s_t`), and the `ref` of a function pointer's parameter (`delegate*<ref (int, int), void>`). Question 10 had shown only arguments and parameters; these positions are the same keywords in front of the same operands. The `ref` and `readonly` of a local's, a field's, a `foreach` variable's, or a return type's type stay outside the rule (lead decision; the output question goes to a follow-up).
 
 ### The rules are keyed by construct and apply to every gap on one line
 
