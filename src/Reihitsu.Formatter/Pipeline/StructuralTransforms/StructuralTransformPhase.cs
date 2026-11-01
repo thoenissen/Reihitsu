@@ -12,8 +12,7 @@ namespace Reihitsu.Formatter.Pipeline.StructuralTransforms;
 /// <summary>
 /// Structural transforms that convert expression-bodied members to block body, single-statement
 /// property and indexer accessors to expression body, and get-only properties and indexers to
-/// expression-bodied members, split field declarations, and shape attribute lists: one attribute per list on declarations
-/// and one list per target on parameters and type parameters.
+/// expression-bodied members, split field declarations, and shape attribute lists (FMT-STRUCT-028, FMT-STRUCT-029).
 /// Runs every enabled structural transform rewriter sequentially
 /// </summary>
 internal sealed class StructuralTransformPhase : IFormattingPhase

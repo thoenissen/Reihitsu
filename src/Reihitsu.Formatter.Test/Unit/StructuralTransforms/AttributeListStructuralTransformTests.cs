@@ -9,7 +9,7 @@ namespace Reihitsu.Formatter.Test.Unit.StructuralTransforms;
 
 /// <summary>
 /// Tests that the structural-transform phase splits the attribute lists of declarations into one list per attribute
-/// (FMT-STRUCT-028) and merges the lists of one target on a parameter or type parameter (FMT-STRUCT-029), asserted on the
+/// (FMT-STRUCT-028) and merges the lists of one target as FMT-STRUCT-029 states, asserted on the
 /// output of that phase under LF and CRLF line endings, and that the line-break phase no longer changes the token sequence
 /// of those lists (FMT-BREAK-027)
 /// </summary>
