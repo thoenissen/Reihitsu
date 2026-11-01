@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-BLANK-008 (changed), FMT-BLANK-009 (changed), FMT-BLANK-011 (changed), FMT-BLANK-017 (added), FMT-BLANK-018 (added), FMT-BLANK-019 (added, clarification), FMT-BLANK-020 (added), FMT-BREAK-030 (added), FMT-PIPE-024 (changed), RH5025-005 (added) |
 
@@ -43,7 +43,7 @@ A block statement's `{` starts a statement; it continues no header, which is wha
 
 ## Visible output changes
 
-Entries that the maintainer decided through an output question of the run name it (all answered with option A on 2026-11-01; see `Decisions`). The run numbers them: 1 — a block statement after `break`; 2 — which block statements are exempt; 3 — an own-line comment and a blank line above a block statement; 4 — an own-line comment in front of a comment glued to a brace; 5 — a directive in front of a comment glued to a brace; and, asked during the implementer stage, a directive in front of a region directive that ends the gap before a closing brace (entry 11), whose collection-expression `]` and parenthesized-pattern `)` case was asked before the audit; and, after the audit, 1A — a comment glued to a complex element initializer's `{` (entry 12) — and 2A — an own-line comment and a blank line above an assigned collection initializer's `{` (entry 13). Entries 14 to 17 change the output for comments that share a line with code; the maintainer's guidance of 2026-11-01 covers them (see `Decisions`). Entry 18 follows from entry 12's rule for a comment that does not share a line with code. Every entry shows the chosen output.
+Entries that the maintainer decided through an output question of the run name it (all answered with option A on 2026-11-01; see `Decisions`). The run numbers them: 1 — a block statement after `break`; 2 — which block statements are exempt; 3 — an own-line comment and a blank line above a block statement; 4 — an own-line comment in front of a comment glued to a brace; 5 — a directive in front of a comment glued to a brace; and, asked during the implementer stage, a directive in front of a region directive that ends the gap before a closing brace (entry 11), whose collection-expression `]` and parenthesized-pattern `)` case was asked before the audit; and, after the audit, 1A — a comment glued to a complex element initializer's `{` (entry 12) — and 2A — an own-line comment and a blank line above an assigned collection initializer's `{` (entry 13). Entries 14 to 17 change the output for comments that share a line with code; the maintainer's guidance of 2026-11-01 covers them (see `Decisions`). 1A also decides entry 18, the same rule for a comment that does not share a line with code. Every entry shows the chosen output.
 
 ### 1. A block statement after a statement that ends in `}` gets the blank line
 
@@ -965,7 +965,7 @@ After: the input is kept unchanged. A blank line the author wrote above such a c
 
 ### 18. A blank line between an own-line comment and a complex element initializer on one line is removed
 
-Follows from the rule of entry 12: FMT-BLANK-020 names the opening brace of every complex element initializer, because the blank-line phase cannot read whether the line-break phase leaves the element on one line. The comment stands on its own line between two elements and shares no line with code.
+Decided with output question 1A after the audit, which treats every complex element initializer's opening brace like the other initializer braces. It follows from the rule of entry 12: FMT-BLANK-020 names the opening brace of every complex element initializer, because the blank-line phase cannot read whether the line-break phase leaves the element on one line. The comment stands on its own line between two elements and shares no line with code.
 
 ```csharp
 class C
@@ -1095,7 +1095,7 @@ On 2026-11-01, before the audit, the maintainer chose option A for the same case
 
 On 2026-11-01, after the audit, the maintainer chose option A for two more output questions:
 
-1. Every opening brace of a complex element initializer is treated like the other initializer braces, whether or not the element spans lines: no blank line above a comment glued to it, and an author's blank line there is removed (visible output change 12).
+1. Every opening brace of a complex element initializer is treated like the other initializer braces, whether or not the element spans lines: no blank line above a comment glued to it, and an author's blank line there is removed (visible output change 12), also between an own-line comment and that brace (visible output change 18).
 2. The blank line between an own-line comment and the opening brace of a collection initializer assigned to a member is removed, as above an assigned object initializer (visible output change 13).
 
 With these answers the maintainer gave guidance for the rest of the run, and clarified it the same day: comments that share a line with code (glued to a brace or another token) and comments between the `=` of an assignment and the assigned value are unwanted; comments belong only where they do not affect indentation. The formatter is not made more complex to give such comments a particular layout: a rule or exception that exists only to keep a specific output for them is replaced by the simplest uniform rule, and the output changes that follow are covered by the guidance and listed here (visible output changes 14 to 17). Rules for comments on their own line between statements or members are not in its scope.

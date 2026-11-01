@@ -141,3 +141,7 @@ The lead may treat this as covered by 1A. In that case, set the change doc back 
 ## Follow-up candidates
 
 _None new._ The existing candidate about RH5024/RH5025 reporting the formatter's kept blank line behind an own-line comment before array-initializer, extension-block, and property-pattern braces now also covers the assigned collection initializer's `}` and the interpolation braces. These are the exclusions FMT-BLANK-020 keeps.
+
+## Correction after the lead's decision (row 22)
+
+The lead decided the output question above as covered by maintainer answer 1A (`00-lead.md`, *Decisions taken*, row 22). The change doc now marks visible output change 18 as decided by 1A, in its heading note, in the numbering paragraph of *Visible output changes*, and in answer 1 under *Decisions*, and its status is back to `Accepted`. The change doc held no separate list of open questions; entry 18 was open only through the `Draft` status and its "follows from entry 12" framing, both now replaced. No requirement, example, or output changed. The prompt carried no intended fix or verdict beyond restating row 22.
