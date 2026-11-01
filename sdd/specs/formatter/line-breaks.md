@@ -5,7 +5,7 @@
 | ID prefix | FMT-BREAK |
 | Status | Active |
 | Code owners | `LineBreakPhase`, `LineBreakBlockRewriter`, `LineBreakInitializerRewriter`, `LineBreakContainedBlockRewriter`, `LineBreakAssignmentRewriter`, `DeclarationSemicolonLineBreakRewriter`, `ListElementInteriorJoinRewriter`, `ListElementInteriorUtilities`, `LineBreakListRewriter`, `PropertyLayoutLineBreakRewriter`, `GenericConstraintLineBreakRewriter`, `DeclarationBraceLineBreakRewriter`, `MemberLineStartRewriter`, `AttributeTargetFormattingRewriter`, `AttributeTargetFormattingShared`, `BinaryOperatorLineBreakRewriter`, `ChainLineBreakRewriter`, `TernaryLineBreakRewriter`, `SwitchCaseWhenLineBreakRewriter`, `BracePlacer`, `TokenGapNormalizer`, `AccessorListLayout`, `LineBreakDetection`, `LineBreakTriviaUtilities` |
-| Uses | FMT-CLEAN-001, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-010, FMT-PIPE-021, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-017, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012 |
+| Uses | FMT-CLEAN-001, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-010, FMT-PIPE-021, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012 |
 
 This spec covers `LineBreakPhase`, the phase of the pipeline that decides where lines break (its position in the phase order is FMT-PIPE-001): brace placement, one statement and one member per line, the layout of argument, parameter, attribute, and type-argument lists, initializers and patterns, assignments, operators, conditionals, chains, generic constraints, attribute lists, accessor lists, and `case … when` guards. The phase only adds and removes line breaks and keeps the blank lines it finds (FMT-BREAK-030); the columns the resulting lines start in are decided later by FMT-INDENT, and the spaces between tokens on a line by FMT-SPACE.
 
@@ -992,7 +992,7 @@ interface I
 
 ### FMT-BREAK-024 — Simple auto-property accessor lists are on one line
 
-The accessor list of a property or indexer whose accessors are all auto accessors without bodies, comments, or directives MUST be on one line together with the declaration (`int P { get; set; }`), also when an initializer follows. An accessor list with an attribute on an accessor MUST stay as written when the declaration is on one line and MUST otherwise be laid out over several lines.
+The accessor list of a property or indexer whose accessors are all auto accessors without bodies, comments, or directives MUST be on one line together with the declaration (`int P { get; set; }`), also when an initializer follows. An accessor list with an attribute on an accessor MUST stay on its line when the declaration is on one line and MUST otherwise be laid out over several lines; the spaces inside a list on one line are decided by FMT-SPACE-022.
 
 Why: An auto-property is a single declaration; spreading `get;` and `set;` over four lines adds height without information. RH5408 reports the same shape.
 
@@ -1313,3 +1313,5 @@ class C
 ```
 
 A gap the phase does not join keeps its whitespace: `public int R =>1;` and `public int S {get;set;}` written on one line leave the phase as they are.
+
+One join is a recorded exception: where the phase merges the attribute lists of a declaration (FMT-BREAK-027), the shared merge that the attribute-list code fixes also use writes one space behind the merged list's `]` and behind a token it leaves touching a joined token. The spacing phase decides the same space for both pairs (FMT-SPACE-003, FMT-SPACE-008), so the final output does not depend on it. The exception is recorded until the merge moves into the phase that owns it (thoenissen/Reihitsu#1492).

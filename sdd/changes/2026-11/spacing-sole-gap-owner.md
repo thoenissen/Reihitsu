@@ -4,27 +4,31 @@
 |---|---|
 | Status | Draft |
 | Date | 2026-11 |
-| Affected requirements | FMT-SPACE-002 (changed), FMT-SPACE-012 (changed), FMT-SPACE-016 to FMT-SPACE-023 (added), the fourth non-goal of `horizontal-spacing.md` (narrowed), FMT-BREAK-026 (changed), FMT-BREAK-031 (added), FMT-STRUCT-026 (changed) |
+| Affected requirements | FMT-SPACE-002 (changed), FMT-SPACE-012 (changed), FMT-SPACE-016 to FMT-SPACE-027 (added), the fourth non-goal of `horizontal-spacing.md` (narrowed), FMT-BREAK-024 (reworded), FMT-BREAK-026 (changed), FMT-BREAK-031 (added), FMT-STRUCT-026 (changed) |
 | Depends on | [Every formatter phase returns a tree that round-trips and keeps foreign annotations](../2026-10/phase-tree-round-trip.md) |
 
 ## What
 
 The spacing phase decides the whitespace of every gap between two tokens on one line. The line-break phase only adds and removes line breaks (FMT-BREAK-031):
 
-- **A join writes the minimal separator.** Where the line-break phase joins two tokens onto one line, it leaves no whitespace between them, unless the two tokens written without whitespace would not read back as the same two tokens — one token (`protected` and `internal`, `out` and `var`), another token pair (`-` and `-b`), or the start of a comment (`/` and `*p`). There it writes one space. Whether two tokens read back as written is answered by the shared lexer-based helper that FMT-STRUCT-026 already uses. Which separator a join writes no longer depends on the kind of the tokens it joins.
-- **The line-break phase writes no other whitespace into a gap that stays on one line.** Today five places of the phase write spaces of their own — the assignment rewriter in front of a joined value, the conditional rewriter behind `?` and `:`, the `case … when` rewriter in front of `when`, the property-layout rewriter on both sides of the arrow of an expression-bodied property or indexer (also when nothing is joined: `int P =>1;` becomes `int P => 1;`), and the accessor-list layout inside a one-line accessor list (also when nothing is joined: `int P {get;set;}` becomes `int P { get; set; }`) — and the list-element join chooses one space or none by token kind. All of them go.
-- **The spacing phase gets the rules that keep today's output where the join or the line-break phase spaced a pair.** Each rule is keyed by the construct, applies to every gap on one line, joined or written so, and is decided by the maintainer as a visible output change (questions of the run, see `Decisions`):
+- **A join writes the minimal separator.** Where the line-break phase joins two tokens onto one line, it leaves no whitespace between them, unless the two tokens written without whitespace would not read back as the same two tokens — one token (`protected` and `internal`, `out` and `var`), another token pair (`-` and `-b`), or the start of a comment (`/` and `*p`). There it writes one space. Whether two tokens read back as written is answered by the shared lexer-based helper that FMT-STRUCT-026 already uses. Which separator a join writes no longer depends on the kind of the tokens it joins, and every join asks the helper, also the joins of an accessor list and of a binary operator that today write no separator at all.
+- **The line-break phase writes no other whitespace into a gap that stays on one line.** Today five places of the phase write spaces of their own — the assignment rewriter in front of a joined value, the conditional rewriter behind `?` and `:`, the `case … when` rewriter in front of `when`, the property-layout rewriter on both sides of the arrow of an expression-bodied property or indexer (also when nothing is joined: `int P =>1;` becomes `int P => 1;`), and the accessor-list layout inside a one-line accessor list (also when nothing is joined: `int P {get;set;}` becomes `int P { get; set; }`) — and the list-element join chooses one space or none by token kind. All of them go. One writer stays as a recorded exception: the attribute-list merge shared with the attribute-list code fixes writes one space behind a merged list, which the spacing phase decides alike, until the merge moves into the phase that owns it (thoenissen/Reihitsu#1492).
+- **The spacing phase gets the rules that keep today's output where the join or the line-break phase spaced a pair.** Each rule is keyed by the construct, applies to every gap on one line, joined or written so, and is a visible output change the maintainer decides (questions of the run, see `Decisions`):
   - every attribute-target colon: no space before it, one space after it (FMT-SPACE-016, replacing the `return:` exception of FMT-SPACE-012);
   - every arrow `=>` — lambda, expression body of a member or accessor, switch-expression arm: one space on each side (FMT-SPACE-017);
   - the `?` and `:` of a conditional expression: one space on each side (FMT-SPACE-018);
   - the colon of a name or expression colon — named argument, tuple element, subpattern: no space before it, one space after it (FMT-SPACE-019);
-  - the `when` of a `case` guard or switch-expression arm: one space in front of it (FMT-SPACE-020);
-  - the type of a parameter, tuple element, variable declaration, declaration expression, or declaration pattern and the name behind it: one space (FMT-SPACE-021);
+  - the `when` of a `case` guard, a switch-expression arm, or a `catch` filter: one space in front of it (FMT-SPACE-020);
+  - the type of a parameter, tuple element, variable declaration, declaration expression, declaration pattern, `foreach` variable, `catch` declaration, or `from`/`join` range variable and the name behind it, and a recursive or list pattern and its designation: one space (FMT-SPACE-021);
   - an accessor list on one line: one space behind its `{` and between two accessors (FMT-SPACE-022);
-  - the operator of a relational pattern and its operand: one space (FMT-SPACE-023).
+  - the operator of a relational pattern and its operand: one space (FMT-SPACE-023);
+  - a lambda modifier (`static`, `async`), a modifier of an argument, parameter, type, or expression (`ref`, `out`, `in`, `readonly`, `scoped`, `this`, `params`), `await`, `stackalloc`, `var` in front of a parenthesized designation, the pattern `not`, and the `in` of `foreach`, `from`, and `join`: one space behind the keyword (FMT-SPACE-024);
+  - `with`: one space on each side (FMT-SPACE-025);
+  - an explicit lambda return type and the lambda's `(`: one space (FMT-SPACE-026);
+  - a function pointer's `*` and its `managed` or `unmanaged`: one space (FMT-SPACE-027).
 - **Arrows created by a structural transform are spaced by the spacing phase.** FMT-STRUCT-026 kept one space on each side of the `=>` the accessor and get-only-member transforms create until a spacing rule owns that gap. FMT-SPACE-017 owns it now, so the transforms write no whitespace there; the final output does not change.
 
-The pairs that no rule covers keep the gap the spacing phase finds and only have their runs of whitespace collapsed (FMT-SPACE-002). For a joined pair, that gap is the minimal separator: a pair that reads back as written is joined without a space (visible output change 9).
+Every pair the line-break phase spaced today and that would read back without a space is decided by one of these rules, so no joined output changes; the rules change the same pairs where the author wrote them on one line (entries 1 to 9, 11 to 13). The pairs that no rule covers keep the gap the spacing phase finds and only have their runs of whitespace collapsed (FMT-SPACE-002); for a joined pair, that gap is the minimal separator, which equals today's separator for every such pair.
 
 ## Why
 
@@ -34,9 +38,9 @@ The same pair was spaced differently depending on whether the author wrote it on
 - `int P =>1;` becomes `int P => 1;`, while the lambda `y =>y` and the switch arm `1 =>1` stay as written; FMT-PIPE-014 requires every arrow to be spaced alike.
 - `[return :Obsolete]` becomes `[return:Obsolete]`, because `return` is a keyword of FMT-SPACE-012, while `[field :NonSerialized]` keeps its space; a third policy writes the colon tight where the list-element join joins it. FMT-PIPE-014 requires every attribute-target colon to be spaced alike.
 
-A spacing decision in the line-break phase is a second owner of a decision FMT-SPACE makes: the two can disagree, and whichever runs last wins only where it has a rule. The join also wrote zero gaps where the two tokens read as one, so the phase's own text was another program — `protected` and `internal` on two lines of an auto-property's accessor list become `protectedinternal set;` in the final output today, which does not compile, and `a -` followed by `-b` becomes `a⏎--b` in the phase's output, which the spacing phase repairs only because `-` has a rule (FMT-PIPE-021).
+A spacing decision in the line-break phase is a second owner of a decision FMT-SPACE makes: the two can disagree, and whichever runs last wins only where it has a rule. Two joins wrote no separator at all, so the phase's own text was another program. `protected` and `internal` — or `internal` and `protected`, `private` and `protected`, `protected` and `private` — on two lines of an auto-property's accessor list become `protectedinternal set;` in the final output today, which does not compile; whole-document formatting, the CLI, and the RH5408 code fix all produce it. `a -` followed by `-b` becomes `a⏎--b` in the phase's output, which the spacing phase repairs only because `-` has a rule (FMT-PIPE-021).
 
-The minimal separator follows the phase-boundary contract of FMT-STRUCT-026: a phase writes only what its text needs to parse back to its tree, and the phase that owns a layout decision writes it. A space as the neutral separator would need new rules for every pair the join keeps tight today — the parenthesis of every parameter list (`void M (int a)`), every invocation inside a chain (`items.Where (x => x)`), a cast operand, a range, a pointer type — and would change the examples of FMT-BREAK-011 and FMT-BREAK-020. The minimal separator keeps all of those, and the pairs it would space differently from today are the ones the rules above decide, most of which the maintainer already decided for the formatter (thoenissen/Reihitsu#958, thoenissen/Reihitsu#1440, thoenissen/Reihitsu#1514, thoenissen/Reihitsu#1383).
+The minimal separator follows the phase-boundary contract of FMT-STRUCT-026: a phase writes only what its text needs to parse back to its tree, and the phase that owns a layout decision writes it. A space as the neutral separator would need new rules for every pair the join keeps tight today — the parenthesis of every parameter list (`void M (int a)`), every invocation inside a chain (`items.Where (x => x)`), a cast operand, a range, a pointer type — and would change the examples of FMT-BREAK-011 and FMT-BREAK-020. The minimal separator keeps all of those. The pairs it would join without a space although the join spaced them today are many: a name colon, a conditional operator, a `when`, a type and its name, a relational pattern, a keyword and its operand, `with`, a lambda return type, a function pointer's calling convention. Each gets a rule, so that today's joined output stays and the same pair reads alike on one line. The maintainer already decided the output of some of them for the formatter — every arrow (thoenissen/Reihitsu#958, thoenissen/Reihitsu#1514), the conditional operator and named arguments (thoenissen/Reihitsu#920), the relational pattern (thoenissen/Reihitsu#912) — and the others are asked in this run.
 
 ## Visible output changes
 
@@ -257,6 +261,13 @@ class C
             case (1, 2)when b:
                 break;
         }
+
+        try
+        {
+        }
+        catch (System.Exception e)when (e != null)
+        {
+        }
     }
 }
 ```
@@ -275,22 +286,45 @@ class C
             case (1, 2) when b:
                 break;
         }
+
+        try
+        {
+        }
+        catch (System.Exception e) when (e != null)
+        {
+        }
     }
 }
 ```
 
 The space behind `when` is not decided: `case int i when(i > 0):` stays as written.
 
-### 6. One space between a type and the name it declares (FMT-SPACE-021)
+### 6. One space between a type or pattern and the name it declares (FMT-SPACE-021)
 
 ```csharp
+using System.Linq;
+
 class C
 {
-    void M(int?a, int[]b, (int, int)c)
+    void M(int?a, int[]b, (int, int)c, object o, int?[] xs)
     {
         int?z = null;
 
         N(out int?w);
+
+        foreach (int?x in xs)
+        {
+        }
+
+        try
+        {
+        }
+        catch (System.Exception?e)
+        {
+        }
+
+        var q = from int?y in xs select y;
+        var p = o is { }r && o is [1]l;
     }
 }
 ```
@@ -300,16 +334,34 @@ Before: unchanged.
 After:
 
 ```csharp
+using System.Linq;
+
 class C
 {
-    void M(int? a, int[] b, (int, int) c)
+    void M(int? a, int[] b, (int, int) c, object o, int?[] xs)
     {
         int? z = null;
 
         N(out int? w);
+
+        foreach (int? x in xs)
+        {
+        }
+
+        try
+        {
+        }
+        catch (System.Exception? e)
+        {
+        }
+
+        var q = from int? y in xs select y;
+        var p = o is { } r && o is [1] l;
     }
 }
 ```
+
+A joined `from int?⏎y in xs` keeps `from int? y in xs`, as before.
 
 ### 7. An accessor list on one line: one space behind `{` and between accessors (FMT-SPACE-022)
 
@@ -378,64 +430,85 @@ class C
 }
 ```
 
-### 9. A joined pair that no rule covers keeps the minimal separator (FMT-BREAK-031)
-
-A wrap inside a list element (FMT-BREAK-015) between a keyword and a parenthesis or bracket is joined without a space, because the two tokens read back as written:
+### 9. One space behind a modifier or prefix keyword (FMT-SPACE-024)
 
 ```csharp
-class C
+using System.Linq;
+using System.Threading.Tasks;
+
+static class C
 {
-    unsafe void M(int a, object o)
+    static void E(this(int, int) t, params(int, int)[] a)
     {
-        N(static
-          (int value) => value);
-        N(int
-          (x) => x);
-        N(in
-          (a));
-        N(o is var
-          (x, y));
-        N(stackalloc
-          [] { 1 });
+    }
+
+    static async Task M(int a, int[] xs, object o, Task t)
+    {
+        N(async(x) => x, static(int v) => v);
+        N(ref(a), in(a));
+        await(t);
+
+        var b = o is not"x" && o is not> 5;
+        var c = o is var(u, w);
+
+        foreach (var e in(xs))
+        {
+        }
+
+        var q = from z in(xs) select z;
+    }
+
+    static unsafe void F(int* p)
+    {
+        N(out*p);
+
+        var s = stackalloc[] { 1 };
     }
 }
 ```
 
-Before:
-
-```csharp
-class C
-{
-    unsafe void M(int a, object o)
-    {
-        N(static (int value) => value);
-        N(int (x) => x);
-        N(in (a));
-        N(o is var (x, y));
-        N(stackalloc [] { 1 });
-    }
-}
-```
+Before: unchanged.
 
 After:
 
 ```csharp
-class C
+using System.Linq;
+using System.Threading.Tasks;
+
+static class C
 {
-    unsafe void M(int a, object o)
+    static void E(this (int, int) t, params (int, int)[] a)
     {
-        N(static(int value) => value);
-        N(int(x) => x);
-        N(in(a));
-        N(o is var(x, y));
-        N(stackalloc[] { 1 });
+    }
+
+    static async Task M(int a, int[] xs, object o, Task t)
+    {
+        N(async (x) => x, static (int v) => v);
+        N(ref (a), in (a));
+        await (t);
+
+        var b = o is not "x" && o is not > 5;
+        var c = o is var (u, w);
+
+        foreach (var e in (xs))
+        {
+        }
+
+        var q = from z in (xs) select z;
+    }
+
+    static unsafe void F(int* p)
+    {
+        N(out *p);
+
+        var s = stackalloc [] { 1 };
     }
 }
 ```
 
-The same pairs written on one line keep the author's gap, as before.
+The same pairs wrapped inside an argument or parameter, such as `N(await⏎(t));` or `N(o is not⏎"x");`, are joined with the space, as before. `typeof(C)`, `default(int)`, and `nameof(a)` keep their gap.
 
-### 10. An accessor modifier pair on two lines compiles
+### 10. An accessor modifier pair on two lines compiles (FMT-BREAK-031)
 
 ```csharp
 class C
@@ -446,6 +519,13 @@ class C
         protected
         internal set;
     }
+
+    public int Q
+    {
+        get;
+        private
+        protected set;
+    }
 }
 ```
 
@@ -455,6 +535,8 @@ Before:
 class C
 {
     public int P { get; protectedinternal set; }
+
+    public int Q { get; privateprotected set; }
 }
 ```
 
@@ -464,14 +546,98 @@ After:
 class C
 {
     public int P { get; protected internal set; }
+
+    public int Q { get; private protected set; }
 }
 ```
 
-Today's output does not compile (FMT-PIPE-003); the minimal separator writes the space the two keywords need.
+`internal⏎protected` and `protected⏎private` gave `internalprotected` and `protectedprivate` and give `internal protected` and `protected private`. The RH5408 code fix, which lays out the accessor list through the formatter, produced the same non-compiling output for `get;⏎protected⏎internal set;` and produces `protected internal set;`. Today's output does not compile (FMT-PIPE-003); the minimal separator writes the space the two keywords need. This entry is not a choice: both separators fix it.
+
+### 11. One space on each side of `with` (FMT-SPACE-025)
+
+```csharp
+class C
+{
+    void M(P p, P[] ps)
+    {
+        var a = p.Q()with { X = 1 };
+        var b = ps[0]with { X = 2 };
+    }
+}
+```
+
+Before: unchanged.
+
+After:
+
+```csharp
+class C
+{
+    void M(P p, P[] ps)
+    {
+        var a = p.Q() with { X = 1 };
+        var b = ps[0] with { X = 2 };
+    }
+}
+```
+
+### 12. One space between an explicit lambda return type and its parameter list (FMT-SPACE-026)
+
+```csharp
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        N(int(x) => x, List<int>(x) => x);
+    }
+}
+```
+
+Before: unchanged.
+
+After:
+
+```csharp
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        N(int (x) => x, List<int> (x) => x);
+    }
+}
+```
+
+### 13. One space behind a function pointer's `*` (FMT-SPACE-027)
+
+```csharp
+unsafe class C
+{
+    void M(delegate*unmanaged[Cdecl]<int, void> f)
+    {
+    }
+}
+```
+
+Before: unchanged.
+
+After:
+
+```csharp
+unsafe class C
+{
+    void M(delegate* unmanaged[Cdecl]<int, void> f)
+    {
+    }
+}
+```
 
 ### Unchanged
 
-Every other final output of the formatter, the analyzers, the code fixes, and the CLI stays as it is, the examples of FMT-BREAK-011, FMT-BREAK-015, FMT-BREAK-016, FMT-BREAK-018, FMT-BREAK-020, FMT-BREAK-024, FMT-BREAK-026, and FMT-BREAK-028 included: the joins that were tight stay tight under the minimal separator, and the pairs the joins and the line-break phase spaced are spaced by the rules above. No rule page changes; no analyzer reports any of the pairs above.
+Every joined output of the line-break phase stays as it is: the joins that were tight stay tight under the minimal separator, and every pair the joins and the line-break phase spaced is spaced by one of the rules above. The examples of FMT-BREAK-011, FMT-BREAK-015, FMT-BREAK-016, FMT-BREAK-018, FMT-BREAK-020, FMT-BREAK-024, FMT-BREAK-026, and FMT-BREAK-028 keep their output. Every final output that changes is a pair one of the rules decides and that the author wrote on one line (entries 1 to 9 and 11 to 13), the one-line attributed accessor list of entry 7, and the non-compiling output of entry 10. Code-fix outputs change only through the formatter, where the fixed node holds such a pair. No rule page changes; no analyzer reports any of the pairs above.
 
 ## Decisions
 
@@ -481,19 +647,31 @@ Every other final output of the formatter, the analyzers, the code fixes, and th
 
 ### Every arrow gets one space on each side now
 
-*Pending the maintainer's answer.* Recommended over keeping the author's spacing until thoenissen/Reihitsu#958 is implemented: the maintainer already decided this output for every arrow (thoenissen/Reihitsu#958 for lambdas and switch-expression arms, thoenissen/Reihitsu#1514 for expression bodies), keeping the author's spacing would change `int P => 1;` to `int P =>1;` for one release, and with the minimal separator a joined arrow would read `x =>x` and `int T =>5;`, against the examples of FMT-BREAK-015 and FMT-BREAK-026.
+*Pending the maintainer's answer.* Recommended over keeping the author's spacing until thoenissen/Reihitsu#958 is implemented: the maintainer already decided this output — `x => x` for a lambda (thoenissen/Reihitsu#920) and one space for every arrow kind (thoenissen/Reihitsu#912, recorded on thoenissen/Reihitsu#958; expression bodies in thoenissen/Reihitsu#1514). Keeping the author's spacing would change `int P => 1;` to `int P =>1;` for one release, and with the minimal separator a joined arrow would read `x =>x` and `int T =>5;`, against the examples of FMT-BREAK-015 and FMT-BREAK-026.
 
 ### Every attribute-target colon gets one space behind it
 
-*Pending the maintainer's answer.* Recommended over keeping the author's spacing behind it: thoenissen/Reihitsu#1383 records the output `[return: Obsolete]`, `[assembly: X]`, `[field: X]` "whatever the target and input spacing", and FMT-SPACE-012's and FMT-BREAK-027's examples already show that form.
+*Pending the maintainer's answer.* The maintainer decided only that every attribute target is spaced alike (thoenissen/Reihitsu#912); the space behind the colon is not decided anywhere. Recommended over keeping the author's spacing behind it, because under that alternative the output still depends on how the author wrote the colon, and `[return: Obsolete]` is the form the examples of FMT-SPACE-012 and FMT-BREAK-027 already show.
+
+### The conditional operator, named arguments, and relational patterns follow earlier answers
+
+*Pending the maintainer's confirmation.* `b ? 1 : 2` and `M(b: b)` were decided in thoenissen/Reihitsu#920, `x is > 5` in thoenissen/Reihitsu#912. Tuple element names, named attribute arguments, and subpattern names are spaced like named arguments as the same family; that extension is asked.
+
+### Every pair the join spaced today gets a rule
+
+*Pending the maintainer's answer.* `when`, a type and its name, a modifier or prefix keyword and its operand, `with`, a lambda return type, and a function pointer's calling convention get a rule each, so that the join's output stays and the same pair written on one line reads alike. Without the rules, the minimal separator would write `case (1, 2)when b:`, `int?a`, `not"x"`, `await(t)`, `out*p`, `p.Q()with`, `List<int>(x) => x`, and `delegate*unmanaged`.
 
 ### The rules are keyed by construct and apply to every gap on one line
 
-The spacing phase cannot tell a joined gap from one the author wrote, and it must not: a rule that applied only to joined gaps would keep the difference this change removes. Each new rule therefore also changes one-line input (entries 1 to 8).
+The spacing phase cannot tell a joined gap from one the author wrote, and it must not: a rule that applied only to joined gaps would keep the difference this change removes. Each new rule therefore also changes one-line input, and each covers its whole family (FMT-PIPE-014): the `catch` filter's `when` with the other guards, the `foreach`, `catch`, and range variables with the other declared names, the `in` of `foreach` with the `in` of a query.
 
 ### Structural transforms create the arrow without spaces
 
 FMT-SPACE-017 owns the gap, which FMT-STRUCT-026 named as the condition for dropping the transforms' spaces around a created `=>` (thoenissen/Reihitsu#1514). The created tokens still carry no elastic trivia.
+
+### The attribute-list merge keeps its spaces for now
+
+The merge of a declaration's attribute lists is shared with the attribute-list code fixes and writes one space behind the merged `]` and behind a token left touching a joined token. The spacing phase decides the same space (FMT-SPACE-003, FMT-SPACE-008), so the output does not depend on it. FMT-BREAK-031 records it as an exception until the merge moves into the phase that owns it (thoenissen/Reihitsu#1492), instead of changing a helper the code fixes share in this run.
 
 ## Alternatives considered
 
@@ -501,5 +679,6 @@ FMT-SPACE-017 owns the gap, which FMT-STRUCT-026 named as the condition for drop
 - **Keep today's separator table and move it into the spacing phase, applied only to joined gaps** — rejected: the line-break phase would have to mark its joins for the spacing phase, and the same pair would stay spaced differently when joined and when written on one line, which is the defect this change removes.
 - **Keep the author's spacing around every arrow until thoenissen/Reihitsu#958 is implemented** (the issue's proposal) — rejected as recommended; see `Decisions`.
 - **No space behind an attribute-target colon unless the author wrote one** (the issue's proposal: `[field :NonSerialized]` becomes `[field:NonSerialized]`) — rejected as recommended; see `Decisions`.
-- **No rules for the conditional operator, name colons, `when`, the type in front of a name, one-line accessor lists, and relational patterns** — rejected as recommended: with the minimal separator, the joins the line-break phase makes today would read `a⏎? 1` as `?1`, `name:⏎"x"` as `name:"x"`, `case (1, 2)⏎when` as `(1, 2)when`, `int?⏎a` as `int?a`, `int P {get;set;}` as `int P {get;set; }`, and `is >⏎5` as `is >5`.
-- **Rules for the remaining keyword-before-parenthesis pairs of entry 9** — not proposed: no output for them is decided anywhere, the inputs are rare, and the same pairs written on one line are not normalized either.
+- **No rules for the pairs the join spaced today** — rejected as recommended: with the minimal separator, the joins the line-break phase makes today would read `a⏎? 1` as `?1`, `name:⏎"x"` as `name:"x"`, `case (1, 2)⏎when` as `(1, 2)when`, `int?⏎a` as `int?a`, `int P {get;set;}` as `int P {get;set; }`, `is >⏎5` as `is >5`, `not⏎"x"` as `not"x"`, `await⏎(t)` as `await(t)`, `out⏎*p` as `out*p`, `p.Q()⏎with` as `p.Q()with`, `List<int>⏎(x) => x` as `List<int>(x) => x`, and `delegate*⏎unmanaged` as `delegate*unmanaged`.
+- **Rules keyed by the declarations and guards a join reaches only** (leaving `foreach (int?x in xs)`, `catch (Exception?e)`, and the `catch` filter's `when` alone) — rejected as recommended: FMT-PIPE-014 asks for each family to be spaced alike, and these members would keep the author's gap while their siblings are normalized.
+- **Strip the attribute-list merge's spaces in this run** — rejected: the output does not change, and the helper is shared with code fixes whose move is thoenissen/Reihitsu#1492.

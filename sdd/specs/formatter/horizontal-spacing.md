@@ -14,7 +14,7 @@ This spec covers `HorizontalSpacingPhase`: the whitespace between two adjacent t
 - Whitespace in a gap that contains a line break: indentation and continuation columns belong to [indentation.md](indentation.md) (FMT-INDENT), and whether a line break exists at all to [line-breaks.md](line-breaks.md) (FMT-BREAK).
 - Whitespace at the end of a line and the final newline — [cleanup.md](cleanup.md) (FMT-CLEAN); tabs in whitespace, which are replaced before this phase runs — [tab-replacement.md](tab-replacement.md) (FMT-TAB).
 - The text of literals, interpolated-string text, comments, and disabled text, which the phase never edits (FMT-PIPE-002).
-- Token pairs no rule covers, such as the `case` colon, the space between a method name and its argument list, the `[` of an element access, the `::` alias qualifier, the space after `when`, or the inside of a one-line initializer's braces. The phase only collapses their whitespace (FMT-SPACE-002). Spacing rules for the space before an argument list or an element access, `::`, and initializer braces are a decided behavior change, tracked in thoenissen/Reihitsu#1440.
+- Token pairs no rule covers, such as the `case` colon, the space between a method name and its argument list, the `[` of an element access, the `::` alias qualifier, the parenthesis behind `typeof` or `default`, the space after `when`, or the inside of a one-line initializer's braces. The phase only collapses their whitespace (FMT-SPACE-002). Spacing rules for the space before an argument list or an element access, `::`, and initializer braces are a decided behavior change, tracked in thoenissen/Reihitsu#1440.
 
 ## Requirements
 
@@ -52,7 +52,7 @@ class C
 
 ### FMT-SPACE-002 — Whitespace no rule covers is only collapsed
 
-When no spacing rule applies to a token pair, the formatter MUST replace each run of whitespace between the two tokens by a single space and MUST NOT insert or remove a gap. A run of tabs, or of tabs and spaces, counts as a run and becomes one space. This holds for a gap the line-break phase joined as for one the author wrote on one line: the phase decides a gap by its two tokens, never by whether the gap held a line break before, so a joined pair that no rule covers keeps the separator the join wrote (FMT-BREAK-031). When several rules apply to one pair, the first rule in this order MUST decide: attribute close bracket (FMT-SPACE-003), no-space (FMT-SPACE-004 to FMT-SPACE-007), comma (FMT-SPACE-008), single-space (FMT-SPACE-009), operator (FMT-SPACE-010), for-loop semicolon (FMT-SPACE-011), attribute-target colon (FMT-SPACE-016), keyword (FMT-SPACE-012), arrow (FMT-SPACE-017), conditional operator (FMT-SPACE-018), name colon (FMT-SPACE-019), `when` (FMT-SPACE-020), declared name (FMT-SPACE-021), accessor list (FMT-SPACE-022), relational pattern (FMT-SPACE-023).
+When no spacing rule applies to a token pair, the formatter MUST replace each run of whitespace between the two tokens by a single space and MUST NOT insert or remove a gap. A run of tabs, or of tabs and spaces, counts as a run and becomes one space. This holds for a gap the line-break phase joined as for one the author wrote on one line: the phase decides a gap by its two tokens, never by whether the gap held a line break before, so a joined pair that no rule covers keeps the separator the join wrote (FMT-BREAK-031). When several rules apply to one pair, the first rule in this order MUST decide: attribute close bracket (FMT-SPACE-003), no-space (FMT-SPACE-004 to FMT-SPACE-007), comma (FMT-SPACE-008), single-space (FMT-SPACE-009), operator (FMT-SPACE-010), for-loop semicolon (FMT-SPACE-011), attribute-target colon (FMT-SPACE-016), keyword (FMT-SPACE-012), arrow (FMT-SPACE-017), conditional operator (FMT-SPACE-018), name colon (FMT-SPACE-019), `when` (FMT-SPACE-020), declared name (FMT-SPACE-021), accessor list (FMT-SPACE-022), relational pattern (FMT-SPACE-023), modifier and prefix keyword (FMT-SPACE-024), `with` (FMT-SPACE-025), lambda return type (FMT-SPACE-026), function-pointer calling convention (FMT-SPACE-027).
 
 Why: The phase only enforces a spacing it has a rule for. Where it has none — the space after a cast, for instance — both forms are acceptable and the author's choice is kept; only the clearly accidental double space or tab goes. A joined pair is decided like the same pair written on one line, so the output does not depend on where the author broke the line; a rule that applied to joined gaps only would keep that difference. A tab is collapsed even when it is alone, because a tab the phase kept would later be expanded to spaces and collapsed on the next run, and the output would never become stable (FMT-PIPE-004).
 
@@ -726,6 +726,8 @@ class C
 }
 ```
 
+A comment in the gap follows FMT-SPACE-013 and FMT-SPACE-014: `[return /** x */ :Obsolete]` gives `[return /** x */: Obsolete]`, and `[return:/* x */Obsolete]` gives `[return:/* x */ Obsolete]`.
+
 ### FMT-SPACE-017 — One space on each side of every arrow
 
 The formatter MUST put exactly one space on each side of every `=>`: the arrow of a lambda, of an expression body of a member, accessor, or local function, and of a switch-expression arm.
@@ -860,11 +862,13 @@ class C
 }
 ```
 
+A comment in the gap follows FMT-SPACE-013 and FMT-SPACE-014: `M(b /** x */ :b)` gives `M(b /** x */: b)`, and `M(b:/* x */b)` gives `M(b:/* x */ b)`.
+
 ### FMT-SPACE-020 — One space in front of `when`
 
-The formatter MUST put exactly one space in front of the `when` of a `case` guard and of a switch-expression arm. The space behind `when` is not decided by this rule.
+The formatter MUST put exactly one space in front of the `when` of a `case` guard, of a switch-expression arm, and of a `catch` filter. The space behind `when` is not decided by this rule.
 
-Why: Without the space, `case (1, 2)when b:` glues the guard to the pattern. A pattern that ends in an identifier or keyword already needs the space to stay two tokens; one that ends in `)`, `}`, `]`, or a literal does not, and would keep a gap a join leaves empty (FMT-BREAK-031).
+Why: Without the space, `case (1, 2)when b:` glues the guard to the pattern. FMT-PIPE-014 asks for every `when` guard to be spaced alike, the filter of a `catch` clause included. A pattern that ends in an identifier or keyword already needs the space to stay two tokens; one that ends in `)`, `}`, `]`, or a literal does not, and would keep a gap a join leaves empty (FMT-BREAK-031).
 
 Example:
 
@@ -887,6 +891,16 @@ class C
                    "x"when b => 1,
                    _ => 0
                };
+    }
+
+    void N()
+    {
+        try
+        {
+        }
+        catch (System.Exception e)when (e != null)
+        {
+        }
     }
 }
 ```
@@ -911,14 +925,24 @@ class C
                    _ => 0
                };
     }
+
+    void N()
+    {
+        try
+        {
+        }
+        catch (System.Exception e) when (e != null)
+        {
+        }
+    }
 }
 ```
 
-### FMT-SPACE-021 — One space between a type and the name it declares
+### FMT-SPACE-021 — One space between a type or pattern and the name it declares
 
-The formatter MUST put exactly one space between the type of a parameter, a tuple element, a variable declaration, a declaration expression, or a declaration pattern and the name or designation behind it. The gaps inside the type, such as the one in front of `?` (FMT-SPACE-005) or in front of an array rank, are not decided by this rule.
+The formatter MUST put exactly one space between the type of a parameter, a tuple element, a variable declaration, a declaration expression, a declaration pattern, a `foreach` variable, a `catch` declaration, or the range variable of a `from` or `join` clause and the name or designation behind it, and between a recursive or list pattern and the designation behind it. The gaps inside the type, such as the one in front of `?` (FMT-SPACE-005) or in front of an array rank, are not decided by this rule.
 
-Why: A type that ends in `?`, `]`, `>`, `*`, or `)` reads as two tokens with its name also without a space, so a join leaves that gap empty (FMT-BREAK-031) and `int?a` would stay. A type that ends in an identifier or keyword already needs the space, so for it the rule only collapses the gap.
+Why: A type that ends in `?`, `]`, `>`, `*`, or `)` reads as two tokens with its name also without a space, so a join leaves that gap empty (FMT-BREAK-031) and `int?a` would stay. A type that ends in an identifier or keyword already needs the space, so for it the rule only collapses the gap. FMT-PIPE-014 asks for every declared name to be spaced alike, so the rule covers every declaration that names a variable behind a type or pattern, not only the ones a join reaches.
 
 This requirement specifies the outcome only for the declarations it names and leaves every other type in front of a name unspecified, such as the return type of a method or the type of a property.
 
@@ -934,6 +958,20 @@ class C
         N(out int?w);
 
         var p = o is int[]d;
+        var q = o is { }e && o is [1]f;
+
+        foreach (int?g in new int?[0])
+        {
+        }
+
+        try
+        {
+        }
+        catch (System.Exception?h)
+        {
+        }
+
+        var r = from int?i in new int?[0] select i;
     }
 }
 ```
@@ -948,6 +986,20 @@ class C
         N(out int? w);
 
         var p = o is int[] d;
+        var q = o is { } e && o is [1] f;
+
+        foreach (int? g in new int?[0])
+        {
+        }
+
+        try
+        {
+        }
+        catch (System.Exception? h)
+        {
+        }
+
+        var r = from int? i in new int?[0] select i;
     }
 }
 ```
@@ -1010,6 +1062,185 @@ class C
     bool M(int x)
     {
         return x is > 5 and <= 10;
+    }
+}
+```
+
+### FMT-SPACE-024 — One space behind a modifier or prefix keyword in front of its operand
+
+The formatter MUST put exactly one space between each of these keywords and the token behind it:
+
+- a lambda modifier: `static`, `async`;
+- a modifier of an argument, a parameter, a type, or an expression: `ref`, `out`, `in`, `readonly`, `scoped`, `this`, `params`;
+- `await` and `stackalloc`;
+- `var` in front of a parenthesized designation (`var (x, y)`);
+- the `not` of a pattern;
+- the `in` of a `foreach` statement and of a `from` or `join` clause.
+
+A keyword whose next token is its own parenthesis, such as `typeof`, `sizeof`, `default`, `checked`, `unchecked`, `nameof`, or `__arglist`, is not one of these keywords, and `new` is decided by FMT-SPACE-012. A modifier of a member or local declaration is not decided by this rule either: in `static (int, int) F() => default;` and `public(int, int) G;` the gap behind `static` and `public` is kept as written, while in `N(static(int v) => v)` and `static void E(this(int, int) t)` the lambda modifier and the parameter modifier get the space.
+
+Why: Each of these keywords modifies or introduces the operand behind it and is not called with it: `await(t)` and `async(x) => x` read like calls to methods named `await` and `async`, and `not"x"` or `out*p` glue the keyword to an operand of another kind. A keyword followed by an identifier or another keyword needs the space anyway; one followed by `(`, `[`, `*`, `@`, a literal, or an operator does not, so a join leaves that gap empty (FMT-BREAK-031) and only this rule keeps the space a joined pair had before.
+
+Example:
+
+```csharp
+using System.Linq;
+using System.Threading.Tasks;
+
+static class C
+{
+    static void E(this(int, int) t, params(int, int)[] a)
+    {
+    }
+
+    static async Task M(int a, int[] xs, object o, Task t)
+    {
+        N(async(x) => x, static(int v) => v);
+        N(ref(a), in(a));
+        await(t);
+
+        var b = o is not"x" && o is not> 5;
+        var c = o is var(u, w);
+
+        foreach (var e in(xs))
+        {
+        }
+
+        var q = from z in(xs) select z;
+    }
+
+    static unsafe void F(int* p)
+    {
+        N(out*p);
+
+        var s = stackalloc[] { 1 };
+    }
+}
+```
+
+```csharp
+using System.Linq;
+using System.Threading.Tasks;
+
+static class C
+{
+    static void E(this (int, int) t, params (int, int)[] a)
+    {
+    }
+
+    static async Task M(int a, int[] xs, object o, Task t)
+    {
+        N(async (x) => x, static (int v) => v);
+        N(ref (a), in (a));
+        await (t);
+
+        var b = o is not "x" && o is not > 5;
+        var c = o is var (u, w);
+
+        foreach (var e in (xs))
+        {
+        }
+
+        var q = from z in (xs) select z;
+    }
+
+    static unsafe void F(int* p)
+    {
+        N(out *p);
+
+        var s = stackalloc [] { 1 };
+    }
+}
+```
+
+`typeof(C)`, `default(int)`, and `nameof(a)` keep their gap.
+
+### FMT-SPACE-025 — One space on each side of `with`
+
+The formatter MUST put exactly one space on each side of the `with` of a `with` expression.
+
+Why: `with` is a binary operator written as a word; `p.Q()with { X = 1 }` glues it to its left operand, which an identifier in front of it would not allow. The space in front of its initializer's `{` is decided by FMT-SPACE-009.
+
+Example:
+
+```csharp
+class C
+{
+    void M(P p, P[] ps)
+    {
+        var a = p.Q()with { X = 1 };
+        var b = ps[0]with { X = 2 };
+        var c = p!   with { X = 3 };
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(P p, P[] ps)
+    {
+        var a = p.Q() with { X = 1 };
+        var b = ps[0] with { X = 2 };
+        var c = p! with { X = 3 };
+    }
+}
+```
+
+### FMT-SPACE-026 — One space between an explicit lambda return type and its parameter list
+
+The formatter MUST put exactly one space between the explicit return type of a lambda and the `(` of its parameter list. A lambda without a return type is decided by its modifier (FMT-SPACE-024) or starts its line.
+
+Why: `int(x) => x` and `List<int>(x) => x` read like a conversion and a constructor call; the space separates the return type from the parameter list, as the space between a method's return type and its name does.
+
+Example:
+
+```csharp
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        N(int(x) => x, int[](x) => x, List<int>(x) => x, int?(x) => x, (int, int)(x) => x);
+    }
+}
+```
+
+```csharp
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        N(int (x) => x, int[] (x) => x, List<int> (x) => x, int? (x) => x, (int, int) (x) => x);
+    }
+}
+```
+
+### FMT-SPACE-027 — One space behind a function pointer's `*` in front of its calling convention
+
+The formatter MUST put exactly one space between the `*` of a function-pointer type and the `managed` or `unmanaged` behind it. The gap in front of the `*` and the gap in front of the calling-convention list's `[` are not decided by this rule.
+
+Why: `delegate*unmanaged[Cdecl]` runs the pointer and its calling convention together; `delegate* unmanaged[Cdecl]<int, void>` is the form the C# documentation shows.
+
+Example:
+
+```csharp
+unsafe class C
+{
+    void M(delegate*unmanaged[Cdecl]<int, void> f, delegate*managed<int> g)
+    {
+    }
+}
+```
+
+```csharp
+unsafe class C
+{
+    void M(delegate* unmanaged[Cdecl]<int, void> f, delegate* managed<int> g)
+    {
     }
 }
 ```
