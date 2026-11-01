@@ -877,6 +877,7 @@ class C
         {
             case (1, 2)when b:
                 break;
+
             case int i  when(i > 0):
                 break;
         }
@@ -899,6 +900,7 @@ class C
         {
             case (1, 2) when b:
                 break;
+
             case int i when(i > 0):
                 break;
         }
