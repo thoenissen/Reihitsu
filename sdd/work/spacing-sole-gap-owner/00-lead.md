@@ -45,6 +45,8 @@ Question 14 (asked before the implementer; one-line forms of the FMT-SPACE-024 s
 
 Standing instruction from the maintainer for the rest of the run: any further output question is decided by the lead's recommendation without stopping, and every such decision is reported to the maintainer at the end of the run (run report). Record each one here as "decided on recommendation under the standing instruction".
 
+Question 15 (decided on recommendation under the standing instruction; to be reported at the end): change-doc entry 14 — the gap behind a `/** */` comment carried by the right token follows the pair's rule, e.g. `b /** sum */+b` → `b /** sum */ + b` (`main`: `b /** sum */+ b`), `c ? b /** yes */:b` → `c ? b /** yes */ : b`. Decided: **apply the pair's rule** (recommended), because a comment in a gap should not change how the pair is spaced.
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
@@ -69,6 +71,7 @@ Standing instruction from the maintainer for the rest of the run: any further ou
 | 18 | Implementer | `RelationalPatternSpacingTests.DocumentationCommentInFrontOfTheOperandKeepsItsPlace` expects an output the documentation phase never lets through (also on `main`) | Test implementer replaces the full-pipeline expectation with the pipeline's real output where every gap is decided by the spec, or keeps the case at phase level only | Unreachable expectation | Comment shape is one the maintainer considers unwanted; phase-level coverage stays | pending |
 | 19 | Implementer | FMT-SPACE-014 states only removing whitespace behind a `/** */` that belongs to the next token; the implementation also inserts the one space a rule demands | Spec author widens FMT-SPACE-014 to the general form (the gap behind such a comment is decided by the rule for the pair) — in-run spec gap, not a follow-up | PR-introduced gap between spec and tests | Follows the maintainer's answers for each pair; standing instruction | pending |
 | 20 | Implementer | Bundled fix: the gap behind a rewritten token was decided from a detached copy and skipped in that pass | Accept as an adjacent fix the run's tests need; covered by the new comment tests; auditor to check it | Small, same component, tested; repository self-format unchanged | No test outside the run changes output; auditor verifies | cab4c49 |
+| 21 | Spec author | Follow-up candidate: spaces behind a right-carried `/** */` in a gap without a rule are not collapsed (`new[] { /** z */   1 }`) | Dropped, not filed | The maintainer's guidance treats comments sharing a line with code as unwanted and asks the formatter not to grow complexity for them | No change in this run | — |
 
 ## Follow-up candidates
 
