@@ -1107,7 +1107,7 @@ class C
 
 ### FMT-BREAK-027 — Attribute lists of declarations start their own line
 
-Each attribute list of a type, member, accessor, or other declaration MUST start its own line, and the declaration MUST start its own line behind its last list. Attribute lists of parameters and type parameters MUST stay on the parameter's line. The attribute lists of an accessor whose accessor list stays on the declaration's line (FMT-BREAK-024) MUST stay on that line. How many attributes a list holds is decided before this phase (FMT-STRUCT-028, FMT-STRUCT-029), and for the lists of an accessor by FMT-BREAK-032. This requirement leaves the placement of a list with a comment or directive between its brackets unspecified.
+Each attribute list of a type, member, accessor, or other declaration MUST start its own line, and the declaration MUST start its own line behind its last list. Attribute lists of parameters and type parameters MUST stay on the parameter's line. The attribute lists of an accessor whose accessor list stays on the declaration's line (FMT-BREAK-024) MUST stay on that line. How many attributes a list holds is decided before this phase (FMT-STRUCT-028, FMT-STRUCT-029), and for the lists of an accessor by FMT-BREAK-032. This requirement leaves the placement of a list with a comment or directive between its brackets unspecified, and the placement of a `param:` or `typevar:` list on an owner other than a parameter or type parameter.
 
 Why: A list on its own line keeps each attribute visible and diffable on declarations, while parameter attributes stay inline so that a parameter list keeps one parameter per line. The RH55xx attribute placement rules report the same shapes.
 
@@ -1318,9 +1318,9 @@ One join is a recorded exception: where the phase merges the attribute lists of 
 
 ### FMT-BREAK-032 — The attribute lists of an accessor follow its accessor list's layout
 
-In an accessor list that this phase lays out over several lines (FMT-BREAK-024, FMT-BREAK-025), an attribute list of an accessor that holds several attributes MUST be split into one list per attribute, as FMT-STRUCT-028 states for a declaration, with its conditions and with what it states a created list holds between its brackets. In an accessor list that stays on the declaration's line (FMT-BREAK-024), the attribute lists of an accessor MUST NOT be split, and its lists of one target MUST be merged into the first of them, as FMT-STRUCT-029 states for a parameter and with its targets and conditions; the merge keeps no line break of the stretch it rewrites, and the space it writes is FMT-BREAK-031's recorded exception. Which of the two layouts an accessor list has is the layout this phase gives it, not the one it was written in: an accessor list written on one line that the phase lays out over several lines is split, and one written over several lines that the phase joins onto the declaration's line is merged. This holds for the accessors of properties, indexers, and events.
+In an accessor list that this phase lays out over several lines (FMT-BREAK-024, FMT-BREAK-025), an attribute list of an accessor that holds several attributes MUST be split into one list per attribute, as FMT-STRUCT-028 states for a declaration, with its conditions and with what it states a created list holds between its brackets. A list whose specifier is `param:` or `typevar:` is the exception there, as in FMT-STRUCT-028: it MUST NOT be split, and the accessor's `param:` lists and its `typevar:` lists MUST each be merged into the first of them, as FMT-STRUCT-029 states and with its conditions. In an accessor list that stays on the declaration's line (FMT-BREAK-024), the attribute lists of an accessor MUST NOT be split, and its lists of one target MUST be merged into the first of them, as FMT-STRUCT-029 states for a parameter and with its targets and conditions. In either layout, a merge of an accessor's lists keeps no line break of the stretch it rewrites, and the space it writes is FMT-BREAK-031's recorded exception. Which of the two layouts an accessor list has is the layout this phase gives it, not the one it was written in: an accessor list written on one line that the phase lays out over several lines is split, and one written over several lines that the phase joins onto the declaration's line is merged. This holds for the accessors of properties, indexers, and events.
 
-Why: The shape follows from where the lists stand. On lines of their own, each attribute gets a line, as on any other declaration; on the declaration's line, a second list only repeats the brackets, and the list-shape rules do not report it there (SHARED-ATTR-014). Whether an accessor list stays on the declaration's line is decided by this phase, after it joins an initializer's value (FMT-BREAK-016) and lays out the accessor list, so the shape of its attribute lists is decided here, behind that layout; a structural transform would have to predict it.
+Why: The shape follows from where the lists stand. On lines of their own, each attribute gets a line, as on any other declaration; on the declaration's line, a second list only repeats the brackets, and the list-shape rules do not report it there (SHARED-ATTR-014). A `param:` or `typevar:` list keeps the parameter shape in either layout, as on every owner (FMT-STRUCT-029). Whether an accessor list stays on the declaration's line is decided by this phase, after it joins an initializer's value (FMT-BREAK-016) and lays out the accessor list, so the shape of its attribute lists is decided here, behind that layout; a structural transform would have to predict it.
 
 Example:
 
@@ -1365,5 +1365,33 @@ class C
     }
 
     int S { [A, B] get; set; } = 1;
+}
+```
+
+Example — in an accessor list over several lines, the `param:` lists of a setter are merged, not split:
+
+```csharp
+class C
+{
+    int _v;
+
+    int T
+    {
+        get => _v;
+        [param: A] [param: B] set => _v = value;
+    }
+}
+```
+
+```csharp
+class C
+{
+    int _v;
+
+    int T
+    {
+        get => _v;
+        [param: A, B] set => _v = value;
+    }
 }
 ```

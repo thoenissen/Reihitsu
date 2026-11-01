@@ -11,13 +11,14 @@
 The shape of an attribute list — how many attributes it holds, and whether lists of one target are merged — is decided by the structural-transform phase for every owner whose shape does not depend on layout. The line-break phase keeps only the placement of the lists, and the shape of accessor attribute lists, which follows the layout the line-break phase itself gives the accessor list.
 
 - **The split moves.** An attribute list with several attributes on the compilation unit, a type, a delegate, a member, an enum member, or a local function is split into one list per attribute by a structural transform (FMT-STRUCT-028), with the guards FMT-BREAK-027 states today: no split for a list with a comment or directive between its brackets, and none for a list whose specifier names no known target. The transform writes nothing between the lists it creates (FMT-STRUCT-026); the line-break phase puts each of them on its own line (FMT-BREAK-027).
-- **The split drops what separated two attributes.** The whitespace, line breaks, and blank lines between two attributes of the original list are dropped with the comma, so no created list keeps a line break or the next line's indentation between its brackets (FMT-STRUCT-028). Today the split keeps them whenever they belong to an attribute rather than to the comma; see *Visible output changes*.
+- **The split drops what separated two attributes, and what stands behind the `[`.** The whitespace, line breaks, and blank lines between two attributes of the original list are dropped with the comma, and those behind the original list's `[` are dropped as well, so no created list keeps a line break or the next line's indentation between its `[` and its attribute (FMT-STRUCT-028). Today the split keeps them whenever they belong to an attribute rather than to the comma, and drops what stands behind the `[` only in the first pass; see *Visible output changes*.
 - **The lambda split moves with it.** A lambda's attribute lists are split today as a declaration's are. They are split by the same structural transform, with the same guards and the same content of each created list, so their output stays the output of `main` apart from the changes listed below. FMT-STRUCT-028 still leaves them unspecified, because where they end up looks wrong (a follow-up of this change); the move only keeps the line-break phase from changing tokens for them.
 - **The merge moves.** The lists of a parameter or type parameter that name the same target are merged into the first of them by a structural transform (FMT-STRUCT-029), with today's guards: lists of different targets are never merged, and a comment or directive in or around the group blocks the merge. The transform writes no whitespace (FMT-STRUCT-026); the spacing phase spaces the merged list (FMT-SPACE-003, FMT-SPACE-008).
-- **The merge keeps a line break the author wrote between the lists.** Today the line-break phase reads the parameter's lists before it merges them, so a line break between or behind them wraps the parameter list (FMT-BREAK-013). The structural merge runs before that phase reads anything, so it keeps one line break of the stretch it rewrites, and the parameter list is wrapped as today (FMT-STRUCT-029).
+- **`param:` and `typevar:` lists keep the parameter shape on every owner.** Today a list whose specifier names the parameter or type-parameter target is never split and its lists of one target are merged, whatever it is written on — a setter, an `init` or `remove` accessor, an indexer setter, or (with warning CS0657) a method, a property, a type, a delegate, or a local function. One predicate of the list decides that shape, and the merge runs on every owner it names: the structural merge on declarations (FMT-STRUCT-029), the accessor merge of the line-break phase on accessors in either layout of their accessor list (FMT-BREAK-032). FMT-STRUCT-028 and FMT-BREAK-032 now state the exception from the split, which they omitted.
+- **The merge keeps a line break the author wrote in the lists.** Today the line-break phase reads the parameter's lists before it merges them, so a line break in the first list, between the lists, or behind them wraps the parameter list (FMT-BREAK-013). The structural merge runs before that phase reads anything, so it keeps one line break of the stretch it rewrites — from the first list's `[` to the token behind the last list — and the parameter list is wrapped as today (FMT-STRUCT-029).
 - **One split and one merge.** The structural split and the accessor split of FMT-BREAK-032 are one split. The structural merge, the accessor merge of FMT-BREAK-032, and the merge of the list-shape code fix (SHARED-ATTR-018) are one merge. Their callers differ only in the separators they write: none for the structural transforms (FMT-STRUCT-026), the space and joins of SHARED-ATTR-018 for the code fix and the accessor merge (FMT-BREAK-031).
 - **The accessor shape stays.** The attribute lists of an accessor are split when the line-break phase lays out its accessor list over several lines, and merged when the accessor list stays on the declaration's line (FMT-BREAK-032). This was the line-break phase's behavior already; FMT-BREAK-027 did not state the one-line case, and FMT-BREAK-032 writes it down.
-- **FMT-BREAK-027 becomes a placement requirement**: each list of a declaration starts its own line, the lists of a parameter or type parameter stay on its line, and the lists of an accessor in an accessor list on one line stay on that line (FMT-BREAK-024).
+- **FMT-BREAK-027 becomes a placement requirement**: each list of a declaration starts its own line, the lists of a parameter or type parameter stay on its line, and the lists of an accessor in an accessor list on one line stay on that line (FMT-BREAK-024). It leaves the placement of a `param:` or `typevar:` list on another owner unspecified, as `main`'s text did in effect; such a list does not start its own line today.
 - **The recorded exception of FMT-BREAK-031** now covers only the merge of accessor lists, the one merge left in the line-break phase.
 
 The transforms run in every entry point and are not configurable: FMT-STRUCT-016 already applies every requirement of the phase other than the accessor and get-only-member shapes through every entry point, and FMT-PIPE-011 is unchanged. That is where the line-break phase applies them today.
@@ -56,9 +57,9 @@ class C
 
 ## Visible output changes
 
-Two outputs of the formatter change, both for an attribute list written over several lines and split into one list per attribute. They change for every owner the split serves: a declaration (FMT-STRUCT-028), an accessor in an accessor list laid out over several lines (FMT-BREAK-032), and a lambda. The output of every other input is the output of `main`, FMT-BREAK-027's example and every parameter and type-parameter merge included. The code fixes' output does not change.
+Two outputs of the formatter change, both for an attribute list written over several lines and split into one list per attribute; the first of them covers a line break behind the comma and one behind the list's `[`. They change for every owner the split serves: a declaration (FMT-STRUCT-028), an accessor in an accessor list laid out over several lines (FMT-BREAK-032), and a lambda. The output of every other input is the output of `main`, FMT-BREAK-027's example and every parameter and type-parameter merge included. The code fixes' output does not change.
 
-### A line break behind the comma settles in one pass
+### A line break behind the comma, or behind the `[`, settles in one pass
 
 Demanded by FMT-PIPE-004 (idempotency) and FMT-SPACE-004; the output after a second pass is unchanged.
 
@@ -115,6 +116,42 @@ class C
         [D]
         get;
         set;
+    }
+}
+```
+
+A line break behind the original `[` follows the same rule. Today the first pass keeps the indentation of the next line behind the first created `[`, and a second pass gives the output below; after this change the first pass gives it. The same holds for an accessor in an accessor list laid out over several lines (`[⏎ C, D] get;`) and for a lambda (`var f = [⏎ A, B] (int x) => x;`).
+
+```csharp
+class C
+{
+    [
+        A, B] void P() { }
+}
+```
+
+Before (`main`), first pass — the second pass gives the output below:
+
+```csharp
+class C
+{
+    [        A]
+    [B]
+    void P()
+    {
+    }
+}
+```
+
+After, in one pass:
+
+```csharp
+class C
+{
+    [A]
+    [B]
+    void P()
+    {
     }
 }
 ```
@@ -196,7 +233,7 @@ class C
 }
 ```
 
-A line break behind the original `[` or in front of the original `]` (`[A, B⏎]`) does not separate two attributes and keeps today's output; it is outside this change.
+A line break in front of the original `]` (`[A, B⏎]`) does not separate two attributes and keeps today's output; it is outside this change.
 
 ## Decisions
 
@@ -214,11 +251,15 @@ The split writes no line break between the lists it creates, and the merge write
 
 ### A created list holds only its attribute between the separators it drops
 
-The split drops the comma together with everything between the two attributes it separated (FMT-STRUCT-028). Today's split carries an attribute's own leading and trailing trivia into its new brackets. When the separating line break belongs to an attribute rather than to the comma, a created list keeps a line break inside its brackets, or the next line's indentation behind its `[`; the spacing phase does not reach that whitespace, because the attribute holds it as leading trivia, so a second pass changes the output (`[A,⏎ B]`). Both outputs under *Visible output changes* follow from the one rule; the second was asked and answered as an output question, the first is demanded by unchanged requirements.
+The split drops the comma together with everything between the two attributes it separated (FMT-STRUCT-028). Today's split carries an attribute's own leading and trailing trivia into its new brackets. When the separating line break belongs to an attribute rather than to the comma, a created list keeps a line break inside its brackets, or the next line's indentation behind its `[`; the spacing phase does not reach that whitespace, because the attribute holds it as leading trivia, so a second pass changes the output (`[A,⏎ B]`). A line break behind the original `[` stands in the first created list for the same reason, and the same rule drops it: kept, it either stays inside the brackets or leaves whitespace the spacing phase does not reach. Both outputs under *Visible output changes* follow from the one rule; the second was asked and answered as an output question, the first is demanded by unchanged requirements and keeps `main`'s output after a second pass.
 
 ### The merge keeps one line break of its stretch
 
-Today the line-break phase reads a parameter's lists as written before it merges them, so `void P([A]⏎ [B] int x, int y)` wraps the parameter list like `void P([A]⏎ int x, int y)`, whose list has nothing to merge. After the move, the merge runs before that phase reads the parameter. A merge that dropped the line break, as the code fix's does, would leave the first input on one line and change its output. FMT-STRUCT-029 therefore keeps one line break wherever the author wrote one in the stretch it rewrites, and the line-break phase sees the parameter as today; the attribute lists are then joined onto the parameter's line by FMT-BREAK-027, as today. The accessor merge keeps none, since it runs only for an accessor list that stays on one line.
+Today the line-break phase reads a parameter's lists as written before it merges them, so `void P([A]⏎ [B] int x, int y)` wraps the parameter list like `void P([A]⏎ int x, int y)`, whose list has nothing to merge. After the move, the merge runs before that phase reads the parameter. A merge that dropped the line break, as the code fix's does, would leave the first input on one line and change its output. The merge also rewrites the inside of the first list — it drops its attributes' trivia and rebuilds its commas — so a line break there (`void V([A,⏎ C] [B] int x, int y)`) wrapped the parameter list on `main` and has to be kept as well. FMT-STRUCT-029 therefore keeps one line break wherever the author wrote one in the stretch it rewrites, from the first list's `[` — where the comment and directive guard of the merge starts too — to the token behind the last list, and the line-break phase sees the parameter as today; the attribute lists are then joined onto the parameter's line by FMT-BREAK-027, as today. The accessor merge keeps none, since it runs only for an accessor list that stays on one line.
+
+### A `param:` or `typevar:` list keeps the parameter shape on every owner
+
+On `main` one predicate of the list — its layout target — decides both whether it is split and whether its lists of one target are merged, for every owner. Splitting the move by owner kind (the structural merge for parameters and type parameters, the accessor merge for accessor lists on one line) would leave `param:` and `typevar:` lists on other owners neither split nor merged, and the list-shape rule would report output the formatter produced. So the same predicate decides where the merge runs: the structural merge merges these lists on every declaration (FMT-STRUCT-029), and the accessor merge merges them in an accessor list laid out over several lines as well as in one on the declaration's line (FMT-BREAK-032). FMT-STRUCT-028 and FMT-BREAK-032 state the exception from the split that `main` already made. The output is `main`'s.
 
 ### The lambda split moves with the declarations
 
