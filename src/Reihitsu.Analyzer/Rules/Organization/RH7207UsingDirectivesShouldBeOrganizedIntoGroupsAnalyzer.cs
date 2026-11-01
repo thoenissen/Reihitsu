@@ -61,7 +61,9 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer : Diagnost
     }
 
     /// <summary>
-    /// Determines whether the given using directives are properly organized into groups
+    /// Determines whether the given using directives are properly organized into groups: they are in canonical
+    /// order, a directive that starts a new group has a blank line before it, and a directive that continues its
+    /// group has none, unless a comment leads it, which may have one or more blank lines above it (SHARED-USING-011)
     /// </summary>
     /// <param name="usings">Using directives</param>
     /// <returns><see langword="true"/> if the usings are already organized correctly</returns>
@@ -86,6 +88,13 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer : Diagnost
         {
             var sameGroup = UsingDirectiveOrderingUtilities.AreInSameGroup(usings[index - 1], usings[index]);
             var hasBlankLine = HasBlankLineBefore(usings[index]);
+
+            if (sameGroup
+                && hasBlankLine
+                && UsingDirectiveOrderingUtilities.IsLedByComment(usings[index]))
+            {
+                continue;
+            }
 
             if (sameGroup == hasBlankLine)
             {

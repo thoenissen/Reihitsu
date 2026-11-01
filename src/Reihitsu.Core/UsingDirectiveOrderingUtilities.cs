@@ -147,6 +147,24 @@ public static class UsingDirectiveOrderingUtilities
     }
 
     /// <summary>
+    /// Determines whether a comment leads the using directive: the first trivia of its leading trivia that is
+    /// neither whitespace nor a line break is a comment — single-line or delimited, ordinary or documentation,
+    /// on a line of its own or on the directive's line. A blank line in front of that comment does not split
+    /// the directive's group from the group of its predecessor (SHARED-USING-011); the analyzers and the
+    /// formatter share this predicate so both decide the same directives
+    /// </summary>
+    /// <param name="usingDirective">Using directive</param>
+    /// <returns><see langword="true"/> if a comment leads the directive; otherwise, <see langword="false"/></returns>
+    public static bool IsLedByComment(UsingDirectiveSyntax usingDirective)
+    {
+        var leadingTrivia = usingDirective.GetLeadingTrivia();
+        var firstSignificantTriviaIndex = SyntaxTriviaUtilities.FindFirstSignificantTriviaIndex(leadingTrivia);
+
+        return firstSignificantTriviaIndex >= 0
+               && SyntaxTriviaUtilities.IsCommentTrivia(leadingTrivia[firstSignificantTriviaIndex]);
+    }
+
+    /// <summary>
     /// Computes the canonical (sorted and grouped) order shared by the analyzers, code fixes and formatter
     /// </summary>
     /// <param name="usingDirectives">Using directives</param>

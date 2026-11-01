@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -84,6 +85,33 @@ internal static class UsingLeadingTriviaBuilder
 
         return firstSignificantTriviaIndex > 0
                && leadingTrivia.Take(firstSignificantTriviaIndex).Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+    }
+
+    /// <summary>
+    /// Determines whether, in the source, a blank line stood directly above the comment that leads a using
+    /// directive (<see cref="UsingDirectiveOrderingUtilities.IsLedByComment"/>). The line breaks in front of that
+    /// comment are the one that ends the line of the directive's source predecessor, when its trailing trivia
+    /// holds it, and those in the layout of the directive's own leading trivia; two or more of them leave a
+    /// blank line. Only the line breaks in front of the first comment count (SHARED-USING-011)
+    /// </summary>
+    /// <param name="predecessorTrailingTrivia">Trailing trivia of the directive that precedes it in the source</param>
+    /// <param name="current">Using directive</param>
+    /// <returns><see langword="true"/> if a blank line stood directly above the directive's leading comment; otherwise, <see langword="false"/></returns>
+    public static bool HasBlankLineAboveLeadingComment(SyntaxTriviaList predecessorTrailingTrivia, UsingDirectiveSyntax current)
+    {
+        if (UsingDirectiveOrderingUtilities.IsLedByComment(current) == false)
+        {
+            return false;
+        }
+
+        var leadingTrivia = current.GetLeadingTrivia();
+        var firstSignificantTriviaIndex = SyntaxTriviaUtilities.FindFirstSignificantTriviaIndex(leadingTrivia);
+        var lineBreakCount = predecessorTrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)) ? 1 : 0;
+
+        lineBreakCount += leadingTrivia.Take(firstSignificantTriviaIndex)
+                                       .Count(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+
+        return lineBreakCount >= 2;
     }
 
     /// <summary>
