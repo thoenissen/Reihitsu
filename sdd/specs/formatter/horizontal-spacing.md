@@ -954,7 +954,7 @@ class C
 
 The formatter MUST put exactly one space between a type and the name or designation a declaration declares behind it, and between a pattern and the designation behind it. These are all the declarations the rule covers:
 
-- a parameter that has a type, of any parameter list: a method, a local function, a constructor or primary constructor, an operator, an indexer, a delegate, or a lambda with explicitly typed parameters;
+- a parameter that has a type, in every parameter list: that of a method, a local function, a constructor or a primary constructor, an operator or a conversion operator, an indexer, a delegate, an anonymous method (`delegate(int? x) { }`), a lambda with explicitly typed parameters, and an extension block (`extension(string? s)`);
 - a tuple element that has a name;
 - every variable declaration, wherever it stands:
   - a field, including a `const` field and a fixed-size buffer (`fixed int _buf[4];`), and an event field (`event Action? E;`);
@@ -1040,7 +1040,7 @@ Example, for the members and statements that declare a variable:
 using System;
 using System.IO;
 
-unsafe class C
+unsafe struct C
 {
     private int?_f;
     private event Action?E;
@@ -1069,7 +1069,7 @@ unsafe class C
 using System;
 using System.IO;
 
-unsafe class C
+unsafe struct C
 {
     private int? _f;
     private event Action? E;
