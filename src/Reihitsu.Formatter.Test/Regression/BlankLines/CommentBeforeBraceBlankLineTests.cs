@@ -446,6 +446,7 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
                                         var p = new P
                                                 {
                                                     L =
+
                                                     // c
                                                     {
                                                         1
@@ -471,7 +472,8 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that the blank line between an own-line comment and the opening brace of a collection initializer assigned
-    /// to a member is removed, as before the opening brace of an assigned object initializer
+    /// to a member is removed, as before the opening brace of an assigned object initializer, while FMT-BLANK-011 puts a
+    /// blank line above the comment that follows the <c>=</c>
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-020")]
@@ -502,6 +504,54 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
                                         var p = new P
                                                 {
                                                     L =
+
+                                                    // c
+                                                    {
+                                                        1
+                                                    }
+                                                };
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line is inserted above an own-line comment that follows the <c>=</c> of a collection initializer
+    /// assigned to a member, and that the line-break phase keeps it, which gives the same layout as when the author wrote a
+    /// blank line between the comment and the opening brace
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-011")]
+    [Requirement("FMT-BREAK-030")]
+    public void InsertsBlankLineAboveCommentBetweenAssignmentAndOpeningBraceOfAssignedCollectionInitializer()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var p = new P
+                                             {
+                                                 L =
+                                                 // c
+                                                 {
+                                                     1
+                                                 }
+                                             };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var p = new P
+                                                {
+                                                    L =
+
                                                     // c
                                                     {
                                                         1
