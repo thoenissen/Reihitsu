@@ -35,7 +35,15 @@ These decisions are binding for the run.
 
 ## Maintainer answers
 
-_None yet._
+Output-question batch before the test implementer (2026-11-01): the maintainer chose the recommended option for all seven.
+
+1. Block statement after `break;` (also `break;⏎/* c */ {`) — A: blank line after `break;`.
+2. RH5025: only a block statement that follows another statement of its block or switch section is exempt — A: first statement of a section, top-level and labeled blocks unchanged.
+3. Own-line comment then blank line then block statement — A: the blank line above `{` is kept.
+4. Own-line comment in front of a comment glued to a brace — A: blank line above the own-line comment, none above the glued one.
+5. Directive in front of a glued comment — A: no blank line inserted above the directive; output equals input.
+6. Block statement after `}` behind a directive — A: blank line after the directive.
+7. Comment glued to a block statement's brace after `}` — A: SHARED-BLANK-003 blank line above the comment.
 
 ## Decisions taken
 
