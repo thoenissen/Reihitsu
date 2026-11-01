@@ -26,7 +26,7 @@ Output questions of 01-skeptic, asked before the test implementer:
 
 1. Gap in front of a trailing comment in a braced switch section (label, last wrapped statement, terminal `break`) — **A**: the gap stays as written, as in a plain block and a braced `if`/`else` body (FMT-SPACE-001). The maintainer added that no extra logic is wanted: the wrap does not normalize this gap at all; it carries it.
 2. Comments around the terminal `break` of a braced switch section — **A**: their layout is kept as written (`/* b1 */ /* b2 */ break; /* x */ // y` stays on one line with its spaces).
-3. (asked at the audit, 09-auditor finding 1) Blank line between the last leading comment and its statement — first wrapped statement and terminal `break` of a braced switch section — awaiting answer.
+3. (asked at the audit, 09-auditor finding 1) Blank line between the last leading comment and its statement — first wrapped statement and terminal `break` of a braced switch section — **A**: the blank line is kept as written, as in a plain block and a braced `if`/`else` body; the wrap carries it.
 
 ## Decisions taken
 
@@ -41,6 +41,7 @@ Output questions of 01-skeptic, asked before the test implementer:
 | 7 | Spec author | Where the two maintainer answers live | FMT-SWITCH-007, not FMT-PIPE-013 | The maintainer answered for the braced switch section only; FMT-PIPE-013 would also bind the expression-body conversion, which was not traced | The answers are recorded where they take effect; no other output changes | a245f0c |
 | 8 | Spec author | Lane after the answers | Keep bug fix, no change doc | FMT-SWITCH-007 already applied FMT-PIPE-013 to these comments and FMT-PIPE-013's `Why:` already rules out a wrap that loses the layout; the answers settle the reading | Both outputs are maintainer answers | a245f0c |
 | 9 | Repair 1 | Spec checker finding 1 (code owner of `BlockWrapTriviaUtilities`); spec author lists it under FMT-PIPE rather than the two caller specs | Accept; skip the cleaner for this repair round | One type owns at most one spec (`sdd/README.md`); the type implements FMT-PIPE-013. The repair changes only Markdown, so the cleaner has nothing to format or build | Spec headers only | 50bf596 |
+| 10 | Repair 2 | Audit findings #1 (answered 3A) and #2 (FC-031 comments) | One repair round: spec author records answer 3A in FMT-SWITCH-007; test implementer adds one test per place; cleaner corrects the two comments in `SwitchCaseBraceRewriter` | Finding #1 is a maintainer answer that needs a spec home and tests; #2 is comment-only | #1 is answered by the maintainer; #2 changes comments only | — |
 
 ## Follow-up candidates
 
