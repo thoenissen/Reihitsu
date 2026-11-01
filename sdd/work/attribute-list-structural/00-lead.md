@@ -24,7 +24,7 @@ None. The issue text asks the run to first check every statement about today's c
 
 ## Maintainer answers
 
-1. (pending) Output question: splitting an attribute list whose attributes are separated by a line break that is not right after the comma (`[A⏎ , B]`, `[A,⏎⏎ B]`).
+1. Output question — splitting an attribute list whose attributes are separated by a line break that is not right after the comma (`[A⏎ , B]`, `[A,⏎⏎ B]`): the maintainer chose A, both become `[A]⏎[B]`. The maintainer also asked the run to proceed on every recommendation without further stops, as they can only respond after the run is finished.
 
 ## Decisions taken
 
