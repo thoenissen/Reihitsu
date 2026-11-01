@@ -1,5 +1,5 @@
 Role: implementer
-Commit: see the commit that adds this file (subject "Repair-2 implementation for attribute-list-structural [skip ci]")
+Commit: 5813d4c
 Verdict: tests pass
 
 Repair round 2. My prompt named the change asked for (lead decisions 16–20, audit findings 1, 3, 4, 6 and the architecture finding of `11-auditor.md`); it carried no intended fix, suspected cause, or hoped-for verdict beyond those recorded decisions. I worked from `00-lead.md`, `05-implementer.md`, `11-auditor.md`, `12-spec-author.md`, `13-test-implementer.md`, and the spec diff (FMT-STRUCT-028, FMT-STRUCT-029, FMT-BREAK-032). No test was changed.
