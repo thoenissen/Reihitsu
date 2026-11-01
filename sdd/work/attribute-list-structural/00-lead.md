@@ -49,6 +49,7 @@ None. The issue text asks the run to first check every statement about today's c
 | 18 | Audit 1 | Finding 3: `[⏎ A, B]` now settles at `[⏎    A]⏎[B]` instead of `main`'s `[A]⏎[B]` | Restore `main`'s settled output `[A]⏎[B]`, reached in one pass; the change doc lists it beside its visible output change 1 | The accepted change doc promises today's output for this input; one pass is demanded by FMT-PIPE-004 | Final output equals `main`'s; only the non-idempotent first pass changes, as for decision 4 | — |
 | 19 | Audit 1 | Finding 4: the merge drops a line break inside the first list before the line-break phase sees it, so the parameter list loses its wrap | Extend decision 5: the merge keeps one author-written line break anywhere in the stretch it rewrites (from the first list's `[` to the token after the last list) | Restores `main`'s output | Output unchanged from `main` | — |
 | 20 | Audit 1 | Findings 5 and 6 (guard tests do not assert the directive/doc comment survives; inaccurate doc comments) | Repair in round 2 | Same requirement | Tests and comments are internal | — |
+| 21 | Spec author (repair 2) | Spec-author choices 1–4 of `12-spec-author.md` (accessor `param:`/`typevar:` merge stays in FMT-BREAK-032; placement of such lists on non-parameter owners and of the kept break left unspecified; lambdas left out of FMT-STRUCT-029) | Accepted | Consistent with decisions 2, 10 and 16: one predicate decides the shape, and the accessor shape stays where its layout is decided | Output unchanged from `main` | 2ba1150 |
 | 3 | Spec author | When to update code-owner rows and `AGENTS.md` phase-ownership rows | After the implementer, by a fresh spec-author agent, once the new transform types exist (`SpecConsistencyTests` rejects unknown type names) | Ordering constraint of the consistency test | Internal documentation | f088900 |
 
 ## Follow-up candidates
@@ -60,3 +61,4 @@ None. The issue text asks the run to first check every statement about today's c
 5. A blank line is inserted before a `///` comment inside a parameter's attribute group (CS1587 input). Source: `02-skeptic.md`.
 6. The code fix's attribute-list split (SHARED-ATTR-017) is a separate implementation beside the formatter's single split. Source: `03-spec-author.md`, lead decision 11.
 7. `void M(/* c */ [A] int a)` loses the space behind the comment on `main` (spacing, outside the run). Source: `04-test-implementer.md`.
+8. Placement of `param:`/`typevar:` attribute lists on non-parameter owners is unspecified (spec gap, no output in question). Source: `12-spec-author.md`.
