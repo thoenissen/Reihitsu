@@ -57,6 +57,12 @@ Output-question batch before the test implementer (2026-11-01): the maintainer c
 | 6 | Spec author | Precedence stated as one ranking requirement or via narrowed scopes | Narrowed scopes of FMT-BLANK-008/011, precedence stated once in the change doc | Avoids a second statement of each rule | Internal spec structure | 5aa08e3 |
 | 7 | Spec author (amendment) | FMT-BLANK-020 as a separate requirement vs. edits to FMT-BLANK-007/008/019 | Accept FMT-BLANK-020 | Avoids repeating the token exceptions in three requirements | Spec structure only; FMT-BLANK-020 states today's output | 0e69e32 |
 | 8 | Spec author (amendment) | FMT-BLANK-009 extended to `]` and `)` behind a directive | Accept | Writes down today's output under its new owner | Output unchanged | 0e69e32 |
+| 9 | Implementer | D1: `PlacesBlankLineBelowDirectiveAndKeepsAuthorBlankLineBelowDirective` formats a disabled `#if DEBUG` branch | Test wrong; route to test implementer (define the symbol or use an active branch), expected output unchanged | The test's intended input is an active branch; disabled text is never formatted | The asserted output is the one the maintainer answered (question 6) | pending |
+| 10 | Implementer | D2: `SeparatesBlockStatementsThatFollowAStatementInsideSwitchSection` expects a multi-line switch section without braces | Test wrong; route to test implementer to expect the braces the unchanged FMT-SWITCH requirements add | An unchanged requirement decides the braces; only the blank lines are this run's | Unchanged switch-brace requirement demands the braces | pending |
+| 11 | Implementer | D4: FMT-BLANK-018 token list differs from today's output in three shapes (multi-line complex element `{`, assigned collection initializer `}`, documentation comment on the glued line) | Amend the spec to today's output, as implemented | Decision 3 and the change doc intend today's output | Today's output is kept | pending |
+| 12 | Implementer | D5: FMT-BLANK-011's exemption should name the block-statement brace | Amend the spec | Removes a literal reading that contradicts FMT-BLANK-017 and the answered question 7/3 | Output follows the maintainer's answers | pending |
+| 13 | Implementer | Code owners: `BraceBlankLinePolicy` new owner of FMT-BLANK; new public Core member `BlankLineSpacingPolicy.IsBlockStatementAfterStatement` | Accept the scope growth; spec author adds the code owner; test implementer adds a direct Core test | One owner for the exemption shared by RH5025 and the formatter | Internal | pending |
+| 14 | Implementer | Stale XML comment about `TokenGapNormalizer` in `BlankLineBeforeIfDirectiveAfterStatementTests.cs` | Adjacent fix: the cleaner corrects it | The run's change made it stale; a comment-only edit | Comment only | pending |
 
 ## Follow-up candidates
 
@@ -64,3 +70,4 @@ Output-question batch before the test implementer (2026-11-01): the maintainer c
 - RH5026 reports the formatter's output for `// f⏎⏎finally` and `else` (FC-013) — 02-skeptic.md.
 - Region directives inside collection expressions, patterns and initializers end up at the statement's column; no requirement decides the column — 02-skeptic.md.
 - The blank line between an own-line comment and an array-initializer, extension-block or property-pattern `{` is kept today and RH5024/RH5025 report the formatter's output — 03-spec-author.md (may join the RH5026 candidate).
+- `AGENTS.md`'s formatter phase-ownership table does not mention `BraceBlankLinePolicy` or FMT-BREAK-030 (tooling lane) — 05-implementer.md.
