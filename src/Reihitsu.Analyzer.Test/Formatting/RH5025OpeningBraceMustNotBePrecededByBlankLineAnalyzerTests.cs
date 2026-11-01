@@ -306,6 +306,206 @@ public class RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzerTests : Batch
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies the blank lines above block statements that follow a statement ending with a closing brace and a statement
+    /// that does not are not reported, while the blank line above a block statement that is the first statement of a
+    /// switch section is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5025-005")]
+    public async Task VerifyBlankLineAboveBlockStatementThatFollowsStatementIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        if (a > 0)
+                                        {
+                                        }
+
+                                        {
+                                        }
+                                        a++;
+
+                                        {
+                                        }
+                                        switch (a)
+                                        {
+                                            case 1:
+                                {|RH5025:
+                                |}                {
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the blank line above a block statement that directly follows a statement ending with a closing brace is not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5025-005")]
+    public async Task VerifyBlankLineAboveBlockStatementAfterClosingBraceIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a)
+                                    {
+                                        if (a)
+                                        {
+                                        }
+
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the blank line above a block statement that directly follows a statement not ending with a closing brace is
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5025-005")]
+    public async Task VerifyBlankLineAboveBlockStatementAfterOtherStatementIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the blank line between a directive and a block statement that follows a statement is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5025-005")]
+    public async Task VerifyBlankLineBetweenDirectiveAndBlockStatementThatFollowsStatementIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+                                #pragma warning disable CS0168
+
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the blank line above a block statement that follows another statement of a switch section is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5025-005")]
+    public async Task VerifyBlankLineAboveBlockStatementThatFollowsStatementInSwitchSectionIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        switch (a)
+                                        {
+                                            case 1:
+                                                a++;
+
+                                                {
+                                                }
+
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the blank line above a block statement that is the first statement of a block is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5025-005")]
+    public async Task VerifyBlankLineAboveFirstBlockStatementOfBlockIsReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                {|RH5025:
+                                |}        {
+                                            a++;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the blank line above the block of a labeled statement is reported, because that block is not in the
+    /// statement list of a block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5025-005")]
+    public async Task VerifyBlankLineAboveBlockOfLabeledStatementIsReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+                                    L:
+                                {|RH5025:
+                                |}        {
+                                            a++;
+                                        }
+
+                                        goto L;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

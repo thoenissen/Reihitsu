@@ -69,6 +69,11 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
     private static readonly PhaseReversalCause _indentationCause = new(nameof(IndentationPhase), "Test cause of the indentation phase.");
 
     /// <summary>
+    /// A cause for the recorder and helper tests whose phase is the blank-line phase
+    /// </summary>
+    private static readonly PhaseReversalCause _blankLineCause = new(nameof(BlankLinePhase), "Test cause of the blank-line phase.");
+
+    /// <summary>
     /// A cause for the helper tests whose phase is <see cref="TextChangingPhase"/>
     /// </summary>
     private static readonly PhaseReversalCause _textChangingCause = new(nameof(TextChangingPhase), "Test cause of the text-changing phase.");
@@ -224,120 +229,6 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the check catches the blank-line phase inserting a blank line between a block statement and the
-    /// <c>}</c> of the statement before it, which the line-break phase removes again
-    /// </summary>
-    [TestMethod]
-    public void CheckCatchesBlankLinePhaseInsertingBlankLineBeforeBlockAfterClosingBrace()
-    {
-        // Arrange
-        const string source = """
-                              class C
-                              {
-                                  void M(bool b)
-                                  {
-                                      if (b)
-                                      {
-                                      }
-                                      {
-                                      }
-                                  }
-                              }
-                              """;
-        const string phaseOutput = """
-                                   class C
-                                   {
-                                       void M(bool b)
-                                       {
-                                           if (b)
-                                           {
-                                           }
-
-                                           {
-                                           }
-                                       }
-                                   }
-                                   """;
-
-        // Act & Assert
-        AssertOnlyPhaseChanges(source, nameof(BlankLinePhase), phaseOutput);
-    }
-
-    /// <summary>
-    /// Verifies that the check catches the blank-line phase inserting a blank line above an own-line comment glued to the
-    /// <c>{</c> behind it, which the line-break phase removes again
-    /// </summary>
-    [TestMethod]
-    public void CheckCatchesBlankLinePhaseInsertingBlankLineAboveCommentGluedToOpeningBrace()
-    {
-        // Arrange
-        const string source = """
-                              class C
-                              {
-                                  void M()
-                                  {
-                                      var p = new P
-                                              /* o */ {
-                                                  X = 2
-                                              };
-                                  }
-                              }
-                              """;
-        const string phaseOutput = """
-                                   class C
-                                   {
-                                       void M()
-                                       {
-                                           var p = new P
-
-                                                   /* o */ {
-                                                       X = 2
-                                                   };
-                                       }
-                                   }
-                                   """;
-
-        // Act & Assert
-        AssertOnlyPhaseChanges(source, nameof(BlankLinePhase), phaseOutput);
-    }
-
-    /// <summary>
-    /// Verifies that the check catches the blank-line phase inserting a blank line above a comment glued to the <c>{</c> of a
-    /// member body behind the member's signature, which the line-break phase removes again
-    /// </summary>
-    [TestMethod]
-    public void CheckCatchesBlankLinePhaseInsertingBlankLineAboveCommentGluedToMemberBodyBrace()
-    {
-        // Arrange
-        const string source = """
-                              class C
-                              {
-                                  int Get3()
-                                  /* c */ {
-                                      return
-
-                                      /* d */ 42;
-                                  }
-                              }
-                              """;
-        const string phaseOutput = """
-                                   class C
-                                   {
-                                       int Get3()
-
-                                       /* c */ {
-                                           return
-
-                                           /* d */ 42;
-                                       }
-                                   }
-                                   """;
-
-        // Act & Assert
-        AssertOnlyPhaseChanges(source, nameof(BlankLinePhase), phaseOutput);
-    }
-
-    /// <summary>
     /// Verifies that the check catches the line-break phase stripping the indentation of a parenthesized lambda argument
     /// on its own line, which the indentation phase writes back
     /// </summary>
@@ -469,7 +360,7 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
         foreach (var endOfLine in _lineEndings)
         {
             // Arrange
-            var entry = CreateEntry(FormattedSource, PhaseReversalCauses.BlankLineNextToBrace, MisindentedSource, PhaseReversalLineEndings.Both);
+            var entry = CreateEntry(FormattedSource, _blankLineCause, MisindentedSource, PhaseReversalLineEndings.Both);
             var recorder = new PhaseStabilityRecorder(RecorderTestName, [entry]);
 
             // Act
@@ -491,7 +382,7 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
     public void EntryForAnotherPhaseDoesNotHideTheChange()
     {
         // Arrange
-        var entry = CreateEntry(MisindentedSource, PhaseReversalCauses.BlankLineNextToBrace, FormattedSource, PhaseReversalLineEndings.Both);
+        var entry = CreateEntry(MisindentedSource, _blankLineCause, FormattedSource, PhaseReversalLineEndings.Both);
         var recorder = new PhaseStabilityRecorder(RecorderTestName, [entry]);
 
         // Act
@@ -756,7 +647,7 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
         var entry = new PhaseReversalEntry(typeof(PhaseStabilityCheckTests),
                                            nameof(HelperFailsOnAnEntryWhosePhaseNoLongerChangesTheFixture),
                                            PhaseStabilityCheck.ComputeFingerprint(FormattedSource),
-                                           PhaseReversalCauses.BlankLineNextToBrace,
+                                           _blankLineCause,
                                            PhaseStabilityCheck.ComputeFingerprint(MisindentedSource),
                                            PhaseReversalLineEndings.Lf);
 
@@ -782,7 +673,7 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
         var entry = new PhaseReversalEntry(typeof(PhaseStabilityCheckTests),
                                            nameof(TestCleanupFailsOnAnEntryNoFixtureReached),
                                            PhaseStabilityCheck.ComputeFingerprint(MisindentedSource),
-                                           PhaseReversalCauses.BlankLineNextToBrace,
+                                           _blankLineCause,
                                            PhaseStabilityCheck.ComputeFingerprint(FormattedSource),
                                            PhaseReversalLineEndings.Both);
 
@@ -955,7 +846,7 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
         var entry = new PhaseReversalEntry(typeof(PhaseStabilityCheckTests),
                                            nameof(TestCleanupFailsOnAnEntryOfATestThatNeverRunsTheCheck),
                                            PhaseStabilityCheck.ComputeFingerprint(MisindentedSource),
-                                           PhaseReversalCauses.BlankLineNextToBrace,
+                                           _blankLineCause,
                                            PhaseStabilityCheck.ComputeFingerprint(FormattedSource),
                                            PhaseReversalLineEndings.Both);
 

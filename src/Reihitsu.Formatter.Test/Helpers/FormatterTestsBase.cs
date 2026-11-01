@@ -100,6 +100,33 @@ public abstract class FormatterTestsBase
     }
 
     /// <summary>
+    /// Formats the input once under LF and CRLF line endings and verifies only whether the line above each named line of
+    /// the output is blank, then verifies that a second pass is stable as <see cref="AssertSecondPassIsStable"/> does.
+    /// Used where a requirement decides the blank lines of a fixture but no requirement decides the columns of its lines
+    /// </summary>
+    /// <param name="input">The input source text</param>
+    /// <param name="expectations">For each line, identified as the first output line whose text without leading whitespace starts with <c>LineStart</c>, whether the line above it is blank</param>
+    protected static void AssertBlankLinesAbove(string input, params (string LineStart, bool IsBlankAbove)[] expectations)
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var endingName = DescribeLineEnding(endOfLine);
+            var output = ApplyRule(NormalizeLineEndings(input, endOfLine), endOfLine);
+            var lines = output.Split(endOfLine);
+
+            foreach (var (lineStart, isBlankAbove) in expectations)
+            {
+                var index = Array.FindIndex(lines, line => line.TrimStart().StartsWith(lineStart, StringComparison.Ordinal));
+
+                Assert.IsGreaterThan(0, index, $"The output under {endingName} line endings has no line starting with '{lineStart}' below its first line:{Environment.NewLine}{output}");
+                Assert.AreEqual(isBlankAbove, string.IsNullOrWhiteSpace(lines[index - 1]), $"Unexpected blank line state above '{lineStart}' under {endingName} line endings:{Environment.NewLine}{output}");
+            }
+        }
+
+        AssertSecondPassIsStable(input);
+    }
+
+    /// <summary>
     /// Rewrites every line break in the given text to the requested end-of-line sequence
     /// </summary>
     /// <param name="text">The text to normalize</param>

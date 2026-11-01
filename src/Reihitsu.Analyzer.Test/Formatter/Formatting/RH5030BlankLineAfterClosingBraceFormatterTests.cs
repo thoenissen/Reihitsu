@@ -547,6 +547,60 @@ public class RH5030BlankLineAfterClosingBraceFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that the formatter inserts a blank line between a closing brace and a block statement that follows it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BLANK-017")]
+    public async Task VerifyFormatterInsertsBlankLineAboveBlockStatementAfterClosingBrace()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal void Method(bool flag)
+                                 {
+                                     if (flag)
+                                     {
+                                         Consume();
+                                     }
+                                     {
+                                         Consume();
+                                     }
+                                 }
+
+                                 private void Consume()
+                                 {
+                                 }
+                             }
+                             """;
+
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void Method(bool flag)
+                                     {
+                                         if (flag)
+                                         {
+                                             Consume();
+                                         }
+
+                                         {
+                                             Consume();
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, 8, 9, 8, 10, AnalyzerResources.RH5030MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies the formatter leaves already compliant code unchanged
     /// </summary>
     /// <param name="source">Source code</param>
