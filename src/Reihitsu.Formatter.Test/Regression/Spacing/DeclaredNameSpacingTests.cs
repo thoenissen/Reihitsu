@@ -741,7 +741,7 @@ public class DeclaredNameSpacingTests : FormatterTestsBase
                              using System;
                              using System.IO;
 
-                             unsafe class C
+                             unsafe struct C
                              {
                                  private int?_f;
                                  private event Action?E;
@@ -769,7 +769,7 @@ public class DeclaredNameSpacingTests : FormatterTestsBase
                                 using System;
                                 using System.IO;
 
-                                unsafe class C
+                                unsafe struct C
                                 {
                                     private int? _f;
                                     private event Action? E;
@@ -799,8 +799,9 @@ public class DeclaredNameSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the parameters of a primary constructor, a constructor, an operator, an indexer, a delegate, a local
-    /// function, and an explicitly typed lambda get one space behind their type
+    /// Verifies that the parameters of a primary constructor, a constructor, an operator, a conversion operator, an indexer, a
+    /// delegate, a local function, an anonymous method, an explicitly typed lambda, and an extension block get one space behind
+    /// their type
     /// </summary>
     [TestMethod]
     [Requirement("FMT-SPACE-021")]
@@ -819,6 +820,11 @@ public class DeclaredNameSpacingTests : FormatterTestsBase
 
                                  public static C operator +(C?l, int[]r) => l;
 
+                                 public static explicit operator C(int?v)
+                                 {
+                                     return null;
+                                 }
+
                                  int this[int?i] => 0;
 
                                  delegate void D(int?p, int[]q);
@@ -830,6 +836,21 @@ public class DeclaredNameSpacingTests : FormatterTestsBase
                                      }
 
                                      Func<int?, int[], int> f = (int?g, int[]h) => 0;
+                                     Func<int?, int[], int> d = delegate(int?m, int[]n)
+                                     {
+                                         return 0;
+                                     };
+                                 }
+                             }
+
+                             static class E
+                             {
+                                 extension(string?s)
+                                 {
+                                     public int N(int[]k)
+                                     {
+                                         return 0;
+                                     }
                                  }
                              }
                              """;
@@ -848,6 +869,11 @@ public class DeclaredNameSpacingTests : FormatterTestsBase
                                         return l;
                                     }
 
+                                    public static explicit operator C(int? v)
+                                    {
+                                        return null;
+                                    }
+
                                     int this[int? i] => 0;
 
                                     delegate void D(int? p, int[] q);
@@ -859,6 +885,21 @@ public class DeclaredNameSpacingTests : FormatterTestsBase
                                         }
 
                                         Func<int?, int[], int> f = (int? g, int[] h) => 0;
+                                        Func<int?, int[], int> d = delegate(int? m, int[] n)
+                                        {
+                                            return 0;
+                                        };
+                                    }
+                                }
+
+                                static class E
+                                {
+                                    extension(string? s)
+                                    {
+                                        public int N(int[] k)
+                                        {
+                                            return 0;
+                                        }
                                     }
                                 }
                                 """;
