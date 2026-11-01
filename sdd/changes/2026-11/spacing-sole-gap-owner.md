@@ -364,6 +364,70 @@ class C
 
 A joined `from int?⏎y in xs` keeps `from int? y in xs`, as before.
 
+Every variable declaration is covered, so a field, an event field, and the declarations of `fixed`, `for`, and `using` change alike:
+
+```csharp
+using System;
+using System.IO;
+
+unsafe class C
+{
+    private int?_f;
+    private event Action?E;
+
+    void M(int[] xs)
+    {
+        fixed (int*p = xs)
+        {
+        }
+
+        for (int?i = 0; i < 1; i++)
+        {
+        }
+
+        using (Stream?s = null)
+        {
+        }
+
+        using Stream?t = null;
+    }
+}
+```
+
+Before: unchanged.
+
+After:
+
+```csharp
+using System;
+using System.IO;
+
+unsafe class C
+{
+    private int? _f;
+    private event Action? E;
+
+    void M(int[] xs)
+    {
+        fixed (int* p = xs)
+        {
+        }
+
+        for (int? i = 0; i < 1; i++)
+        {
+        }
+
+        using (Stream? s = null)
+        {
+        }
+
+        using Stream? t = null;
+    }
+}
+```
+
+The type of a property, an indexer, an event with accessors, a method, or a local function stays as written: `int?P { get; set; }` and `int[]Q() => null;` are not changed by this entry.
+
 ### 7. An accessor list on one line: one space behind `{` and between accessors (FMT-SPACE-022)
 
 ```csharp

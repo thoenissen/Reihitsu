@@ -952,11 +952,29 @@ class C
 
 ### FMT-SPACE-021 — One space between a type or pattern and the name it declares
 
-The formatter MUST put exactly one space between the type of a parameter, a tuple element, a variable declaration, a declaration expression, a declaration pattern, a `foreach` variable, a `catch` declaration, or the range variable of a `from` or `join` clause and the name or designation behind it, and between a recursive or list pattern and the designation behind it. The gaps inside the type, such as the one in front of `?` (FMT-SPACE-005) or in front of an array rank, are not decided by this rule.
+The formatter MUST put exactly one space between a type and the name or designation a declaration declares behind it, and between a pattern and the designation behind it. These are all the declarations the rule covers:
+
+- a parameter that has a type, of any parameter list: a method, a local function, a constructor or primary constructor, an operator, an indexer, a delegate, or a lambda with explicitly typed parameters;
+- a tuple element that has a name;
+- every variable declaration, wherever it stands:
+  - a field, including a `const` field and a fixed-size buffer (`fixed int _buf[4];`), and an event field (`event Action? E;`);
+  - a local, including a `const` local, a `ref` local, and a `using` declaration (`using Stream? s = null;`);
+  - the declaration of a `for` initializer (`for (int? i = 0; …)`), a `fixed` statement (`fixed (int* p = xs)`), and a `using` statement (`using (Stream? s = null)`);
+- a declaration expression, such as `out int? w` or an element of `(int? a, int b) = t`, and a declaration pattern (`o is int[] d`);
+- a `foreach` variable, a `catch` declaration, and the range variable of a `from` or `join` clause;
+- the designation behind a recursive pattern (`o is { } r`) or a list pattern (`o is [1] f`).
+
+The gaps inside the type, such as the one in front of `?` (FMT-SPACE-005) or in front of an array rank, are not decided by this rule.
 
 Why: A type that ends in `?`, `]`, `>`, `*`, or `)` reads as two tokens with its name also without a space, so a join leaves that gap empty (FMT-BREAK-031) and `int?a` would stay. A type that ends in an identifier or keyword already needs the space, so for it the rule only collapses the gap. FMT-PIPE-014 asks for every declared name to be spaced alike, so the rule covers every declaration that names a variable behind a type or pattern, not only the ones a join reaches.
 
-This requirement specifies the outcome only for the declarations it names and leaves every other type in front of a name unspecified, such as the return type of a method or the type of a property.
+This requirement specifies the outcome only for the declarations it names. It leaves unspecified every other type in front of a name: the return type of a method, a local function, or a delegate, the type of a property or an indexer, and the type of an event declared with an accessor list (`event Action? E { add { } remove { } }`). A field and an event field are covered, because they declare a variable; a property, an indexer, and an event with accessors are not.
+
+Three other gaps in front of a declared name are outside this requirement:
+
+- `var` in front of a parenthesized designation (`var (x, y)`), in a deconstruction, a `foreach`, or a pattern: FMT-SPACE-024 decides it.
+- A name inside a parenthesized designation stands behind `(` or `,`: FMT-SPACE-004 and FMT-SPACE-008 decide it.
+- The designation of a `var` pattern (`o is var v`): no rule decides it, and two identifiers always keep a whitespace run between them, so FMT-SPACE-002 leaves exactly one space.
 
 Example:
 
@@ -1012,6 +1030,66 @@ class C
         }
 
         var r = from int? i in new int?[0] select i;
+    }
+}
+```
+
+Example, for the members and statements that declare a variable:
+
+```csharp
+using System;
+using System.IO;
+
+unsafe class C
+{
+    private int?_f;
+    private event Action?E;
+    private fixed int  _buf[4];
+
+    void M(int[] xs)
+    {
+        fixed (int*p = xs)
+        {
+        }
+
+        for (int?i = 0; i < 1; i++)
+        {
+        }
+
+        using (Stream?s = null)
+        {
+        }
+
+        using Stream?t = null;
+    }
+}
+```
+
+```csharp
+using System;
+using System.IO;
+
+unsafe class C
+{
+    private int? _f;
+    private event Action? E;
+    private fixed int _buf[4];
+
+    void M(int[] xs)
+    {
+        fixed (int* p = xs)
+        {
+        }
+
+        for (int? i = 0; i < 1; i++)
+        {
+        }
+
+        using (Stream? s = null)
+        {
+        }
+
+        using Stream? t = null;
     }
 }
 ```
