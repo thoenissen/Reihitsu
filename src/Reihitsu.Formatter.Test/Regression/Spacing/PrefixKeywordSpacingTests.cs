@@ -805,6 +805,225 @@ public class PrefixKeywordSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that the lambda modifiers <c>static</c> and <c>async</c> get one space also in front of a tuple return type
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-024")]
+    [Requirement("FMT-BREAK-031")]
+    public void LambdaModifiersGetOneSpaceInFrontOfATupleReturnType()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     N(static
+                                       (int, int) () => (1, 2));
+                                     N(static(int, int) () => (1, 2));
+                                     N(async
+                                       (int, int) () => (1, 2));
+                                     N(async(int, int) () => (1, 2));
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        N(static (int, int) () => (1, 2));
+                                        N(static (int, int) () => (1, 2));
+                                        N(async (int, int) () => (1, 2));
+                                        N(async (int, int) () => (1, 2));
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the <c>ref</c> and the <c>readonly</c> of a lambda's return type get one space in front of a tuple type
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-024")]
+    [Requirement("FMT-BREAK-031")]
+    public void RefAndReadonlyOfALambdaReturnTypeGetOneSpaceInFrontOfATupleType()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 static (int, int) s_t;
+
+                                 void M()
+                                 {
+                                     N(ref
+                                       (int, int) () => ref s_t);
+                                     N(ref(int, int) () => ref s_t);
+                                     N(ref readonly
+                                       (int, int) () => ref s_t);
+                                     N(ref readonly(int, int) () => ref s_t);
+                                     N(static ref(int, int) () => ref s_t);
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    static (int, int) s_t;
+
+                                    void M()
+                                    {
+                                        N(ref (int, int) () => ref s_t);
+                                        N(ref (int, int) () => ref s_t);
+                                        N(ref readonly (int, int) () => ref s_t);
+                                        N(ref readonly (int, int) () => ref s_t);
+                                        N(static ref (int, int) () => ref s_t);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the <c>ref</c> of a ref expression inside an argument gets one space in front of a parenthesized operand
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-024")]
+    [Requirement("FMT-BREAK-031")]
+    public void RefOfARefExpressionInAnArgumentGetsOneSpace()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(bool b, ref int x, ref int y)
+                                 {
+                                     N(b ? ref
+                                       (x) : ref y);
+                                     N(b ? ref(x) : ref y);
+                                     N(() => ref
+                                       (x));
+                                     N(() => ref(x));
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(bool b, ref int x, ref int y)
+                                    {
+                                        N(b ? ref (x) : ref y);
+                                        N(b ? ref (x) : ref y);
+                                        N(() => ref (x));
+                                        N(() => ref (x));
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the <c>ref</c> of a ref expression in a statement gets one space in front of a parenthesized operand and
+    /// of a pointer indirection, as in an argument
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-024")]
+    public void RefOfARefExpressionInAStatementGetsOneSpace()
+    {
+        // Arrange
+        const string input = """
+                             unsafe class C
+                             {
+                                 static ref int M(bool b, ref int x, ref int y)
+                                 {
+                                     ref var z = ref(x);
+                                     ref var w = ref(b ? ref x : ref y);
+                                     z = ref(y);
+
+                                     return ref(x);
+                                 }
+
+                                 static ref int P(int* p)
+                                 {
+                                     return ref*p;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                unsafe class C
+                                {
+                                    static ref int M(bool b, ref int x, ref int y)
+                                    {
+                                        ref var z = ref (x);
+                                        ref var w = ref (b ? ref x : ref y);
+                                        z = ref (y);
+
+                                        return ref (x);
+                                    }
+
+                                    static ref int P(int* p)
+                                    {
+                                        return ref *p;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the parameter modifiers of a function pointer get one space in front of a tuple type
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-024")]
+    [Requirement("FMT-BREAK-031")]
+    public void FunctionPointerParameterModifiersGetOneSpaceInFrontOfATupleType()
+    {
+        // Arrange
+        const string input = """
+                             unsafe class C
+                             {
+                                 void M()
+                                 {
+                                     delegate*<ref
+                                         (int, int), void> a = null;
+                                     delegate*<ref(int, int), void> b = null;
+                                     delegate*<in
+                                         (int, int), out
+                                         (int, int), void> c = null;
+                                     delegate*<in(int, int), out(int, int), void> d = null;
+                                     delegate*<ref readonly(int, int), void> e = null;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                unsafe class C
+                                {
+                                    void M()
+                                    {
+                                        delegate*<ref (int, int), void> a = null;
+                                        delegate*<ref (int, int), void> b = null;
+                                        delegate*<in (int, int), out (int, int), void> c = null;
+                                        delegate*<in (int, int), out (int, int), void> d = null;
+                                        delegate*<ref readonly (int, int), void> e = null;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies the other side of the rule: a keyword whose next token is its own parenthesis keeps the gap as written
     /// </summary>
     [TestMethod]
@@ -853,6 +1072,168 @@ public class PrefixKeywordSpacingTests : FormatterTestsBase
                                  {
                                      return default;
                                  }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that the <c>ref</c> and the <c>readonly</c> of a type outside a parameter and a lambda's return type are outside
+    /// the rule and keep the gap as written: a local's, a <c>foreach</c> variable's, a field's, and a return type's
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-024")]
+    public void RefTypesOfDeclarationsKeepTheirGap()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+
+                             ref struct S
+                             {
+                                 static (int, int) s_t;
+                                 static (int, int)[] s_a;
+                                 ref(int, int) _f;
+                                 ref readonly(int, int) _g;
+                                 ref (int, int) _h;
+
+                                 ref(int, int) P => ref s_t;
+
+                                 ref(int, int) this[int i] => ref s_t;
+
+                                 ref readonly(int, int) M()
+                                 {
+                                     ref(int, int) r = ref s_t;
+                                     ref readonly(int, int) q = ref s_t;
+                                     ref (int, int) u = ref s_t;
+
+                                     foreach (ref(int, int) e in s_a.AsSpan())
+                                     {
+                                     }
+
+                                     foreach (ref readonly(int, int) e in s_a.AsSpan())
+                                     {
+                                     }
+
+                                     static ref(int, int) L()
+                                     {
+                                         return ref s_t;
+                                     }
+
+                                     return ref r;
+                                 }
+                             }
+
+                             delegate ref(int, int) D();
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that the modifier of a local function is a modifier of a declaration and keeps the gap in front of a tuple type
+    /// as written
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-024")]
+    public void LocalFunctionModifierInFrontOfATupleTypeKeepsItsGap()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     static(int, int) K()
+                                     {
+                                         return default;
+                                     }
+
+                                     static (int, int) L()
+                                     {
+                                         return default;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that the <c>readonly</c> of a member is a modifier of a declaration and keeps the gap in front of a tuple type as
+    /// written
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-024")]
+    public void MemberReadonlyInFrontOfATupleTypeKeepsItsGap()
+    {
+        // Arrange
+        const string input = """
+                             struct S
+                             {
+                                 public readonly(int, int) M()
+                                 {
+                                     return default;
+                                 }
+
+                                 public readonly (int, int) N()
+                                 {
+                                     return default;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that the <c>this</c> and <c>base</c> of a constructor initializer and the <c>this</c> of an indexer declaration are
+    /// not modifiers: the rule does not decide their gap, and it is kept as written
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-024")]
+    public void ConstructorInitializersAndIndexerDeclarationsKeepTheirGap()
+    {
+        // Arrange
+        const string input = """
+                             class B
+                             {
+                                 public B(int a)
+                                 {
+                                 }
+
+                                 int this[int i] => i;
+                             }
+
+                             class E : B
+                             {
+                                 public E(int a)
+                                     : base(a)
+                                 {
+                                 }
+
+                                 public E()
+                                     : base (1)
+                                 {
+                                 }
+
+                                 public E(int a, int b)
+                                     : this(a)
+                                 {
+                                 }
+
+                                 public E(string s)
+                                     : this (1)
+                                 {
+                                 }
+
+                                 int this [int i, int j] => i;
                              }
                              """;
 

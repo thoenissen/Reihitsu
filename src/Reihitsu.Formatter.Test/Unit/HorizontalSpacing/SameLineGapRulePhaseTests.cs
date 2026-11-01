@@ -407,12 +407,13 @@ public class SameLineGapRulePhaseTests
     }
 
     /// <summary>
-    /// Verifies the example of the requirement: <c>with</c> gets one space on each side. The spacing phase runs alone, because the
-    /// line-break phase lays out the initializer of a <c>with</c> expression over several lines
+    /// Verifies that the spacing phase alone gives <c>with</c> one space on each side of a one-line <c>with</c> expression. The
+    /// spacing phase runs alone, because the line-break phase lays out the initializer of a <c>with</c> expression over several
+    /// lines; the full pipeline's output is checked by the requirement example test
     /// </summary>
     [TestMethod]
     [Requirement("FMT-SPACE-025")]
-    public void WithRequirementExampleGetsOneSpaceOnEachSide()
+    public void OneLineWithExpressionsGetOneSpaceOnEachSideInTheSpacingPhase()
     {
         const string input = """
                              class C

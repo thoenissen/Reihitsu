@@ -1455,6 +1455,120 @@ public class HorizontalSpacingRequirementTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies the second example of the requirement: a lambda's return type behind its modifiers, a function pointer's
+    /// parameter, ref expressions, and a deconstruction get one space; a local's <c>ref</c> type and a local function's modifier
+    /// keep their gap
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-024")]
+    public void ModifiersInFrontOfTypesAndRefExpressionsGetOneSpaceBehind()
+    {
+        // Arrange
+        const string input = """
+                             unsafe class C
+                             {
+                                 static (int, int) s_t;
+
+                                 static ref int M(bool b, ref int x, ref int y)
+                                 {
+                                     var(u, w) = s_t;
+                                     N(ref(int, int) () => ref s_t, static(int, int) () => (1, 2));
+
+                                     delegate*<ref(int, int), void> f = null;
+                                     ref var z = ref(b ? ref x : ref y);
+
+                                     return ref(x);
+                                 }
+
+                                 static void L()
+                                 {
+                                     ref(int, int) r = ref s_t;
+
+                                     static(int, int) K()
+                                     {
+                                         return default;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                unsafe class C
+                                {
+                                    static (int, int) s_t;
+
+                                    static ref int M(bool b, ref int x, ref int y)
+                                    {
+                                        var (u, w) = s_t;
+                                        N(ref (int, int) () => ref s_t, static (int, int) () => (1, 2));
+
+                                        delegate*<ref (int, int), void> f = null;
+                                        ref var z = ref (b ? ref x : ref y);
+
+                                        return ref (x);
+                                    }
+
+                                    static void L()
+                                    {
+                                        ref(int, int) r = ref s_t;
+
+                                        static(int, int) K()
+                                        {
+                                            return default;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the example of the requirement through the full pipeline: <c>with</c> gets one space on each side, and the
+    /// initializer behind it starts its own line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-025")]
+    public void WithGetsOneSpaceOnEachSide()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(P p, P[] ps)
+                                 {
+                                     var a = p.Q()with { X = 1 };
+                                     var b = ps[0]with { X = 2 };
+                                     var c = p!   with { X = 3 };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(P p, P[] ps)
+                                    {
+                                        var a = p.Q() with
+                                                      {
+                                                          X = 1
+                                                      };
+                                        var b = ps[0] with
+                                                      {
+                                                          X = 2
+                                                      };
+                                        var c = p! with
+                                                   {
+                                                       X = 3
+                                                   };
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies the example of the requirement: an explicit lambda return type gets one space in front of the parameter list
     /// </summary>
     [TestMethod]
