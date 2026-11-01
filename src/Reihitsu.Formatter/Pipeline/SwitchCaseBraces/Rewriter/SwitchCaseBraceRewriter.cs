@@ -589,8 +589,8 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Determines whether a switch section carries a preprocessor directive or disabled text in the
     /// section-level trivia of its labels or statements — the trivia that brace insertion carries across
-    /// the new braces. The carry keeps only the comments, so it would discard a directive outside them,
-    /// and it would move a directive within them onto a line it does not own
+    /// the new braces. What the carry keeps and drops is owned by <c>BlockWrapTriviaUtilities</c>; a directive
+    /// is blocked because the carry would either discard it or move it onto a line it does not own
     /// </summary>
     /// <param name="section">The switch section to inspect</param>
     /// <returns><see langword="true"/> if the section carries a directive or disabled text; otherwise, <see langword="false"/></returns>
@@ -641,10 +641,10 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
             return section;
         }
 
-        // Adding braces carries the comments of the label, first-statement, last-statement, and trailing-break
-        // trivia across the new braces and drops the rest of that trivia. A preprocessor directive or disabled
-        // text in it would either be discarded or end up on a line it does not own, silently changing
-        // conditional compilation, so leave a directive-bearing section unbraced.
+        // Adding braces carries the comment trivia of the label, first statement, last statement, and trailing
+        // break across the new braces; BlockWrapTriviaUtilities owns what that carry keeps and drops. A
+        // preprocessor directive or disabled text in that trivia would either be discarded or end up on a line
+        // it does not own, silently changing conditional compilation, so leave a directive-bearing section unbraced.
         if (SectionCarriesDirectives(section))
         {
             return section;

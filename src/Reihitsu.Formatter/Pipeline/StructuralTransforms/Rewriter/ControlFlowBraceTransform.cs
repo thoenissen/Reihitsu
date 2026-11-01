@@ -91,8 +91,9 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
 
     /// <summary>
     /// Determines whether a statement gets braces. A block needs none. A preprocessor directive or disabled text in the
-    /// statement's trivia would end up between the statement and a brace on a line the directive does not own, silently
-    /// changing which code compiles under which configuration, so such a statement stays unbraced
+    /// statement's trivia would be discarded or end up on a line the directive does not own (what the wrap carries is
+    /// owned by <c>BlockWrapTriviaUtilities</c>), silently changing which code compiles under which configuration, so
+    /// such a statement stays unbraced
     /// </summary>
     /// <param name="statement">The statement</param>
     /// <returns><see langword="true"/> if the statement is wrapped in braces; otherwise, <see langword="false"/></returns>
