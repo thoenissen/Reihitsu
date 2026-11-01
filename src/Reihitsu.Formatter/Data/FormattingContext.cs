@@ -145,7 +145,8 @@ internal record FormattingContext
 
     /// <summary>
     /// The facts about the construct the formatting root stands in in its document (FMT-PIPE-024): one flag for each decision
-    /// of the line-break phase that reads the root's ancestors, which a root without a parent does not reach. Only
+    /// of the line-break phase that reads the root's ancestors, which a root without a parent does not reach; the blank-line
+    /// phase reads <see cref="RootConstruct.AssignedCollectionInitializer"/> as well (FMT-BLANK-020). Only
     /// <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> supplies them. Every other entry point leaves them at
     /// <see cref="RootConstruct.None"/>, which decides the root as a construct of its own
     /// </summary>

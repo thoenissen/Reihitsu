@@ -352,16 +352,6 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether a trivia is an ordinary, non-documentation <c>//</c> or <c>/* … */</c> comment
-    /// </summary>
-    /// <param name="trivia">The trivia to check</param>
-    /// <returns><see langword="true"/> if the trivia is an ordinary comment; otherwise, <see langword="false"/></returns>
-    private static bool IsOrdinaryComment(SyntaxTrivia trivia)
-    {
-        return trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia);
-    }
-
-    /// <summary>
     /// Finds the last content trivia in a leading trivia list in front of the specified index
     /// </summary>
     /// <param name="trivia">The leading trivia to inspect</param>
@@ -382,72 +372,22 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Finds the first content trivia on the token's own line, the one that holds the token
+    /// Removes the blank lines above the comment glued to the token (FMT-BLANK-018), as directly before the token. The blank
+    /// lines between the comment and the content in front of it, another comment or the previous token, are removed. When a
+    /// directive or disabled text stands in the gap, nothing is removed: the blank line below a region directive is the
+    /// region's (SHARED-BLANK-006), and the others are the author's
     /// </summary>
-    /// <param name="trivia">The leading trivia of the token</param>
-    /// <returns>The index of the first content trivia on the token's line; <c>-1</c> when nothing but whitespace precedes the token there</returns>
-    private static int FindFirstContentIndexOnTokenLine(SyntaxTriviaList trivia)
-    {
-        var firstContentIndex = -1;
-
-        for (var triviaIndex = trivia.Count - 1; triviaIndex >= 0; triviaIndex--)
-        {
-            if (trivia[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia)
-                || SyntaxTriviaUtilities.EndsWithLineBreak(trivia[triviaIndex]))
-            {
-                break;
-            }
-
-            if (trivia[triviaIndex].IsKind(SyntaxKind.WhitespaceTrivia) == false)
-            {
-                firstContentIndex = triviaIndex;
-            }
-        }
-
-        return firstContentIndex;
-    }
-
-    /// <summary>
-    /// Determines whether nothing but whitespace and ordinary comments stands in a leading trivia list from the specified
-    /// index up to the token
-    /// </summary>
-    /// <param name="trivia">The leading trivia to inspect</param>
-    /// <param name="startIndex">The first index to inspect</param>
-    /// <returns><see langword="true"/> if only whitespace and ordinary comments follow the index</returns>
-    private static bool HoldsOnlyOrdinaryCommentsFrom(SyntaxTriviaList trivia, int startIndex)
-    {
-        for (var triviaIndex = startIndex; triviaIndex < trivia.Count; triviaIndex++)
-        {
-            if (trivia[triviaIndex].IsKind(SyntaxKind.WhitespaceTrivia) == false
-                && IsOrdinaryComment(trivia[triviaIndex]) == false)
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /// <summary>
-    /// Removes the blank lines above a comment that starts its line and shares it with the token (FMT-BLANK-018). The blank
-    /// lines between the comment and the content in front of it — another comment, or the previous token — are removed. When
-    /// a directive or disabled text stands in the gap, nothing is removed: the blank line below a region directive is the
-    /// region's (SHARED-BLANK-006), and the others are the author's. A documentation comment on the token's line keeps the
-    /// blank lines above that line, as it has in the formatter's output
-    /// </summary>
-    /// <param name="token">The token to update; the caller has established that it is one FMT-BLANK-018 names</param>
+    /// <param name="token">The token to update; the caller has established that no blank line stands directly before it</param>
     /// <param name="previousToken">The facts about the token that precedes <paramref name="token"/></param>
     /// <param name="endOfLine">The detected line ending, written for the line break that is kept</param>
     /// <returns>The updated token</returns>
     private static SyntaxToken RemoveBlankLinesAboveGluedComment(SyntaxToken token, PrecedingTokenFacts previousToken, string endOfLine)
     {
         var trivia = token.LeadingTrivia;
-        var gluedCommentIndex = FindFirstContentIndexOnTokenLine(trivia);
+        var gluedCommentIndex = BraceBlankLinePolicy.FindGluedCommentIndex(token, previousToken);
 
         if (gluedCommentIndex < 0
-            || HoldsOnlyOrdinaryCommentsFrom(trivia, gluedCommentIndex) == false
-            || trivia.Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia)
-            || TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, gluedCommentIndex, previousToken.Exists, previousToken.TrailingTrivia) == false)
+            || trivia.Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia))
         {
             return token;
         }
@@ -460,8 +400,9 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Removes the blank lines between an ordinary comment that starts and ends its own line and the token behind it, when
-    /// that comment is the last content of the gap (FMT-BLANK-020)
+    /// Removes the blank lines between an ordinary comment that ends its line and the token behind it, when that comment is
+    /// the last content of the gap and its line starts a line of its own (FMT-BLANK-020). What stands in front of the comment
+    /// on its line does not matter
     /// </summary>
     /// <param name="token">The token to update; the caller has established that it is one FMT-BLANK-020 names</param>
     /// <param name="previousToken">The facts about the token that precedes <paramref name="token"/></param>
@@ -473,9 +414,9 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
         var lastContentIndex = FindLastContentIndexBefore(trivia, trivia.Count);
 
         if (lastContentIndex < 0
-            || IsOrdinaryComment(trivia[lastContentIndex]) == false
-            || FindFirstContentIndexOnTokenLine(trivia) >= 0
-            || TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, lastContentIndex, previousToken.Exists, previousToken.TrailingTrivia) == false)
+            || BraceBlankLinePolicy.IsOrdinaryComment(trivia[lastContentIndex]) == false
+            || BraceBlankLinePolicy.FindFirstContentIndexOnLine(trivia, trivia.Count) >= 0
+            || TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, BraceBlankLinePolicy.FindFirstContentIndexOnLine(trivia, lastContentIndex + 1), previousToken.Exists, previousToken.TrailingTrivia) == false)
         {
             return token;
         }
@@ -621,9 +562,8 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
 
         // Read before the base visit: a token it rewrites is detached and no longer knows its position in the text or its parent
         var startsText = token.FullSpan.Start == 0;
-        var isBlockStatementBrace = BraceBlankLinePolicy.IsOpeningBraceOfBlockStatementAfterStatement(token, _context);
-        var keepsGluedCommentWithoutBlankLine = BraceBlankLinePolicy.KeepsGluedCommentWithoutBlankLine(token, _context);
-        var isClosingTokenOfPatternOrCollectionExpression = BraceBlankLinePolicy.IsClosingTokenOfPatternOrCollectionExpression(token);
+        var removesBlankLinesDirectlyBefore = BraceBlankLinePolicy.RemovesBlankLinesDirectlyBefore(token, _context);
+        var removesBlankLinesBehindOwnLineComment = BraceBlankLinePolicy.RemovesBlankLinesBehindOwnLineComment(token, _context);
 
         token = base.VisitToken(token);
 
@@ -653,13 +593,7 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
 
         // The opening brace of a block statement that follows a statement starts a statement; the statement rules decide the
         // blank lines above it (FMT-BLANK-017), so neither FMT-BLANK-008 nor FMT-BLANK-009 reaches it
-        if ((token.IsKind(SyntaxKind.OpenBraceToken) && isBlockStatementBrace == false)
-            || token.IsKind(SyntaxKind.CloseBraceToken)
-            || token.IsKind(SyntaxKind.ElseKeyword)
-            || token.IsKind(SyntaxKind.CatchKeyword)
-            || token.IsKind(SyntaxKind.FinallyKeyword)
-            || token.IsKind(SyntaxKind.WhileKeyword)
-            || isClosingTokenOfPatternOrCollectionExpression)
+        if (removesBlankLinesDirectlyBefore)
         {
             // These are two independent questions, not alternatives: a non-region directive or disabled
             // text anywhere in the leading trivia means the run CollapseLeadingBlankLines inspects — the
@@ -696,10 +630,15 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
             token = RemoveBlankLinesAfterTrailingEndRegion(token, _context.EndOfLine);
         }
 
-        // Behind an own-line comment, and above a comment glued to the token, FMT-BLANK-020 and FMT-BLANK-018 decide
-        if (keepsGluedCommentWithoutBlankLine)
+        // Behind an own-line comment FMT-BLANK-020 decides; above a comment glued to the token, FMT-BLANK-018 decides as
+        // directly before the token
+        if (removesBlankLinesBehindOwnLineComment)
         {
             token = RemoveBlankLinesBehindLastOwnLineComment(token, previousToken, _context.EndOfLine);
+        }
+
+        if (removesBlankLinesDirectlyBefore)
+        {
             token = RemoveBlankLinesAboveGluedComment(token, previousToken, _context.EndOfLine);
         }
 

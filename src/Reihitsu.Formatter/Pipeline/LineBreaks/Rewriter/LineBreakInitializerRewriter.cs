@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Data.Enumerations;
 using Reihitsu.Formatter.Extensions;
@@ -233,7 +234,12 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
 
         if (isAssignedCollectionInitializer)
         {
-            node = node.WithOpenBraceToken(LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(node.OpenBraceToken));
+            // A comment or directive in front of the brace keeps its own line, and the blank lines around it are the
+            // blank-line phase's (FMT-BREAK-030), so the brace's leading trivia is then left as it is
+            if (SyntaxTriviaUtilities.ContainsUnjoinableTrivia(node.OpenBraceToken.LeadingTrivia) == false)
+            {
+                node = node.WithOpenBraceToken(LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(node.OpenBraceToken));
+            }
 
             if (node.CloseBraceToken.IsMissing == false && LineBreakTriviaUtilities.HasLeadingEndOfLine(node.CloseBraceToken) == false)
             {

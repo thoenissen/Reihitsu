@@ -5,15 +5,15 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
-using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
 
 /// <summary>
-/// The one owner of which braces, brackets, and parentheses the blank-line rules next to such a token reach: the opening
-/// brace of a block statement that follows a statement (FMT-BLANK-017), the tokens a comment glued to them keeps no blank
-/// line above (FMT-BLANK-018, FMT-BLANK-020), and the closing brackets and parentheses no blank line precedes
-/// (FMT-BLANK-019). The blank-line subphases read these facts from here
+/// The one owner of the token and comment facts the blank-line rules around braces, brackets, and comments read: the
+/// opening brace of a block statement that follows a statement (FMT-BLANK-017), the tokens directly before which no blank
+/// line stands (FMT-BLANK-007, FMT-BLANK-008, FMT-BLANK-019), the comment glued to a token (FMT-BLANK-018), and the tokens
+/// behind an own-line comment that no blank line separates from it (FMT-BLANK-020). The blank-line subphases read these
+/// facts from here
 /// </summary>
 internal static class BraceBlankLinePolicy
 {
@@ -41,24 +41,41 @@ internal static class BraceBlankLinePolicy
     }
 
     /// <summary>
-    /// Determines whether a comment that starts its line glued to the token gets no blank line above it (FMT-BLANK-018), and
-    /// whether the blank lines between an own-line comment and the token are removed (FMT-BLANK-020): every opening and
-    /// closing brace other than the braces of an array initializer, an extension block, or an interpolation, the opening
-    /// brace of a property pattern, the opening brace of a complex element initializer that stays on one line, the closing
-    /// brace of a collection initializer assigned to a member, and the opening brace of a block statement that follows a
-    /// statement; the closing bracket of a collection expression or a list pattern; and the closing parenthesis of a
-    /// parenthesized pattern
+    /// Determines whether the blank lines directly before a token are removed (FMT-BLANK-007, FMT-BLANK-008, FMT-BLANK-019):
+    /// every opening and closing brace other than the opening brace of a block statement that follows a statement, the
+    /// <c>else</c>, <c>catch</c>, and <c>finally</c> keywords, the <c>while</c> keyword of a do statement, the closing bracket
+    /// of a collection expression or a list pattern, and the closing parenthesis of a parenthesized pattern. The same set
+    /// decides whether the blank lines above a comment glued to the token are removed (FMT-BLANK-018)
     /// </summary>
     /// <param name="token">The token to inspect, still part of the visited tree</param>
     /// <param name="context">The formatting context, which carries the position of the formatting root</param>
-    /// <returns><see langword="true"/> if the token is one FMT-BLANK-018 and FMT-BLANK-020 name</returns>
+    /// <returns><see langword="true"/> if no blank line stands directly before the token</returns>
+    public static bool RemovesBlankLinesDirectlyBefore(SyntaxToken token, FormattingContext context)
+    {
+        return token.Kind() switch
+               {
+                   SyntaxKind.OpenBraceToken => IsOpeningBraceOfBlockStatementAfterStatement(token, context) == false,
+                   SyntaxKind.CloseBraceToken or SyntaxKind.ElseKeyword or SyntaxKind.CatchKeyword or SyntaxKind.FinallyKeyword => true,
+                   SyntaxKind.WhileKeyword => token.Parent is DoStatementSyntax,
+                   _ => IsClosingTokenOfPatternOrCollectionExpression(token),
+               };
+    }
+
+    /// <summary>
+    /// Determines whether the blank lines between an own-line comment and the token behind it are removed (FMT-BLANK-020):
+    /// every opening and closing brace other than the braces of an array initializer, an extension block, or an
+    /// interpolation, the opening brace of a property pattern, the closing brace of a collection initializer assigned to a
+    /// member, and the opening brace of a block statement that follows a statement; the closing bracket of a collection
+    /// expression or a list pattern; and the closing parenthesis of a parenthesized pattern
+    /// </summary>
+    /// <param name="token">The token to inspect, still part of the visited tree</param>
+    /// <param name="context">The formatting context, which carries the facts about the formatting root</param>
+    /// <returns><see langword="true"/> if the token is one FMT-BLANK-020 names</returns>
     /// <remarks>
-    /// The set is the one whose glued comment has had no blank line above it in the formatter's output. A complex element
-    /// initializer that spans several lines and a collection initializer assigned to a member follow the line-break layout
-    /// of their braces (<see cref="LineBreakInitializerRewriter.IsAssignedCollectionInitializer"/>): the opening brace of the
-    /// former is laid out on its own line like an object initializer's, the closing brace of the latter is not
+    /// Only the kind of the token and the construct it belongs to decide, never the layout of that construct: the line-break
+    /// phase runs later and may change that layout, so a decision read from it would change between two passes
     /// </remarks>
-    public static bool KeepsGluedCommentWithoutBlankLine(SyntaxToken token, FormattingContext context)
+    public static bool RemovesBlankLinesBehindOwnLineComment(SyntaxToken token, FormattingContext context)
     {
         switch (token.Kind())
         {
@@ -66,12 +83,7 @@ internal static class BraceBlankLinePolicy
                 {
                     return token.Parent switch
                            {
-                               InitializerExpressionSyntax initializer => initializer.Kind() switch
-                                                                          {
-                                                                              SyntaxKind.ArrayInitializerExpression => false,
-                                                                              SyntaxKind.ComplexElementInitializerExpression => LineBreakTriviaUtilities.SpansMultipleLines(initializer.OpenBraceToken, initializer.CloseBraceToken),
-                                                                              _ => true,
-                                                                          },
+                               InitializerExpressionSyntax initializer => initializer.IsKind(SyntaxKind.ArrayInitializerExpression) == false,
                                PropertyPatternClauseSyntax or ExtensionBlockDeclarationSyntax or InterpolationSyntax => false,
                                _ => IsOpeningBraceOfBlockStatementAfterStatement(token, context) == false,
                            };
@@ -93,6 +105,86 @@ internal static class BraceBlankLinePolicy
                     return IsClosingTokenOfPatternOrCollectionExpression(token);
                 }
         }
+    }
+
+    /// <summary>
+    /// Finds the comment glued to a token (FMT-BLANK-018): an ordinary comment that starts its line and shares that line
+    /// with the token, with nothing but whitespace and comments, ordinary or documentation, between the two. A comment that
+    /// ends on the token's line but starts on an earlier one does not share its line with the token, and a token without
+    /// text, such as the end of the file, shares no line with a comment
+    /// </summary>
+    /// <param name="token">The token whose leading trivia is inspected</param>
+    /// <param name="previousTokenFacts">The facts about the token that precedes <paramref name="token"/>, which decide whether the comment starts its line when nothing in front of it does</param>
+    /// <returns>The leading-trivia index of the glued comment; <c>-1</c> when no comment is glued to the token</returns>
+    /// <remarks>
+    /// Only the trivia decides, never the kind of the token: what the blank lines above a glued comment are is decided by
+    /// the rules for the blank lines directly before its token. The blank-line subphases that insert and remove those blank
+    /// lines read this one predicate
+    /// </remarks>
+    public static int FindGluedCommentIndex(SyntaxToken token, PrecedingTokenFacts previousTokenFacts)
+    {
+        var trivia = token.LeadingTrivia;
+        var gluedCommentIndex = FindFirstContentIndexOnLine(trivia, trivia.Count);
+
+        if (token.Span.IsEmpty
+            || gluedCommentIndex < 0
+            || IsOrdinaryComment(trivia[gluedCommentIndex]) == false)
+        {
+            return -1;
+        }
+
+        for (var triviaIndex = gluedCommentIndex; triviaIndex < trivia.Count; triviaIndex++)
+        {
+            if ((trivia[triviaIndex].IsKind(SyntaxKind.WhitespaceTrivia) == false
+                 && SyntaxTriviaUtilities.IsCommentTrivia(trivia[triviaIndex]) == false)
+                || LineEndingUtilities.ContainsLineTerminator(trivia[triviaIndex].ToFullString()))
+            {
+                return -1;
+            }
+        }
+
+        return TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, gluedCommentIndex, previousTokenFacts.Exists, previousTokenFacts.TrailingTrivia)
+                   ? gluedCommentIndex
+                   : -1;
+    }
+
+    /// <summary>
+    /// Finds the first content trivia on the line that ends at the specified index of a leading trivia list. The line starts
+    /// behind the nearest preceding line break, whether that is end-of-line trivia or the line break a documentation comment
+    /// or a directive carries inside its structure
+    /// </summary>
+    /// <param name="trivia">The leading trivia to inspect</param>
+    /// <param name="endExclusive">The exclusive end of the line's inspected part; the count of the list for the token's own line</param>
+    /// <returns>The index of the first content trivia on that line in front of <paramref name="endExclusive"/>; <c>-1</c> when nothing but whitespace stands there</returns>
+    public static int FindFirstContentIndexOnLine(SyntaxTriviaList trivia, int endExclusive)
+    {
+        var firstContentIndex = -1;
+
+        for (var triviaIndex = endExclusive - 1; triviaIndex >= 0; triviaIndex--)
+        {
+            if (trivia[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia)
+                || SyntaxTriviaUtilities.EndsWithLineBreak(trivia[triviaIndex]))
+            {
+                break;
+            }
+
+            if (trivia[triviaIndex].IsKind(SyntaxKind.WhitespaceTrivia) == false)
+            {
+                firstContentIndex = triviaIndex;
+            }
+        }
+
+        return firstContentIndex;
+    }
+
+    /// <summary>
+    /// Determines whether a trivia is an ordinary, non-documentation <c>//</c> or <c>/* … */</c> comment
+    /// </summary>
+    /// <param name="trivia">The trivia to check</param>
+    /// <returns><see langword="true"/> if the trivia is an ordinary comment</returns>
+    public static bool IsOrdinaryComment(SyntaxTrivia trivia)
+    {
+        return trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia);
     }
 
     /// <summary>
