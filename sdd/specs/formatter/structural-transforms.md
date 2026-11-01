@@ -5,7 +5,7 @@
 | ID prefix | FMT-STRUCT |
 | Status | Active |
 | Code owners | `StructuralTransformPhase`, `ConfigurableStructuralTransforms`, `ControlFlowBraceTransform`, `ExpressionBodiedMethodTransform`, `ExpressionBodiedConstructorTransform`, `ExpressionBodiedOperatorTransform`, `ExpressionBodiedConversionTransform`, `ExpressionBodiedFinalizerTransform`, `ExpressionBodiedLocalFunctionTransform`, `ExpressionBodiedTransformUtilities`, `ExpressionBodyToBlockConverter`, `AccessorExpressionBodyTransform`, `GetOnlyMemberExpressionBodyTransform`, `EmptyTypeDeclarationSemicolonTransform`, `EnumTrailingCommaRemovalTransform`, `InitializerTrailingCommaRemovalTransform`, `TrailingCommaRemovalUtilities`, `FieldDeclarationSplitTransform` |
-| Uses | FMT-BREAK-027, FMT-BREAK-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-012, FMT-SPACE-017, SHARED-ATTR-013 |
+| Uses | FMT-BREAK-013, FMT-BREAK-014, FMT-BREAK-027, FMT-BREAK-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021, FMT-SPACE-003, FMT-SPACE-004, FMT-SPACE-008, FMT-SPACE-012, FMT-SPACE-017, SHARED-ATTR-013 |
 
 This spec covers the phase that rewrites syntax shape before any layout is decided, right after the tabs in whitespace are replaced (FMT-PIPE-001): braces for `if`/`else` bodies, block bodies for expression-bodied functions, expression bodies for simple accessors and get-only members, semicolon declarations for empty types, removal of trailing commas, one field per declaration, one attribute per list on declarations, and one list per target on parameters and type parameters. Every rewrite produces equivalent code (FMT-PIPE-003) and is refused for a construct whose comments, directives, or disabled text it could not carry over (FMT-PIPE-002).
 
@@ -1383,11 +1383,13 @@ class C
 
 The formatter MUST split an attribute list that holds several attributes into one list per attribute, in the order the attributes were written, when the list belongs to the compilation unit (`assembly:`, `module:`), a type, a delegate, a member, an enum member, or a local function. Each created list MUST keep the original list's target specifier; the first created list MUST keep the original list's leading trivia, and the last one its trailing trivia.
 
+Between its brackets, a created list MUST hold none of the whitespace and line breaks that separated two attributes of the original list: everything between the end of one attribute and the start of the next — the comma, and the whitespace, line breaks, and blank lines in front of it and behind it — is dropped with the comma. `[A,⏎ B]`, `[A⏎ , B]`, and `[A,⏎⏎ B]` all become `[A][B]` in this phase's output, and `[A]⏎[B]` in one pass of the formatter. Whitespace and line breaks that do not lie between two attributes — behind the original list's `[` or in front of its `]`, as in `[A, B⏎]` — are outside this requirement.
+
 The formatter MUST NOT split such a list when a comment or a preprocessor directive lies between its brackets (`[A /* c */, B]`), or when its specifier names no target the compiler knows (`[unknown: A, B]`). A list without a comment or directive between its brackets is split also when a comment stands in front of it or behind it, and a list with a known specifier that is not the default target of its declaration (`[method: A, B]`, `[return: A, B]`) is split like one without a specifier.
 
 The split writes nothing between the lists it creates (FMT-STRUCT-026); each of them starts its own line by FMT-BREAK-027. The attribute lists of a parameter or type parameter are never split (FMT-STRUCT-029), and the attribute lists of an accessor are shaped by FMT-BREAK-032. This requirement specifies the outcome only for the owners it names and leaves the attribute lists of a lambda unspecified.
 
-Why: On a declaration every attribute gets a line of its own, so a change to one attribute changes exactly one line; the attribute list-shape rules report a list with several attributes (SHARED-ATTR-013). How many attributes a list holds depends on no layout, so it is decided with the other shape rewrites, before any layout (FMT-PIPE-001), and the line-break phase only places the lists. A comment between the brackets belongs to no single attribute, so no created list could take it without moving it next to other code (FMT-STRUCT-024). A list whose specifier names no known target applies to nothing the formatter can lay out, so it is left as written.
+Why: On a declaration every attribute gets a line of its own, so a change to one attribute changes exactly one line; the attribute list-shape rules report a list with several attributes (SHARED-ATTR-013). How many attributes a list holds depends on no layout, so it is decided with the other shape rewrites, before any layout (FMT-PIPE-001), and the line-break phase only places the lists. A comment between the brackets belongs to no single attribute, so no created list could take it without moving it next to other code (FMT-STRUCT-024). A list whose specifier names no known target applies to nothing the formatter can lay out, so it is left as written. A line break or whitespace between two attributes only separated them; once each attribute has brackets of its own, it has nothing left to separate, and kept inside a created list it would leave a line break inside the brackets, or whitespace behind `[` that the spacing phase does not reach because the attribute holds it, so a second pass would change the output (FMT-PIPE-004, FMT-SPACE-004).
 
 Example:
 
@@ -1423,6 +1425,46 @@ class C
 
 The lists `[A /* c */, B]` and `[unknown: A, B]` on a method stay one list each.
 
+Example — the line breaks between two attributes are dropped with the comma:
+
+```csharp
+class C
+{
+    [A,
+     B] void M() { }
+
+    [A
+     , B] void N() { }
+
+    [A,
+
+     B] void O() { }
+}
+```
+
+```csharp
+class C
+{
+    [A]
+    [B]
+    void M()
+    {
+    }
+
+    [A]
+    [B]
+    void N()
+    {
+    }
+
+    [A]
+    [B]
+    void O()
+    {
+    }
+}
+```
+
 ### FMT-STRUCT-029 — The lists of one target on a parameter are merged
 
 The formatter MUST merge the attribute lists of a parameter or type parameter that name the same target into the first of them. The first list MUST keep its place, its specifier, and its leading trivia, and MUST hold the attributes of every merged list in the order they were written; the other lists of the target are removed. Lists of another target between them do not keep them apart, and the lists of each target of one parameter are merged on their own. A list without a specifier names the parameter or type parameter itself, `param:` names the parameter, `typevar:` the type parameter, and any other known specifier the target it names, such as `property:` on a record parameter. A `type:` list and a list whose specifier names no target the compiler knows name no target and MUST NOT be merged.
@@ -1431,7 +1473,9 @@ The formatter MUST NOT merge the lists of a target when a comment or a preproces
 
 The merge writes no whitespace (FMT-STRUCT-026): the space behind the merged list and behind each of its commas is the spacing phase's (FMT-SPACE-003, FMT-SPACE-008), and the merged list stays on the parameter's line by FMT-BREAK-027.
 
-Why: A parameter's attributes stay on its line, so that a parameter list keeps one parameter per line; there a second list of the same target only repeats the brackets. The compiler applies every list of one target alike, so merging them changes nothing, while merging lists of different targets would move an attribute to another target, and the compiler ignores a `type:` list on a parameter, so merging it would start applying its attributes. A comment or directive in the stretch the merge rewrites would be dropped or moved next to other code (FMT-STRUCT-024).
+The merge MUST keep a line break the author wrote in the stretch it rewrites. When a line break lies anywhere between the `]` of the first list of the target and the token behind the last of them — behind the first list, behind or in front of a removed list, or behind the last list — the merge's output MUST hold one line break between the merged list and that token, and MAY drop the others, blank lines included. When no line break lies in that stretch, the merge's output holds none there. A line break in front of the first list, or behind the token behind the last list, is not in the stretch and stays where the author wrote it. The line-break phase then still finds the parameter or type parameter written over several lines and lays out its list as for any element written so (FMT-BREAK-013, FMT-BREAK-014), and joins the attribute lists onto the parameter's line (FMT-BREAK-027).
+
+Why: A parameter's attributes stay on its line, so that a parameter list keeps one parameter per line; there a second list of the same target only repeats the brackets. The compiler applies every list of one target alike, so merging them changes nothing, while merging lists of different targets would move an attribute to another target, and the compiler ignores a `type:` list on a parameter, so merging it would start applying its attributes. A comment or directive in the stretch the merge rewrites would be dropped or moved next to other code (FMT-STRUCT-024). A line break between the lists is a wrap the author wrote inside a list element; the line-break phase reads it to decide whether the parameter list is wrapped, so a merge that dropped it would lay out `([A]⏎ [B] int x, int y)` differently from `([A]⏎ int x, int y)`, whose list has nothing to merge.
 
 Example:
 
@@ -1450,6 +1494,40 @@ record R([A, C] [property: B, D] int Id);
 class C<[A, B] T>
 {
     void M([A, B] int a, [A] /* c */ [B] int b, [param: A, B] int c, [type: A] [B] int d)
+    {
+    }
+}
+```
+
+Example — a line break in the stretch the merge rewrites still wraps the parameter list; without one, the list stays on one line:
+
+```csharp
+class C
+{
+    void P([A]
+           [B] int x, int y) { }
+
+    void Q([A] [B]
+           int x, int y) { }
+
+    void R([A] [B] int x, int y) { }
+}
+```
+
+```csharp
+class C
+{
+    void P([A, B] int x,
+           int y)
+    {
+    }
+
+    void Q([A, B] int x,
+           int y)
+    {
+    }
+
+    void R([A, B] int x, int y)
     {
     }
 }
