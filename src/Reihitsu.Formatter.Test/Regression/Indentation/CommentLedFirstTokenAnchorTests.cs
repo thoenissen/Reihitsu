@@ -294,7 +294,6 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                     void M()
                                     {
                                         int[] b =
-
                                         /* c */ {
                                                     1,
                                                     2
@@ -391,7 +390,6 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                     void M()
                                     {
                                         List<int> x =
-
                                         /* c */ [
                                                     1,
                                                     2
@@ -459,7 +457,6 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                     void M()
                                     {
                                         var t = o is
-
                                         /* c */ [
                                                     1,
                                                     2
@@ -503,7 +500,6 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                     void M()
                                     {
                                         var p =
-
                                         /* c */ new P
                                                 {
                                                     X = 2
@@ -543,7 +539,6 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                     void M()
                                     {
                                         var p =
-
                                         /* c */ new List<int>
                                                 {
                                                     2
@@ -583,7 +578,6 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                     void M()
                                     {
                                         var p =
-
                                         /* c */ new
                                                 {
                                                     X = 1
@@ -628,7 +622,6 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                     int M(int v)
                                     {
                                         return
-
                                         /* c */ v switch
                                                 {
                                                     1 => 2,
@@ -669,7 +662,6 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                     void M()
                                     {
                                         Action a =
-
                                         /* c */ () =>
                                                 {
                                                     M();
@@ -707,7 +699,6 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                     bool M(bool a, bool b)
                                     {
                                         return
-
                                         /* c */ a
                                                 && b;
                                     }
@@ -744,7 +735,6 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                     int M(bool a)
                                     {
                                         return
-
                                         /* c */ a
                                                     ? 1
                                                     : 2;
@@ -781,7 +771,6 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                     string M(string s)
                                     {
                                         return
-
                                         /* c */ s.Trim()
                                                  .ToUpper();
                                     }
@@ -817,7 +806,6 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                     bool M(object o)
                                     {
                                         return
-
                                         /* c */ o is int
                                                   or long;
                                     }

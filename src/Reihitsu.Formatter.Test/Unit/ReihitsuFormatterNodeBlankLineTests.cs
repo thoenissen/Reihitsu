@@ -2447,11 +2447,13 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a block statement that directly follows a closing brace gets the same gap as in document-level formatting, where the line-break phase keeps its opening brace directly below the preceding closing brace
+    /// Verifies that a block statement that directly follows a closing brace gets the blank line that follows a closing brace, as in document-level formatting
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
-    public async Task DoesNotInsertBlankLineAboveBlockStatementAfterClosingBrace()
+    [Requirement("FMT-PIPE-024")]
+    [Requirement("FMT-BLANK-017")]
+    public async Task InsertsBlankLineAboveBlockStatementAfterClosingBrace()
     {
         const string input = """
                              public class C
@@ -2479,6 +2481,7 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
                                         {
                                             value--;
                                         }
+
                                         {
                                             Consume(value);
                                         }
@@ -2592,11 +2595,13 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that no blank line is inserted between a directive and a block statement that follows a closing brace, because document-level formatting keeps the opening brace directly below the directive
+    /// Verifies that the blank line that follows a closing brace is inserted below a directive and above a block statement, as in document-level formatting
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
-    public async Task DoesNotInsertBlankLineBelowDirectiveAboveBlockStatementAfterClosingBrace()
+    [Requirement("FMT-PIPE-024")]
+    [Requirement("FMT-BLANK-017")]
+    public async Task InsertsBlankLineBelowDirectiveAboveBlockStatementAfterClosingBrace()
     {
         const string input = """
                              public class C
@@ -2627,6 +2632,7 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
                                             value--;
                                         }
                                 #if !DEBUG
+
                                         {
                                             value++;
                                         }
@@ -2796,11 +2802,13 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a block statement that directly follows a break statement gets the same gap as in document-level formatting, where the line-break phase keeps its opening brace directly below the break statement
+    /// Verifies that a block statement that directly follows a break statement gets the blank line that follows a break statement, as in document-level formatting
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
-    public async Task DoesNotInsertBlankLineAboveBlockStatementAfterBreak()
+    [Requirement("FMT-PIPE-024")]
+    [Requirement("FMT-BLANK-017")]
+    public async Task InsertsBlankLineAboveBlockStatementAfterBreak()
     {
         const string input = """
                              public class C
@@ -2827,9 +2835,113 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
                                         while (value > 0)
                                         {
                                             break;
+
                                             {
                                                 value++;
                                             }
+                                        }
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectLast<BlockSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that the author's blank line above a block statement that follows a statement not ending with a closing brace is kept, as in document-level formatting
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-024")]
+    [Requirement("FMT-BLANK-017")]
+    public async Task KeepsAuthorBlankLineAboveBlockStatementAfterOtherStatement()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     value--;
+
+                                     {
+                                         Consume(value);
+                                     }
+
+                                     return value;
+                                 }
+                             }
+                             """;
+
+        await AssertFormatsTarget(input, input, SelectLast<BlockSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above a block statement that follows a statement not ending with a closing brace when the author wrote none, as in document-level formatting
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-024")]
+    [Requirement("FMT-BLANK-017")]
+    public async Task InsertsNoBlankLineAboveBlockStatementAfterOtherStatement()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     value--;
+                                     {
+                                         Consume(value);
+                                     }
+
+                                     return value;
+                                 }
+                             }
+                             """;
+
+        await AssertFormatsTarget(input, input, SelectLast<BlockSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line that follows a closing brace is inserted above a comment glued to the opening brace of a block statement, as in document-level formatting
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-024")]
+    [Requirement("FMT-BLANK-017")]
+    public async Task InsertsBlankLineAboveGluedCommentOfBlockStatementAfterClosingBrace()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     if (value > 1)
+                                     {
+                                         value--;
+                                     }
+                                     /* Scope */ {
+                                         Consume(value);
+                                     }
+
+                                     return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        if (value > 1)
+                                        {
+                                            value--;
+                                        }
+
+                                        /* Scope */ {
+                                            Consume(value);
                                         }
 
                                         return value;

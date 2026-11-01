@@ -7,12 +7,12 @@
 | Code owners | `LineBreakPhase`, `LineBreakBlockRewriter`, `LineBreakInitializerRewriter`, `LineBreakContainedBlockRewriter`, `LineBreakAssignmentRewriter`, `DeclarationSemicolonLineBreakRewriter`, `ListElementInteriorJoinRewriter`, `ListElementInteriorUtilities`, `LineBreakListRewriter`, `PropertyLayoutLineBreakRewriter`, `GenericConstraintLineBreakRewriter`, `DeclarationBraceLineBreakRewriter`, `MemberLineStartRewriter`, `AttributeTargetFormattingRewriter`, `AttributeTargetFormattingShared`, `BinaryOperatorLineBreakRewriter`, `ChainLineBreakRewriter`, `TernaryLineBreakRewriter`, `SwitchCaseWhenLineBreakRewriter`, `BracePlacer`, `TokenGapNormalizer`, `AccessorListLayout`, `LineBreakDetection`, `LineBreakTriviaUtilities` |
 | Uses | FMT-CLEAN-001, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-010, FMT-SPACE-001, FMT-STRUCT-009, FMT-STRUCT-014, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012 |
 
-This spec covers `LineBreakPhase`, the phase of the pipeline that decides where lines break (its position in the phase order is FMT-PIPE-001): brace placement, one statement and one member per line, the layout of argument, parameter, attribute, and type-argument lists, initializers and patterns, assignments, operators, conditionals, chains, generic constraints, attribute lists, accessor lists, and `case … when` guards. The phase only adds and removes line breaks; the columns the resulting lines start in are decided later by FMT-INDENT, and the spaces between tokens on a line by FMT-SPACE.
+This spec covers `LineBreakPhase`, the phase of the pipeline that decides where lines break (its position in the phase order is FMT-PIPE-001): brace placement, one statement and one member per line, the layout of argument, parameter, attribute, and type-argument lists, initializers and patterns, assignments, operators, conditionals, chains, generic constraints, attribute lists, accessor lists, and `case … when` guards. The phase only adds and removes line breaks and keeps the blank lines it finds (FMT-BREAK-030); the columns the resulting lines start in are decided later by FMT-INDENT, and the spaces between tokens on a line by FMT-SPACE.
 
 ## Non-goals
 
 - Indentation and alignment of the lines this phase produces — FMT-INDENT. Examples here show the final output, so they include its alignment.
-- How many blank lines separate statements, members, comments, and directives — FMT-BLANK. Where this phase moves a token onto a new line it inserts no blank line.
+- How many blank lines separate statements, members, comments, and directives — FMT-BLANK. This phase keeps the blank lines it finds (FMT-BREAK-030).
 - Whether an `if`/`else` body gets braces, whether a member is expression-bodied, and whether an empty type becomes a semicolon declaration — FMT-STRUCT. Braces of switch sections — FMT-SWITCH.
 - Starting a wrap because a line is long. The phase has no line-length limit: it only normalizes wraps the author made, apart from the shapes it always lays out over several lines (braces, object initializers, nested conditionals).
 - Unbraced embedded statements (`while (a) Foo();`), enum member lists, tuple expressions, and the arms of a switch expression keep the line breaks the author wrote. One switch-expression arm per line is a decided behavior change, tracked in thoenissen/Reihitsu#956.
@@ -1212,3 +1212,37 @@ class C
     }
 }
 ```
+
+### FMT-BREAK-030 — The phase keeps the blank lines of every gap it does not join
+
+In every gap between two tokens that this phase leaves on separate lines, whether it inserts the line break or keeps one, it MUST leave the number of blank lines as it found it: it MUST NOT insert a blank line and MUST NOT remove one. Where it joins two tokens onto one line, the gap holds no line break afterwards, so its blank lines go with the join; whether it may join is decided by the requirements above and FMT-BREAK-001.
+
+Why: Blank lines are decided by FMT-BLANK alone. A phase that also decided them would contradict FMT-BLANK where the two disagree, and the later phase would win in every pass: a blank line that FMT-BLANK inserted would be removed again, or one that FMT-BLANK left out would come back. Keeping the count leaves every blank line where FMT-BLANK put it.
+
+Example — run alone, this phase leaves the input below unchanged, with the blank line above the block statement and the blank line above the comment glued to the initializer's brace:
+
+```csharp
+class C
+{
+    void M(bool a)
+    {
+        if (a)
+        {
+        }
+
+        {
+        }
+
+        var p = new P
+                {
+                    Child =
+
+                    /* c */ {
+                                X = 2
+                            }
+                };
+    }
+}
+```
+
+In the whole pipeline, FMT-BLANK keeps the first of these blank lines and removes the second before this phase runs.

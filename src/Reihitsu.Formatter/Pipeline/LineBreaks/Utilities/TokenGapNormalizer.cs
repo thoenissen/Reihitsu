@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Core;
@@ -9,7 +7,8 @@ using Reihitsu.Formatter.Pipeline.Core.Utilities;
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 /// <summary>
-/// Normalizes the gap (line breaks and blank lines) before a token during line-break formatting
+/// Moves a token onto its own line during line-break formatting. It writes line breaks only and keeps the blank lines of
+/// every gap it does not join, which the blank-line phase decides (FMT-BREAK-030)
 /// </summary>
 internal sealed class TokenGapNormalizer
 {
@@ -38,423 +37,55 @@ internal sealed class TokenGapNormalizer
     #region Methods
 
     /// <summary>
-    /// Normalizes the leading gap in a token to the requested number of blank lines
-    /// </summary>
-    /// <param name="token">The token whose leading trivia should be normalized</param>
-    /// <param name="blankLineCount">The number of blank lines to preserve before the token</param>
-    /// <returns>The updated token</returns>
-    public SyntaxToken NormalizeLeadingGap(SyntaxToken token,
-                                           int blankLineCount)
-    {
-        return NormalizeLeadingGap(token, blankLineCount, previousProvidesLineBreak: false);
-    }
-
-    /// <summary>
-    /// Normalizes the leading gap in a token to the requested number of blank lines
-    /// </summary>
-    /// <param name="token">The token whose leading trivia should be normalized</param>
-    /// <param name="blankLineCount">The number of blank lines to preserve before the token</param>
-    /// <param name="previousProvidesLineBreak">
-    /// Whether the previous token's preserved trailing trivia already ends the line. When <see langword="true"/>,
-    /// the leading gap emits one fewer line break because the previous token supplies the line-terminating break
-    /// </param>
-    /// <returns>The updated token</returns>
-    public SyntaxToken NormalizeLeadingGap(SyntaxToken token,
-                                           int blankLineCount,
-                                           bool previousProvidesLineBreak)
-    {
-        if (HasOwnLinePlacementOwner(token.LeadingTrivia) == false)
-        {
-            // Either there is nothing but whitespace and line breaks in the gap, the content is a
-            // comment that shares the token's own line (for example a block comment glued to a closing
-            // brace), or it is a region directive (a separate, dedicated owner). Either way, the token's
-            // blank-line policy governs the whole run up to that point, exactly as if it were empty.
-            return NormalizeLeadingGapWithoutContent(token, blankLineCount, previousProvidesLineBreak);
-        }
-
-        var lastContentIndex = SyntaxTriviaUtilities.FindLastSignificantTriviaIndex(token.LeadingTrivia);
-
-        // The comment or directive sits on its own line, separate from the token, so it owns the
-        // blank-line decision above it. Preserve everything through it unchanged; only the run between
-        // it and the token itself is a placement decision this method owns
-        var preservedPrefix = new List<SyntaxTrivia>(lastContentIndex + 1);
-
-        for (var triviaIndex = 0; triviaIndex <= lastContentIndex; triviaIndex++)
-        {
-            preservedPrefix.Add(token.LeadingTrivia[triviaIndex]);
-        }
-
-        var trailingRun = new List<SyntaxTrivia>(token.LeadingTrivia.Count - lastContentIndex - 1);
-
-        for (var triviaIndex = lastContentIndex + 1; triviaIndex < token.LeadingTrivia.Count; triviaIndex++)
-        {
-            trailingRun.Add(token.LeadingTrivia[triviaIndex]);
-        }
-
-        // A requested blank-line count of zero is a placement requirement — no blank line directly
-        // adjacent to the token, the way RH5022/RH5024/RH5025/RH5026/RH5027 require for a delimiter. A
-        // requested count of one or more is a statement-separation budget, not an adjacency requirement,
-        // so the content's own positioning relative to the statement it may or may not document is the
-        // author's call, already settled by BlankLinePhase; this method does not spend that budget on
-        // the content→token run
-        var normalizedTrailingRun = blankLineCount == 0
-                                        ? NormalizeTrailingRun(trailingRun, SyntaxTriviaUtilities.EndsWithLineBreak(token.LeadingTrivia[lastContentIndex]))
-                                        : trailingRun;
-
-        var newLeadingTrivia = new List<SyntaxTrivia>(preservedPrefix.Count + normalizedTrailingRun.Count);
-
-        newLeadingTrivia.AddRange(preservedPrefix);
-        newLeadingTrivia.AddRange(normalizedTrailingRun);
-
-        return token.WithLeadingTrivia(SyntaxFactory.TriviaList(newLeadingTrivia));
-    }
-
-    /// <summary>
-    /// Normalizes the gap before a token without changing the previous token's trailing trivia
+    /// Moves a token onto its own line behind the previous token, keeping every blank line of its gap (FMT-BREAK-030)
     /// </summary>
     /// <typeparam name="TNode">The syntax node type containing the token</typeparam>
     /// <param name="node">The containing node</param>
-    /// <param name="token">The token whose preceding gap should be normalized</param>
+    /// <param name="token">The token that should start its own line</param>
     /// <param name="withToken">Function that updates the token on the owning node</param>
-    /// <param name="blankLineCount">The number of blank lines to preserve before the token</param>
     /// <returns>The updated node</returns>
+    /// <remarks>
+    /// The previous token's trailing whitespace stays; the cleanup phase removes it (FMT-BREAK-029)
+    /// </remarks>
     public TNode NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia<TNode>(TNode node,
                                                                              SyntaxToken token,
-                                                                             Func<TNode, SyntaxToken, TNode> withToken,
-                                                                             int blankLineCount)
+                                                                             Func<TNode, SyntaxToken, TNode> withToken)
         where TNode : SyntaxNode
     {
-        token = TokenLocator.GetCurrentToken(node, token);
-
-        if (token.IsMissing || TokenContainmentUtilities.ContainsToken(node, token) == false)
-        {
-            return node;
-        }
-
-        var hasPreviousToken = TokenLocator.TryGetPreviousToken(node, token, out var previousToken);
-
-        if (hasPreviousToken
-            && TryNormalizeGapAfterLeadingStructuredTrivia(token, blankLineCount, out var gapToken))
-        {
-            return gapToken == token
-                       ? node
-                       : withToken(node, gapToken);
-        }
-
-        var hasLineBreak = hasPreviousToken && TokenGapUtilities.HasLineBreakBetween(previousToken, token);
-        var currentBlankLineCount = hasPreviousToken
-                                        ? TokenGapUtilities.CountBlankLinesBetween(previousToken,
-                                                                                   token)
-                                        : 0;
-
-        if (hasLineBreak && currentBlankLineCount == blankLineCount)
-        {
-            return node;
-        }
-
-        // A token with no predecessor (the first token of the formatted root) has no gap to
-        // normalize. Forcing a leading line break here would prepend a spurious blank line.
-        if (hasPreviousToken == false)
-        {
-            return node;
-        }
-
-        if (TokenContainmentUtilities.ContainsToken(node, previousToken) == false)
-        {
-            // The previous token lies outside the node, so its trailing line break cannot be
-            // removed here. When it already ends the line, emit one fewer line break to avoid doubling.
-            var previousProvidesLineBreak = LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken);
-
-            return withToken(node, NormalizeLeadingGap(token, blankLineCount, previousProvidesLineBreak));
-        }
-
-        previousToken = TokenLocator.GetCurrentToken(node, previousToken);
-
-        var newToken = NormalizeLeadingGap(token, blankLineCount);
-
-        if (HasOwnLinePlacementOwner(token.LeadingTrivia))
-        {
-            // A comment or directive on its own line sits in the gap; it owns the blank line above it,
-            // so that token's own trailing trivia stays untouched.
-            return withToken(node, newToken);
-        }
-
-        var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
-
-        return node.ReplaceTokens(new[] { previousToken, token },
-                                  (originalToken, _) => originalToken == previousToken
-                                                            ? newPreviousToken
-                                                            : newToken);
+        return PlaceTokenOnOwnLine(node, token, withToken, trimPreviousWhitespace: false);
     }
 
     /// <summary>
-    /// Normalizes the gap before a token owned directly by a syntax node, even when the previous token lies outside that node
+    /// Moves a token owned directly by a syntax node onto its own line behind the previous token, even when the previous
+    /// token lies outside that node, keeping every blank line of its gap (FMT-BREAK-030)
     /// </summary>
     /// <typeparam name="TNode">The syntax node type containing the token</typeparam>
     /// <param name="node">The containing node</param>
-    /// <param name="token">The token whose preceding gap should be normalized</param>
+    /// <param name="token">The token that should start its own line</param>
     /// <param name="withToken">Function that updates the token on the owning node</param>
-    /// <param name="blankLineCount">The number of blank lines to preserve before the token</param>
     /// <returns>The updated node</returns>
     public TNode NormalizeGapBeforeOwnedToken<TNode>(TNode node,
                                                      SyntaxToken token,
-                                                     Func<TNode, SyntaxToken, TNode> withToken,
-                                                     int blankLineCount)
+                                                     Func<TNode, SyntaxToken, TNode> withToken)
         where TNode : SyntaxNode
     {
-        token = TokenLocator.GetCurrentToken(node, token);
-
-        if (token.IsMissing || TokenContainmentUtilities.ContainsToken(node, token) == false)
-        {
-            return node;
-        }
-
-        var hasPreviousToken = TokenLocator.TryGetPreviousToken(node, token, out var previousToken);
-
-        if (hasPreviousToken
-            && TryNormalizeGapAfterLeadingStructuredTrivia(token, blankLineCount, out var gapToken))
-        {
-            return gapToken == token
-                       ? node
-                       : withToken(node, gapToken);
-        }
-
-        if (hasPreviousToken && TokenContainmentUtilities.ContainsToken(node, previousToken))
-        {
-            previousToken = TokenLocator.GetCurrentToken(node, previousToken);
-        }
-
-        var hasLineBreak = hasPreviousToken && TokenGapUtilities.HasLineBreakBetween(previousToken, token);
-        var currentBlankLineCount = hasPreviousToken
-                                        ? TokenGapUtilities.CountBlankLinesBetween(previousToken,
-                                                                                   token)
-                                        : 0;
-
-        if (hasLineBreak && currentBlankLineCount == blankLineCount)
-        {
-            return node;
-        }
-
-        // A token with no predecessor (the first token of the formatted root) has no gap to
-        // normalize. Forcing a leading line break here would prepend a spurious blank line.
-        if (hasPreviousToken == false)
-        {
-            return node;
-        }
-
-        if (TokenContainmentUtilities.ContainsToken(node, previousToken) == false)
-        {
-            // The previous token lies outside the node, so its trailing line break cannot be
-            // removed here. When it already ends the line, emit one fewer line break to avoid doubling.
-            var previousProvidesLineBreak = LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken);
-
-            return withToken(node, NormalizeLeadingGap(token, blankLineCount, previousProvidesLineBreak));
-        }
-
-        var newToken = NormalizeLeadingGap(token, blankLineCount);
-
-        if (HasOwnLinePlacementOwner(token.LeadingTrivia))
-        {
-            // A comment or directive on its own line sits in the gap; it owns the blank line above it,
-            // so that token's own trailing trivia stays untouched.
-            return withToken(node, newToken);
-        }
-
-        var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
-
-        return node.ReplaceTokens(new[] { previousToken, token },
-                                  (originalToken, _) => originalToken == previousToken
-                                                            ? newPreviousToken
-                                                            : newToken);
+        return PlaceTokenOnOwnLine(node, token, withToken, trimPreviousWhitespace: true);
     }
 
     /// <summary>
-    /// Normalizes the gap before a token to the requested number of blank lines
+    /// Moves a token onto its own line behind the previous token, keeping every blank line of its gap (FMT-BREAK-030)
     /// </summary>
     /// <typeparam name="TNode">The syntax node type containing the token</typeparam>
     /// <param name="node">The containing node</param>
-    /// <param name="token">The token whose preceding gap should be normalized</param>
-    /// <param name="blankLineCount">The number of blank lines to preserve before the token</param>
+    /// <param name="token">The token that should start its own line</param>
     /// <returns>The updated node</returns>
     public TNode NormalizeGapBeforeToken<TNode>(TNode node,
-                                                SyntaxToken token,
-                                                int blankLineCount)
+                                                SyntaxToken token)
         where TNode : SyntaxNode
     {
         token = TokenLocator.GetCurrentToken(node, token);
 
-        if (TokenLocator.TryGetPreviousToken(node, token, out var previousToken) == false)
-        {
-            return node;
-        }
-
-        if (TokenContainmentUtilities.ContainsToken(node, token) == false)
-        {
-            return node;
-        }
-
-        if (TryNormalizeGapAfterLeadingStructuredTrivia(token, blankLineCount, out var gapToken))
-        {
-            return gapToken == token
-                       ? node
-                       : node.ReplaceToken(token, gapToken);
-        }
-
-        var previousInsideNode = TokenContainmentUtilities.ContainsToken(node, previousToken);
-
-        if (previousInsideNode)
-        {
-            previousToken = TokenLocator.GetCurrentToken(node, previousToken);
-        }
-
-        var hasLineBreak = TokenGapUtilities.HasLineBreakBetween(previousToken, token);
-        var currentBlankLineCount = TokenGapUtilities.CountBlankLinesBetween(previousToken, token);
-
-        if (hasLineBreak && currentBlankLineCount == blankLineCount)
-        {
-            return node;
-        }
-
-        if (previousInsideNode == false)
-        {
-            // The previous token lies outside the node, so its trailing line break cannot be removed
-            // here. When it already ends the line, emit one fewer line break to avoid doubling the gap.
-            var detachedToken = NormalizeLeadingGap(token, blankLineCount, LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken));
-
-            return node.ReplaceToken(token, detachedToken);
-        }
-
-        var newToken = NormalizeLeadingGap(token, blankLineCount);
-
-        if (HasOwnLinePlacementOwner(token.LeadingTrivia))
-        {
-            // A comment or directive on its own line sits in the gap; it owns the blank line above it,
-            // so that token's own trailing trivia stays untouched.
-            return node.ReplaceToken(token, newToken);
-        }
-
-        var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
-
-        return node.ReplaceTokens(new[] { previousToken, token },
-                                  (originalToken, _) =>
-                                  {
-                                      if (originalToken == previousToken)
-                                      {
-                                          return newPreviousToken;
-                                      }
-
-                                      return newToken;
-                                  });
-    }
-
-    /// <summary>
-    /// Determines whether a token's leading gap carries content that owns its own blank-line placement
-    /// decision, separate from the token's adjacency policy: an ordinary <c>//</c> or <c>/* … */</c> comment
-    /// on its own line, or a preprocessor directive or disabled-text block other than <c>#region</c>/
-    /// <c>#endregion</c> (which, unlike a comment, always occupies its own line and so always owns the
-    /// decision above it, whether or not it embeds an explicit trailing end-of-line trivia — see
-    /// <see cref="SyntaxTriviaUtilities.EndsWithLineBreak"/>). A region directive is excluded: its
-    /// blank-line placement already has a dedicated owner (<see cref="Pipeline.BlankLines.Rewriter.BlankLineRegionDirectiveRewriter"/>,
-    /// <see cref="Pipeline.BlankLines.Rewriter.BlankLineTriviaBoundaryRewriter"/>) with its own exemption rules, and folding it
-    /// into this decision would fight that owner instead of leaving it in sole control. A comment glued to
-    /// the token — for example a block comment directly before a closing brace on the same physical line —
-    /// does not count: it forms one visual line with the token, so the token's own blank-line policy governs
-    /// the whole run instead. A documentation comment does not count either: it is structured trivia whose
-    /// own blank-line placement is governed elsewhere
-    /// </summary>
-    /// <param name="leadingTrivia">The leading trivia to inspect</param>
-    /// <returns><see langword="true"/> if the gap carries content that owns its own blank-line placement; otherwise, <see langword="false"/></returns>
-    internal static bool HasOwnLinePlacementOwner(SyntaxTriviaList leadingTrivia)
-    {
-        var lastContentIndex = SyntaxTriviaUtilities.FindLastSignificantTriviaIndex(leadingTrivia);
-
-        if (lastContentIndex < 0)
-        {
-            return false;
-        }
-
-        var lastContent = leadingTrivia[lastContentIndex];
-
-        if (SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(lastContent)
-            && SyntaxTriviaUtilities.IsRegionDirective(lastContent) == false)
-        {
-            return true;
-        }
-
-        if (IsOrdinaryComment(lastContent) == false)
-        {
-            return false;
-        }
-
-        for (var triviaIndex = lastContentIndex + 1; triviaIndex < leadingTrivia.Count; triviaIndex++)
-        {
-            if (leadingTrivia[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Determines whether a trivia is an ordinary, non-documentation <c>//</c> or <c>/* … */</c> comment
-    /// </summary>
-    /// <param name="trivia">The trivia to check</param>
-    /// <returns><see langword="true"/> if the trivia is an ordinary comment; otherwise, <see langword="false"/></returns>
-    private static bool IsOrdinaryComment(SyntaxTrivia trivia)
-    {
-        return trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia);
-    }
-
-    /// <summary>
-    /// Determines whether a documentation comment precedes the specified index in a leading trivia list
-    /// </summary>
-    /// <param name="leadingTrivia">The leading trivia to inspect</param>
-    /// <param name="endIndex">The exclusive end index of the inspected range</param>
-    /// <returns><see langword="true"/> if a documentation comment precedes the index; otherwise, <see langword="false"/></returns>
-    private static bool HasLeadingDocumentationComment(SyntaxTriviaList leadingTrivia, int endIndex)
-    {
-        for (var triviaIndex = 0; triviaIndex < endIndex; triviaIndex++)
-        {
-            if (SyntaxTriviaUtilities.IsDocumentationCommentTrivia(leadingTrivia[triviaIndex]))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Finds the first content trivia on the line of the trivia at the specified index of a leading trivia list. The line
-    /// starts behind the nearest preceding line break, whether that is end-of-line trivia or the line break a
-    /// documentation comment or a directive carries inside its structure
-    /// </summary>
-    /// <param name="leadingTrivia">The leading trivia to inspect</param>
-    /// <param name="index">The index of a content trivia</param>
-    /// <returns>The index of the first content trivia on the same line</returns>
-    private static int FindLineStartIndex(SyntaxTriviaList leadingTrivia, int index)
-    {
-        var lineStartIndex = index;
-
-        for (var triviaIndex = index - 1; triviaIndex >= 0; triviaIndex--)
-        {
-            var trivia = leadingTrivia[triviaIndex];
-
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia)
-                || SyntaxTriviaUtilities.EndsWithLineBreak(trivia))
-            {
-                break;
-            }
-
-            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false)
-            {
-                lineStartIndex = triviaIndex;
-            }
-        }
-
-        return lineStartIndex;
+        return PlaceTokenOnOwnLine(node, token, (owner, newToken) => owner.ReplaceToken(token, newToken), trimPreviousWhitespace: true);
     }
 
     /// <summary>
@@ -478,151 +109,104 @@ internal sealed class TokenGapNormalizer
     }
 
     /// <summary>
-    /// Normalizes the gap before a token whose leading trivia ends with a documentation comment — optionally followed by
-    /// ordinary comments — or with a region directive, followed by nothing but line breaks and indentation. The gap the
-    /// token owns only starts behind that content, so the run in front of it — including a blank line the blank-line phase
-    /// placed above a documentation comment written behind code — is not part of it and stays untouched. Behind a
-    /// documentation comment and its comments, only the run up to the token is normalized, and only when no blank line may
-    /// separate the two; comments that start their own line and are glued to the token stay glued, while the token behind
-    /// comments glued to it behind other code is moved onto its own line. Behind a region directive that follows a documentation comment, or
-    /// that ends a gap directly behind an opening brace, the gap is left alone, because region blank lines have a dedicated
-    /// owner and the regular normalization would delete the blank line above that comment or add a blank line directly after
-    /// that brace. Every other gap — another directive, a region directive with neither a documentation comment in front of
-    /// it nor an opening brace in front of the gap, a region directive with a comment behind it, or a documentation comment
-    /// followed by anything but ordinary comments — is left to the regular gap normalization
+    /// Moves a token onto its own line when no line break separates it from the previous token. A gap that already holds
+    /// a line break is left as it is, together with its blank lines, which the blank-line phase decided (FMT-BREAK-030).
+    /// The only exception is a gap that ends with a documentation comment, see <see cref="TryPlaceTokenBehindLeadingDocumentationComment"/>
     /// </summary>
-    /// <param name="token">The token whose preceding gap should be normalized</param>
-    /// <param name="blankLineCount">The number of blank lines to preserve before the token</param>
-    /// <param name="normalizedToken">The normalized token, or <paramref name="token"/> when the gap stays unchanged</param>
-    /// <returns><see langword="true"/> if the gap was decided here; <see langword="false"/> if the regular gap normalization applies</returns>
-    private bool TryNormalizeGapAfterLeadingStructuredTrivia(SyntaxToken token,
-                                                             int blankLineCount,
-                                                             out SyntaxToken normalizedToken)
+    /// <typeparam name="TNode">The syntax node type containing the token</typeparam>
+    /// <param name="node">The containing node</param>
+    /// <param name="token">The token that should start its own line</param>
+    /// <param name="withToken">Function that updates the token on the owning node</param>
+    /// <param name="trimPreviousWhitespace">Whether the trailing whitespace of a previous token inside the node is removed</param>
+    /// <returns>The updated node</returns>
+    private TNode PlaceTokenOnOwnLine<TNode>(TNode node,
+                                             SyntaxToken token,
+                                             Func<TNode, SyntaxToken, TNode> withToken,
+                                             bool trimPreviousWhitespace)
+        where TNode : SyntaxNode
     {
-        normalizedToken = token;
+        token = TokenLocator.GetCurrentToken(node, token);
+
+        if (token.IsMissing || TokenContainmentUtilities.ContainsToken(node, token) == false)
+        {
+            return node;
+        }
+
+        // A token with no predecessor (the first token of the formatted root) has no gap to place it in
+        if (TokenLocator.TryGetPreviousToken(node, token, out var previousToken) == false)
+        {
+            return node;
+        }
+
+        if (TryPlaceTokenBehindLeadingDocumentationComment(token, out var placedToken))
+        {
+            return placedToken == token
+                       ? node
+                       : withToken(node, placedToken);
+        }
+
+        var previousInsideNode = TokenContainmentUtilities.ContainsToken(node, previousToken);
+
+        if (previousInsideNode)
+        {
+            previousToken = TokenLocator.GetCurrentToken(node, previousToken);
+        }
+
+        if (TokenGapUtilities.HasLineBreakBetween(previousToken, token))
+        {
+            return node;
+        }
+
+        // Without a line break in the gap, the gap holds no blank line either; one line break in front of its trivia
+        // moves the token, and every comment glued to it, onto a new line
+        var newToken = token.WithLeadingTrivia(token.LeadingTrivia.Insert(0, SyntaxFactory.EndOfLine(_endOfLine)));
+
+        if (previousInsideNode == false
+            || trimPreviousWhitespace == false)
+        {
+            return withToken(node, newToken);
+        }
+
+        var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(previousToken.TrailingTrivia));
+
+        return node.ReplaceTokens(new[] { previousToken, token },
+                                  (originalToken, _) => originalToken == previousToken
+                                                            ? newPreviousToken
+                                                            : newToken);
+    }
+
+    /// <summary>
+    /// Places a token whose leading trivia ends with a documentation comment, optionally followed by ordinary comments and
+    /// nothing else but line breaks and indentation. The line break in the gap may sit inside the documentation comment, so
+    /// the gap holding one does not mean the token starts its line: comments glued to the token behind other code do not
+    /// start a line, and the token is moved onto its own line behind them. When the token already starts its line, or the
+    /// comments that start their own line are glued to it, the gap is left as it is, with its blank lines
+    /// </summary>
+    /// <param name="token">The token to place</param>
+    /// <param name="placedToken">The placed token, or <paramref name="token"/> when the gap stays unchanged</param>
+    /// <returns><see langword="true"/> if the gap was decided here; <see langword="false"/> if the regular placement applies</returns>
+    private bool TryPlaceTokenBehindLeadingDocumentationComment(SyntaxToken token, out SyntaxToken placedToken)
+    {
+        placedToken = token;
 
         var structuredTriviaIndex = FindLastStructuredTriviaIndex(token.LeadingTrivia);
 
-        if (structuredTriviaIndex < 0)
-        {
-            return false;
-        }
-
-        var structuredTrivia = token.LeadingTrivia[structuredTriviaIndex];
-        var isRegionDirective = SyntaxTriviaUtilities.IsRegionDirective(structuredTrivia);
-
-        if (isRegionDirective == false
-            && SyntaxTriviaUtilities.IsDocumentationCommentTrivia(structuredTrivia) == false)
+        if (structuredTriviaIndex < 0
+            || SyntaxTriviaUtilities.IsDocumentationCommentTrivia(token.LeadingTrivia[structuredTriviaIndex]) == false)
         {
             return false;
         }
 
         var lastContentIndex = structuredTriviaIndex;
+        var trailingRunHasLineBreak = false;
 
         for (var triviaIndex = structuredTriviaIndex + 1; triviaIndex < token.LeadingTrivia.Count; triviaIndex++)
         {
             var trivia = token.LeadingTrivia[triviaIndex];
 
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia)
-                || trivia.IsKind(SyntaxKind.WhitespaceTrivia))
-            {
-                continue;
-            }
-
-            if (isRegionDirective
-                || IsOrdinaryComment(trivia) == false)
-            {
-                return false;
-            }
-
-            lastContentIndex = triviaIndex;
-        }
-
-        if (isRegionDirective)
-        {
-            // Region blank lines have a dedicated owner. The regular normalization rewrites the run in front of the first
-            // content of the gap as if the token before that run were the directive's own end token, so two gaps need this
-            // guard: behind a documentation comment it would delete the blank line above that comment, and behind an opening
-            // brace it would add a line break the brace already supplies, leaving a blank line directly after the brace. A
-            // region directive always ends its own line, so the token behind it already starts a line either way
-            return HasLeadingDocumentationComment(token.LeadingTrivia, structuredTriviaIndex)
-                   || token.GetPreviousToken(includeZeroWidth: true).IsKind(SyntaxKind.OpenBraceToken);
-        }
-
-        // A requested blank-line count of one or more is a statement-separation budget, not an adjacency requirement,
-        // exactly as for an own-line comment
-        if (blankLineCount != 0)
-        {
-            return true;
-        }
-
-        var trailingRun = new List<SyntaxTrivia>(token.LeadingTrivia.Count - lastContentIndex - 1);
-        var trailingRunHasLineBreak = false;
-
-        for (var triviaIndex = lastContentIndex + 1; triviaIndex < token.LeadingTrivia.Count; triviaIndex++)
-        {
-            trailingRunHasLineBreak |= token.LeadingTrivia[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia);
-            trailingRun.Add(token.LeadingTrivia[triviaIndex]);
-        }
-
-        var lastContentEndsWithLineBreak = SyntaxTriviaUtilities.EndsWithLineBreak(token.LeadingTrivia[lastContentIndex]);
-
-        // Comments that start their own line and are glued to the token form one line with it. Comments glued to the token
-        // behind other code do not start a line, so the token is moved onto its own line behind them
-        if (lastContentEndsWithLineBreak == false
-            && trailingRunHasLineBreak == false
-            && TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, FindLineStartIndex(token.LeadingTrivia, lastContentIndex)))
-        {
-            return true;
-        }
-
-        var normalizedTrailingRun = NormalizeTrailingRun(trailingRun, lastContentEndsWithLineBreak);
-
-        if (SyntaxFactory.TriviaList(normalizedTrailingRun).ToFullString() == SyntaxFactory.TriviaList(trailingRun).ToFullString())
-        {
-            return true;
-        }
-
-        var newLeadingTrivia = new List<SyntaxTrivia>(lastContentIndex + 1 + normalizedTrailingRun.Count);
-
-        for (var triviaIndex = 0; triviaIndex <= lastContentIndex; triviaIndex++)
-        {
-            newLeadingTrivia.Add(token.LeadingTrivia[triviaIndex]);
-        }
-
-        newLeadingTrivia.AddRange(normalizedTrailingRun);
-
-        normalizedToken = token.WithLeadingTrivia(SyntaxFactory.TriviaList(newLeadingTrivia));
-
-        return true;
-    }
-
-    /// <summary>
-    /// Normalizes a token's leading gap when it carries no comment or other content — the gap is pure line
-    /// breaks and indentation, and the whole run is rewritten to the requested shape
-    /// </summary>
-    /// <param name="token">The token whose leading trivia should be normalized</param>
-    /// <param name="blankLineCount">The number of blank lines to preserve before the token</param>
-    /// <param name="previousProvidesLineBreak">
-    /// Whether the previous token's preserved trailing trivia already ends the line. When <see langword="true"/>,
-    /// the leading gap emits one fewer line break because the previous token supplies the line-terminating break
-    /// </param>
-    /// <returns>The updated token</returns>
-    private SyntaxToken NormalizeLeadingGapWithoutContent(SyntaxToken token,
-                                                          int blankLineCount,
-                                                          bool previousProvidesLineBreak)
-    {
-        var suffixStart = 0;
-        var lastLeadingEndOfLineIndex = -1;
-        var sawNonWhitespaceTrivia = false;
-
-        for (var triviaIndex = 0; triviaIndex < token.LeadingTrivia.Count; triviaIndex++)
-        {
-            var trivia = token.LeadingTrivia[triviaIndex];
-
             if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
             {
-                lastLeadingEndOfLineIndex = triviaIndex;
+                trailingRunHasLineBreak = true;
 
                 continue;
             }
@@ -632,86 +216,25 @@ internal sealed class TokenGapNormalizer
                 continue;
             }
 
-            sawNonWhitespaceTrivia = true;
-
-            break;
-        }
-
-        if (sawNonWhitespaceTrivia || lastLeadingEndOfLineIndex >= 0)
-        {
-            suffixStart = lastLeadingEndOfLineIndex + 1;
-        }
-
-        var preservedLeadingTrivia = new List<SyntaxTrivia>(token.LeadingTrivia.Count - suffixStart);
-
-        for (var triviaIndex = suffixStart; triviaIndex < token.LeadingTrivia.Count; triviaIndex++)
-        {
-            preservedLeadingTrivia.Add(token.LeadingTrivia[triviaIndex]);
-        }
-
-        var lineBreakCount = previousProvidesLineBreak
-                                 ? blankLineCount
-                                 : blankLineCount + 1;
-
-        var newLeadingTrivia = new List<SyntaxTrivia>(lineBreakCount + preservedLeadingTrivia.Count);
-
-        for (var lineBreakIndex = 0; lineBreakIndex < lineBreakCount; lineBreakIndex++)
-        {
-            newLeadingTrivia.Add(SyntaxFactory.EndOfLine(_endOfLine));
-        }
-
-        newLeadingTrivia.AddRange(preservedLeadingTrivia);
-
-        return token.WithLeadingTrivia(SyntaxFactory.TriviaList(newLeadingTrivia));
-    }
-
-    /// <summary>
-    /// Normalizes the run of line breaks and indentation between the gap's last significant trivia and a
-    /// token that requires zero blank lines directly adjacent to it, so that content stays directly
-    /// attached — exactly one line break, never a blank line. Called only when the requested blank-line
-    /// count is zero; a caller with a wider statement-separation budget leaves this run untouched instead,
-    /// since it is not requiring adjacency and the content's own positioning is the author's call
-    /// </summary>
-    /// <param name="trailingRun">The trivia between the last content and the token</param>
-    /// <param name="lastContentEndsWithLineBreak">
-    /// Whether the gap's last significant trivia already embeds its own terminating line break — true for a
-    /// directive or disabled-text block, which always ends its own line, false for an ordinary comment. When
-    /// true, the run's own line break already separates that content from the token, so no further line
-    /// break is emitted here; emitting one unconditionally would recreate a blank line the guard exists to
-    /// remove
-    /// </param>
-    /// <returns>The normalized trailing run</returns>
-    private List<SyntaxTrivia> NormalizeTrailingRun(List<SyntaxTrivia> trailingRun, bool lastContentEndsWithLineBreak)
-    {
-        var lastEndOfLineIndex = -1;
-
-        for (var triviaIndex = 0; triviaIndex < trailingRun.Count; triviaIndex++)
-        {
-            if (trailingRun[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia))
+            if (TriviaListUtilities.IsOrdinaryComment(trivia) == false)
             {
-                lastEndOfLineIndex = triviaIndex;
+                return false;
             }
+
+            lastContentIndex = triviaIndex;
+            trailingRunHasLineBreak = false;
         }
 
-        var preservedTrailing = new List<SyntaxTrivia>(trailingRun.Count - lastEndOfLineIndex - 1);
-
-        for (var triviaIndex = lastEndOfLineIndex + 1; triviaIndex < trailingRun.Count; triviaIndex++)
+        if (trailingRunHasLineBreak
+            || SyntaxTriviaUtilities.EndsWithLineBreak(token.LeadingTrivia[lastContentIndex])
+            || TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, TriviaListUtilities.FindFirstContentIndexOnLine(token.LeadingTrivia, lastContentIndex + 1)))
         {
-            preservedTrailing.Add(trailingRun[triviaIndex]);
+            return true;
         }
 
-        var requiredLineBreakCount = lastContentEndsWithLineBreak ? 0 : 1;
+        placedToken = token.WithLeadingTrivia(token.LeadingTrivia.Insert(lastContentIndex + 1, SyntaxFactory.EndOfLine(_endOfLine)));
 
-        var normalizedRun = new List<SyntaxTrivia>(requiredLineBreakCount + preservedTrailing.Count);
-
-        for (var lineBreakIndex = 0; lineBreakIndex < requiredLineBreakCount; lineBreakIndex++)
-        {
-            normalizedRun.Add(SyntaxFactory.EndOfLine(_endOfLine));
-        }
-
-        normalizedRun.AddRange(preservedTrailing);
-
-        return normalizedRun;
+        return true;
     }
 
     #endregion // Methods

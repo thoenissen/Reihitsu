@@ -49,7 +49,6 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                                                          void M(bool a, bool b)
                                                                          {
                                                                              while (a)
-
                                                                                  /* note
                                                                                  */ if (b)
                                                                                  {

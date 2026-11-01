@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using System.Linq;
+
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Reihitsu.Core.Test;
@@ -119,5 +121,135 @@ public class BlankLineSpacingPolicyTests
         Assert.IsTrue(BlankLineSpacingPolicy.RequiresBlankLineAfterClosingBrace(statements[0], statements[1]));
     }
 
+    /// <summary>
+    /// Verifies a block that follows another statement of its block is a block statement after a statement
+    /// </summary>
+    [TestMethod]
+    [Requirement("RH5025-005")]
+    [Requirement("FMT-BLANK-017")]
+    public void IsBlockStatementAfterStatementReturnsTrueForBlockAfterStatementInBlock()
+    {
+        const string source = "class C { void M() { A(); { Target(); } } void A() { } void Target() { } }";
+
+        Assert.IsTrue(BlankLineSpacingPolicy.IsBlockStatementAfterStatement(GetTargetBlock(source)));
+    }
+
+    /// <summary>
+    /// Verifies a block that follows a statement ending with a closing brace is a block statement after a statement
+    /// </summary>
+    [TestMethod]
+    [Requirement("RH5025-005")]
+    [Requirement("FMT-BLANK-017")]
+    public void IsBlockStatementAfterStatementReturnsTrueForBlockAfterClosingBrace()
+    {
+        const string source = "class C { void M() { { A(); } { Target(); } } void A() { } void Target() { } }";
+
+        Assert.IsTrue(BlankLineSpacingPolicy.IsBlockStatementAfterStatement(GetTargetBlock(source)));
+    }
+
+    /// <summary>
+    /// Verifies a block that follows another statement of its switch section is a block statement after a statement
+    /// </summary>
+    [TestMethod]
+    [Requirement("RH5025-005")]
+    [Requirement("FMT-BLANK-017")]
+    public void IsBlockStatementAfterStatementReturnsTrueForBlockAfterStatementInSwitchSection()
+    {
+        const string source = "class C { void M(int value) { switch (value) { case 1: A(); { Target(); } break; } } void A() { } void Target() { } }";
+
+        Assert.IsTrue(BlankLineSpacingPolicy.IsBlockStatementAfterStatement(GetTargetBlock(source)));
+    }
+
+    /// <summary>
+    /// Verifies a block that is the first statement of its block is not a block statement after a statement
+    /// </summary>
+    [TestMethod]
+    [Requirement("RH5025-005")]
+    [Requirement("FMT-BLANK-017")]
+    public void IsBlockStatementAfterStatementReturnsFalseForFirstStatementOfBlock()
+    {
+        const string source = "class C { void M() { { Target(); } A(); } void A() { } void Target() { } }";
+
+        Assert.IsFalse(BlankLineSpacingPolicy.IsBlockStatementAfterStatement(GetTargetBlock(source)));
+    }
+
+    /// <summary>
+    /// Verifies a block that is the first statement of its switch section is not a block statement after a statement
+    /// </summary>
+    [TestMethod]
+    [Requirement("RH5025-005")]
+    [Requirement("FMT-BLANK-017")]
+    public void IsBlockStatementAfterStatementReturnsFalseForFirstStatementOfSwitchSection()
+    {
+        const string source = "class C { void M(int value) { switch (value) { case 1: { Target(); } break; } } void Target() { } }";
+
+        Assert.IsFalse(BlankLineSpacingPolicy.IsBlockStatementAfterStatement(GetTargetBlock(source)));
+    }
+
+    /// <summary>
+    /// Verifies the body of an <c>if</c> statement that follows another statement is not a block statement after a statement
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-017")]
+    public void IsBlockStatementAfterStatementReturnsFalseForIfStatementBody()
+    {
+        const string source = "class C { void M(bool a) { A(); if (a) { Target(); } } void A() { } void Target() { } }";
+
+        Assert.IsFalse(BlankLineSpacingPolicy.IsBlockStatementAfterStatement(GetTargetBlock(source)));
+    }
+
+    /// <summary>
+    /// Verifies the body of a method is not a block statement after a statement
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-017")]
+    public void IsBlockStatementAfterStatementReturnsFalseForMethodBody()
+    {
+        const string source = "class C { void M() { Target(); } void Target() { } }";
+
+        Assert.IsFalse(BlankLineSpacingPolicy.IsBlockStatementAfterStatement(GetTargetBlock(source)));
+    }
+
+    /// <summary>
+    /// Verifies the block of a labeled statement that follows another statement is not a block statement after a statement
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-017")]
+    public void IsBlockStatementAfterStatementReturnsFalseForBlockOfLabeledStatement()
+    {
+        const string source = "class C { void M() { A(); L: { Target(); } } void A() { } void Target() { } }";
+
+        Assert.IsFalse(BlankLineSpacingPolicy.IsBlockStatementAfterStatement(GetTargetBlock(source)));
+    }
+
+    /// <summary>
+    /// Verifies a top-level block that follows a top-level statement is not a block statement after a statement
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-017")]
+    public void IsBlockStatementAfterStatementReturnsFalseForTopLevelBlock()
+    {
+        const string source = "A(); { Target(); } static void A() { } static void Target() { }";
+
+        Assert.IsFalse(BlankLineSpacingPolicy.IsBlockStatementAfterStatement(GetTargetBlock(source)));
+    }
+
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Gets the block whose own statement list holds the call <c>Target();</c>
+    /// </summary>
+    /// <param name="source">Source text</param>
+    /// <returns>The block that directly contains the call</returns>
+    private static BlockSyntax GetTargetBlock(string source)
+    {
+        return CoreSyntaxTestHelper.ParseCompilationUnit(source)
+                                   .DescendantNodes()
+                                   .OfType<BlockSyntax>()
+                                   .Single(block => block.Statements.Any(statement => statement.ToString() == "Target();"));
+    }
+
+    #endregion // Methods
 }

@@ -794,7 +794,7 @@ public class BracedSwitchSectionCommentLayoutTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that two delimited comments written in front of the terminal <c>break</c> on its line stay on that line, with
-    /// the space between them, behind the new block and its blank line
+    /// the space between them, behind the new block
     /// </summary>
     [TestMethod]
     [Requirement("FMT-SWITCH-007")]
@@ -828,7 +828,6 @@ public class BracedSwitchSectionCommentLayoutTests : FormatterTestsBase
                                                     A();
                                                     B();
                                                 }
-
                                                 /* b1 */ /* b2 */ break;
                                         }
                                     }
@@ -841,7 +840,7 @@ public class BracedSwitchSectionCommentLayoutTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a delimited comment written in front of the terminal <c>break</c> on its line stays on that line behind the
-    /// new block and its blank line
+    /// new block
     /// </summary>
     [TestMethod]
     [Requirement("FMT-SWITCH-007")]
@@ -875,8 +874,55 @@ public class BracedSwitchSectionCommentLayoutTests : FormatterTestsBase
                                                     A();
                                                     B();
                                                 }
-
                                                 /* b2 */ break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line the author wrote above a delimited comment written in front of the terminal <c>break</c>
+    /// on its line is kept behind the new block
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-007")]
+    public void AuthorsBlankLineAboveCommentInFrontOfTheTerminalBreakIsKept()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             A();
+                                             B();
+
+                                             /* b */ break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    A();
+                                                    B();
+                                                }
+
+                                                /* b */ break;
                                         }
                                     }
                                 }
@@ -1016,7 +1062,6 @@ public class BracedSwitchSectionCommentLayoutTests : FormatterTestsBase
                                                     /* lead */ A();
                                                     B();    // four
                                                 }
-
                                                 /* b1 */ /* b2 */ break; /* x */ // y
 
                                             case 2:

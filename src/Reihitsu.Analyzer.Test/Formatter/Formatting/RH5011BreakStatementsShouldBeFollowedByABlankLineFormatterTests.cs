@@ -63,5 +63,58 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineFormatterTests : F
                               ExpectedDiagnostic(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, 7, 13, 7, 18, AnalyzerResources.RH5011MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter inserts a blank line between a break statement and a block statement that follows it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BLANK-017")]
+    public async Task VerifyFormatterInsertsBlankLineAboveBlockStatementAfterBreak()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal void Method()
+                                 {
+                                     while (true)
+                                     {
+                                         break;
+                                         {
+                                             Consume();
+                                         }
+                                     }
+                                 }
+
+                                 private static void Consume()
+                                 {
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void Method()
+                                     {
+                                         while (true)
+                                         {
+                                             break;
+
+                                             {
+                                                 Consume();
+                                             }
+                                         }
+                                     }
+
+                                     private static void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, 7, 13, 7, 18, AnalyzerResources.RH5011MessageFormat));
+    }
+
     #endregion // Tests
 }

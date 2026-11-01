@@ -83,6 +83,51 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
+    /// Determines whether this rewriter breaks the line in front of a token that stands behind the closing line of a
+    /// delimited comment that spans several lines (FMT-BREAK-019, SHARED-COMMENT-012). The token then leaves the comment's
+    /// line, so the comments of that line end up on their own line. The blank-line phase classifies the position of those
+    /// comments by this fact (FMT-BLANK-018)
+    /// </summary>
+    /// <param name="token">The token to inspect; a token that is no longer part of its tree has no parent and is no chain link operator, so the result is <see langword="false"/> for it</param>
+    /// <param name="boundary">The facts about the code above the root of the token's tree</param>
+    /// <returns><see langword="true"/> if the token is a chain link operator behind a multi-line comment's closing line in front of which the wrapped chain layout breaks the line</returns>
+    internal static bool BreaksLineBehindMultiLineCommentTail(SyntaxToken token, FluentChainBoundary boundary)
+    {
+        if (IsBehindMultiLineCommentTail(token) == false
+            || HasLineBreak(token.GetPreviousToken(), token) == false)
+        {
+            return false;
+        }
+
+        for (var node = token.Parent; node != null; node = node.Parent)
+        {
+            if (FluentChain.IsOutermostChainNode(node, boundary))
+            {
+                var chain = FluentChain.Create(node, true, boundary);
+
+                if (chain == null)
+                {
+                    return false;
+                }
+
+                var lineBreaks = GetWrappedLayoutLineBreaks(chain);
+
+                for (var linkIndex = 0; linkIndex < chain.Links.Count; linkIndex++)
+                {
+                    if (chain.Links[linkIndex].OperatorToken == token)
+                    {
+                        return lineBreaks[linkIndex];
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Returns the pending replacement recorded for a token, or the token itself when none exists. Several rules may
     /// touch the same token — one clears its leading trivia, another its trailing trivia — so every rule composes on the
     /// pending token instead of letting the last writer discard an earlier edit
@@ -139,33 +184,82 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Decides, per link of a chain, whether the layout of a wrapped chain breaks the line in front of it: the first link
+    /// joins the root line, later prefix links keep the user's layout, the first invoked link stays on the root line only
+    /// while that line is intact, and every later link starts its own line. A chain the user did not wrap gets no line break
+    /// </summary>
+    /// <param name="chain">The chain</param>
+    /// <returns>Per link, whether a line break is ensured in front of its operator</returns>
+    /// <remarks>
+    /// The decision reads only the line breaks the user put in front of and inside the link operators and the trivia in
+    /// front of the first link, so the blank-line phase, which runs earlier and changes none of them, reads the same answer
+    /// through <see cref="BreaksLineBehindMultiLineCommentTail"/>
+    /// </remarks>
+    private static bool[] GetWrappedLayoutLineBreaks(FluentChain chain)
+    {
+        var lineBreaks = new bool[chain.Links.Count];
+
+        if (chain.IsWrapped == false)
+        {
+            return lineBreaks;
+        }
+
+        var isRootLineIntact = true;
+
+        for (var linkIndex = 0; linkIndex < chain.Links.Count; linkIndex++)
+        {
+            var link = chain.Links[linkIndex];
+            var isWrappedByUser = link.StartsLine || link.HasInnerLineBreak(false);
+
+            if (linkIndex == 0)
+            {
+                // A gap that holds a comment, a directive or disabled text is not closed, so the root line is broken.
+                isRootLineIntact = HasLineBreak(link.OperatorToken.GetPreviousToken(), link.OperatorToken) == false
+                                   || LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(link.OperatorToken.GetPreviousToken(), link.OperatorToken) == false;
+            }
+            else if (chain.IsPrefixLink(linkIndex))
+            {
+                lineBreaks[linkIndex] = isWrappedByUser;
+            }
+            else if (linkIndex == chain.FirstInvokedLinkIndex)
+            {
+                lineBreaks[linkIndex] = isWrappedByUser || isRootLineIntact == false;
+            }
+            else
+            {
+                lineBreaks[linkIndex] = true;
+            }
+
+            if (lineBreaks[linkIndex])
+            {
+                isRootLineIntact = false;
+            }
+        }
+
+        return lineBreaks;
+    }
+
+    /// <summary>
     /// Closes the gap between two adjacent tokens: their line breaks and the whitespace around them are removed. A gap
     /// that holds a comment, a preprocessor directive or disabled text is left untouched
     /// </summary>
     /// <param name="previousToken">The token in front of the gap</param>
     /// <param name="nextToken">The token behind the gap</param>
     /// <param name="replacements">The token replacement map to populate</param>
-    /// <returns><see langword="true"/> if the gap holds no line break afterwards; <see langword="false"/> if blocking trivia keeps it</returns>
-    private static bool TryCloseGap(SyntaxToken previousToken,
-                                    SyntaxToken nextToken,
-                                    Dictionary<SyntaxToken, SyntaxToken> replacements)
+    private static void CloseGap(SyntaxToken previousToken,
+                                 SyntaxToken nextToken,
+                                 Dictionary<SyntaxToken, SyntaxToken> replacements)
     {
-        if (HasLineBreak(previousToken, nextToken) == false)
+        if (HasLineBreak(previousToken, nextToken) == false
+            || LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousToken, nextToken))
         {
-            return true;
-        }
-
-        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousToken, nextToken))
-        {
-            return false;
+            return;
         }
 
         var pendingPrevious = GetPendingToken(previousToken, replacements);
 
         replacements[previousToken] = pendingPrevious.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(pendingPrevious.TrailingTrivia)));
         replacements[nextToken] = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(GetPendingToken(nextToken, replacements));
-
-        return true;
     }
 
     /// <summary>
@@ -178,7 +272,7 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     {
         for (var tokenIndex = 1; tokenIndex < tokens.Count; tokenIndex++)
         {
-            TryCloseGap(tokens[tokenIndex - 1], tokens[tokenIndex], replacements);
+            CloseGap(tokens[tokenIndex - 1], tokens[tokenIndex], replacements);
         }
     }
 
@@ -206,7 +300,7 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
                 continue;
             }
 
-            TryCloseGap(attachedPart.FirstToken.GetPreviousToken(), attachedPart.FirstToken, replacements);
+            CloseGap(attachedPart.FirstToken.GetPreviousToken(), attachedPart.FirstToken, replacements);
             CloseInnerGaps(attachedPart.Tokens, replacements);
         }
 
@@ -281,49 +375,39 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
         // gap is a wrap, so a line break that blocking trivia keeps there does not affect the chain's layout.
         foreach (var link in chain.Links)
         {
-            TryCloseGap(link.DotToken, link.Name.GetFirstToken(), replacements);
+            CloseGap(link.DotToken, link.Name.GetFirstToken(), replacements);
         }
 
         foreach (var attachedPart in chain.AttachedParts)
         {
-            TryCloseGap(attachedPart.FirstToken.GetPreviousToken(), attachedPart.FirstToken, replacements);
+            CloseGap(attachedPart.FirstToken.GetPreviousToken(), attachedPart.FirstToken, replacements);
             CloseInnerGaps(attachedPart.Tokens, replacements);
         }
 
         // Link operators are never split. A line break in front of or inside an operator is the user's wrap.
-        var wrappedLinks = new bool[chain.Links.Count];
-
-        for (var linkIndex = 0; linkIndex < chain.Links.Count; linkIndex++)
+        foreach (var link in chain.Links)
         {
-            var link = chain.Links[linkIndex];
-
-            wrappedLinks[linkIndex] = link.StartsLine
-                                      || link.HasInnerLineBreak(false);
-
             CloseInnerGaps(link.OperatorTokens, replacements);
         }
 
         if (chain.IsWrapped)
         {
-            ApplyWrappedLayout(chain, wrappedLinks, replacements);
+            ApplyWrappedLayout(chain, replacements);
         }
 
         return Replace(node, replacements);
     }
 
     /// <summary>
-    /// Applies the layout of a wrapped chain: the first link joins the root line, later prefix links keep the user's
-    /// layout, the first invoked link stays on the root line only while that line is intact, and every later link starts
-    /// its own line
+    /// Applies the layout of a wrapped chain: the first link joins the root line, and the line breaks in front of every
+    /// later link are those <see cref="GetWrappedLayoutLineBreaks"/> decides
     /// </summary>
     /// <param name="chain">The chain</param>
-    /// <param name="wrappedLinks">Per link, whether the user put a line break in front of or inside its operator</param>
     /// <param name="replacements">The token replacement map to populate</param>
     private void ApplyWrappedLayout(FluentChain chain,
-                                    bool[] wrappedLinks,
                                     Dictionary<SyntaxToken, SyntaxToken> replacements)
     {
-        var isRootLineIntact = true;
+        var lineBreaks = GetWrappedLayoutLineBreaks(chain);
 
         for (var linkIndex = 0; linkIndex < chain.Links.Count; linkIndex++)
         {
@@ -332,31 +416,9 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
 
             if (linkIndex == 0)
             {
-                if (TryCloseGap(previousToken, operatorToken, replacements) == false)
-                {
-                    isRootLineIntact = false;
-                }
+                CloseGap(previousToken, operatorToken, replacements);
             }
-            else if (chain.IsPrefixLink(linkIndex))
-            {
-                if (wrappedLinks[linkIndex])
-                {
-                    EnsureLineBreak(previousToken, operatorToken, replacements);
-
-                    isRootLineIntact = false;
-                }
-            }
-            else if (linkIndex == chain.FirstInvokedLinkIndex)
-            {
-                if (wrappedLinks[linkIndex]
-                    || isRootLineIntact == false)
-                {
-                    EnsureLineBreak(previousToken, operatorToken, replacements);
-
-                    isRootLineIntact = false;
-                }
-            }
-            else
+            else if (lineBreaks[linkIndex])
             {
                 EnsureLineBreak(previousToken, operatorToken, replacements);
             }

@@ -201,7 +201,9 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     /// <returns>The token with a single blank line before the first comment</returns>
     /// <remarks>
     /// No blank line is inserted when the comment is immediately preceded by a preprocessor directive,
-    /// mirroring the exemption RH5020 applies.
+    /// mirroring the exemption RH5020 applies, and none when the comment is glued to the token
+    /// (<see cref="BraceBlankLinePolicy.FindGluedCommentIndex"/>), whatever the token is: the rules for the blank lines
+    /// directly before the token decide the blank lines above such a comment (FMT-BLANK-018).
     /// <para>
     /// Blank lines are counted on the trivia between the preceding token and the comment, so a line break inside
     /// comment text - such as the inner line of a multi-line block comment behind the preceding token - is never
@@ -228,7 +230,8 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
         var trivia = token.LeadingTrivia;
         var commentIndex = TriviaListUtilities.IndexOfFirstComment(trivia);
 
-        if (commentIndex < 0)
+        if (commentIndex < 0
+            || commentIndex == BraceBlankLinePolicy.FindGluedCommentIndex(token, previousTokenFacts, _context))
         {
             return token;
         }

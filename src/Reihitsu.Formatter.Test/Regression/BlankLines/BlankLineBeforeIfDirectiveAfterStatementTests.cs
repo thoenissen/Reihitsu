@@ -1157,9 +1157,9 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// <summary>
     /// Verifies that a blank line directly above a chained <c>else</c> keyword, after a trailing
     /// directive, is removed — the same rule as <see cref="BlankLineOnlyAfterTrailingDirectiveWritesNeitherBlankLine"/>,
-    /// but for an anchor that <see cref="Pipeline.LineBreaks.Utilities.TokenGapNormalizer"/>'s node-scoped
-    /// calls cannot reach, so <see cref="Pipeline.BlankLines.Rewriter.BlankLineTokenCleanupRewriter"/> must
-    /// enforce it directly
+    /// but for an anchor the line-break phase never reaches, because <see cref="Pipeline.LineBreaks.Utilities.TokenGapNormalizer"/>
+    /// writes line breaks only and keeps every blank line, so <see cref="Pipeline.BlankLines.Rewriter.BlankLineTokenCleanupRewriter"/>
+    /// is the sole owner of the removal
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-009")]

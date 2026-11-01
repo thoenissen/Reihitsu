@@ -5,8 +5,10 @@ namespace Reihitsu.Formatter.Data.Enumerations;
 /// <summary>
 /// The facts about the construct a node-level formatting root stands in, one flag for each decision of the line-break phase
 /// that reads the root's ancestors in its document (FMT-PIPE-024), except the member-access chain decision, whose facts are
-/// a <see cref="Reihitsu.Core.FluentChainBoundary"/> owned by the chain rule itself. The root is formatted without a parent,
-/// so each such decision reads its flag at the root instead. The flags are captured from the document before the pipeline runs
+/// a <see cref="Reihitsu.Core.FluentChainBoundary"/> owned by the chain rule itself. The blank-line phase reads
+/// <see cref="AssignedCollectionInitializer"/> as well, for the closing brace FMT-BLANK-020 excludes. The root is formatted
+/// without a parent, so each such decision reads its flag at the root instead. The flags are captured from the document
+/// before the pipeline runs
 /// </summary>
 [Flags]
 internal enum RootConstruct

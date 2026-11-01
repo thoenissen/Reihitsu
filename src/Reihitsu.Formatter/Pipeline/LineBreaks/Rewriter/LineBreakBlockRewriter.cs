@@ -55,27 +55,6 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Determines whether the gap between two adjacent statement tokens carries a preprocessor directive or
-    /// disabled text
-    /// </summary>
-    /// <param name="previousToken">The token that ends the preceding statement</param>
-    /// <param name="currentToken">The token that starts the following statement</param>
-    /// <returns><see langword="true"/> if the gap contains a directive or disabled-text trivia; otherwise, <see langword="false"/></returns>
-    /// <remarks>
-    /// A directive splits the gap into independent blank-line runs on either side of it, which
-    /// <see cref="Pipeline.BlankLines.BlankLinePhase"/> already collapses correctly, one run at a time.
-    /// <see cref="TokenGapUtilities.CountBlankLinesBetween"/> sums the blank lines on both sides into one
-    /// number, so a single blank line on each side is miscounted as two — exactly the excess this method's
-    /// caller is trying to detect. Withholding the correction here leaves the earlier, run-aware phase's
-    /// answer standing instead of adding a blank line the gap never actually had
-    /// </remarks>
-    private static bool GapCarriesDirectiveOrDisabledText(SyntaxToken previousToken, SyntaxToken currentToken)
-    {
-        return previousToken.TrailingTrivia.Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia)
-               || currentToken.LeadingTrivia.Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia);
-    }
-
-    /// <summary>
     /// Ensures sibling statements in a statement list start on separate lines
     /// </summary>
     /// <typeparam name="TNode">The syntax node type owning the statement list</typeparam>
@@ -109,16 +88,7 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
 
             if (TokenGapUtilities.HasLineBreakBetween(previousToken, currentToken) == false)
             {
-                statements[statementIndex] = _gapNormalizer.NormalizeGapBeforeToken(statements[statementIndex], currentToken, blankLineCount: 0);
-                modified = true;
-
-                continue;
-            }
-
-            if (TokenGapUtilities.CountBlankLinesBetween(previousToken, currentToken) > 1
-                && GapCarriesDirectiveOrDisabledText(previousToken, currentToken) == false)
-            {
-                statements[statementIndex] = _gapNormalizer.NormalizeGapBeforeToken(statements[statementIndex], currentToken, blankLineCount: 1);
+                statements[statementIndex] = _gapNormalizer.NormalizeGapBeforeToken(statements[statementIndex], currentToken);
                 modified = true;
             }
         }
