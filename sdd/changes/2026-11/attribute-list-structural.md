@@ -234,7 +234,7 @@ FMT-STRUCT-016 applies every requirement of the phase through every entry point 
 
 ### Code owners and phase ownership
 
-The transform types the implementation creates become code owners of FMT-STRUCT. `AttributeTargetFormattingRewriter` and `AttributeTargetFormattingShared` stay code owners of FMT-BREAK, since they keep the placement and the accessor shape. The `AGENTS.md` ownership rows change with them: the structural-transform row gains the attribute-list split and merge, and the line-break row keeps attribute-list placement and the accessor list shape.
+`AttributeListSplitTransform`, `AttributeListMergeTransform`, and `AttributeListShapeUtilities`, which holds the one split and the one merge loop, become code owners of FMT-STRUCT; the line-break phase's accessor shape calls the same helper. `AttributeListMergeSeparators`, the separators a caller of the shared merge chooses, becomes a code owner of SHARED-ATTR beside `AttributeTargetUtilities`. `AttributeTargetFormattingRewriter` and `AttributeTargetFormattingShared` stay code owners of FMT-BREAK, since they keep the placement and the accessor shape. The `AGENTS.md` ownership rows change with them: the structural-transform row gains the attribute-list split and merge, and the line-break row keeps attribute-list placement and the accessor list shape.
 
 ## Alternatives considered
 

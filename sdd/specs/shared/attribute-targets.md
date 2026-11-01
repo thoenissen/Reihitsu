@@ -4,7 +4,7 @@
 |---|---|
 | ID prefix | SHARED-ATTR |
 | Status | Active |
-| Code owners | `AttributeTargetRuleAnalyzerBase`, `TargetAttributePlacementAnalyzerBase`, `TargetAttributePlacementCodeFixProviderBase`, `TargetAttributeListShapeAnalyzerBase`, `TargetAttributeListShapeCodeFixProviderBase`, `AttributeTargetUtilities` |
+| Code owners | `AttributeTargetRuleAnalyzerBase`, `TargetAttributePlacementAnalyzerBase`, `TargetAttributePlacementCodeFixProviderBase`, `TargetAttributeListShapeAnalyzerBase`, `TargetAttributeListShapeCodeFixProviderBase`, `AttributeTargetUtilities`, `AttributeListMergeSeparators` |
 | Uses | FMT-BREAK-001, FMT-BREAK-024, FMT-BREAK-027, FMT-BREAK-032, FMT-STRUCT-028, FMT-STRUCT-029, SHARED-FIX-008 |
 
 This spec covers the rules that check attribute lists by the target the attributes apply to: how the target of an attribute list is resolved, how a placement rule decides whether a list is placed on its own line or on the line of what follows it, how a list-shape rule decides whether a list holds one attribute or the lists of one target are merged, where the diagnostic is, and what the placement and list-shape fixes produce. Each rule that uses this spec names its target, the declarations that carry it, its placement or its list shape, and any exception of its own. The formatter's counterparts are FMT-BREAK-027 for the placement, and FMT-STRUCT-028, FMT-STRUCT-029, and FMT-BREAK-032 for the list shape.
