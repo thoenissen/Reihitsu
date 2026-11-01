@@ -1198,5 +1198,749 @@ public class BracedSwitchSectionCommentLayoutTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies FMT-SWITCH-007's example for the blank line behind the last leading comment: it is kept at the first
+    /// statement, inside the new block, and at the terminal <c>break</c>, behind the new block
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-007")]
+    public void SpecificationExampleKeepsTheBlankLineBehindTheLastLeadingCommentAtTheFirstStatementAndTheTerminalBreak()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             // a
+
+                                             A();
+                                             B();
+                                             // b
+
+                                             break;
+
+                                         case 2:
+                                             C();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    // a
+
+                                                    A();
+                                                    B();
+                                                }
+
+                                                // b
+
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    C();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line between the <c>//</c> comment that leads the first statement and that statement is carried
+    /// into the new block
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-007")]
+    public void BlankLineBetweenTheLastLineCommentAndTheFirstStatementIsKept()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             // a
+
+                                             A();
+                                             B();
+                                             break;
+
+                                         case 2:
+                                             C();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    // a
+
+                                                    A();
+                                                    B();
+                                                }
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    C();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line between the <c>//</c> comment that leads the terminal <c>break</c> and the <c>break</c> is
+    /// kept behind the new block
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-007")]
+    public void BlankLineBetweenTheLastLineCommentAndTheTerminalBreakIsKept()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             A();
+                                             B();
+                                             // b
+
+                                             break;
+
+                                         case 2:
+                                             C();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    A();
+                                                    B();
+                                                }
+
+                                                // b
+
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    C();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line between the <c>/* */</c> comment that leads the first statement and that statement is
+    /// carried into the new block
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-007")]
+    public void BlankLineBetweenTheLastBlockCommentAndTheFirstStatementIsKept()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             /* a */
+
+                                             A();
+                                             B();
+                                             break;
+
+                                         case 2:
+                                             C();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    /* a */
+
+                                                    A();
+                                                    B();
+                                                }
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    C();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line between the <c>/* */</c> comment that leads the terminal <c>break</c> and the <c>break</c>
+    /// is kept behind the new block
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-007")]
+    public void BlankLineBetweenTheLastBlockCommentAndTheTerminalBreakIsKept()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             A();
+                                             B();
+                                             /* b */
+
+                                             break;
+
+                                         case 2:
+                                             C();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    A();
+                                                    B();
+                                                }
+
+                                                /* b */
+
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    C();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that several blank lines between the comment that leads the first statement and that statement reach the
+    /// new block as the one blank line the wrap finds after the earlier phases collapsed them
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-007")]
+    [Requirement("FMT-BLANK-014")]
+    public void SeveralBlankLinesBetweenTheLastCommentAndTheFirstStatementAreCarriedAsOne()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             // a
+
+
+
+                                             A();
+                                             B();
+                                             break;
+
+                                         case 2:
+                                             C();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    // a
+
+                                                    A();
+                                                    B();
+                                                }
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    C();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that several blank lines between the comment that leads the terminal <c>break</c> and the <c>break</c> are
+    /// kept as the one blank line the wrap finds after the earlier phases collapsed them
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-007")]
+    [Requirement("FMT-BLANK-014")]
+    public void SeveralBlankLinesBetweenTheLastCommentAndTheTerminalBreakAreCarriedAsOne()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             A();
+                                             B();
+                                             // b
+
+
+
+                                             break;
+
+                                         case 2:
+                                             C();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    A();
+                                                    B();
+                                                }
+
+                                                // b
+
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    C();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line between two comments that lead the first statement and the blank line behind the last
+    /// of them are both carried into the new block
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-007")]
+    public void BlankLinesBetweenAndBehindTheCommentsLeadingTheFirstStatementAreKept()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             // a
+
+                                             // b
+
+                                             A();
+                                             B();
+                                             break;
+
+                                         case 2:
+                                             C();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    // a
+
+                                                    // b
+
+                                                    A();
+                                                    B();
+                                                }
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    C();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line between two comments that lead the terminal <c>break</c> and the blank line behind the
+    /// last of them are both kept behind the new block
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-007")]
+    public void BlankLinesBetweenAndBehindTheCommentsLeadingTheTerminalBreakAreKept()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             A();
+                                             B();
+                                             // b1
+
+                                             // b2
+
+                                             break;
+
+                                         case 2:
+                                             C();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    A();
+                                                    B();
+                                                }
+
+                                                // b1
+
+                                                // b2
+
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    C();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line behind a <c>///</c> comment that leads the first statement is gone before the wrap, so the
+    /// new block holds the comment directly above the statement
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-007")]
+    [Requirement("FMT-BLANK-010")]
+    public void BlankLineBehindADocumentationCommentLeadingTheFirstStatementIsNotCarried()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             /// doc
+
+                                             A();
+                                             B();
+                                             break;
+
+                                         case 2:
+                                             C();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    /// doc
+                                                    A();
+                                                    B();
+                                                }
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    C();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line behind a <c>///</c> comment that leads the terminal <c>break</c> is gone before the wrap, so
+    /// the comment stays directly above the <c>break</c>
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-007")]
+    [Requirement("FMT-BLANK-010")]
+    public void BlankLineBehindADocumentationCommentLeadingTheTerminalBreakIsNotCarried()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             A();
+                                             B();
+                                             /// doc
+
+                                             break;
+
+                                         case 2:
+                                             C();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    A();
+                                                    B();
+                                                }
+
+                                                /// doc
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    C();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a section with a single statement keeps the blank line between the comment that leads it and the
+    /// statement, together with the gap in front of the comment behind it, when it is braced with the rest of the switch
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-007")]
+    public void BlankLineBehindTheCommentLeadingTheOnlyStatementOfASectionIsKept()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             A();
+                                             B();
+                                             break;
+
+                                         case 3:
+                                             // only comment
+
+                                             A();    /* x */
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    A();
+                                                    B();
+                                                }
+                                                break;
+
+                                            case 3:
+                                                {
+                                                    // only comment
+
+                                                    A();    /* x */
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Tests
 }
