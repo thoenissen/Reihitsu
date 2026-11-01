@@ -45,6 +45,8 @@ Output-question batch before the test implementer (2026-11-01): the maintainer c
 6. Block statement after `}` behind a directive — A: blank line after the directive.
 7. Comment glued to a block statement's brace after `}` — A: SHARED-BLANK-003 blank line above the comment.
 
+Output question during the implementer stage (2026-11-01), from 05-implementer.md D3: a non-region directive starts and a region directive ends the gap before a closing brace, with a blank line between them (`int x;⏎#pragma warning restore …⏎⏎#endregion⏎}`; also in a method body and with `#if … #endif`). The maintainer chose A: no blank line is inserted above the directive; output equals input. The existing test `ReihitsuFormatterLineEndingTests.LineBreaksEndingPragmaAndRegionDirectivesAreRewritten` gets the new expected output.
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
