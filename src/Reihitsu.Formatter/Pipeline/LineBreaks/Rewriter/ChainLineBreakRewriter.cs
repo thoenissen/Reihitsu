@@ -240,8 +240,9 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Closes the gap between two adjacent tokens: their line breaks and the whitespace around them are removed. A gap
-    /// that holds a comment, a preprocessor directive or disabled text is left untouched
+    /// Closes the gap between two adjacent tokens: their line breaks and the whitespace around them are removed, and the
+    /// gap holds the minimal separator (FMT-BREAK-031). A gap that holds a comment, a preprocessor directive or disabled
+    /// text is left untouched
     /// </summary>
     /// <param name="previousToken">The token in front of the gap</param>
     /// <param name="nextToken">The token behind the gap</param>
@@ -258,7 +259,7 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
 
         var pendingPrevious = GetPendingToken(previousToken, replacements);
 
-        replacements[previousToken] = pendingPrevious.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(pendingPrevious.TrailingTrivia)));
+        replacements[previousToken] = pendingPrevious.WithTrailingTrivia(LineBreakTriviaUtilities.CreateJoinedTrailingTrivia(pendingPrevious, nextToken));
         replacements[nextToken] = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(GetPendingToken(nextToken, replacements));
     }
 

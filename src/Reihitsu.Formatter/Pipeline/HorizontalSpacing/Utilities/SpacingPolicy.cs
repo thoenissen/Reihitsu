@@ -16,9 +16,10 @@ internal static class SpacingPolicy
     #region Fields
 
     /// <summary>
-    /// The spacing rules in precedence order. The first rule that returns a value wins. The order
-    /// reproduces the original ladder exactly: attribute close bracket → no-space → comma →
-    /// single-space → operator → for-loop semicolon → keyword
+    /// The spacing rules in precedence order (FMT-SPACE-002). The first rule that returns a value wins: attribute close
+    /// bracket → no-space → comma → single-space → operator → for-loop semicolon → attribute-target colon → keyword →
+    /// arrow → conditional operator → name colon → <c>when</c> → declared name → accessor list → relational pattern →
+    /// modifier and prefix keyword → <c>with</c> → lambda return type → function-pointer calling convention
     /// </summary>
     private static readonly ISpacingRule[] _rules = [
                                                         new AttributeListCloseBracketSpacingRule(),
@@ -27,7 +28,19 @@ internal static class SpacingPolicy
                                                         new SingleSpaceSpacingRule(),
                                                         new OperatorSpacingRule(),
                                                         new ForLoopSemicolonSpacingRule(),
-                                                        new KeywordSpacingRule()
+                                                        new AttributeTargetColonSpacingRule(),
+                                                        new KeywordSpacingRule(),
+                                                        new ArrowSpacingRule(),
+                                                        new ConditionalOperatorSpacingRule(),
+                                                        new NameColonSpacingRule(),
+                                                        new WhenSpacingRule(),
+                                                        new DeclaredNameSpacingRule(),
+                                                        new AccessorListSpacingRule(),
+                                                        new RelationalPatternSpacingRule(),
+                                                        new PrefixKeywordSpacingRule(),
+                                                        new WithSpacingRule(),
+                                                        new LambdaReturnTypeSpacingRule(),
+                                                        new FunctionPointerCallingConventionSpacingRule()
                                                     ];
 
     #endregion // Fields

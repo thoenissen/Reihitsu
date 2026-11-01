@@ -5,7 +5,7 @@
 | ID prefix | FMT-BREAK |
 | Status | Active |
 | Code owners | `LineBreakPhase`, `LineBreakBlockRewriter`, `LineBreakInitializerRewriter`, `LineBreakContainedBlockRewriter`, `LineBreakAssignmentRewriter`, `DeclarationSemicolonLineBreakRewriter`, `ListElementInteriorJoinRewriter`, `ListElementInteriorUtilities`, `LineBreakListRewriter`, `PropertyLayoutLineBreakRewriter`, `GenericConstraintLineBreakRewriter`, `DeclarationBraceLineBreakRewriter`, `MemberLineStartRewriter`, `AttributeTargetFormattingRewriter`, `AttributeTargetFormattingShared`, `BinaryOperatorLineBreakRewriter`, `ChainLineBreakRewriter`, `TernaryLineBreakRewriter`, `SwitchCaseWhenLineBreakRewriter`, `BracePlacer`, `TokenGapNormalizer`, `AccessorListLayout`, `LineBreakDetection`, `LineBreakTriviaUtilities` |
-| Uses | FMT-CLEAN-001, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-010, FMT-SPACE-001, FMT-STRUCT-009, FMT-STRUCT-014, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012 |
+| Uses | FMT-CLEAN-001, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-010, FMT-PIPE-021, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012 |
 
 This spec covers `LineBreakPhase`, the phase of the pipeline that decides where lines break (its position in the phase order is FMT-PIPE-001): brace placement, one statement and one member per line, the layout of argument, parameter, attribute, and type-argument lists, initializers and patterns, assignments, operators, conditionals, chains, generic constraints, attribute lists, accessor lists, and `case … when` guards. The phase only adds and removes line breaks and keeps the blank lines it finds (FMT-BREAK-030); the columns the resulting lines start in are decided later by FMT-INDENT, and the spaces between tokens on a line by FMT-SPACE.
 
@@ -992,7 +992,7 @@ interface I
 
 ### FMT-BREAK-024 — Simple auto-property accessor lists are on one line
 
-The accessor list of a property or indexer whose accessors are all auto accessors without bodies, comments, or directives MUST be on one line together with the declaration (`int P { get; set; }`), also when an initializer follows. An accessor list with an attribute on an accessor MUST stay as written when the declaration is on one line and MUST otherwise be laid out over several lines.
+The accessor list of a property or indexer whose accessors are all auto accessors without bodies, comments, or directives MUST be on one line together with the declaration (`int P { get; set; }`), also when an initializer follows. An accessor list with an attribute on an accessor MUST stay on its line when the declaration is on one line and MUST otherwise be laid out over several lines; the spaces inside a list on one line are decided by FMT-SPACE-022.
 
 Why: An auto-property is a single declaration; spreading `get;` and `set;` over four lines adds height without information. RH5408 reports the same shape.
 
@@ -1074,9 +1074,9 @@ The accessor bodies of `R` become expression bodies by FMT-STRUCT-009.
 
 ### FMT-BREAK-026 — Expression-bodied properties and indexers are on one line with their arrow
 
-The `=>` of an expression-bodied property or indexer and the start of its expression MUST be on the line of the declaration.
+The `=>` of an expression-bodied property or indexer and the start of its expression MUST be on the line of the declaration. The phase joins them with the separator of FMT-BREAK-031 and writes no other whitespace around the arrow, also where it joins nothing; the arrow is spaced by FMT-SPACE-017.
 
-Why: An expression-bodied property is a one-line declaration by intent (FMT-STRUCT-014 creates them from get-only properties); a wrapped arrow makes it look like a statement. RH5401 reports the same shape.
+Why: An expression-bodied property is a one-line declaration by intent (FMT-STRUCT-014 creates them from get-only properties); a wrapped arrow makes it look like a statement. RH5401 reports the same shape. The arrow of a property is spaced like every other arrow, so its spacing is not this phase's.
 
 Example:
 
@@ -1246,3 +1246,72 @@ class C
 ```
 
 In the whole pipeline, FMT-BLANK keeps the first of these blank lines and removes the second before this phase runs.
+
+### FMT-BREAK-031 — A join writes the minimal separator, and the phase writes no other space
+
+Where the phase joins two tokens onto one line, it MUST leave the gap between them without whitespace, unless the two tokens written without whitespace would not read back as the same two tokens — they would read as one token, as another pair of tokens, or as the start of a comment; there it MUST write exactly one space. The phase MUST NOT write, remove, or change whitespace in any other gap between two tokens that are on the same line before and after the phase. The spaces of every gap on one line, a joined gap included, are decided by FMT-SPACE (FMT-SPACE-002).
+
+This holds for every join of the phase: a list element's interior wrap (FMT-BREAK-015), a list, its delimiters, and its separators (FMT-BREAK-011 to FMT-BREAK-014), an assignment's operator and value (FMT-BREAK-016), the branch behind a `?` or `:` that moves to the next line (FMT-BREAK-018), a chain's member names and attached parts (FMT-BREAK-019, FMT-BREAK-020), a binary operator that moves to the start of the next line and the operand behind it (FMT-BREAK-017), an accessor list and its accessors (FMT-BREAK-024), the arrow and expression of a property or indexer (FMT-BREAK-026), a `when` guard (FMT-BREAK-028), a declaration's semicolon (FMT-BREAK-009), and the token behind an attribute list (FMT-BREAK-027).
+
+Why: A space chosen by the kind of the joined tokens is a spacing decision, which FMT-SPACE owns; when this phase made it, the same pair was spaced one way when joined and another way when written on one line, and the phase spaced constructs such as a property's arrow even where it joined nothing. Two tokens that would read as one are the exception, because the phase's text has to be its tree (FMT-PIPE-021) and the program must not change (FMT-PIPE-003): `protected` and `internal` joined without a space read as the identifier `protectedinternal`, `-` and `-b` as `--b`, and `/` and `*p` as the start of a comment. The structural transforms follow the same rule for the tokens they create (FMT-STRUCT-026).
+
+Example — run alone, this phase turns
+
+```csharp
+class C
+{
+    public int P
+        => 1;
+
+    public int Q
+    {
+        get;
+        protected
+        internal set;
+    }
+
+    unsafe int M(bool b, int a, int* p)
+    {
+        N(name:
+          a);
+
+        var x = a -
+                -a;
+        var y = a /
+                *p;
+
+        return b ?
+               1 :
+               2;
+    }
+}
+```
+
+into a tree whose text holds `public int P=> 1;`, `public int Q{get;protected internal set;}`, `N(name:a);`, `var x = a` followed by `- -a;` on the next line, `var y = a` followed by `/ *p;`, and `return b` followed by `?1` and `:2` on lines of their own. The final output is spaced by FMT-SPACE:
+
+```csharp
+class C
+{
+    public int P => 1;
+
+    public int Q { get; protected internal set; }
+
+    unsafe int M(bool b, int a, int* p)
+    {
+        N(name: a);
+
+        var x = a
+                - -a;
+        var y = a
+                / *p;
+
+        return b
+                   ? 1
+                   : 2;
+    }
+}
+```
+
+A gap the phase does not join keeps its whitespace: `public int R =>1;` and `public int S {get;set;}` written on one line leave the phase as they are.
+
+One join is a recorded exception: where the phase merges the attribute lists of a declaration (FMT-BREAK-027), the shared merge that the attribute-list code fixes also use writes one space behind the merged list's `]` and behind a token it leaves touching a joined token. The spacing phase decides the same space for both pairs (FMT-SPACE-003, FMT-SPACE-008), so the final output does not depend on it. The exception is recorded until the merge moves into the phase that owns it (thoenissen/Reihitsu#1492).

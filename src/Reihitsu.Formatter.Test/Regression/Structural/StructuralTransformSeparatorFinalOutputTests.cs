@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
 
@@ -398,12 +398,13 @@ public class StructuralTransformSeparatorFinalOutputTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the example of FMT-STRUCT-026's elastic-trivia paragraph: a hand-written <c>get=&gt;"";</c> keeps its zero gaps,
-    /// while a converted setter gets one space on each side of its created <c>=&gt;</c>
+    /// Verifies that a hand-written <c>get=&gt;"";</c> and a converted setter end up spaced alike: one space on each side of the
+    /// hand-written arrow and of the arrow the transform creates
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-026")]
-    public void HandWrittenArrowKeepsItsGapsWhileAConvertedAccessorGetsSpacesAroundItsArrow()
+    [Requirement("FMT-SPACE-017")]
+    public void HandWrittenArrowAndConvertedAccessorArrowAreSpacedAlike()
     {
         const string input = """
                              class C
@@ -424,7 +425,7 @@ public class StructuralTransformSeparatorFinalOutputTests : FormatterTestsBase
 
                                     string P
                                     {
-                                        get=>"";
+                                        get => "";
                                         set => _s = value;
                                     }
                                 }

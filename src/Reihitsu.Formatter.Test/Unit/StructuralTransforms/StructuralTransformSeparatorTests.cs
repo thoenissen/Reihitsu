@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -583,12 +583,12 @@ public class StructuralTransformSeparatorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the accessor transform writes one space on each side of the <c>=&gt;</c> it creates, also where the author
-    /// wrote no whitespace around the removed tokens
+    /// Verifies that the accessor transform writes no whitespace on either side of the <c>=&gt;</c> it creates, where the author
+    /// wrote none around the removed tokens
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-026")]
-    public void AccessorTransformWritesOneSpaceOnEachSideOfTheCreatedArrow()
+    public void AccessorTransformWritesNoWhitespaceAroundTheCreatedArrow()
     {
         const string input = """
                              class C
@@ -609,19 +609,19 @@ public class StructuralTransformSeparatorTests : FormatterTestsBase
                               foreach (var arrow in arrows)
                               {
                                   Assert.IsNotNull(arrow, description);
-                                  Assert.AreEqual(" ", GetGap(output, arrow.ArrowToken.GetPreviousToken(), arrow.ArrowToken), description);
-                                  Assert.AreEqual(" ", GetGap(output, arrow.ArrowToken, arrow.Expression.GetFirstToken()), description);
+                                  Assert.AreEqual(string.Empty, GetGap(output, arrow.ArrowToken.GetPreviousToken(), arrow.ArrowToken), description);
+                                  Assert.AreEqual(string.Empty, GetGap(output, arrow.ArrowToken, arrow.Expression.GetFirstToken()), description);
                               }
                           });
     }
 
     /// <summary>
-    /// Verifies that the get-only-member transform writes one space on each side of the <c>=&gt;</c> it creates, also where the
-    /// author wrote no whitespace around the removed tokens
+    /// Verifies that the get-only-member transform writes no whitespace on either side of the <c>=&gt;</c> it creates, where the
+    /// author wrote none around the removed tokens
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-026")]
-    public void GetOnlyMemberTransformWritesOneSpaceOnEachSideOfTheCreatedArrow()
+    public void GetOnlyMemberTransformWritesNoWhitespaceAroundTheCreatedArrow()
     {
         const string input = """
                              class C
@@ -636,18 +636,19 @@ public class StructuralTransformSeparatorTests : FormatterTestsBase
                               var arrow = output.DescendantNodes().OfType<PropertyDeclarationSyntax>().Single().ExpressionBody;
 
                               Assert.IsNotNull(arrow, description);
-                              Assert.AreEqual(" ", GetGap(output, arrow.ArrowToken.GetPreviousToken(), arrow.ArrowToken), description);
-                              Assert.AreEqual(" ", GetGap(output, arrow.ArrowToken, arrow.Expression.GetFirstToken()), description);
+                              Assert.AreEqual(string.Empty, GetGap(output, arrow.ArrowToken.GetPreviousToken(), arrow.ArrowToken), description);
+                              Assert.AreEqual(string.Empty, GetGap(output, arrow.ArrowToken, arrow.Expression.GetFirstToken()), description);
                           });
     }
 
     /// <summary>
-    /// Verifies that the get-only-member transform writes one space on each side of the <c>=&gt;</c> it creates behind an
-    /// indexer's <c>]</c>, where the author wrote none around the removed tokens
+    /// Verifies that the get-only-member transform writes no whitespace on either side of the <c>=&gt;</c> it creates behind an
+    /// indexer's <c>]</c>, where the author wrote no whitespace around the removed tokens other than the space behind the removed
+    /// <c>return</c>
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-026")]
-    public void GetOnlyMemberTransformWritesOneSpaceOnEachSideOfTheArrowBehindAnIndexer()
+    public void GetOnlyMemberTransformWritesNoWhitespaceAroundTheArrowBehindAnIndexer()
     {
         const string input = """
                              class C
@@ -664,8 +665,8 @@ public class StructuralTransformSeparatorTests : FormatterTestsBase
                               var arrow = output.DescendantNodes().OfType<IndexerDeclarationSyntax>().Single().ExpressionBody;
 
                               Assert.IsNotNull(arrow, description);
-                              Assert.AreEqual(" ", GetGap(output, arrow.ArrowToken.GetPreviousToken(), arrow.ArrowToken), description);
-                              Assert.AreEqual(" ", GetGap(output, arrow.ArrowToken, arrow.Expression.GetFirstToken()), description);
+                              Assert.AreEqual(string.Empty, GetGap(output, arrow.ArrowToken.GetPreviousToken(), arrow.ArrowToken), description);
+                              Assert.AreEqual(string.Empty, GetGap(output, arrow.ArrowToken, arrow.Expression.GetFirstToken()), description);
                           });
     }
 

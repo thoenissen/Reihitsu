@@ -23,7 +23,9 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 /// The rewriter runs before <see cref="LineBreakListRewriter"/>, so a list that was multi-line only because of such an
 /// interior wrap is decided as the single-line list it becomes. A join is refused when a comment, a directive, or
 /// disabled text sits in the gap, because each must keep its own line; the indentation phase then aligns the line that
-/// stays with the element's first token.
+/// stays with the element's first token. A join writes the minimal separator
+/// (<see cref="LineBreakTriviaUtilities.CreateJoinSeparator"/>); every other space of the joined gap is the
+/// horizontal-spacing phase's.
 /// </para>
 /// <para>
 /// A gap that another owner already lays out is never joined: list boundaries (separators, element starts, closers),
@@ -244,72 +246,6 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Creates the whitespace written between two joined tokens. The joined gap is a gap on one line, which the
-    /// horizontal-spacing phase spaces afterwards for every pair it has a rule for (FMT-SPACE); the join does not ask that
-    /// phase's policy. A pair no spacing rule covers keeps the gap the join writes, so the join writes delimiters and
-    /// member, scope, range, nullable, pointer, name, and attribute-target punctuation, a cast, and a prefix operator tight,
-    /// and every other pair with one space. A pair that would merge into a different token when written tight - two
-    /// identifier or keyword characters such as <c>out var</c>, or <c>- -x</c> - always keeps its space
-    /// </summary>
-    /// <param name="previousToken">The token before the gap</param>
-    /// <param name="token">The token after the gap</param>
-    /// <returns>The trailing whitespace for the previous token</returns>
-    private static SyntaxTriviaList CreateSeparator(SyntaxToken previousToken, SyntaxToken token)
-    {
-        var isTight = IsTightBefore(token) || IsTightAfter(previousToken);
-
-        return isTight && TokenSeparationUtilities.WouldMergeIntoOneToken(previousToken, token) == false
-                   ? SyntaxFactory.TriviaList()
-                   : SyntaxFactory.TriviaList(SyntaxFactory.Space);
-    }
-
-    /// <summary>
-    /// Determines whether a token without a horizontal spacing rule is written directly after the previous token
-    /// </summary>
-    /// <param name="token">The token</param>
-    /// <returns><see langword="true"/> if no space precedes the token; otherwise, <see langword="false"/></returns>
-    private static bool IsTightBefore(SyntaxToken token)
-    {
-        return token.Kind() switch
-               {
-                   SyntaxKind.OpenParenToken => token.Parent is ArgumentListSyntax
-                                                             or AttributeArgumentListSyntax
-                                                             or TypeOfExpressionSyntax
-                                                             or DefaultExpressionSyntax
-                                                             or SizeOfExpressionSyntax
-                                                             or CheckedExpressionSyntax
-                                                             or RefTypeExpressionSyntax
-                                                             or RefValueExpressionSyntax
-                                                             or MakeRefExpressionSyntax,
-                   SyntaxKind.OpenBracketToken => token.Parent is BracketedArgumentListSyntax
-                                                               or ArrayRankSpecifierSyntax
-                                                               or FunctionPointerUnmanagedCallingConventionListSyntax,
-                   SyntaxKind.DotToken or SyntaxKind.ColonColonToken or SyntaxKind.DotDotToken => true,
-                   SyntaxKind.QuestionToken => token.Parent is NullableTypeSyntax,
-                   SyntaxKind.AsteriskToken => token.Parent is PointerTypeSyntax or FunctionPointerTypeSyntax,
-                   SyntaxKind.ColonToken => token.Parent is NameColonSyntax or ExpressionColonSyntax or AttributeTargetSpecifierSyntax,
-                   SyntaxKind.LessThanToken => token.Parent is TypeArgumentListSyntax or TypeParameterListSyntax or FunctionPointerParameterListSyntax,
-                   _ => false
-               };
-    }
-
-    /// <summary>
-    /// Determines whether the token after a token without a horizontal spacing rule is written directly after it
-    /// </summary>
-    /// <param name="token">The token</param>
-    /// <returns><see langword="true"/> if no space follows the token; otherwise, <see langword="false"/></returns>
-    private static bool IsTightAfter(SyntaxToken token)
-    {
-        return token.Kind() switch
-               {
-                   SyntaxKind.OpenParenToken or SyntaxKind.OpenBracketToken or SyntaxKind.DotToken or SyntaxKind.ColonColonToken or SyntaxKind.DotDotToken => true,
-                   SyntaxKind.LessThanToken => token.Parent is TypeArgumentListSyntax or TypeParameterListSyntax or FunctionPointerParameterListSyntax,
-                   SyntaxKind.CloseParenToken => token.Parent is CastExpressionSyntax,
-                   _ => token.Parent is PrefixUnaryExpressionSyntax prefixUnary && token == prefixUnary.OperatorToken
-               };
-    }
-
-    /// <summary>
     /// Joins every interior wrap of a list element inside the node onto the previous line
     /// </summary>
     /// <param name="root">The node to rewrite</param>
@@ -327,12 +263,10 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
                 continue;
             }
 
-            var separator = CreateSeparator(previousToken, token);
             var currentPrevious = replacements.TryGetValue(previousToken, out var replacedPrevious) ? replacedPrevious : previousToken;
             var currentToken = replacements.TryGetValue(token, out var replacedToken) ? replacedToken : token;
-            var previousTrailing = LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(currentPrevious.TrailingTrivia);
 
-            replacements[previousToken] = currentPrevious.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(previousTrailing).AddRange(separator));
+            replacements[previousToken] = currentPrevious.WithTrailingTrivia(LineBreakTriviaUtilities.CreateJoinedTrailingTrivia(currentPrevious, token));
             replacements[token] = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(currentToken);
         }
 

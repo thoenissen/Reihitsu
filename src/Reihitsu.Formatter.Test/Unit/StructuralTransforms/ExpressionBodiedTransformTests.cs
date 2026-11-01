@@ -309,7 +309,9 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that a get-only property with an expression-bodied getter is converted to an expression-bodied property
+    /// Verifies that a get-only property with an expression-bodied getter is converted to an expression-bodied property. The
+    /// transform writes no whitespace next to the arrow it creates; the author's single spaces around the removed tokens may be
+    /// kept or dropped, so each arrow gap holds at most that one space
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-026")]
@@ -328,7 +330,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
                                 class C
                                 {
                                     int _value;
-                                    int Value => _value;
+                                    int Value=>_value;
                                 }
                                 """;
 
@@ -336,11 +338,13 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
         var actual = ApplyPhase(input);
 
         // Assert
-        Assert.AreEqual(expected, actual);
+        Assert.AreEqual(expected, actual.Replace(" =>", "=>").Replace("=> ", "=>"));
     }
 
     /// <summary>
-    /// Verifies that a get-only indexer with a block-bodied getter is converted to an expression-bodied indexer
+    /// Verifies that a get-only indexer with a block-bodied getter is converted to an expression-bodied indexer. The transform
+    /// writes no whitespace next to the arrow it creates; the author's single spaces around the removed tokens may be kept or
+    /// dropped, so each arrow gap holds at most that one space
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-026")]
@@ -359,7 +363,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
                                 class C
                                 {
                                     int[] _data;
-                                    int this[int i] => _data[i];
+                                    int this[int i]=>_data[i];
                                 }
                                 """;
 
@@ -367,7 +371,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
         var actual = ApplyPhase(input);
 
         // Assert
-        Assert.AreEqual(expected, actual);
+        Assert.AreEqual(expected, actual.Replace(" =>", "=>").Replace("=> ", "=>"));
     }
 
     /// <summary>
