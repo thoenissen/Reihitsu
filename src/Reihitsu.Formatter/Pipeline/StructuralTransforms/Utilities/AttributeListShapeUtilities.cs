@@ -11,26 +11,29 @@ using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Utilities;
 
 /// <summary>
-/// The one split and the one merge of the formatter's attribute lists. The structural transforms shape the lists of
-/// declarations, parameters, and type parameters with them, and the line-break phase shapes the lists of accessors, whose
-/// shape follows the layout that phase gives their accessor list
+/// The one split and the one merge of the formatter's attribute lists. Both take the same predicate, which says whether a
+/// list has the merged-list shape: the split splits every list that does not have it, and the merge merges the lists of
+/// one target that have it. The structural transforms shape the lists of every owner except an accessor, passing
+/// <see cref="UsesMergedListShape"/>; the line-break phase shapes the lists of accessors, whose shape also follows the
+/// layout that phase gives their accessor list
 /// </summary>
 internal static class AttributeListShapeUtilities
 {
     #region Methods
 
     /// <summary>
-    /// Splits every attribute list of an owner that holds several attributes, follows the one-attribute-per-list shape, names
-    /// a known target, and has no comment or directive between its brackets, into one list per attribute
+    /// Splits every attribute list of an owner that holds several attributes, does not have the merged-list shape, names a
+    /// known target, and has no comment or directive between its brackets, into one list per attribute
     /// </summary>
     /// <param name="owner">Owner node</param>
+    /// <param name="usesMergedListShape">Whether a list has the merged-list shape</param>
     /// <returns>Updated owner node</returns>
-    internal static SyntaxNode SplitAttributeLists(SyntaxNode owner)
+    internal static SyntaxNode SplitAttributeLists(SyntaxNode owner, Func<AttributeListSyntax, bool> usesMergedListShape)
     {
         while (true)
         {
             var lists = AttributeTargetUtilities.GetAttributeLists(owner);
-            var listToSplit = lists.FirstOrDefault(CanSplit);
+            var listToSplit = lists.FirstOrDefault(list => CanSplit(list, usesMergedListShape));
 
             if (listToSplit == null)
             {
@@ -42,20 +45,20 @@ internal static class AttributeListShapeUtilities
     }
 
     /// <summary>
-    /// Merges the attribute lists of an owner that the caller accepts as candidates and that resolve to the same target,
-    /// one target at a time, as long as a group can be merged without touching a comment or directive. Lists of different
-    /// targets are never merged, because the merged list keeps the first list's specifier and would move the other
-    /// attributes to that target
+    /// Merges the attribute lists of an owner that have the merged-list shape and resolve to the same target, one target at
+    /// a time, as long as a group can be merged without touching a comment or directive. Lists of different targets are
+    /// never merged, because the merged list keeps the first list's specifier and would move the other attributes to that
+    /// target
     /// </summary>
     /// <param name="owner">Owner node</param>
-    /// <param name="isCandidate">Whether a list that names a known target takes part in a merge</param>
+    /// <param name="usesMergedListShape">Whether a list has the merged-list shape</param>
     /// <param name="separators">The separators the merge writes</param>
     /// <returns>Updated owner node</returns>
-    internal static SyntaxNode MergeAttributeLists(SyntaxNode owner, Func<AttributeListSyntax, bool> isCandidate, AttributeListMergeSeparators separators)
+    internal static SyntaxNode MergeAttributeLists(SyntaxNode owner, Func<AttributeListSyntax, bool> usesMergedListShape, AttributeListMergeSeparators separators)
     {
         while (true)
         {
-            var group = FindMergeableGroup(AttributeTargetUtilities.GetAttributeLists(owner), isCandidate);
+            var group = FindMergeableGroup(AttributeTargetUtilities.GetAttributeLists(owner), usesMergedListShape);
 
             if (group.Length == 0)
             {
@@ -67,10 +70,14 @@ internal static class AttributeListShapeUtilities
     }
 
     /// <summary>
-    /// Determines whether an attribute list follows the merged-list shape of a parameter or type parameter
+    /// Determines whether an attribute list has the merged-list shape of a parameter or type parameter, whatever its owner:
+    /// a list on a parameter or type parameter, and a <c>param:</c> or <c>typevar:</c> list on any owner
     /// </summary>
     /// <param name="attributeList">Attribute list</param>
-    /// <returns><see langword="true"/> when the list's lists of one target are merged; otherwise, <see langword="false"/></returns>
+    /// <returns>
+    /// <see langword="true"/> when the list is never split and is merged with the lists of its target that have the
+    /// same shape; otherwise, <see langword="false"/>
+    /// </returns>
     internal static bool UsesMergedListShape(AttributeListSyntax attributeList)
     {
         return AttributeTargetFormattingShared.ResolveListShapeMode(attributeList) == TargetAttributeListShapeMode.MergedList;
@@ -80,25 +87,27 @@ internal static class AttributeListShapeUtilities
     /// Determines whether an attribute list is split
     /// </summary>
     /// <param name="attributeList">Attribute list</param>
+    /// <param name="usesMergedListShape">Whether a list has the merged-list shape</param>
     /// <returns><see langword="true"/> when the list is split; otherwise, <see langword="false"/></returns>
-    private static bool CanSplit(AttributeListSyntax attributeList)
+    private static bool CanSplit(AttributeListSyntax attributeList, Func<AttributeListSyntax, bool> usesMergedListShape)
     {
         return attributeList.Attributes.Count > 1
                && AttributeTargetUtilities.TryResolveTarget(attributeList, out var _)
-               && UsesMergedListShape(attributeList) == false
+               && usesMergedListShape(attributeList) == false
                && SyntaxNodeUtilities.InteriorContainsCommentOrDirective(attributeList) == false;
     }
 
     /// <summary>
-    /// Finds the first group of candidate attribute lists that resolve to the same target and can be merged
+    /// Finds the first group of attribute lists that have the merged-list shape, resolve to the same target, and can be
+    /// merged
     /// </summary>
     /// <param name="lists">The owner's attribute lists</param>
-    /// <param name="isCandidate">Whether a list that names a known target takes part in a merge</param>
+    /// <param name="usesMergedListShape">Whether a list has the merged-list shape</param>
     /// <returns>The mergeable group, or an empty array when no group can be merged</returns>
-    private static AttributeListSyntax[] FindMergeableGroup(IReadOnlyList<AttributeListSyntax> lists, Func<AttributeListSyntax, bool> isCandidate)
+    private static AttributeListSyntax[] FindMergeableGroup(IReadOnlyList<AttributeListSyntax> lists, Func<AttributeListSyntax, bool> usesMergedListShape)
     {
         var candidates = lists.Where(list => AttributeTargetUtilities.TryResolveTarget(list, out var _)
-                                             && isCandidate(list))
+                                             && usesMergedListShape(list))
                               .ToArray();
 
         foreach (var candidate in candidates)
@@ -117,10 +126,12 @@ internal static class AttributeListShapeUtilities
 
     /// <summary>
     /// Rebuilds the owner's attribute lists with one list split into single-attribute lists. The first created list keeps
-    /// the original opening bracket with its trivia, the last one the original closing bracket with its trivia, and every
-    /// list keeps the original specifier. Everything between two attributes — the comma, and the whitespace, line breaks,
-    /// and blank lines in front of it and behind it — is dropped, and the brackets the split creates carry no trivia, so
-    /// nothing stands between two created lists
+    /// the original opening bracket with its leading trivia, the last one the original closing bracket with its trivia, and
+    /// every list keeps the original specifier. The whitespace and line breaks behind the original opening bracket — in
+    /// front of the specifier, or of the first attribute when there is none — are dropped, and so is everything between two
+    /// attributes: the comma, and the whitespace, line breaks, and blank lines in front of it and behind it. The brackets the
+    /// split creates carry no trivia, so nothing stands between two created lists, and no created list holds anything
+    /// between its opening bracket and its specifier or attribute
     /// </summary>
     /// <param name="lists">The owner's current attribute lists</param>
     /// <param name="listToSplit">The multi-attribute list to split</param>
@@ -129,6 +140,7 @@ internal static class AttributeListShapeUtilities
     {
         var updatedLists = new List<AttributeListSyntax>(lists.Count - 1 + listToSplit.Attributes.Count);
         var lastIndex = listToSplit.Attributes.Count - 1;
+        var target = listToSplit.Target?.WithLeadingTrivia(SyntaxFactory.TriviaList());
 
         foreach (var attributeList in lists)
         {
@@ -143,7 +155,8 @@ internal static class AttributeListShapeUtilities
             {
                 var attribute = listToSplit.Attributes[index];
 
-                if (index > 0)
+                if (index > 0
+                    || target == null)
                 {
                     attribute = attribute.WithLeadingTrivia(SyntaxFactory.TriviaList());
                 }
@@ -154,13 +167,13 @@ internal static class AttributeListShapeUtilities
                 }
 
                 var openBracket = index == 0
-                                      ? listToSplit.OpenBracketToken
+                                      ? listToSplit.OpenBracketToken.WithTrailingTrivia(SyntaxFactory.TriviaList())
                                       : SyntaxFactory.Token(SyntaxFactory.TriviaList(), SyntaxKind.OpenBracketToken, SyntaxFactory.TriviaList());
                 var closeBracket = index == lastIndex
                                        ? listToSplit.CloseBracketToken
                                        : SyntaxFactory.Token(SyntaxFactory.TriviaList(), SyntaxKind.CloseBracketToken, SyntaxFactory.TriviaList());
 
-                updatedLists.Add(SyntaxFactory.AttributeList(openBracket, listToSplit.Target, SyntaxFactory.SingletonSeparatedList(attribute), closeBracket));
+                updatedLists.Add(SyntaxFactory.AttributeList(openBracket, target, SyntaxFactory.SingletonSeparatedList(attribute), closeBracket));
             }
         }
 

@@ -107,9 +107,11 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Shapes the attribute lists of an accessor by the layout of its accessor list: on the property's single line its lists
-    /// of one target are merged, with the separators the code fixes write, and on lines of their own its lists are split
-    /// into one list per attribute. The structural transforms already shaped the lists of every other owner
+    /// Shapes the attribute lists of an accessor by the layout of its accessor list. On the property's single line every
+    /// list has the merged-list shape; on lines of their own a list has it only when it has it on any owner
+    /// (<see cref="AttributeListShapeUtilities.UsesMergedListShape"/>, a <c>param:</c> or <c>typevar:</c> list). The lists
+    /// without that shape are split into one list per attribute, and the lists of one target with it are merged, with the
+    /// separators the code fixes write. The structural transforms already shaped the lists of every other owner
     /// </summary>
     /// <param name="owner">Owner node</param>
     /// <param name="keepAccessorListsSingleLine">Whether the owner's attribute lists must stay single-line</param>
@@ -122,9 +124,15 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
             return owner;
         }
 
-        return keepAccessorListsSingleLine
-                   ? AttributeListShapeUtilities.MergeAttributeLists(owner, _ => true, AttributeListMergeSeparators.Spaced)
-                   : AttributeListShapeUtilities.SplitAttributeLists(owner);
+        bool UsesMergedListShape(AttributeListSyntax attributeList)
+        {
+            return keepAccessorListsSingleLine
+                   || AttributeListShapeUtilities.UsesMergedListShape(attributeList);
+        }
+
+        owner = AttributeListShapeUtilities.SplitAttributeLists(owner, UsesMergedListShape);
+
+        return AttributeListShapeUtilities.MergeAttributeLists(owner, UsesMergedListShape, AttributeListMergeSeparators.Spaced);
     }
 
     /// <summary>

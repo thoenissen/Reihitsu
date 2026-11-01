@@ -8,8 +8,9 @@ namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
 
 /// <summary>
 /// Splits each attribute list that holds several attributes into one list per attribute, on every owner except an
-/// accessor, whose list shape follows the layout the line-break phase gives its accessor list, and except a parameter or
-/// type parameter, whose lists are merged instead
+/// accessor, whose list shape follows the layout the line-break phase gives its accessor list. A list with the merged-list
+/// shape (<see cref="AttributeListShapeUtilities.UsesMergedListShape"/>) is never split: every list of a parameter or type
+/// parameter, and a <c>param:</c> or <c>typevar:</c> list on any owner
 /// </summary>
 internal sealed class AttributeListSplitTransform : CSharpSyntaxRewriter
 {
@@ -49,7 +50,7 @@ internal sealed class AttributeListSplitTransform : CSharpSyntaxRewriter
             return updated;
         }
 
-        return AttributeListShapeUtilities.SplitAttributeLists(updated);
+        return AttributeListShapeUtilities.SplitAttributeLists(updated, AttributeListShapeUtilities.UsesMergedListShape);
     }
 
     #endregion // CSharpSyntaxVisitor

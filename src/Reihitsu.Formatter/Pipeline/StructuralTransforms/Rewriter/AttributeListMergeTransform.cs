@@ -8,9 +8,11 @@ using Reihitsu.Formatter.Pipeline.StructuralTransforms.Utilities;
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
 
 /// <summary>
-/// Merges the attribute lists of a parameter or type parameter that name the same target into the first of them. The
-/// merge writes no whitespace and keeps one line break the author wrote between the merged lists, so the line-break phase
-/// still finds the parameter written over several lines
+/// Merges the attribute lists with the merged-list shape (<see cref="AttributeListShapeUtilities.UsesMergedListShape"/>)
+/// that name the same target into the first of them, on every owner except an accessor, whose list shape follows the
+/// layout the line-break phase gives its accessor list: the lists of a parameter or type parameter, and the <c>param:</c>
+/// and <c>typevar:</c> lists of any other owner. The merge writes no whitespace and keeps one line break the author wrote
+/// in the stretch it rewrites, so the line-break phase still finds the parameter written over several lines
 /// </summary>
 internal sealed class AttributeListMergeTransform : CSharpSyntaxRewriter
 {
@@ -36,40 +38,21 @@ internal sealed class AttributeListMergeTransform : CSharpSyntaxRewriter
 
     #endregion // Constructor
 
-    #region Methods
-
-    /// <summary>
-    /// Merges the attribute lists of a parameter or type parameter
-    /// </summary>
-    /// <param name="owner">The parameter or type parameter</param>
-    /// <returns>Updated owner node</returns>
-    private static SyntaxNode MergeAttributeLists(SyntaxNode owner)
-    {
-        return AttributeListShapeUtilities.MergeAttributeLists(owner, AttributeListShapeUtilities.UsesMergedListShape, AttributeListMergeSeparators.None);
-    }
-
-    #endregion // Methods
-
     #region CSharpSyntaxVisitor
 
     /// <inheritdoc/>
-    public override SyntaxNode VisitParameter(ParameterSyntax node)
+    public override SyntaxNode Visit(SyntaxNode node)
     {
         _cancellationToken.ThrowIfCancellationRequested();
 
-        var updated = base.VisitParameter(node);
+        var updated = base.Visit(node);
 
-        return updated == null ? null : MergeAttributeLists(updated);
-    }
+        if (updated == null || updated is AccessorDeclarationSyntax)
+        {
+            return updated;
+        }
 
-    /// <inheritdoc/>
-    public override SyntaxNode VisitTypeParameter(TypeParameterSyntax node)
-    {
-        _cancellationToken.ThrowIfCancellationRequested();
-
-        var updated = base.VisitTypeParameter(node);
-
-        return updated == null ? null : MergeAttributeLists(updated);
+        return AttributeListShapeUtilities.MergeAttributeLists(updated, AttributeListShapeUtilities.UsesMergedListShape, AttributeListMergeSeparators.None);
     }
 
     #endregion // CSharpSyntaxVisitor

@@ -265,9 +265,11 @@ public static class AttributeTargetUtilities
     /// line. With <see cref="AttributeListMergeSeparators.Spaced"/>, the merged list's attributes are separated by
     /// commas with elastic trivia, one space follows the merged list, and a single space is added after the token before
     /// a joined token when that token would otherwise touch it. With <see cref="AttributeListMergeSeparators.None"/>, the
-    /// merge writes no whitespace and no elastic trivia; when the author wrote a line break anywhere between the first
-    /// member's closing bracket and the token behind the last member, and the merge leaves none between the two, the
-    /// first such line break is carried over behind the merged list. The caller is responsible for choosing a group whose
+    /// merge writes no whitespace and no elastic trivia. A line break directly behind the first member's opening bracket
+    /// stays there, with that bracket. Otherwise, when the author wrote a line break anywhere between the first member's
+    /// opening bracket and the token behind the last member — inside the first member included, whose attributes and
+    /// commas the merge rebuilds — and the merge leaves none between the merged list and that token, the first such line
+    /// break is carried over behind the merged list. The caller is responsible for choosing a group whose
     /// members share one target and that <see cref="CanMergeAttributeListGroup"/> accepts
     /// </summary>
     /// <param name="owner">Owner node</param>
@@ -282,7 +284,8 @@ public static class AttributeTargetUtilities
         var tokenAfterGroupAnnotation = new SyntaxAnnotation();
         var tokenAfterGroup = group[group.Count - 1].CloseBracketToken.GetNextToken();
         var writtenLineBreak = separators == AttributeListMergeSeparators.None
-                                   ? FindLineBreak(owner, group[0].CloseBracketToken, tokenAfterGroup)
+                               && group[0].OpenBracketToken.TrailingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)) == false
+                                   ? FindLineBreak(owner, group[0].OpenBracketToken, tokenAfterGroup)
                                    : default;
 
         owner = owner.ReplaceTokens(GetGapTokens(group),
