@@ -387,7 +387,6 @@ public class RawStringAlignmentPipelineTests : FormatterTestsBase
                                     void M()
                                     {
                                         var s = Call(1,
-
                                                      /* c */ """
                                                              a
                                                              """.Trim()
