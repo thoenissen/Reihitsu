@@ -118,7 +118,7 @@ internal static class BraceBlankLinePolicy
     /// and in front of a token that the chain layout moves off the closing line of a multi-line comment
     /// (<see cref="ChainLineBreakRewriter.BreaksLineBehindMultiLineCommentTail"/>)
     /// </summary>
-    /// <param name="token">The token whose leading trivia is classified, still part of its tree</param>
+    /// <param name="token">The token whose leading trivia is classified; a token the cleanup rewriter has already detached from its tree has no parent, so it is classified without the chain-link case, which is exact for every token that is not a chain link operator</param>
     /// <param name="context">The formatting context, which carries the facts about the code above the formatting root</param>
     /// <returns>The index of the first content trivia on the token's line; <c>-1</c> when every comment of the gap is on its own line</returns>
     /// <remarks>
@@ -141,7 +141,7 @@ internal static class BraceBlankLinePolicy
     /// (<see cref="FindTokenLineStartIndex"/>) when it is an ordinary comment that starts its line, with nothing but
     /// whitespace and comments, ordinary or documentation, between it and the token
     /// </summary>
-    /// <param name="token">The token whose leading trivia is inspected, still part of its tree</param>
+    /// <param name="token">The token whose leading trivia is inspected; a token the cleanup rewriter has already detached from its tree is classified without the chain-link case, which is exact for every token that is not a chain link operator</param>
     /// <param name="previousTokenFacts">The facts about the token that precedes <paramref name="token"/>, which decide whether the comment starts its line when nothing in front of it does</param>
     /// <param name="context">The formatting context, which carries the facts about the code above the formatting root</param>
     /// <returns>The leading-trivia index of the glued comment; <c>-1</c> when no comment is glued to the token</returns>

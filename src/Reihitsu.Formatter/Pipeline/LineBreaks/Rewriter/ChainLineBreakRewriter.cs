@@ -88,7 +88,7 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     /// line, so the comments of that line end up on their own line. The blank-line phase classifies the position of those
     /// comments by this fact (FMT-BLANK-018)
     /// </summary>
-    /// <param name="token">The token to inspect, still part of its tree</param>
+    /// <param name="token">The token to inspect; a token that is no longer part of its tree has no parent and is no chain link operator, so the result is <see langword="false"/> for it</param>
     /// <param name="boundary">The facts about the code above the root of the token's tree</param>
     /// <returns><see langword="true"/> if the token is a chain link operator behind a multi-line comment's closing line in front of which the wrapped chain layout breaks the line</returns>
     internal static bool BreaksLineBehindMultiLineCommentTail(SyntaxToken token, FluentChainBoundary boundary)
