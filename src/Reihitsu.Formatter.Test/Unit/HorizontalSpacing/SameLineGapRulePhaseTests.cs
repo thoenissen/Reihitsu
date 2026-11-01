@@ -347,6 +347,37 @@ public class SameLineGapRulePhaseTests
     }
 
     /// <summary>
+    /// Verifies that a delimited documentation comment the operand of a relational pattern carries keeps the whitespace in front
+    /// of it, and the operand follows it after one space
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-023")]
+    [Requirement("FMT-SPACE-014")]
+    public void DocumentationCommentInFrontOfTheRelationalOperandKeepsItsPlace()
+    {
+        const string input = """
+                             class C
+                             {
+                                 bool M(int x)
+                                 {
+                                     return x is > /** a */5;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    bool M(int x)
+                                    {
+                                        return x is > /** a */ 5;
+                                    }
+                                }
+                                """;
+
+        AssertHorizontalSpacing(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a delimited documentation comment the parameter list of a lambda with a return type carries keeps the
     /// whitespace in front of it, and the parameter list follows it after one space
     /// </summary>

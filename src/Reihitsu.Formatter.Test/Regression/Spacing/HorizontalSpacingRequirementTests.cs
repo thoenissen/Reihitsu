@@ -661,6 +661,58 @@ public class HorizontalSpacingRequirementTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies the example of the requirement: the whitespace in front of a delimited documentation comment the right token
+    /// carries stays as written, and the gap behind it follows the rule for the pair — removed, collapsed, or inserted
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-014")]
+    public void CommentOfTheRightTokenKeepsItsPlace()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+
+                             class C
+                             {
+                                 int _a /** x */;
+                                 int _b /** y */ ;
+
+                                 [Obsolete /** why */ ]
+                                 int M(bool c, int b)
+                                 {
+                                     var d = b /** sum */+b;
+                                     var e = b /** sum */   + b;
+                                     var f = b  /** sum */+ b;
+
+                                     return c ? b /** yes */:b;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System;
+
+                                class C
+                                {
+                                    int _a /** x */;
+                                    int _b /** y */;
+
+                                    [Obsolete /** why */]
+                                    int M(bool c, int b)
+                                    {
+                                        var d = b /** sum */ + b;
+                                        var e = b /** sum */ + b;
+                                        var f = b  /** sum */ + b;
+
+                                        return c ? b /** yes */ : b;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies the specification example: the <c>fixed</c> statement gets one space between the keyword and its
     /// parenthesis
     /// </summary>

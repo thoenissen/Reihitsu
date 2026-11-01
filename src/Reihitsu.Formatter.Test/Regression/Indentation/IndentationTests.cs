@@ -3263,10 +3263,11 @@ public class IndentationTests : FormatterTestsBase
     /// <summary>
     /// Verifies that an implicitly-typed <c>stackalloc[]</c> initializer aligns its braces and
     /// members to the <c>stackalloc</c> keyword instead of being flattened to the statement's
-    /// column
+    /// column, with one space behind <c>stackalloc</c>
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-022")]
+    [Requirement("FMT-SPACE-024")]
     public void ImplicitStackAllocInitializerAlignsToStackAllocKeyword()
     {
         // Arrange
@@ -3289,7 +3290,7 @@ public class IndentationTests : FormatterTestsBase
                                 {
                                     void M()
                                     {
-                                        Span<int> p = stackalloc[]
+                                        Span<int> p = stackalloc []
                                                       {
                                                           1,
                                                           2

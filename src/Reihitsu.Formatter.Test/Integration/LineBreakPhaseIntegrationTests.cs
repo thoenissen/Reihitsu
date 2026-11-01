@@ -158,10 +158,12 @@ public class LineBreakPhaseIntegrationTests
     }
 
     /// <summary>
-    /// Verifies that an expression-bodied property split across lines is handled by the line break phase
+    /// Verifies that an expression-bodied property split across lines is handled by the line break phase: the arrow is joined to the
+    /// declaration without whitespace, and the gap behind it, already on one line, keeps its own
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-026")]
+    [Requirement("FMT-BREAK-031")]
     public void HandlesExpressionBodiedPropertyAcrossLines()
     {
         // Arrange
@@ -176,7 +178,7 @@ public class LineBreakPhaseIntegrationTests
         const string expected = """
                                 class C
                                 {
-                                    public int Value => 42;
+                                    public int Value=> 42;
                                 }
 
                                 """;

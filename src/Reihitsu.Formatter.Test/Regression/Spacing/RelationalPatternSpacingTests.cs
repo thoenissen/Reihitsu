@@ -210,38 +210,5 @@ public class RelationalPatternSpacingTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
-    /// <summary>
-    /// Verifies that a delimited documentation comment the operand carries keeps the whitespace in front of it, and the operand
-    /// follows it after one space
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-SPACE-023")]
-    [Requirement("FMT-SPACE-014")]
-    public void DocumentationCommentInFrontOfTheOperandKeepsItsPlace()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 bool M(int x)
-                                 {
-                                     return x is > /** a */5;
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    bool M(int x)
-                                    {
-                                        return x is > /** a */ 5;
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
     #endregion // Tests
 }
