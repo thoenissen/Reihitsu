@@ -74,6 +74,7 @@ Question 15 (decided on recommendation under the standing instruction; to be rep
 | 21 | Spec author | Follow-up candidate: spaces behind a right-carried `/** */` in a gap without a rule are not collapsed (`new[] { /** z */   1 }`) | Dropped, not filed | The maintainer's guidance treats comments sharing a line with code as unwanted and asks the formatter not to grow complexity for them | No change in this run | — |
 | 22 | Test implementer | `ExpressionBodiedTransformTests` get-only property/indexer: the spec leaves zero or one space next to the created arrow when the author's removed tokens carried one | Accept the tolerant assertion (zero or one space each side) | FMT-STRUCT-026 leaves it open; the strict case is covered by `StructuralTransformSeparatorTests` | Phase-level text only | ed6b80f |
 | 23 | Test implementer | Row 18 case | Kept at phase level only (`SameLineGapRulePhaseTests`) | The full pipeline moves the comment; the gap it leaves is undecided and the shape is unwanted | Phase-level | ed6b80f |
+| 24 | Spec checker | Repair round 1 (Finding 1: change doc cites run-internal bookkeeping; entry 14's decision basis) | Route to spec author; cleaner skipped (no code changed); spec checker re-runs on the repair | Text-only repair | Wording only | 6ef3a59 |
 
 ## Follow-up candidates
 
