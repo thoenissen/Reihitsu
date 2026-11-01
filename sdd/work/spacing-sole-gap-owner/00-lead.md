@@ -41,6 +41,10 @@ Batch 1 (before the test implementer), 13 output questions from `03-spec-author.
 12. One space between an explicit lambda return type and its parameter list (12B).
 13. `delegate* managed` / `delegate* unmanaged` (13B).
 
+Question 14 (asked before the implementer; one-line forms of the FMT-SPACE-024 sweep — ref expression in a statement, lambda `ref`/`static`/`async` in front of a tuple return type, function pointer parameter `ref`): **14A**, one space behind the keyword in every listed position.
+
+Standing instruction from the maintainer for the rest of the run: any further output question is decided by the lead's recommendation without stopping, and every such decision is reported to the maintainer at the end of the run (run report). Record each one here as "decided on recommendation under the standing instruction".
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
@@ -59,7 +63,7 @@ Batch 1 (before the test implementer), 13 output questions from `03-spec-author.
 | 12 | Test implementer | FMT-SPACE-024 ambiguous for `ref` in front of a local's tuple type | Spec author decides from the existing requirements and the answers; if no answer decides it, it becomes an output question | — | Pending check | pending |
 | 13 | Spec author | `ref`/`ref readonly` in front of a local's, field's, `foreach` variable's or return type's tuple type: undecided, and no join reaches it today | Outside the run's issue: FMT-SPACE-024 states these positions are outside the rule (today's output kept, as for `public(int, int) G;`); the output question goes to a follow-up issue | The issue is about pairs a join produces; these are one-line-only cases with no change from `main` | Output unchanged from `main`; the question is carried by the follow-up | pending |
 | 14 | Spec author | `SameLineGapRulePhaseTests.WithRequirementExampleGetsOneSpaceOnEachSide` no longer matches the example; newly decided positions of FMT-SPACE-024 need one-line tests | Test implementer renames the test and adds a full-pipeline test of the example, and the one-line tests for the positions `05-spec-author.md` lists | Coverage for decided positions | Tests only | pending |
-| 15 | Lead | Spec author's sweep (05) extends FMT-SPACE-024 to one-line forms not shown in question 10: ref expression in a statement (`return ref(x);`), lambda ref return type (`ref(int, int) () => …`), lambda `static`/`async` in front of a tuple return type, function pointer parameter `ref` | Ask as an output question now, before the implementer, rather than at the pre-audit batch | They change visible one-line output not literally covered by answer 10; asking now avoids rework after implementation | Asked | — |
+| 15 | Lead | Spec author's sweep (05) extends FMT-SPACE-024 to one-line forms not shown in question 10: ref expression in a statement (`return ref(x);`), lambda ref return type (`ref(int, int) () => …`), lambda `static`/`async` in front of a tuple return type, function pointer parameter `ref` | Ask as an output question now, before the implementer, rather than at the pre-audit batch | They change visible one-line output not literally covered by answer 10; asking now avoids rework after implementation | Asked; answered 14A | 161d307 |
 
 ## Follow-up candidates
 
