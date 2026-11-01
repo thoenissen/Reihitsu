@@ -5,7 +5,7 @@
 | ID prefix | FMT-SPACE |
 | Status | Active |
 | Code owners | `HorizontalSpacingPhase`, `HorizontalSpacingRewriter`, `SpacingPolicy`, `ISpacingRule`, `AttributeListCloseBracketSpacingRule`, `NoSpaceSpacingRule`, `CommaSpacingRule`, `SingleSpaceSpacingRule`, `OperatorSpacingRule`, `ForLoopSemicolonSpacingRule`, `KeywordSpacingRule`, `TrailingWhitespaceWriter`, `CommaSpacingUtilities`, `UnaryOperatorSpacingUtilities` |
-| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, SHARED-BLANK-008 |
+| Uses | FMT-BREAK-015, FMT-BREAK-018, FMT-BREAK-024, FMT-BREAK-031, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-014, SHARED-BLANK-008 |
 
 This spec covers `HorizontalSpacingPhase`: the whitespace between two adjacent tokens on the same line, as decided by the ordered spacing rules of `SpacingPolicy`, how that decision is applied when a comment sits in the gap, and the gaps the phase leaves alone.
 
@@ -14,7 +14,7 @@ This spec covers `HorizontalSpacingPhase`: the whitespace between two adjacent t
 - Whitespace in a gap that contains a line break: indentation and continuation columns belong to [indentation.md](indentation.md) (FMT-INDENT), and whether a line break exists at all to [line-breaks.md](line-breaks.md) (FMT-BREAK).
 - Whitespace at the end of a line and the final newline — [cleanup.md](cleanup.md) (FMT-CLEAN); tabs in whitespace, which are replaced before this phase runs — [tab-replacement.md](tab-replacement.md) (FMT-TAB).
 - The text of literals, interpolated-string text, comments, and disabled text, which the phase never edits (FMT-PIPE-002).
-- Token pairs no rule covers, such as the lambda arrow, the conditional operator, `case` and named-argument colons, or the space between a method name and its argument list. The phase only collapses their whitespace (FMT-SPACE-002). Spacing rules for the lambda arrow, the conditional operator, named-argument colons, and the space before an argument list are a decided behavior change, tracked in thoenissen/Reihitsu#958.
+- Token pairs no rule covers, such as the `case` colon, the space between a method name and its argument list, the `[` of an element access, the `::` alias qualifier, the space after `when`, or the inside of a one-line initializer's braces. The phase only collapses their whitespace (FMT-SPACE-002). Spacing rules for the space before an argument list or an element access, `::`, and initializer braces are a decided behavior change, tracked in thoenissen/Reihitsu#1440.
 
 ## Requirements
 
@@ -52,9 +52,9 @@ class C
 
 ### FMT-SPACE-002 — Whitespace no rule covers is only collapsed
 
-When no spacing rule applies to a token pair, the formatter MUST replace each run of whitespace between the two tokens by a single space and MUST NOT insert or remove a gap. A run of tabs, or of tabs and spaces, counts as a run and becomes one space. When several rules apply to one pair, the first rule in this order MUST decide: attribute close bracket (FMT-SPACE-003), no-space (FMT-SPACE-004 to FMT-SPACE-007), comma (FMT-SPACE-008), single-space (FMT-SPACE-009), operator (FMT-SPACE-010), for-loop semicolon (FMT-SPACE-011), keyword (FMT-SPACE-012).
+When no spacing rule applies to a token pair, the formatter MUST replace each run of whitespace between the two tokens by a single space and MUST NOT insert or remove a gap. A run of tabs, or of tabs and spaces, counts as a run and becomes one space. This holds for a gap the line-break phase joined as for one the author wrote on one line: the phase decides a gap by its two tokens, never by whether the gap held a line break before, so a joined pair that no rule covers keeps the separator the join wrote (FMT-BREAK-031). When several rules apply to one pair, the first rule in this order MUST decide: attribute close bracket (FMT-SPACE-003), no-space (FMT-SPACE-004 to FMT-SPACE-007), comma (FMT-SPACE-008), single-space (FMT-SPACE-009), operator (FMT-SPACE-010), for-loop semicolon (FMT-SPACE-011), attribute-target colon (FMT-SPACE-016), keyword (FMT-SPACE-012), arrow (FMT-SPACE-017), conditional operator (FMT-SPACE-018), name colon (FMT-SPACE-019), `when` (FMT-SPACE-020), declared name (FMT-SPACE-021), accessor list (FMT-SPACE-022), relational pattern (FMT-SPACE-023).
 
-Why: The phase only enforces a spacing it has a rule for. Where it has none — the space after a cast, for instance — both forms are acceptable and the author's choice is kept; only the clearly accidental double space or tab goes. A tab is collapsed even when it is alone, because a tab the phase kept would later be expanded to spaces and collapsed on the next run, and the output would never become stable (FMT-PIPE-004).
+Why: The phase only enforces a spacing it has a rule for. Where it has none — the space after a cast, for instance — both forms are acceptable and the author's choice is kept; only the clearly accidental double space or tab goes. A joined pair is decided like the same pair written on one line, so the output does not depend on where the author broke the line; a rule that applied to joined gaps only would keep that difference. A tab is collapsed even when it is alone, because a tab the phase kept would later be expanded to spaces and collapsed on the next run, and the output would never become stable (FMT-PIPE-004).
 
 Example:
 
@@ -442,7 +442,7 @@ class C
 
 ### FMT-SPACE-012 — One space after statement keywords, `new`, and `operator`
 
-The formatter MUST put exactly one space after `if`, `for`, `foreach`, `while`, `switch`, `catch`, `fixed`, `using`, `lock`, `return`, `throw`, `new`, and `operator`, with these exceptions, where it MUST put no space: `return` or `throw` directly before `;`; a keyword used as an attribute target before its `:` (`[return: A]`); `new` before the `(` of a target-typed `new()` or of a `new()` constraint; and `new` before the `[` of an implicitly typed array `new[]`.
+The formatter MUST put exactly one space after `if`, `for`, `foreach`, `while`, `switch`, `catch`, `fixed`, `using`, `lock`, `return`, `throw`, `new`, and `operator`, with these exceptions, where it MUST put no space: `return` or `throw` directly before `;`; `new` before the `(` of a target-typed `new()` or of a `new()` constraint; and `new` before the `[` of an implicitly typed array `new[]`. A keyword used as an attribute target, such as `return` in `[return: A]`, is spaced by FMT-SPACE-016, which decides before this rule.
 
 Why: Without the space, `if(x)` and `return(x)` look like calls to methods named `if` and `return`, and `operator+` like an identifier. The exceptions are the forms where the keyword and the next token make up a single construct.
 
@@ -671,3 +671,343 @@ class C
 ### FMT-SPACE-015 — Indentation after a single-line documentation comment is kept
 
 Status: Retired — the line break that ends a `///` comment is a line break of the gap (SHARED-BLANK-008), so FMT-SPACE-001 leaves the whitespace behind the comment unchanged, and the line behind it is placed by the indentation phase.
+
+### FMT-SPACE-016 — Attribute-target colons: no space before, one space after
+
+The formatter MUST put no space in front of the colon that ends an attribute target and exactly one space behind it, whatever the target: a keyword such as `return`, `event`, or `assembly`, or an identifier such as `field`, `param`, or `type`. Every other colon in an attribute is decided by its own rule, such as the colon of a named attribute argument (FMT-SPACE-019).
+
+Why: The target names what the attribute applies to and reads as one label with its colon, like a named argument; the space behind it separates the label from the attribute. FMT-PIPE-014 asks for every attribute-target colon to be spaced alike, and a rule keyed by the keyword list of FMT-SPACE-012 reached `return` only.
+
+Example:
+
+```csharp
+using System;
+
+[assembly:CLSCompliant(true)]
+
+class C
+{
+    [field :NonSerialized]
+    int _f;
+
+    [return:Obsolete]
+    int M()
+    {
+        return 1;
+    }
+
+    [method  :  Obsolete]
+    void N([param :Obsolete] int a, [Obsolete(message:"x")] int b)
+    {
+    }
+}
+```
+
+```csharp
+using System;
+
+[assembly: CLSCompliant(true)]
+
+class C
+{
+    [field: NonSerialized]
+    int _f;
+
+    [return: Obsolete]
+    int M()
+    {
+        return 1;
+    }
+
+    [method: Obsolete]
+    void N([param: Obsolete] int a, [Obsolete(message: "x")] int b)
+    {
+    }
+}
+```
+
+### FMT-SPACE-017 — One space on each side of every arrow
+
+The formatter MUST put exactly one space on each side of every `=>`: the arrow of a lambda, of an expression body of a member, accessor, or local function, and of a switch-expression arm.
+
+Why: The arrow separates a head from a body, and `x=>x` hides that boundary. FMT-PIPE-014 asks for every arrow to be spaced alike, whatever construct it belongs to.
+
+Example:
+
+```csharp
+using System;
+
+class C
+{
+    int _p;
+
+    int A
+    {
+        get =>_p;
+        set=>_p = value;
+    }
+
+    int P =>1;
+
+    void M(int x)
+    {
+        Func<int, int> f = y=>y;
+        Func<int, int> g = (int y)  =>y;
+        var s = x switch
+                {
+                    1=>2,
+                    _ =>3
+                };
+    }
+}
+```
+
+```csharp
+using System;
+
+class C
+{
+    int _p;
+
+    int A
+    {
+        get => _p;
+        set => _p = value;
+    }
+
+    int P => 1;
+
+    void M(int x)
+    {
+        Func<int, int> f = y => y;
+        Func<int, int> g = (int y) => y;
+        var s = x switch
+                {
+                    1 => 2,
+                    _ => 3
+                };
+    }
+}
+```
+
+### FMT-SPACE-018 — One space on each side of the conditional operator
+
+The formatter MUST put exactly one space on each side of the `?` and the `:` of a conditional expression. A `?` that belongs to a nullable type (FMT-SPACE-005) or opens a conditional access (FMT-SPACE-006), and the `??` operator (FMT-SPACE-010), are not a conditional operator.
+
+Why: `b?1:2` runs condition and branches together; the spaces show where each branch starts. A conditional laid out over several lines puts `?` and `:` at the start of their lines (FMT-BREAK-018), and the branch behind each operator needs the same space as on one line.
+
+Example:
+
+```csharp
+class C
+{
+    int M(bool b, int? n, C c)
+    {
+        var r = b?1:2;
+        var s = c?.M(b, n) ?? 0;
+
+        return b ? -1:n.Value;
+    }
+}
+```
+
+```csharp
+class C
+{
+    int M(bool b, int? n, C c)
+    {
+        var r = b ? 1 : 2;
+        var s = c?.M(b, n) ?? 0;
+
+        return b ? -1 : n.Value;
+    }
+}
+```
+
+### FMT-SPACE-019 — Name colons: no space before, one space after
+
+The formatter MUST put no space in front of the colon of a name colon or an expression colon and exactly one space behind it: a named argument, a named attribute argument, a named tuple element, and the name of a property or positional subpattern. The colon of a `case` or `default` label, of a conditional expression (FMT-SPACE-018), of a base list or constructor initializer (FMT-SPACE-009), of an attribute target (FMT-SPACE-016), and of an interpolation's format clause is not a name colon.
+
+Why: The name labels the value behind it and belongs to it, so the colon stays with the name and the space separates the label from the value — the form `name: value` the line-break phase's join examples already show (FMT-BREAK-015).
+
+Example:
+
+```csharp
+class C
+{
+    void M(bool b, int c, object o)
+    {
+        M(b:b, c :1, o: o);
+
+        var t = (A:1, B :2);
+        var p = o is string { Length:1 };
+        var q = $"{c:N2}";
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(bool b, int c, object o)
+    {
+        M(b: b, c: 1, o: o);
+
+        var t = (A: 1, B: 2);
+        var p = o is string { Length: 1 };
+        var q = $"{c:N2}";
+    }
+}
+```
+
+### FMT-SPACE-020 — One space in front of `when`
+
+The formatter MUST put exactly one space in front of the `when` of a `case` guard and of a switch-expression arm. The space behind `when` is not decided by this rule.
+
+Why: Without the space, `case (1, 2)when b:` glues the guard to the pattern. A pattern that ends in an identifier or keyword already needs the space to stay two tokens; one that ends in `)`, `}`, `]`, or a literal does not, and would keep a gap a join leaves empty (FMT-BREAK-031).
+
+Example:
+
+```csharp
+class C
+{
+    int M(object o, bool b)
+    {
+        switch (o)
+        {
+            case (1, 2)when b:
+                break;
+            case int i  when(i > 0):
+                break;
+        }
+
+        return o switch
+               {
+                   "x"when b => 1,
+                   _ => 0
+               };
+    }
+}
+```
+
+```csharp
+class C
+{
+    int M(object o, bool b)
+    {
+        switch (o)
+        {
+            case (1, 2) when b:
+                break;
+            case int i when(i > 0):
+                break;
+        }
+
+        return o switch
+               {
+                   "x" when b => 1,
+                   _ => 0
+               };
+    }
+}
+```
+
+### FMT-SPACE-021 — One space between a type and the name it declares
+
+The formatter MUST put exactly one space between the type of a parameter, a tuple element, a variable declaration, a declaration expression, or a declaration pattern and the name or designation behind it. The gaps inside the type, such as the one in front of `?` (FMT-SPACE-005) or in front of an array rank, are not decided by this rule.
+
+Why: A type that ends in `?`, `]`, `>`, `*`, or `)` reads as two tokens with its name also without a space, so a join leaves that gap empty (FMT-BREAK-031) and `int?a` would stay. A type that ends in an identifier or keyword already needs the space, so for it the rule only collapses the gap.
+
+This requirement specifies the outcome only for the declarations it names and leaves every other type in front of a name unspecified, such as the return type of a method or the type of a property.
+
+Example:
+
+```csharp
+class C
+{
+    void M(int?a, int[]b, (int, int)c, object o)
+    {
+        int?z = null;
+
+        N(out int?w);
+
+        var p = o is int[]d;
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int? a, int[] b, (int, int) c, object o)
+    {
+        int? z = null;
+
+        N(out int? w);
+
+        var p = o is int[] d;
+    }
+}
+```
+
+### FMT-SPACE-022 — One space inside a one-line accessor list
+
+The formatter MUST put exactly one space behind the `{` of a property, indexer, or event accessor list and between two accessors of such a list when the next token is on the same line. FMT-SPACE-009 decides the space in front of the list's `}`. The braces of an initializer, an anonymous object, or a property pattern are not an accessor list.
+
+Why: `{ get; set; }` is the one-line form of an auto-property (FMT-BREAK-024); `{get;set;}` hides where an accessor starts. The braces of an initializer are spaced by their own rules, which are a decided behavior change (thoenissen/Reihitsu#1440).
+
+Example:
+
+```csharp
+using System;
+
+class C
+{
+    int P {get;set;}
+
+    int Q {[Obsolete] get;private set;}
+
+    int[] R = new[] {1, 2};
+}
+```
+
+```csharp
+using System;
+
+class C
+{
+    int P { get; set; }
+
+    int Q { [Obsolete] get; private set; }
+
+    int[] R = new[] {1, 2 };
+}
+```
+
+### FMT-SPACE-023 — One space behind a relational pattern's operator
+
+The formatter MUST put exactly one space between the operator of a relational pattern (`<`, `<=`, `>`, `>=`) and its operand. The space in front of the operator, and the operators of a binary expression (FMT-SPACE-010), are not decided by this rule.
+
+Why: `x is >5` reads the operator and the bound as one token; the space makes the bound stand out as in the binary comparison `x > 5`.
+
+Example:
+
+```csharp
+class C
+{
+    bool M(int x)
+    {
+        return x is >5 and <=  10;
+    }
+}
+```
+
+```csharp
+class C
+{
+    bool M(int x)
+    {
+        return x is > 5 and <= 10;
+    }
+}
+```
