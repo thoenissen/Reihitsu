@@ -90,3 +90,4 @@ Question 15 (decided on recommendation under the standing instruction; to be rep
 - A local function's modifier in front of a tuple type (`static(int, int) K()`) keeps the author's spacing — add to the #1440 member-modifier candidate — 05-spec-author.
 - Wrapped `with` expression loses its column — same class as #953, comment there at most — 02-skeptic.
 - The space behind `when` (`when(x)`, catch filter) is undecided — candidate for #1440 — 02-skeptic.
+- The gap in front of a relational pattern's operator after a combinator (`or>=`) is undecided — candidate for #1440 — 13-auditor.
