@@ -6,9 +6,11 @@ namespace Reihitsu.Formatter.Pipeline.HorizontalSpacing.Rules;
 
 /// <summary>
 /// Puts one space between a type or a pattern and the name it declares (FMT-SPACE-021): the type of a parameter, a tuple
-/// element, a variable declaration, a declaration expression, a declaration pattern, a <c>foreach</c> variable, a
+/// element, a variable declaration (a field, an event field, a local, or the declaration of a <c>for</c>, <c>fixed</c>,
+/// or <c>using</c> statement), a declaration expression, a declaration pattern, a <c>foreach</c> variable, a
 /// <c>catch</c> declaration, or a <c>from</c> or <c>join</c> range variable and the name behind it, and a recursive or
-/// list pattern and its designation. A member's type in front of its name is not decided by this rule
+/// list pattern and its designation. The return type of a method, a local function, or a delegate, the type of a
+/// property or an indexer, and the type of an event with an accessor list are not decided by this rule
 /// </summary>
 internal sealed class DeclaredNameSpacingRule : ISpacingRule
 {
