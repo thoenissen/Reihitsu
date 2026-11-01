@@ -102,6 +102,22 @@ public class AttributeListStructuralTransformTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that the first created list holds nothing between its <c>[</c> and its attribute: whitespace and line breaks
+    /// behind the original list's <c>[</c> are dropped
+    /// </summary>
+    /// <param name="list">The attribute list in front of the method, with LF line endings</param>
+    /// <param name="expected">The expected text from the first created <c>[</c> to the last created <c>]</c></param>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-028")]
+    [DataRow("[\n        A, B]", "[A][B]", DisplayName = "LineBreakBehindOpeningBracket")]
+    [DataRow("[\n     A,\n     B]", "[A][B]", DisplayName = "LineBreakBehindOpeningBracketAndComma")]
+    [DataRow("[  A, B]", "[A][B]", DisplayName = "SpacesBehindOpeningBracket")]
+    public void NothingBehindTheOpeningBracketStaysInTheFirstCreatedList(string list, string expected)
+    {
+        AssertAttributeListText($"class C\n{{\n    {list} void M()\n    {{\n    }}\n}}\n", expected);
+    }
+
+    /// <summary>
     /// Verifies that the first created list keeps the original list's leading trivia, comment included, and the last one its
     /// trailing trivia, and that a list with a comment in front of it and behind it is split
     /// </summary>
@@ -306,9 +322,34 @@ public class AttributeListStructuralTransformTests : FormatterTestsBase
     [DataRow("[A] [B]\n           ", DisplayName = "BehindTheLastList")]
     [DataRow("[A] [B]\n           [C] ", DisplayName = "BehindARemovedList")]
     [DataRow("[A]\n           [B]\n           ", DisplayName = "BehindEveryList")]
+    [DataRow("[A,\n            C] [B] ", DisplayName = "BehindACommaOfTheFirstList")]
+    [DataRow("[A\n            , C] [B] ", DisplayName = "InFrontOfACommaOfTheFirstList")]
+    [DataRow("[A\n           ] [B] ", DisplayName = "InFrontOfTheClosingBracketOfTheFirstList")]
+    [DataRow("[A] [B\n           ] ", DisplayName = "InFrontOfTheClosingBracketOfARemovedList")]
+    [DataRow("[A] [\n            B] ", DisplayName = "BehindTheOpeningBracketOfARemovedList")]
     public void LineBreakInTheStretchIsKeptOnce(string lists)
     {
         AssertLineBreaksBehindMergedList($"class C\n{{\n    void P({lists}int x, int y)\n    {{\n    }}\n}}\n", exactlyOne: true);
+    }
+
+    /// <summary>
+    /// Verifies that a line break directly behind the <c>[</c> of the first list of the target stays there when the lists are
+    /// merged
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-029")]
+    public void LineBreakDirectlyBehindTheOpeningBracketStaysThere()
+    {
+        ForEachLineEnding("class C\n{\n    void W([\n            A] [B] int x, int y)\n    {\n    }\n}\n",
+                          (output, _, description) =>
+                          {
+                              var list = output.DescendantNodes().OfType<ParameterSyntax>().First().AttributeLists.Single();
+
+                              Assert.AreEqual(1, CountLineBreaks(GetGap(output, list.OpenBracketToken, list.Attributes[0].GetFirstToken())), description);
+                              Assert.AreEqual(2, list.Attributes.Count, description);
+                              AssertNoElasticTrivia(output, description);
+                              AssertSameTree(output, description);
+                          });
     }
 
     /// <summary>
@@ -372,6 +413,37 @@ public class AttributeListStructuralTransformTests : FormatterTestsBase
 
                               Assert.HasCount(1, parameter.AttributeLists, description);
                               AssertNoLineBreak(GetGap(output, parameter.AttributeLists[0].CloseBracketToken, parameter.Type.GetFirstToken()), description);
+                          });
+    }
+
+    /// <summary>
+    /// Verifies that the structural-transform phase merges the <c>param:</c> lists and the <c>typevar:</c> lists of an owner
+    /// other than a parameter or type parameter, each into the first of them, does not split a <c>param:</c> or
+    /// <c>typevar:</c> list, and splits the other lists of the owner
+    /// </summary>
+    /// <param name="input">The input with LF line endings, whose first declaration with attribute lists is the owner</param>
+    /// <param name="expected">The expected lists of the owner, separated by <c>|</c></param>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-029")]
+    [DataRow("class C\n{\n    [param: A] [param: B] [typevar: C, D] [E, F] void M()\n    {\n    }\n}\n", "[param: A,B]|[typevar: C, D]|[E]|[F]", DisplayName = "MethodExample")]
+    [DataRow("[param: A] [param: B] delegate void D();\n", "[param: A,B]", DisplayName = "Delegate")]
+    [DataRow("[typevar: A] [typevar: B] class K\n{\n}\n", "[typevar: A,B]", DisplayName = "Class")]
+    [DataRow("class C\n{\n    [param: A] [param: B] int P { get; set; }\n}\n", "[param: A,B]", DisplayName = "Property")]
+    [DataRow("enum E\n{\n    [param: A] [param: B] X\n}\n", "[param: A,B]", DisplayName = "EnumMember")]
+    [DataRow("class C\n{\n    void N()\n    {\n        [param: A] [param: B] void L()\n        {\n        }\n    }\n}\n", "[param: A,B]", DisplayName = "LocalFunction")]
+    [DataRow("class C\n{\n    [param: A, B] void O()\n    {\n    }\n}\n", "[param: A, B]", DisplayName = "ParamListWithSeveralAttributes")]
+    [DataRow("class C\n{\n    [typevar: A, B] [C] void O()\n    {\n    }\n}\n", "[typevar: A, B]|[C]", DisplayName = "TypevarListWithSeveralAttributes")]
+    public void ParamAndTypevarListsOfAnotherOwnerAreMergedAndNotSplit(string input, string expected)
+    {
+        ForEachLineEnding(input,
+                          (output, _, description) =>
+                          {
+                              var owner = output.DescendantNodes().First(node => node is MemberDeclarationSyntax or LocalFunctionStatementSyntax && GetAttributeLists(node).Count > 0);
+                              var lists = string.Join("|", GetAttributeLists(owner).Select(list => list.ToString()));
+
+                              Assert.AreEqual(expected, lists, description);
+                              AssertNoElasticTrivia(output, description);
+                              AssertSameTree(output, description);
                           });
     }
 
@@ -475,6 +547,21 @@ public class AttributeListStructuralTransformTests : FormatterTestsBase
                               AssertNoElasticTrivia(output, description);
                               AssertSameTree(output, description);
                           });
+    }
+
+    /// <summary>
+    /// Returns the attribute lists of a member declaration or local function
+    /// </summary>
+    /// <param name="node">The member declaration or local function</param>
+    /// <returns>Its attribute lists</returns>
+    private static SyntaxList<AttributeListSyntax> GetAttributeLists(SyntaxNode node)
+    {
+        return node switch
+               {
+                   MemberDeclarationSyntax member => member.AttributeLists,
+                   LocalFunctionStatementSyntax localFunction => localFunction.AttributeLists,
+                   _ => default
+               };
     }
 
     /// <summary>

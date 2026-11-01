@@ -62,7 +62,8 @@ public class AttributeListStructuralFinalOutputTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the second example of FMT-STRUCT-028 and the first visible output change of the change: a line break behind
-    /// the comma settles in one pass, and a line break in front of the comma or a blank line behind it is dropped
+    /// the comma or behind the original <c>[</c> settles in one pass, and a line break in front of the comma or a blank line
+    /// behind it is dropped
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-028")]
@@ -80,6 +81,9 @@ public class AttributeListStructuralFinalOutputTests : FormatterTestsBase
                                  [A,
 
                                   B] void O() { }
+
+                                 [
+                                     A, B] void P() { }
                              }
                              """;
         const string expected = """
@@ -100,6 +104,12 @@ public class AttributeListStructuralFinalOutputTests : FormatterTestsBase
                                     [A]
                                     [B]
                                     void O()
+                                    {
+                                    }
+
+                                    [A]
+                                    [B]
+                                    void P()
                                     {
                                     }
                                 }
@@ -485,8 +495,8 @@ public class AttributeListStructuralFinalOutputTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the second example of FMT-STRUCT-029: a line break in the stretch the merge rewrites still wraps the parameter
-    /// list, and without one the list stays on one line
+    /// Verifies the second example of FMT-STRUCT-029: a line break in the stretch the merge rewrites, also one between two
+    /// attributes of the first list, still wraps the parameter list, and without one the list stays on one line
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-029")]
@@ -502,6 +512,9 @@ public class AttributeListStructuralFinalOutputTests : FormatterTestsBase
                                         int x, int y) { }
 
                                  void R([A] [B] int x, int y) { }
+
+                                 void S([A,
+                                         C] [B] int x, int y) { }
                              }
                              """;
         const string expected = """
@@ -518,6 +531,11 @@ public class AttributeListStructuralFinalOutputTests : FormatterTestsBase
                                     }
 
                                     void R([A, B] int x, int y)
+                                    {
+                                    }
+
+                                    void S([A, C, B] int x,
+                                           int y)
                                     {
                                     }
                                 }
@@ -648,13 +666,7 @@ public class AttributeListStructuralFinalOutputTests : FormatterTestsBase
                                 }
                                 """;
 
-        foreach (var endOfLine in _lineEndings)
-        {
-            var firstPass = FormatOnce(input, endOfLine);
-
-            Assert.AreEqual(NormalizeLineEndings(expected, endOfLine), firstPass, $"Under {DescribeLineEnding(endOfLine)} line endings.");
-            Assert.AreEqual(firstPass, FormatOnce(firstPass, endOfLine), $"Second pass under {DescribeLineEnding(endOfLine)} line endings.");
-        }
+        AssertFirstPassAndSecondPass(input, expected);
     }
 
     /// <summary>
@@ -766,7 +778,8 @@ public class AttributeListStructuralFinalOutputTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a directive that leads the first list of a parameter blocks the merge
+    /// Verifies that a directive that leads the first list of a parameter blocks the merge, so the directive keeps its own line
+    /// in front of both lists
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-029")]
@@ -788,13 +801,16 @@ public class AttributeListStructuralFinalOutputTests : FormatterTestsBase
         foreach (var endOfLine in _lineEndings)
         {
             var output = FormatOnce(input, endOfLine);
+            var description = $"Under {DescribeLineEnding(endOfLine)} line endings:{Environment.NewLine}{output}";
 
-            Assert.Contains("[A] [B] int a", output, $"Under {DescribeLineEnding(endOfLine)} line endings:{Environment.NewLine}{output}");
+            AssertInOrder(output, description, $"void M(int x,{endOfLine}", $"#pragma warning disable CS0618{endOfLine}", "[A] [B] int a)");
         }
     }
 
     /// <summary>
-    /// Verifies that a documentation comment between the lists of a parameter blocks the merge
+    /// Verifies that a documentation comment between the lists of a parameter blocks the merge, so both lists and the comment
+    /// between them survive. The comment's own layout is not asserted: the documentation-comment phase normalizes its XML and
+    /// the blank-line phase separates it from the first list
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-029")]
@@ -816,8 +832,10 @@ public class AttributeListStructuralFinalOutputTests : FormatterTestsBase
         foreach (var endOfLine in _lineEndings)
         {
             var output = FormatOnce(input, endOfLine);
+            var description = $"Under {DescribeLineEnding(endOfLine)} line endings:{Environment.NewLine}{output}";
 
-            Assert.DoesNotContain("[A, B]", output, $"Under {DescribeLineEnding(endOfLine)} line endings:{Environment.NewLine}{output}");
+            Assert.DoesNotContain("[A, B]", output, description);
+            AssertInOrder(output, description, "void M([A]", "/// <summary>", "/// x", "/// </summary>", "[B] int p)");
         }
     }
 
@@ -956,6 +974,393 @@ public class AttributeListStructuralFinalOutputTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a line break behind the original <c>[</c> of an accessor's list, in an accessor list laid out over
+    /// several lines, settles in one pass with nothing between the first created <c>[</c> and its attribute
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-032")]
+    public void AccessorSplitDropsTheLineBreakBehindTheOpeningBracket()
+    {
+        const string input = """
+                             class C
+                             {
+                                 int G
+                                 {
+                                     [
+                                      C, D] get;
+                                     set;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int G
+                                    {
+                                        [C]
+                                        [D]
+                                        get;
+                                        set;
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the attribute lists of a lambda with a line break behind the original <c>[</c> settle in one pass at the
+    /// output the formatter reached before the split moved; no requirement specifies the attribute lists of a lambda, so the
+    /// phase-level check is not applied, as for <see cref="LambdaAttributeListKeepsItsOutput"/>
+    /// </summary>
+    [TestMethod]
+    public void LambdaAttributeListWithALineBreakBehindTheOpeningBracketSettlesInOnePass()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var f = [
+                                         A, B] (int x) => x;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var f = [A]
+                                        [B]
+                                        (int x) => x;
+                                    }
+                                }
+                                """;
+
+        AssertFirstPassAndSecondPass(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a line break between two attributes of the first merged list of a parameter, in front of or behind the
+    /// comma, still wraps the parameter list of a method, a record, and a local function
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-029")]
+    public void LineBreakInsideTheFirstMergedListStillWrapsTheParameterList()
+    {
+        const string input = """
+                             record R([A,
+                                       C] [B] int X, int Y);
+
+                             class K
+                             {
+                                 void T([A
+                                         , C] [B] int x, int y) { }
+
+                                 void M()
+                                 {
+                                     void L([A,
+                                             C] [B] int x, int y) { }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                record R([A, C, B] int X,
+                                         int Y);
+
+                                class K
+                                {
+                                    void T([A, C, B] int x,
+                                           int y)
+                                    {
+                                    }
+
+                                    void M()
+                                    {
+                                        void L([A, C, B] int x,
+                                               int y)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a line break in front of the <c>]</c> of the first merged list of a parameter still wraps the parameter
+    /// list, in the first pass and in the second. Whitespace written in front of that <c>]</c> needs a second pass to leave the
+    /// merged list, as it did before the merge moved, so only the wrap is asserted
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-029")]
+    public void LineBreakInFrontOfTheClosingBracketOfTheFirstMergedListStillWrapsTheParameterList()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void U([A
+                                        ] [B] int x, int y) { }
+                             }
+                             """;
+
+        foreach (var endOfLine in _lineEndings)
+        {
+            var firstPass = FormatOnce(input, endOfLine);
+            var secondPass = FormatOnce(firstPass, endOfLine);
+
+            foreach (var (pass, output) in new[] { ("First", firstPass), ("Second", secondPass) })
+            {
+                var description = $"{pass} pass under {DescribeLineEnding(endOfLine)} line endings:{Environment.NewLine}{output}";
+
+                Assert.DoesNotContain("[B]", output, description);
+                AssertInOrder(output, description, "void U([A, B", $"] int x,{endOfLine}           int y){endOfLine}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Verifies the example of FMT-BREAK-032 for <c>param:</c> lists: in an accessor list laid out over several lines, the
+    /// <c>param:</c> lists of a setter are merged and not split
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-032")]
+    public void ParamListsOfASetterInAnAccessorListOverSeveralLinesAreMerged()
+    {
+        const string input = """
+                             class C
+                             {
+                                 int _v;
+
+                                 int T
+                                 {
+                                     get => _v;
+                                     [param: A] [param: B] set => _v = value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int _v;
+
+                                    int T
+                                    {
+                                        get => _v;
+                                        [param: A, B] set => _v = value;
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that in an accessor list laid out over several lines the <c>param:</c> lists of an <c>init</c> accessor, an
+    /// indexer setter, and an event's <c>remove</c> accessor, and the <c>typevar:</c> lists of a setter, are merged and not
+    /// split, and that a <c>param:</c> list with several attributes is not split. Where the merged list stands is the output
+    /// the formatter gave before the merge moved
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-032")]
+    public void ParamAndTypevarListsOfEveryAccessorInAnAccessorListOverSeveralLinesAreMerged()
+    {
+        const string input = """
+                             class C
+                             {
+                                 int _v;
+
+                                 int I
+                                 {
+                                     get => _v;
+                                     [param: A] [param: B] init => _v = value;
+                                 }
+
+                                 int this[int i]
+                                 {
+                                     get => _v;
+                                     [param: A] [param: B] set => _v = value;
+                                 }
+
+                                 event System.Action E
+                                 {
+                                     add { }
+                                     [param: A] [param: B] remove { }
+                                 }
+
+                                 int Q
+                                 {
+                                     get => 1;
+                                     [typevar: A] [typevar: B] set { }
+                                 }
+
+                                 int S
+                                 {
+                                     [param: A, B] get => 1;
+                                     set { }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int _v;
+
+                                    int I
+                                    {
+                                        get => _v;
+                                        [param: A, B] init => _v = value;
+                                    }
+
+                                    int this[int i]
+                                    {
+                                        get => _v;
+                                        [param: A, B] set => _v = value;
+                                    }
+
+                                    event System.Action E
+                                    {
+                                        add
+                                        {
+                                        }
+                                        [param: A, B] remove
+                                        {
+                                        }
+                                    }
+
+                                    int Q
+                                    {
+                                        get => 1;
+                                        [typevar: A, B] set
+                                        {
+                                        }
+                                    }
+
+                                    int S
+                                    {
+                                        [param: A, B] get => 1;
+                                        set
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the <c>param:</c> lists of a setter in an accessor list on the declaration's line are merged
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-032")]
+    public void ParamListsOfASetterInAnAccessorListOnTheDeclarationsLineAreMerged()
+    {
+        const string input = """
+                             class C
+                             {
+                                 int R { get; [param: A] [param: B] set; }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int R { get; [param: A, B] set; }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that <c>param:</c> and <c>typevar:</c> lists on a delegate, a type, a method, a property, and a local function
+    /// keep the output the formatter gave them before the merge moved: their lists of one target are merged, a
+    /// <c>param:</c> list with several attributes is not split, and the other lists of the owner are split. Where these lists
+    /// stand is not specified (FMT-BREAK-027), so the test is a characterization of that output; the shape it shows is
+    /// asserted on the structural-transform phase by <c>AttributeListStructuralTransformTests</c>
+    /// </summary>
+    [TestMethod]
+    public void ParamAndTypevarListsOnOtherOwnersKeepTheirOutput()
+    {
+        const string input = """
+                             [param: A] [param: B] delegate void D();
+
+                             [typevar: A] [typevar: B] class K
+                             {
+                                 [param: A] [param: B] [typevar: C, D] [E, F] void M() { }
+
+                                 [param: A] [param: B] int P { get; set; }
+
+                                 [param: A, B] void O() { }
+
+                                 void N()
+                                 {
+                                     [param: A] [param: B] void L() { }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                [param: A, B] delegate void D();
+
+                                [typevar: A, B] class K
+                                {
+                                    [param: A, B] [typevar: C, D] [E]
+                                    [F]
+                                    void M()
+                                    {
+                                    }
+
+                                    [param: A, B] int P { get; set; }
+
+                                    [param: A, B] void O()
+                                    {
+                                    }
+
+                                    void N()
+                                    {
+                                        [param: A, B] void L()
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the <c>param:</c> lists of a lambda keep the output the formatter gave them before the merge moved; no
+    /// requirement specifies the attribute lists of a lambda, so the phase-level check is not applied, as for
+    /// <see cref="LambdaAttributeListKeepsItsOutput"/>
+    /// </summary>
+    [TestMethod]
+    public void ParamListsOfALambdaKeepTheirOutput()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var f = [param: A] [param: B] (int x) => x;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var f = [param: A, B] (int x) => x;
+                                    }
+                                }
+                                """;
+
+        AssertFirstPassAndSecondPass(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/>, which a code fix calls on the member it
     /// rewrites, splits the member's attribute list and merges its parameter's lists
     /// </summary>
@@ -1002,6 +1407,44 @@ public class AttributeListStructuralFinalOutputTests : FormatterTestsBase
     #endregion // Tests
 
     #region Methods
+
+    /// <summary>
+    /// Asserts that the output holds each of the parts once, in the given order
+    /// </summary>
+    /// <param name="output">The formatted text</param>
+    /// <param name="description">The description of the case</param>
+    /// <param name="parts">The parts in their expected order</param>
+    private static void AssertInOrder(string output, string description, params string[] parts)
+    {
+        var position = 0;
+
+        foreach (var part in parts)
+        {
+            var index = output.IndexOf(part, position, StringComparison.Ordinal);
+
+            Assert.IsGreaterThanOrEqualTo(0, index, $"Missing '{part}' behind position {position}. {description}");
+            Assert.AreEqual(index, output.LastIndexOf(part, StringComparison.Ordinal), $"'{part}' occurs more than once. {description}");
+
+            position = index + part.Length;
+        }
+    }
+
+    /// <summary>
+    /// Asserts the output of one pass under LF and CRLF line endings, and that a second pass leaves it unchanged, without the
+    /// phase-level check of <see cref="FormatterTestsBase.AssertRuleResult(string, string, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions)"/>
+    /// </summary>
+    /// <param name="input">The input with LF line endings</param>
+    /// <param name="expected">The expected output with LF line endings</param>
+    private void AssertFirstPassAndSecondPass(string input, string expected)
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var firstPass = FormatOnce(input, endOfLine);
+
+            Assert.AreEqual(NormalizeLineEndings(expected, endOfLine), firstPass, $"Under {DescribeLineEnding(endOfLine)} line endings.");
+            Assert.AreEqual(firstPass, FormatOnce(firstPass, endOfLine), $"Second pass under {DescribeLineEnding(endOfLine)} line endings.");
+        }
+    }
 
     /// <summary>
     /// Formats the input once with the given line endings
