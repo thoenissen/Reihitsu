@@ -5,7 +5,7 @@
 | ID prefix | FMT-SWITCH |
 | Status | Active |
 | Code owners | `SwitchCaseBracePhase`, `SwitchCaseBraceRewriter` |
-| Uses | FMT-PIPE-002, FMT-PIPE-003, SHARED-BLANK-004, FMT-PIPE-013, FMT-BLANK-011, FMT-PIPE-004, FMT-PIPE-001, FMT-BREAK-012, FMT-BREAK-015, FMT-BREAK-021, FMT-SPACE-001, FMT-BLANK-010, FMT-BLANK-014 |
+| Uses | FMT-PIPE-002, FMT-PIPE-003, SHARED-BLANK-004, FMT-PIPE-013, FMT-BLANK-011, FMT-PIPE-004, FMT-PIPE-001, FMT-BREAK-012, FMT-BREAK-015, FMT-BREAK-021, FMT-SPACE-001, FMT-BLANK-010, FMT-BLANK-014, FMT-BLANK-018 |
 
 This spec covers when the formatter wraps the statements of the sections of a `switch` statement in a `{ … }` block: which sections make a switch braced, what goes inside the block, and every guard that leaves a section or a whole switch as it is.
 
