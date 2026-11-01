@@ -4,7 +4,7 @@
 |---|---|
 | ID prefix | FMT-BLANK |
 | Status | Active |
-| Code owners | `BlankLinePhase`, `BlankLineTokenCleanupRewriter`, `BlankLineTriviaBoundaryRewriter`, `BlankLineRegionDirectiveRewriter`, `BlankLineStatementSpacingRewriter`, `BlankLineBreakSpacingRewriter`, `BlankLineCollapser`, `BlankLineEditor` |
+| Code owners | `BlankLinePhase`, `BlankLineTokenCleanupRewriter`, `BlankLineTriviaBoundaryRewriter`, `BlankLineRegionDirectiveRewriter`, `BlankLineStatementSpacingRewriter`, `BlankLineBreakSpacingRewriter`, `BlankLineCollapser`, `BlankLineEditor`, `BraceBlankLinePolicy` |
 | Uses | FMT-PIPE-002, FMT-BREAK-022, SHARED-USING-008, SHARED-BLANK-001, SHARED-BLANK-002, SHARED-BLANK-003, SHARED-BLANK-004, SHARED-BLANK-005, SHARED-BLANK-006, SHARED-BLANK-007, FMT-DOC-001, FMT-DOC-003 |
 
 This spec covers `BlankLinePhase`: where the formatter inserts a blank line (before statements and comments, after closing braces and `break`, around region directives), where it removes one (next to braces, closing brackets, chained keywords, and documentation comments, and between a comment and the brace or bracket behind it), and how it collapses runs of blank lines. What counts as a blank line, the closing-brace and terminal-`break` rules, and the region-directive rules are shared with the analyzer and specified in SHARED-BLANK.
@@ -492,9 +492,9 @@ class C
 
 ### FMT-BLANK-009 — Around a directive, only the blank line next to the token is removed
 
-When a non-region directive or disabled text stands in the gap before a brace or a chained keyword covered by FMT-BLANK-007 or FMT-BLANK-008 — not the opening brace of a block statement that FMT-BLANK-017 names — or before a closing bracket or parenthesis covered by FMT-BLANK-019, the formatter MUST keep the blank line before the directive, collapsed to one, and MUST remove the blank lines between the last directive and the token when nothing but whitespace stands between the two. When a comment stands between the last directive and the token, the blank lines between the directive and the comment are kept, and FMT-BLANK-020 decides the ones between the comment and the token.
+When a non-region directive or disabled text stands in the gap before a brace or a chained keyword covered by FMT-BLANK-007 or FMT-BLANK-008 — not the opening brace of a block statement that FMT-BLANK-017 names — or before a closing bracket or parenthesis covered by FMT-BLANK-019, the formatter MUST keep the blank line before the directive, collapsed to one, and MUST remove the blank lines between the last directive and the token when nothing but whitespace stands between the two. When a comment stands between the last directive and the token, the blank lines between the directive and the comment are kept, and FMT-BLANK-020 decides the ones between the comment and the token. The formatter MUST NOT insert a blank line in front of the first non-region directive or disabled text of such a gap when the author wrote none, also when a region directive ends the gap and FMT-BLANK-013 inserts the blank line between the two. In front of a directive that stands directly below a region directive, FMT-BLANK-013 decides (SHARED-BLANK-006).
 
-Why: The blank line above the directive is the author's separator in front of the conditional code, not a blank line next to the brace, and the analyzer rules do not report it. Only the blank line that actually touches the token is the one RH5024–RH5027 forbid.
+Why: The blank line above the directive is the author's separator in front of the conditional code, not a blank line next to the brace, and the analyzer rules do not report it. Only the blank line that actually touches the token is the one RH5024–RH5027 forbid. No rule asks for a blank line in front of the directive; one inserted there would separate the directive from the code the author grouped with it, as FMT-BLANK-016 states for the blank lines the statement rules insert. A region directive at the end of the gap is framed by its own blank lines and does not change that.
 
 Example:
 
@@ -624,6 +624,59 @@ class C
 
 is left unchanged.
 
+When a region directive ends the gap, no blank line is inserted in front of the first directive; the blank line between the two is the region's, kept in the type body and inserted in the method body:
+
+```csharp
+class C
+{
+    #region Fields
+
+#pragma warning disable CS0169
+    int x;
+#pragma warning restore CS0169
+
+    #endregion // Fields
+}
+
+class D
+{
+    void M(int a)
+    {
+        #region R
+
+        a++;
+#pragma warning disable CS0168
+        #endregion // R
+    }
+}
+```
+
+```csharp
+class C
+{
+    #region Fields
+
+#pragma warning disable CS0169
+    int x;
+#pragma warning restore CS0169
+
+    #endregion // Fields
+}
+
+class D
+{
+    void M(int a)
+    {
+        #region R
+
+        a++;
+#pragma warning disable CS0168
+
+        #endregion // R
+    }
+}
+```
+
 ### FMT-BLANK-010 — No blank line after a documentation comment
 
 The formatter MUST remove the blank lines between a documentation comment and the next line of its token's leading trivia, whether that line holds the documented code or another comment.
@@ -661,7 +714,7 @@ class C
 
 ### FMT-BLANK-011 — A comment on its own line is preceded by exactly one blank line
 
-The formatter MUST ensure exactly one blank line before the first comment that starts its own line (SHARED-BLANK-002) in a token's leading trivia, counted as SHARED-BLANK-001 defines it. It MUST NOT insert one when the comment is the first content of a block, a type body, or a switch section, when a preprocessor directive directly precedes the comment, or when the comment shares its line with a token FMT-BLANK-018 names. This applies to ordinary and documentation comments alike, including a comment before a closing brace. This requirement does not yet decide a comment that leads a using directive of the same group as the directive above it; the blank lines inside a using block are SHARED-USING-008.
+The formatter MUST ensure exactly one blank line before the first comment that starts its own line (SHARED-BLANK-002) in a token's leading trivia, counted as SHARED-BLANK-001 defines it. It MUST NOT insert one when the comment is the first content of a block, a type body, or a switch section, when a preprocessor directive directly precedes the comment, or when the comment is glued to a token as FMT-BLANK-018 states it — to a token FMT-BLANK-018 names, or to the opening brace of a block statement that follows another statement, above which FMT-BLANK-017 decides the blank lines. This applies to ordinary and documentation comments alike, including a comment before a closing brace. This requirement does not yet decide a comment that leads a using directive of the same group as the directive above it; the blank lines inside a using block are SHARED-USING-008.
 
 Why: A comment introduces the code below it; the blank line groups it with that code instead of with the code above. At the start of a block the opening brace or the case label already provides the boundary, and after a directive the comment belongs to the directive's group. The formatter mirrors RH5020 and RH8303.
 
@@ -1266,7 +1319,7 @@ class C
         if (a)
         {
         }
-#if DEBUG
+#if !NEVER
         {
             B();
         }
@@ -1289,7 +1342,7 @@ class C
         if (a)
         {
         }
-#if DEBUG
+#if !NEVER
 
         {
             B();
@@ -1354,15 +1407,19 @@ class C
 
 ### FMT-BLANK-018 — A comment glued to a brace gets no blank line of its own
 
-Above a comment that starts its line and shares that line with the token behind it, the formatter MUST NOT insert the blank line of FMT-BLANK-011 and MUST remove the blank lines the author wrote, when that token is:
+A comment is glued to a token when it is an ordinary comment that starts its line and shares that line with the token behind it, with nothing but whitespace and ordinary comments between the two. Above a comment glued to a token, the formatter MUST NOT insert the blank line of FMT-BLANK-011 and MUST remove the blank lines the author wrote, when that token is:
 
-- an opening or closing brace, other than a brace of an array initializer, of an extension block, or of an interpolation, the opening brace of a property pattern, and the opening brace of a complex element initializer (a braced element of a collection initializer, such as `{ 3, 4 }`);
+- an opening or closing brace, other than
+  - a brace of an array initializer, of an extension block, or of an interpolation,
+  - the opening brace of a property pattern,
+  - the opening brace of a complex element initializer (a braced element of a collection initializer, such as `{ 3, 4 }`) whose closing brace stands on the same line,
+  - the closing brace of a collection initializer that is assigned to a member inside an object initializer (`L = { 1 }`);
 - the closing bracket of a collection expression or a list pattern;
 - the closing parenthesis of a parenthesized pattern.
 
-Above a comment glued to any other token, FMT-BLANK-011 applies. When a preprocessor directive or disabled text stands in the gap before the comment, this requirement removes no blank line of that gap: the line below a region directive starts with the comment, not with a closing brace, so SHARED-BLANK-006 requires it to be blank and FMT-BLANK-013 inserts it, and every other blank line of such a gap is kept as written, collapsed to one (FMT-BLANK-014). A comment glued to the opening brace of a block statement that follows another statement is not affected: FMT-BLANK-017 decides the blank lines above it, so it gets the blank line of SHARED-BLANK-003 after a statement that ends with `}` and keeps the author's blank line after any other statement.
+Above a comment glued to any other token, FMT-BLANK-011 applies, and so it does above an ordinary comment that shares its line with a documentation comment in front of the token: that comment is not glued to the token. When a preprocessor directive or disabled text stands in the gap before the comment, this requirement removes no blank line of that gap: the line below a region directive starts with the comment, not with a closing brace, so SHARED-BLANK-006 requires it to be blank and FMT-BLANK-013 inserts it, and every other blank line of such a gap is kept as written, collapsed to one (FMT-BLANK-014). A comment glued to the opening brace of a block statement that follows another statement is not affected: FMT-BLANK-017 decides the blank lines above it, so it gets the blank line of SHARED-BLANK-003 after a statement that ends with `}` and keeps the author's blank line after any other statement.
 
-Why: A comment that shares its line with a brace or a closing token is not a comment that introduces the code below it; it is glued to the token that opens or closes a construct, and a blank line above it would split that construct's layout. The author is expected to move such a comment by hand — RH5020 keeps reporting it. The tokens named are the ones whose glued comment has had no blank line above it in the formatter's output; the braces of array initializers, extension blocks, and interpolations and the opening braces of property patterns and complex element initializers have had one. A directive in the gap closes conditional code or a region in front of the glued line; the blank line below a region directive is the region's (SHARED-BLANK-006), and the others are the author's, as they have been in the formatter's output.
+Why: A comment that shares its line with a brace or a closing token is not a comment that introduces the code below it; it is glued to the token that opens or closes a construct, and a blank line above it would split that construct's layout. The author is expected to move such a comment by hand — RH5020 keeps reporting it. The tokens named are the ones whose glued comment has had no blank line above it in the formatter's output; the braces of array initializers, extension blocks, and interpolations, the opening braces of property patterns and of complex element initializers on one line, the closing braces of collection initializers assigned to a member, and a comment in front of a documentation comment on the token's line have had one. A directive in the gap closes conditional code or a region in front of the glued line; the blank line below a region directive is the region's (SHARED-BLANK-006), and the others are the author's, as they have been in the formatter's output.
 
 Example — no blank line is inserted above a comment glued to the brace of an initializer, a block statement, or a closing brace, and the author's blank line above a comment glued to an initializer's brace is removed:
 
@@ -1458,7 +1515,7 @@ class C
 }
 ```
 
-A comment glued to the opening brace of a complex element initializer is separated too:
+A comment glued to the opening brace of a complex element initializer that stays on one line is separated too; at one whose closing brace stands on a later line, it is not:
 
 ```csharp
 class C
@@ -1466,7 +1523,11 @@ class C
     Dictionary<int, int> D = new()
                              {
                                  { 1, 2 },
-                                 /* c */ { 3, 4 }
+                                 /* c1 */ {
+                                     3,
+                                     4
+                                 },
+                                 /* c2 */ { 5, 6 }
                              };
 }
 ```
@@ -1477,9 +1538,77 @@ class C
     Dictionary<int, int> D = new()
                              {
                                  { 1, 2 },
+                                 /* c1 */ {
+                                              3,
+                                              4
+                                          },
 
-                                 /* c */ { 3, 4 }
+                                 /* c2 */ { 5, 6 }
                              };
+}
+```
+
+A comment glued to the closing brace of a collection initializer assigned to a member is separated; at the closing brace of a collection initializer that is not assigned, it is not:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var p = new P
+                {
+                    L = {
+                            1
+                        /* l */ }
+                };
+        var q = new List<int>
+                {
+                    1
+                /* m */ };
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var p = new P
+                {
+                    L = {
+                            1
+
+                        /* l */ }
+                };
+        var q = new List<int>
+                {
+                    1
+                /* m */ };
+    }
+}
+```
+
+A comment in front of a documentation comment on the brace's line is not glued to the brace and is separated; without the documentation comment, it is glued:
+
+```csharp
+public class TestClass
+/* x */ /** Doc */ {
+}
+
+public class TestClass2
+/* y */ {
+}
+```
+
+```csharp
+public class TestClass
+
+/* x */ /** Doc */ {
+}
+
+public class TestClass2
+/* y */ {
 }
 ```
 
