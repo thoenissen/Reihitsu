@@ -12,7 +12,8 @@ namespace Reihitsu.Formatter.Pipeline.StructuralTransforms;
 /// <summary>
 /// Structural transforms that convert expression-bodied members to block body, single-statement
 /// property and indexer accessors to expression body, and get-only properties and indexers to
-/// expression-bodied members.
+/// expression-bodied members, split field declarations, and shape attribute lists: one attribute per list on declarations
+/// and one list per target on parameters and type parameters.
 /// Runs every enabled structural transform rewriter sequentially
 /// </summary>
 internal sealed class StructuralTransformPhase : IFormattingPhase
@@ -68,6 +69,8 @@ internal sealed class StructuralTransformPhase : IFormattingPhase
                                new EnumTrailingCommaRemovalTransform(cancellationToken),
                                new InitializerTrailingCommaRemovalTransform(cancellationToken),
                                new FieldDeclarationSplitTransform(context, cancellationToken),
+                               new AttributeListSplitTransform(cancellationToken),
+                               new AttributeListMergeTransform(cancellationToken),
                            ]);
 
         return rewriters;

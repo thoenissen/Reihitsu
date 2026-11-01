@@ -5,6 +5,9 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
+
+using Reihitsu.Core.Enumerations;
 
 namespace Reihitsu.Core;
 
@@ -241,34 +244,68 @@ public static class AttributeTargetUtilities
     }
 
     /// <summary>
-    /// Merges a group of attribute lists on an owner into the group's first list. The first list keeps its
-    /// specifier and leading trivia, the attributes of every later member are appended to it, and the later members
-    /// are removed together with their trivia. Removing a member that ended its line, or joining the first list with
-    /// what follows it, would otherwise leave the old line indentation of the next token behind as a run of spaces
-    /// on the merged line, and a blank line in front of that token would leave the merged line ending in the space
-    /// before it. So the token's leading whitespace and line breaks are dropped whenever the token no longer starts a
-    /// line, and a single space is added after the token before it when that token would otherwise touch it. The
-    /// caller is responsible for choosing a group whose members share one target and that
-    /// <see cref="CanMergeAttributeListGroup"/> accepts
+    /// Merges a group of attribute lists on an owner into the group's first list, writing the separators the code fixes
+    /// write (<see cref="AttributeListMergeSeparators.Spaced"/>)
     /// </summary>
     /// <param name="owner">Owner node</param>
     /// <param name="group">The owner's attribute lists to merge, in document order</param>
     /// <returns>Updated owner node</returns>
     public static SyntaxNode MergeAttributeListGroup(SyntaxNode owner, IReadOnlyList<AttributeListSyntax> group)
     {
+        return MergeAttributeListGroup(owner, group, AttributeListMergeSeparators.Spaced);
+    }
+
+    /// <summary>
+    /// Merges a group of attribute lists on an owner into the group's first list. The first list keeps its
+    /// specifier and leading trivia, the attributes of every later member are appended to it, and the later members
+    /// are removed together with their trivia. Removing a member that ended its line, or joining the first list with
+    /// what follows it, would otherwise leave the old line indentation of the next token behind as a run of spaces
+    /// on the merged line, and a blank line in front of that token would leave the merged line ending in the space
+    /// before it. So the token's leading whitespace and line breaks are dropped whenever the token no longer starts a
+    /// line. With <see cref="AttributeListMergeSeparators.Spaced"/>, the merged list's attributes are separated by
+    /// commas with elastic trivia, one space follows the merged list, and a single space is added after the token before
+    /// a joined token when that token would otherwise touch it. With <see cref="AttributeListMergeSeparators.None"/>, the
+    /// merge writes no whitespace and no elastic trivia; when the author wrote a line break anywhere between the first
+    /// member's closing bracket and the token behind the last member, and the merge leaves none between the two, the
+    /// first such line break is carried over behind the merged list. The caller is responsible for choosing a group whose
+    /// members share one target and that <see cref="CanMergeAttributeListGroup"/> accepts
+    /// </summary>
+    /// <param name="owner">Owner node</param>
+    /// <param name="group">The owner's attribute lists to merge, in document order</param>
+    /// <param name="separators">The separators the merge writes</param>
+    /// <returns>Updated owner node</returns>
+    public static SyntaxNode MergeAttributeListGroup(SyntaxNode owner, IReadOnlyList<AttributeListSyntax> group, AttributeListMergeSeparators separators)
+    {
         var lists = GetAttributeLists(owner);
         var groupIndices = group.Select(list => IndexOf(lists, list)).ToArray();
         var annotation = new SyntaxAnnotation();
+        var tokenAfterGroupAnnotation = new SyntaxAnnotation();
+        var tokenAfterGroup = group[group.Count - 1].CloseBracketToken.GetNextToken();
+        var writtenLineBreak = separators == AttributeListMergeSeparators.None
+                                   ? FindLineBreak(owner, group[0].CloseBracketToken, tokenAfterGroup)
+                                   : default;
 
-        owner = owner.ReplaceTokens(GetGapTokens(group), (_, rewritten) => rewritten.WithAdditionalAnnotations(annotation));
+        owner = owner.ReplaceTokens(GetGapTokens(group),
+                                    (original, rewritten) =>
+                                    {
+                                        rewritten = rewritten.WithAdditionalAnnotations(annotation);
+
+                                        return original == tokenAfterGroup
+                                                   ? rewritten.WithAdditionalAnnotations(tokenAfterGroupAnnotation)
+                                                   : rewritten;
+                                    });
         lists = GetAttributeLists(owner);
 
         var firstList = lists[groupIndices[0]];
         var mergedAttributes = groupIndices.SelectMany(index => lists[index].Attributes)
                                            .Select(attribute => attribute.WithLeadingTrivia(SyntaxFactory.TriviaList())
-                                                                         .WithTrailingTrivia(SyntaxFactory.TriviaList()));
-        var mergedList = firstList.WithAttributes(SyntaxFactory.SeparatedList(mergedAttributes))
-                                  .WithTrailingTrivia(SyntaxFactory.Space);
+                                                                         .WithTrailingTrivia(SyntaxFactory.TriviaList()))
+                                           .ToArray();
+        var mergedList = separators == AttributeListMergeSeparators.Spaced
+                             ? firstList.WithAttributes(SyntaxFactory.SeparatedList(mergedAttributes))
+                                        .WithTrailingTrivia(SyntaxFactory.Space)
+                             : firstList.WithAttributes(SyntaxFactory.SeparatedList(mergedAttributes, mergedAttributes.Skip(1).Select(_ => SyntaxFactory.Token(SyntaxFactory.TriviaList(), SyntaxKind.CommaToken, SyntaxFactory.TriviaList()))))
+                                        .WithTrailingTrivia(SyntaxFactory.TriviaList());
         var updatedLists = lists.Where((_, index) => index == groupIndices[0] || groupIndices.Contains(index) == false)
                                 .Select(list => ReferenceEquals(list, firstList) ? mergedList : list);
 
@@ -280,9 +317,11 @@ public static class AttributeTargetUtilities
                                                 && token.LeadingTrivia.All(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)
                                                                                      || trivia.IsKind(SyntaxKind.EndOfLineTrivia)))
                                 .ToArray();
-        var unseparatedTokens = joinedTokens.Select(token => token.GetPreviousToken())
-                                            .Where(token => token.TrailingTrivia.Count == 0)
-                                            .ToArray();
+        var unseparatedTokens = separators == AttributeListMergeSeparators.Spaced
+                                    ? joinedTokens.Select(token => token.GetPreviousToken())
+                                                  .Where(token => token.TrailingTrivia.Count == 0)
+                                                  .ToArray()
+                                    : [];
 
         owner = owner.ReplaceTokens(joinedTokens.Concat(unseparatedTokens),
                                     (original, rewritten) =>
@@ -296,6 +335,13 @@ public static class AttributeTargetUtilities
                                                    ? rewritten.WithTrailingTrivia(SyntaxFactory.Space)
                                                    : rewritten;
                                     });
+
+        if (writtenLineBreak.IsKind(SyntaxKind.EndOfLineTrivia))
+        {
+            owner = KeepLineBreakBehindMergedList(owner, groupIndices[0], tokenAfterGroupAnnotation, writtenLineBreak);
+        }
+
+        owner = owner.ReplaceTokens(owner.GetAnnotatedTokens(tokenAfterGroupAnnotation), (_, rewritten) => rewritten.WithoutAnnotations(tokenAfterGroupAnnotation));
 
         return owner.ReplaceTokens(owner.GetAnnotatedTokens(annotation), (_, rewritten) => rewritten.WithoutAnnotations(annotation));
     }
@@ -311,6 +357,44 @@ public static class AttributeTargetUtilities
         token = attributeList.CloseBracketToken.GetNextToken(includeZeroWidth: false);
 
         return token.IsKind(SyntaxKind.None) == false;
+    }
+
+    /// <summary>
+    /// Finds the first line break the author wrote between two tokens of an owner
+    /// </summary>
+    /// <param name="owner">Owner node</param>
+    /// <param name="first">The token in front of the stretch</param>
+    /// <param name="last">The token behind the stretch</param>
+    /// <returns>The first end-of-line trivia of the stretch, or <see langword="default"/> when it holds none</returns>
+    private static SyntaxTrivia FindLineBreak(SyntaxNode owner, SyntaxToken first, SyntaxToken last)
+    {
+        return owner.DescendantTrivia(TextSpan.FromBounds(first.Span.End, last.SpanStart))
+                    .FirstOrDefault(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)
+                                              && trivia.Span.Start >= first.Span.End
+                                              && trivia.Span.End <= last.SpanStart);
+    }
+
+    /// <summary>
+    /// Carries a line break the author wrote in the stretch a merge rewrote over behind the merged list, unless the merge
+    /// already left one between the merged list and the token behind the last merged list
+    /// </summary>
+    /// <param name="owner">Owner node after the merge</param>
+    /// <param name="mergedListIndex">Index of the merged list among the owner's attribute lists</param>
+    /// <param name="tokenAfterGroupAnnotation">The annotation on the token behind the last merged list</param>
+    /// <param name="lineBreak">The line break the author wrote</param>
+    /// <returns>Updated owner node</returns>
+    private static SyntaxNode KeepLineBreakBehindMergedList(SyntaxNode owner, int mergedListIndex, SyntaxAnnotation tokenAfterGroupAnnotation, SyntaxTrivia lineBreak)
+    {
+        var closeBracket = GetAttributeLists(owner)[mergedListIndex].CloseBracketToken;
+        var tokenAfterGroup = owner.GetAnnotatedTokens(tokenAfterGroupAnnotation).FirstOrDefault();
+
+        if (tokenAfterGroup.IsKind(SyntaxKind.None)
+            || FindLineBreak(owner, closeBracket, tokenAfterGroup).IsKind(SyntaxKind.EndOfLineTrivia))
+        {
+            return owner;
+        }
+
+        return owner.ReplaceToken(closeBracket, closeBracket.WithTrailingTrivia(lineBreak));
     }
 
     /// <summary>

@@ -10,11 +10,13 @@ using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Data.Enumerations;
 using Reihitsu.Formatter.Extensions;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
+using Reihitsu.Formatter.Pipeline.StructuralTransforms.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 
 /// <summary>
-/// Applies line-break rules for target-based attribute lists
+/// Applies line-break rules for target-based attribute lists: places the lists of every owner, and shapes the lists of an
+/// accessor, whose shape follows the layout this phase gives its accessor list
 /// </summary>
 internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
 {
@@ -84,72 +86,6 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Resolves the list-shape mode for an attribute list, honoring the single-line accessor context
-    /// </summary>
-    /// <param name="attributeList">Attribute list</param>
-    /// <param name="keepAccessorListsSingleLine">Whether the owner's attribute lists must stay single-line</param>
-    /// <returns>Effective list-shape mode</returns>
-    private static TargetAttributeListShapeMode ResolveListShapeMode(AttributeListSyntax attributeList,
-                                                                     bool keepAccessorListsSingleLine)
-    {
-        return keepAccessorListsSingleLine
-                   ? TargetAttributeListShapeMode.MergedList
-                   : AttributeTargetFormattingShared.ResolveListShapeMode(attributeList);
-    }
-
-    /// <summary>
-    /// Finds the first group of attribute lists that use the merged-list policy, resolve to the same target, and can
-    /// be merged without touching a comment or directive. Lists of different targets are never merged, because the
-    /// merged list keeps the first list's specifier and would move the other attributes to that target
-    /// </summary>
-    /// <param name="lists">The owner's attribute lists</param>
-    /// <param name="keepAccessorListsSingleLine">Whether the owner's attribute lists must stay single-line</param>
-    /// <returns>The mergeable group, or an empty array when no group can be merged</returns>
-    private static AttributeListSyntax[] FindMergeableGroup(IReadOnlyList<AttributeListSyntax> lists,
-                                                            bool keepAccessorListsSingleLine)
-    {
-        var candidates = lists.Where(list => AttributeTargetUtilities.TryResolveTarget(list, out var _)
-                                             && ResolveListShapeMode(list, keepAccessorListsSingleLine) == TargetAttributeListShapeMode.MergedList)
-                              .ToArray();
-
-        foreach (var candidate in candidates)
-        {
-            var group = candidates.Where(list => AttributeTargetUtilities.HaveSameTarget(candidate, list))
-                                  .ToArray();
-
-            if (AttributeTargetUtilities.CanMergeAttributeListGroup(group))
-            {
-                return group;
-            }
-        }
-
-        return [];
-    }
-
-    /// <summary>
-    /// Merges attribute lists that use the merged-list policy and resolve to the same target
-    /// </summary>
-    /// <param name="owner">Owner node</param>
-    /// <param name="keepAccessorListsSingleLine">Whether the owner's attribute lists must stay single-line</param>
-    /// <returns>Updated owner node</returns>
-    private static SyntaxNode MergeAttributeLists(SyntaxNode owner,
-                                                  bool keepAccessorListsSingleLine)
-    {
-        while (true)
-        {
-            var lists = AttributeTargetUtilities.GetAttributeLists(owner);
-            var matchingLists = FindMergeableGroup(lists, keepAccessorListsSingleLine);
-
-            if (matchingLists.Length == 0)
-            {
-                return owner;
-            }
-
-            owner = AttributeTargetUtilities.MergeAttributeListGroup(owner, matchingLists);
-        }
-    }
-
-    /// <summary>
     /// Adopts a placement result, reporting a change only when the rewrite actually altered the owner.
     /// The line-break helpers return the original node unchanged when a rewrite is refused (for example,
     /// when a single-line join would move a token into a comment), so an unconditional "changed" would
@@ -171,7 +107,29 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Formats the attribute lists attached to an owner node
+    /// Shapes the attribute lists of an accessor by the layout of its accessor list: on the property's single line its lists
+    /// of one target are merged, with the separators the code fixes write, and on lines of their own its lists are split
+    /// into one list per attribute. The structural transforms already shaped the lists of every other owner
+    /// </summary>
+    /// <param name="owner">Owner node</param>
+    /// <param name="keepAccessorListsSingleLine">Whether the owner's attribute lists must stay single-line</param>
+    /// <returns>Updated owner node</returns>
+    private static SyntaxNode ShapeAccessorAttributeLists(SyntaxNode owner,
+                                                          bool keepAccessorListsSingleLine)
+    {
+        if (owner is not AccessorDeclarationSyntax)
+        {
+            return owner;
+        }
+
+        return keepAccessorListsSingleLine
+                   ? AttributeListShapeUtilities.MergeAttributeLists(owner, _ => true, AttributeListMergeSeparators.Spaced)
+                   : AttributeListShapeUtilities.SplitAttributeLists(owner);
+    }
+
+    /// <summary>
+    /// Formats the attribute lists attached to an owner node: shapes the lists of an accessor, and places the lists of every
+    /// owner
     /// </summary>
     /// <param name="owner">Owner node</param>
     /// <param name="keepAccessorListsSingleLine">Whether the owner's attribute lists must stay single-line</param>
@@ -184,8 +142,7 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
             return owner;
         }
 
-        owner = SplitAttributeLists(owner, keepAccessorListsSingleLine);
-        owner = MergeAttributeLists(owner, keepAccessorListsSingleLine);
+        owner = ShapeAccessorAttributeLists(owner, keepAccessorListsSingleLine);
         owner = ApplyPlacement(owner, keepAccessorListsSingleLine);
 
         return owner;
@@ -260,78 +217,6 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
         }
 
         return false;
-    }
-
-    /// <summary>
-    /// Splits attribute lists that use the split-list policy
-    /// </summary>
-    /// <param name="owner">Owner node</param>
-    /// <param name="keepAccessorListsSingleLine">Whether the owner's attribute lists must stay single-line</param>
-    /// <returns>Updated owner node</returns>
-    private SyntaxNode SplitAttributeLists(SyntaxNode owner,
-                                           bool keepAccessorListsSingleLine)
-    {
-        while (true)
-        {
-            var lists = AttributeTargetUtilities.GetAttributeLists(owner);
-            var listToSplit = lists.FirstOrDefault(list => AttributeTargetUtilities.TryResolveTarget(list, out var _)
-                                                           && ResolveListShapeMode(list, keepAccessorListsSingleLine) == TargetAttributeListShapeMode.SplitLists
-                                                           && list.Attributes.Count > 1
-                                                           && SyntaxNodeUtilities.InteriorContainsCommentOrDirective(list) == false);
-
-            if (listToSplit == null)
-            {
-                return owner;
-            }
-
-            owner = AttributeTargetUtilities.WithAttributeLists(owner, SyntaxFactory.List(BuildSplitAttributeLists(lists, listToSplit)));
-        }
-    }
-
-    /// <summary>
-    /// Rebuilds the owner's attribute lists with the target list split into single-attribute lists
-    /// </summary>
-    /// <param name="lists">The owner's current attribute lists</param>
-    /// <param name="listToSplit">The multi-attribute list to split</param>
-    /// <returns>The rebuilt attribute lists</returns>
-    private List<AttributeListSyntax> BuildSplitAttributeLists(IReadOnlyList<AttributeListSyntax> lists, AttributeListSyntax listToSplit)
-    {
-        var updatedLists = new List<AttributeListSyntax>(lists.Count - 1 + listToSplit.Attributes.Count);
-
-        foreach (var attributeList in lists)
-        {
-            if (ReferenceEquals(attributeList, listToSplit) == false)
-            {
-                updatedLists.Add(attributeList);
-
-                continue;
-            }
-
-            for (var index = 0; index < listToSplit.Attributes.Count; index++)
-            {
-                var attribute = listToSplit.Attributes[index];
-                var newList = SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(attribute))
-                                           .WithTarget(listToSplit.Target);
-
-                if (index == 0)
-                {
-                    newList = newList.WithLeadingTrivia(listToSplit.GetLeadingTrivia());
-                }
-                else
-                {
-                    newList = newList.WithLeadingTrivia(SyntaxFactory.EndOfLine(_context.EndOfLine));
-                }
-
-                if (index == listToSplit.Attributes.Count - 1)
-                {
-                    newList = newList.WithTrailingTrivia(listToSplit.GetTrailingTrivia());
-                }
-
-                updatedLists.Add(newList);
-            }
-        }
-
-        return updatedLists;
     }
 
     /// <summary>
