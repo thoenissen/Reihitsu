@@ -42,7 +42,14 @@ _None yet._
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Branch name | Use the session's designated branch `claude/hopeful-gauss-tkf765` instead of `claude/issue-1496-blank-line-sole-owner` | The session environment requires all pushes to go to this branch | Branch names are internal | claim commit |
+| 2 | Skeptic | Architecture finding: the line-break phase also decides blank lines between an own-line comment and a following brace/bracket (`TokenGapNormalizer.NormalizeLeadingGap`, skeptic M1) | Change the structure in this run: the blank-line phase owns these blank lines, stated in FMT-BLANK-007/008/019 (skeptic I3), with tests | It is inside the run's own structural change; a narrow fix would keep the second owner the issue removes | Today's outputs for these cases are kept by the spec; any case that does change is asked as an output question | pending |
+| 3 | Skeptic | FMT-BLANK-018 token set too wide (skeptic M2) | Narrow it to the tokens where today's output has no blank line (skeptic I1) | Keeps today's output, as the issue requires for glued comments | The amendment restores today's output | pending |
+| 4 | Skeptic | FMT-BLANK-018/019 conflict with SHARED-BLANK-006 after `#endregion` and with `#endif` (skeptic M3) | Exclude those lines and correct the change doc's Precedence section (skeptic I2) | An unchanged shared requirement decides it; otherwise RH5032 would report formatter output | SHARED-BLANK-006 already demands today's output | pending |
+| 5 | Spec author | RH5025 rule-page goal of the issue | Drop it; the page is unchanged | The page describes the declaration case; the exemption is a corner case that rule pages do not list (AGENTS.md) | The rule page keeps its text | 5aa08e3 |
+| 6 | Spec author | Precedence stated as one ranking requirement or via narrowed scopes | Narrowed scopes of FMT-BLANK-008/011, precedence stated once in the change doc | Avoids a second statement of each rule | Internal spec structure | 5aa08e3 |
 
 ## Follow-up candidates
 
-_None yet._
+- Parenthesized pattern content loses its indentation (`if (o is (⏎1 or 2⏎))`) — 01-spec-author.md; the positional pattern `o is (1,⏎2⏎)` likewise — 02-skeptic.md. One issue.
+- RH5026 reports the formatter's output for `// f⏎⏎finally` and `else` (FC-013) — 02-skeptic.md.
+- Region directives inside collection expressions, patterns and initializers end up at the statement's column; no requirement decides the column — 02-skeptic.md.
