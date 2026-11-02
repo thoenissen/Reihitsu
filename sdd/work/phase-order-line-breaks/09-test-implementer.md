@@ -1,5 +1,5 @@
 Role: test implementer
-Commit: <filled by commit below; see git log>
+Commit: 06ebdaa (tests); handover recorded in the next commit
 Verdict: tests written
 
 The prompt carried no intended fix, suspected cause, or hoped-for verdict. This round carries out `00-lead.md` decision 26: cover FMT-SWITCH-016's second example (comment-free blank lines in front of the first wrapped statement and the terminal `break` are not carried). Expected values come from that example in `sdd/specs/formatter/switch-case-braces.md`. No production code touched.
