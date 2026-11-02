@@ -19,7 +19,7 @@
 
 ## Visible output changes
 
-Each entry shows the formatter's output on `main` (`scripts/format.sh` at e094895) and the output after this change. Every "after" output in entries 1–4 and 7 is a fixed point of `main`'s formatter. The "before" output of entry 8 was taken at 3663caf, which leaves this case unaligned as `main` does.
+Each entry shows the formatter's output on `main` (`scripts/format.sh` at e094895) and the output after this change. Every "after" output in entries 1–4 and 7 is a fixed point of `main`'s formatter. The "before" output of entry 8 was taken at 3663caf, which leaves this case unaligned as `main` does. The "before" output of entry 9 is `main`'s first pass, and its "after" output is `main`'s second pass.
 
 ### 1. An anonymous method in a hole of a literal the formatter moves is aligned under `delegate`
 
@@ -467,10 +467,89 @@ class C
 
 With the literal already aligned, the lines `{`, `return 1;`, and `})}…` started in column 0 before; after, the output is the same as above.
 
+### 9. A block whose anchor stands on a hole line that does not move lands under its anchor on the first pass
+
+Two kinds of hole line do not move with the literal: a line that starts inside text begun on an earlier line, such as the continuation of a verbatim string's text, and the line on which a multi-line `/* */` comment ends (FMT-RAW-009). When a block lambda's anchor stands on such a line, in a column left of the literal's rightward shift, its block lines used to land in the shift's column on the first pass, with the body not one level deeper; only the second pass placed them under the anchor. They now land under the anchor on the first pass. FMT-INDENT-028, FMT-INDENT-030, and FMT-INDENT-031 already demand this output ("the column of the anchor is measured after the literal moved"); the requirements do not change (lead decisions 12 and 13). The "after" output is the second-pass output of `main`.
+
+```csharp
+class C
+{
+    int M(System.Func<int> f)
+    {
+        var a = $"""
+    V {$@"first
+continued{M(() => { return 1; })} end"}
+    """;
+        var b = $"""
+    K {M(/* one
+ends here */() => { return 1; })}
+    """;
+
+        return 0;
+    }
+}
+```
+
+Before (first pass; the second pass then moves the lines to the "after" columns):
+
+```csharp
+class C
+{
+    int M(System.Func<int> f)
+    {
+        var a = $"""
+                 V {$@"first
+continued{M(() =>
+             {
+             return 1;
+             })} end"}
+                 """;
+        var b = $"""
+                 K {M(/* one
+ends here */() =>
+             {
+             return 1;
+             })}
+                 """;
+
+        return 0;
+    }
+}
+```
+
+After:
+
+```csharp
+class C
+{
+    int M(System.Func<int> f)
+    {
+        var a = $"""
+                 V {$@"first
+continued{M(() =>
+            {
+                return 1;
+            })} end"}
+                 """;
+        var b = $"""
+                 K {M(/* one
+ends here */() =>
+            {
+                return 1;
+            })}
+                 """;
+
+        return 0;
+    }
+}
+```
+
+An anonymous method in the same position (`continued{M(delegate { return 1; })} end"}`, or `ends here */delegate { return 1; })}`) aligns under `delegate` on the first pass in the same way. On `main` it is not aligned at all (entries 1 and 2, entry 8 for the nested verbatim string). A block whose anchor stands in the shift's column or right of it, on a line that moves, or in a literal that is already aligned or moves left keeps its output.
+
 ### Unchanged
 
 - A lambda argument on its own line without a blank line above it (`Aggregate(0,⏎(sum, item) => sum + item)`) keeps its output; only the strip-and-repaint between the two phases goes.
-- A block lambda in a hole is broken and aligned as before (`BlockLambdaBrokenInsideHoleOfAlignedLiteralKeepsItsAlignment`), and so is an anonymous method inside its block body.
+- A block lambda in a hole is broken and aligned as before (`BlockLambdaBrokenInsideHoleOfAlignedLiteralKeepsItsAlignment`), and so is an anonymous method inside its block body. The one exception is entry 9: an anchor on a hole line that does not move, in a column left of the literal's shift, now places the block on the first pass.
 - An anonymous method outside interpolation holes, and in a hole of a regular, verbatim, or single-line raw interpolated string that no hole of a multi-line interpolated raw string literal encloses, takes the scope-depth column as before (`var c = $"""in {M(delegate { return 1; })}""";` keeps its block at the statement's scope depth).
 - An anonymous method inside the block body of a lambda in a hole keeps the scope-depth layout of that body also when a regular, verbatim, or single-line raw interpolated string lies between the body and the anonymous method.
 
