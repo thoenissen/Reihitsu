@@ -966,11 +966,12 @@ public class RawStringInterpolationHoleTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a constraint clause of a local function in an anonymous-method body inside a hole of an aligned literal is indented one level deeper than its declaration's line, which keeps its column
+    /// Verifies that a constraint clause of a local function in an anonymous-method body inside a hole of an aligned literal is indented one level deeper than its declaration's line, after the anonymous method's block aligned under <c>delegate</c>
     /// </summary>
     [TestMethod]
     [Requirement("FMT-RAW-007")]
     [Requirement("FMT-INDENT-017")]
+    [Requirement("FMT-INDENT-031")]
     public void ConstraintClauseInHoleOfAlignedLiteralIsIndentedFromItsDeclaration()
     {
         const string input = """"
@@ -999,14 +1000,14 @@ public class RawStringInterpolationHoleTests : FormatterTestsBase
                                     {
                                         var a = $"""
                                                  Hello {M(delegate
-                                                 {
-                                                     void L<T>()
-                                                         where T : class
-                                                     {
-                                                     }
+                                                          {
+                                                              void L<T>()
+                                                                  where T : class
+                                                              {
+                                                              }
 
-                                                     return 1;
-                                                 })}
+                                                              return 1;
+                                                          })}
                                                  """;
                                     }
                                 }
@@ -1016,11 +1017,12 @@ public class RawStringInterpolationHoleTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a constraint clause of a local function in an anonymous-method body inside a hole of a misaligned literal is indented one level deeper than its declaration's line after that line moved with the literal, and a second pass keeps it
+    /// Verifies that a constraint clause of a local function in an anonymous-method body inside a hole of a misaligned literal is indented one level deeper than its declaration's line after the literal moved and the anonymous method's block aligned under <c>delegate</c>, and a second pass keeps it
     /// </summary>
     [TestMethod]
     [Requirement("FMT-RAW-007")]
     [Requirement("FMT-INDENT-017")]
+    [Requirement("FMT-INDENT-031")]
     public void ConstraintClauseInHoleOfMisalignedLiteralIsIndentedFromItsDeclarationAfterTheShift()
     {
         const string input = """"
@@ -1049,14 +1051,14 @@ public class RawStringInterpolationHoleTests : FormatterTestsBase
                                     {
                                         var a = $"""
                                                  Hello {M(delegate
-                                                 {
-                                                     void L<T>()
-                                                         where T : class
-                                                     {
-                                                     }
+                                                          {
+                                                              void L<T>()
+                                                                  where T : class
+                                                              {
+                                                              }
 
-                                                     return 1;
-                                                 })}
+                                                              return 1;
+                                                          })}
                                                  """;
                                     }
                                 }
