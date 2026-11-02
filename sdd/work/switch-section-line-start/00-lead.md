@@ -31,7 +31,17 @@ None yet.
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Branch name `claude/issue-1495-<slug>` or the session's designated branch | The designated branch `claude/festive-goldberg-qb8sp9` | The session may push only to its designated branch | Branch names are internal | d5483e2 |
+| 2 | Spec author | Done-when 2, first half ("`EnsureBlankLineBeforeSection` writes no line break that ends a line") | Dropped; FMT-BLANK-004 states that the blank-line phase writes both line breaks where it requires a blank line in front of a section on the `break`'s line | Impossible with today's phase order without a two-run blank line (FMT-PIPE-004) or a prediction (FMT-PIPE-001); thoenissen/Reihitsu#1498 reorders the phases | The output is identical either way | 06a5ae8 |
+| 3 | Spec author | One requirement or three (section / labels / first statement) | Three: FMT-BREAK-033, -034, -035; FMT-BREAK-006 scoped to statements behind statements | One owner and one `Why` per decision; FMT-BREAK-034 can be dropped cleanly on output question 1 | Spec structure only | 06a5ae8 |
+| 4 | Skeptic | FMT-BREAK-034's `Why` and the change doc claim stacked labels are what FMT-SWITCH-006 already writes | The claim is false (FMT-SWITCH-006 keeps labels where they stand); the spec author rewords it together with the maintainer's answers | Skeptic reproduced on `main` | Wording only | pending |
+| 5 | Skeptic | Architecture finding: `SwitchCaseBraceRewriter.AddBraces` and the blank-line / line-break phases each write a line break in front of the token behind a braced section | Fix narrowly in this run: the braced shapes the skeptic lists (`case 1: A(); B(); break; case 2:` and `case 1: A(); B(); return 1; case 2:`, LF and CRLF, two runs) get tests and must hold; the structural single-owner change stays with thoenissen/Reihitsu#1518 / thoenissen/Reihitsu#1498 | The structural change is already planned there and needs the phase reorder of #1498; the narrow fix stays inside the components this run changes and their counterpart | FMT-BLANK-004 and FMT-PIPE-004 decide the expected output | pending |
+| 6 | Skeptic | Pre-existing on `main`: a braced section on the line of the switch's `}` gets a blank line before `}` in run 1 that run 2 removes | Adjacent fix in this run, with a two-run test | Same mechanism as decision 5, same component, an idempotency defect (FMT-PIPE-004) | An unchanged requirement (FMT-PIPE-004, FMT-BLANK) decides the output | pending |
 
 ## Follow-up candidates
 
-None yet.
+1. Horizontal spacing: `case 1: ;` becomes `case 1:;` (01-spec-author.md, 02-skeptic.md).
+2. RH5103 does not report a statement of another section on the same line (`case 4: break; case 5: M();`); a behavior change of RH5103 (01-spec-author.md, 02-skeptic.md).
+3. New-rule candidate: a first statement on its label's line, and labels sharing a line (01-spec-author.md, 02-skeptic.md).
+4. Link thoenissen/Reihitsu#1533 to the `/** */`-between-label-and-statement shape (02-skeptic.md).
+5. Extend thoenissen/Reihitsu#1498's Done-when to switch sections: FMT-BLANK-004's new sentence is to be reverted there (02-skeptic.md).
+6. Extend thoenissen/Reihitsu#1518 with the braced-section doubling class, unless decision 6 fixes it fully in this run (02-skeptic.md).
