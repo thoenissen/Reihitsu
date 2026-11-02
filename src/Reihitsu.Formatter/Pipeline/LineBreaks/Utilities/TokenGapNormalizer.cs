@@ -164,7 +164,7 @@ internal sealed class TokenGapNormalizer
 
     /// <summary>
     /// Moves a token onto its own line when no line break separates it from the previous token. A gap that already holds
-    /// a line break is left as it is, together with its blank lines, which the blank-line phase decided (FMT-BREAK-030).
+    /// a line break is left as it is, together with its blank lines, which the blank-line phase decides after this phase (FMT-BREAK-030).
     /// The only exception is a gap that ends with a documentation comment, see <see cref="TryPlaceTokenBehindLeadingDocumentationComment"/>
     /// </summary>
     /// <typeparam name="TNode">The syntax node type containing the token</typeparam>

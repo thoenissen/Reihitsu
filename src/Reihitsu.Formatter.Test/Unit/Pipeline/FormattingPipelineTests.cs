@@ -175,9 +175,9 @@ public class FormattingPipelineTests
                                  "RegionFormattingPhase",
                                  "DocumentationCommentFormattingPhase",
                                  "UsingDirectiveOrderingPhase",
-                                 "BlankLinePhase",
                                  "LineBreakPhase",
                                  "SwitchCaseBracePhase",
+                                 "BlankLinePhase",
                                  "HorizontalSpacingPhase",
                                  "IndentationPhase",
                                  "CleanupPhase"

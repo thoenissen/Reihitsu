@@ -92,11 +92,6 @@ internal static class ReihitsuFormatterHelpers
             return facts;
         }
 
-        if (LineBreakContainedBlockRewriter.IsElseIfBranch(target, RootConstruct.None))
-        {
-            facts |= RootConstruct.ElseIf;
-        }
-
         if (target is AccessorDeclarationSyntax or AccessorListSyntax
             && AttributeTargetFormattingRewriter.StandsInOneLineProperty(target))
         {

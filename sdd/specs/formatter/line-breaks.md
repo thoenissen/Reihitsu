@@ -5,7 +5,7 @@
 | ID prefix | FMT-BREAK |
 | Status | Active |
 | Code owners | `LineBreakPhase`, `LineBreakBlockRewriter`, `LineBreakInitializerRewriter`, `LineBreakContainedBlockRewriter`, `LineBreakAssignmentRewriter`, `DeclarationSemicolonLineBreakRewriter`, `ListElementInteriorJoinRewriter`, `ListElementInteriorUtilities`, `LineBreakListRewriter`, `PropertyLayoutLineBreakRewriter`, `GenericConstraintLineBreakRewriter`, `DeclarationBraceLineBreakRewriter`, `MemberLineStartRewriter`, `AttributeTargetFormattingRewriter`, `AttributeTargetFormattingShared`, `BinaryOperatorLineBreakRewriter`, `ChainLineBreakRewriter`, `TernaryLineBreakRewriter`, `SwitchCaseWhenLineBreakRewriter`, `BracePlacer`, `TokenGapNormalizer`, `AccessorListLayout`, `LineBreakDetection`, `LineBreakTriviaUtilities` |
-| Uses | FMT-BLANK-004, FMT-BLANK-012, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-010, FMT-PIPE-021, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, SHARED-ATTR-014, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012 |
+| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-010, FMT-PIPE-021, FMT-PIPE-025, FMT-PIPE-026, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, SHARED-ATTR-014, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-STMT-001 |
 
 This spec covers `LineBreakPhase`, the phase of the pipeline that decides where lines break (its position in the phase order is FMT-PIPE-001): brace placement, one statement and one member per line, the layout of argument, parameter, attribute, and type-argument lists, initializers and patterns, assignments, operators, conditionals, chains, generic constraints, attribute lists, accessor lists, the lines that switch sections, their labels, and their first statements start, and `case … when` guards. The phase adds and removes line breaks and keeps the blank lines it finds (FMT-BREAK-030), and it changes tokens only where it shapes an accessor's attribute lists (FMT-BREAK-032). The columns the resulting lines start in are decided later by FMT-INDENT, and the spaces between tokens on a line by FMT-SPACE.
 
@@ -51,7 +51,7 @@ is left unchanged.
 
 ### FMT-BREAK-002 — Braces start their own line
 
-The opening and the closing brace of every namespace, type, member body, accessor body, statement block, lambda or anonymous-method block, local function, and switch statement MUST each start their own line, and the first token after an opening brace MUST start a new line. An empty body MUST therefore span two lines.
+The opening and the closing brace of every namespace, type, member body, accessor body, statement block, lambda or anonymous-method block, local function, and switch statement MUST each start their own line, and the first token after an opening brace MUST start a new line. An empty body MUST therefore span two lines. A first statement behind the closing `*/` of a delimited comment that spans several lines is placed as FMT-BREAK-006 states, and the first section of a switch statement there as FMT-BREAK-033 states.
 
 This holds for the node a node-level entry point formats as it holds for a document: when the target is a member body, a block, or an event's accessor list, its braces are placed, whether the declaration that owns it lies inside the formatted node or not.
 
@@ -218,52 +218,20 @@ class C
 
 ### FMT-BREAK-005 — A comment behind an `if` condition moves above the `if`
 
-A comment that trails the closing parenthesis of an `if` condition, with nothing but whitespace and line breaks behind it, MUST move into the leading trivia of the `if` keyword, onto the line above the statement. The comment of an `else if` condition MUST stay where it is.
-
-Why: With the opening brace on the next line, a comment behind the condition would sit on a line of its own between condition and brace or be glued to the brace. Above the `if` it describes the whole statement. For `else if`, the leading trivia of `if` lies between `else` and `if`, so moving the comment there would split the two keywords.
-
-Example:
-
-```csharp
-class C
-{
-    void M(bool a, bool b)
-    {
-        if (a) // why
-        {
-            Foo();
-        }
-        else if (b) // c
-        {
-            Bar();
-        }
-    }
-}
-```
-
-```csharp
-class C
-{
-    void M(bool a, bool b)
-    {
-        // why
-        if (a)
-        {
-            Foo();
-        }
-        else if (b) // c
-        {
-            Bar();
-        }
-    }
-}
-```
+Status: Retired — the maintainer decided that a comment behind the condition of an `if` stays where the author wrote it, as it does behind the head of every other block statement; FMT-BREAK-036 states the rule.
 
 ### FMT-BREAK-006 — One statement per line
 
-Every statement in a block or a switch section that follows another statement of the same list MUST start its own line. A comment that trailed the previous statement MUST stay on that statement's line. An empty statement (`;`) and the statement next to it MUST be left as written. The first statement of a block starts its line behind the opening brace (FMT-BREAK-002), and the first statement of a switch section behind the section's labels (FMT-BREAK-035).
+Every statement in a block or a switch section that follows another statement of the same list MUST start its own line. A comment that trailed the previous statement MUST stay on that statement's line. An empty statement (`;`) and the statement next to it MUST be left as written, unless a requirement of FMT-BLANK asks for a blank line between the two (FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005): then the second of them MUST start its own line too, and the blank-line phase, which runs after this phase, adds only the blank line. The first statement of a block starts its line behind the opening brace (FMT-BREAK-002), and the first statement of a switch section behind the section's labels (FMT-BREAK-035).
 
-Why: One statement per line keeps every statement visible at the left margin and gives each its own line in diffs and stack traces. Empty statements are left alone because splitting them off only moves a stray `;` around; they are rare and usually deliberate.
+A statement that stands behind the closing `*/` of a delimited comment (`/* */` or `/** */`) that spans several lines, on that comment's last line, does not start its line (SHARED-COMMENT-012). The formatter MUST leave such a statement behind the `*/`, with two exceptions, in which it MUST start its own line, directly below the comment's last line:
+
+- the statement follows another statement, a requirement of FMT-BLANK asks for a blank line between the two (FMT-BLANK-001 to FMT-BLANK-005), and the comment starts on the previous statement's line, behind its code;
+- the statement is the first statement of a block or a switch section, and the comment starts on the line of the opening brace or of the section's last label, behind it.
+
+The condition on the comment is where it starts: a comment that starts on a line of its own leaves the statement behind its `*/` in every case, also where a blank-line requirement applies — the blank line then goes above the comment (FMT-BLANK-018). A `/** */` comment written behind code is such a comment: behind the previous statement or an opening brace, FMT-DOC-001 puts it on a line of its own before this phase runs, and behind a section's last label it moves with the first statement as FMT-BREAK-035 states, so the statement stays behind its `*/` and neither exception applies. The condition on the pair is the blank-line requirement: behind a comment that starts on the previous statement's line, a statement no requirement of FMT-BLANK separates from that statement stays behind the `*/`.
+
+Why: One statement per line keeps every statement visible at the left margin and gives each its own line in diffs and stack traces. Empty statements are left alone because splitting them off only moves a stray `;` around; they are rare and usually deliberate. Where a statement rule asks for a blank line next to one, the pair is separated anyway — the analyzer rules that use SHARED-STMT-001 report a statement on its predecessor's line too, and a blank line can stand only between two lines — and the line break is this phase's, so the blank-line phase writes no line break that ends a statement's line and the switch-brace phase measures the section on the lines it keeps (FMT-SWITCH-003, FMT-PIPE-025). Which pairs a statement rule separates is read from the one statement of that rule that the blank-line phase applies, not from a copy of it. A statement behind a multi-line comment's closing line stays where the author put it, as the formatter leaves code behind a comment on its line in many places; the maintainer accepted this placement (change doc *Line breaks are decided before switch braces and blank lines*, maintainer answer 2). It moves only where a line must end anyway: where a blank line is required and the comment's first line belongs to the previous statement, a blank line can stand only below that line, and a first statement behind a comment that starts behind the brace or the label would continue the line that FMT-BREAK-002 and FMT-BREAK-035 keep free of statements.
 
 Example:
 
@@ -289,6 +257,149 @@ class C
         Bar(); /* d */
         Baz();
         ; Foo();
+    }
+}
+```
+
+Where a statement rule asks for a blank line between an empty statement and its neighbour, the two are split, in a block and in a switch section alike, and the blank-line phase adds the blank line in the same run:
+
+```csharp
+class C
+{
+    int M(int a)
+    {
+        a++;
+        ; return a;
+    }
+
+    void N(bool a)
+    {
+        if (a) { } ;
+    }
+
+    int O(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                ; return 1;
+            default:
+                return 0;
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    int M(int a)
+    {
+        a++;
+        ;
+
+        return a;
+    }
+
+    void N(bool a)
+    {
+        if (a)
+        {
+        }
+
+        ;
+    }
+
+    int O(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                {
+                    ;
+
+                    return 1;
+                }
+            default:
+                {
+                    return 0;
+                }
+        }
+    }
+}
+```
+
+Behind the closing line of a comment that spans several lines, a statement stays behind the `*/` unless a blank-line requirement separates it from a statement whose line the comment starts on (`return a;` in `M`), or it is the first statement of a section whose label line the comment starts on (`A();` in `O`). `B();` in `M` has no blank-line requirement, and the comments in front of `return a;` in `N` and `B();` in `O` start on lines of their own; the blank line in `N` goes above the comment:
+
+```csharp
+class C
+{
+    int M(int a)
+    {
+        A(); /* x
+        */ B();
+        a++; /* y
+        */ return a;
+    }
+
+    int N(int a)
+    {
+        a++;
+        /* z
+        */ return a;
+    }
+
+    void O(int a)
+    {
+        switch (a)
+        {
+            case 1: /* p
+            */ A();
+                break;
+            case 2:
+                /* q
+                */ B();
+                break;
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    int M(int a)
+    {
+        A(); /* x
+        */ B();
+        a++; /* y
+        */
+
+        return a;
+    }
+
+    int N(int a)
+    {
+        a++;
+
+        /* z
+        */ return a;
+    }
+
+    void O(int a)
+    {
+        switch (a)
+        {
+            case 1: /* p
+            */
+                A();
+                break;
+
+            case 2:
+                /* q
+                */ B();
+                break;
+        }
     }
 }
 ```
@@ -1302,7 +1413,7 @@ class C
 
 In every gap between two tokens that this phase leaves on separate lines, whether it inserts the line break or keeps one, it MUST leave the number of blank lines as it found it: it MUST NOT insert a blank line and MUST NOT remove one. Where it joins two tokens onto one line, the gap holds no line break afterwards, so its blank lines go with the join; whether it may join is decided by the requirements above and FMT-BREAK-001.
 
-Why: Blank lines are decided by FMT-BLANK alone. A phase that also decided them would contradict FMT-BLANK where the two disagree, and the later phase would win in every pass: a blank line that FMT-BLANK inserted would be removed again, or one that FMT-BLANK left out would come back. Keeping the count leaves every blank line where FMT-BLANK put it.
+Why: Blank lines are decided by FMT-BLANK alone, in the blank-line phase, which runs after this phase (FMT-PIPE-001). A phase that also decided them would make one decision in two places (FMT-PIPE-025): the blank-line phase would have to undo a blank line this phase inserted, or restore one it removed. Keeping the count hands every blank line to FMT-BLANK as the author wrote it.
 
 Example — run alone, this phase leaves the input below unchanged, with the blank line above the block statement and the blank line above the comment glued to the initializer's brace:
 
@@ -1330,7 +1441,7 @@ class C
 }
 ```
 
-In the whole pipeline, FMT-BLANK keeps the first of these blank lines and removes the second before this phase runs.
+In the whole pipeline, FMT-BLANK keeps the first of these blank lines and removes the second after this phase runs.
 
 ### FMT-BREAK-031 — A join writes the minimal separator, and the phase writes no other space
 
@@ -1485,9 +1596,16 @@ class C
 
 The first token of every switch section that follows another section of the same switch statement MUST start its own line, whatever statement ends the section before it. Whether the token starts its line is decided by SHARED-BLANK-008: a section behind a `//` comment or a directive starts its line and is kept; a section on the line of the previous section's last token, or behind the last line of a multi-line comment there, does not, and the phase MUST insert a line break in front of it, so a comment that trailed the previous section stays on that section's last line (FMT-BREAK-001). Comments in front of a token that moves move with it when they are the token's own leading trivia and stand on the token's line; a delimited comment stands on the line it starts on. On the line of the previous token, the C# parser ends the previous token's trailing trivia in front of the first documentation comment (`/** */`), so these are the comments from that first `/** */` comment up to the token, of any kind and however many: they MUST move with the token as written, in their order. An ordinary comment in front of that first `/** */` comment trails the previous token and MUST stay on its line (FMT-BREAK-001). The token starts its line when the first of the comments that move with it starts its line; where the phase inserts the line break, it MUST insert it in front of that comment, so the comments and the token start the new line together. FMT-BREAK-034 and FMT-BREAK-035 apply this rule to a label and a first statement. The first section of a switch statement starts its line behind the opening brace (FMT-BREAK-002). The phase inserts no blank line in front of a section (FMT-BREAK-030); the blank line behind a section that ends in `break` is FMT-BLANK-004's.
 
+A section whose first token stands behind the closing `*/` of a delimited comment (`/* */` or `/** */`) that spans several lines, on that comment's last line, does not start its line (SHARED-COMMENT-012). Where the comment starts decides whether it moves:
+
+- when the comment starts on the line of the token in front of it, behind that token — the last token of the previous section, or, for the first section, the switch statement's opening brace — the phase MUST insert the line break in front of the section, directly below the comment's last line, whatever statement ends the previous section;
+- when the comment starts on a line of its own, the phase MUST leave the section behind the `*/`.
+
+A `/** */` comment behind the previous token is among the comments that move with the token, as stated above, so it starts a line of its own and the section stays behind its `*/`. FMT-BREAK-034 applies the same placement to a label. The blank line that FMT-BLANK-004 asks for in front of a section behind a `break` statement goes below the comment's last line where the line breaks, and above the comment where the section stays behind it (FMT-BLANK-018).
+
 This requirement, FMT-BREAK-034, and FMT-BREAK-035 decide the lines inside the node that a node-level entry point formats; the gap in front of the target itself is kept as FMT-PIPE-010 states.
 
-Why: A switch is read by its labels: each section is one path, and its first label at the label column (FMT-INDENT-003) is where a reader finds it. A section that shares a line with the section before it hides its label in the middle of that line. Until now only a section behind a `break` statement got a line of its own, as a side effect of its blank line; behind `return`, `throw`, `goto`, or `continue` the sections stayed on one line. A `/** */` comment in front of a token is part of that token's leading trivia, and the formatter already keeps it in front of that token when it moves documentation off code (FMT-DOC-001); separating the two would leave the comment on a line above, away from what it documents. The comments behind it on the same line stand between the documentation and its token, so they move along and the comments keep their order; an ordinary comment in front of the documentation comment trails the previous token, as any trailing comment does.
+Why: A switch is read by its labels: each section is one path, and its first label at the label column (FMT-INDENT-003) is where a reader finds it. A section that shares a line with the section before it hides its label in the middle of that line. Until now only a section behind a `break` statement got a line of its own, as a side effect of its blank line; behind `return`, `throw`, `goto`, or `continue` the sections stayed on one line. A `/** */` comment in front of a token is part of that token's leading trivia, and the formatter already keeps it in front of that token when it moves documentation off code (FMT-DOC-001); separating the two would leave the comment on a line above, away from what it documents. The comments behind it on the same line stand between the documentation and its token, so they move along and the comments keep their order; an ordinary comment in front of the documentation comment trails the previous token, as any trailing comment does. A section or a label behind a multi-line comment's closing line stays where the author put it, as a statement does (FMT-BREAK-006): the formatter leaves code behind a comment on its line in many places, and the maintainer accepted this placement for sections and labels as for statements (change doc *Line breaks are decided before switch braces and blank lines*, maintainer answer 3). It moves only where the comment starts behind the previous token: there the comment's first line belongs to that token's line, and a section or a label behind it would continue the line of the previous section, label, or brace.
 
 Example:
 
@@ -1568,7 +1686,56 @@ class C
 }
 ```
 
-Example — a `/** */` comment in front of a section keeps its place in front of the label. Behind a statement, FMT-DOC-001 already moves it onto a line of its own, with the blank line of FMT-BLANK-012, before this phase runs, so the section starts its line behind the comment and is kept:
+Example — behind the closing line of a multi-line comment, a section or a label moves when the comment starts behind the token in front of it (`case 1:` behind the opening brace, `case 3:` behind `return 2;`, `case 4:` behind `case 3:`), and stays behind the `*/` when the comment starts on a line of its own (`case 2:`, `case 5:`):
+
+```csharp
+class C
+{
+    int M(int x)
+    {
+        switch (x)
+        { /* a
+          */ case 1:
+                return 1;
+            /* b
+            */ case 2:
+                return 2; /* c
+                */ case 3: /* d
+            */ case 4:
+            /* e
+            */ case 5:
+                return 5;
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    int M(int x)
+    {
+        switch (x)
+        { /* a
+          */
+            case 1:
+                return 1;
+            /* b
+            */ case 2:
+                return 2; /* c
+                */
+            case 3: /* d
+            */
+            case 4:
+            /* e
+            */ case 5:
+                return 5;
+        }
+    }
+}
+```
+
+Example — a `/** */` comment in front of a section keeps its place in front of the label. Behind a statement, FMT-DOC-001 already moves it onto a line of its own before this phase runs, so the section starts its line behind the comment and is kept; the blank line of FMT-BLANK-012 in front of the comment is added after this phase:
 
 ```csharp
 class C
@@ -1604,7 +1771,7 @@ class C
 
 ### FMT-BREAK-034 — Each label of a switch section starts its own line
 
-Every label of a switch section that follows another label of the same section MUST start its own line (SHARED-BLANK-008); when it does not, the phase MUST insert a line break in front of it, so a comment that trailed the label before it stays on that label's line (FMT-BREAK-001). The comments in front of the label move with it as FMT-BREAK-033 states: from the first `/** */` comment on the previous label's line up to the label, the line break goes in front of them, and an ordinary comment in front of them stays on the previous label's line. This holds for `case` labels, pattern labels with or without a `when` guard, and `default` labels alike.
+Every label of a switch section that follows another label of the same section MUST start its own line (SHARED-BLANK-008); when it does not, the phase MUST insert a line break in front of it, so a comment that trailed the label before it stays on that label's line (FMT-BREAK-001). The comments in front of the label move with it as FMT-BREAK-033 states: from the first `/** */` comment on the previous label's line up to the label, the line break goes in front of them, and an ordinary comment in front of them stays on the previous label's line. This holds for `case` labels, pattern labels with or without a `when` guard, and `default` labels alike. A label behind the closing `*/` of a delimited comment that spans several lines is placed as FMT-BREAK-033 places a section there: the line break goes in front of it when the comment starts on the previous label's line, behind that label, and the label stays behind the `*/` when the comment starts on a line of its own.
 
 Why: Stacked labels select one shared body, and each of them names a value the section handles. One label per line puts every value at the label column, where FMT-BREAK-033 puts the first label of every section, and gives each label its own line in diffs.
 
@@ -1725,7 +1892,7 @@ class C
 
 ### FMT-BREAK-035 — The first statement of a switch section starts its own line
 
-The first statement of a switch section MUST start its own line (SHARED-BLANK-008); when it does not, the phase MUST insert a line break in front of it, so a comment that trailed the section's last label stays on the label's line (FMT-BREAK-001). The comments in front of the statement move with it as FMT-BREAK-033 states: from the first `/** */` comment on the label's line up to the statement, the line break goes in front of them and the first of them starts the statement's line, and an ordinary comment in front of them stays on the label's line. This holds for every kind of statement, a `break` statement included; a block that forms the section's body has its braces placed by FMT-BREAK-008. An empty statement (`;`) that is the first statement of a section MUST be left as written, as FMT-BREAK-006 leaves it between statements.
+The first statement of a switch section MUST start its own line (SHARED-BLANK-008); when it does not, the phase MUST insert a line break in front of it, so a comment that trailed the section's last label stays on the label's line (FMT-BREAK-001). The comments in front of the statement move with it as FMT-BREAK-033 states: from the first `/** */` comment on the label's line up to the statement, the line break goes in front of them and the first of them starts the statement's line, and an ordinary comment in front of them stays on the label's line. This holds for every kind of statement, a `break` statement included; a block that forms the section's body has its braces placed by FMT-BREAK-008. An empty statement (`;`) that is the first statement of a section MUST be left as written, as FMT-BREAK-006 leaves it between statements, and a first statement behind the closing `*/` of a delimited comment that spans several lines is placed as FMT-BREAK-006 states.
 
 Why: The label introduces the section's statements and is not one of them. A statement on the label's line stands at the label column instead of the statement column (FMT-INDENT-003), so the section's statements do not line up, and the first one is easily overlooked when another is added below it. Every later statement of a section already starts its own line (FMT-BREAK-006); the first one now does too. An empty statement is left alone for FMT-BREAK-006's reason: moving it only moves a stray `;` around.
 
@@ -1855,6 +2022,66 @@ class C
         switch (x)
         {
             case 1: ; break;
+        }
+    }
+}
+```
+
+### FMT-BREAK-036 — A comment behind the head of a block statement stays there
+
+When the phase puts the opening brace of the body of an `if`, `else if`, `else`, `while`, `for`, `foreach`, `using`, or `lock` statement on its own line, a comment that trails the token in front of that brace — the closing parenthesis of the head, or the `else` keyword — MUST stay behind that token, on its line. This holds whether the brace stood on the next line or on the line of the comment.
+
+This requirement specifies the outcome only for the statements it names and leaves every other statement unspecified.
+
+Why: The author put the comment on the line of the head, so it describes the head: the condition, the loop, or the resource. The brace starts its own line below it (FMT-BREAK-002), so the comment stands neither between head and brace nor glued to the brace. Moving it onto a line of its own above the statement would make it the only comment the formatter takes off the line it was written on, and the blank-line phase decides the blank line above a comment on the line the comment ends up on (FMT-PIPE-026).
+
+Example:
+
+```csharp
+class C
+{
+    void M(bool a, bool b, int[] xs)
+    {
+        while (b)
+            if (a) // why
+            {
+                Foo();
+            }
+
+        if (a) /* m */ { Foo(); }
+        else if (b) // c
+        {
+            Bar();
+        }
+
+        foreach (var x in xs) /* f */ { Foo(); }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(bool a, bool b, int[] xs)
+    {
+        while (b)
+            if (a) // why
+            {
+                Foo();
+            }
+
+        if (a) /* m */
+        {
+            Foo();
+        }
+        else if (b) // c
+        {
+            Bar();
+        }
+
+        foreach (var x in xs) /* f */
+        {
+            Foo();
         }
     }
 }

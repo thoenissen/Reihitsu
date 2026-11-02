@@ -341,9 +341,9 @@ internal sealed class BlankLineEditor
     }
 
     /// <summary>
-    /// Ensures a blank line exists before the first token of the specified switch section (FMT-BLANK-004). A section on the
-    /// line of the preceding section's last token gets the line break that ends that line together with the blank line, so
-    /// the blank line stands after one run
+    /// Ensures a blank line exists before the first token of the specified switch section (FMT-BLANK-004). The line-break
+    /// phase, which runs before this phase, has already started the section's line (FMT-BREAK-033), so only the blank line
+    /// is added
     /// </summary>
     /// <param name="section">The switch section</param>
     /// <returns>The section with a blank line inserted before it, or the original if one already exists</returns>

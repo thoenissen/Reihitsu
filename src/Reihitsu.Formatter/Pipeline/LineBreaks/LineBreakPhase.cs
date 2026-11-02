@@ -36,7 +36,7 @@ internal sealed class LineBreakPhase : IFormattingPhase
         return [
                    new LineBreakBlockRewriter(gapNormalizer, bracePlacer, cancellationToken),
                    new LineBreakInitializerRewriter(context, gapNormalizer, bracePlacer, cancellationToken),
-                   new LineBreakContainedBlockRewriter(context, bracePlacer, cancellationToken),
+                   new LineBreakContainedBlockRewriter(bracePlacer, cancellationToken),
                    new LineBreakAssignmentRewriter(cancellationToken),
                    new DeclarationSemicolonLineBreakRewriter(cancellationToken),
                    new ListElementInteriorJoinRewriter(context, cancellationToken),

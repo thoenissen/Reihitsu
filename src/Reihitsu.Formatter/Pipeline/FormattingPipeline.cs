@@ -126,9 +126,10 @@ internal static class FormattingPipeline
     /// <summary>
     /// Creates the ordered list of formatting phases.
     /// Order: preparation (tab replacement, then line endings) → structural transforms → region formatting →
-    /// documentation comments → using directives → blank lines → line breaks → switch-case braces → horizontal spacing →
+    /// documentation comments → using directives → line breaks → switch-case braces → blank lines → horizontal spacing →
     /// indentation (including the move of raw string literal lines) → cleanup.
-    /// No phase computes a column from a move or replacement that a later phase applies
+    /// No phase computes a column from a move or replacement that a later phase applies, and no phase decides a line break
+    /// or a blank line from one a later phase writes
     /// </summary>
     /// <returns>The ordered list of phases to execute</returns>
     private static IReadOnlyList<IFormattingPhase> CreatePhases()
@@ -139,9 +140,9 @@ internal static class FormattingPipeline
                    new RegionFormattingPhase(),
                    new DocumentationCommentFormattingPhase(),
                    new UsingDirectiveOrderingPhase(),
-                   new BlankLinePhase(),
                    new LineBreakPhase(),
                    new SwitchCaseBracePhase(),
+                   new BlankLinePhase(),
                    new HorizontalSpacingPhase(),
                    new IndentationPhase(),
                    new CleanupPhase(),

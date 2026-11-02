@@ -384,7 +384,7 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     private static SyntaxToken RemoveBlankLinesAboveGluedComment(SyntaxToken token, PrecedingTokenFacts previousToken, FormattingContext context)
     {
         var trivia = token.LeadingTrivia;
-        var gluedCommentIndex = BraceBlankLinePolicy.FindGluedCommentIndex(token, previousToken, context);
+        var gluedCommentIndex = BraceBlankLinePolicy.FindGluedCommentIndex(token, previousToken);
 
         if (gluedCommentIndex < 0
             || trivia.Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia))
@@ -416,7 +416,7 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
 
         if (lastContentIndex < 0
             || TriviaListUtilities.IsOrdinaryComment(trivia[lastContentIndex]) == false
-            || BraceBlankLinePolicy.FindTokenLineStartIndex(token, context) >= 0
+            || BraceBlankLinePolicy.FindTokenLineStartIndex(token) >= 0
             || TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, TriviaListUtilities.FindFirstContentIndexOnLine(trivia, lastContentIndex + 1), previousToken.Exists, previousToken.TrailingTrivia) == false)
         {
             return token;

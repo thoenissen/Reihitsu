@@ -155,6 +155,7 @@ public class SwitchSectionLineStartTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-033")]
+    [Requirement("SHARED-COMMENT-012")]
     public void SectionBehindMultiLineCommentTailMovesAndSectionBehindLineCommentStays()
     {
         // Arrange
@@ -345,6 +346,7 @@ public class SwitchSectionLineStartTests : FormatterTestsBase
     [TestMethod]
     [Requirement("FMT-BREAK-033")]
     [Requirement("FMT-BLANK-004")]
+    [Requirement("SHARED-COMMENT-012")]
     public void SectionBehindBreakAndMultiLineCommentTailGetsBlankLineInOneRun()
     {
         // Arrange
@@ -665,6 +667,7 @@ public class SwitchSectionLineStartTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-034")]
+    [Requirement("SHARED-COMMENT-012")]
     public void LabelBehindMultiLineCommentTailIsMoved()
     {
         // Arrange
