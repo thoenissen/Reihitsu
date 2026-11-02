@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-BREAK-011 (changed), FMT-INDENT-031 (added), FMT-RAW-007 (changed) |
 
@@ -422,7 +422,26 @@ RH5106 and RH5107 report a lambda's misplaced closing parenthesis and comma. Bot
 
 ### The test expectation changes
 
-`AnonymousMethodBrokenInsideHoleIsStableOnTheSecondPass` checked only that the broken output was stable on the second pass. It changes to the aligned output of entry 1.
+Three tests in `RawStringInterpolationHoleTests` change their expected output. Each keeps its input and its subject.
+
+- `AnonymousMethodBrokenInsideHoleIsStableOnTheSecondPass` checked only that the broken output was stable on the second pass. It changes to the aligned output of entry 1.
+- `ConstraintClauseInHoleOfAlignedLiteralIsIndentedFromItsDeclaration` and `ConstraintClauseInHoleOfMisalignedLiteralIsIndentedFromItsDeclarationAfterTheShift` assert that a `where` clause of a local function in an anonymous-method body in a hole sits one level deeper than its declaration's line (FMT-INDENT-017). Their anonymous method's block already starts its own line in the input, in the literal's content column, and kept that column on `main`. Under FMT-INDENT-031 it moves under `delegate`, as in entries 1 and 2; the `where` clause still sits one level deeper than its declaration's line. Both tests now expect:
+
+```csharp
+        var a = $"""
+                 Hello {M(delegate
+                          {
+                              void L<T>()
+                                  where T : class
+                              {
+                              }
+
+                              return 1;
+                          })}
+                 """;
+```
+
+On `main` the same lines started in column 17, under `Hello`. This is the layout of entries 1 and 2 applied to a block that is already broken, not an output change of its own.
 
 ## Alternatives considered
 
