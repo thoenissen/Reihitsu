@@ -26,6 +26,8 @@ Verdict: run started
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 8 | Implementer | Unused `PhaseReversalCauses.LineStartIndentation` after the exception list emptied | Remove the unused cause (adjacent cleanup, test helper); keep the list machinery for future reversals | Dead test-helper code the run made dead | Test helper only | — |
+| 7 | Implementer | `ConstraintClauseInHoleOf{Aligned,Misaligned}LiteralIsIndentedFromItsDeclaration*` expect the anonymous method's block at column 17 | Re-derive expectations to the FMT-INDENT-031 layout (brace under `delegate`); test implementer edits, change doc lists both tests as changing | Asserted output is decided by maintainer answer 1 and FMT-INDENT-031; the tests' own point (the `where` clause indentation) stays | Covered by maintainer answer 1 | — |
 | 6 | Test implementer | Columns behind `=>`/`return` (entry 5) | Assert only the blank line; column left to follow-up candidate 3 | No requirement decides that column | No column asserted or changed | c269f57 |
 | 5 | Test implementer | Who removes stale `PhaseReversalExceptionList` entries | The implementer, once its change makes them stale (the list's own test reports them) | Removal is required by the list's design and the issue's Done-when, weakens no assertion | Test helper data only | — |
 | 4 | Spec author | Accept the change doc `sdd/changes/2026-11/lambda-paren-hole-break.md` | Accepted after skeptic and amendments for answers 1–6 | Visible output changes are all answered | All changes covered by maintainer answers | 8bcb6de |
