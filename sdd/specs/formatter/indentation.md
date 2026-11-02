@@ -1626,13 +1626,13 @@ class C
 }
 ```
 
-### FMT-INDENT-031 — An anonymous method in a raw-string hole aligns to its `delegate` keyword
+### FMT-INDENT-031 — An anonymous method in a raw-string hole aligns like a block lambda
 
-When an anonymous method lies in an interpolation hole of a multi-line interpolated raw string literal and its opening brace starts a line, the formatter MUST shift its block — its braces and every line between them — so the opening brace starts in the column of the anonymous method's `delegate` keyword, also when a modifier (`static`, `async`) stands in front of it. The lines inside the block MUST keep their indentation relative to the opening brace, one level deeper for the block's statements as in every block (FMT-INDENT-002). The column of the `delegate` keyword is measured after the literal moved (FMT-RAW-007, FMT-INDENT-030).
+When an anonymous method lies in an interpolation hole of a multi-line interpolated raw string literal and its opening brace starts a line, the formatter MUST shift its block — its braces and every line between them — so the opening brace starts in the column of the anonymous method's anchor: the `async` keyword of an async anonymous method, otherwise the `delegate` keyword, also behind a `static` modifier. The anchor is the one FMT-INDENT-028 takes for a block lambda in the same position: an `async` lambda aligns at `async`, a `static` one past `static`. The lines inside the block MUST keep their indentation relative to the opening brace, one level deeper for the block's statements as in every block (FMT-INDENT-002). The column of the anchor is measured after the literal moved (FMT-RAW-007, FMT-INDENT-030).
 
 This does not apply to an anonymous method that lies inside the block body of a lambda or of another anonymous method, when that body lies in the same hole — the innermost hole that contains the anonymous method. That body places the anonymous method's lines as it places every line inside it: from the scope depth, relative to the body's opening brace (FMT-INDENT-028 for a lambda, this requirement for an anonymous method). Outside an interpolation hole, and in a hole of a single-line raw string literal, an anonymous method's block takes its column from the scope depth (FMT-INDENT-002) as before.
 
-Why: Inside a hole of a multi-line raw string literal, the scope-depth column that an anonymous method's block takes everywhere else is not available. FMT-RAW-007 forbids that column there, because it does not move with the literal. Without an alignment, the lines kept whatever column the line-break phase left them in, so the same input ended in different columns depending on where the literal stood. Aligning to the `delegate` keyword, which lies inside the literal, places the block wherever the literal stands, in the same way FMT-INDENT-028 places a block lambda in the same position. The rest of the anonymous method is formatted as everywhere else: its braces and statements start their own lines (FMT-BREAK-002, FMT-BREAK-006), and its body is one level deeper than its braces.
+Why: Inside a hole of a multi-line raw string literal, the scope-depth column that an anonymous method's block takes everywhere else is not available. FMT-RAW-007 forbids that column there, because it does not move with the literal. Without an alignment, the lines kept whatever column the line-break phase left them in, so the same input ended in different columns depending on where the literal stood. Aligning to the anchor, which lies inside the literal, places the block wherever the literal stands, in the same way FMT-INDENT-028 places a block lambda in the same position. The rest of the anonymous method is formatted as everywhere else: its braces and statements start their own lines (FMT-BREAK-002, FMT-BREAK-006), and its body is one level deeper than its braces.
 
 Example — the literal moves 13 columns to the right, and the anonymous method's block aligns under `delegate`:
 
@@ -1663,7 +1663,7 @@ class C
 }
 ```
 
-Example — in an aligned literal, with statements separated as anywhere else, behind a modifier (still under `delegate`, as a `static` block lambda aligns at its `(`), and inside a lambda's expression body:
+Example — in an aligned literal, with statements separated as anywhere else, behind a `static` modifier (under `delegate`), behind an `async` modifier (under `async`), and inside a lambda's expression body:
 
 ```csharp
 class C
@@ -1673,6 +1673,7 @@ class C
         var a = $"""
                  Hello {M(delegate { int x = 1; return x; })}
                  S {M(static delegate { return 1; })}
+                 T {M(async delegate { return 1; })}
                  A {M(() => M(delegate { return 1; }))}
                  """;
 
@@ -1697,6 +1698,10 @@ class C
                              {
                                  return 1;
                              })}
+                 T {M(async delegate
+                      {
+                          return 1;
+                      })}
                  A {M(() => M(delegate
                               {
                                   return 1;
