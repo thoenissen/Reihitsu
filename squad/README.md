@@ -134,7 +134,7 @@ Every other find becomes a follow-up, unless no caller of the repository reaches
 
 ## Notes
 
-Before publishing, the lead writes one note per run to [`notes/`](notes/README.md): the output questions and their answers, the number of decisions taken, the stops and repair rounds, where the run got expensive, and suggestions for the process. Notes are input for improving the squad and are temporary. The squad never tunes its own process from them: the maintainer, or a session the maintainer starts for it, turns a pattern into a rule, records the reason in a process change doc under `sdd/changes/`, and deletes the notes it folds in.
+Before publishing, the lead writes one note per run to [`notes/`](notes/README.md): the output questions and their answers, the number of decisions taken, the stops and repair rounds, where the run got expensive, the token usage per spawn and model, and suggestions for the process. Notes are input for improving the squad and are temporary. The squad never tunes its own process from them: the maintainer, or a session the maintainer starts for it, turns a pattern into a rule, records the reason in a process change doc under `sdd/changes/`, and deletes the notes it folds in.
 
 ## Architecture findings
 
