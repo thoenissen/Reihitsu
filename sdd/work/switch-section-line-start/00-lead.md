@@ -24,7 +24,17 @@ None beyond the issue.
 
 ## Maintainer answers
 
-None yet.
+Output-question batch 1 (before the test implementer), all answered with the recommended option:
+
+1. Sections behind `return` / `throw` / `goto case` / `continue` start their own line — A (change-doc visible change 1).
+2. A section on a `break`'s line gets its blank line in the first run — A (visible change 2).
+3. The first statement of a section moves behind its labels; a `/* */` comment between label and statement stays on the label's line — A (visible change 3; consistent with thoenissen/Reihitsu#1540's recommended option).
+4. Labels sharing a line are stacked, one per line — A (FMT-BREAK-034, visible change 4).
+5. An empty first statement stays where it is (`case 1:; break;`) — A (FMT-BREAK-035).
+6. A `/** */` comment between label and first statement moves with the statement: `case 2:` alone, then `/** d */ A();` on the next line — B.
+7. RH5417 (and RH5403, RH3208) fix results follow the new layout — A (visible change 5).
+
+Standing instruction: every later output question of this run is answered with the lead's recommended option; the maintainer wants a summary at the end. Later questions are therefore recorded here with the recommendation taken, not asked.
 
 ## Decisions taken
 
