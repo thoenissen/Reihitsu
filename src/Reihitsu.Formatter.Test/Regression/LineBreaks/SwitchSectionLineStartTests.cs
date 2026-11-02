@@ -486,8 +486,9 @@ public class SwitchSectionLineStartTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a section behind a directive already starts its line and is kept, while the first statements behind
-    /// the labels of both sections start their own lines
+    /// Verifies that a section behind a directive in active code already starts its line and is kept, while the first
+    /// statements behind the labels of both sections start their own lines; a section in the disabled branch is disabled
+    /// text and stays as written
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-033")]
@@ -503,8 +504,10 @@ public class SwitchSectionLineStartTests : FormatterTestsBase
                                      switch (x)
                                      {
                                          case 1: return 1;
-                             #if DEBUG
+                             #if !DEBUG
                                          case 2: return 2;
+                             #else
+                                         case 3: return 3;
                              #endif
                                      }
 
@@ -521,9 +524,11 @@ public class SwitchSectionLineStartTests : FormatterTestsBase
                                         {
                                             case 1:
                                                 return 1;
-                                #if DEBUG
+                                #if !DEBUG
                                             case 2:
                                                 return 2;
+                                #else
+                                            case 3: return 3;
                                 #endif
                                         }
 
