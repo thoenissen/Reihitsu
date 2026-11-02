@@ -704,11 +704,12 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
         {
             var stmt = statements[statementIndex];
 
-            // The open brace's line ends in front of the first statement's comments, which keep their layout
+            // The open brace's line ends in front of the first statement's comments, which keep their layout and the
+            // blank lines in front of them; the blank-line phase, which runs after this phase, decides those
             if (statementIndex == 0)
             {
                 stmt = stmt.WithLeadingTrivia(SyntaxFactory.TriviaList(eolTrivia)
-                                                           .AddRange(BlockWrapTriviaUtilities.GetCarriedLeadingTrivia(stmt.GetLeadingTrivia(), keepBlankLinesAboveFirstComment: false)));
+                                                           .AddRange(BlockWrapTriviaUtilities.GetCarriedLeadingTrivia(stmt.GetLeadingTrivia(), keepBlankLinesAboveFirstComment: true)));
             }
 
             // The last statement's line ends behind its comments, so the close brace starts the next line
@@ -745,7 +746,7 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
         if (trailingBreak != null)
         {
             // The close brace's line ends in front of the break's comments, which keep their layout and the blank
-            // lines the blank-line phase placed in front of them
+            // lines in front of them; the blank-line phase, which runs after this phase, decides those
             trailingBreak = trailingBreak.WithLeadingTrivia(SyntaxFactory.TriviaList(eolTrivia)
                                                                          .AddRange(BlockWrapTriviaUtilities.GetCarriedLeadingTrivia(trailingBreak.GetLeadingTrivia(), keepBlankLinesAboveFirstComment: true)));
 

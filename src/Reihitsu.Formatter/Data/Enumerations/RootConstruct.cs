@@ -19,11 +19,6 @@ internal enum RootConstruct
     None = 0,
 
     /// <summary>
-    /// The root is the <see langword="if"/> statement of an <see langword="else"/> clause
-    /// </summary>
-    ElseIf = 1,
-
-    /// <summary>
     /// The root is an accessor or an accessor list of a property, indexer, or event declaration that stands on one line apart
     /// from its attribute lists
     /// </summary>

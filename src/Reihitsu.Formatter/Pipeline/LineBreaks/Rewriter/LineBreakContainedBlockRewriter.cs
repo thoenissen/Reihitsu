@@ -1,29 +1,19 @@
-﻿using System.Collections.Generic;
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Reihitsu.Formatter.Data;
-using Reihitsu.Formatter.Data.Enumerations;
-using Reihitsu.Formatter.Extensions;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 
 /// <summary>
-/// Applies line-break rules for contained statement bodies, inline condition comments, and chained
+/// Applies line-break rules for contained statement bodies and chained
 /// continuation keywords (<c>else</c>, <c>catch</c>, <c>finally</c>, a <c>do</c> statement's <c>while</c>)
 /// that must start their own line after the block they chain from
 /// </summary>
 internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
 {
     #region Fields
-
-    /// <summary>
-    /// The formatting context
-    /// </summary>
-    private readonly FormattingContext _context;
 
     /// <summary>
     /// The cancellation token
@@ -42,14 +32,11 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="context">The formatting context</param>
     /// <param name="bracePlacer">The brace placer</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public LineBreakContainedBlockRewriter(FormattingContext context,
-                                           BracePlacer bracePlacer,
+    public LineBreakContainedBlockRewriter(BracePlacer bracePlacer,
                                            CancellationToken cancellationToken)
     {
-        _context = context;
         _cancellationToken = cancellationToken;
         _bracePlacer = bracePlacer;
     }
@@ -57,20 +44,6 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
     #endregion // Constructor
 
     #region Methods
-
-    /// <summary>
-    /// Determines whether a node is the <see langword="if"/> statement of an <see langword="else"/> clause. The formatting
-    /// root has no parent, so for the root the facts the entry point captured from the document answer instead
-    /// </summary>
-    /// <param name="node">The node, as it entered the rewriter</param>
-    /// <param name="rootConstruct">The facts about the construct the formatting root stands in</param>
-    /// <returns><see langword="true"/> if the node is the <see langword="if"/> of an <see langword="else if"/></returns>
-    internal static bool IsElseIfBranch(SyntaxNode node, RootConstruct rootConstruct)
-    {
-        return node is IfStatementSyntax
-               && (node.Parent is ElseClauseSyntax
-                   || rootConstruct.IsRootIn(node, RootConstruct.ElseIf));
-    }
 
     /// <summary>
     /// Gets the block contained by a body-bearing statement, clause, accessor, or lambda
@@ -108,18 +81,13 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Normalizes an <c>if</c> statement's then/else block braces, moves a trailing inline condition
-    /// comment onto its own line, and ensures a following <c>else</c>/<c>else if</c> keyword starts
-    /// its own line
+    /// Normalizes an <c>if</c> statement's then/else block braces and ensures a following
+    /// <c>else</c>/<c>else if</c> keyword starts its own line. A comment behind the condition stays
+    /// behind the closing parenthesis (FMT-BREAK-036)
     /// </summary>
     /// <param name="node">The if statement</param>
-    /// <param name="isElseIfBranch">
-    /// <see langword="true"/> if <paramref name="node"/> is the <c>if</c> of an <c>else if</c> branch;
-    /// otherwise, <see langword="false"/>
-    /// </param>
     /// <returns>The updated if statement</returns>
-    private IfStatementSyntax NormalizeIfStatement(IfStatementSyntax node,
-                                                   bool isElseIfBranch)
+    private IfStatementSyntax NormalizeIfStatement(IfStatementSyntax node)
     {
         if (node.Statement is BlockSyntax statementBlock)
         {
@@ -130,8 +98,6 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
         {
             node = _bracePlacer.NormalizeContainedBlock(node, elseBlock);
         }
-
-        node = MoveTrailingConditionCommentToOwnLine(node, isElseIfBranch);
 
         if (node.Else != null)
         {
@@ -183,82 +149,6 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
         return _bracePlacer.EnsureTokenStartsOwnLine(node, node.WhileKeyword);
     }
 
-    /// <summary>
-    /// Moves a trailing inline comment from an <c>if</c> condition onto its own line
-    /// </summary>
-    /// <param name="node">The if statement</param>
-    /// <param name="isElseIfBranch">
-    /// <see langword="true"/> if <paramref name="node"/> is the <c>if</c> of an <c>else if</c> branch;
-    /// otherwise, <see langword="false"/>
-    /// </param>
-    /// <returns>The updated if statement</returns>
-    private IfStatementSyntax MoveTrailingConditionCommentToOwnLine(IfStatementSyntax node,
-                                                                    bool isElseIfBranch)
-    {
-        if (isElseIfBranch)
-        {
-            // The if-keyword's leading trivia sits between the 'else' and 'if' keywords for an else-if
-            // branch, so moving the comment there would split 'else if' across two lines
-            return node;
-        }
-
-        var trailingTrivia = node.CloseParenToken.TrailingTrivia;
-        var commentIndex = -1;
-
-        for (var triviaIndex = 0; triviaIndex < trailingTrivia.Count; triviaIndex++)
-        {
-            if (trailingTrivia[triviaIndex].IsKind(SyntaxKind.SingleLineCommentTrivia)
-                || trailingTrivia[triviaIndex].IsKind(SyntaxKind.MultiLineCommentTrivia))
-            {
-                commentIndex = triviaIndex;
-
-                break;
-            }
-        }
-
-        if (commentIndex < 0)
-        {
-            return node;
-        }
-
-        for (var triviaIndex = commentIndex + 1; triviaIndex < trailingTrivia.Count; triviaIndex++)
-        {
-            if (trailingTrivia[triviaIndex].IsKind(SyntaxKind.WhitespaceTrivia)
-                || trailingTrivia[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                continue;
-            }
-
-            return node;
-        }
-
-        var commentTrivia = trailingTrivia[commentIndex];
-        var removeStart = commentIndex;
-
-        while (removeStart > 0 && trailingTrivia[removeStart - 1].IsKind(SyntaxKind.WhitespaceTrivia))
-        {
-            removeStart--;
-        }
-
-        var newTrailingTrivia = new List<SyntaxTrivia>(trailingTrivia.Count - (commentIndex - removeStart + 1));
-
-        for (var triviaIndex = 0; triviaIndex < removeStart; triviaIndex++)
-        {
-            newTrailingTrivia.Add(trailingTrivia[triviaIndex]);
-        }
-
-        for (var triviaIndex = commentIndex + 1; triviaIndex < trailingTrivia.Count; triviaIndex++)
-        {
-            newTrailingTrivia.Add(trailingTrivia[triviaIndex]);
-        }
-
-        var newLeadingTrivia = node.IfKeyword.LeadingTrivia.Add(commentTrivia)
-                                                           .Add(SyntaxFactory.EndOfLine(_context.EndOfLine));
-
-        return node.WithCloseParenToken(node.CloseParenToken.WithTrailingTrivia(SyntaxFactory.TriviaList(newTrailingTrivia)))
-                   .WithIfKeyword(node.IfKeyword.WithLeadingTrivia(newLeadingTrivia));
-    }
-
     #endregion // Methods
 
     #region CSharpSyntaxVisitor
@@ -273,10 +163,6 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
 
         _cancellationToken.ThrowIfCancellationRequested();
 
-        // Captured from the original node before recursing: rewriting can detach descendant nodes from
-        // the tree, but the original node's parent link is still reliable at this point
-        var isElseIfBranch = IsElseIfBranch(node, _context.RootConstruct);
-
         var visited = base.Visit(node);
 
         if (visited == null)
@@ -286,7 +172,7 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
 
         if (visited is IfStatementSyntax ifStatement)
         {
-            return NormalizeIfStatement(ifStatement, isElseIfBranch);
+            return NormalizeIfStatement(ifStatement);
         }
 
         if (visited is TryStatementSyntax tryStatement)

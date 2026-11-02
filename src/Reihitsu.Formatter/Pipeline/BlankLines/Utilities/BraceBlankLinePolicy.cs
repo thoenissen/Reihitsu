@@ -74,8 +74,7 @@ internal static class BraceBlankLinePolicy
     /// <param name="context">The formatting context, which carries the facts about the formatting root</param>
     /// <returns><see langword="true"/> if the token is one FMT-BLANK-020 names</returns>
     /// <remarks>
-    /// Only the kind of the token and the construct it belongs to decide, never the layout of that construct: the line-break
-    /// phase runs later and may change that layout, so a decision read from it would change between two passes
+    /// Only the kind of the token and the construct it belongs to decide, never the layout of that construct
     /// </remarks>
     public static bool RemovesBlankLinesBehindOwnLineComment(SyntaxToken token, FormattingContext context)
     {
@@ -114,21 +113,19 @@ internal static class BraceBlankLinePolicy
     /// comments from the returned index on are on the token's line, every comment in front of it is on its own line. A line
     /// break inside the text of a delimited comment does not end a line, so a comment that starts on an earlier line and
     /// ends on the token's line is on the token's line, and so is every comment in front of it on the line it starts on.
-    /// Every comment is on its own line in front of a token without text, such as the end of the file, which starts no line,
-    /// and in front of a token that the chain layout moves off the closing line of a multi-line comment
-    /// (<see cref="ChainLineBreakRewriter.BreaksLineBehindMultiLineCommentTail"/>)
+    /// Every comment is on its own line in front of a token without text, such as the end of the file, which starts no line
     /// </summary>
-    /// <param name="token">The token whose leading trivia is classified; a token the cleanup rewriter has already detached from its tree has no parent, so it is classified without the chain-link case, which is exact for every token that is not a chain link operator</param>
-    /// <param name="context">The formatting context, which carries the facts about the code above the formatting root</param>
+    /// <param name="token">The token whose leading trivia is classified</param>
     /// <returns>The index of the first content trivia on the token's line; <c>-1</c> when every comment of the gap is on its own line</returns>
     /// <remarks>
     /// FMT-BLANK-011, FMT-BLANK-018, and FMT-BLANK-020 read this one classification, so every comment shape falls into
-    /// exactly one of the two positions
+    /// exactly one of the two positions. The line-break phase runs before the blank-line phase, so a line break it writes in
+    /// front of the token, such as the one in front of a chain link behind a multi-line comment's closing line, already
+    /// stands in the trivia and is read as written; no later phase's line break is predicted (FMT-PIPE-025)
     /// </remarks>
-    public static int FindTokenLineStartIndex(SyntaxToken token, FormattingContext context)
+    public static int FindTokenLineStartIndex(SyntaxToken token)
     {
-        if (token.Span.IsEmpty
-            || ChainLineBreakRewriter.BreaksLineBehindMultiLineCommentTail(token, context.RootChainBoundary))
+        if (token.Span.IsEmpty)
         {
             return -1;
         }
@@ -141,19 +138,18 @@ internal static class BraceBlankLinePolicy
     /// (<see cref="FindTokenLineStartIndex"/>) when it is an ordinary comment that starts its line, with nothing but
     /// whitespace and comments, ordinary or documentation, between it and the token
     /// </summary>
-    /// <param name="token">The token whose leading trivia is inspected; a token the cleanup rewriter has already detached from its tree is classified without the chain-link case, which is exact for every token that is not a chain link operator</param>
+    /// <param name="token">The token whose leading trivia is inspected</param>
     /// <param name="previousTokenFacts">The facts about the token that precedes <paramref name="token"/>, which decide whether the comment starts its line when nothing in front of it does</param>
-    /// <param name="context">The formatting context, which carries the facts about the code above the formatting root</param>
     /// <returns>The leading-trivia index of the glued comment; <c>-1</c> when no comment is glued to the token</returns>
     /// <remarks>
     /// Only the trivia and the position classification decide, never the kind of the token: what the blank lines above a
     /// glued comment are is decided by the rules for the blank lines directly before its token. The blank-line subphases
     /// that insert and remove those blank lines read this one predicate
     /// </remarks>
-    public static int FindGluedCommentIndex(SyntaxToken token, PrecedingTokenFacts previousTokenFacts, FormattingContext context)
+    public static int FindGluedCommentIndex(SyntaxToken token, PrecedingTokenFacts previousTokenFacts)
     {
         var trivia = token.LeadingTrivia;
-        var gluedCommentIndex = FindTokenLineStartIndex(token, context);
+        var gluedCommentIndex = FindTokenLineStartIndex(token);
 
         if (gluedCommentIndex < 0
             || TriviaListUtilities.IsOrdinaryComment(trivia[gluedCommentIndex]) == false)

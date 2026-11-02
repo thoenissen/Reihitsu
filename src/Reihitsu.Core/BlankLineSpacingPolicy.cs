@@ -54,6 +54,83 @@ public static class BlankLineSpacingPolicy
     }
 
     /// <summary>
+    /// Determines whether a statement needs a blank line in front of it because the statement before it in the same list
+    /// ends with a closing brace (FMT-BLANK-005, RH5030). The terminal <see langword="break"/> owned directly by a switch
+    /// section is exempt
+    /// </summary>
+    /// <param name="previousLastTokenKind">The kind of the last token of the preceding statement</param>
+    /// <param name="isTerminalDirectSwitchSectionBreak">Whether the statement is the terminal <see langword="break"/> directly inside its switch section</param>
+    /// <returns><see langword="true"/> if the statement follows a closing brace and needs a blank line</returns>
+    public static bool RequiresBlankLineBehindClosingBrace(SyntaxKind previousLastTokenKind, bool isTerminalDirectSwitchSectionBreak)
+    {
+        return previousLastTokenKind == SyntaxKind.CloseBraceToken
+               && isTerminalDirectSwitchSectionBreak == false;
+    }
+
+    /// <summary>
+    /// Determines whether a statement needs a blank line in front of it because of its own kind and the kind of the statement
+    /// before it in the same list (FMT-BLANK-001 to FMT-BLANK-004)
+    /// </summary>
+    /// <param name="statement">The statement</param>
+    /// <param name="previousKind">The kind of the preceding statement</param>
+    /// <param name="isTerminalDirectSwitchSectionBreak">Whether the statement is the terminal <see langword="break"/> directly inside its switch section</param>
+    /// <returns><see langword="true"/> if a blank line is required in front of the statement</returns>
+    public static bool RequiresBlankLineForStatementKind(StatementSyntax statement, SyntaxKind previousKind, bool isTerminalDirectSwitchSectionBreak)
+    {
+        switch (statement)
+        {
+            case LocalDeclarationStatementSyntax:
+                return previousKind != SyntaxKind.LocalDeclarationStatement;
+
+            case TryStatementSyntax:
+            case IfStatementSyntax:
+            case WhileStatementSyntax:
+            case DoStatementSyntax:
+            case UsingStatementSyntax:
+            case CommonForEachStatementSyntax:
+            case ForStatementSyntax:
+            case ReturnStatementSyntax:
+            case GotoStatementSyntax:
+            case ContinueStatementSyntax:
+            case ThrowStatementSyntax:
+            case SwitchStatementSyntax:
+            case CheckedStatementSyntax:
+            case FixedStatementSyntax:
+            case LockStatementSyntax:
+                return true;
+
+            case BreakStatementSyntax:
+                return isTerminalDirectSwitchSectionBreak == false;
+
+            case YieldStatementSyntax:
+                return previousKind is not (SyntaxKind.YieldReturnStatement or SyntaxKind.YieldBreakStatement);
+
+            case ExpressionStatementSyntax expressionStatement:
+                return previousKind == SyntaxKind.LocalDeclarationStatement
+                       && expressionStatement.Expression is AssignmentExpressionSyntax == false;
+
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>
+    /// Determines whether a statement rule asks for a blank line between a statement and the statement before it in the same
+    /// list, either because of the statement's kind or because the statement before it ends with a closing brace. Directives
+    /// and existing blank lines in the gap are not considered: the result is the rule, read from the syntax alone
+    /// </summary>
+    /// <param name="previousStatement">The preceding statement</param>
+    /// <param name="statement">The statement</param>
+    /// <returns><see langword="true"/> if a statement rule separates the two statements by a blank line</returns>
+    public static bool RequiresBlankLineBetweenStatements(StatementSyntax previousStatement, StatementSyntax statement)
+    {
+        var isTerminalDirectSwitchSectionBreak = IsTerminalDirectSwitchSectionBreak(statement);
+
+        return RequiresBlankLineBehindClosingBrace(previousStatement.GetLastToken().Kind(), isTerminalDirectSwitchSectionBreak)
+               || RequiresBlankLineForStatementKind(statement, previousStatement.Kind(), isTerminalDirectSwitchSectionBreak);
+    }
+
+    /// <summary>
     /// Determines whether a blank line is required between a statement that ends with a closing brace and the
     /// statement that follows it in the same list. No blank line is required when the statement does not end with a
     /// closing brace, when one already separates the two, when both share a line, or when the following statement is

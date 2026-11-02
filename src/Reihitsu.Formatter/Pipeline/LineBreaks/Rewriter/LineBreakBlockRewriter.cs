@@ -56,7 +56,10 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Ensures sibling statements in a statement list start on separate lines
+    /// Ensures sibling statements in a statement list start on separate lines (FMT-BREAK-006). An empty statement and the
+    /// statement next to it are left as written, unless a statement rule of the blank-line phase separates the two by a blank
+    /// line; which pairs it separates is read from <see cref="BlankLineSpacingPolicy"/>, the rule the blank-line phase applies,
+    /// so that phase, which runs later, adds only the blank line
     /// </summary>
     /// <typeparam name="TNode">The syntax node type owning the statement list</typeparam>
     /// <param name="node">The node owning the statement list</param>
@@ -78,8 +81,9 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
 
         for (var statementIndex = 1; statementIndex < statements.Length; statementIndex++)
         {
-            if (statements[statementIndex - 1] is EmptyStatementSyntax
-                || statements[statementIndex] is EmptyStatementSyntax)
+            if ((statements[statementIndex - 1] is EmptyStatementSyntax
+                 || statements[statementIndex] is EmptyStatementSyntax)
+                && BlankLineSpacingPolicy.RequiresBlankLineBetweenStatements(statements[statementIndex - 1], statements[statementIndex]) == false)
             {
                 continue;
             }

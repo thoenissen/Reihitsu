@@ -83,51 +83,6 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Determines whether this rewriter breaks the line in front of a token that stands behind the closing line of a
-    /// delimited comment that spans several lines (FMT-BREAK-019, SHARED-COMMENT-012). The token then leaves the comment's
-    /// line, so the comments of that line end up on their own line. The blank-line phase classifies the position of those
-    /// comments by this fact (FMT-BLANK-018)
-    /// </summary>
-    /// <param name="token">The token to inspect; a token that is no longer part of its tree has no parent and is no chain link operator, so the result is <see langword="false"/> for it</param>
-    /// <param name="boundary">The facts about the code above the root of the token's tree</param>
-    /// <returns><see langword="true"/> if the token is a chain link operator behind a multi-line comment's closing line in front of which the wrapped chain layout breaks the line</returns>
-    internal static bool BreaksLineBehindMultiLineCommentTail(SyntaxToken token, FluentChainBoundary boundary)
-    {
-        if (IsBehindMultiLineCommentTail(token) == false
-            || HasLineBreak(token.GetPreviousToken(), token) == false)
-        {
-            return false;
-        }
-
-        for (var node = token.Parent; node != null; node = node.Parent)
-        {
-            if (FluentChain.IsOutermostChainNode(node, boundary))
-            {
-                var chain = FluentChain.Create(node, true, boundary);
-
-                if (chain == null)
-                {
-                    return false;
-                }
-
-                var lineBreaks = GetWrappedLayoutLineBreaks(chain);
-
-                for (var linkIndex = 0; linkIndex < chain.Links.Count; linkIndex++)
-                {
-                    if (chain.Links[linkIndex].OperatorToken == token)
-                    {
-                        return lineBreaks[linkIndex];
-                    }
-                }
-
-                return false;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
     /// Returns the pending replacement recorded for a token, or the token itself when none exists. Several rules may
     /// touch the same token — one clears its leading trivia, another its trailing trivia — so every rule composes on the
     /// pending token instead of letting the last writer discard an earlier edit
@@ -192,8 +147,8 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     /// <returns>Per link, whether a line break is ensured in front of its operator</returns>
     /// <remarks>
     /// The decision reads only the line breaks the user put in front of and inside the link operators and the trivia in
-    /// front of the first link, so the blank-line phase, which runs earlier and changes none of them, reads the same answer
-    /// through <see cref="BreaksLineBehindMultiLineCommentTail"/>
+    /// front of the first link. The blank-line phase runs after this phase, so it sees the line breaks this layout writes
+    /// and reads no prediction of them (FMT-PIPE-025)
     /// </remarks>
     private static bool[] GetWrappedLayoutLineBreaks(FluentChain chain)
     {

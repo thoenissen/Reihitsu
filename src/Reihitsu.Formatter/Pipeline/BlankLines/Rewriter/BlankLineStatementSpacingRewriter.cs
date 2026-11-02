@@ -59,70 +59,6 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Determines whether a statement needs the blank line that RH5030 requires after a closing brace, from its preceding
-    /// statement and whether the statement itself is exempt as the terminal <see langword="break"/> of its switch section
-    /// </summary>
-    /// <param name="previousLastTokenKind">The kind of the last token of the preceding statement</param>
-    /// <param name="isTerminalDirectSwitchSectionBreak">Whether the current statement is the terminal <see langword="break"/> directly inside its switch section</param>
-    /// <returns><see langword="true"/> if the statement follows a closing brace and needs a blank line</returns>
-    /// <remarks>
-    /// This mirrors RH5030, which carries no directive exemption, unlike the statement-kind rules in
-    /// <see cref="NeedsBlankLineForStatementKind"/>. Callers must reposition the insertion past a leading
-    /// directive rather than skip it.
-    /// </remarks>
-    private static bool IsAfterClosingBrace(SyntaxKind previousLastTokenKind, bool isTerminalDirectSwitchSectionBreak)
-    {
-        return previousLastTokenKind == SyntaxKind.CloseBraceToken
-               && isTerminalDirectSwitchSectionBreak == false;
-    }
-
-    /// <summary>
-    /// Determines whether a blank line is required before the specified statement based on its own kind
-    /// </summary>
-    /// <param name="statement">The current statement</param>
-    /// <param name="previousKind">The kind of the preceding statement</param>
-    /// <param name="isTerminalDirectSwitchSectionBreak">Whether the current statement is the terminal <see langword="break"/> directly inside its switch section</param>
-    /// <returns><see langword="true"/> if a blank line should be inserted before the statement</returns>
-    private static bool NeedsBlankLineForStatementKind(StatementSyntax statement, SyntaxKind previousKind, bool isTerminalDirectSwitchSectionBreak)
-    {
-        switch (statement)
-        {
-            case LocalDeclarationStatementSyntax:
-                return previousKind != SyntaxKind.LocalDeclarationStatement;
-
-            case TryStatementSyntax:
-            case IfStatementSyntax:
-            case WhileStatementSyntax:
-            case DoStatementSyntax:
-            case UsingStatementSyntax:
-            case CommonForEachStatementSyntax:
-            case ForStatementSyntax:
-            case ReturnStatementSyntax:
-            case GotoStatementSyntax:
-            case ContinueStatementSyntax:
-            case ThrowStatementSyntax:
-            case SwitchStatementSyntax:
-            case CheckedStatementSyntax:
-            case FixedStatementSyntax:
-            case LockStatementSyntax:
-                return true;
-
-            case BreakStatementSyntax:
-                return isTerminalDirectSwitchSectionBreak == false;
-
-            case YieldStatementSyntax:
-                return previousKind is not (SyntaxKind.YieldReturnStatement or SyntaxKind.YieldBreakStatement);
-
-            case ExpressionStatementSyntax expressionStatement:
-                return previousKind == SyntaxKind.LocalDeclarationStatement
-                       && expressionStatement.Expression is AssignmentExpressionSyntax == false;
-
-            default:
-                return false;
-        }
-    }
-
-    /// <summary>
     /// Ensures the blank line the statement-spacing rules require before a statement
     /// </summary>
     /// <param name="statement">The current statement</param>
@@ -130,14 +66,20 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
     /// <param name="previousLastTokenKind">The kind of the last token of the preceding statement</param>
     /// <param name="isTerminalDirectSwitchSectionBreak">Whether the current statement is the terminal <see langword="break"/> directly inside its switch section</param>
     /// <returns>The statement with a blank line inserted before it, or the original if none is required or one already exists</returns>
+    /// <remarks>
+    /// Which statements need a blank line is <see cref="BlankLineSpacingPolicy"/>'s, which the line-break phase reads as well
+    /// to split an empty statement from a neighbour that a blank line separates (FMT-BREAK-006). The closing-brace rule
+    /// mirrors RH5030, which carries no directive exemption, unlike the statement-kind rules, so its insertion is
+    /// repositioned past a leading directive rather than skipped
+    /// </remarks>
     private StatementSyntax ApplyStatementSpacing(StatementSyntax statement, SyntaxKind previousKind, SyntaxKind previousLastTokenKind, bool isTerminalDirectSwitchSectionBreak)
     {
-        if (IsAfterClosingBrace(previousLastTokenKind, isTerminalDirectSwitchSectionBreak))
+        if (BlankLineSpacingPolicy.RequiresBlankLineBehindClosingBrace(previousLastTokenKind, isTerminalDirectSwitchSectionBreak))
         {
             return _editor.EnsureBlankLineAfterClosingBrace(statement);
         }
 
-        return NeedsBlankLineForStatementKind(statement, previousKind, isTerminalDirectSwitchSectionBreak)
+        return BlankLineSpacingPolicy.RequiresBlankLineForStatementKind(statement, previousKind, isTerminalDirectSwitchSectionBreak)
                    ? _editor.EnsureBlankLineBeforeStatement(statement)
                    : statement;
     }
