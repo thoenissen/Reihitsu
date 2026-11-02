@@ -89,6 +89,59 @@ internal sealed class TokenGapNormalizer
     }
 
     /// <summary>
+    /// Moves a token onto its own line when its line does not start a line of its own (SHARED-BLANK-008). The token's line
+    /// begins with the first content in front of it on that line — the token itself, or a comment glued to it, such as a
+    /// delimited documentation comment (<c>/** */</c>) or a comment that starts its line above the token; a multi-line
+    /// comment belongs to the line it starts on. That line starts behind a <c>//</c> comment, a <c>///</c> comment, a
+    /// directive, or an end-of-line trivia, but not behind the last line of a multi-line comment. When it does not start,
+    /// the line break goes in front of that first content, so the token and every comment glued to it start the new line
+    /// together, while every comment that trailed the previous token stays on that token's line
+    /// </summary>
+    /// <typeparam name="TNode">The syntax node type containing the token</typeparam>
+    /// <param name="node">The containing node</param>
+    /// <param name="token">The token that should start its own line</param>
+    /// <returns>The updated node</returns>
+    /// <remarks>
+    /// The previous token's trailing whitespace stays; the cleanup phase removes it (FMT-BREAK-029)
+    /// </remarks>
+    public TNode EnsureTokenStartsLine<TNode>(TNode node,
+                                              SyntaxToken token)
+        where TNode : SyntaxNode
+    {
+        token = TokenLocator.GetCurrentToken(node, token);
+
+        if (token.IsMissing
+            || TokenContainmentUtilities.ContainsToken(node, token) == false
+            || TokenLocator.TryGetPreviousToken(node, token, out _) == false)
+        {
+            return node;
+        }
+
+        var leadingTrivia = token.LeadingTrivia;
+        var lineStartIndex = TriviaListUtilities.FindFirstContentIndexOnLine(leadingTrivia, leadingTrivia.Count);
+
+        if (lineStartIndex < 0)
+        {
+            lineStartIndex = leadingTrivia.Count;
+        }
+
+        if (TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, lineStartIndex))
+        {
+            return node;
+        }
+
+        while (lineStartIndex > 0
+               && leadingTrivia[lineStartIndex - 1].IsKind(SyntaxKind.WhitespaceTrivia))
+        {
+            lineStartIndex--;
+        }
+
+        var newToken = token.WithLeadingTrivia(leadingTrivia.Insert(lineStartIndex, SyntaxFactory.EndOfLine(_endOfLine)));
+
+        return node.ReplaceToken(token, newToken);
+    }
+
+    /// <summary>
     /// Finds the last structured trivia (a documentation comment or a directive) in a leading trivia list. The search is
     /// confined to the list itself, so it does not depend on whether the preceding code lies inside the node being
     /// rewritten

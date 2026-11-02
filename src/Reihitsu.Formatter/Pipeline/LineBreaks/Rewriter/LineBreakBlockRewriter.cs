@@ -9,8 +9,9 @@ using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 
 /// <summary>
-/// Applies line-break rules for blocks, accessor lists, and switch braces. It is the one owner of the braces of every block
-/// and every event accessor list, member bodies included
+/// Applies line-break rules for blocks, accessor lists, switch braces, and the lines that switch sections, their labels, and
+/// their first statements start on. It is the one owner of the braces of every block and every event accessor list, member
+/// bodies included
 /// </summary>
 internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
 {
@@ -96,6 +97,47 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
         return modified
                    ? withStatements(node, SyntaxFactory.List(statements))
                    : node;
+    }
+
+    /// <summary>
+    /// Ensures every switch section behind the first starts its own line (FMT-BREAK-033). The first section starts its line
+    /// behind the opening brace (FMT-BREAK-002)
+    /// </summary>
+    /// <param name="node">The switch statement</param>
+    /// <returns>The switch statement with every section starting its own line</returns>
+    private SwitchStatementSyntax EnsureSectionsStartOnSeparateLines(SwitchStatementSyntax node)
+    {
+        for (var sectionIndex = 1; sectionIndex < node.Sections.Count; sectionIndex++)
+        {
+            node = _gapNormalizer.EnsureTokenStartsLine(node, node.Sections[sectionIndex].GetFirstToken());
+        }
+
+        return node;
+    }
+
+    /// <summary>
+    /// Ensures every label of a switch section behind the first starts its own line (FMT-BREAK-034), and the section's first
+    /// statement starts its own line behind the labels (FMT-BREAK-035). An empty first statement is left as written, as
+    /// FMT-BREAK-006 leaves it between statements, and a block that forms the section's body is placed by
+    /// <see cref="BracePlacer.NormalizeContainedBlock"/> (FMT-BREAK-008). The section's first label is placed by the switch
+    /// statement (FMT-BREAK-033)
+    /// </summary>
+    /// <param name="node">The switch section</param>
+    /// <returns>The switch section with its labels and its first statement starting their own lines</returns>
+    private SwitchSectionSyntax EnsureLabelsAndFirstStatementStartOnSeparateLines(SwitchSectionSyntax node)
+    {
+        for (var labelIndex = 1; labelIndex < node.Labels.Count; labelIndex++)
+        {
+            node = _gapNormalizer.EnsureTokenStartsLine(node, node.Labels[labelIndex].GetFirstToken());
+        }
+
+        if (node.Statements.Count > 0
+            && (node.Statements[0] is EmptyStatementSyntax or BlockSyntax) == false)
+        {
+            node = _gapNormalizer.EnsureTokenStartsLine(node, node.Statements[0].GetFirstToken());
+        }
+
+        return node;
     }
 
     /// <summary>
@@ -238,6 +280,7 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
 
         node = _bracePlacer.EnsureBraceOnOwnLine(node, owner => owner.OpenBraceToken, (owner, token) => owner.WithOpenBraceToken(token), owner => owner.CloseBraceToken, (owner, token) => owner.WithCloseBraceToken(token));
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
+        node = EnsureSectionsStartOnSeparateLines(node);
 
         return node;
     }
@@ -272,6 +315,7 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
             return null;
         }
 
+        node = EnsureLabelsAndFirstStatementStartOnSeparateLines(node);
         node = EnsureStatementsStartOnSeparateLines(node, static section => section.Statements, static (section, statements) => section.WithStatements(statements));
 
         if (node.Statements.Count > 0 && node.Statements[0] is BlockSyntax block)
