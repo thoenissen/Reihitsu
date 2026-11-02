@@ -59,10 +59,10 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
     /// Ensures sibling statements in a statement list start on separate lines (FMT-BREAK-006). An empty statement and the
     /// statement next to it are left as written, unless a statement rule of the blank-line phase separates the two by a blank
     /// line; which pairs it separates is read from <see cref="BlankLineSpacingPolicy"/>, the rule the blank-line phase applies,
-    /// so that phase, which runs later, adds only the blank line. For such a pair, a statement behind the last line of a
-    /// multi-line comment does not start its line although a line break lies in the gap (SHARED-COMMENT-012), so it is moved
-    /// onto the line below the comment here, and the blank-line phase never writes the line break that ends the line in
-    /// front of it. Other pairs whose gap already holds a line break are left as written
+    /// so that phase, which runs later, adds only the blank line. For such a pair, when the multi-line comment starts on the
+    /// previous statement's line, a statement behind its last line does not start its line although a line break lies in the
+    /// gap (SHARED-COMMENT-012), so it is moved onto the line below the comment here, and the blank-line phase never writes
+    /// the line break that ends the line in front of it. A comment that starts its own line is not handled here. Other pairs whose gap already holds a line break are left as written
     /// </summary>
     /// <typeparam name="TNode">The syntax node type owning the statement list</typeparam>
     /// <param name="node">The node owning the statement list</param>

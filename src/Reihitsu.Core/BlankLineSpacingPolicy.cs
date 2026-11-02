@@ -6,7 +6,7 @@ namespace Reihitsu.Core;
 
 /// <summary>
 /// Shared policy for the blank lines between statements: the statement shapes that are exempt from a blank-line rule,
-/// and the rules that require a blank line behind a closing brace and between statements of different kinds
+/// and the rules that require a blank line behind a closing brace and between statements, depending on the kinds of the statements
 /// </summary>
 public static class BlankLineSpacingPolicy
 {
