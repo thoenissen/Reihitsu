@@ -42,6 +42,8 @@ Behavior change: the issue changes the phase order and visible formatter output 
 
    Where the blank-line rules require a blank line between two statements, the repaired split of decision 28 still applies (output as on `main` there too).
 
+3. Formatter · a `case` label behind the closing line of a multi-line `/* */` comment that starts on its own line (asked after the answer-2 audit). The maintainer chose **A**: it stays behind `*/`, as on `main` — answer 2 applies to switch sections and labels too. Decision 38 is now covered by this answer.
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
@@ -87,6 +89,7 @@ Behavior change: the issue changes the phase order and visible formatter output 
 | 39 | Spec author (decision 38) | Class members (and possibly other constructs) behind a multi-line comment's closing line stay there, against FMT-BREAK-007 and SHARED-COMMENT-012's general formatter clause | Not in this run: one follow-up that surveys every construct against SHARED-COMMENT-012 and states answer 2's principle generally; no output change intended | The constructs lie outside the run's issue; a survey of the whole clause is a run of its own | Output as on `main`; principle decided by answer 2 | — |
 | 40 | Auditor (answer-2 round) | Finding 7: decision 38 extended answer 2 to sections and labels without asking; tests now lock that output | Ask it as output question 3; decision 38 waits on the answer | An extension of a maintainer answer by the lead is not an answer (`README.md`, *What reaches the maintainer*) | Output question 3 pending | — |
 | 41 | Auditor (answer-2 round) | Findings 8 and 9 after three repair rounds | Resolved as the narrowing round (`README.md`, *Repairs*): the spec author removes FMT-BREAK-006's claim about multi-line `/** */` comments behind code (stating instead that such a comment is first put on its own line, so the statement behind it stays, as FMT-BREAK-033 states for sections) and removes SHARED-COMMENT-012's restated summary, keeping only the pointer; tests for the `/** */` members of finding 8 are added only if the spec author's wording requires coverage | No visible output changes; the statements in question are covered by answer 2 directly (a statement behind a comment stays); runs after answer 3 | Output as on `main` | pending |
+| 42 | Maintainer answer 3 / cost | Checks after the narrowing round (findings 8, 9: spec text only) | Spec author only; the spec checker and auditor do not run again; the change is proven text-only with `scripts/verify-text-only.sh --strict-docs`; the validator runs once on the final tree and covers the spec-structure architecture tests | The maintainer asked to stop spending tokens; the delta is spec prose with no compiled change and no output change | Output as on `main` | pending |
 
 ## Follow-up candidates
 
