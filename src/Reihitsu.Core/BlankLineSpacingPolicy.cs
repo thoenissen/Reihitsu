@@ -5,7 +5,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Reihitsu.Core;
 
 /// <summary>
-/// Shared policy for statement shapes that are exempt from otherwise applicable blank-line rules
+/// Shared policy for the blank lines between statements: the statement shapes that are exempt from a blank-line rule,
+/// and the rules that require a blank line behind a closing brace and between statements of different kinds
 /// </summary>
 public static class BlankLineSpacingPolicy
 {
