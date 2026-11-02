@@ -5,7 +5,7 @@
 | ID prefix | FMT-SWITCH |
 | Status | Active |
 | Code owners | `SwitchCaseBracePhase`, `SwitchCaseBraceRewriter` |
-| Uses | FMT-PIPE-002, FMT-PIPE-003, SHARED-BLANK-004, FMT-PIPE-013, FMT-BLANK-011, FMT-PIPE-004, FMT-PIPE-001, FMT-BREAK-012, FMT-BREAK-015, FMT-BREAK-021, FMT-SPACE-001, FMT-BLANK-010, FMT-BLANK-014, FMT-BLANK-018 |
+| Uses | FMT-PIPE-002, FMT-PIPE-003, SHARED-BLANK-004, FMT-PIPE-013, FMT-BLANK-011, FMT-PIPE-004, FMT-PIPE-001, FMT-BREAK-012, FMT-BREAK-015, FMT-BREAK-021, FMT-SPACE-001, FMT-BLANK-010, FMT-BLANK-014, FMT-BLANK-018, FMT-BLANK-007, FMT-BREAK-008, FMT-PIPE-025 |
 
 This spec covers when the formatter wraps the statements of the sections of a `switch` statement in a `{ … }` block: which sections make a switch braced, what goes inside the block, and every guard that leaves a section or a whole switch as it is.
 
@@ -13,7 +13,7 @@ This spec covers when the formatter wraps the statements of the sections of a `s
 
 - Switch expressions (`x switch { … }`): their layout belongs to FMT-BREAK and FMT-INDENT. They matter here only as content that makes a section multi-line (FMT-SWITCH-005).
 - Moving a `break` that is already inside an existing block out of it. RH7501 reports that shape and its code fix moves the `break`; the formatter keeps an existing block as written (FMT-SWITCH-009).
-- Blank lines between sections and inside the new blocks (FMT-BLANK, SHARED-BLANK-004), and the line breaks and indentation of the braces (FMT-BREAK, FMT-INDENT).
+- Blank lines between sections and around and inside the new blocks (FMT-BLANK, SHARED-BLANK-004), which the blank-line phase decides after this phase (FMT-SWITCH-016), and the indentation of the braces (FMT-INDENT). Where the braces the phase inserts start their lines is FMT-BREAK-008's placement, which this phase applies to them (FMT-SWITCH-015).
 - The lines that a section, each of its labels, and its first statement start on (FMT-BREAK-033 to FMT-BREAK-035). The phase keeps the labels where it finds them (FMT-SWITCH-006).
 - Removing braces from a section. The phase contains a removal path for switches without a multi-line section, but an existing block always reaches this phase spanning several lines (FMT-SWITCH-008), so no shipped behavior removes braces.
 
@@ -510,7 +510,7 @@ class C
 
 When the formatter braces a section, a comment trailing the last label MUST stay on the label's line, a comment leading the first statement MUST move with that statement into the block, and a comment trailing the last statement in the block MUST stay on that statement's line (FMT-PIPE-002). The layout of these comments is kept as FMT-PIPE-013 states. The whitespace between the label and a comment behind it, and between the last statement and a comment behind it, MUST be carried as written: brace insertion MUST NOT normalize that gap, so a gap of four spaces stays four spaces and a gap of none stays none (FMT-SPACE-001). A blank line between the last comment that leads the first statement and that statement MUST be carried into the block as the wrap finds it; brace insertion MUST NOT remove it. The blank lines between the leading comments are kept as FMT-PIPE-013 states.
 
-A comment that leads the terminal `break`, which stays outside the block (FMT-SWITCH-002), MUST stay in front of that `break`, behind the closing brace of the new block, and MUST be preceded by the blank line FMT-BLANK-011 requires for it already in the output of the pass that inserts the braces. A comment written in front of the `break` on the `break`'s line is glued to it (FMT-BLANK-018) and gets no blank line from FMT-BLANK-011; above it, as above the terminal `break` itself, no statement requirement inserts one (SHARED-BLANK-004), so only a blank line the author wrote there is kept. The comments around the terminal `break` MUST keep the layout the author gave them, as FMT-PIPE-013 keeps it for the comments of wrapped code: the blank lines between the comments that lead the `break`, the space between two comments on the same line, a comment written in front of the `break` on the `break`'s line, which stays on that line, the blank line between the last comment that leads the `break` and the `break`, and the comments behind the `break`, with the whitespace in front of and between them as written. The line that holds the `break` still starts after the closing brace (FMT-SWITCH-002); only comments the author wrote on it share it. The wrap carries the blank line behind the last leading comment, at the first statement and at the `break`, as earlier phases leave it: a run of blank lines has already collapsed to one (FMT-BLANK-014), and a blank line behind a documentation comment has already been removed (FMT-BLANK-010).
+A comment that leads the terminal `break`, which stays outside the block (FMT-SWITCH-002), MUST stay in front of that `break`, behind the closing brace of the new block, and MUST be preceded by the blank line FMT-BLANK-011 requires for it in the same run; the blank-line phase, which runs after this phase, inserts it (FMT-SWITCH-016). A comment written in front of the `break` on the `break`'s line is glued to it (FMT-BLANK-018) and gets no blank line from FMT-BLANK-011; above it, as above the terminal `break` itself, no statement requirement inserts one (SHARED-BLANK-004), so only a blank line the author wrote there is kept. The comments around the terminal `break` MUST keep the layout the author gave them, as FMT-PIPE-013 keeps it for the comments of wrapped code: the blank lines between the comments that lead the `break`, the space between two comments on the same line, a comment written in front of the `break` on the `break`'s line, which stays on that line, the blank line between the last comment that leads the `break` and the `break`, and the comments behind the `break`, with the whitespace in front of and between them as written. The line that holds the `break` still starts after the closing brace (FMT-SWITCH-002); only comments the author wrote on it share it. The wrap carries the blank lines behind the last leading comment, at the first statement and at the `break`, as it finds them (FMT-SWITCH-016); the blank-line phase, which runs after it, collapses a run of them to one (FMT-BLANK-014) and removes one behind a documentation comment (FMT-BLANK-010).
 
 Why: Brace insertion moves the trivia around the labels, the new braces, the statements it wraps, and the terminal `break` it leaves outside. Comments are user-authored content and must keep their position relative to the code they describe. A comment in front of the terminal `break` describes the `break`, so it stays with it outside the block; once the block is there, a comment on a line of its own is no longer the first content of its section, and FMT-BLANK-011 asks for the blank line in front of it. A comment that shares the `break`'s line belongs to that line, and the terminal `break` gets no blank line above it (SHARED-BLANK-004). Leaving that line to a second pass would make the formatter change its own output (FMT-PIPE-004). A blank line between the comments groups them as the author wrote them, and no later pass restores it once it is lost. The terminal `break` is not wrapped, but its trivia crosses the same new brace, so a wrap that changed its comments' layout would change it only because braces were inserted, which FMT-PIPE-013 rules out for the wrapped code. The gap in front of a trailing comment is the author's choice of comment position: the spacing phase leaves it as it finds it (FMT-SPACE-001), and the same statement keeps it in a plain block and in a braced `if` or `else` body, so a braced section that collapsed it would be the one place where a wrap changes it. The same holds for a blank line between a comment and the statement or `break` it leads: a plain block and a braced `if` or `else` body keep it, so the braced section keeps it too.
 
@@ -1331,6 +1331,108 @@ class C
             case 2:
                 {
                     F(y);
+                }
+                break;
+        }
+    }
+}
+```
+
+### FMT-SWITCH-015 — The inserted braces are placed as the block of a section
+
+The braces the phase inserts MUST start their lines as FMT-BREAK-008 places the braces of a block that forms a switch section's body: the opening brace starts the line below the last label, behind the comments that trail it (FMT-SWITCH-007); the first statement in the block, or the first comment on a line of its own that leads it, starts the line below the opening brace; the closing brace starts the line below the last statement in the block, behind the comments that trail it; and the terminal `break` that stays outside the block (FMT-SWITCH-002) starts the line below the closing brace. The phase MUST apply the line-break phase's placement of a section's block to the braces it inserts, not a placement of its own.
+
+Why: The line-break phase runs before this phase (FMT-PIPE-001), because whether a section spans several lines is measured on its output (FMT-SWITCH-003, FMT-SWITCH-008), so it never sees the braces this phase inserts. A block the author wrote and a block this phase inserts are the same construct and get the same lines; a second placement for the inserted braces would be a copy of FMT-BREAK-008 that can drift from it.
+
+Example:
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                A();
+                B();
+                break;
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                {
+                    A();
+                    B();
+                }
+                break;
+        }
+    }
+}
+```
+
+### FMT-SWITCH-016 — Brace insertion writes no blank line and removes none
+
+When the phase braces a section, it MUST NOT write a blank line and MUST NOT remove one: every blank line in the trivia it carries across the new braces MUST stay in that trivia, and the line breaks it writes in front of and behind the new braces MUST form no blank line. The blank lines around and inside the new block — behind the last label, behind the opening brace, in front of the closing brace, and between the closing brace and the terminal `break` or what follows it — are decided by the blank-line phase, which runs after this phase (FMT-PIPE-025), as for any other block.
+
+Why: Blank lines are decided by FMT-BLANK alone. The blank-line phase sees the new block, so it decides the blank lines around it as it decides them around a block the author wrote: none behind the opening brace or in front of the closing brace (FMT-BLANK-007), and the one FMT-BLANK-011 asks for in front of a comment behind the block. A phase that also decided them would make one decision in two places (FMT-PIPE-025).
+
+Example:
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+
+                // a
+                A();
+                B();
+
+
+                // b
+                break;
+
+            case 2:
+                C();
+                break;
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                {
+                    // a
+                    A();
+                    B();
+                }
+
+                // b
+                break;
+
+            case 2:
+                {
+                    C();
                 }
                 break;
         }

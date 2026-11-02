@@ -5,7 +5,7 @@
 | ID prefix | FMT-PIPE |
 | Status | Active |
 | Code owners | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `PreparationPhase`, `FormattingContext`, `PrecedingTokenFacts`, `RootListPosition`, `RootConstruct`, `RootConstructExtensions`, `TriviaFact`, `FluentChainBoundary`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities`, `BlockWrapTriviaUtilities` |
-| Uses | SHARED-CHAIN-001, SHARED-FIX-001, SHARED-FIX-006, SHARED-FIX-007, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BREAK-001, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-CLEAN-001, FMT-CLEAN-005, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-002, FMT-INDENT-003, FMT-INDENT-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-012, FMT-INDENT-022, FMT-INDENT-024, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-026, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003 |
+| Uses | SHARED-BLANK-002, SHARED-CHAIN-001, SHARED-FIX-001, SHARED-FIX-006, SHARED-FIX-007, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BLANK-018, FMT-BREAK-001, FMT-BREAK-006, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-BREAK-033, FMT-BREAK-036, FMT-CLEAN-001, FMT-CLEAN-005, FMT-DOC-001, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-002, FMT-INDENT-003, FMT-INDENT-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-012, FMT-INDENT-022, FMT-INDENT-024, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-026, FMT-SWITCH-003, FMT-SWITCH-008, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003 |
 
 This spec covers what holds for the formatter as a whole: the public entry points, the fixed phase order, and the invariants every phase must keep. What an individual phase decides is specified in that phase's own spec.
 
@@ -31,18 +31,18 @@ The formatter MUST apply its phases in this order, each phase receiving the outp
 | 3 | `RegionFormattingPhase` | [region-formatting.md](region-formatting.md) (FMT-REGION) |
 | 4 | `DocumentationCommentFormattingPhase` | [documentation-comments.md](documentation-comments.md) (FMT-DOC) |
 | 5 | `UsingDirectiveOrderingPhase` | [using-directives.md](using-directives.md) (FMT-USING) |
-| 6 | `BlankLinePhase` | [blank-lines.md](blank-lines.md) (FMT-BLANK) |
-| 7 | `LineBreakPhase` | [line-breaks.md](line-breaks.md) (FMT-BREAK) |
-| 8 | `SwitchCaseBracePhase` | [switch-case-braces.md](switch-case-braces.md) (FMT-SWITCH) |
+| 6 | `LineBreakPhase` | [line-breaks.md](line-breaks.md) (FMT-BREAK) |
+| 7 | `SwitchCaseBracePhase` | [switch-case-braces.md](switch-case-braces.md) (FMT-SWITCH) |
+| 8 | `BlankLinePhase` | [blank-lines.md](blank-lines.md) (FMT-BLANK) |
 | 9 | `HorizontalSpacingPhase` | [horizontal-spacing.md](horizontal-spacing.md) (FMT-SPACE) |
 | 10 | `IndentationPhase` | [indentation.md](indentation.md) (FMT-INDENT) and [raw-string-alignment.md](raw-string-alignment.md) (FMT-RAW) |
 | 11 | `CleanupPhase` | [cleanup.md](cleanup.md) (FMT-CLEAN) |
 
 The first phase is the preparation phase, whose two sub-phases, TabReplacement and LineEndings, run in this order. Each sub-phase is a phase of its own: it receives the output of the step before it and is reported to the pipeline observer and the trace under the name in the table. The preparation phase is not reported as a step of its own; every other phase is reported under its type name.
 
-A phase MUST NOT compute the column of a token, a comment, or a line from a move or a replacement that a phase after it applies, neither by repeating that phase's rule nor by adjusting for its result: the tab width of FMT-TAB-001 and the raw-string move of FMT-RAW-001 are applied before or in the phase that measures them. This requirement specifies columns only; it does not decide whether a phase may anticipate a later phase's line breaks or blank lines.
+A phase MUST NOT compute the column of a token, a comment, or a line from a move or a replacement that a phase after it applies, neither by repeating that phase's rule nor by adjusting for its result: the tab width of FMT-TAB-001 and the raw-string move of FMT-RAW-001 are applied before or in the phase that measures them. This requirement specifies columns; FMT-PIPE-025 states the same rule for line breaks and blank lines.
 
-Why: Later phases rely on the shape earlier phases produce — tabs and line endings are normalized before any other phase runs (FMT-PIPE-019), line breaks are decided before spacing and indentation measure columns, and raw strings are aligned in the phase that places their opening quotes. A phase may assume the phases before it ran; it must not assume anything about the phases after it. A phase that predicts a later one makes one decision in two places, and every difference between the prediction and the later phase is output that the next pass changes again (FMT-PIPE-004).
+Why: Later phases rely on the shape earlier phases produce — tabs and line endings are normalized before any other phase runs (FMT-PIPE-019); line breaks are decided before the switch-brace phase measures whether a section spans several lines (FMT-SWITCH-003, FMT-SWITCH-008); blank lines are decided after the line-break phase has put every statement, section, and brace on its line and after the switch-brace phase has inserted its blocks, so the blank-line phase counts them on the lines the output keeps; line breaks and blank lines are final before spacing and indentation measure columns; and raw strings are aligned in the phase that places their opening quotes. A phase may assume the phases before it ran; it must not assume anything about the phases after it. A phase that predicts a later one makes one decision in two places, and every difference between the prediction and the later phase is output that the next pass changes again (FMT-PIPE-004).
 
 ### FMT-PIPE-002 — User-authored content survives
 
@@ -857,7 +857,6 @@ The node-level entry points MUST give the phases the facts in the table below ab
 | Documentation boundary | Whether the root is something other than a compilation unit; when it is, one line break in front of a single-line documentation comment that leads the root is kept while the root's leading blank lines are removed | yes | yes | yes |
 | Preceding token | The kind of the token in front of the root in the document, whether it is the colon of a switch label, and the kind and text of each of its trailing trivia, in order; none when no token stands in front of the root | none | the target | none |
 | List position | The kind of the statement in front of the root in its block or switch section and the kind of that statement's last token, whether the switch section in front of the root ends in a `break` statement, and whether the root is a `break` statement that ends its switch section | none | the target, when it starts its line | none |
-| `else if` | Whether the root is the `if` statement of an `else` clause | none | the target | none |
 | Chain continuation | Whether the root's parent continues the root's member-access chain (SHARED-CHAIN-001), so that the root is not the outermost node of its chain | none | the target | none |
 | Conditional-access branch | Whether the root is the part of a conditional access behind its `?`, so that an assignment that is the root continues the chain of its left side | none | the target | none |
 | One-line property | Whether the root is an accessor or an accessor list of a property, indexer, or event declaration that stands on one line apart from its attribute lists; it counts only while the root itself holds no line break, in its text or its leading trivia | none | the target | none |
@@ -873,12 +872,12 @@ These decisions MUST read the facts instead of the neighbour or the ancestor the
 - the blank-line phase decides the root's leading blank lines from the preceding token — its kind, and whether it ends its line — the list position, and the documentation boundary;
 - the documentation phase decides from the preceding token whether a documentation comment that leads the root is written behind code;
 - the rule of SHARED-CHAIN-001 that only the outermost node of a chain is laid out as a chain decides, for every node of the root, whether that node is the outermost node of its chain; where the rule would read above the root, it reads the chain-continuation and conditional-access-branch facts instead. The line-break phase lays out, and the indentation phase aligns, a chain only at the node the rule names;
-- the line-break phase, from the other construct facts, leaves a comment behind the condition of an `else if` root where it stands, keeps the attribute lists of an accessor of a one-line property on the property's line while the root holds no line break, joins the interior wraps of a root inside a list element, may collapse the arguments of an element access onto one line, keeps the opening brace of a recursive pattern a `case` label introduces on the label's line, and keeps the opening brace of an assigned collection initializer on the assignment's line;
+- the line-break phase, from the other construct facts, keeps the attribute lists of an accessor of a one-line property on the property's line while the root holds no line break, joins the interior wraps of a root inside a list element, may collapse the arguments of an element access onto one line, keeps the opening brace of a recursive pattern a `case` label introduces on the label's line, and keeps the opening brace of an assigned collection initializer on the assignment's line;
 - the indentation phase lays out the root from the depth and the first-token column and aligns the comments that lead the root from the preceding token.
 
 What follows the root's last token MUST be decided as at the end of a file: the node-in-document entry points write back the target's trailing trivia from the document (FMT-PIPE-010), and the caller of `FormatNode` decides what follows the node.
 
-Why: A fact that holds a node or trivia of the document carries positions in a tree the root no longer belongs to, and a rule that forbids reading them cannot be enforced. The values in the table are what the phases use: whether the token in front ends its line, whether a comment trails it, where a line starts behind it, the kinds the blank-line rules compare, and, for the construct the root stands in, the one answer each line-break decision takes from the root's ancestors. A decision that got no fact would decide as if the root were a construct of its own: the `if` of `else if (y) // note` would get the comment moved in front of it, where `FormatNodeInDocumentAsync` writes the document's leading trivia back over it (FMT-PIPE-010), and the comment would be lost. The entry points differ because their results do: `FormatNodeInDocumentAsync` writes its target back into the document and decides the target's blank lines, documentation, and layout from it, `FormatNodeInDocumentWithContextAsync` writes back its target's leading trivia as it stands in the document (FMT-PIPE-018), and the caller of `FormatNode` decides what stands around the node (FMT-PIPE-012).
+Why: A fact that holds a node or trivia of the document carries positions in a tree the root no longer belongs to, and a rule that forbids reading them cannot be enforced. The values in the table are what the phases use: whether the token in front ends its line, whether a comment trails it, where a line starts behind it, the kinds the blank-line rules compare, and, for the construct the root stands in, the one answer each line-break decision takes from the root's ancestors. A decision that got no fact would decide as if the root were a construct of its own: a statement target behind `var a = 1;` would be decided as the first statement of a block and get no blank line in front of it (example below). The entry points differ because their results do: `FormatNodeInDocumentAsync` writes its target back into the document and decides the target's blank lines, documentation, and layout from it, `FormatNodeInDocumentWithContextAsync` writes back its target's leading trivia as it stands in the document (FMT-PIPE-018), and the caller of `FormatNode` decides what stands around the node (FMT-PIPE-012).
 
 Example — `FormatNodeInDocumentAsync` with the statement `Call(1, 2);` as target, behind `var a = 1;` without a blank line: the list position says that a local declaration stands in front of the statement, so the blank line that FMT-BLANK requires there is inserted, as document-level formatting inserts it:
 
@@ -906,3 +905,62 @@ class C
 ```
 
 `FormatNode` with the same statement returns `        Call(1, 2);`: it supplies no list position, and its caller decides what stands in front of the node.
+
+### FMT-PIPE-025 — No phase decides a line break or a blank line from a later phase's
+
+A phase MUST NOT decide a line break or a blank line from a line break or a blank line that a phase after it adds or removes, neither by repeating that phase's rule nor by adjusting for its result. Every phase that adds or removes a line break between two tokens runs before the blank-line phase (FMT-PIPE-001), so the blank-line phase decides each blank line on the lines the output keeps; the phases after it MUST NOT add or remove a line break between two tokens.
+
+Why: A phase that predicts a later phase's line breaks or blank lines makes one decision in two places, as FMT-PIPE-001 states for columns, and every difference between the prediction and the later phase is output that the next run changes again (FMT-PIPE-004). With the blank-line phase in front of the line-break phase, a blank line that depends on where a line breaks had to be decided before the line broke: the blank-line phase wrote the line break that ends a statement's or a section's line itself, a decision FMT-BREAK-006 and FMT-BREAK-033 give the line-break phase, and the switch-brace phase, which inserts its blocks after both layout phases, had to carry blank lines that the blank-line phase had decided before the blocks existed.
+
+Example — sections on one line get their own lines from the line-break phase and the blank line behind `break` from the blank-line phase, in one run:
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x) { case 1: break; case 2: break; }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                break;
+
+            case 2:
+                break;
+        }
+    }
+}
+```
+
+### FMT-PIPE-026 — Whether a comment starts its line is final after the line-break phase
+
+A phase after `LineBreakPhase` MUST NOT change whether a comment starts its line (SHARED-BLANK-002): it MUST NOT move a comment that shares a line with code onto a line of its own, and MUST NOT move a comment that starts its line behind code.
+
+Why: Whether a comment starts its line decides the blank line in front of it (FMT-BLANK-011, FMT-BLANK-018) and the column it is indented to (FMT-INDENT). The blank-line phase decides that blank line once, on the lines it finds; a comment that a later phase moved onto a line of its own would get its blank line only in the next run (FMT-PIPE-004). A documentation comment written behind code is moved by the documentation phase (FMT-DOC-001), before the line-break phase.
+
+Example — the comment behind the condition stays behind it (FMT-BREAK-036), and the output is stable in one run:
+
+```csharp
+class C
+{
+    void M(bool a, bool b)
+    {
+        while (b)
+            if (a) // why
+            {
+                A();
+            }
+    }
+}
+```
+
+is kept unchanged.
