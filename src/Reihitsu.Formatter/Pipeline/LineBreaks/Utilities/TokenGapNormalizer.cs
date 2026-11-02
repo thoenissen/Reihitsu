@@ -89,13 +89,14 @@ internal sealed class TokenGapNormalizer
     }
 
     /// <summary>
-    /// Puts a token on a line of its own when other content on its line stands in front of it (SHARED-BLANK-008). The
-    /// token's line begins with the first content in front of it on that line — the token itself, or a comment glued to it, such as a
+    /// Moves a token onto a line of its own when its line starts behind other content (SHARED-BLANK-008). The token's line
+    /// begins with the first content in front of it on that line: the token itself, or a comment glued to it, such as a
     /// delimited documentation comment (<c>/** */</c>) or a comment that starts its line above the token; a multi-line
     /// comment belongs to the line it starts on. That line starts behind a <c>//</c> comment, a <c>///</c> comment, a
-    /// directive, or an end-of-line trivia, but not behind the last line of a multi-line comment. When it does not start,
-    /// the line break goes in front of that first content, so the token and every comment glued to it start the new line
-    /// together, while every comment that trailed the previous token stays on that token's line
+    /// directive, or an end-of-line trivia, but not behind the last line of a multi-line comment or the previous token. A
+    /// token whose line starts that way stays where it is. Otherwise the line break goes in front of that first content, so
+    /// the token and every comment glued to it start the new line together, while every comment that trailed the previous
+    /// token stays on that token's line
     /// </summary>
     /// <typeparam name="TNode">The syntax node type containing the token</typeparam>
     /// <param name="node">The containing node</param>
