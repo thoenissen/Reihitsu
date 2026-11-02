@@ -132,9 +132,9 @@ public static class BlankLineSpacingPolicy
 
     /// <summary>
     /// Determines whether a blank line is required between a statement that ends with a closing brace and the
-    /// statement that follows it in the same list. No blank line is required when the statement does not end with a
-    /// closing brace, when one already separates the two, when both share a line, or when the following statement is
-    /// a terminal break owned directly by a switch section
+    /// statement that follows it in the same list. The rule itself is <see cref="RequiresBlankLineBehindClosingBrace"/>
+    /// (the statement ends with a closing brace and the following statement is not a terminal break owned directly by a
+    /// switch section); on top of it, no blank line is required when one already separates the two or when both share a line
     /// </summary>
     /// <param name="statement">Statement to inspect</param>
     /// <param name="nextStatement">Statement that follows <paramref name="statement"/> in the same list</param>
@@ -143,12 +143,7 @@ public static class BlankLineSpacingPolicy
     {
         var lastToken = statement.GetLastToken();
 
-        if (lastToken.IsKind(SyntaxKind.CloseBraceToken) == false)
-        {
-            return false;
-        }
-
-        if (IsTerminalDirectSwitchSectionBreak(nextStatement))
+        if (RequiresBlankLineBehindClosingBrace(lastToken.Kind(), IsTerminalDirectSwitchSectionBreak(nextStatement)) == false)
         {
             return false;
         }

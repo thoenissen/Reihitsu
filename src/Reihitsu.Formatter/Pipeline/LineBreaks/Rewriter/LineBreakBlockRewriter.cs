@@ -59,7 +59,10 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
     /// Ensures sibling statements in a statement list start on separate lines (FMT-BREAK-006). An empty statement and the
     /// statement next to it are left as written, unless a statement rule of the blank-line phase separates the two by a blank
     /// line; which pairs it separates is read from <see cref="BlankLineSpacingPolicy"/>, the rule the blank-line phase applies,
-    /// so that phase, which runs later, adds only the blank line
+    /// so that phase, which runs later, adds only the blank line. For such a pair, a statement behind the last line of a
+    /// multi-line comment does not start its line although a line break lies in the gap (SHARED-COMMENT-012), so it is moved
+    /// onto the line below the comment here, and the blank-line phase never writes the line break that ends the line in
+    /// front of it. Other pairs whose gap already holds a line break are left as written
     /// </summary>
     /// <typeparam name="TNode">The syntax node type owning the statement list</typeparam>
     /// <param name="node">The node owning the statement list</param>
@@ -81,9 +84,11 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
 
         for (var statementIndex = 1; statementIndex < statements.Length; statementIndex++)
         {
+            var requiresBlankLine = BlankLineSpacingPolicy.RequiresBlankLineBetweenStatements(statements[statementIndex - 1], statements[statementIndex]);
+
             if ((statements[statementIndex - 1] is EmptyStatementSyntax
                  || statements[statementIndex] is EmptyStatementSyntax)
-                && BlankLineSpacingPolicy.RequiresBlankLineBetweenStatements(statements[statementIndex - 1], statements[statementIndex]) == false)
+                && requiresBlankLine == false)
             {
                 continue;
             }
@@ -95,6 +100,16 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
             {
                 statements[statementIndex] = _gapNormalizer.NormalizeGapBeforeToken(statements[statementIndex], currentToken);
                 modified = true;
+            }
+            else if (requiresBlankLine)
+            {
+                var placedStatement = _gapNormalizer.EnsureTokenStartsLine(statements[statementIndex], currentToken);
+
+                if (placedStatement != statements[statementIndex])
+                {
+                    statements[statementIndex] = placedStatement;
+                    modified = true;
+                }
             }
         }
 
