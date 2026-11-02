@@ -26,6 +26,7 @@ Verdict: run started
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 9 | Spec author | Change doc status `Draft` → `Accepted` | Confirmed | Every visible output change has a maintainer answer (1–6) | Status field only | 59c1536 |
 | 8 | Implementer / test implementer | Unused `PhaseReversalCauses.LineStartIndentation` after the exception list emptied | Revised: keep the cause unchanged (the class must keep a member to build — S2094; deleting the class empties the known-cause checks, and a suppression is not wanted) | Removal costs more than it saves | Test helper only | 4586769 |
 | 7 | Implementer | `ConstraintClauseInHoleOf{Aligned,Misaligned}LiteralIsIndentedFromItsDeclaration*` expect the anonymous method's block at column 17 | Re-derive expectations to the FMT-INDENT-031 layout (brace under `delegate`); test implementer edits, change doc lists both tests as changing | Asserted output is decided by maintainer answer 1 and FMT-INDENT-031; the tests' own point (the `where` clause indentation) stays | Covered by maintainer answer 1 | — |
 | 6 | Test implementer | Columns behind `=>`/`return` (entry 5) | Assert only the blank line; column left to follow-up candidate 3 | No requirement decides that column | No column asserted or changed | c269f57 |
