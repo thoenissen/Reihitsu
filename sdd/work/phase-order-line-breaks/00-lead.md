@@ -58,8 +58,8 @@ Behavior change: the issue changes the phase order and visible formatter output 
 | 23 | Implementer | Code owners for the statement-kind rules now in `Reihitsu.Core/BlankLineSpacingPolicy.cs` | Spec author lists the owner where the FMT-BLANK requirements name their code owners | Decision 14 | Spec bookkeeping | bfa5820 |
 | 24 | Implementer | Stale order remark in `src/Reihitsu.Formatter.Test/Regression/LineBreaks/AutoPropertyTrailingCommentTests.cs:233` | Adjacent fix: the cleaner corrects the comment | Text only, in a file the run's subject covers | Comment only | pending |
 | 25 | Spec author | Decision 23 revised: `BlankLineSpacingPolicy` already belongs to SHARED-BLANK and a type owns code in one spec only | Keep it there; no new code-owner listing; FMT-BLANK/FMT-BREAK name the IDs under `Uses`; no new Core type | `sdd/README.md` single-owner rule, enforced by the architecture tests; decision 14 | Spec bookkeeping | bfa5820 |
-| 26 | Spec author | FMT-SWITCH-016's new second example (comment-free blank lines dropped) | Test implementer derives a test unless one covers it | Every spec example needs coverage | Output as on `main` | pending |
-| 27 | Spec author | Stale comment at `SwitchCaseBracePhaseLayoutTests.cs:12` | Cleaner corrects it with row 24 | Comment only | Comment only | pending |
+| 26 | Spec author | FMT-SWITCH-016's new second example (comment-free blank lines dropped) | Test implementer derives a test unless one covers it | Every spec example needs coverage | Output as on `main` | 06ebdaa |
+| 27 | Spec author | Stale comment at `SwitchCaseBracePhaseLayoutTests.cs:12` | Done by the test implementer with row 26; the test name `BraceInsertionWritesAndRemovesNoBlankLine` stays, as it holds for its input | Comment only | Comment only | 06ebdaa |
 
 ## Follow-up candidates
 
