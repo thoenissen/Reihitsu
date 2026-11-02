@@ -26,6 +26,8 @@ Verdict: run started
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 4 | Spec author | Accept the change doc `sdd/changes/2026-11/lambda-paren-hole-break.md` | Accepted after skeptic and amendments for answers 1–6 | Visible output changes are all answered | All changes covered by maintainer answers | 8bcb6de |
+| 3 | Spec author | Anchor of `static async delegate` | Under `async`, like its block-lambda counterpart | Follows the rule of answers 4 and 6 (an anonymous method aligns like its block-lambda counterpart) | Covered by the maintainer's answers 4/6 rule | 8bcb6de |
 | 2 | Skeptic | Phase-stability check test loses its lambda example | Replace with an injected (synthetic) phase, not another formatter defect | The check's own test must not depend on a defect surviving | Test-only | — |
 | 1 | Claim | Branch name `claude/issue-1494-<slug>` per `squad/lead.md` vs. the session's designated branch | Use `claude/ecstatic-shannon-j9cmkw` | The session environment pins development and pushes to that branch | Branch names are internal | ae55f3e |
 
