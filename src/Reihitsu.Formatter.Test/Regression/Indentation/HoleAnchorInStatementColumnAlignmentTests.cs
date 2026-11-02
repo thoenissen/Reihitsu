@@ -3752,5 +3752,405 @@ public class HoleAnchorInStatementColumnAlignmentTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that the block of an anonymous method whose anchor stands behind the end of a multi-line <c>/* */</c> comment in a hole, a line that does not move, in column 8, the column block indentation gives its opening brace, starts under <c>delegate</c> with its body one level deeper in an already aligned literal, and that a member-access chain around the block whose anchor link <c>.A</c> stands on the block's closing line, written in column 6, aligns its next link under <c>.A</c> as measured after the block is placed, stable on a second pass
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    [Requirement("FMT-INDENT-029")]
+    [Requirement("FMT-INDENT-030")]
+    [Requirement("FMT-RAW-007")]
+    public void AnonymousMethodClosingLineInInputColumn6WithOuterChainBehindCommentEndLineInStatementColumnInAlignedLiteralAlignsTheChainUnderItsAnchorLink()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                              K {M(/* one
+                             aaaaa */delegate { return 1;
+                                   }).A()
+                             .B()}
+                                              """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 K {M(/* one
+                                aaaaa */delegate
+                                        {
+                                            return 1;
+                                        }).A()
+                                          .B()}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the block of an anonymous method whose anchor stands behind the end of a multi-line <c>/* */</c> comment in a hole, a line that does not move, in column 8, the column block indentation gives its opening brace, starts under <c>delegate</c> with its body one level deeper in an already aligned literal, and that a member-access chain around the block whose anchor link <c>.A</c> stands on the block's closing line, written in column 8, aligns its next link under <c>.A</c> as measured after the block is placed, stable on a second pass
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    [Requirement("FMT-INDENT-029")]
+    [Requirement("FMT-INDENT-030")]
+    [Requirement("FMT-RAW-007")]
+    public void AnonymousMethodClosingLineInInputColumn8WithOuterChainBehindCommentEndLineInStatementColumnInAlignedLiteralAlignsTheChainUnderItsAnchorLink()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                              K {M(/* one
+                             aaaaa */delegate { return 1;
+                                     }).A()
+                             .B()}
+                                              """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 K {M(/* one
+                                aaaaa */delegate
+                                        {
+                                            return 1;
+                                        }).A()
+                                          .B()}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the block of an anonymous method whose anchor stands behind the end of a multi-line <c>/* */</c> comment in a hole, a line that does not move, in column 8, the column block indentation gives its opening brace, starts under <c>delegate</c> with its body one level deeper when the literal moves 8 columns to the left, and that a member-access chain around the block whose anchor link <c>.A</c> stands on the block's closing line, written in column 14, aligns its next link under <c>.A</c> as measured after the block is placed, stable on a second pass
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    [Requirement("FMT-INDENT-029")]
+    [Requirement("FMT-INDENT-030")]
+    [Requirement("FMT-RAW-007")]
+    public void AnonymousMethodClosingLineInInputColumn14WithOuterChainBehindCommentEndLineInStatementColumnInLiteralMovedLeftAlignsTheChainUnderItsAnchorLink()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                                      K {M(/* one
+                             aaaaa */delegate { return 1;
+                                           }).A()
+                             .B()}
+                                                      """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 K {M(/* one
+                                aaaaa */delegate
+                                        {
+                                            return 1;
+                                        }).A()
+                                          .B()}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the block of an anonymous method whose anchor stands behind the end of a multi-line <c>/* */</c> comment in a hole, a line that does not move, in column 8, the column block indentation gives its opening brace, starts under <c>delegate</c> with its body one level deeper when the literal moves 8 columns to the left, and that a member-access chain around the block whose anchor link <c>.A</c> stands on the block's closing line, written in column 16, aligns its next link under <c>.A</c> as measured after the block is placed, stable on a second pass
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    [Requirement("FMT-INDENT-029")]
+    [Requirement("FMT-INDENT-030")]
+    [Requirement("FMT-RAW-007")]
+    public void AnonymousMethodClosingLineInInputColumn16WithOuterChainBehindCommentEndLineInStatementColumnInLiteralMovedLeftAlignsTheChainUnderItsAnchorLink()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                                      K {M(/* one
+                             aaaaa */delegate { return 1;
+                                             }).A()
+                             .B()}
+                                                      """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 K {M(/* one
+                                aaaaa */delegate
+                                        {
+                                            return 1;
+                                        }).A()
+                                          .B()}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the block of a block lambda whose anchor stands behind the end of a multi-line <c>/* */</c> comment in a hole, a line that does not move, in column 8, the column block indentation gives its opening brace, starts under the <c>(</c> of its parameter list with its body one level deeper in an already aligned literal, and that a member-access chain around the block whose anchor link <c>.A</c> stands on the block's closing line, written in column 6, aligns its next link under <c>.A</c> as measured after the block is placed, stable on a second pass
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-028")]
+    [Requirement("FMT-INDENT-029")]
+    [Requirement("FMT-INDENT-030")]
+    [Requirement("FMT-RAW-007")]
+    public void ParenthesizedLambdaClosingLineInInputColumn6WithOuterChainBehindCommentEndLineInStatementColumnInAlignedLiteralAlignsTheChainUnderItsAnchorLink()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                              K {M(/* one
+                             aaaaa */() => { return 1;
+                                   }).A()
+                             .B()}
+                                              """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 K {M(/* one
+                                aaaaa */() =>
+                                        {
+                                            return 1;
+                                        }).A()
+                                          .B()}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the block of a block lambda whose anchor stands behind the end of a multi-line <c>/* */</c> comment in a hole, a line that does not move, in column 8, the column block indentation gives its opening brace, starts under the <c>(</c> of its parameter list with its body one level deeper in an already aligned literal, and that a member-access chain around the block whose anchor link <c>.A</c> stands on the block's closing line, written in column 8, aligns its next link under <c>.A</c> as measured after the block is placed, stable on a second pass
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-028")]
+    [Requirement("FMT-INDENT-029")]
+    [Requirement("FMT-INDENT-030")]
+    [Requirement("FMT-RAW-007")]
+    public void ParenthesizedLambdaClosingLineInInputColumn8WithOuterChainBehindCommentEndLineInStatementColumnInAlignedLiteralAlignsTheChainUnderItsAnchorLink()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                              K {M(/* one
+                             aaaaa */() => { return 1;
+                                     }).A()
+                             .B()}
+                                              """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 K {M(/* one
+                                aaaaa */() =>
+                                        {
+                                            return 1;
+                                        }).A()
+                                          .B()}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the block of a block lambda whose anchor stands behind the end of a multi-line <c>/* */</c> comment in a hole, a line that does not move, in column 8, the column block indentation gives its opening brace, starts under the <c>(</c> of its parameter list with its body one level deeper when the literal moves 8 columns to the left, and that a member-access chain around the block whose anchor link <c>.A</c> stands on the block's closing line, written in column 14, aligns its next link under <c>.A</c> as measured after the block is placed, stable on a second pass
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-028")]
+    [Requirement("FMT-INDENT-029")]
+    [Requirement("FMT-INDENT-030")]
+    [Requirement("FMT-RAW-007")]
+    public void ParenthesizedLambdaClosingLineInInputColumn14WithOuterChainBehindCommentEndLineInStatementColumnInLiteralMovedLeftAlignsTheChainUnderItsAnchorLink()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                                      K {M(/* one
+                             aaaaa */() => { return 1;
+                                           }).A()
+                             .B()}
+                                                      """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 K {M(/* one
+                                aaaaa */() =>
+                                        {
+                                            return 1;
+                                        }).A()
+                                          .B()}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the block of a block lambda whose anchor stands behind the end of a multi-line <c>/* */</c> comment in a hole, a line that does not move, in column 8, the column block indentation gives its opening brace, starts under the <c>(</c> of its parameter list with its body one level deeper when the literal moves 8 columns to the left, and that a member-access chain around the block whose anchor link <c>.A</c> stands on the block's closing line, written in column 16, aligns its next link under <c>.A</c> as measured after the block is placed, stable on a second pass
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-028")]
+    [Requirement("FMT-INDENT-029")]
+    [Requirement("FMT-INDENT-030")]
+    [Requirement("FMT-RAW-007")]
+    public void ParenthesizedLambdaClosingLineInInputColumn16WithOuterChainBehindCommentEndLineInStatementColumnInLiteralMovedLeftAlignsTheChainUnderItsAnchorLink()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                                      K {M(/* one
+                             aaaaa */() => { return 1;
+                                             }).A()
+                             .B()}
+                                                      """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 K {M(/* one
+                                aaaaa */() =>
+                                        {
+                                            return 1;
+                                        }).A()
+                                          .B()}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Tests
 }
