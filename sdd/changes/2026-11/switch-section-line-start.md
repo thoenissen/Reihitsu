@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-BREAK-033 (added), FMT-BREAK-034 (added), FMT-BREAK-035 (added), FMT-BREAK-006 (changed), FMT-BLANK-004 (changed) |
 | Depends on | [One line-start fact for analyzers and every formatter phase](../2026-10/line-start-fact.md), [The blank-line phase is the only owner of blank lines](blank-line-sole-owner.md) |
@@ -14,8 +14,9 @@ The line-break phase decides the lines a switch statement's sections start on:
 - **Every section starts its own line** (FMT-BREAK-033), whatever statement ends the section before it. Until now, only a section behind a `break` statement got a line of its own, and only as a side effect of the blank line FMT-BLANK-004 asks for; behind `return`, `throw`, `goto`, or `continue` the sections stayed on one line.
 - **Every label of a section starts its own line** (FMT-BREAK-034): `case 1: case 2:` becomes two lines.
 - **The first statement of a section starts its own line** (FMT-BREAK-035), behind the section's labels, as every later statement of the section already does (FMT-BREAK-006). An empty statement (`;`) that is the first statement stays where it is, as FMT-BREAK-006 leaves it between statements.
+- **A delimited documentation comment (`/** */`) in front of a section, a label, or a first statement moves with it**: the line break goes in front of the comment, so `case 2: /** d */ A();` becomes `case 2:` and `/** d */ A();` on the next line.
 
-"Starts its own line" is the shared line-start fact, SHARED-BLANK-008: a section, a label, or a statement behind a `//` comment or a directive already starts its line; one behind the last line of a multi-line comment does not. Where the phase inserts a line break, a comment that trailed the token before stays on that token's line (FMT-BREAK-001).
+"Starts its own line" is the shared line-start fact, SHARED-BLANK-008: a section, a label, or a statement behind a `//` comment or a directive already starts its line; one behind the last line of a multi-line comment does not. Where the phase inserts a line break, an ordinary comment that trailed the token before stays on that token's line (FMT-BREAK-001).
 
 FMT-BREAK-006 is scoped to what it already decided — a statement that follows another statement of the same list — and points to FMT-BREAK-002 and FMT-BREAK-035 for the first statement of a block and of a section.
 
@@ -33,7 +34,7 @@ A switch is read by its labels. A section that shares a line with the section be
 
 ## Visible output changes
 
-Each entry shows the formatter's output on `main` and after this change, from one run of the formatter.
+Each entry shows the formatter's output on `main` and after this change, from one run of the formatter. The maintainer decided every entry through the run's output questions on 2026-11-02 (see `Decisions`); each entry shows the chosen output.
 
 ### 1. Sections behind a section that does not end in `break` start their own line
 
@@ -143,7 +144,7 @@ The same holds for a section behind the last line of a multi-line comment that t
 
 ### 3. The first statement of a section moves behind its labels
 
-This includes a `break` statement and a statement behind a pattern label with a `when` guard. A comment between the label and the statement stays on the label's line.
+This includes a `break` statement and a statement behind a pattern label with a `when` guard. An ordinary comment between the label and the statement stays on the label's line; a `/** */` comment there moves with the statement (entry 6).
 
 ```csharp
 class C
@@ -198,8 +199,6 @@ class C
 
 ### 4. Labels that share a line are stacked
 
-Pending output question 1 of the run.
-
 ```csharp
 class C
 {
@@ -237,7 +236,7 @@ class C
 
 ### 5. Code fixes that format a switch through the formatter
 
-A code fix that formats a node through the formatter lays out the switch sections inside that node as entries 1 to 4 show. For RH5417 on
+A code fix that formats a node through the formatter lays out the switch sections inside that node as entries 1 to 4 and 6 show. For RH5417 on
 
 ```csharp
 class C
@@ -283,9 +282,68 @@ class C
 }
 ```
 
+The same holds for RH5403 and RH3208, whose fixes also format nodes that can hold a switch.
+
+### 6. A `/** */` comment in front of a label or a first statement moves with it
+
+```csharp
+class C
+{
+    int M(int x)
+    {
+        switch (x)
+        {
+            case 1: /** d */ A();
+                break;
+
+            case 4: /** f */ case 5:
+                return 5;
+        }
+
+        return 0;
+    }
+}
+```
+
+Before: unchanged.
+
+After:
+
+```csharp
+class C
+{
+    int M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                /** d */ A();
+                break;
+
+            case 4:
+            /** f */ case 5:
+                return 5;
+        }
+
+        return 0;
+    }
+}
+```
+
+In front of a section's first label behind a statement (`return 1; /** d */ case 2:`), FMT-DOC-001 already moves the comment onto a line of its own, with the blank line of FMT-BLANK-012, so the output there does not change: `/** d */ case 2:` starts its line.
+
 No diagnostic and no rule page changes.
 
 ## Decisions
+
+### Maintainer answers
+
+The maintainer answered the run's output questions on 2026-11-02:
+
+- Entries 1, 2, 3, and 5 — accepted as written.
+- Entry 4, labels sharing a line — stacked, one label per line (FMT-BREAK-034).
+- An empty first statement — stays where it is (FMT-BREAK-035); `case 1: ; break;` keeps its line, so no entry lists it.
+- Entry 6, a `/** */` comment between a label and the first statement — moves with the statement: `case 2:` alone, then `/** d */ A();`. The spec applies the same placement to a `/** */` comment in front of a section and in front of a later label (FMT-BREAK-033, FMT-BREAK-034).
 
 ### The line-break phase owns the line a section, a label, and a first statement start on
 
@@ -303,11 +361,15 @@ The issue asked that the blank-line phase write no line break that ends a line. 
 
 ### Labels each start a line
 
-Pending output question 1 of the run; the spec is written on the recommended option. Stacked labels are how the formatter already writes them when it braces a section (FMT-SWITCH-006), and one label per line puts every value a section handles at the label column.
+Decided by the maintainer. One label per line puts every value a section handles at the label column, where FMT-BREAK-033 puts the first label of every section. The switch-brace phase keeps labels where it finds them (FMT-SWITCH-006): on `main`, a braced section keeps `case 1: case 2:` on one line, so the stacked shape comes from FMT-BREAK-034 alone.
 
 ### An empty first statement stays where it is
 
-Pending output question 2 of the run; the spec is written on the recommended option. FMT-BREAK-006 leaves an empty statement and its neighbor as written, because moving it only moves a stray `;` around; FMT-BREAK-035 applies the same exception to the first statement, so `case 1: ; break;` stays on one line.
+Decided by the maintainer. FMT-BREAK-006 leaves an empty statement and its neighbor as written, because moving it only moves a stray `;` around; FMT-BREAK-035 applies the same exception to the first statement, so `case 1: ; break;` stays on one line.
+
+### A `/** */` comment moves with the token it stands in front of
+
+Decided by the maintainer for the first statement; FMT-BREAK-033 and FMT-BREAK-034 apply it to a section and a label so the three requirements place the comment alike. Unlike an ordinary comment behind a label's colon, which trails the label, a `/** */` comment is part of the leading trivia of the token behind it, and the formatter already keeps it in front of that token when it moves documentation off code (FMT-DOC-001). A token behind such a comment that starts its line counts as starting its line, so `/** d */ case 2:` on a line of its own is kept.
 
 ### Analyzers are unchanged
 
@@ -316,6 +378,8 @@ RH5103 does not report the first statement of a section on its label's line (RH5
 ## Alternatives considered
 
 - **Every section starts its own line, and the first statement may stay behind its label** (the issue's alternative) — rejected: the first statement would stay at the label column while the section's other statements stand one level deeper (FMT-INDENT-003), and FMT-BREAK-006 already gives every later statement its own line.
-- **Labels of one section keep the lines the author wrote** — the option B of output question 1; rejected on the recommendation, pending the answer.
+- **Labels of one section keep the lines the author wrote** — rejected by the maintainer's answer.
+- **A `/** */` comment between a label and the first statement stays on the label's line** — rejected by the maintainer's answer; it would separate the comment from the statement it stands in front of.
+- **An empty first statement moves to a line of its own** — rejected by the maintainer's answer; FMT-BREAK-006's exception for empty statements applies.
 - **The line-break phase writes the blank line in front of a section behind `break`** — rejected: FMT-BREAK-030 makes the blank-line phase the only owner of blank lines.
 - **The blank-line phase writes only the blank line's line break and predicts that the line-break phase ends the line** — rejected: it would predict a later phase (FMT-PIPE-001), and with the phases in their order the result has no blank line.
