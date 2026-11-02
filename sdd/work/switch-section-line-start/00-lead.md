@@ -36,6 +36,11 @@ Output-question batch 1 (before the test implementer), all answered with the rec
 
 Standing instruction: every later output question of this run is answered with the lead's recommended option; the maintainer wants a summary at the end. Later questions are therefore recorded here with the recommendation taken, not asked.
 
+Later output questions, decided under the standing instruction with the lead's recommendation (from 09-auditor.md):
+
+8. A `/** */` comment between two labels on one line (`case 4: /** f */ case 5:`) moves with the following label: `case 4:`, then `/** f */ case 5:` — the same placement answer 6 gives for a first statement.
+9. A run of comments that the parser attaches in front of the token on its line and that starts the moved content (`case 2: /** d */ /* c */ A();`, `case 3: /** a */ /** b */ case 4:`) moves with the token as written: `case 2:`, then `/** d */ /* c */ A();`. A comment that trails the label (`case 1: /* c */ A();`) stays on the label's line (answer 3). Why: the documentation comment stays with the token it documents, and the comments keep their order; this is the output the code writes today.
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
@@ -52,6 +57,7 @@ Standing instruction: every later output question of this run is answered with t
 | 10 | Implementer | `SectionBehindDirectiveKeepsItsLine` expects the formatter to split a line that is disabled text (`#if DEBUG` without `DEBUG` defined) | The test is wrong; the test implementer makes the branch active so the test checks a section behind a directive, and keeps the disabled-text case unchanged if it adds one | Formatter transformations preserve disabled text (`AGENTS.md`); the test's intent is a section behind a directive | An unchanged rule decides the output | 56ad47f |
 | 11 | Implementer | Existing test `DelimitedDocumentationRelocationTests.KeepsDelimitedDocumentationWithStatementBehindCaseLabel` asserts `case 1: /** d */ M(2);` unchanged | The test implementer updates its expected output to `case 1:` then `/** d */ M(2);` | Maintainer answer 6 and FMT-BREAK-035 decide it | Covered by maintainer answer 6 | 56ad47f |
 | 12 | Implementer | Architecture finding: `AddBraces` now reads the next token's leading trivia before writing its line break | Keep the narrow fix; structural single owner stays with thoenissen/Reihitsu#1518 / thoenissen/Reihitsu#1498 | The check reads the tree earlier phases produced through the shared line-start fact; it neither predicts a later phase nor restates FMT-BLANK-004, and `ControlFlowBraceTransform` has the same kind of check | Output pinned by tests under FMT-BLANK-004 / FMT-PIPE-004 | e38c060 |
+| 13 | Audit 1 | Repair round 1 worklist (09-auditor.md) | F1 (undecided label output): answered as question 8 above; the spec author corrects the change doc's claim that the maintainer decided every entry. F2 (FC-002, spec vs code on which comments move): answered as question 9; the spec author restates FMT-BREAK-033's rule to match, the test implementer pins both inputs and the multi-line `/** a⏎b */ A();` shape. F3 (FC-019/FC-003, PR-introduced): the test implementer adds two-run LF/CRLF tests for a comment between a braced section and the next token. F4 (FC-031 comment wording): the cleaner | All findings are same-requirement or PR-introduced; none repeats an earlier audit class | F1 and F2 decided under the maintainer's standing instruction | pending |
 
 ## Follow-up candidates
 
@@ -62,3 +68,6 @@ Standing instruction: every later output question of this run is answered with t
 5. Extend thoenissen/Reihitsu#1498's Done-when to switch sections: FMT-BLANK-004's new sentence is to be reverted there (02-skeptic.md).
 6. Extend thoenissen/Reihitsu#1518 with the braced-section doubling class, unless decision 6 fixes it fully in this run (02-skeptic.md).
 7. `TokenGapNormalizer.PlaceTokenOnOwnLine` may count a line break inside a multi-line comment, so `A(); /* a⏎b */ B();` may keep `B();` behind the comment; not reproduced (05-implementer.md).
+   Confirmed by the auditor on `main` too: in a braced block, `A(); /* c⏎d */ A();` leaves the second `A();` behind the comment; the structural cause is two "starts its line" tests in `TokenGapNormalizer` (09-auditor.md, hint 3).
+8. RH5204 reports on the formatter's output `/** a⏎ b */ case 2:` and its fix makes no progress; same on `main` (09-auditor.md, hint 1).
+9. RH5020 reports `A();⏎/* own line */ break;`, which the formatter keeps; same on `main` (09-auditor.md, hint 2).
