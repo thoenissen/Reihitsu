@@ -34,6 +34,10 @@ Behavior change: the issue changes the phase order and visible formatter output 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Branch name | The session's designated branch `claude/confident-rubin-j3pkrc` instead of `claude/issue-1498-<slug>` | The session may push only to its designated branch | Branch names are internal | 250aa7c |
+| 2 | Spec author | The Done-when "the blank-line phase inserts no line break that ends a statement's line" cannot hold where FMT-BREAK-006 leaves a statement next to an empty statement on its line (`a++; ; return a;`, `if (a) { } ;`) | Narrow the goal: the blank-line phase still ends that line when it inserts a blank line there (FMT-BLANK-021); every other same-line split is the line-break phase's | `agent-filed` goal; keeping it fully would change output on `main` | Output stays as on `main` | 1a072d5 |
+| 3 | Spec author | FMT-PIPE-024 loses the `else if` fact once FMT-BREAK-005 is retired | Take it in: remove `RootConstruct.ElseIf`, its computation, and `IsElseIfBranch` in this run | Only the retired move reads it; leaving it would be dead code in components the run already changes | Internal API with no other reader | 1a072d5 |
+| 4 | Spec author | Do visible output changes 1–4 of the change doc need an output question? | No: all four are the maintainer's answer 1 (the comment stays behind an `if` condition) applied to its shapes | Covered by answer 1 | Decided by the maintainer | 1a072d5 |
+| 5 | Spec author | Accept the change doc | Accept after the skeptic and any amendment | Lead playbook, section 4 | — | 1a072d5 |
 
 ## Follow-up candidates
 
