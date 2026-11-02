@@ -51,7 +51,7 @@ is left unchanged.
 
 ### FMT-BREAK-002 — Braces start their own line
 
-The opening and the closing brace of every namespace, type, member body, accessor body, statement block, lambda or anonymous-method block, local function, and switch statement MUST each start their own line, and the first token after an opening brace MUST start a new line. An empty body MUST therefore span two lines. A first statement behind the closing `*/` of a delimited comment that spans several lines is placed as FMT-BREAK-006 states.
+The opening and the closing brace of every namespace, type, member body, accessor body, statement block, lambda or anonymous-method block, local function, and switch statement MUST each start their own line, and the first token after an opening brace MUST start a new line. An empty body MUST therefore span two lines. A first statement behind the closing `*/` of a delimited comment that spans several lines is placed as FMT-BREAK-006 states, and the first section of a switch statement there as FMT-BREAK-033 states.
 
 This holds for the node a node-level entry point formats as it holds for a document: when the target is a member body, a block, or an event's accessor list, its braces are placed, whether the declaration that owns it lies inside the formatted node or not.
 
@@ -1596,9 +1596,16 @@ class C
 
 The first token of every switch section that follows another section of the same switch statement MUST start its own line, whatever statement ends the section before it. Whether the token starts its line is decided by SHARED-BLANK-008: a section behind a `//` comment or a directive starts its line and is kept; a section on the line of the previous section's last token, or behind the last line of a multi-line comment there, does not, and the phase MUST insert a line break in front of it, so a comment that trailed the previous section stays on that section's last line (FMT-BREAK-001). Comments in front of a token that moves move with it when they are the token's own leading trivia and stand on the token's line; a delimited comment stands on the line it starts on. On the line of the previous token, the C# parser ends the previous token's trailing trivia in front of the first documentation comment (`/** */`), so these are the comments from that first `/** */` comment up to the token, of any kind and however many: they MUST move with the token as written, in their order. An ordinary comment in front of that first `/** */` comment trails the previous token and MUST stay on its line (FMT-BREAK-001). The token starts its line when the first of the comments that move with it starts its line; where the phase inserts the line break, it MUST insert it in front of that comment, so the comments and the token start the new line together. FMT-BREAK-034 and FMT-BREAK-035 apply this rule to a label and a first statement. The first section of a switch statement starts its line behind the opening brace (FMT-BREAK-002). The phase inserts no blank line in front of a section (FMT-BREAK-030); the blank line behind a section that ends in `break` is FMT-BLANK-004's.
 
+A section whose first token stands behind the closing `*/` of a delimited comment (`/* */` or `/** */`) that spans several lines, on that comment's last line, does not start its line (SHARED-COMMENT-012). Where the comment starts decides whether it moves:
+
+- when the comment starts on the line of the token in front of it, behind that token — the last token of the previous section, or, for the first section, the switch statement's opening brace — the phase MUST insert the line break in front of the section, directly below the comment's last line, whatever statement ends the previous section;
+- when the comment starts on a line of its own, the phase MUST leave the section behind the `*/`.
+
+A `/** */` comment behind the previous token is among the comments that move with the token, as stated above, so it starts a line of its own and the section stays behind its `*/`. FMT-BREAK-034 applies the same placement to a label. The blank line that FMT-BLANK-004 asks for in front of a section behind a `break` statement goes below the comment's last line where the line breaks, and above the comment where the section stays behind it (FMT-BLANK-018).
+
 This requirement, FMT-BREAK-034, and FMT-BREAK-035 decide the lines inside the node that a node-level entry point formats; the gap in front of the target itself is kept as FMT-PIPE-010 states.
 
-Why: A switch is read by its labels: each section is one path, and its first label at the label column (FMT-INDENT-003) is where a reader finds it. A section that shares a line with the section before it hides its label in the middle of that line. Until now only a section behind a `break` statement got a line of its own, as a side effect of its blank line; behind `return`, `throw`, `goto`, or `continue` the sections stayed on one line. A `/** */` comment in front of a token is part of that token's leading trivia, and the formatter already keeps it in front of that token when it moves documentation off code (FMT-DOC-001); separating the two would leave the comment on a line above, away from what it documents. The comments behind it on the same line stand between the documentation and its token, so they move along and the comments keep their order; an ordinary comment in front of the documentation comment trails the previous token, as any trailing comment does.
+Why: A switch is read by its labels: each section is one path, and its first label at the label column (FMT-INDENT-003) is where a reader finds it. A section that shares a line with the section before it hides its label in the middle of that line. Until now only a section behind a `break` statement got a line of its own, as a side effect of its blank line; behind `return`, `throw`, `goto`, or `continue` the sections stayed on one line. A `/** */` comment in front of a token is part of that token's leading trivia, and the formatter already keeps it in front of that token when it moves documentation off code (FMT-DOC-001); separating the two would leave the comment on a line above, away from what it documents. The comments behind it on the same line stand between the documentation and its token, so they move along and the comments keep their order; an ordinary comment in front of the documentation comment trails the previous token, as any trailing comment does. A section or a label behind a multi-line comment's closing line stays where the author put it, as a statement does (FMT-BREAK-006): the formatter leaves code behind a comment on its line in many places, and the maintainer accepted this placement for sections and labels with the one for statements (change doc *Line breaks are decided before switch braces and blank lines*, maintainer answer 2). It moves only where the comment starts behind the previous token: there the comment's first line belongs to that token's line, and a section or a label behind it would continue the line of the previous section, label, or brace.
 
 Example:
 
@@ -1679,6 +1686,55 @@ class C
 }
 ```
 
+Example — behind the closing line of a multi-line comment, a section or a label moves when the comment starts behind the token in front of it (`case 1:` behind the opening brace, `case 3:` behind `return 2;`, `case 4:` behind `case 3:`), and stays behind the `*/` when the comment starts on a line of its own (`case 2:`, `case 5:`):
+
+```csharp
+class C
+{
+    int M(int x)
+    {
+        switch (x)
+        { /* a
+          */ case 1:
+                return 1;
+            /* b
+            */ case 2:
+                return 2; /* c
+                */ case 3: /* d
+            */ case 4:
+            /* e
+            */ case 5:
+                return 5;
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    int M(int x)
+    {
+        switch (x)
+        { /* a
+          */
+            case 1:
+                return 1;
+            /* b
+            */ case 2:
+                return 2; /* c
+                */
+            case 3: /* d
+            */
+            case 4:
+            /* e
+            */ case 5:
+                return 5;
+        }
+    }
+}
+```
+
 Example — a `/** */` comment in front of a section keeps its place in front of the label. Behind a statement, FMT-DOC-001 already moves it onto a line of its own before this phase runs, so the section starts its line behind the comment and is kept; the blank line of FMT-BLANK-012 in front of the comment is added after this phase:
 
 ```csharp
@@ -1715,7 +1771,7 @@ class C
 
 ### FMT-BREAK-034 — Each label of a switch section starts its own line
 
-Every label of a switch section that follows another label of the same section MUST start its own line (SHARED-BLANK-008); when it does not, the phase MUST insert a line break in front of it, so a comment that trailed the label before it stays on that label's line (FMT-BREAK-001). The comments in front of the label move with it as FMT-BREAK-033 states: from the first `/** */` comment on the previous label's line up to the label, the line break goes in front of them, and an ordinary comment in front of them stays on the previous label's line. This holds for `case` labels, pattern labels with or without a `when` guard, and `default` labels alike.
+Every label of a switch section that follows another label of the same section MUST start its own line (SHARED-BLANK-008); when it does not, the phase MUST insert a line break in front of it, so a comment that trailed the label before it stays on that label's line (FMT-BREAK-001). The comments in front of the label move with it as FMT-BREAK-033 states: from the first `/** */` comment on the previous label's line up to the label, the line break goes in front of them, and an ordinary comment in front of them stays on the previous label's line. This holds for `case` labels, pattern labels with or without a `when` guard, and `default` labels alike. A label behind the closing `*/` of a delimited comment that spans several lines is placed as FMT-BREAK-033 places a section there: the line break goes in front of it when the comment starts on the previous label's line, behind that label, and the label stays behind the `*/` when the comment starts on a line of its own.
 
 Why: Stacked labels select one shared body, and each of them names a value the section handles. One label per line puts every value at the label column, where FMT-BREAK-033 puts the first label of every section, and gives each label its own line in diffs.
 

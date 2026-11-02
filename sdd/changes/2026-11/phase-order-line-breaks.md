@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | FMT-PIPE-001 (changed), FMT-PIPE-024 (changed), FMT-PIPE-025 (added), FMT-PIPE-026 (added), FMT-BREAK-002 (changed), FMT-BREAK-005 (retired), FMT-BREAK-006 (changed), FMT-BREAK-030 (changed), FMT-BREAK-035 (changed), FMT-BREAK-036 (added), FMT-BLANK-004 (changed), FMT-BLANK-005 (changed), FMT-BLANK-018 (changed), FMT-SWITCH-007 (changed), FMT-SWITCH-015 (added), FMT-SWITCH-016 (added), SHARED-COMMENT-012 (changed) |
+| Affected requirements | FMT-PIPE-001 (changed), FMT-PIPE-024 (changed), FMT-PIPE-025 (added), FMT-PIPE-026 (added), FMT-BREAK-002 (changed), FMT-BREAK-005 (retired), FMT-BREAK-006 (changed), FMT-BREAK-030 (changed), FMT-BREAK-033 (changed), FMT-BREAK-034 (changed), FMT-BREAK-035 (changed), FMT-BREAK-036 (added), FMT-BLANK-004 (changed), FMT-BLANK-005 (changed), FMT-BLANK-018 (changed), FMT-SWITCH-007 (changed), FMT-SWITCH-015 (added), FMT-SWITCH-016 (added), SHARED-COMMENT-012 (changed) |
 | Depends on | [Every switch section, label, and first statement starts its own line](switch-section-line-start.md), [The blank-line phase is the only owner of blank lines](blank-line-sole-owner.md) |
 
 ## What
@@ -304,6 +304,21 @@ class C
    */ return a;
    ```
 
+   The lead applied the answer to switch sections and case labels too, which the formatter, on `main` as after this change, also leaves behind the closing `*/` of a comment that starts on a line of its own, against FMT-BREAK-033, FMT-BREAK-034, and SHARED-COMMENT-012 as written: the maintainer's reason — the formatter leaves code behind a comment on its line in many places — is not specific to statements, and keeping the placement changes no output. This extension is the lead's reading of the answer, not a separate answer. FMT-BREAK-033 states the placement for a section, FMT-BREAK-034 for a label, FMT-BREAK-002 points to FMT-BREAK-033 for a switch statement's first section, and SHARED-COMMENT-012 names sections and labels as exceptions next to the statement. No output changes:
+
+   ```csharp
+   switch (x)
+   {
+       case 1:
+           return 1;
+       /* b
+       */ case 2:
+       /* e
+       */ case 3:
+           return 3;
+   }
+   ```
+
 ### The new order
 
 LineBreaks → SwitchCaseBraces → BlankLines. The switch-brace phase stays behind the line-break phase, because it measures multi-line sections on that phase's output (FMT-SWITCH-003, FMT-SWITCH-008); the blank-line phase moves behind both, so it sees every line break and every inserted block. The order of the other phases does not change.
@@ -333,6 +348,8 @@ The `else if` fact told the line-break phase that a target was the `if` of an `e
 ### A statement behind a multi-line comment's closing line
 
 SHARED-COMMENT-012 asked the formatter to break the line in front of every token behind the closing `*/` of a comment that spans several lines where a requirement asks the token to start its line, and FMT-BREAK-006 asked every statement to start its own line. For a statement the formatter did not do this on `main` and does not after this change, except where a line must end anyway: where a blank-line requirement separates the statement from the previous one and the comment starts on that statement's line, and a first statement behind a comment that starts behind the opening brace or the section's label. Maintainer answer 2 keeps that output, so the specs now state it: FMT-BREAK-006 gives the placement and its two conditions — where the comment starts, and whether a blank-line requirement separates the pair — with an example on each side, and SHARED-COMMENT-012's formatter clause names the statement as its exception. Its clause for analyzer rules is unchanged.
+
+A switch section and a switch label are placed the same way, with one condition instead of two: where the comment starts. Behind a comment that starts behind the token in front of the section or label — the previous section's last token, the previous label, or the switch's opening brace — the formatter breaks the line in front of it, whatever statement ends the previous section, as on `main` (FMT-BREAK-033's existing example). Behind a comment that starts on a line of its own it leaves the section or label behind the `*/`, as on `main`. Unlike a statement, a section or a label has no blank-line condition: no blank line separates two labels, and a section behind a comment that starts behind code moves whether or not FMT-BLANK-004 asks for a blank line in front of it.
 
 ### SHARED-BLANK-003 is unchanged
 
