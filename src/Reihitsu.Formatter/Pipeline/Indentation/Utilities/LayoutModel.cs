@@ -350,7 +350,11 @@ internal sealed class LayoutModel
     /// <summary>
     /// Captures the current column of every entry, so a later state can be compared against it.
     /// Only the columns are captured: the <see cref="TokenLayout.Source"/> label is a debug aid and
-    /// two states that differ only in which contributor last wrote the same column are equivalent
+    /// two states that differ only in which contributor last wrote the same column are equivalent.
+    /// The captured column is the one contributors read (<see cref="TryGetPlacedColumnBeforeRawStringShift"/>): for a
+    /// line of an interpolation hole that no construct inside the hole placed, its registered column. So a construct
+    /// that places such a line without changing its layout's column still changes the state whenever the line's
+    /// column changes by being placed
     /// </summary>
     /// <returns>A snapshot mapping line numbers to their currently desired column</returns>
     public Dictionary<int, int> CaptureColumns()
@@ -359,14 +363,15 @@ internal sealed class LayoutModel
 
         foreach (var entry in _layouts)
         {
-            columns[entry.Key] = entry.Value.Column;
+            columns[entry.Key] = GetCapturedColumn(entry.Key, entry.Value);
         }
 
         return columns;
     }
 
     /// <summary>
-    /// Determines whether every entry still holds the column it held in the given snapshot
+    /// Determines whether every entry still holds the column it held in the given snapshot, as
+    /// <see cref="CaptureColumns"/> captures it
     /// </summary>
     /// <param name="columns">A snapshot previously returned by <see cref="CaptureColumns"/></param>
     /// <returns><see langword="true"/> if no column changed and no entry was added; otherwise, <see langword="false"/></returns>
@@ -380,7 +385,7 @@ internal sealed class LayoutModel
         foreach (var entry in _layouts)
         {
             if (columns.TryGetValue(entry.Key, out var column) == false
-                || column != entry.Value.Column)
+                || column != GetCapturedColumn(entry.Key, entry.Value))
             {
                 return false;
             }
@@ -393,7 +398,9 @@ internal sealed class LayoutModel
     /// Shifts the column of all existing entries within the specified line range by the given delta. The shifted column
     /// is floored at 0 after the lines of multi-line raw string literals move (<see cref="GetColumnAfterRawStringShift"/>),
     /// not before. A line of an interpolation hole is placed when the contributor shifting the range belongs to a node
-    /// inside that hole, and skipped when it belongs to a node outside it (<see cref="Contributor"/>)
+    /// inside that hole, and skipped when it belongs to a node outside it (<see cref="Contributor"/>). The range places
+    /// its lines whether or not the delta changes their columns: a delta of 0 means the lines already stand where the
+    /// contributor puts them, not that it leaves them unplaced
     /// </summary>
     /// <param name="startLine">The inclusive start line</param>
     /// <param name="endLine">The inclusive end line</param>
@@ -401,11 +408,6 @@ internal sealed class LayoutModel
     /// <param name="source">The source identifier for the shifted entries</param>
     public void ShiftRange(int startLine, int endLine, int delta, string source)
     {
-        if (delta == 0)
-        {
-            return;
-        }
-
         var keysToUpdate = _layouts.Keys
                                    .Where(key => key >= startLine && key <= endLine)
                                    .ToList();
@@ -418,6 +420,11 @@ internal sealed class LayoutModel
             }
 
             RecordPlacement(key);
+
+            if (delta == 0)
+            {
+                continue;
+            }
 
             var shift = GetRawStringShift(key);
 
@@ -446,6 +453,20 @@ internal sealed class LayoutModel
     private static TokenLayout ToLayoutBeforeRawStringShift(int columnAfterShift, string source, int shift)
     {
         return new TokenLayout(FloorColumn(columnAfterShift) - shift, source);
+    }
+
+    /// <summary>
+    /// Gets the column <see cref="CaptureColumns"/> captures for an entry: the registered column of a line of an
+    /// interpolation hole that no construct inside the hole placed, and the layout's column otherwise
+    /// </summary>
+    /// <param name="lineNumber">The 0-based line number</param>
+    /// <param name="layout">The line's layout</param>
+    /// <returns>The column contributors read for the line</returns>
+    private int GetCapturedColumn(int lineNumber, TokenLayout layout)
+    {
+        return IsUnplacedRawStringHoleLine(lineNumber, out var holeLine)
+                   ? holeLine.Column
+                   : layout.Column;
     }
 
     /// <summary>

@@ -157,13 +157,9 @@ internal sealed class LambdaAlignmentContributor : ILayoutContributor
             return;
         }
 
+        // The block is placed also when it already stands under its anchor (a delta of 0), so its lines in an
+        // interpolation hole of a multi-line raw string keep the layout the shift confirms
         var delta = anchorColumn - currentColumn;
-
-        if (delta == 0)
-        {
-            return;
-        }
-
         var startLine = LayoutComputer.GetLine(block.OpenBraceToken);
         var endLine = LayoutComputer.GetLine(block.CloseBraceToken);
 
