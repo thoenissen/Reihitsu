@@ -29,6 +29,19 @@ Behavior change: the issue changes the phase order and visible formatter output 
 
    Consequence for the issue: its example input and "Desired Formatted Output" are superseded by the answer; the Done-when "the input above is stable in one run, under a regression test" still holds, with the comment staying behind the condition.
 
+2. Formatter · statement behind the closing line of a multi-line `/* */` comment (asked after the round-3 audit). The maintainer chose **B, and more**: the formatter keeps such a statement where it is, as on `main` — this is accepted behavior, not a defect, since the formatter leaves code behind a comment on its line in many places. No follow-up issue is filed for it. Agreed output (unchanged from `main`):
+
+   ```csharp
+   A(); /* x
+   */ B();
+   a++;
+
+   /* y
+   */ return a;
+   ```
+
+   Where the blank-line rules require a blank line between two statements, the repaired split of decision 28 still applies (output as on `main` there too).
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
@@ -69,10 +82,10 @@ Behavior change: the issue changes the phase order and visible formatter output 
 | 34 | Auditor round 2 | Finding 5 (low, FC-031) and the summary-wording hint | Cleaner corrects the `EnsureStatementsStartOnSeparateLines` summary and the `BlankLineSpacingPolicy` summary wording ("different kinds") | Comments must state the behavior | Comment only | 29d27c9 |
 | 35 | Auditor round 2 | Repair round count | Round 3 of 3 (findings 5 and 6); finding 4 is an architecture finding, not a round | `README.md`, *Repairs* | — | — |
 | 36 | Auditor round 3 (pass, hint 1) | Decision 32 deferred a repeated class whose structural fix lies in components the run changes and would change visible output | Revised: under `README.md`, *Architecture findings*, that is an output question, asked now; the follow-up candidate waits on the answer | The process rule, not the lead, decides where an output-changing structural fix goes | Output question 2 pending | — |
+| 37 | Maintainer answer 2 | How to carry out answer 2 | Spec author states in the specs (FMT-BREAK-006, and SHARED-COMMENT-012 if it reads otherwise) that a statement standing behind the closing line of a multi-line comment keeps its line, apart from decision 28's split where a blank line is required; the change doc records answer 2; test implementer adds tagged tests for the decided output; the follow-up candidate of decisions 28/32 is dropped | Carrying out a maintainer answer (lead playbook, section 5), not a repair round | Decided by the maintainer | pending |
 
 ## Follow-up candidates
 
 - Switch-brace phase places its braces with its own code instead of the line-break phase's `BracePlacer` (FMT-BREAK-008); a section without a terminal `break` needs the token after the section moved. Structural change. — 07-implementer.md, decision 21
 - `ControlFlowBraceTransform` drops the blank lines in front of a braced body's first comment; output not checked. — 07-implementer.md
 - `BlankLineEditor.InsertBlankLineBeforeToken` still writes a line-ending line break when a token sits behind a multi-line comment's closing line (statements and switch sections no longer reach it). — 07-implementer.md
-- A statement behind a multi-line comment's closing line stays on that line where no blank line is required (`A(); /* x⏎ */ B();`, a terminal `break` behind a comment tail), against FMT-BREAK-006 with SHARED-COMMENT-012; pre-existing on `main`. Also: a statement behind the closing line of a multi-line comment that starts its own line (`a++;⏎/* x⏎ */ return a;`), and the first statement of a block or section, sections, and labels in that position. Structural cause: `TokenGapNormalizer.EnsureTokenStartsLine` (via `TriviaListUtilities.FindFirstContentIndexOnLine`) and `ChainLineBreakRewriter.IsBehindMultiLineCommentTail` decide the same question differently. Fixing it changes formatter output, so the issue carries an output question (option A of 14-auditor.md finding 1, with the members of 19-auditor.md finding 4). — 14-auditor.md, 19-auditor.md, decisions 28 and 32
