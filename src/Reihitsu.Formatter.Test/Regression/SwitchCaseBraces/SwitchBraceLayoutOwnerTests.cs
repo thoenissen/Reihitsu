@@ -237,5 +237,61 @@ public class SwitchBraceLayoutOwnerTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies the second FMT-SWITCH-016 example: without a comment in front of the first statement or the terminal
+    /// <c>break</c>, the blank lines the author wrote there are not kept, in one run
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-016")]
+    public void BlankLinesWithoutCommentAroundWrappedStatementsAreNotKept()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+
+                                             A();
+                                             B();
+
+                                             break;
+
+                                         case 2:
+                                             C();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    A();
+                                                    B();
+                                                }
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    C();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Tests
 }

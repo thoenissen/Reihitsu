@@ -9,7 +9,7 @@ namespace Reihitsu.Formatter.Test.Unit.SwitchCaseBraces;
 
 /// <summary>
 /// Tests that <see cref="SwitchCaseBracePhase"/>, run alone on input whose lines are already broken, places the braces it
-/// inserts on the lines of a section's block and writes and removes no blank line
+/// inserts on the lines of a section's block, writes no blank line, and carries only the blank lines that lead a comment
 /// </summary>
 [TestClass]
 public class SwitchCaseBracePhaseLayoutTests : FormatterTestsBase
@@ -123,6 +123,40 @@ public class SwitchCaseBracePhaseLayoutTests : FormatterTestsBase
         var input = $"class C\n{{\n    void M(int x)\n    {{\n        switch (x)\n        {{\n            case 1:\n\n                {leadingComment}\n                B();\n                break;\n        }}\n    }}\n}}";
 
         AssertBlankLinesKept(input, 1);
+    }
+
+    /// <summary>
+    /// Verifies on the second FMT-SWITCH-016 example that brace insertion does not carry a blank line without a comment in
+    /// front of the first statement or the terminal <c>break</c>, and keeps the blank line between the sections, which
+    /// crosses no new brace
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-016")]
+    public void BraceInsertionDoesNotCarryBlankLinesWithoutComment()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+
+                                             A();
+                                             B();
+
+                                             break;
+
+                                         case 2:
+                                             C();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        AssertLineTexts(input, "class C", "{", "void M(int x)", "{", "switch (x)", "{", "case 1:", "{", "A();", "B();", "}", "break;", string.Empty, "case 2:", "{", "C();", "}", "break;", "}", "}", "}");
     }
 
     #endregion // Tests
