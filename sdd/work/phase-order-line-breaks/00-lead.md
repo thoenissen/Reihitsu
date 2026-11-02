@@ -68,6 +68,7 @@ Behavior change: the issue changes the phase order and visible formatter output 
 | 33 | Auditor round 2 | Finding 6 (high): untagged tests assert the undecided output "statement stays behind `*/`" | Option A of 19-auditor.md: remove `ExpressionBehindCommentTailWithoutBlankLineRuleStaysOnCommentLine`, `TerminalBreakBehindCommentTailStaysOnCommentLine`, and `StatementBehindCommentTailWithoutBlankLineRuleIsLeftAsWritten`; the other side stays covered by observer rows M8/M9 and the Core row | A test must not lock in an output no requirement or answer decides; the question goes to the follow-up | Removes assertions of undecided output; nothing shipped changes | c4225c3 |
 | 34 | Auditor round 2 | Finding 5 (low, FC-031) and the summary-wording hint | Cleaner corrects the `EnsureStatementsStartOnSeparateLines` summary and the `BlankLineSpacingPolicy` summary wording ("different kinds") | Comments must state the behavior | Comment only | 29d27c9 |
 | 35 | Auditor round 2 | Repair round count | Round 3 of 3 (findings 5 and 6); finding 4 is an architecture finding, not a round | `README.md`, *Repairs* | — | — |
+| 36 | Auditor round 3 (pass, hint 1) | Decision 32 deferred a repeated class whose structural fix lies in components the run changes and would change visible output | Revised: under `README.md`, *Architecture findings*, that is an output question, asked now; the follow-up candidate waits on the answer | The process rule, not the lead, decides where an output-changing structural fix goes | Output question 2 pending | — |
 
 ## Follow-up candidates
 
