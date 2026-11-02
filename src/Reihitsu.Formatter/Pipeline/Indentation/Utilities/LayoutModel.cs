@@ -204,6 +204,28 @@ internal sealed class LayoutModel
     }
 
     /// <summary>
+    /// Gets the interpolation hole the line is registered with: the innermost hole of a multi-line interpolated raw
+    /// string around the token that starts the line. A construct that is placed only in such a hole reads the hole here,
+    /// so it decides which hole owns its lines exactly as the registration does
+    /// </summary>
+    /// <param name="lineNumber">The 0-based line number</param>
+    /// <param name="hole">The hole the line is registered with, if any</param>
+    /// <returns><see langword="true"/> if the line is a line of such a hole; otherwise, <see langword="false"/></returns>
+    public bool TryGetRawStringHole(int lineNumber, out InterpolationSyntax hole)
+    {
+        if (_rawStringHoleLines.TryGetValue(lineNumber, out var holeLine) == false)
+        {
+            hole = null;
+
+            return false;
+        }
+
+        hole = holeLine.Hole;
+
+        return true;
+    }
+
+    /// <summary>
     /// Gets the column the line has in the output of the indentation phase, after the phase moved the lines of
     /// multi-line raw string literals: the layout's column, or, for a line of an interpolation hole that no construct
     /// inside the hole placed, its registered column
