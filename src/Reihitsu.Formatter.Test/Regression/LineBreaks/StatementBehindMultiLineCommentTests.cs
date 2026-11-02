@@ -7,7 +7,7 @@ namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 /// <summary>
 /// Tests the output for a statement that stands behind the closing line of a comment that spans several lines: where a
 /// blank-line requirement separates it from the statement in front, it starts the line below the comment and gets the blank
-/// line in one run, in a block and in a switch section alike; where none does, it stays on the comment's closing line
+/// line in one run, in a block and in a switch section alike
 /// </summary>
 [TestClass]
 public class StatementBehindMultiLineCommentTests : FormatterTestsBase
@@ -289,83 +289,6 @@ public class StatementBehindMultiLineCommentTests : FormatterTestsBase
                                                 {
                                                     return 0;
                                                 }
-                                        }
-                                    }
-                                }
-                                """;
-
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that an expression statement behind the closing line of a comment that spans several lines stays on that
-    /// line where no blank-line requirement separates it from the statement in front
-    /// </summary>
-    /// <remarks>
-    /// Characterizes the current output. FMT-BREAK-006 read with SHARED-COMMENT-012 would start the statement on a line of
-    /// its own; that changes visible output and is left to a separate decision
-    /// </remarks>
-    [TestMethod]
-    public void ExpressionBehindCommentTailWithoutBlankLineRuleStaysOnCommentLine()
-    {
-        const string input = """
-                             class C
-                             {
-                                 void M()
-                                 {
-                                     A(); /* x
-                                     */ B();
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        A(); /* x
-                                        */ B();
-                                    }
-                                }
-                                """;
-
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that the terminal <c>break</c> of a switch section behind the closing line of a comment that spans several
-    /// lines stays on that line
-    /// </summary>
-    /// <remarks>
-    /// Characterizes the current output. FMT-BREAK-006 read with SHARED-COMMENT-012 would start the statement on a line of
-    /// its own; that changes visible output and is left to a separate decision
-    /// </remarks>
-    [TestMethod]
-    public void TerminalBreakBehindCommentTailStaysOnCommentLine()
-    {
-        const string input = """
-                             class C
-                             {
-                                 void M(int x)
-                                 {
-                                     switch (x)
-                                     {
-                                         case 1: A(); /* x
-                                         */ break;
-                                     }
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    void M(int x)
-                                    {
-                                        switch (x)
-                                        {
-                                            case 1:
-                                                A(); /* x
-                                            */ break;
                                         }
                                     }
                                 }

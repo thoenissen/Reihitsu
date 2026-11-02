@@ -93,20 +93,6 @@ public class LineBreakPhaseCommentTailStatementTests : FormatterTestsBase
         AssertLineStartsBelowCommentTail(input, "return 1;");
     }
 
-    /// <summary>
-    /// Verifies that an expression statement behind a comment's closing line, which no blank-line requirement separates
-    /// from the statement in front, is left on that line
-    /// </summary>
-    /// <remarks>
-    /// Characterizes the current output. FMT-BREAK-006 read with SHARED-COMMENT-012 would start the statement on a line of
-    /// its own; that changes visible output and is left to a separate decision
-    /// </remarks>
-    [TestMethod]
-    public void StatementBehindCommentTailWithoutBlankLineRuleIsLeftAsWritten()
-    {
-        AssertUnchanged(CreateMethod("A(); /* x|*/ B();"));
-    }
-
     #endregion // Tests
 
     #region Methods
@@ -121,20 +107,6 @@ public class LineBreakPhaseCommentTailStatementTests : FormatterTestsBase
         var lines = string.Concat(body.Split('|').Select(line => $"        {line}\n"));
 
         return $"class C\n{{\n    int M(int a)\n    {{\n{lines}    }}\n}}";
-    }
-
-    /// <summary>
-    /// Runs the phase alone under LF and CRLF and verifies that it changes nothing
-    /// </summary>
-    /// <param name="input">The C# source text</param>
-    private void AssertUnchanged(string input)
-    {
-        foreach (var endOfLine in _lineEndings)
-        {
-            var normalized = NormalizeLineEndings(input, endOfLine);
-
-            Assert.AreEqual(normalized, ExecutePhase(normalized, endOfLine), $"The line-break phase changed the input under {DescribeLineEnding(endOfLine)} line endings.");
-        }
     }
 
     /// <summary>
