@@ -682,6 +682,8 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     {
         _cancellationToken.ThrowIfCancellationRequested();
 
+        var isParenthesizedLambdaParameterList = node.Parent is ParenthesizedLambdaExpressionSyntax;
+
         node = (ParameterListSyntax)base.VisitParameterList(node);
 
         if (node == null)
@@ -689,7 +691,13 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        node = CollapseOpenParenToDeclarationLine(node);
+        // A parenthesized lambda has no declaration in front of its parameter list: the gap in front of its opening
+        // parenthesis belongs to the code around the lambda, which joins it or leaves it as written (FMT-BREAK-011)
+        if (isParenthesizedLambdaParameterList == false)
+        {
+            node = CollapseOpenParenToDeclarationLine(node);
+        }
+
         node = CollapseFirstElementToSameLine(node, node.Parameters.Count > 0 ? node.Parameters[0].GetFirstToken() : default);
         node = CollapseSeparatorsToPreviousParameterLine(node, _context.EndOfLine);
         node = CollapseCloseParenToParameterLine(node);
