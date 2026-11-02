@@ -15,6 +15,7 @@ This spec covers `BlankLinePhase`: where the formatter inserts a blank line (bef
 - Line breaks that are not blank lines — braces, statements, switch sections, and members on their own lines are FMT-BREAK.
 - Moving documentation comments written behind code, single-line or delimited, onto a new line (FMT-DOC-001) and deciding which of them document nothing (FMT-DOC-003). This phase inserts no line break in front of a documentation comment; it only decides the blank lines around one that starts its line.
 - The node-level preservation of a target's surrounding trivia (FMT-PIPE-010).
+- A token that shares its line with the token before it inside an anonymous method that lies in an interpolation hole of a multi-line raw string literal. FMT-PIPE-025 keeps that anonymous method on the lines the author wrote, so the phase writes no line break, and with it no blank line, in front of such a token.
 
 ## Requirements
 

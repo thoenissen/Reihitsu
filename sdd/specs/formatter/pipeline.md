@@ -5,7 +5,7 @@
 | ID prefix | FMT-PIPE |
 | Status | Active |
 | Code owners | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `PreparationPhase`, `FormattingContext`, `PrecedingTokenFacts`, `RootListPosition`, `RootConstruct`, `RootConstructExtensions`, `TriviaFact`, `FluentChainBoundary`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities`, `BlockWrapTriviaUtilities` |
-| Uses | SHARED-CHAIN-001, SHARED-FIX-001, SHARED-FIX-006, SHARED-FIX-007, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BREAK-001, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-CLEAN-001, FMT-CLEAN-005, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-002, FMT-INDENT-003, FMT-INDENT-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-012, FMT-INDENT-022, FMT-INDENT-024, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-026, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003 |
+| Uses | SHARED-CHAIN-001, SHARED-FIX-001, SHARED-FIX-006, SHARED-FIX-007, FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BREAK-001, FMT-BREAK-002, FMT-BREAK-006, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-013, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-CLEAN-001, FMT-CLEAN-005, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-002, FMT-INDENT-003, FMT-INDENT-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-012, FMT-INDENT-022, FMT-INDENT-024, FMT-INDENT-028, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-026, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003 |
 
 This spec covers what holds for the formatter as a whole: the public entry points, the fixed phase order, and the invariants every phase must keep. What an individual phase decides is specified in that phase's own spec.
 
@@ -906,3 +906,142 @@ class C
 ```
 
 `FormatNode` with the same statement returns `        Call(1, 2);`: it supplies no list position, and its caller decides what stands in front of the node.
+
+### FMT-PIPE-025 — An anonymous method in a raw-string hole keeps its lines
+
+The formatter MUST NOT insert a line break anywhere between the `delegate` keyword and the closing brace of an anonymous method that lies in an interpolation hole of a multi-line interpolated raw string literal, unless the anonymous method lies inside the block body of a lambda that lies in the same hole. No phase applies a requirement there that would insert one: the braces and statements of FMT-BREAK-002 and FMT-BREAK-006, one list element per line (FMT-BREAK-012, FMT-BREAK-013), and the line break that the blank-line phase writes together with a blank line in front of a token on the line of the token before it, as its statement rules do (for example FMT-BLANK-001 and FMT-BLANK-002). An anonymous method written on one line therefore stays on one line, and so does the list around it when nothing else wraps that list. A line break the author wrote inside such an anonymous method is kept or joined as anywhere else, and the line it starts moves as FMT-RAW-007 states.
+
+The hole is the innermost interpolation hole that contains the anonymous method. A lambda with an expression body does not lift the requirement: an anonymous method in its expression is kept on its lines. The lambda's block body lifts it also for an anonymous method that lies deeper inside that body, but not for one that contains the lambda.
+
+An anonymous method in a hole of a single-line interpolated raw string literal is broken as anywhere else (example below). This requirement specifies the outcome for a hole that lies inside the formatted root; it does not specify the outcome for a node-level target that lies inside such an anonymous method, nor for the holes of an interpolated string that is not a raw string literal.
+
+Why: No alignment places a line that starts inside an anonymous method in such a hole: FMT-RAW-007 forbids the scope-depth column there, and no alignment requirement measures the anonymous method's lines from a token inside the literal. A line break inserted there starts a line in the column the breaking phase leaves it in, which then moves only with the literal, so the same tokens end in column 13 or column 0 depending on how far the literal stood off in the input. A block lambda's body is aligned to the lambda (FMT-INDENT-028), which lies inside the literal, so its lines — and the lines of an anonymous method inside it — are placed wherever the literal stands, and they are broken as anywhere else.
+
+Example — the anonymous method stays on one line, in a literal the formatter moves and in one already aligned:
+
+```csharp
+class C
+{
+    int M(System.Func<int> f)
+    {
+        var a = $"""
+    Hello {M(delegate { return 1; })}
+    """;
+        var b = $"""
+                 Hello {M(delegate { int x = 1; return x; })}
+                 """;
+    }
+}
+```
+
+```csharp
+class C
+{
+    int M(System.Func<int> f)
+    {
+        var a = $"""
+                 Hello {M(delegate { return 1; })}
+                 """;
+        var b = $"""
+                 Hello {M(delegate { int x = 1; return x; })}
+                 """;
+    }
+}
+```
+
+Example — an anonymous method inside a lambda's expression body, and a block lambda inside an anonymous method, are kept on one line with it:
+
+```csharp
+class C
+{
+    int M(System.Func<int> f)
+    {
+        var a = $"""
+                 A {M(() => M(delegate { return 1; }))}
+                 B {M(delegate { return M(() => { return 1; }); })}
+                 """;
+    }
+}
+```
+
+is left unchanged.
+
+Example — an anonymous method inside the block body of a lambda in the same hole is broken and placed with the body:
+
+```csharp
+class C
+{
+    int M(System.Func<int> f)
+    {
+        var a = $"""
+                 G {M(() => { return M(delegate { return 1; }); })}
+                 """;
+    }
+}
+```
+
+```csharp
+class C
+{
+    int M(System.Func<int> f)
+    {
+        var a = $"""
+                 G {M(() =>
+                      {
+                          return M(delegate
+                          {
+                              return 1;
+                          });
+                      })}
+                 """;
+    }
+}
+```
+
+Example — an anonymous method the author wrote over several lines keeps those lines, which move with the literal:
+
+```csharp
+class C
+{
+    int M(System.Func<int> f)
+    {
+        var a = $"""
+                 Hello {M(delegate
+                 {
+                     return 1;
+                 })}
+                 """;
+    }
+}
+```
+
+is left unchanged.
+
+Example — in a single-line raw string literal, the anonymous method is broken as anywhere else:
+
+```csharp
+class C
+{
+    int M(System.Func<int> f)
+    {
+        var b = $"""K {M(delegate { return 1; })}""";
+
+        return 0;
+    }
+}
+```
+
+```csharp
+class C
+{
+    int M(System.Func<int> f)
+    {
+        var b = $"""K {M(delegate
+        {
+            return 1;
+        })}""";
+
+        return 0;
+    }
+}
+```
