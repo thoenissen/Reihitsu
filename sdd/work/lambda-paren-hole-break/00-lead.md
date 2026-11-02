@@ -26,6 +26,8 @@ Verdict: run started
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 11 | Auditor (12) | Architecture finding: the FMT-INDENT-031 guard re-derives from syntax which raw hole a line belongs to, while `LayoutComputer`/`LayoutModel` hole-line registration decides it with a different span | Change the structure in this run: the guard and the registration share one statement of "the multi-line raw hole that owns this line" | The narrow fix would keep a second statement of the rule; the change stays within components the run changes | Same output as finding #1's repair | — |
+| 10 | Auditor (12) | Finding #1: an anonymous method in a regular/verbatim/single-line raw string nested in a multi-line raw hole is not aligned (column depends on where the literal stood) | Repair round 1, option (a): align it like its block-lambda counterpart (which is already aligned there); narrow the spec's single-line sentence to non-nested single-line raw literals | Same requirement; the output is covered by maintainer answer 1 and the clarification that holes format like everywhere else, and the block-lambda counterpart already aligns there (answers 4/6 rule) | Covered by maintainer answers 1, 4, 6 and the clarification | — |
 | 9 | Spec author | Change doc status `Draft` → `Accepted` | Confirmed | Every visible output change has a maintainer answer (1–6) | Status field only | 59c1536 |
 | 8 | Implementer / test implementer | Unused `PhaseReversalCauses.LineStartIndentation` after the exception list emptied | Revised: keep the cause unchanged (the class must keep a member to build — S2094; deleting the class empties the known-cause checks, and a suppression is not wanted) | Removal costs more than it saves | Test helper only | 4586769 |
 | 7 | Implementer | `ConstraintClauseInHoleOf{Aligned,Misaligned}LiteralIsIndentedFromItsDeclaration*` expect the anonymous method's block at column 17 | Re-derive expectations to the FMT-INDENT-031 layout (brace under `delegate`); test implementer edits, change doc lists both tests as changing | Asserted output is decided by maintainer answer 1 and FMT-INDENT-031; the tests' own point (the `where` clause indentation) stays | Covered by maintainer answer 1 | — |
@@ -40,4 +42,6 @@ Verdict: run started
 
 1. Anonymous method in a hole of a regular interpolated string below C# 11 produces CS8967 (safety rail; caller path unverified) — 01-spec-author.md, 02-skeptic.md.
 2. Parenthesized lambda behind a modifier or return type on the next line (`static⏎(int x) => x`) lands in the statement's column — 01-spec-author.md, 02-skeptic.md.
-3. Value continued on the line after `return` or a lambda's `=>` starts in the statement's column — 02-skeptic.md (file only if no FMT-INDENT requirement decides it).
+4. Switch-expression arm after a multi-line arm stays on the brace line (`}, _ => null`) — pre-existing — 12-auditor.md.
+5. Tab in a raw literal's content prefix may count as one column for hole alignment — uncertain, verify first — 12-auditor.md.
+3. Value continued on the line after `return` or a lambda's `=>` starts in the statement's column — 02-skeptic.md (file only if no FMT-INDENT requirement decides it); same class per 12-auditor.md: a value continued after the `(` of a parenthesized expression or after a switch arm's `=>`.
