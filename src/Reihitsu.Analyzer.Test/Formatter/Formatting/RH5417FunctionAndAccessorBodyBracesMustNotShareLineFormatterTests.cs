@@ -171,5 +171,48 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineFormatterTests :
                               Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat, 3));
     }
 
+    /// <summary>
+    /// Verifies formatter parity and second-pass stability for an anonymous method in an interpolation hole of a
+    /// multi-line raw string literal, whose block the formatter aligns under <c>delegate</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesAnonymousMethodBodyInRawStringHole()
+    {
+        const string input = """"
+                             public class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                              Hello {M(delegate {|#0:{|} return 1; })}
+                                              """;
+
+                                     return a.Length;
+                                 }
+                             }
+                             """";
+        const string fixedData = """"
+                                 public class C
+                                 {
+                                     int M(System.Func<int> f)
+                                     {
+                                         var a = $"""
+                                                  Hello {M(delegate
+                                                           {
+                                                               return 1;
+                                                           })}
+                                                  """;
+
+                                         return a.Length;
+                                     }
+                                 }
+                                 """";
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+    }
+
     #endregion // Tests
 }
