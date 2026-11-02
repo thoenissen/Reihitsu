@@ -16,6 +16,7 @@ Paths are resolved against **your** working directory, not the repository root: 
 | `apply-fix.sh` | Run one diagnostic's code-fix surface over a fixture directory, under LF and CRLF |
 | `verify-text-only.sh` | Prove that a change carries no compiled behavior |
 | `lane-check.sh` | Confirm the squad lane a run claimed against the paths its diff changes |
+| `usage.sh` | Report the token usage of a Claude Code session and of every subagent it spawned |
 
 ## Examples
 
@@ -29,6 +30,7 @@ scripts/trace.sh samples/Example.cs --passes 3 --no-install
 scripts/apply-fix.sh RH7101 /tmp/sweep
 scripts/verify-text-only.sh --base a1b2c3d --head worktree --strict-docs
 scripts/lane-check.sh bug-fix --head worktree
+scripts/usage.sh --json
 ```
 
 ## Formatter pipeline trace
@@ -120,3 +122,14 @@ The narrowest lane that admits every category is the lane the diff needs: produc
 Exit codes are `0` when the claim covers the diff, `1` when it does not (the verdict names the lane the diff needs), `2` for a tool or setup error, and `3` when no lane admits the diff — an unknown path, or production next to tooling without a change doc. The single `LANE CHECK: …` line is the quotable evidence the run report records.
 
 The classification lives in `Reihitsu.Tooling` (`LaneClassifier`, `LaneCheckCommand`) with tests in `Reihitsu.Tooling.Test`; `scripts/lane-check/lane-check.cs` is a thin file-based shim over it, like the code-fix runner's.
+
+## The usage report
+
+`usage.sh [--session <id|path>] [--projects-dir <dir>] [--json]` reads the transcripts Claude Code writes for a session and prints its token usage: one row for the main session (the squad's lead) and one row per spawned subagent, split by model. It needs `jq` and no .NET SDK. Without `--session` it takes the most recently modified transcript of the current directory's project.
+
+- **Spawns stay apart.** Every subagent has its own transcript, so a role spawned three times is three rows, numbered per agent type in start order. A subagent resumed through `SendMessage` writes to the same transcript and stays one row; its `Prompts` column counts the instructions it received, and `--json` breaks the row down per prompt.
+- **Responses are counted once.** The transcript holds one line per content block of an API response, all with the same usage, so the report counts per message id.
+- **No prices.** The transcript carries tokens, not costs. Every row names its model so a cost can be computed from the counts.
+- **`--json` holds everything the transcripts record:** cache writes by lifetime, thinking tokens, web search and fetch requests, effort levels, and the first and last message of each model.
+
+Exit codes are `0` when the report is printed and `2` for bad arguments, a missing transcript, or a missing `jq`. The report covers the session up to the moment it runs; a pull request's CI repairs after that are not in it.
