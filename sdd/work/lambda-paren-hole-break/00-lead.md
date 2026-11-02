@@ -17,6 +17,8 @@ Verdict: run started
 1. Anonymous method in a hole of a multi-line raw string literal — **B**: break it and align it (braces under the anonymous method's first token, as a block lambda in a hole), lines move with the literal; not kept on one line. No analyzer changes.
 2. Blank line in front of a parenthesized lambda that starts its line (after `,` in an argument list, between array-initializer elements, between collection-expression elements, after an expression lambda's `=>`, after `return`) — **A**: kept; columns unchanged.
 3. Lambda starting a hole line no alignment places — **A**: keeps its column (FMT-RAW-007).
+4. `static` anonymous method in such a hole — **B**: the block aligns under `delegate` (not under `static`), consistent with a `static` block lambda aligning at its `(`.
+5. Lambda elements in collection initializers and wrapped collection expressions (change doc entry 7) — **A**: laid out like any other element (one per line, as FMT-BREAK-021/022 give for `(1)`).
 - General clarification from the maintainer: inside interpolation holes the same formatting applies as everywhere else; a hole is not a place with its own layout rules.
 
 ## Decisions taken
