@@ -1398,11 +1398,11 @@ class C
 
 ### FMT-BREAK-033 — Every switch section starts its own line
 
-The first token of every switch section that follows another section of the same switch statement MUST start its own line, whatever statement ends the section before it. Whether the token starts its line is decided by SHARED-BLANK-008: a section behind a `//` comment or a directive starts its line and is kept; a section on the line of the previous section's last token, or behind the last line of a multi-line comment there, does not, and the phase MUST insert a line break in front of it, so a comment that trailed the previous section stays on that section's last line (FMT-BREAK-001). A delimited documentation comment (`/** */`) that stands on the line in front of the section's first token, with nothing but whitespace between them, belongs to the section: the section starts its line when that comment starts its line, and where the phase inserts the line break, it MUST insert it in front of the comment, so the comment and the section's first token start the new line together. The first section of a switch statement starts its line behind the opening brace (FMT-BREAK-002). The phase inserts no blank line in front of a section (FMT-BREAK-030); the blank line behind a section that ends in `break` is FMT-BLANK-004's.
+The first token of every switch section that follows another section of the same switch statement MUST start its own line, whatever statement ends the section before it. Whether the token starts its line is decided by SHARED-BLANK-008: a section behind a `//` comment or a directive starts its line and is kept; a section on the line of the previous section's last token, or behind the last line of a multi-line comment there, does not, and the phase MUST insert a line break in front of it, so a comment that trailed the previous section stays on that section's last line (FMT-BREAK-001). Comments in front of a token that moves move with it when they are the token's own leading trivia and stand on the token's line; a delimited comment stands on the line it starts on. On the line of the previous token, the C# parser ends the previous token's trailing trivia in front of the first documentation comment (`/** */`), so these are the comments from that first `/** */` comment up to the token, of any kind and however many: they MUST move with the token as written, in their order. An ordinary comment in front of that first `/** */` comment trails the previous token and MUST stay on its line (FMT-BREAK-001). The token starts its line when the first of the comments that move with it starts its line; where the phase inserts the line break, it MUST insert it in front of that comment, so the comments and the token start the new line together. FMT-BREAK-034 and FMT-BREAK-035 apply this rule to a label and a first statement. The first section of a switch statement starts its line behind the opening brace (FMT-BREAK-002). The phase inserts no blank line in front of a section (FMT-BREAK-030); the blank line behind a section that ends in `break` is FMT-BLANK-004's.
 
 This requirement, FMT-BREAK-034, and FMT-BREAK-035 decide the lines inside the node that a node-level entry point formats; the gap in front of the target itself is kept as FMT-PIPE-010 states.
 
-Why: A switch is read by its labels: each section is one path, and its first label at the label column (FMT-INDENT-003) is where a reader finds it. A section that shares a line with the section before it hides its label in the middle of that line. Until now only a section behind a `break` statement got a line of its own, as a side effect of its blank line; behind `return`, `throw`, `goto`, or `continue` the sections stayed on one line. A `/** */` comment in front of a token is part of that token's leading trivia, and the formatter already keeps it in front of that token when it moves documentation off code (FMT-DOC-001); separating the two would leave the comment on a line above, away from what it documents.
+Why: A switch is read by its labels: each section is one path, and its first label at the label column (FMT-INDENT-003) is where a reader finds it. A section that shares a line with the section before it hides its label in the middle of that line. Until now only a section behind a `break` statement got a line of its own, as a side effect of its blank line; behind `return`, `throw`, `goto`, or `continue` the sections stayed on one line. A `/** */` comment in front of a token is part of that token's leading trivia, and the formatter already keeps it in front of that token when it moves documentation off code (FMT-DOC-001); separating the two would leave the comment on a line above, away from what it documents. The comments behind it on the same line stand between the documentation and its token, so they move along and the comments keep their order; an ordinary comment in front of the documentation comment trails the previous token, as any trailing comment does.
 
 Example:
 
@@ -1519,7 +1519,7 @@ class C
 
 ### FMT-BREAK-034 — Each label of a switch section starts its own line
 
-Every label of a switch section that follows another label of the same section MUST start its own line (SHARED-BLANK-008); when it does not, the phase MUST insert a line break in front of it, so a comment that trailed the label before it stays on that label's line (FMT-BREAK-001). A `/** */` comment in front of the label belongs to the label, as FMT-BREAK-033 states for a section: the line break goes in front of the comment. This holds for `case` labels, pattern labels with or without a `when` guard, and `default` labels alike.
+Every label of a switch section that follows another label of the same section MUST start its own line (SHARED-BLANK-008); when it does not, the phase MUST insert a line break in front of it, so a comment that trailed the label before it stays on that label's line (FMT-BREAK-001). The comments in front of the label move with it as FMT-BREAK-033 states: from the first `/** */` comment on the previous label's line up to the label, the line break goes in front of them, and an ordinary comment in front of them stays on the previous label's line. This holds for `case` labels, pattern labels with or without a `when` guard, and `default` labels alike.
 
 Why: Stacked labels select one shared body, and each of them names a value the section handles. One label per line puts every value at the label column, where FMT-BREAK-033 puts the first label of every section, and gives each label its own line in diffs.
 
@@ -1588,9 +1588,59 @@ class C
 }
 ```
 
+Example — two `/** */` comments in front of a label move with it together; an ordinary comment in front of the first `/** */` comment stays on the previous label's line:
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1: /* c */ /** d */ case 2:
+                A();
+                break;
+
+            case 3: /** a */ /** b */ case 4:
+                A();
+                break;
+        }
+    }
+
+    void A()
+    {
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1: /* c */
+            /** d */ case 2:
+                A();
+                break;
+
+            case 3:
+            /** a */ /** b */ case 4:
+                A();
+                break;
+        }
+    }
+
+    void A()
+    {
+    }
+}
+```
+
 ### FMT-BREAK-035 — The first statement of a switch section starts its own line
 
-The first statement of a switch section MUST start its own line (SHARED-BLANK-008); when it does not, the phase MUST insert a line break in front of it, so a comment that trailed the section's last label stays on the label's line (FMT-BREAK-001). A `/** */` comment in front of the statement belongs to the statement, as FMT-BREAK-033 states for a section: the line break goes in front of the comment, and the comment starts the statement's line. This holds for every kind of statement, a `break` statement included; a block that forms the section's body has its braces placed by FMT-BREAK-008. An empty statement (`;`) that is the first statement of a section MUST be left as written, as FMT-BREAK-006 leaves it between statements.
+The first statement of a switch section MUST start its own line (SHARED-BLANK-008); when it does not, the phase MUST insert a line break in front of it, so a comment that trailed the section's last label stays on the label's line (FMT-BREAK-001). The comments in front of the statement move with it as FMT-BREAK-033 states: from the first `/** */` comment on the label's line up to the statement, the line break goes in front of them and the first of them starts the statement's line, and an ordinary comment in front of them stays on the label's line. This holds for every kind of statement, a `break` statement included; a block that forms the section's body has its braces placed by FMT-BREAK-008. An empty statement (`;`) that is the first statement of a section MUST be left as written, as FMT-BREAK-006 leaves it between statements.
 
 Why: The label introduces the section's statements and is not one of them. A statement on the label's line stands at the label column instead of the statement column (FMT-INDENT-003), so the section's statements do not line up, and the first one is easily overlooked when another is added below it. Every later statement of a section already starts its own line (FMT-BREAK-006); the first one now does too. An empty statement is left alone for FMT-BREAK-006's reason: moving it only moves a stray `;` around.
 
@@ -1645,6 +1695,61 @@ class C
         {
             case int i when i > 0: /* c */
                 A();
+                break;
+        }
+    }
+
+    void A()
+    {
+    }
+}
+```
+
+Example — which comments move with the first statement: everything from the first `/** */` comment on, as written and in order, including the whole of a `/** */` comment that spans lines; an ordinary comment in front of the first `/** */` comment stays on the label's line:
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1: /* c */ /** d */ A();
+                break;
+
+            case 2: /** d */ /* c */ A();
+                break;
+
+            case 3: /** a
+                b */ A();
+                break;
+        }
+    }
+
+    void A()
+    {
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1: /* c */
+                /** d */ A();
+                break;
+
+            case 2:
+                /** d */ /* c */ A();
+                break;
+
+            case 3:
+                /** a
+                b */ A();
                 break;
         }
     }
