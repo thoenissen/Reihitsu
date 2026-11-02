@@ -19,10 +19,12 @@ internal static class IndentationRewriter
     #region Methods
 
     /// <summary>
-    /// Applies indentation from the layout model to the syntax tree. Every line is placed first; then the content
-    /// lines, the hole lines, and the closing marker of each multi-line raw string literal move by the shift
-    /// <see cref="LayoutModel.GetRawStringShift"/> gives their line, which is the shift every anchor on those lines
-    /// was measured with, so the literal's closing marker ends up under its opening quotes (FMT-RAW-001). The model
+    /// Applies indentation from the layout model to the syntax tree. Every line is placed first, at the layout's column
+    /// before the move; then the content lines, the hole lines, and the closing marker of each multi-line raw string
+    /// literal move to the column <see cref="LayoutModel.GetColumnAfterRawStringShift"/> gives their line, which adds the
+    /// shift every anchor on those lines was measured with, so the literal's closing marker ends up under its opening
+    /// quotes (FMT-RAW-001). A placed line moves from the layout's column, not from the whitespace written for it, so a
+    /// line whose column is below 0 before the move gets no whitespace here and its column from the move. The model
     /// numbers the lines of the root's tree, and placing lines changes no line break, so the rewritten tree has the same
     /// line numbers; the root is the root of its own tree, as <see cref="IndentationPhase"/> makes an attached input
     /// </summary>
@@ -33,9 +35,12 @@ internal static class IndentationRewriter
     public static SyntaxNode Apply(SyntaxNode root, LayoutModel model, CancellationToken cancellationToken)
     {
         var lineStarts = LineStartIndex.For(root.SyntaxTree);
-        var indented = root.ReplaceTokens(root.DescendantTokens(), (original, rewritten) => ApplyIndentation(original, rewritten, lineStarts, model, cancellationToken));
+        var placedColumns = new Dictionary<int, int>();
+        var indented = root.ReplaceTokens(root.DescendantTokens(), (original, rewritten) => ApplyIndentation(original, rewritten, lineStarts, model, placedColumns, cancellationToken));
 
-        return RawStringLineShifts.MoveLines(indented, model.GetRawStringShift, cancellationToken);
+        return RawStringLineShifts.MoveLines(indented,
+                                             (lineNumber, writtenColumn) => model.GetColumnAfterRawStringShift(lineNumber, placedColumns.TryGetValue(lineNumber, out var placedColumn) ? placedColumn : writtenColumn),
+                                             cancellationToken);
     }
 
     #endregion // Methods
@@ -54,9 +59,10 @@ internal static class IndentationRewriter
     /// <param name="rewritten">The rewritten token</param>
     /// <param name="lineStarts">The line starts of the tree</param>
     /// <param name="model">The computed layout model</param>
+    /// <param name="placedColumns">Receives the column before the move of every line placed, and of every later line of a placed <c>///</c> comment</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The token with corrected indentation</returns>
-    private static SyntaxToken ApplyIndentation(SyntaxToken original, SyntaxToken rewritten, LineStartIndex lineStarts, LayoutModel model, CancellationToken cancellationToken)
+    private static SyntaxToken ApplyIndentation(SyntaxToken original, SyntaxToken rewritten, LineStartIndex lineStarts, LayoutModel model, Dictionary<int, int> placedColumns, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -87,10 +93,18 @@ internal static class IndentationRewriter
             {
                 placesLine = true;
 
-                if (WriteLineStart(result, pendingWhitespace, lineNumber, model, IsNonRegionDirectiveTrivia(triviaItem)) is { } column
+                if (WriteLineStart(result, pendingWhitespace, lineNumber, model, placedColumns, IsNonRegionDirectiveTrivia(triviaItem)) is { } column
                     && triviaItem.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
                 {
                     triviaItem = DocumentationCommentUtilities.AlignContinuationExteriorMarkers(triviaItem, column);
+
+                    // The later lines of the comment take the column of its first line, before the move as after it
+                    var lastLine = lineStarts.GetLine(originalTrivia[triviaIndex].Span.End - 1);
+
+                    for (var continuationLine = lineNumber + 1; continuationLine <= lastLine; continuationLine++)
+                    {
+                        placedColumns[continuationLine] = column;
+                    }
                 }
             }
             else
@@ -107,7 +121,7 @@ internal static class IndentationRewriter
         {
             placesLine = true;
 
-            WriteLineStart(result, pendingWhitespace, tokenLine, model, false);
+            WriteLineStart(result, pendingWhitespace, tokenLine, model, placedColumns, false);
         }
         else if (original.Span.IsEmpty
                  && pendingWhitespace.Count > 0
@@ -116,7 +130,7 @@ internal static class IndentationRewriter
         {
             placesLine = true;
 
-            WriteLineStart(result, pendingWhitespace, lineStarts.GetLine(original.SpanStart), model, false);
+            WriteLineStart(result, pendingWhitespace, lineStarts.GetLine(original.SpanStart), model, placedColumns, false);
         }
         else
         {
@@ -131,16 +145,19 @@ internal static class IndentationRewriter
     /// <summary>
     /// Writes the start of a line in place of the whitespace in front of the element its text starts at. The whitespace in
     /// front of an active non-region directive is removed, so the directive starts in column 0. A line with a layout gets
-    /// its column; a line without one keeps its whitespace. A byte order mark at the start of the whitespace is kept in
-    /// front of whatever is written
+    /// its column before the lines of multi-line raw string literals move, and that column is recorded for the move; a
+    /// column below 0, which only a line that moves has, gets no whitespace, and the move gives the line its column. A
+    /// line without a layout keeps its whitespace. A byte order mark at the start of the whitespace is kept in front of
+    /// whatever is written
     /// </summary>
     /// <param name="result">The rebuilt trivia list</param>
     /// <param name="whitespace">The whitespace in front of the element</param>
     /// <param name="lineNumber">The 0-based line the element starts</param>
     /// <param name="model">The layout model</param>
+    /// <param name="placedColumns">Receives the column before the move of the line, when it has a layout</param>
     /// <param name="isNonRegionDirective">Whether the element is an active non-region directive</param>
-    /// <returns>The column written, or <see langword="null"/> when the line has no layout or starts with a directive</returns>
-    private static int? WriteLineStart(List<SyntaxTrivia> result, List<SyntaxTrivia> whitespace, int lineNumber, LayoutModel model, bool isNonRegionDirective)
+    /// <returns>The layout's column before the move, or <see langword="null"/> when the line has no layout or starts with a directive</returns>
+    private static int? WriteLineStart(List<SyntaxTrivia> result, List<SyntaxTrivia> whitespace, int lineNumber, LayoutModel model, Dictionary<int, int> placedColumns, bool isNonRegionDirective)
     {
         var hasByteOrderMark = whitespace.Count > 0 && ByteOrderMarkUtilities.StartsWithByteOrderMark(whitespace[0]);
 
@@ -172,6 +189,8 @@ internal static class IndentationRewriter
         {
             result.Add(ByteOrderMarkUtilities.CreateByteOrderMarkTrivia());
         }
+
+        placedColumns[lineNumber] = layout.Column;
 
         if (layout.Column > 0)
         {
