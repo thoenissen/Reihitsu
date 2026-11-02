@@ -751,5 +751,113 @@ public class HoleAnchorOnUnmovedLineAlignmentTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that every line of a <c>///</c> comment inside the block of an anonymous method whose anchor stands in column 4 on the continuation line of an <c>@$</c> string nested in a hole, a line that does not move, takes the column of the statement it documents, when the literal moves 13 columns to the right and the block's lines stand below column 0 before the move
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    [Requirement("FMT-INDENT-030")]
+    [Requirement("FMT-INDENT-008")]
+    [Requirement("FMT-RAW-007")]
+    public void DocumentationCommentInBlockOfAnonymousMethodLeftOfShiftKeepsEveryLineInTheStatementColumn()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                 V {@$"first
+                             s{M(delegate {
+                                 /// a
+                                     /// b
+                               /// c
+                             return 1; })} end"}
+                                 """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 V {@$"first
+                                s{M(delegate
+                                    {
+                                        /// a
+                                        /// b
+                                        /// c
+                                        return 1;
+                                    })} end"}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that every line of a <c>///</c> comment inside the block of a block lambda whose anchor stands in column 4 on the continuation line of an <c>@$</c> string nested in a hole, a line that does not move, takes the column of the statement it documents, when the literal moves 13 columns to the right and the block's lines stand below column 0 before the move
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-028")]
+    [Requirement("FMT-INDENT-030")]
+    [Requirement("FMT-INDENT-008")]
+    [Requirement("FMT-RAW-007")]
+    public void DocumentationCommentInBlockOfBlockLambdaLeftOfShiftKeepsEveryLineInTheStatementColumn()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                 V {@$"first
+                             s{M(() => {
+                                 /// a
+                                     /// b
+                               /// c
+                             return 1; })} end"}
+                                 """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 V {@$"first
+                                s{M(() =>
+                                    {
+                                        /// a
+                                        /// b
+                                        /// c
+                                        return 1;
+                                    })} end"}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Tests
 }
