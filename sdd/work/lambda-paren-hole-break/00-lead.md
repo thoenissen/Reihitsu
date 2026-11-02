@@ -14,14 +14,17 @@ Verdict: run started
 
 ## Maintainer answers
 
-None yet.
+Pending: output questions 1 (anonymous method in a raw-string hole: one line vs. broken and aligned), 2 (blank line before a parenthesized lambda that starts its line, five gaps), 3 (lambda starting an unplaced hole line keeps its column) — asked before the test implementer.
 
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 2 | Skeptic | Phase-stability check test loses its lambda example | Replace with an injected (synthetic) phase, not another formatter defect | The check's own test must not depend on a defect surviving | Test-only | — |
 | 1 | Claim | Branch name `claude/issue-1494-<slug>` per `squad/lead.md` vs. the session's designated branch | Use `claude/ecstatic-shannon-j9cmkw` | The session environment pins development and pushes to that branch | Branch names are internal | ae55f3e |
 
 ## Follow-up candidates
 
-None yet.
+1. Anonymous method in a hole of a regular interpolated string below C# 11 produces CS8967 (safety rail; caller path unverified) — 01-spec-author.md, 02-skeptic.md.
+2. Parenthesized lambda behind a modifier or return type on the next line (`static⏎(int x) => x`) lands in the statement's column — 01-spec-author.md, 02-skeptic.md.
+3. Value continued on the line after `return` or a lambda's `=>` starts in the statement's column — 02-skeptic.md (file only if no FMT-INDENT requirement decides it).
