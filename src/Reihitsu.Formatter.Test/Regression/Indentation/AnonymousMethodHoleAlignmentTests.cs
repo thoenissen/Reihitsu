@@ -780,5 +780,857 @@ public class AnonymousMethodHoleAlignmentTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies the spec example: the literal moves 13 columns to the right, and an anonymous method in a hole of a regular, a verbatim, and a single-line raw interpolated string nested in the hole aligns under <c>delegate</c>, as the block lambda in the same position aligns at its <c>(</c>
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    public void SpecExampleAnonymousMethodInStringsNestedInHoleOfMovedLiteralIsAlignedUnderDelegate()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                 R {$"in {M(delegate { return 1; })}"}
+                                 V {$@"in {M(delegate { return 1; })}"}
+                                 S {$"""in {M(delegate { return 1; })}"""}
+                                 L {$"in {M(() => { return 1; })}"}
+                                 """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 R {$"in {M(delegate
+                                                            {
+                                                                return 1;
+                                                            })}"}
+                                                 V {$@"in {M(delegate
+                                                             {
+                                                                 return 1;
+                                                             })}"}
+                                                 S {$"""in {M(delegate
+                                                              {
+                                                                  return 1;
+                                                              })}"""}
+                                                 L {$"in {M(() =>
+                                                            {
+                                                                return 1;
+                                                            })}"}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the spec example with the literal already aligned: an anonymous method in a hole of a regular, a verbatim, and a single-line raw interpolated string nested in the hole aligns under <c>delegate</c>, giving the same output as the moved literal
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    public void SpecExampleAnonymousMethodInStringsNestedInHoleOfAlignedLiteralIsAlignedUnderDelegate()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                              R {$"in {M(delegate { return 1; })}"}
+                                              V {$@"in {M(delegate { return 1; })}"}
+                                              S {$"""in {M(delegate { return 1; })}"""}
+                                              L {$"in {M(() => { return 1; })}"}
+                                              """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 R {$"in {M(delegate
+                                                            {
+                                                                return 1;
+                                                            })}"}
+                                                 V {$@"in {M(delegate
+                                                             {
+                                                                 return 1;
+                                                             })}"}
+                                                 S {$"""in {M(delegate
+                                                              {
+                                                                  return 1;
+                                                              })}"""}
+                                                 L {$"in {M(() =>
+                                                            {
+                                                                return 1;
+                                                            })}"}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an anonymous method in a hole of a regular interpolated string nested in a hole of a literal the formatter moves 13 columns to the right is broken and its block aligned under <c>delegate</c>, not left in the column the literal's shift or column 0 gives
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    public void AnonymousMethodInRegularStringNestedInHoleOfMovedLiteralIsAlignedUnderDelegate()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                 R {$"in {M(delegate { return 1; })}"}
+                                 """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 R {$"in {M(delegate
+                                                            {
+                                                                return 1;
+                                                            })}"}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an anonymous method in a hole of a regular interpolated string nested in a hole of an already aligned literal is broken and its block aligned under <c>delegate</c>, not left in the column the literal's shift or column 0 gives
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    public void AnonymousMethodInRegularStringNestedInHoleOfAlignedLiteralIsAlignedUnderDelegate()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                              R {$"in {M(delegate { return 1; })}"}
+                                              """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 R {$"in {M(delegate
+                                                            {
+                                                                return 1;
+                                                            })}"}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an anonymous method in a hole of a verbatim interpolated string nested in a hole of a literal the formatter moves 13 columns to the right is broken and its block aligned under <c>delegate</c>, not left in the column the literal's shift or column 0 gives
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    public void AnonymousMethodInVerbatimStringNestedInHoleOfMovedLiteralIsAlignedUnderDelegate()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                 V {$@"in {M(delegate { return 1; })}"}
+                                 """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 V {$@"in {M(delegate
+                                                             {
+                                                                 return 1;
+                                                             })}"}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an anonymous method in a hole of a verbatim interpolated string nested in a hole of an already aligned literal is broken and its block aligned under <c>delegate</c>, not left in the column the literal's shift or column 0 gives
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    public void AnonymousMethodInVerbatimStringNestedInHoleOfAlignedLiteralIsAlignedUnderDelegate()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                              V {$@"in {M(delegate { return 1; })}"}
+                                              """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 V {$@"in {M(delegate
+                                                             {
+                                                                 return 1;
+                                                             })}"}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an anonymous method in a hole of a single-line raw interpolated string nested in a hole of a literal the formatter moves 13 columns to the right is broken and its block aligned under <c>delegate</c>, not left in the column the literal's shift or column 0 gives
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    public void AnonymousMethodInSingleLineRawStringNestedInHoleOfMovedLiteralIsAlignedUnderDelegate()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                 S {$"""in {M(delegate { return 1; })}"""}
+                                 """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 S {$"""in {M(delegate
+                                                              {
+                                                                  return 1;
+                                                              })}"""}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an anonymous method in a hole of a single-line raw interpolated string nested in a hole of an already aligned literal is broken and its block aligned under <c>delegate</c>, not left in the column the literal's shift or column 0 gives
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    public void AnonymousMethodInSingleLineRawStringNestedInHoleOfAlignedLiteralIsAlignedUnderDelegate()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                              S {$"""in {M(delegate { return 1; })}"""}
+                                              """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 S {$"""in {M(delegate
+                                                              {
+                                                                  return 1;
+                                                              })}"""}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the block-lambda counterpart of the spec example: a block lambda in a hole of a regular interpolated string nested in a hole of a literal the formatter moves aligns at its <c>(</c>
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-028")]
+    [Requirement("FMT-INDENT-031")]
+    public void BlockLambdaInRegularStringNestedInHoleOfMovedLiteralIsAlignedAtItsParenthesis()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                 L {$"in {M(() => { return 1; })}"}
+                                 """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 L {$"in {M(() =>
+                                                            {
+                                                                return 1;
+                                                            })}"}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the block-lambda counterpart of the spec example: a block lambda in a hole of a regular interpolated string nested in a hole of an already aligned literal aligns at its <c>(</c>
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-028")]
+    [Requirement("FMT-INDENT-031")]
+    public void BlockLambdaInRegularStringNestedInHoleOfAlignedLiteralIsAlignedAtItsParenthesis()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                              L {$"in {M(() => { return 1; })}"}
+                                              """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 L {$"in {M(() =>
+                                                            {
+                                                                return 1;
+                                                            })}"}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>static</c> anonymous method in a hole of a regular interpolated string nested in a hole of a moved literal aligns under <c>delegate</c>, not under <c>static</c>
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    public void StaticAnonymousMethodInRegularStringNestedInHoleOfMovedLiteralIsAlignedUnderDelegate()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                 R {$"in {M(static delegate { return 1; })}"}
+                                 """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 R {$"in {M(static delegate
+                                                                   {
+                                                                       return 1;
+                                                                   })}"}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an <c>async</c> anonymous method in a hole of a verbatim interpolated string nested in a hole of an aligned literal aligns under <c>async</c>
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    public void AsyncAnonymousMethodInVerbatimStringNestedInHoleOfAlignedLiteralIsAlignedUnderAsync()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                              V {$@"in {M(async delegate { return 1; })}"}
+                                              """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 V {$@"in {M(async delegate
+                                                             {
+                                                                 return 1;
+                                                             })}"}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>static</c> anonymous method in a hole of a single-line raw interpolated string nested in a hole of an aligned literal aligns under <c>delegate</c>
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    public void StaticAnonymousMethodInSingleLineRawStringNestedInHoleOfAlignedLiteralIsAlignedUnderDelegate()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                              S {$"""in {M(static delegate { return 1; })}"""}
+                                              """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 S {$"""in {M(static delegate
+                                                                     {
+                                                                         return 1;
+                                                                     })}"""}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an <c>async</c> anonymous method in a hole of a single-line raw interpolated string nested in a hole of a moved literal aligns under <c>async</c>
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    public void AsyncAnonymousMethodInSingleLineRawStringNestedInHoleOfMovedLiteralIsAlignedUnderAsync()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                 S {$"""in {M(async delegate { return 1; })}"""}
+                                 """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 S {$"""in {M(async delegate
+                                                              {
+                                                                  return 1;
+                                                              })}"""}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an anonymous method in a hole of a regular interpolated string that itself lies in a hole of a regular string nested in the raw literal's hole aligns under <c>delegate</c>, since neither nested string ends the hole
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    public void AnonymousMethodInRegularStringNestedTwoLevelsInHoleOfMovedLiteralIsAlignedUnderDelegate()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                 R {$"a {$"b {M(delegate { return 1; })}"}"}
+                                 """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 R {$"a {$"b {M(delegate
+                                                                {
+                                                                    return 1;
+                                                                })}"}"}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: an anonymous method in a single-line raw interpolated string that no hole of a multi-line raw literal encloses keeps the scope-depth layout
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    public void SpecExampleAnonymousMethodInSingleLineRawStringNoMultiLineHoleEnclosesKeepsScopeDepth()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var c = $"""in {M(delegate
+                                     {
+                                         return 1;
+                                     })}""";
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that an anonymous method in a regular interpolated string that no hole of a multi-line raw literal encloses keeps the scope-depth layout
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    public void AnonymousMethodInRegularStringNoMultiLineHoleEnclosesKeepsScopeDepth()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var c = $"in {M(delegate
+                                     {
+                                         return 1;
+                                     })}";
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that an anonymous method in a verbatim interpolated string that no hole of a multi-line raw literal encloses keeps the scope-depth layout
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    public void AnonymousMethodInVerbatimStringNoMultiLineHoleEnclosesKeepsScopeDepth()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var c = $@"in {M(delegate
+                                     {
+                                         return 1;
+                                     })}";
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: an anonymous method in a regular interpolated string inside the block body of a lambda in the hole keeps the scope depth relative to the lambda's brace
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    public void SpecExampleAnonymousMethodInRegularStringInsideBlockLambdaBodyInHoleKeepsScopeDepth()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                              G {M(() =>
+                                                   {
+                                                       return M($"x{M(delegate
+                                                       {
+                                                           return 1;
+                                                       })}");
+                                                   })}
+                                              """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that an anonymous method in a single-line raw interpolated string inside the block body of a lambda in the hole keeps the scope depth relative to the lambda's brace
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    public void AnonymousMethodInSingleLineRawStringInsideBlockLambdaBodyInHoleKeepsScopeDepth()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                              G {M(() =>
+                                                   {
+                                                       return M($"""x{M(delegate
+                                                       {
+                                                           return 1;
+                                                       })}""");
+                                                   })}
+                                              """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that an anonymous method in a regular interpolated string inside the block body of another anonymous method in the hole takes the scope depth relative to the outer block's brace, while the outer block aligns under its <c>delegate</c>
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    public void AnonymousMethodInRegularStringInsideAnonymousMethodOfTheSameHoleTakesScopeDepthOfTheOuterBody()
+    {
+        // Arrange
+        const string input = """"
+                             class C
+                             {
+                                 int M(System.Func<int> f)
+                                 {
+                                     var a = $"""
+                                 Hello {M(delegate { return M($"x{M(delegate { return 1; })}"); })}
+                                 """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 Hello {M(delegate
+                                                          {
+                                                              return M($"x{M(delegate
+                                                              {
+                                                                  return 1;
+                                                              })}");
+                                                          })}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Tests
 }
