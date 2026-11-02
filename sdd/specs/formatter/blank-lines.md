@@ -5,14 +5,14 @@
 | ID prefix | FMT-BLANK |
 | Status | Active |
 | Code owners | `BlankLinePhase`, `BlankLineTokenCleanupRewriter`, `BlankLineTriviaBoundaryRewriter`, `BlankLineRegionDirectiveRewriter`, `BlankLineStatementSpacingRewriter`, `BlankLineBreakSpacingRewriter`, `BlankLineCollapser`, `BlankLineEditor`, `BraceBlankLinePolicy` |
-| Uses | FMT-PIPE-002, FMT-PIPE-004, FMT-BREAK-019, FMT-BREAK-022, FMT-BREAK-030, FMT-BREAK-033, SHARED-USING-011, SHARED-BLANK-001, SHARED-BLANK-002, SHARED-BLANK-003, SHARED-BLANK-004, SHARED-BLANK-005, SHARED-BLANK-006, SHARED-BLANK-007, SHARED-COMMENT-012, FMT-DOC-001, FMT-DOC-003, FMT-BREAK-006, FMT-PIPE-001, FMT-PIPE-025, SHARED-STMT-001 |
+| Uses | FMT-PIPE-002, FMT-BREAK-019, FMT-BREAK-022, FMT-BREAK-030, FMT-BREAK-033, SHARED-USING-011, SHARED-BLANK-001, SHARED-BLANK-002, SHARED-BLANK-003, SHARED-BLANK-004, SHARED-BLANK-005, SHARED-BLANK-006, SHARED-BLANK-007, SHARED-COMMENT-012, FMT-DOC-001, FMT-DOC-003, FMT-BREAK-006, FMT-PIPE-001, FMT-PIPE-025 |
 
 This spec covers `BlankLinePhase`: where the formatter inserts a blank line (before statements and comments, after closing braces and `break`, around region directives), where it removes one (next to braces, closing brackets, chained keywords, and documentation comments, and between a comment and the brace or bracket behind it), and how it collapses runs of blank lines. The phase runs after the line-break and switch-brace phases (FMT-PIPE-001), so it decides every blank line on the lines the output keeps. What counts as a blank line, the closing-brace and terminal-`break` rules, and the region-directive rules are shared with the analyzer and specified in SHARED-BLANK.
 
 ## Non-goals
 
 - Blank lines between type members. The phase neither inserts nor removes them; it only collapses runs (FMT-BLANK-014) and separates comments (FMT-BLANK-011).
-- Line breaks that are not blank lines — braces, statements, switch sections, and members on their own lines are FMT-BREAK. The one line break this phase writes outside a blank line is the one FMT-BLANK-021 names.
+- Line breaks that are not blank lines — braces, statements, switch sections, and members on their own lines are FMT-BREAK. This phase writes no line break that ends the line of a statement or a switch section: every blank line it inserts goes between lines that the line-break phase has already broken (FMT-PIPE-025).
 - Moving documentation comments written behind code, single-line or delimited, onto a new line (FMT-DOC-001) and deciding which of them document nothing (FMT-DOC-003). This phase inserts no line break in front of a documentation comment; it only decides the blank lines around one that starts its line.
 - The node-level preservation of a target's surrounding trivia (FMT-PIPE-010).
 
@@ -1479,7 +1479,7 @@ Every comment in the leading trivia of a token stands in exactly one of two posi
 - **On the token's line** when no line break stands between the comment and the token other than one inside the text of a comment. A delimited comment that spans several lines belongs to the line it starts on, and the token behind its closing `*/` continues that line (SHARED-BLANK-002, SHARED-COMMENT-012), so a comment that starts on an earlier line and ends on the token's line is on the token's line, and so is every comment in front of it on the line it starts on: in `/* a */ /* x⏎ */ }` both comments are on the line of `}`. Any part of such a comment shares the token's line, counted this way.
 - **On its own line** when a line break outside the text of a comment stands between the comment and the token. Such a comment shares its line with no token: the leading trivia starts behind the line break that ends the previous token's line, and a comment that trails the previous token is in that token's trailing trivia, not in this gap.
 
-Two cases put a comment on its own line although no such line break stands behind it. The end-of-file token has no text and starts no line, so every comment in front of it is on its own line. Where the formatter breaks the line in front of the token behind the closing `*/` of a comment that spans several lines (SHARED-COMMENT-012), as FMT-BREAK-019 does for a link of a wrapped chain, the token leaves the comment's line, so the comments of that line are on their own line; deciding them as on the token's line would give them a blank line only in the second pass (FMT-PIPE-004).
+One case puts a comment on its own line although no such line break stands behind it: the end-of-file token has no text and starts no line, so every comment in front of it is on its own line. Where the formatter breaks the line in front of the token behind the closing `*/` of a comment that spans several lines (SHARED-COMMENT-012), as FMT-BREAK-019 does for a link of a wrapped chain, that line break is the line-break phase's and stands when this phase runs (FMT-PIPE-001), so the comments of that line are on their own line by the rule above; this phase MUST NOT predict that line break (FMT-PIPE-025).
 
 The comments on the token's line are glued to it when the first of them is an ordinary comment. When the first of them is a documentation comment, none of them is glued, and FMT-BLANK-011 applies above it as above a comment on its own line. The formatter MUST NOT insert the blank line of FMT-BLANK-011 above a comment glued to a token, and MUST decide the blank lines above the first glued comment as it decides the blank lines directly before that token:
 
@@ -2115,49 +2115,3 @@ class C
 ```
 
 is left unchanged.
-
-### FMT-BLANK-021 — A blank line in front of a statement on its predecessor's line ends that line
-
-Where a requirement of this phase asks for a blank line in front of a statement that shares its line with the statement before it, the phase MUST write the line break that ends that line together with the blank line, so the blank line stands in the first run (FMT-PIPE-004). The line-break phase leaves such a pair on one line when one of the two is an empty statement (FMT-BREAK-006); every other pair of statements stands on separate lines when this phase runs, and gets only the blank line.
-
-Why: FMT-BREAK-006 leaves an empty statement and its neighbour as written, because splitting off a stray `;` only moves it around. Where a statement rule asks for a blank line, the pair is separated anyway, as the analyzer rules that use SHARED-STMT-001 report a statement on its predecessor's line too, and a blank line can stand only between two lines.
-
-Example:
-
-```csharp
-class C
-{
-    int M(int a)
-    {
-        a++;
-        ; return a;
-    }
-
-    void N(bool a)
-    {
-        if (a) { } ;
-    }
-}
-```
-
-```csharp
-class C
-{
-    int M(int a)
-    {
-        a++;
-        ;
-
-        return a;
-    }
-
-    void N(bool a)
-    {
-        if (a)
-        {
-        }
-
-        ;
-    }
-}
-```

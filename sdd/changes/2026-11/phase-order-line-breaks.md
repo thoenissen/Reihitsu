@@ -4,7 +4,7 @@
 |---|---|
 | Status | Draft |
 | Date | 2026-11 |
-| Affected requirements | FMT-PIPE-001 (changed), FMT-PIPE-024 (changed), FMT-PIPE-025 (added), FMT-PIPE-026 (added), FMT-BREAK-005 (retired), FMT-BREAK-006 (changed), FMT-BREAK-030 (changed), FMT-BREAK-036 (added), FMT-BLANK-004 (changed), FMT-BLANK-005 (changed), FMT-BLANK-021 (added), FMT-SWITCH-007 (changed), FMT-SWITCH-015 (added), FMT-SWITCH-016 (added) |
+| Affected requirements | FMT-PIPE-001 (changed), FMT-PIPE-024 (changed), FMT-PIPE-025 (added), FMT-PIPE-026 (added), FMT-BREAK-005 (retired), FMT-BREAK-006 (changed), FMT-BREAK-030 (changed), FMT-BREAK-036 (added), FMT-BLANK-004 (changed), FMT-BLANK-005 (changed), FMT-BLANK-018 (changed), FMT-SWITCH-007 (changed), FMT-SWITCH-015 (added), FMT-SWITCH-016 (added) |
 | Depends on | [Every switch section, label, and first statement starts its own line](switch-section-line-start.md), [The blank-line phase is the only owner of blank lines](blank-line-sole-owner.md) |
 
 ## What
@@ -17,11 +17,11 @@ to
 
 … UsingDirectiveOrdering → **LineBreaks → SwitchCaseBraces → BlankLines** → HorizontalSpacing → Indentation → Cleanup (FMT-PIPE-001).
 
-- **No phase decides a line break or a blank line from a later phase's** (FMT-PIPE-025). FMT-PIPE-001 forbade this for columns and left line breaks and blank lines open. Every phase that adds or removes a line break between two tokens now runs before the blank-line phase, and the phases after it add and remove none.
+- **No phase decides a line break or a blank line from a later phase's** (FMT-PIPE-025). FMT-PIPE-001 forbade this for columns and left line breaks and blank lines open. Whether two tokens with text stand on one line is now decided before the blank-line phase, which adds and removes only blank lines, and the phases after it change neither. Two phases may still read one shared statement of a condition from the syntax; that is not a prediction.
 - **Whether a comment starts its line is final after the line-break phase** (FMT-PIPE-026). No later phase moves a comment onto a line of its own or off one.
 - **A comment behind the condition of an `if` stays there** (FMT-BREAK-036, FMT-BREAK-005 retired). It no longer moves onto a line of its own above the `if`; it stays behind the closing parenthesis, as a comment already does behind the head of `else if`, `else`, `while`, `for`, `foreach`, `using`, and `lock`. The node-level `else if` fact that only this move read is dropped from FMT-PIPE-024.
-- **The blank-line phase adds blank lines to lines that are already broken.** A section on the line of the previous section's `break` gets its own line from the line-break phase (FMT-BREAK-033) and only the blank line from FMT-BLANK-004, which loses the sentence that let the blank-line phase end the `break`'s line. Two statements on one line are split by FMT-BREAK-006 before FMT-BLANK-005 separates them. The one line break the blank-line phase still writes to end a line is for a statement that the line-break phase leaves on its predecessor's line next to an empty statement (FMT-BLANK-021).
-- **The switch-brace phase places its braces as the line-break phase places a section's block and writes no blank line** (FMT-SWITCH-015, FMT-SWITCH-016). The blank lines around and inside the blocks it inserts are decided by the blank-line phase, which now sees those blocks. FMT-SWITCH-007's blank line in front of a comment that leads the terminal `break` is the blank-line phase's, inserted in the same run; the blank lines the wrap carries are collapsed and removed by the blank-line phase after the wrap rather than before it.
+- **The blank-line phase adds blank lines to lines that are already broken.** A section on the line of the previous section's `break` gets its own line from the line-break phase (FMT-BREAK-033) and only the blank line from FMT-BLANK-004, which loses the sentence that let the blank-line phase end the `break`'s line. Two statements on one line are split by FMT-BREAK-006 before FMT-BLANK-005 separates them. FMT-BREAK-006 now also splits an empty statement from its neighbour where a statement rule asks for a blank line between them, which the blank-line phase did before; the blank-line phase writes no line break that ends a statement's line. FMT-BLANK-018 no longer predicts where the line-break phase breaks a chain link off a multi-line comment's closing line, because that line break now stands when the blank-line phase runs.
+- **The switch-brace phase places its braces on the lines a section's block gets from the line-break phase and writes no blank line** (FMT-SWITCH-015, FMT-SWITCH-016). The blank lines around and inside the blocks it inserts are decided by the blank-line phase, which now sees those blocks. FMT-SWITCH-007's blank line in front of a comment that leads the terminal `break` is the blank-line phase's, inserted in the same run; the blank lines the wrap carries are collapsed and removed by the blank-line phase after the wrap rather than before it.
 
 ## Why
 
@@ -37,7 +37,7 @@ The maintainer decided the comment behind an `if` condition before this change w
 
 ## Visible output changes
 
-Each entry shows the formatter's output on `main` at aec8dc6 and after this change, from one run of the formatter. Only FMT-BREAK-005's retirement changes visible output. The reorder itself changes none: every other output of the formatter is intended to stay as it is on `main`, and an output that differs is a defect of this change.
+Entries 1 to 4 show the formatter's output on `main` at aec8dc6 and after this change, from one run of the formatter; entry 5 shows a code fix's result. Only FMT-BREAK-005's retirement changes visible output, on every surface that formats through the formatter: the CLI, whole-document formatting, and the code fixes that delegate their layout to it. The reorder itself changes none: every other output of the formatter and of the code fixes is intended to stay as it is on `main`, and an output that differs is a defect of this change.
 
 ### 1. A comment behind an `if` condition stays behind it
 
@@ -237,11 +237,62 @@ class C
 }
 ```
 
+### 5. The code fixes of RH5405, RH5406, and RH5407 keep the comment behind the `if` condition
+
+The braces these fixes insert are laid out by the formatter's node-level entry point (`FormatNodeInDocumentAsync`), so the comment behind the condition of the `if` they brace stays behind it, as in entry 4. The example is RH5405 (Braces must not be omitted); RH5406 (Braces must not be omitted from multi-line child statements) and RH5407 (Use braces consistently) give the same result for an `if` they brace, and every other code fix that formats a node containing such an `if` keeps the comment too. "Before" is the fix's result on this change's base, from `scripts/apply-fix.sh RH5405`.
+
+```csharp
+// input
+class C
+{
+    void M(bool a)
+    {
+        Foo();
+
+        if (a) // c
+            Foo();
+    }
+}
+```
+
+```csharp
+// before
+class C
+{
+    void M(bool a)
+    {
+        Foo();
+
+        // c
+        if (a)
+        {
+            Foo();
+        }
+    }
+}
+```
+
+```csharp
+// after
+class C
+{
+    void M(bool a)
+    {
+        Foo();
+
+        if (a) // c
+        {
+            Foo();
+        }
+    }
+}
+```
+
 ## Decisions
 
 ### Maintainer answers
 
-1. **The comment behind an `if` condition stays where the author wrote it.** Asked before the run was claimed, with the evidence that on `main` a comment behind `while (a)` and `foreach (…)` stays behind the parenthesis and is stable in one run, while only `if (a) // i` and `if (a) /* m */ { … }` move it above the `if`. The maintainer chose to remove FMT-BREAK-005's move in this run (visible output changes 1 to 4) and to keep the phase reorder, which the issue's other defects motivate. The issue's example input and its desired output with the comment above the `if` are superseded by this answer.
+1. **The comment behind an `if` condition stays where the author wrote it.** Asked before the run was claimed, with the evidence that on `main` a comment behind `while (a)` and `foreach (…)` stays behind the parenthesis and is stable in one run, while only `if (a) // i` and `if (a) /* m */ { … }` move it above the `if`. The maintainer chose to remove FMT-BREAK-005's move in this run (visible output changes 1 to 4, and 5 for the code fixes that format through the formatter) and to keep the phase reorder, which the issue's other defects motivate. The issue's example input and its desired output with the comment above the `if` are superseded by this answer.
 
 ### The new order
 
@@ -251,13 +302,19 @@ LineBreaks → SwitchCaseBraces → BlankLines. The switch-brace phase stays beh
 
 FMT-PIPE-001 keeps the order and the rule for columns and points to FMT-PIPE-025 for line breaks and blank lines. FMT-PIPE-026 is a third requirement because its reason differs: whether a comment starts its line decides both its blank line and its indentation, and the documentation phase, which moves documentation comments off code, runs before the line-break phase.
 
-### A statement next to an empty statement is still split by the blank-line phase
+### The line-break phase splits an empty statement from a neighbour that a statement rule separates
 
-FMT-BREAK-006 leaves an empty statement and its neighbour as written. Where a statement rule asks for a blank line between them, `main` splits the line in the blank-line phase (`a++; ; return a;` gives `;`, a blank line, and `return a;`), and the analyzer rules that use SHARED-STMT-001 report such a pair too. This change keeps that output, so FMT-BLANK-021 states that the blank-line phase writes the line break that ends the line together with the blank line in that case. The issue's goal that the blank-line phase insert no line break that ends a statement's line is narrowed to the pairs the line-break phase splits; leaving `; return a;` on one line without the blank line would change visible output that the issue did not ask about.
+FMT-BREAK-006 leaves an empty statement and its neighbour as written. Where a statement rule asks for a blank line between them, `main` splits the line in the blank-line phase (`a++; ; return a;` gives `;`, a blank line, and `return a;`), and the analyzer rules that use SHARED-STMT-001 report such a pair too. This change keeps that output and moves the split into the line-break phase: FMT-BREAK-006's exemption for empty statements stops where FMT-BLANK-001 to FMT-BLANK-005 ask for a blank line between the pair, and the blank-line phase adds only the blank line. Both phases read which pairs a statement rule separates from one shared statement of that rule, so the line-break phase does not predict the blank-line phase; FMT-PIPE-025 allows such a shared condition and forbids only a prediction or a copy.
 
-### The switch-brace phase uses the line-break phase's brace placement
+The split has to happen before the switch-brace phase: that phase measures whether a section spans several lines (FMT-SWITCH-003), and a section such as `case 1: ; return 1;` is multi-line only once `return 1;` has its own line. Left to the blank-line phase, after the measure, the section would be braced only in the second run, against FMT-PIPE-004. With the split in the line-break phase, the issue's goal that the blank-line phase insert no line break that ends a statement's line holds as written.
 
-The braces the switch-brace phase inserts start their lines as FMT-BREAK-008 places a section's block (FMT-SWITCH-015), by the line-break phase's own brace placement (`BracePlacer`), not by a placement of its own. The phase writes no blank line and removes none (FMT-SWITCH-016): it carries the blank lines it finds, and the blank-line phase decides them afterwards, which gives the output `main` gives — a blank line the wrap carries behind the new opening brace is removed by FMT-BLANK-007, and a run in front of a comment behind the new block collapses to one by FMT-BLANK-014.
+### The blank-line phase no longer predicts chain line breaks
+
+FMT-BLANK-018 classified a comment in front of a chain link as on its own line where the line-break phase would later break the link off the closing line of a multi-line comment, so its blank line would stand in the first run. After the reorder that line break already stands when the blank-line phase runs, so the comment is on its own line by the ordinary rule, and the prediction is removed. Output does not change.
+
+### The switch-brace phase places its braces on a section block's lines
+
+The braces the switch-brace phase inserts start the lines that FMT-BREAK-008 gives the braces of a block that forms a section's body (FMT-SWITCH-015). The requirement states those line positions, which are what a test can observe; that the phase gets them from the line-break phase's own placement rather than from a placement of its own is the ownership goal of thoenissen/Reihitsu#1498 and an implementation matter. The phase writes no blank line and removes none (FMT-SWITCH-016): it carries the blank lines it finds, and the blank-line phase decides them afterwards, which gives the output `main` gives — a blank line the wrap carries behind the new opening brace is removed by FMT-BLANK-007, and a run in front of a comment behind the new block collapses to one by FMT-BLANK-014.
 
 ### FMT-PIPE-024 loses the `else if` fact
 
@@ -271,5 +328,8 @@ Its reason says that the formatter splits a same-line pair (FMT-BREAK) and then 
 
 - **Keep the order and move FMT-BREAK-005's comment move into the structural transforms**, so that it happens before the blank-line phase — rejected: the maintainer removed the move, and the order would still leave the blank-line phase splitting lines and the switch-brace phase's blank lines decided before its blocks exist.
 - **LineBreaks → BlankLines → SwitchCaseBraces** — rejected: the blank lines around the blocks the switch-brace phase inserts would still be decided before the blocks exist.
-- **Let the line-break phase split an empty statement from its neighbour where a blank line is required** — rejected: the line-break phase would decide a line break from a blank-line rule of a later phase, which FMT-PIPE-025 forbids.
-- **Let the blank-line phase write no line break at all**, so `; return a;` stays on one line without a blank line — rejected: it changes visible output that the issue did not ask about, and the analyzers report the pair.
+- **Keep the split of an empty statement from its neighbour in the blank-line phase**, which writes the line break together with the blank line — rejected: the switch-brace phase measures the section before that line break exists, so `case 1: ; return 1;` and `case 1: ; throw null;` are braced only in the second run (FMT-PIPE-004).
+- **Leave empty statements out of the switch-brace phase's multi-line measure** — rejected: `case 1: ; return 1;` would stay unbraced, which changes visible output.
+- **Let the switch-brace phase predict the blank-line phase's line break** — rejected: a prediction, which FMT-PIPE-025 forbids.
+- **Give the line-break phase its own list of the statements a blank line separates** — rejected: a second statement of the blank-line rule, which can drift from the first.
+- **Let the blank-line phase write no line break at all and leave the pair as written**, so `; return a;` stays on one line without a blank line — rejected: it changes visible output that the issue did not ask about, and the analyzers report the pair.

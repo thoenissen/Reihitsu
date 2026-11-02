@@ -5,7 +5,7 @@
 | ID prefix | FMT-BREAK |
 | Status | Active |
 | Code owners | `LineBreakPhase`, `LineBreakBlockRewriter`, `LineBreakInitializerRewriter`, `LineBreakContainedBlockRewriter`, `LineBreakAssignmentRewriter`, `DeclarationSemicolonLineBreakRewriter`, `ListElementInteriorJoinRewriter`, `ListElementInteriorUtilities`, `LineBreakListRewriter`, `PropertyLayoutLineBreakRewriter`, `GenericConstraintLineBreakRewriter`, `DeclarationBraceLineBreakRewriter`, `MemberLineStartRewriter`, `AttributeTargetFormattingRewriter`, `AttributeTargetFormattingShared`, `BinaryOperatorLineBreakRewriter`, `ChainLineBreakRewriter`, `TernaryLineBreakRewriter`, `SwitchCaseWhenLineBreakRewriter`, `BracePlacer`, `TokenGapNormalizer`, `AccessorListLayout`, `LineBreakDetection`, `LineBreakTriviaUtilities` |
-| Uses | FMT-BLANK-004, FMT-BLANK-012, FMT-BLANK-021, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-010, FMT-PIPE-021, FMT-PIPE-025, FMT-PIPE-026, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, SHARED-ATTR-014, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012 |
+| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-010, FMT-PIPE-021, FMT-PIPE-025, FMT-PIPE-026, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, SHARED-ATTR-014, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-STMT-001 |
 
 This spec covers `LineBreakPhase`, the phase of the pipeline that decides where lines break (its position in the phase order is FMT-PIPE-001): brace placement, one statement and one member per line, the layout of argument, parameter, attribute, and type-argument lists, initializers and patterns, assignments, operators, conditionals, chains, generic constraints, attribute lists, accessor lists, the lines that switch sections, their labels, and their first statements start, and `case … when` guards. The phase adds and removes line breaks and keeps the blank lines it finds (FMT-BREAK-030), and it changes tokens only where it shapes an accessor's attribute lists (FMT-BREAK-032). The columns the resulting lines start in are decided later by FMT-INDENT, and the spaces between tokens on a line by FMT-SPACE.
 
@@ -222,9 +222,9 @@ Status: Retired — the maintainer decided that a comment behind the condition o
 
 ### FMT-BREAK-006 — One statement per line
 
-Every statement in a block or a switch section that follows another statement of the same list MUST start its own line. A comment that trailed the previous statement MUST stay on that statement's line. An empty statement (`;`) and the statement next to it MUST be left as written; where FMT-BLANK requires a blank line between them, the blank-line phase, which runs after this phase, separates them (FMT-BLANK-021). The first statement of a block starts its line behind the opening brace (FMT-BREAK-002), and the first statement of a switch section behind the section's labels (FMT-BREAK-035).
+Every statement in a block or a switch section that follows another statement of the same list MUST start its own line. A comment that trailed the previous statement MUST stay on that statement's line. An empty statement (`;`) and the statement next to it MUST be left as written, unless a requirement of FMT-BLANK asks for a blank line between the two (FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005): then the second of them MUST start its own line too, and the blank-line phase, which runs after this phase, adds only the blank line. The first statement of a block starts its line behind the opening brace (FMT-BREAK-002), and the first statement of a switch section behind the section's labels (FMT-BREAK-035).
 
-Why: One statement per line keeps every statement visible at the left margin and gives each its own line in diffs and stack traces. Empty statements are left alone because splitting them off only moves a stray `;` around; they are rare and usually deliberate.
+Why: One statement per line keeps every statement visible at the left margin and gives each its own line in diffs and stack traces. Empty statements are left alone because splitting them off only moves a stray `;` around; they are rare and usually deliberate. Where a statement rule asks for a blank line next to one, the pair is separated anyway — the analyzer rules that use SHARED-STMT-001 report a statement on its predecessor's line too, and a blank line can stand only between two lines — and the line break is this phase's, so the blank-line phase writes no line break that ends a statement's line and the switch-brace phase measures the section on the lines it keeps (FMT-SWITCH-003, FMT-PIPE-025). Which pairs a statement rule separates is read from the one statement of that rule that the blank-line phase applies, not from a copy of it.
 
 Example:
 
@@ -250,6 +250,74 @@ class C
         Bar(); /* d */
         Baz();
         ; Foo();
+    }
+}
+```
+
+Where a statement rule asks for a blank line between an empty statement and its neighbour, the two are split, in a block and in a switch section alike, and the blank-line phase adds the blank line in the same run:
+
+```csharp
+class C
+{
+    int M(int a)
+    {
+        a++;
+        ; return a;
+    }
+
+    void N(bool a)
+    {
+        if (a) { } ;
+    }
+
+    int O(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                ; return 1;
+            default:
+                return 0;
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    int M(int a)
+    {
+        a++;
+        ;
+
+        return a;
+    }
+
+    void N(bool a)
+    {
+        if (a)
+        {
+        }
+
+        ;
+    }
+
+    int O(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                {
+                    ;
+
+                    return 1;
+                }
+            default:
+                {
+                    return 0;
+                }
+        }
     }
 }
 ```
