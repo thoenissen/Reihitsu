@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-PIPE-001 (changed), FMT-PIPE-024 (changed), FMT-PIPE-025 (added), FMT-PIPE-026 (added), FMT-BREAK-005 (retired), FMT-BREAK-006 (changed), FMT-BREAK-030 (changed), FMT-BREAK-036 (added), FMT-BLANK-004 (changed), FMT-BLANK-005 (changed), FMT-BLANK-018 (changed), FMT-SWITCH-007 (changed), FMT-SWITCH-015 (added), FMT-SWITCH-016 (added) |
 | Depends on | [Every switch section, label, and first statement starts its own line](switch-section-line-start.md), [The blank-line phase is the only owner of blank lines](blank-line-sole-owner.md) |
