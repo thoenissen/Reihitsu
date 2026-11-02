@@ -26,6 +26,8 @@ Verdict: run started
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 6 | Test implementer | Columns behind `=>`/`return` (entry 5) | Assert only the blank line; column left to follow-up candidate 3 | No requirement decides that column | No column asserted or changed | c269f57 |
+| 5 | Test implementer | Who removes stale `PhaseReversalExceptionList` entries | The implementer, once its change makes them stale (the list's own test reports them) | Removal is required by the list's design and the issue's Done-when, weakens no assertion | Test helper data only | — |
 | 4 | Spec author | Accept the change doc `sdd/changes/2026-11/lambda-paren-hole-break.md` | Accepted after skeptic and amendments for answers 1–6 | Visible output changes are all answered | All changes covered by maintainer answers | 8bcb6de |
 | 3 | Spec author | Anchor of `static async delegate` | Under `async`, like its block-lambda counterpart | Follows the rule of answers 4 and 6 (an anonymous method aligns like its block-lambda counterpart) | Covered by the maintainer's answers 4/6 rule | 8bcb6de |
 | 2 | Skeptic | Phase-stability check test loses its lambda example | Replace with an injected (synthetic) phase, not another formatter defect | The check's own test must not depend on a defect surviving | Test-only | — |
