@@ -680,10 +680,12 @@ public class RawStringInterpolationHoleTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the lines an earlier phase breaks inside a hole, with no alignment placing them, are left unchanged by a second pass
+    /// Verifies that an anonymous method broken inside a hole of a literal the formatter moves is aligned under
+    /// <c>delegate</c>, measured after the move, and that a second pass leaves it unchanged
     /// </summary>
     [TestMethod]
     [Requirement("FMT-PIPE-004")]
+    [Requirement("FMT-INDENT-031")]
     public void AnonymousMethodBrokenInsideHoleIsStableOnTheSecondPass()
     {
         const string input = """"
@@ -697,8 +699,74 @@ public class RawStringInterpolationHoleTests : FormatterTestsBase
                                  }
                              }
                              """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 Hello {M(delegate
+                                                          {
+                                                              return 1;
+                                                          })}
+                                                 """;
+                                    }
+                                }
+                                """";
 
-        AssertSecondPassIsStable(input);
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a parenthesized lambda that starts a hole line no alignment places, the value of a switch-expression
+    /// arm, keeps its column in an aligned literal
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-RAW-007")]
+    [Requirement("FMT-BREAK-011")]
+    public void ParenthesizedLambdaStartingAnUnplacedHoleLineKeepsItsColumn()
+    {
+        const string input = """"
+                             using System;
+
+                             class C
+                             {
+                                 int M(Func<int, int> f, int v)
+                                 {
+                                     var a = $"""
+                                              A {M(v switch
+                                                   {
+                                                       _ =>
+                                                           (x) => x
+                                                   }, 1)}
+                                              """;
+
+                                     return 0;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                using System;
+
+                                class C
+                                {
+                                    int M(Func<int, int> f, int v)
+                                    {
+                                        var a = $"""
+                                                 A {M(v switch
+                                                      {
+                                                          _ =>
+                                                              (x) => x
+                                                      },
+                                                      1)}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
+
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -898,11 +966,12 @@ public class RawStringInterpolationHoleTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a constraint clause of a local function in an anonymous-method body inside a hole of an aligned literal is indented one level deeper than its declaration's line, which keeps its column
+    /// Verifies that a constraint clause of a local function in an anonymous-method body inside a hole of an aligned literal is indented one level deeper than its declaration's line, after the anonymous method's block aligned under <c>delegate</c>
     /// </summary>
     [TestMethod]
     [Requirement("FMT-RAW-007")]
     [Requirement("FMT-INDENT-017")]
+    [Requirement("FMT-INDENT-031")]
     public void ConstraintClauseInHoleOfAlignedLiteralIsIndentedFromItsDeclaration()
     {
         const string input = """"
@@ -931,14 +1000,14 @@ public class RawStringInterpolationHoleTests : FormatterTestsBase
                                     {
                                         var a = $"""
                                                  Hello {M(delegate
-                                                 {
-                                                     void L<T>()
-                                                         where T : class
-                                                     {
-                                                     }
+                                                          {
+                                                              void L<T>()
+                                                                  where T : class
+                                                              {
+                                                              }
 
-                                                     return 1;
-                                                 })}
+                                                              return 1;
+                                                          })}
                                                  """;
                                     }
                                 }
@@ -948,11 +1017,12 @@ public class RawStringInterpolationHoleTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a constraint clause of a local function in an anonymous-method body inside a hole of a misaligned literal is indented one level deeper than its declaration's line after that line moved with the literal, and a second pass keeps it
+    /// Verifies that a constraint clause of a local function in an anonymous-method body inside a hole of a misaligned literal is indented one level deeper than its declaration's line after the literal moved and the anonymous method's block aligned under <c>delegate</c>, and a second pass keeps it
     /// </summary>
     [TestMethod]
     [Requirement("FMT-RAW-007")]
     [Requirement("FMT-INDENT-017")]
+    [Requirement("FMT-INDENT-031")]
     public void ConstraintClauseInHoleOfMisalignedLiteralIsIndentedFromItsDeclarationAfterTheShift()
     {
         const string input = """"
@@ -981,14 +1051,14 @@ public class RawStringInterpolationHoleTests : FormatterTestsBase
                                     {
                                         var a = $"""
                                                  Hello {M(delegate
-                                                 {
-                                                     void L<T>()
-                                                         where T : class
-                                                     {
-                                                     }
+                                                          {
+                                                              void L<T>()
+                                                                  where T : class
+                                                              {
+                                                              }
 
-                                                     return 1;
-                                                 })}
+                                                              return 1;
+                                                          })}
                                                  """;
                                     }
                                 }

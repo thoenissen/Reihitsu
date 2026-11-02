@@ -444,9 +444,11 @@ class C
 
 ### FMT-BREAK-011 — Parameter lists hug their declaration
 
-The opening parenthesis of a parameter list MUST stay on the declaration line, a comma between parameters MUST stay at the end of the previous parameter's line, and the closing parenthesis MUST stay on the line of the last parameter. This holds for every parameter list — methods, constructors, operators, delegates, local functions, records, primary constructors, anonymous methods, and parenthesized lambdas.
+A comma between parameters MUST stay at the end of the previous parameter's line, and the closing parenthesis MUST stay on the line of the last parameter. This holds for every parameter list — methods, constructors, operators, delegates, local functions, records, primary constructors, anonymous methods, and parenthesized lambdas. The opening parenthesis MUST stay on the declaration line for every one of these parameter lists except a parenthesized lambda's.
 
-Why: A parenthesis or comma at the start of a line separates the declaration from its parameters or a parameter from its separator, which is easy to misread. RH5105, RH5106, and RH5107 report the same shapes.
+The opening parenthesis of a parenthesized lambda is the lambda's first token unless a modifier or a return type stands in front of it, and this requirement does not move it: the requirement that owns the gap in front of the lambda decides it — inside a list element FMT-BREAK-015 joins it, as the first element of a list FMT-BREAK-012 does, and as an assignment's value FMT-BREAK-016 does — and where no requirement joins that gap, the phase leaves its line break and its blank lines as written (FMT-BREAK-030). A line break that another requirement inserts in front of the lambda — in front of an element of an initializer (FMT-BREAK-021) or of a collection expression (FMT-BREAK-022), or of a list element (FMT-BREAK-012) — stays, as in front of any other expression.
+
+Why: A parenthesis or comma at the start of a line separates the declaration from its parameters or a parameter from its separator, which is easy to misread. RH5105, RH5106, and RH5107 report the same shapes. A parenthesized lambda has no name in front of its parameter list: its opening parenthesis starts an expression and is placed by the code around it, as RH5105 leaves it unreported. A rule that moved it would compete with the owner of the gap in front of the lambda; as an element of a wrapped list the lambda keeps its own line (FMT-BREAK-012).
 
 Example:
 
@@ -476,6 +478,89 @@ class C
 
     void N(int a, int b)
     {
+    }
+}
+```
+
+Example — the opening parenthesis of an anonymous method moves onto the `delegate` line; a parenthesized lambda's comma and closing parenthesis are placed like any other, while a lambda argument on its own line keeps that line and the blank line above it:
+
+```csharp
+using System;
+using System.Linq;
+
+class C
+{
+    void M(int[] items)
+    {
+        Func<int, int, int> f = delegate
+            (int a, int b) { return a; };
+        var total = items.Aggregate(0,
+                                    (sum
+                                     , item
+                                    ) => sum + item);
+        var other = items.Aggregate(0,
+
+                                    (sum, item) => sum + item);
+    }
+}
+```
+
+```csharp
+using System;
+using System.Linq;
+
+class C
+{
+    void M(int[] items)
+    {
+        Func<int, int, int> f = delegate(int a, int b)
+        {
+            return a;
+        };
+        var total = items.Aggregate(0,
+                                    (sum,
+                                     item) => sum + item);
+        var other = items.Aggregate(0,
+
+                                    (sum, item) => sum + item);
+    }
+}
+```
+
+Example — a lambda element of a collection initializer and of a wrapped collection expression starts its own line like any other element:
+
+```csharp
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var list = new List<Func<int, int>> { (x) => x, (x) => x };
+        Func<int, int>[] col = [(x) => x,
+                                (x) => x];
+    }
+}
+```
+
+```csharp
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var list = new List<Func<int, int>>
+                   {
+                       (x) => x,
+                       (x) => x
+                   };
+        Func<int, int>[] col = [
+                                   (x) => x,
+                                   (x) => x
+                               ];
     }
 }
 ```

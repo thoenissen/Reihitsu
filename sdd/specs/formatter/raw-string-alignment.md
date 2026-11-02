@@ -5,7 +5,7 @@
 | ID prefix | FMT-RAW |
 | Status | Active |
 | Code owners | `RawStringLineShifts`, `RawStringLiteral`, `RawStringLiteralUtilities` |
-| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-CLEAN-009, FMT-INDENT-002, FMT-INDENT-004, FMT-INDENT-006, FMT-INDENT-007, FMT-INDENT-011, FMT-INDENT-012, FMT-INDENT-029, FMT-INDENT-030, FMT-TAB-001 |
+| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-CLEAN-009, FMT-INDENT-002, FMT-INDENT-004, FMT-INDENT-006, FMT-INDENT-007, FMT-INDENT-011, FMT-INDENT-012, FMT-INDENT-029, FMT-INDENT-030, FMT-INDENT-031, FMT-TAB-001 |
 
 This spec covers how the indentation phase moves the lines of a multi-line raw string literal: once the phase has placed the line of the opening quotes, it moves the literal's content lines, the lines of its interpolation holes, and its closing marker so the closing marker starts in the column of the opening quotes. The move belongs to the indentation phase (FMT-PIPE-001), so every alignment of that phase is measured after it (FMT-INDENT-030). The literal's value never changes.
 
@@ -293,7 +293,7 @@ is left unchanged.
 
 For a multi-line interpolated raw string, a line that starts inside one of its interpolation holes with a token or a comment is placed by one of three conditions:
 
-- When an alignment requirement (FMT-INDENT-012 to FMT-INDENT-029) places the line relative to a token that lies inside the literal — in the same hole or on one of the literal's content lines — and the construct it aligns lies inside the hole, the formatter MUST keep that alignment, measured at the token's column after the literal moved.
+- When an alignment requirement (FMT-INDENT-012 to FMT-INDENT-029, and FMT-INDENT-031) places the line relative to a token that lies inside the literal — in the same hole or on one of the literal's content lines — and the construct it aligns lies inside the hole, the formatter MUST keep that alignment, measured at the token's column after the literal moved.
 - When a comment starts the line, the formatter MUST give it the column FMT-INDENT-006 gives it — the column of the token it precedes, or one level deeper than a closing brace it precedes — measured at that token's column after this requirement placed it. When another comment leads the line of that token, the token's line starts with that comment, and the comment above takes the column that line starts in, as on any other line (FMT-INDENT-006); the column of the token behind the leading comment does not decide it.
 - Any other line that a token starts, the formatter MUST NOT re-indent, whatever column the indentation requirements would give it: a column from the scope depth (FMT-INDENT-002 to FMT-INDENT-004), or a column that a construct outside the hole sets, such as the body of a lambda around the literal. It MUST move the line by the same number of columns as the closing marker (FMT-RAW-001, FMT-RAW-002), and, when the closing marker already starts in the target column, MUST leave the line where it is. Such lines are, for example, started by a token of the hole's expression that no alignment inside the hole places, by the `,` of an alignment clause, by the `:` of a format clause, or by the hole's closing `}`.
 

@@ -8,7 +8,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Formatter.Pipeline;
 using Reihitsu.Formatter.Pipeline.BlankLines;
 using Reihitsu.Formatter.Pipeline.Indentation;
-using Reihitsu.Formatter.Pipeline.LineBreaks;
 using Reihitsu.Formatter.Test.Helpers;
 using Reihitsu.Formatter.Test.Helpers.Enumerations;
 
@@ -220,36 +219,30 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the check catches the line-break phase stripping the indentation of a parenthesized lambda argument
-    /// on its own line, which the indentation phase writes back
+    /// Verifies that the check catches a phase whose change a later phase writes back: the source is a fixed point of
+    /// both phases together, yet the earlier phase, run alone, changes it
     /// </summary>
     [TestMethod]
-    public void CheckCatchesLineBreakPhaseStrippingIndentationOfParenthesizedLambdaArgument()
+    public void CheckCatchesAPhaseWhoseChangeALaterPhaseWritesBack()
     {
         // Arrange
-        const string source = """
-                              class C
-                              {
-                                  void M()
-                                  {
-                                      Run(1,
-                                          (x) => x);
-                                  }
-                              }
-                              """;
-        const string phaseOutput = """
-                                   class C
-                                   {
-                                       void M()
-                                       {
-                                           Run(1,
-                                   (x) => x);
-                                       }
-                                   }
-                                   """;
+        IReadOnlyList<IFormattingPhase> phases = [new IndentationStrippingPhase(), new IndentationPhase()];
 
-        // Act & Assert
-        AssertOnlyPhaseChanges(source, nameof(LineBreakPhase), phaseOutput);
+        foreach (var endOfLine in _lineEndings)
+        {
+            var text = NormalizeLineEndings(FormattedSource, endOfLine);
+            var endingName = DescribeLineEnding(endOfLine);
+            var (root, context) = SecondPassInput.Create(text, endOfLine, null);
+
+            Assert.AreEqual(text, FormattingPipeline.ExecutePhases(root, context, phases, null, CancellationToken.None).ToFullString(), $"The source should be a fixed point of both phases under {endingName} line endings.");
+
+            // Act
+            var changes = PhaseStabilityCheck.FindChangingPhases(text, endOfLine, null, phases);
+
+            // Assert
+            Assert.AreSequenceEqual(new[] { nameof(IndentationStrippingPhase) }, changes.Select(change => change.Phase).ToList(), $"Under {endingName} line endings.");
+            Assert.AreEqual(IndentationStrippingPhase.GetOutput(text, endOfLine), changes[0].Output, $"Under {endingName} line endings.");
+        }
     }
 
     /// <summary>
@@ -961,29 +954,6 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
             var changes = PhaseStabilityCheck.FindChangingPhases(text, endOfLine, null);
 
             Assert.IsEmpty(changes, $"Under {DescribeLineEnding(endOfLine)} line endings: {string.Join(" ", changes.Select(change => $"{change.Phase}: {change.Difference}"))}");
-        }
-    }
-
-    /// <summary>
-    /// Asserts that exactly one phase changes the source when it runs alone, under LF and CRLF, and that it returns the
-    /// given output
-    /// </summary>
-    /// <param name="source">The source, a final output of the formatter</param>
-    /// <param name="phase">The phase expected to change it</param>
-    /// <param name="phaseOutput">The text the phase is expected to return</param>
-    private static void AssertOnlyPhaseChanges(string source, string phase, string phaseOutput)
-    {
-        foreach (var endOfLine in _lineEndings)
-        {
-            var text = NormalizeLineEndings(source, endOfLine);
-            var endingName = DescribeLineEnding(endOfLine);
-
-            AssertIsFinalOutput(text, endOfLine);
-
-            var changes = PhaseStabilityCheck.FindChangingPhases(text, endOfLine, null);
-
-            Assert.AreSequenceEqual(new[] { phase }, changes.Select(change => change.Phase).ToList(), $"Under {endingName} line endings: {string.Join(" ", changes.Select(change => change.Difference))}");
-            Assert.AreEqual(NormalizeLineEndings(phaseOutput, endOfLine), changes[0].Output, $"Under {endingName} line endings.");
         }
     }
 

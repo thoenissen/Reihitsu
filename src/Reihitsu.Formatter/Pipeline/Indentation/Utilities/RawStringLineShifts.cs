@@ -137,8 +137,8 @@ internal sealed class RawStringLineShifts
     }
 
     /// <summary>
-    /// Moves the lines of every multi-line raw string literal of an indented tree after its opening line by the number
-    /// of columns <paramref name="getShift"/> gives each line. Only literals that are not nested in an interpolation
+    /// Moves the lines of every multi-line raw string literal of an indented tree after its opening line to the column
+    /// <paramref name="getColumnAfterMove"/> gives each line. Only literals that are not nested in an interpolation
     /// hole of another multi-line interpolated raw string are walked; a nested literal's lines are lines of the outermost
     /// literal around it, so both move together. The move edits the tokens and the whitespace trivia that hold the moved
     /// indentation and keeps every other node and token, so the annotations of the literal and of its holes survive it
@@ -148,10 +148,10 @@ internal sealed class RawStringLineShifts
     /// Placing lines changes no line break, so the line numbers of the indented tree are those the shifts were computed for
     /// </summary>
     /// <param name="root">The indented syntax root</param>
-    /// <param name="getShift">Gets the number of columns a line moves</param>
+    /// <param name="getColumnAfterMove">Gets the column a line has after the move from its 0-based number and the column its text starts at in the indented tree</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The syntax root with the lines of its raw string literals moved</returns>
-    public static SyntaxNode MoveLines(SyntaxNode root, Func<int, int> getShift, CancellationToken cancellationToken)
+    public static SyntaxNode MoveLines(SyntaxNode root, Func<int, int, int> getColumnAfterMove, CancellationToken cancellationToken)
     {
         var edits = new Dictionary<SyntaxToken, List<(int LineStart, int OldLength, int NewLength)>>();
         var leadingTexts = new Dictionary<InterpolatedStringExpressionSyntax, int>();
@@ -169,7 +169,7 @@ internal sealed class RawStringLineShifts
 
             text ??= root.SyntaxTree.GetText(cancellationToken);
 
-            CollectEdits(root, node, text, getShift, edits, leadingTexts);
+            CollectEdits(root, node, text, getColumnAfterMove, edits, leadingTexts);
         }
 
         if (edits.Count == 0
@@ -210,8 +210,8 @@ internal sealed class RawStringLineShifts
     }
 
     /// <summary>
-    /// Collects the edits that move each line of a multi-line raw string literal after the first by the number of columns
-    /// <paramref name="getShift"/> gives it. Each edit belongs to the token that holds the start of the line: in its text,
+    /// Collects the edits that move each line of a multi-line raw string literal after the first to the column
+    /// <paramref name="getColumnAfterMove"/> gives it. Each edit belongs to the token that holds the start of the line: in its text,
     /// on a content or closing line, or in its leading trivia, on a line of an interpolation hole. A content line that
     /// starts with a hole's opening brace has no text in front of the brace, and the parser reads indentation there as
     /// text of the literal: its edit belongs to the text token that ends at the line's start, or, when the start token
@@ -220,27 +220,25 @@ internal sealed class RawStringLineShifts
     /// <param name="root">The indented syntax root</param>
     /// <param name="node">The literal expression or interpolated string expression</param>
     /// <param name="text">The text of the indented syntax tree</param>
-    /// <param name="getShift">Gets the number of columns a line moves</param>
+    /// <param name="getColumnAfterMove">Gets the column a line has after the move from its 0-based number and the column its text starts at in the indented tree</param>
     /// <param name="edits">Receives the edits, by the token they change</param>
     /// <param name="leadingTexts">Receives the number of spaces of the text element to insert in front of the first hole, by the literal that receives it</param>
-    private static void CollectEdits(SyntaxNode root, SyntaxNode node, SourceText text, Func<int, int> getShift, Dictionary<SyntaxToken, List<(int LineStart, int OldLength, int NewLength)>> edits, Dictionary<InterpolatedStringExpressionSyntax, int> leadingTexts)
+    private static void CollectEdits(SyntaxNode root, SyntaxNode node, SourceText text, Func<int, int, int> getColumnAfterMove, Dictionary<SyntaxToken, List<(int LineStart, int OldLength, int NewLength)>> edits, Dictionary<InterpolatedStringExpressionSyntax, int> leadingTexts)
     {
         var openingLineNumber = text.Lines.GetLineFromPosition(node.SpanStart).LineNumber;
         var closingLineNumber = text.Lines.GetLineFromPosition(node.Span.End).LineNumber;
 
         for (var lineNumber = openingLineNumber + 1; lineNumber <= closingLineNumber; lineNumber++)
         {
-            var shift = getShift(lineNumber);
             var line = text.Lines[lineNumber];
 
-            if (shift == 0
-                || line.Span.Length == 0)
+            if (line.Span.Length == 0)
             {
                 continue;
             }
 
             var indentation = GetIndentationLength(root, text, line);
-            var newSpaces = Math.Max(0, indentation + shift);
+            var newSpaces = getColumnAfterMove(lineNumber, indentation);
 
             if (newSpaces == indentation)
             {
