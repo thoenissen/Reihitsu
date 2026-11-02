@@ -1514,5 +1514,499 @@ public class SwitchSectionLineStartTests : FormatterTestsBase
         AssertRuleResult(input);
     }
 
+    /// <summary>
+    /// Verifies that two delimited documentation comments in front of a label move with it together, and that an ordinary
+    /// comment in front of the first delimited documentation comment stays on the previous label's line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-033")]
+    [Requirement("FMT-BREAK-034")]
+    public void CommentRunFromFirstDelimitedDocumentationCommentMovesWithLabel()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1: /* c */ /** d */ case 2:
+                                             A();
+                                             break;
+
+                                         case 3: /** a */ /** b */ case 4:
+                                             A();
+                                             break;
+                                     }
+                                 }
+
+                                 void A()
+                                 {
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1: /* c */
+                                            /** d */ case 2:
+                                                A();
+                                                break;
+
+                                            case 3:
+                                            /** a */ /** b */ case 4:
+                                                A();
+                                                break;
+                                        }
+                                    }
+
+                                    void A()
+                                    {
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the comments from the first delimited documentation comment on the label's line up to the first
+    /// statement move with the statement as written and in order, that a delimited documentation comment spanning lines
+    /// moves as a whole, and that an ordinary comment in front of the first delimited documentation comment stays on the
+    /// label's line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-033")]
+    [Requirement("FMT-BREAK-035")]
+    public void CommentRunFromFirstDelimitedDocumentationCommentMovesWithFirstStatement()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1: /* c */ /** d */ A();
+                                             break;
+
+                                         case 2: /** d */ /* c */ A();
+                                             break;
+
+                                         case 3: /** a
+                                             b */ A();
+                                             break;
+                                     }
+                                 }
+
+                                 void A()
+                                 {
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1: /* c */
+                                                /** d */ A();
+                                                break;
+
+                                            case 2:
+                                                /** d */ /* c */ A();
+                                                break;
+
+                                            case 3:
+                                                /** a
+                                                b */ A();
+                                                break;
+                                        }
+                                    }
+
+                                    void A()
+                                    {
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an ordinary comment in front of a delimited documentation comment stays on the label's line while
+    /// the documentation comment and the ordinary comment behind it move with the first statement, next to a label and a
+    /// first statement that each move with one delimited documentation comment
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-033")]
+    [Requirement("FMT-BREAK-034")]
+    [Requirement("FMT-BREAK-035")]
+    public void OrdinaryCommentStaysOnLabelLineWhileCommentsFromDocumentationCommentMove()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1: /** d */ A();
+                                             break;
+
+                                         case 4: /** f */ case 5:
+                                             return 5;
+
+                                         case 6: /* c */ /** d */ /* e */ A();
+                                             break;
+                                     }
+
+                                     return 0;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                /** d */ A();
+                                                break;
+
+                                            case 4:
+                                            /** f */ case 5:
+                                                return 5;
+
+                                            case 6: /* c */
+                                                /** d */ /* e */ A();
+                                                break;
+                                        }
+
+                                        return 0;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind the <c>break</c> of a section the switch-brace phase braces stays on the
+    /// <c>break</c>'s line, and that the next section starts its own line behind exactly one blank line in the first run
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-033")]
+    [Requirement("FMT-BLANK-004")]
+    public void BracedSectionEndingInBreakKeepsTrailingCommentAndGetsOneBlankLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x) { case 1: A(); B(); break; /* c */ case 2: C(); break; }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    A();
+                                                    B();
+                                                }
+                                                break; /* c */
+
+                                            case 2:
+                                                {
+                                                    C();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line comment behind the <c>break</c> of a section the switch-brace phase braces stays behind
+    /// the <c>break</c>, and that the section behind the comment's last line starts its own line behind exactly one blank
+    /// line in the first run
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-033")]
+    [Requirement("FMT-BLANK-004")]
+    public void BracedSectionEndingInBreakKeepsTrailingMultiLineCommentAndGetsOneBlankLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1: A(); B(); break; /* a
+                                         b */ case 2: C(); break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    A();
+                                                    B();
+                                                }
+                                                break; /* a
+                                            b */
+
+                                            case 2:
+                                                {
+                                                    C();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind the <c>return</c> of a section the switch-brace phase braces stays on the
+    /// <c>return</c>'s line, and that the next section starts its own line without a blank line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-033")]
+    [Requirement("FMT-BLANK-004")]
+    public void BracedSectionEndingInReturnKeepsTrailingCommentAndGetsNoBlankLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int M(int x)
+                                 {
+                                     switch (x) { case 1: A(); B(); return 1; /* c */ case 2: return 2; }
+
+                                     return 0;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    A();
+                                                    B();
+
+                                                    return 1; /* c */
+                                                }
+                                            case 2:
+                                                {
+                                                    return 2;
+                                                }
+                                        }
+
+                                        return 0;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line comment behind the <c>return</c> of a section the switch-brace phase braces stays behind
+    /// the <c>return</c>, and that the section behind the comment's last line starts its own line without a blank line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-033")]
+    [Requirement("FMT-BLANK-004")]
+    public void BracedSectionEndingInReturnKeepsTrailingMultiLineCommentAndGetsNoBlankLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1: A(); B(); return 1; /* a
+                                         b */ case 2: return 2;
+                                     }
+
+                                     return 0;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    A();
+                                                    B();
+
+                                                    return 1; /* a
+                                            b */
+                                                }
+                                            case 2:
+                                                {
+                                                    return 2;
+                                                }
+                                        }
+
+                                        return 0;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind the <c>break</c> of a section the switch-brace phase braces stays on the
+    /// <c>break</c>'s line in front of the switch's closing brace, with no blank line in front of that brace
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-004")]
+    public void BracedSectionEndingInBreakKeepsTrailingCommentInFrontOfClosingBrace()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x) { case 1: C(); break; case 2: A(); B(); break; /* c */ }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    C();
+                                                }
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    A();
+                                                    B();
+                                                }
+                                                break; /* c */
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line comment behind the <c>break</c> of a section the switch-brace phase braces stays behind
+    /// the <c>break</c> in front of the switch's closing brace, and that the brace starts its own line with no blank line
+    /// in front of it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-004")]
+    public void BracedSectionEndingInBreakKeepsTrailingMultiLineCommentInFrontOfClosingBrace()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1: C(); break;
+                                         case 2: A(); B(); break; /* a
+                                         b */ }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    C();
+                                                }
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    A();
+                                                    B();
+                                                }
+                                                break; /* a
+                                            b */
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Tests
 }
