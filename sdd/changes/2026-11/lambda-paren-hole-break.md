@@ -9,7 +9,7 @@
 ## What
 
 - **The opening parenthesis of a parenthesized lambda has no declaration-line rule** (FMT-BREAK-011). FMT-BREAK-011 keeps its comma and closing-parenthesis clauses for every parameter list, lambdas included. Its opening-parenthesis clause now covers every parameter list except a parenthesized lambda's. The gap in front of the lambda belongs to whichever requirement owns it: FMT-BREAK-015 inside a list element, FMT-BREAK-012 for the first element of a list, and FMT-BREAK-016 for an assignment's value. Where none of them joins the gap, the line-break phase leaves its line break and blank lines as written (FMT-BREAK-030). A line break that another requirement inserts in front of the lambda stays, as it does in front of any other expression. Until now the line-break phase stripped the leading line break, blank lines, and indentation of every lambda that started a line, and the indentation phase wrote the indentation back. In the process it removed the lambda's blank lines and undid the line breaks that FMT-BREAK-021 and FMT-BREAK-022 insert in front of an element.
-- **An anonymous method in a raw-string hole aligns like a block lambda** (FMT-INDENT-031). In an interpolation hole of a multi-line interpolated raw string literal, an anonymous method is broken as it is anywhere else (FMT-BREAK-002, FMT-BREAK-006, FMT-BLANK). Its block then shifts so that the opening brace stands under its anchor: `async` for an async anonymous method, otherwise `delegate`, also behind `static`. This is the anchor a block lambda in the same position takes. The body stays one level deeper than the braces, and the whole block moves with the literal. An anonymous method inside the block body of a lambda or of another anonymous method in the same hole keeps the scope-depth layout of that body. Outside holes nothing changes. FMT-RAW-007 counts FMT-INDENT-031 among the alignments that place a hole line.
+- **An anonymous method in a raw-string hole aligns like a block lambda** (FMT-INDENT-031). In an interpolation hole of a multi-line interpolated raw string literal, an anonymous method is broken as it is anywhere else (FMT-BREAK-002, FMT-BREAK-006, FMT-BLANK). Its block then shifts so that the opening brace stands under its anchor: `async` for an async anonymous method, otherwise `delegate`, also behind `static`. This is the anchor a block lambda in the same position takes. The body stays one level deeper than the braces, and the whole block moves with the literal. The same holds when the anonymous method lies in a hole of a regular, verbatim, or single-line raw interpolated string that is itself nested in such a hole: it aligns like the block lambda in the same position. An anonymous method inside the block body of a lambda or of another anonymous method in the same hole keeps the scope-depth layout of that body. Outside holes of multi-line interpolated raw string literals nothing changes. FMT-RAW-007 counts FMT-INDENT-031 among the alignments that place a hole line.
 
 ## Why
 
@@ -19,7 +19,7 @@
 
 ## Visible output changes
 
-Each entry shows the formatter's output on `main` (`scripts/format.sh` at e094895) and the output after this change. Every "after" output in entries 1–4 and 7 is a fixed point of `main`'s formatter.
+Each entry shows the formatter's output on `main` (`scripts/format.sh` at e094895) and the output after this change. Every "after" output in entries 1–4 and 7 is a fixed point of `main`'s formatter. The "before" output of entry 8 was taken at 3663caf, which leaves this case unaligned as `main` does.
 
 ### 1. An anonymous method in a hole of a literal the formatter moves is aligned under `delegate`
 
@@ -391,17 +391,94 @@ class C
 }
 ```
 
+### 8. The same for an anonymous method in a string nested in such a hole
+
+An anonymous method in a hole of a regular, verbatim, or single-line raw interpolated string that lies in a hole of a multi-line interpolated raw string literal aligns under `delegate`, as the block lambda `() => { … }` in the same position aligns at its `(` (maintainer answer 1, the general clarification, and lead decision 10).
+
+```csharp
+class C
+{
+    int M(System.Func<int> f)
+    {
+        var a = $"""
+    R {$"in {M(delegate { return 1; })}"}
+    V {$@"in {M(delegate { return 1; })}"}
+    S {$"""in {M(delegate { return 1; })}"""}
+    """;
+
+        return 0;
+    }
+}
+```
+
+Before:
+
+```csharp
+class C
+{
+    int M(System.Func<int> f)
+    {
+        var a = $"""
+                 R {$"in {M(delegate
+             {
+             return 1;
+             })}"}
+                 V {$@"in {M(delegate
+             {
+             return 1;
+             })}"}
+                 S {$"""in {M(delegate
+             {
+             return 1;
+             })}"""}
+                 """;
+
+        return 0;
+    }
+}
+```
+
+After:
+
+```csharp
+class C
+{
+    int M(System.Func<int> f)
+    {
+        var a = $"""
+                 R {$"in {M(delegate
+                            {
+                                return 1;
+                            })}"}
+                 V {$@"in {M(delegate
+                             {
+                                 return 1;
+                             })}"}
+                 S {$"""in {M(delegate
+                              {
+                                  return 1;
+                              })}"""}
+                 """;
+
+        return 0;
+    }
+}
+```
+
+With the literal already aligned, the lines `{`, `return 1;`, and `})}…` started in column 0 before; after, the output is the same as above.
+
 ### Unchanged
 
 - A lambda argument on its own line without a blank line above it (`Aggregate(0,⏎(sum, item) => sum + item)`) keeps its output; only the strip-and-repaint between the two phases goes.
 - A block lambda in a hole is broken and aligned as before (`BlockLambdaBrokenInsideHoleOfAlignedLiteralKeepsItsAlignment`), and so is an anonymous method inside its block body.
-- An anonymous method outside interpolation holes, and in a hole of a single-line raw string literal, takes the scope-depth column as before.
+- An anonymous method outside interpolation holes, and in a hole of a regular, verbatim, or single-line raw interpolated string that no hole of a multi-line interpolated raw string literal encloses, takes the scope-depth column as before (`var c = $"""in {M(delegate { return 1; })}""";` keeps its block at the statement's scope depth).
+- An anonymous method inside the block body of a lambda in a hole keeps the scope-depth layout of that body also when a regular, verbatim, or single-line raw interpolated string lies between the body and the anonymous method.
 
 ## Decisions
 
 ### Maintainer answers (2026-11-02)
 
-1. **Anonymous method in a hole of a multi-line raw string literal.** It is broken and aligned, with its braces under the anonymous method's first token (refined by answers 4 and 6) as a block lambda in a hole is aligned, and its lines move with the literal; it is not kept on one line. No analyzer changes. The maintainer added a general principle: inside interpolation holes the same formatting applies as everywhere else, and a hole has no layout rules of its own. Entries 1–4 follow this answer.
+1. **Anonymous method in a hole of a multi-line raw string literal.** It is broken and aligned, with its braces under the anonymous method's first token (refined by answers 4 and 6) as a block lambda in a hole is aligned, and its lines move with the literal; it is not kept on one line. No analyzer changes. The maintainer added a general principle: inside interpolation holes the same formatting applies as everywhere else, and a hole has no layout rules of its own. Entries 1–4 and 8 follow this answer.
 2. **Blank line in front of a parenthesized lambda that starts its line.** It is kept, in every gap of entry 5, with columns unchanged.
 3. **A lambda starting a hole line that no alignment places.** It keeps its column (entry 6).
 4. **A `static` anonymous method in a hole.** Its block aligns under `delegate`, not under `static`, as a `static` block lambda aligns past `static`.
