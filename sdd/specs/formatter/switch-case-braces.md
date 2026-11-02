@@ -14,6 +14,7 @@ This spec covers when the formatter wraps the statements of the sections of a `s
 - Switch expressions (`x switch { … }`): their layout belongs to FMT-BREAK and FMT-INDENT. They matter here only as content that makes a section multi-line (FMT-SWITCH-005).
 - Moving a `break` that is already inside an existing block out of it. RH7501 reports that shape and its code fix moves the `break`; the formatter keeps an existing block as written (FMT-SWITCH-009).
 - Blank lines between sections and inside the new blocks (FMT-BLANK, SHARED-BLANK-004), and the line breaks and indentation of the braces (FMT-BREAK, FMT-INDENT).
+- The lines that a section, each of its labels, and its first statement start on (FMT-BREAK-033 to FMT-BREAK-035). The phase keeps the labels where it finds them (FMT-SWITCH-006).
 - Removing braces from a section. The phase contains a removal path for switches without a multi-line section, but an existing block always reaches this phase spanning several lines (FMT-SWITCH-008), so no shipped behavior removes braces.
 
 ## Requirements

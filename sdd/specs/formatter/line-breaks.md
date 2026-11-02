@@ -5,9 +5,9 @@
 | ID prefix | FMT-BREAK |
 | Status | Active |
 | Code owners | `LineBreakPhase`, `LineBreakBlockRewriter`, `LineBreakInitializerRewriter`, `LineBreakContainedBlockRewriter`, `LineBreakAssignmentRewriter`, `DeclarationSemicolonLineBreakRewriter`, `ListElementInteriorJoinRewriter`, `ListElementInteriorUtilities`, `LineBreakListRewriter`, `PropertyLayoutLineBreakRewriter`, `GenericConstraintLineBreakRewriter`, `DeclarationBraceLineBreakRewriter`, `MemberLineStartRewriter`, `AttributeTargetFormattingRewriter`, `AttributeTargetFormattingShared`, `BinaryOperatorLineBreakRewriter`, `ChainLineBreakRewriter`, `TernaryLineBreakRewriter`, `SwitchCaseWhenLineBreakRewriter`, `BracePlacer`, `TokenGapNormalizer`, `AccessorListLayout`, `LineBreakDetection`, `LineBreakTriviaUtilities` |
-| Uses | FMT-CLEAN-001, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-010, FMT-PIPE-021, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, SHARED-ATTR-014, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012 |
+| Uses | FMT-BLANK-004, FMT-CLEAN-001, FMT-INDENT-003, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-010, FMT-PIPE-021, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-006, SHARED-ATTR-014, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012 |
 
-This spec covers `LineBreakPhase`, the phase of the pipeline that decides where lines break (its position in the phase order is FMT-PIPE-001): brace placement, one statement and one member per line, the layout of argument, parameter, attribute, and type-argument lists, initializers and patterns, assignments, operators, conditionals, chains, generic constraints, attribute lists, accessor lists, and `case … when` guards. The phase adds and removes line breaks and keeps the blank lines it finds (FMT-BREAK-030), and it changes tokens only where it shapes an accessor's attribute lists (FMT-BREAK-032). The columns the resulting lines start in are decided later by FMT-INDENT, and the spaces between tokens on a line by FMT-SPACE.
+This spec covers `LineBreakPhase`, the phase of the pipeline that decides where lines break (its position in the phase order is FMT-PIPE-001): brace placement, one statement and one member per line, the layout of argument, parameter, attribute, and type-argument lists, initializers and patterns, assignments, operators, conditionals, chains, generic constraints, attribute lists, accessor lists, the lines that switch sections, their labels, and their first statements start, and `case … when` guards. The phase adds and removes line breaks and keeps the blank lines it finds (FMT-BREAK-030), and it changes tokens only where it shapes an accessor's attribute lists (FMT-BREAK-032). The columns the resulting lines start in are decided later by FMT-INDENT, and the spaces between tokens on a line by FMT-SPACE.
 
 ## Non-goals
 
@@ -261,7 +261,7 @@ class C
 
 ### FMT-BREAK-006 — One statement per line
 
-Every statement in a block or a switch section MUST start its own line. A comment that trailed the previous statement MUST stay on that statement's line. An empty statement (`;`) and the statement next to it MUST be left as written.
+Every statement in a block or a switch section that follows another statement of the same list MUST start its own line. A comment that trailed the previous statement MUST stay on that statement's line. An empty statement (`;`) and the statement next to it MUST be left as written. The first statement of a block starts its line behind the opening brace (FMT-BREAK-002), and the first statement of a switch section behind the section's labels (FMT-BREAK-035).
 
 Why: One statement per line keeps every statement visible at the left margin and gives each its own line in diffs and stack traces. Empty statements are left alone because splitting them off only moves a stray `;` around; they are rare and usually deliberate.
 
@@ -1392,6 +1392,232 @@ class C
     {
         get => _v;
         [param: A, B] set => _v = value;
+    }
+}
+```
+
+### FMT-BREAK-033 — Every switch section starts its own line
+
+The first token of every switch section that follows another section of the same switch statement MUST start its own line, whatever statement ends the section before it. Whether the token starts its line is decided by SHARED-BLANK-008: a section behind a `//` comment or a directive starts its line and is kept; a section on the line of the previous section's last token, or behind the last line of a multi-line comment there, does not, and the phase MUST insert a line break in front of it, so a comment that trailed the previous section stays on that section's last line (FMT-BREAK-001). The first section of a switch statement starts its line behind the opening brace (FMT-BREAK-002). The phase inserts no blank line in front of a section (FMT-BREAK-030); the blank line behind a section that ends in `break` is FMT-BLANK-004's.
+
+This requirement, FMT-BREAK-034, and FMT-BREAK-035 decide the lines inside the node that a node-level entry point formats; the gap in front of the target itself is kept as FMT-PIPE-010 states.
+
+Why: A switch is read by its labels: each section is one path, and its first label at the label column (FMT-INDENT-003) is where a reader finds it. A section that shares a line with the section before it hides its label in the middle of that line. Until now only a section behind a `break` statement got a line of its own, as a side effect of its blank line; behind `return`, `throw`, `goto`, or `continue` the sections stayed on one line.
+
+Example:
+
+```csharp
+class C
+{
+    int M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                return 1; case 2:
+                goto case 1; /* c */ case 3:
+                throw null;
+            default:
+                return 0;
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    int M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                return 1;
+            case 2:
+                goto case 1; /* c */
+            case 3:
+                throw null;
+            default:
+                return 0;
+        }
+    }
+}
+```
+
+Example — behind the last line of a multi-line comment, a section does not start its line and is moved; behind a `//` comment, it starts its line and is kept:
+
+```csharp
+class C
+{
+    int M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                return 1; /* a
+                b */ case 2:
+                return 2; // c
+            case 3:
+                return 3;
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    int M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                return 1; /* a
+                b */
+            case 2:
+                return 2; // c
+            case 3:
+                return 3;
+        }
+    }
+}
+```
+
+### FMT-BREAK-034 — Each label of a switch section starts its own line
+
+Every label of a switch section that follows another label of the same section MUST start its own line (SHARED-BLANK-008); when it does not, the phase MUST insert a line break in front of it, so a comment that trailed the label before it stays on that label's line (FMT-BREAK-001). This holds for `case` labels, pattern labels with or without a `when` guard, and `default` labels alike.
+
+Why: Stacked labels select one shared body, and each of them names a value the section handles. One label per line puts every value at the label column, as the formatter already writes them when it braces a section (FMT-SWITCH-006), and gives each label its own line in diffs.
+
+Example:
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1: case 2:
+                A();
+                break;
+            case 3: /* c */ default:
+                B();
+                break;
+        }
+    }
+
+    void A()
+    {
+    }
+
+    void B()
+    {
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+            case 2:
+                A();
+                break;
+
+            case 3: /* c */
+            default:
+                B();
+                break;
+        }
+    }
+
+    void A()
+    {
+    }
+
+    void B()
+    {
+    }
+}
+```
+
+### FMT-BREAK-035 — The first statement of a switch section starts its own line
+
+The first statement of a switch section MUST start its own line (SHARED-BLANK-008); when it does not, the phase MUST insert a line break in front of it, so a comment that trailed the section's last label stays on the label's line (FMT-BREAK-001). This holds for every kind of statement, a `break` statement included; a block that forms the section's body has its braces placed by FMT-BREAK-008. An empty statement (`;`) that is the first statement of a section MUST be left as written, as FMT-BREAK-006 leaves it between statements.
+
+Why: The label introduces the section's statements and is not one of them. A statement on the label's line stands at the label column instead of the statement column (FMT-INDENT-003), so the section's statements do not line up, and the first one is easily overlooked when another is added below it. Every later statement of a section already starts its own line (FMT-BREAK-006); the first one now does too. An empty statement is left alone for FMT-BREAK-006's reason: moving it only moves a stray `;` around.
+
+Example:
+
+```csharp
+class C
+{
+    void M(int x, object o)
+    {
+        switch (x)
+        {
+            case 1: A(); break;
+            default: break;
+        }
+
+        switch (o)
+        {
+            case int i when i > 0: /* c */ A();
+                break;
+        }
+    }
+
+    void A()
+    {
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int x, object o)
+    {
+        switch (x)
+        {
+            case 1:
+                A();
+                break;
+
+            default:
+                break;
+        }
+
+        switch (o)
+        {
+            case int i when i > 0: /* c */
+                A();
+                break;
+        }
+    }
+
+    void A()
+    {
+    }
+}
+```
+
+Example — run alone, this phase leaves the input below unchanged: the empty first statement stays on the label's line, and `break` stays next to it (FMT-BREAK-006):
+
+```csharp
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1: ; break;
+        }
     }
 }
 ```
