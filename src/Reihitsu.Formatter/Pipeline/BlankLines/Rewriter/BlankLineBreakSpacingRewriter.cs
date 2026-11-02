@@ -82,26 +82,6 @@ internal sealed class BlankLineBreakSpacingRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Ensures a blank line exists before the first token of the specified switch section
-    /// </summary>
-    /// <param name="section">The switch section</param>
-    /// <returns>The section with a blank line inserted before it, or the original if one already exists</returns>
-    private SwitchSectionSyntax EnsureBlankLineBeforeSection(SwitchSectionSyntax section)
-    {
-        var firstToken = section.GetFirstToken();
-
-        if (_editor.HasBlankLineBeforeToken(firstToken))
-        {
-            return section;
-        }
-
-        var endOfLine = SyntaxFactory.EndOfLine(_context.EndOfLine);
-        var newLeadingTrivia = firstToken.LeadingTrivia.Insert(0, endOfLine);
-
-        return section.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(newLeadingTrivia));
-    }
-
-    /// <summary>
     /// Applies break-spacing rules to a statement list
     /// </summary>
     /// <param name="statements">Statements to process</param>
@@ -169,7 +149,7 @@ internal sealed class BlankLineBreakSpacingRewriter : CSharpSyntaxRewriter
 
             case SwitchSectionSyntax section when position.IsBehindSectionEndingInBreak:
                 {
-                    return EnsureBlankLineBeforeSection(section);
+                    return _editor.EnsureBlankLineBeforeSection(section);
                 }
 
             default:
@@ -252,7 +232,7 @@ internal sealed class BlankLineBreakSpacingRewriter : CSharpSyntaxRewriter
             }
 
             var section = newSections[sectionIndex];
-            var updatedSection = EnsureBlankLineBeforeSection(section);
+            var updatedSection = _editor.EnsureBlankLineBeforeSection(section);
 
             if (updatedSection == section)
             {

@@ -959,6 +959,44 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
         Assert.Contains("    void M()\n    {\n    }", actual);
     }
 
+    /// <summary>
+    /// Verifies that the fix of a one-line method body that holds a switch statement lays out every switch section and its
+    /// first statement on lines of their own, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-033")]
+    [Requirement("FMT-BREAK-035")]
+    public async Task VerifyFixOfABodyHoldingASwitchPutsEverySectionOnItsOwnLine()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int M(int x) {|RH5417:{|} switch (x) { case 1: return 1; case 2: return 2; } return 0; }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int M(int x)
+                                     {
+                                         switch (x)
+                                         {
+                                             case 1:
+                                                 return 1;
+                                             case 2:
+                                                 return 2;
+                                         }
+
+                                         return 0;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

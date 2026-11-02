@@ -667,10 +667,11 @@ public class DelimitedDocumentationRelocationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a delimited documentation comment behind a case label, with a statement behind it on the label's
-    /// line, stays where it was written
+    /// line, moves with the statement: the label stays alone on its line, and the comment starts the statement's line
     /// </summary>
     [TestMethod]
-    public void KeepsDelimitedDocumentationWithStatementBehindCaseLabel()
+    [Requirement("FMT-BREAK-035")]
+    public void MovesDelimitedDocumentationWithStatementBehindCaseLabel()
     {
         // Arrange
         const string input = """
@@ -686,9 +687,23 @@ public class DelimitedDocumentationRelocationTests : FormatterTestsBase
                                  }
                              }
                              """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int v)
+                                    {
+                                        switch (v)
+                                        {
+                                            case 1:
+                                                /** d */ M(2);
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>

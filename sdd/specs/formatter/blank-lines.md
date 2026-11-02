@@ -5,14 +5,14 @@
 | ID prefix | FMT-BLANK |
 | Status | Active |
 | Code owners | `BlankLinePhase`, `BlankLineTokenCleanupRewriter`, `BlankLineTriviaBoundaryRewriter`, `BlankLineRegionDirectiveRewriter`, `BlankLineStatementSpacingRewriter`, `BlankLineBreakSpacingRewriter`, `BlankLineCollapser`, `BlankLineEditor`, `BraceBlankLinePolicy` |
-| Uses | FMT-PIPE-002, FMT-PIPE-004, FMT-BREAK-019, FMT-BREAK-022, SHARED-USING-011, SHARED-BLANK-001, SHARED-BLANK-002, SHARED-BLANK-003, SHARED-BLANK-004, SHARED-BLANK-005, SHARED-BLANK-006, SHARED-BLANK-007, SHARED-COMMENT-012, FMT-DOC-001, FMT-DOC-003 |
+| Uses | FMT-PIPE-002, FMT-PIPE-004, FMT-BREAK-019, FMT-BREAK-022, FMT-BREAK-030, FMT-BREAK-033, SHARED-USING-011, SHARED-BLANK-001, SHARED-BLANK-002, SHARED-BLANK-003, SHARED-BLANK-004, SHARED-BLANK-005, SHARED-BLANK-006, SHARED-BLANK-007, SHARED-BLANK-008, SHARED-COMMENT-012, FMT-DOC-001, FMT-DOC-003 |
 
 This spec covers `BlankLinePhase`: where the formatter inserts a blank line (before statements and comments, after closing braces and `break`, around region directives), where it removes one (next to braces, closing brackets, chained keywords, and documentation comments, and between a comment and the brace or bracket behind it), and how it collapses runs of blank lines. What counts as a blank line, the closing-brace and terminal-`break` rules, and the region-directive rules are shared with the analyzer and specified in SHARED-BLANK.
 
 ## Non-goals
 
 - Blank lines between type members. The phase neither inserts nor removes them; it only collapses runs (FMT-BLANK-014) and separates comments (FMT-BLANK-011).
-- Line breaks that are not blank lines — braces, statements, and members on their own lines are FMT-BREAK.
+- Line breaks that are not blank lines — braces, statements, switch sections, and members on their own lines are FMT-BREAK.
 - Moving documentation comments written behind code, single-line or delimited, onto a new line (FMT-DOC-001) and deciding which of them document nothing (FMT-DOC-003). This phase inserts no line break in front of a documentation comment; it only decides the blank lines around one that starts its line.
 - The node-level preservation of a target's surrounding trivia (FMT-PIPE-010).
 
@@ -150,9 +150,9 @@ class C
 
 ### FMT-BLANK-004 — `break` is separated on both sides
 
-The formatter MUST insert a blank line before a `break` statement that is not the first statement of its block or switch section and not exempt under SHARED-BLANK-004, and after a `break` statement that is followed by another statement in the same list. It MUST insert a blank line before a switch section whose preceding section ends in a `break` statement; a section ending in any other statement gets none.
+The formatter MUST insert a blank line before a `break` statement that is not the first statement of its block or switch section and not exempt under SHARED-BLANK-004, and after a `break` statement that is followed by another statement in the same list. It MUST insert a blank line before a switch section whose preceding section ends in a `break` statement; a section ending in any other statement gets none. This holds whether or not the section starts its line (SHARED-BLANK-008): in front of a section on the line of that `break` statement, or behind the last line of a multi-line comment there, the formatter MUST write the line break that ends that line together with the blank line, so the first run gives the blank line (FMT-PIPE-004).
 
-Why: `break` leaves the enclosing loop or switch, so it is set off from the work before it, and code after it is a new path. Sections that end in `break` are the common case and are separated so each case reads as its own unit; sections ending in `return` or `throw` keep their compact form because only the `break` rule (RH5011) asks for the line. The formatter mirrors RH5010 and RH5011.
+Why: `break` leaves the enclosing loop or switch, so it is set off from the work before it, and code after it is a new path. Sections that end in `break` are the common case and are separated so each case reads as its own unit; sections ending in `return` or `throw` get no blank line between them because only the `break` rule (RH5011) asks for the line, and they still start their own lines (FMT-BREAK-033). The line break in front of a section is the line-break phase's, which runs after this phase and inserts no blank line (FMT-BREAK-030); where this phase requires a blank line, it writes both line breaks, as the statement rules do for a statement on its predecessor's line.
 
 Example:
 
@@ -235,6 +235,42 @@ class C
             case 2:
                 return;
             case 3:
+                break;
+        }
+    }
+}
+```
+
+A section on the line of the `break` statement gets the blank line in the same run:
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        switch (a)
+        {
+            case 1:
+                a++;
+                break; case 2:
+                break;
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        switch (a)
+        {
+            case 1:
+                a++;
+                break;
+
+            case 2:
                 break;
         }
     }

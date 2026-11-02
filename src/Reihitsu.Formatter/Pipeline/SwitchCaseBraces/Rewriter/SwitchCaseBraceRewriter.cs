@@ -626,8 +626,34 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Determines whether the line that a switch section ends on is already ended by the leading trivia of the token behind
+    /// the section — the next section's first token or the switch's closing brace — because the section's last token carries
+    /// no line break and an earlier phase of this pass started that token's line. The braced section then keeps the line
+    /// breaks of that gap instead of writing one more of its own
+    /// </summary>
+    /// <param name="section">The switch section, as part of its switch statement</param>
+    /// <returns><see langword="true"/> if the token behind the section ends the section's last line</returns>
+    private static bool IsLastLineEndedByFollowingToken(SwitchSectionSyntax section)
+    {
+        var lastToken = section.GetLastToken();
+
+        if (lastToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)))
+        {
+            return false;
+        }
+
+        var nextToken = lastToken.GetNextToken();
+
+        return nextToken.LeadingTrivia
+                        .FirstOrDefault(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false)
+                        .IsKind(SyntaxKind.EndOfLineTrivia);
+    }
+
+    /// <summary>
     /// Adds braces around the non-terminal statements of a switch section.
-    /// If braces already exist, the section is returned as-is
+    /// If braces already exist, the section is returned as-is. The section's last line is ended by the section itself,
+    /// unless the token behind it already starts its line through line breaks in its leading trivia
+    /// (<see cref="IsLastLineEndedByFollowingToken"/>); the gap behind the section then keeps exactly those line breaks
     /// </summary>
     /// <param name="section">The switch section</param>
     /// <returns>The section with braces added</returns>
@@ -651,6 +677,7 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
         }
 
         var eolTrivia = SyntaxFactory.EndOfLine(_context.EndOfLine);
+        var isLastLineEndedByFollowingToken = IsLastLineEndedByFollowingToken(section);
 
         // The last label's line ends behind its comments, which keep the gap in front of and between
         // them as written (for example "case 1:    // note"); the open brace starts the next line
@@ -698,7 +725,7 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
                                      .WithLeadingTrivia(SyntaxFactory.TriviaList())
                                      .WithTrailingTrivia(SyntaxFactory.TriviaList());
 
-        var closeBraceTrailing = trailingBreak != null
+        var closeBraceTrailing = trailingBreak != null || isLastLineEndedByFollowingToken
                                      ? SyntaxFactory.TriviaList()
                                      : SyntaxFactory.TriviaList(eolTrivia);
 
@@ -723,7 +750,7 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
                                                                          .AddRange(BlockWrapTriviaUtilities.GetCarriedLeadingTrivia(trailingBreak.GetLeadingTrivia(), keepBlankLinesAboveFirstComment: true)));
 
             var lastBreakToken = trailingBreak.GetLastToken();
-            trailingBreak = trailingBreak.ReplaceToken(lastBreakToken, lastBreakToken.WithTrailingTrivia(BlockWrapTriviaUtilities.GetCarriedTrailingTrivia(lastBreakToken.TrailingTrivia, eolTrivia, endsLine: true)));
+            trailingBreak = trailingBreak.ReplaceToken(lastBreakToken, lastBreakToken.WithTrailingTrivia(BlockWrapTriviaUtilities.GetCarriedTrailingTrivia(lastBreakToken.TrailingTrivia, eolTrivia, endsLine: isLastLineEndedByFollowingToken == false)));
 
             sectionStatements.Add(trailingBreak);
         }

@@ -341,6 +341,22 @@ internal sealed class BlankLineEditor
     }
 
     /// <summary>
+    /// Ensures a blank line exists before the first token of the specified switch section (FMT-BLANK-004). A section on the
+    /// line of the preceding section's last token gets the line break that ends that line together with the blank line, so
+    /// the blank line stands after one run
+    /// </summary>
+    /// <param name="section">The switch section</param>
+    /// <returns>The section with a blank line inserted before it, or the original if one already exists</returns>
+    public SwitchSectionSyntax EnsureBlankLineBeforeSection(SwitchSectionSyntax section)
+    {
+        var firstToken = section.GetFirstToken();
+
+        return HasBlankLineBeforeToken(firstToken)
+                   ? section
+                   : InsertBlankLineBeforeToken(section, firstToken, insertIndex: 0);
+    }
+
+    /// <summary>
     /// Ensures a blank line exists between a closing brace and the specified statement, repositioning the
     /// insertion past any leading directive rather than exempting it
     /// </summary>
@@ -388,13 +404,17 @@ internal sealed class BlankLineEditor
     }
 
     /// <summary>
-    /// Inserts a blank line into the leading trivia of the specified token at the given index
+    /// Inserts a blank line into the leading trivia of the specified token at the given index. When the gap in front of the
+    /// index does not end its line — the token stands on the line of the preceding token, or behind the last line of a
+    /// multi-line comment there — the line break that ends that line is inserted together with the blank line
     /// </summary>
-    /// <param name="statement">The statement whose token should be replaced</param>
+    /// <typeparam name="TNode">The syntax node type containing the token</typeparam>
+    /// <param name="node">The node whose token should be replaced</param>
     /// <param name="token">The token to insert the blank line before</param>
     /// <param name="insertIndex">The leading-trivia index at which to insert the blank line</param>
-    /// <returns>The statement with the token replaced by a copy carrying the inserted blank line</returns>
-    private StatementSyntax InsertBlankLineBeforeToken(StatementSyntax statement, SyntaxToken token, int insertIndex)
+    /// <returns>The node with the token replaced by a copy carrying the inserted blank line</returns>
+    private TNode InsertBlankLineBeforeToken<TNode>(TNode node, SyntaxToken token, int insertIndex)
+        where TNode : SyntaxNode
     {
         var eol = SyntaxFactory.EndOfLine(_context.EndOfLine);
         var previousToken = ResolvePrecedingToken(token);
@@ -410,7 +430,7 @@ internal sealed class BlankLineEditor
 
         var newToken = token.WithLeadingTrivia(newLeading);
 
-        return statement.ReplaceToken(token, newToken);
+        return node.ReplaceToken(token, newToken);
     }
 
     #endregion // Methods
