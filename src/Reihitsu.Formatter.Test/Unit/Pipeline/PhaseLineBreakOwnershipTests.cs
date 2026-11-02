@@ -149,6 +149,83 @@ public class PhaseLineBreakOwnershipTests : FormatterTestsBase
                                                            }
                                                            """;
 
+    /// <summary>
+    /// Statements behind the closing line of a comment that spans several lines, in blocks and in switch sections, with
+    /// and without a blank-line requirement between them and the statement in front
+    /// </summary>
+    private const string StatementsBehindMultiLineCommentTail = """
+                                                                class C
+                                                                {
+                                                                    int M1(int a)
+                                                                    {
+                                                                        a++; /* x
+                                                                        */ return a;
+                                                                    }
+
+                                                                    int M2(int a)
+                                                                    {
+                                                                        a++;
+                                                                        ; /* x
+                                                                        */ return a;
+                                                                    }
+
+                                                                    void M3(int a)
+                                                                    {
+                                                                        if (a > 0) { A(); } /* q
+                                                                        */ B();
+                                                                    }
+
+                                                                    void M4(int a)
+                                                                    {
+                                                                        while (a > 0) { A(); /* x
+                                                                        */ break; }
+                                                                    }
+
+                                                                    void M5(int a)
+                                                                    {
+                                                                        int b = a; /* x
+                                                                        */ Foo(b);
+                                                                    }
+
+                                                                    int M6(int x)
+                                                                    {
+                                                                        switch (x)
+                                                                        {
+                                                                            case 1: ; /* a
+                                                                            */ return 1;
+                                                                            default:
+                                                                                return 0;
+                                                                        }
+                                                                    }
+
+                                                                    int M7(int x)
+                                                                    {
+                                                                        switch (x)
+                                                                        {
+                                                                            case 1: A(); /* x
+                                                                            */ return 1;
+                                                                            default:
+                                                                                return 0;
+                                                                        }
+                                                                    }
+
+                                                                    void M8()
+                                                                    {
+                                                                        A(); /* x
+                                                                        */ B();
+                                                                    }
+
+                                                                    void M9(int x)
+                                                                    {
+                                                                        switch (x)
+                                                                        {
+                                                                            case 1: A(); /* x
+                                                                            */ break;
+                                                                        }
+                                                                    }
+                                                                }
+                                                                """;
+
     #endregion // Constants
 
     #region Tests
@@ -203,6 +280,7 @@ public class PhaseLineBreakOwnershipTests : FormatterTestsBase
     [DataRow(nameof(SameLineStatementsAndSections))]
     [DataRow(nameof(BracedSectionWithComments))]
     [DataRow(nameof(ChainLinkBehindMultiLineComment))]
+    [DataRow(nameof(StatementsBehindMultiLineCommentTail))]
     public void BlankLinePhaseKeepsWhichTokensShareALine(string fixture)
     {
         foreach (var endOfLine in _lineEndings)
@@ -222,6 +300,45 @@ public class PhaseLineBreakOwnershipTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that the blank-line phase adds and removes only blank lines: its output, with blank lines removed and
+    /// whitespace at the end of each line trimmed, equals its input treated the same way. A line break the phase wrote
+    /// behind the closing line of a comment that spans several lines, where that comment's last line already holds a
+    /// token, shows here although the token's physical line does not change
+    /// </summary>
+    /// <param name="fixture">The name of the fixture to format</param>
+    [TestMethod]
+    [Requirement("FMT-PIPE-025")]
+    [DataRow(nameof(SwitchSectionsOnOneLine))]
+    [DataRow(nameof(EmptyStatementPairs))]
+    [DataRow(nameof(SameLineStatementsAndSections))]
+    [DataRow(nameof(BracedSectionWithComments))]
+    [DataRow(nameof(ChainLinkBehindMultiLineComment))]
+    [DataRow(nameof(StatementsBehindMultiLineCommentTail))]
+    public void BlankLinePhaseChangesOnlyBlankLines(string fixture)
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var isBlankLinePhaseObserved = false;
+
+            foreach (var (phaseName, before, after) in ObservePhases(GetFixture(fixture), endOfLine))
+            {
+                if (phaseName != "BlankLinePhase")
+                {
+                    continue;
+                }
+
+                isBlankLinePhaseObserved = true;
+
+                Assert.AreSequenceEqual(GetNonBlankLines(before, endOfLine),
+                                        GetNonBlankLines(after, endOfLine),
+                                        $"The blank-line phase changed more than blank lines under {DescribeLineEnding(endOfLine)} line endings:{Environment.NewLine}{before}{Environment.NewLine}---{Environment.NewLine}{after}");
+            }
+
+            Assert.IsTrue(isBlankLinePhaseObserved, "The pipeline reported no blank-line phase.");
+        }
+    }
+
+    /// <summary>
     /// Verifies that the phases after the blank-line phase change neither whether two tokens with text stand on one line
     /// nor the number of blank lines between them
     /// </summary>
@@ -233,6 +350,7 @@ public class PhaseLineBreakOwnershipTests : FormatterTestsBase
     [DataRow(nameof(SameLineStatementsAndSections))]
     [DataRow(nameof(BracedSectionWithComments))]
     [DataRow(nameof(ChainLinkBehindMultiLineComment))]
+    [DataRow(nameof(StatementsBehindMultiLineCommentTail))]
     public void PhasesAfterBlankLinePhaseKeepLineBreaksAndBlankLines(string fixture)
     {
         foreach (var endOfLine in _lineEndings)
@@ -265,6 +383,7 @@ public class PhaseLineBreakOwnershipTests : FormatterTestsBase
     [DataRow(nameof(BracedSectionWithComments))]
     [DataRow(nameof(ChainLinkBehindMultiLineComment))]
     [DataRow(nameof(SameLineStatementsAndSections))]
+    [DataRow(nameof(StatementsBehindMultiLineCommentTail))]
     public void PhasesAfterLineBreakPhaseKeepWhetherCommentsStartTheirLine(string fixture)
     {
         foreach (var endOfLine in _lineEndings)
@@ -306,6 +425,7 @@ public class PhaseLineBreakOwnershipTests : FormatterTestsBase
                    nameof(SameLineStatementsAndSections) => SameLineStatementsAndSections,
                    nameof(BracedSectionWithComments) => BracedSectionWithComments,
                    nameof(ChainLinkBehindMultiLineComment) => ChainLinkBehindMultiLineComment,
+                   nameof(StatementsBehindMultiLineCommentTail) => StatementsBehindMultiLineCommentTail,
                    _ => throw new ArgumentOutOfRangeException(nameof(fixture), fixture, null)
                };
     }
@@ -358,6 +478,27 @@ public class PhaseLineBreakOwnershipTests : FormatterTestsBase
         }
 
         return shape;
+    }
+
+    /// <summary>
+    /// Gets the lines of a text that are not blank, each with the whitespace at its end trimmed
+    /// </summary>
+    /// <param name="text">The source text</param>
+    /// <param name="endOfLine">The line ending the text uses</param>
+    /// <returns>The lines that are not blank, in order</returns>
+    private static List<string> GetNonBlankLines(string text, string endOfLine)
+    {
+        var lines = new List<string>();
+
+        foreach (var line in text.Split(endOfLine))
+        {
+            if (string.IsNullOrWhiteSpace(line) == false)
+            {
+                lines.Add(line.TrimEnd());
+            }
+        }
+
+        return lines;
     }
 
     /// <summary>
