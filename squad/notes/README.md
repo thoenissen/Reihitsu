@@ -4,6 +4,7 @@ Notes are the squad's feedback loop: what a run cost, which questions reached th
 
 ## Rules
 
+- **Every run's note carries its usage.** The lead pastes the output of `scripts/usage.sh` under `Usage`, so tokens are recorded per spawn and per model. Prices are not recorded; they are applied when the notes are evaluated.
 - **One note per run**, `yyyy-mm-dd-<slug>.md`, dated by the day the run publishes its pull request. The lead writes it before publishing ([`../lead.md`](../lead.md), *Publish*) and commits it with the PR, so it survives the deletion of `sdd/work/`. One file per run keeps parallel PRs from conflicting.
 - **Other sessions may add one.** A session that works on the agent process, or that hits a process problem worth keeping, may write a note in the same form, named after its topic.
 - **Temporary.** A note is deleted once its content is folded into a rule — in the playbook, a role file, `AGENTS.md`, `sdd/README.md`, or `failure-classes.md` — or judged not relevant. The PR that folds or drops notes names them.
@@ -29,6 +30,10 @@ Notes are the squad's feedback loop: what a run cost, which questions reached th
 ## Cost
 
 <stops (output-question batches and escalations), repair rounds, roles spawned more than once and why, and where the run got expensive>
+
+## Usage
+
+<the output of `scripts/usage.sh`, pasted unchanged: one row per spawn, then the totals per model. It covers the run up to the note; the CI watch after publishing is not in it>
 
 ## Decisions taken
 
