@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | FMT-PIPE-001 (changed), FMT-PIPE-024 (changed), FMT-PIPE-025 (added), FMT-PIPE-026 (added), FMT-BREAK-005 (retired), FMT-BREAK-006 (changed), FMT-BREAK-030 (changed), FMT-BREAK-036 (added), FMT-BLANK-004 (changed), FMT-BLANK-005 (changed), FMT-BLANK-018 (changed), FMT-SWITCH-007 (changed), FMT-SWITCH-015 (added), FMT-SWITCH-016 (added) |
+| Affected requirements | FMT-PIPE-001 (changed), FMT-PIPE-024 (changed), FMT-PIPE-025 (added), FMT-PIPE-026 (added), FMT-BREAK-002 (changed), FMT-BREAK-005 (retired), FMT-BREAK-006 (changed), FMT-BREAK-030 (changed), FMT-BREAK-035 (changed), FMT-BREAK-036 (added), FMT-BLANK-004 (changed), FMT-BLANK-005 (changed), FMT-BLANK-018 (changed), FMT-SWITCH-007 (changed), FMT-SWITCH-015 (added), FMT-SWITCH-016 (added), SHARED-COMMENT-012 (changed) |
 | Depends on | [Every switch section, label, and first statement starts its own line](switch-section-line-start.md), [The blank-line phase is the only owner of blank lines](blank-line-sole-owner.md) |
 
 ## What
@@ -293,6 +293,16 @@ class C
 ### Maintainer answers
 
 1. **The comment behind an `if` condition stays where the author wrote it.** Asked before the run was claimed, with the evidence that on `main` a comment behind `while (a)` and `foreach (…)` stays behind the parenthesis and is stable in one run, while only `if (a) // i` and `if (a) /* m */ { … }` move it above the `if`. The maintainer chose to remove FMT-BREAK-005's move in this run (visible output changes 1 to 4, and 5 for the code fixes that format through the formatter) and to keep the phase reorder, which the issue's other defects motivate. The issue's example input and its desired output with the comment above the `if` are superseded by this answer.
+2. **A statement behind the closing line of a multi-line comment keeps its place.** Asked after the change was implemented, because SHARED-COMMENT-012 asked the formatter to break the line in front of such a statement while the formatter, on `main` as after this change, leaves it behind the `*/` in two cases: behind a comment that starts on its own line, and between two statements no blank-line requirement separates. The maintainer chose to keep that output: it is accepted behavior, not a defect, since the formatter leaves code behind a comment on its line in many places, and no follow-up is filed for it. Where a blank-line requirement separates the statement from the one before it and the comment starts on that statement's line, the statement still starts the line below the comment, as on `main`. FMT-BREAK-006 states the placement, FMT-BREAK-002 and FMT-BREAK-035 point to it for a first statement, and SHARED-COMMENT-012 names the statement as the exception to its formatter clause. No output changes:
+
+   ```csharp
+   A(); /* x
+   */ B();
+   a++;
+
+   /* y
+   */ return a;
+   ```
 
 ### The new order
 
@@ -319,6 +329,10 @@ The braces the switch-brace phase inserts start the lines that FMT-BREAK-008 giv
 ### FMT-PIPE-024 loses the `else if` fact
 
 The `else if` fact told the line-break phase that a target was the `if` of an `else` clause, so that it would not move the comment behind its condition. With the move gone no decision reads it, and FMT-PIPE-024 lists exactly the facts the phases use. The example in FMT-PIPE-024's reason that relied on it is replaced by the list-position example the requirement already shows.
+
+### A statement behind a multi-line comment's closing line
+
+SHARED-COMMENT-012 asked the formatter to break the line in front of every token behind the closing `*/` of a comment that spans several lines where a requirement asks the token to start its line, and FMT-BREAK-006 asked every statement to start its own line. For a statement the formatter did not do this on `main` and does not after this change, except where a line must end anyway: where a blank-line requirement separates the statement from the previous one and the comment starts on that statement's line, and a first statement behind a comment that starts behind the opening brace or the section's label. Maintainer answer 2 keeps that output, so the specs now state it: FMT-BREAK-006 gives the placement and its two conditions — where the comment starts, and whether a blank-line requirement separates the pair — with an example on each side, and SHARED-COMMENT-012's formatter clause names the statement as its exception. Its clause for analyzer rules is unchanged.
 
 ### SHARED-BLANK-003 is unchanged
 
