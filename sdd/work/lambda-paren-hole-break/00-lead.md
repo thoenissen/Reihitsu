@@ -50,4 +50,5 @@ Verdict: run started
 2. Parenthesized lambda behind a modifier or return type on the next line (`static⏎(int x) => x`) lands in the statement's column — 01-spec-author.md, 02-skeptic.md.
 4. Switch-expression arm after a multi-line arm stays on the brace line (`}, _ => null`) — pre-existing — 12-auditor.md.
 5. Tab in a raw literal's content prefix may count as one column for hole alignment — uncertain, verify first — 12-auditor.md.
+6. A `/** */` or `///` comment inside an expression (behind `(`, or between `delegate` and `{`) is moved onto its own line with a blank line above; no requirement decides this (FMT-DOC-001 leaves comments inside expressions open) — 27-test-implementer.md.
 3. Value continued on the line after `return` or a lambda's `=>` starts in the statement's column — 02-skeptic.md (file only if no FMT-INDENT requirement decides it); same class per 12-auditor.md: a value continued after the `(` of a parenthesized expression or after a switch arm's `=>`.
