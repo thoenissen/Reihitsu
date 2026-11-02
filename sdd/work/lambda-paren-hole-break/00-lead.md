@@ -19,6 +19,7 @@ Verdict: run started
 3. Lambda starting a hole line no alignment places — **A**: keeps its column (FMT-RAW-007).
 4. `static` anonymous method in such a hole — **B**: the block aligns under `delegate` (not under `static`), consistent with a `static` block lambda aligning at its `(`.
 5. Lambda elements in collection initializers and wrapped collection expressions (change doc entry 7) — **A**: laid out like any other element (one per line, as FMT-BREAK-021/022 give for `(1)`).
+6. `async` anonymous method in such a hole — **B**: the block aligns under `async`, as an `async` block lambda does (FMT-INDENT-028). Corrects the lead's earlier routing note, which had extended answer 4 to `async` without asking.
 - General clarification from the maintainer: inside interpolation holes the same formatting applies as everywhere else; a hole is not a place with its own layout rules.
 
 ## Decisions taken
