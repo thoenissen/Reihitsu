@@ -1,6 +1,6 @@
 Role: lead
 Commit: ae55f3e
-Verdict: run started
+Verdict: validated, publishing
 
 # Run
 
@@ -54,3 +54,4 @@ Verdict: run started
 5. Tab in a raw literal's content prefix may count as one column for hole alignment — uncertain, verify first — 12-auditor.md.
 6. A `/** */` or `///` comment inside an expression (behind `(`, or between `delegate` and `{`) is moved onto its own line with a blank line above; no requirement decides this (FMT-DOC-001 leaves comments inside expressions open) — 27-test-implementer.md.
 3. Value continued on the line after `return` or a lambda's `=>` starts in the statement's column — 02-skeptic.md (file only if no FMT-INDENT requirement decides it); same class per 12-auditor.md: a value continued after the `(` of a parenthesized expression or after a switch arm's `=>`.
+7. Outside raw-string holes an anonymous method's block takes the scope-depth column while a block lambda aligns to the lambda; under the maintainer's "same formatting everywhere" clarification, should anonymous methods align like their block-lambda counterpart everywhere? (open output question for the follow-up) — 03-spec-author.md.
