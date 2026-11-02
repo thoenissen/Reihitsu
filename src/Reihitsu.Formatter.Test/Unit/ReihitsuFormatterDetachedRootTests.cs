@@ -79,7 +79,7 @@ public class ReihitsuFormatterDetachedRootTests : FormatterTestsBase
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
     [Requirement("FMT-PIPE-023")]
-    [Requirement("FMT-PIPE-024")]
+    [Requirement("FMT-BREAK-036")]
     public async Task ElseIfTargetKeepsTheLineCommentBehindItsCondition()
     {
         const string input = "class C\n{\n    void M(bool x, bool y)\n    {\n        if (x)\n        {\n        }\n        else if⇥(y) // note\n        {\n        }\n    }\n}";
@@ -95,7 +95,7 @@ public class ReihitsuFormatterDetachedRootTests : FormatterTestsBase
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
     [Requirement("FMT-PIPE-023")]
-    [Requirement("FMT-PIPE-024")]
+    [Requirement("FMT-BREAK-036")]
     public async Task ElseIfTargetKeepsTheBlockCommentBehindItsCondition()
     {
         const string input = "class C\n{\n    void M(bool x, bool y)\n    {\n        if (x)\n        {\n        }\n        else if⇥(y) /* explanation */\n        {\n        }\n    }\n}";
@@ -456,15 +456,16 @@ public class ReihitsuFormatterDetachedRootTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> on the <c>if</c> of <c>else if (y) // note</c> gets the result of
-    /// the same node without a parent: the comment moves onto its own line in front of the <c>if</c> and is not lost
+    /// the same node without a parent: the comment stays behind the condition and is not lost
     /// </summary>
     [TestMethod]
     [Requirement("FMT-PIPE-012")]
+    [Requirement("FMT-BREAK-036")]
     public void FormatNodeOnElseIfWithTrailingCommentGetsTheResultOfTheNodeWithoutParent()
     {
         const string input = "class C\n{\n    void M(bool x, bool y)\n    {\n        if (x)\n        {\n        }\n        else if⇥(y) // note\n        {\n        }\n    }\n}";
 
-        AssertFormatNode(input, "        // note\n        if (y)\n        {\n        }", SelectElseIf, 2);
+        AssertFormatNode(input, "        if (y) // note\n        {\n        }", SelectElseIf, 2);
         AssertFormatNodeMatchesNodeWithoutParent(input, SelectElseIf, 2);
     }
 

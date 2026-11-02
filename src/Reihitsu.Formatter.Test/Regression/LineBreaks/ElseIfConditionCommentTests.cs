@@ -5,9 +5,8 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
 /// <summary>
-/// Moving a trailing <c>if</c>-condition comment onto its own line must not split an
-/// <c>else if</c> across two lines by inserting the comment between the <c>else</c> and
-/// <c>if</c> keywords
+/// A comment trailing the condition of an <c>if</c> or an <c>else if</c> stays behind the condition, so it neither splits an
+/// <c>else if</c> across two lines nor leaves the line it was written on
 /// </summary>
 [TestClass]
 public class ElseIfConditionCommentTests : FormatterTestsBase
@@ -19,7 +18,7 @@ public class ElseIfConditionCommentTests : FormatterTestsBase
     /// moved between the <c>else</c> and <c>if</c> keywords
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-005")]
+    [Requirement("FMT-BREAK-036")]
     public void TrailingCommentOnElseIfConditionDoesNotSplitElseIf()
     {
         var input = """
@@ -41,12 +40,12 @@ public class ElseIfConditionCommentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a trailing comment on a plain (non-else) <c>if</c> condition still moves onto its own
-    /// line above the <c>if</c> keyword
+    /// Verifies that a trailing comment on a plain (non-else) <c>if</c> condition stays behind the condition instead of
+    /// moving onto its own line above the <c>if</c> keyword
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-005")]
-    public void TrailingCommentOnPlainIfConditionMovesToOwnLine()
+    [Requirement("FMT-BREAK-036")]
+    public void TrailingCommentOnPlainIfConditionStaysBehindCondition()
     {
         var input = """
                     public class C
@@ -60,20 +59,7 @@ public class ElseIfConditionCommentTests : FormatterTestsBase
                     }
                     """;
 
-        var expected = """
-                       public class C
-                       {
-                           void M(bool x)
-                           {
-                               // note
-                               if (x)
-                               {
-                               }
-                           }
-                       }
-                       """;
-
-        AssertRuleResult(input, expected);
+        AssertRuleResult(input);
     }
 
     #endregion // Tests
