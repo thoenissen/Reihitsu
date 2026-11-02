@@ -304,7 +304,7 @@ class C
    */ return a;
    ```
 
-   The lead applied the answer to switch sections and case labels too, which the formatter, on `main` as after this change, also leaves behind the closing `*/` of a comment that starts on a line of its own, against FMT-BREAK-033, FMT-BREAK-034, and SHARED-COMMENT-012 as written: the maintainer's reason — the formatter leaves code behind a comment on its line in many places — is not specific to statements, and keeping the placement changes no output. This extension is the lead's reading of the answer, not a separate answer. FMT-BREAK-033 states the placement for a section, FMT-BREAK-034 for a label, FMT-BREAK-002 points to FMT-BREAK-033 for a switch statement's first section, and SHARED-COMMENT-012 names sections and labels as exceptions next to the statement. No output changes:
+3. **A switch section or label behind the closing line of a multi-line comment that starts on a line of its own keeps its place.** Asked after answer 2, because the formatter, on `main` as after this change, leaves such a section or label behind the `*/`, against FMT-BREAK-033, FMT-BREAK-034, and SHARED-COMMENT-012 as they were written. The maintainer chose to keep that output: answer 2 applies to switch sections and labels too. Where the comment starts behind the token in front of the section or label, the line still breaks in front of it, as on `main`. FMT-BREAK-033 states the placement for a section, FMT-BREAK-034 for a label, FMT-BREAK-002 points to FMT-BREAK-033 for a switch statement's first section, and SHARED-COMMENT-012 names sections and labels as exceptions next to the statement. No output changes:
 
    ```csharp
    switch (x)
