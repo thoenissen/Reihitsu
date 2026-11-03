@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data.Enumerations;
@@ -52,6 +53,12 @@ internal record FormattingContext
     /// <param name="formatsRegionDirectives">
     /// Whether the region phase applies the region requirements; the node-level entry points pass <see langword="false"/> (FMT-PIPE-028)
     /// </param>
+    /// <param name="targetAnnotation">
+    /// The annotation that marks the first token of the target inside the formatting root, or <see langword="null"/> when the root has no such target
+    /// </param>
+    /// <param name="targetFirstTokenColumn">
+    /// The column of the target's first token in its document, or <see langword="null"/> when the root has no such target
+    /// </param>
     public FormattingContext(string endOfLine,
                              int baseIndentLevel = 0,
                              bool preserveRootDocumentationBoundary = false,
@@ -62,7 +69,9 @@ internal record FormattingContext
                              int? rootFirstTokenColumn = null,
                              FluentChainBoundary rootChainBoundary = default,
                              RootConstruct rootConstruct = RootConstruct.None,
-                             bool formatsRegionDirectives = true)
+                             bool formatsRegionDirectives = true,
+                             SyntaxAnnotation targetAnnotation = null,
+                             int? targetFirstTokenColumn = null)
     {
         EndOfLine = endOfLine;
         BaseIndentLevel = baseIndentLevel;
@@ -75,6 +84,8 @@ internal record FormattingContext
         RootChainBoundary = rootChainBoundary;
         RootConstruct = rootConstruct;
         FormatsRegionDirectives = formatsRegionDirectives;
+        TargetAnnotation = targetAnnotation;
+        TargetFirstTokenColumn = targetFirstTokenColumn;
     }
 
     #endregion // Constructor
@@ -165,6 +176,21 @@ internal record FormattingContext
     /// set it to <see langword="false"/> and apply no region requirement (FMT-PIPE-028)
     /// </summary>
     public bool FormatsRegionDirectives { get; }
+
+    /// <summary>
+    /// The annotation that marks the first token of the target inside the formatting root, part of the target-position fact
+    /// (FMT-PIPE-024). Only <see cref="ReihitsuFormatter.FormatNodeInDocumentWithContextAsync"/> supplies it, for the target
+    /// it formats within its context; every other entry point leaves it at <see langword="null"/>
+    /// </summary>
+    public SyntaxAnnotation TargetAnnotation { get; }
+
+    /// <summary>
+    /// The column of the target's first token in its document (FMT-PIPE-017), part of the target-position fact
+    /// (FMT-PIPE-024). The indentation phase lays out the target's other lines as if that token stood in this column,
+    /// wherever the phases leave it in the root. Only <see cref="ReihitsuFormatter.FormatNodeInDocumentWithContextAsync"/>
+    /// supplies it; every other entry point leaves it at <see langword="null"/>
+    /// </summary>
+    public int? TargetFirstTokenColumn { get; }
 
     #endregion // Properties
 

@@ -54,6 +54,7 @@ internal static class LayoutComputer
                                      token => GetOpeningQuotesColumnBeforeRawStringShift(token, model));
 
         RegisterRawStringHoleLines(root, model);
+        UseTargetPosition(root, model, context);
 
         // Pass 1: Block indentation — recursive descent over the tree
         ComputeBlockIndentation(root, 0, model, baseColumn, cancellationToken);
@@ -221,13 +222,20 @@ internal static class LayoutComputer
     /// so a token is measured at the line's column plus its distance from the start of that text (FMT-INDENT-030).
     /// A line that starts inside text that began on an earlier line, such as the last line of a multi-line comment or
     /// the closing line of a raw string literal, is not placed, and its tokens keep their columns; so does a line of
-    /// an interpolation hole that no construct inside the hole placed
+    /// an interpolation hole that no construct inside the hole placed. A token on the first line of the target the
+    /// target-position fact marks, from the target's first token on, is measured from the column that fact gives that
+    /// token, whatever the phases did with that line in the root (FMT-PIPE-017)
     /// </summary>
     /// <param name="token">The token to get the column for</param>
     /// <param name="model">The layout model</param>
     /// <returns>The column after its line is placed</returns>
     internal static int GetColumnBeforeRawStringShift(SyntaxToken token, LayoutModel model)
     {
+        if (TryGetTargetLineColumn(token, model, out var targetLineColumn))
+        {
+            return targetLineColumn;
+        }
+
         var originalColumn = GetColumn(token);
 
         if (model.TryGetPlacedColumnBeforeRawStringShift(GetLine(token), out var lineColumn) == false
@@ -336,6 +344,56 @@ internal static class LayoutComputer
         }
 
         model.ShiftRange(0, int.MaxValue, rootFirstTokenColumn - GetColumnBeforeRawStringShift(firstToken, model), "RootFirstTokenColumn");
+    }
+
+    /// <summary>
+    /// Hands the target-position fact (FMT-PIPE-024) to the model when the root holds the token it marks. The context entry
+    /// point writes back only the target, and everything in front of its first token as it stands in the document, so the
+    /// target's other lines are laid out as if that token stood in its document column (FMT-PIPE-017)
+    /// </summary>
+    /// <param name="root">The root syntax node</param>
+    /// <param name="model">The layout model</param>
+    /// <param name="context">The formatting context</param>
+    private static void UseTargetPosition(SyntaxNode root, LayoutModel model, FormattingContext context)
+    {
+        if (context.TargetAnnotation == null
+            || context.TargetFirstTokenColumn is not { } targetFirstTokenColumn)
+        {
+            return;
+        }
+
+        var targetFirstToken = root.GetAnnotatedTokens(context.TargetAnnotation).FirstOrDefault();
+
+        if (targetFirstToken.IsKind(SyntaxKind.None) == false)
+        {
+            model.UseTargetFirstToken(targetFirstToken, targetFirstTokenColumn);
+        }
+    }
+
+    /// <summary>
+    /// Gets the column, before the lines of multi-line raw string literals move, of a token on the line of the target's
+    /// first token, from that token on: the target's first token stands in the column the target-position fact gives it
+    /// in the output of the indentation phase, and the rest of its line keeps its distance to it. The move of a raw
+    /// string literal's lines that carries that line in the root is taken off, so the token ends in that column after it
+    /// </summary>
+    /// <param name="token">The token to measure</param>
+    /// <param name="model">The layout model</param>
+    /// <param name="column">The column before the lines of multi-line raw string literals move</param>
+    /// <returns><see langword="true"/> if the token stands on the target's first line, at or behind its first token; otherwise, <see langword="false"/></returns>
+    private static bool TryGetTargetLineColumn(SyntaxToken token, LayoutModel model, out int column)
+    {
+        if (model.TryGetTargetFirstToken(out var targetFirstToken, out var targetFirstTokenColumn) == false
+            || token.SpanStart < targetFirstToken.SpanStart
+            || GetLine(token) != GetLine(targetFirstToken))
+        {
+            column = 0;
+
+            return false;
+        }
+
+        column = targetFirstTokenColumn + (GetColumn(token) - GetColumn(targetFirstToken)) - model.GetRawStringShift(GetLine(token));
+
+        return true;
     }
 
     /// <summary>
