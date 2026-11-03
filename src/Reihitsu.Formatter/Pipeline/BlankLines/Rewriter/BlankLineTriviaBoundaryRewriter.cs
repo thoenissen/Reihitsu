@@ -291,7 +291,9 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     /// <returns>The token with a blank line inserted before each end region directive that lacks one, or the original if none does</returns>
     /// <remarks>
     /// The parser never files a directive into trailing trivia, so only an earlier rewrite can bring one here. A directive
-    /// that does not yet start its own line gets the line break that starts it together with the blank line
+    /// that does not yet start its own line gets the line break that starts it together with the blank line, except when
+    /// the token is an open brace without a comment in front of the directive: the shared rule exempts that position, so
+    /// nothing is inserted and the directive stays on the brace's line
     /// </remarks>
     private SyntaxToken EnsureBlankLineBeforeEndRegionsInTrailingTrivia(SyntaxToken token)
     {
