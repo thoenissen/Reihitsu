@@ -50,7 +50,7 @@ internal record FormattingContext
     /// The facts about the construct the formatting root stands in in its document, or <see cref="RootConstruct.None"/> when the caller supplies none
     /// </param>
     /// <param name="formatsRegionDirectives">
-    /// Whether the region phase rewrites the text of region directives; the node-level entry points pass <see langword="false"/> (FMT-PIPE-028)
+    /// Whether the region phase applies the region requirements; the node-level entry points pass <see langword="false"/> (FMT-PIPE-028)
     /// </param>
     public FormattingContext(string endOfLine,
                              int baseIndentLevel = 0,
@@ -158,10 +158,12 @@ internal record FormattingContext
     public RootConstruct RootConstruct { get; }
 
     /// <summary>
-    /// Whether the region phase rewrites the text of <c>#region</c> and <c>#endregion</c> directives (FMT-REGION). Only
-    /// <see cref="ReihitsuFormatter.FormatDocumentAsync"/> and <see cref="ReihitsuFormatter.FormatSyntaxTree"/> leave it at
-    /// <see langword="true"/>. The node-level entry points serve code fixes, which change only the code their diagnostic is
-    /// about, so they set it to <see langword="false"/> and keep every region directive as written (FMT-PIPE-028)
+    /// Whether the region phase applies the region requirements (FMT-REGION) to <c>#region</c> and <c>#endregion</c>
+    /// directives. It defaults to <see langword="true"/>, so every context built without the argument keeps it, among them
+    /// those of <see cref="ReihitsuFormatter.FormatDocumentAsync"/> and <see cref="ReihitsuFormatter.FormatSyntaxTree"/>.
+    /// The three node-level entry points serve code fixes, which change only the code their diagnostic is about, so they
+    /// set it to <see langword="false"/> and apply no region requirement (FMT-PIPE-028); a tab between the tokens of a region
+    /// directive still becomes four spaces, because the preparation phase runs regardless
     /// </summary>
     public bool FormatsRegionDirectives { get; }
 

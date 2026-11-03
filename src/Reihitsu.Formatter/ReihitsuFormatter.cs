@@ -112,8 +112,8 @@ public static class ReihitsuFormatter
     /// inspect and is not expected to carry whole-file error diagnostics. Callers are responsible for
     /// passing a node that is safe to format. Like every node-level entry point, it keeps single-statement
     /// accessor blocks instead of converting them to expression bodies, and keeps the accessor list of get-only
-    /// properties and indexers instead of converting them to expression-bodied members, and keeps the text of region directives
-    /// as written. Version-dependent rules follow the language version
+    /// properties and indexers instead of converting them to expression-bodied members, and applies no region requirement
+    /// (capitalization, line form, or the comment behind an end-region directive; a tab between the tokens of a region directive still becomes four spaces). Version-dependent rules follow the language version
     /// of the tree that Roslyn reports as the node's syntax tree, whether or not the node has a parent; a node that reports a tree
     /// with the default parse options is formatted for the newest supported version. A node that is part of a tree is formatted as
     /// a root without a parent: the code in front of it and behind it, and the construct it stands in, are not read, so it gets the
@@ -147,8 +147,9 @@ public static class ReihitsuFormatter
     /// <remarks>
     /// Single-statement accessor blocks inside the target are kept rather than converted to expression bodies, and
     /// get-only properties and indexers keep their accessor list rather than becoming expression-bodied members,
-    /// including when the target is the document root, because this entry point serves code fixes; for the same reason, the
-    /// text of region directives in the target is kept as written.
+    /// including when the target is the document root, because this entry point serves code fixes; for the same reason, it
+    /// applies no region requirement (capitalization, line form, or the comment behind an end-region directive; a tab between
+    /// the tokens of a region directive still becomes four spaces).
     /// Version-dependent rules follow the effective language version of the document's project, clamped to the newest
     /// supported version. The target is formatted as a root without a parent; what the phases need from the document around it
     /// is captured before they run, as plain values: the token that precedes it, its place in its statement or switch-section
@@ -245,8 +246,9 @@ public static class ReihitsuFormatter
     /// <returns>A new Document with only the targeted node formatted</returns>
     /// <remarks>
     /// Single-statement accessor blocks are kept rather than converted to expression bodies, and get-only properties and
-    /// indexers keep their accessor list rather than becoming expression-bodied members, and the text of region directives
-    /// is kept as written, because this entry point serves code fixes. Version-dependent rules follow the effective language version of the document's project, clamped
+    /// indexers keep their accessor list rather than becoming expression-bodied members, and no region requirement
+    /// (capitalization, line form, or the comment behind an end-region directive) is applied, a tab between the tokens of a
+    /// region directive still becoming four spaces, because this entry point serves code fixes. Version-dependent rules follow the effective language version of the document's project, clamped
     /// to the newest supported version. The target's leading trivia is written back as it stands in the document, so a
     /// target that starts a later line of the context keeps that line's column. When the target is the context node,
     /// formatting is delegated to <see cref="FormatNodeInDocumentAsync(Document, SyntaxNode, CancellationToken)"/>, including
