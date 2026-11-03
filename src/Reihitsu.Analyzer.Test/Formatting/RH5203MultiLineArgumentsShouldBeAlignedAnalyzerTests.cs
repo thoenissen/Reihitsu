@@ -561,6 +561,34 @@ public class RH5203MultiLineArgumentsShouldBeAlignedAnalyzerTests : BatchCodeFix
         await Verify(testData, fixedData, Diagnostics(RH5203MultiLineArgumentsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5203MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the result of the RH5111 fix of a declarator that starts a later line of its declaration, whose wrapped
+    /// argument stands under the first argument, is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForWrappedArgumentOfADeclaratorOnALaterLine()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    static int Other(int x, int y)
+                                    {
+                                        return x + y;
+                                    }
+
+                                    void M()
+                                    {
+                                        int a = 1,
+                                              b = Other(1,
+                                                        2);
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

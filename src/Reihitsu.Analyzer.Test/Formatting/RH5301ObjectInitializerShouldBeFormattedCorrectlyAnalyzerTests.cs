@@ -970,6 +970,33 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests : Ba
         await VerifyCodeFixMatchesFormatter(testData);
     }
 
+    /// <summary>
+    /// Verifies that the result of the RH5111 fix of a declarator that starts a later line of its declaration, whose object
+    /// creation has its braces under <c>new</c>, is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForObjectCreationOfADeclaratorOnALaterLine()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int P { get; set; }
+
+                                    void M()
+                                    {
+                                        C a = null,
+                                              b = new C
+                                                  {
+                                                      P = 1
+                                                  };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
