@@ -21,7 +21,8 @@ Roles: spec author → skeptic → test implementer → implementer → cleaner 
 
 ## Maintainer answers
 
-None yet.
+- Output questions batch 1 (before the test implementer), 18 questions from `03-spec-author.md`: the maintainer accepted the recommendation on every question — A for 1–18. Question 1: the target's first line keeps its document column and its aligned lines follow it. Question 4: a parameter that shares its line with another parameter keeps that line, with no line break in front of it.
+- Added guidance from the maintainer: a formatter change made only for code fixes has to be worth its cost. Implementation must stay proportionate; for this change the maintainer sees no problem.
 
 ## Decisions taken
 
