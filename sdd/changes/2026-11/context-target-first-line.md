@@ -638,6 +638,10 @@ Unchanged: every target whose first token the context's layout leaves in place (
 
 ## Decisions
 
+### The maintainer chose the listed outputs
+
+The maintainer chose the "after" output of every visible output change above, 1 to 18. For a declarator, a parameter, or an enum member on a later line (changes 1, 3, 7 to 10), the target's first line keeps its column in the document and its aligned lines follow it, instead of the first line taking the column formatting the document gives it. A parameter that shares its line with another parameter (change 4) keeps that line, with no line break in front of it. Today's outputs are not kept for any change. The maintainer added that a formatter change made only for code fixes has to be worth its cost, and sees no problem for this one.
+
 ### The target's first token keeps its line and column
 
 The first token stays where the document has it — on its line and in its column — instead of taking the place the context's layout gives it. Everything in front of the target is outside it and is written back as it stands (FMT-PIPE-010), so a first token that the layout puts on another line or in another column could only get there by rewriting code outside the target, or, for a target that starts its line, by changing its leading whitespace, which FMT-PIPE-018 keeps. `FormatNodeInDocumentAsync` already keeps its target's first token in its column (FMT-PIPE-017), so both node-in-document entry points take the same decision. Formatting the document later moves the first token, and the lines aligned to it move with it.
