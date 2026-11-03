@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-PIPE-017, FMT-PIPE-018, FMT-PIPE-024, SHARED-FIX-007, RH5111-004 |
 | Depends on | [Node-level roots are detached, and their input facts are plain values](../2026-10/node-root-detached.md), [One line-start fact for analyzers and every formatter phase](../2026-10/line-start-fact.md) |
