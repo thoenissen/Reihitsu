@@ -162,8 +162,7 @@ internal record FormattingContext
     /// directives. It defaults to <see langword="true"/>, so every context built without the argument keeps it, among them
     /// those of <see cref="ReihitsuFormatter.FormatDocumentAsync"/> and <see cref="ReihitsuFormatter.FormatSyntaxTree"/>.
     /// The three node-level entry points serve code fixes, which change only the code their diagnostic is about, so they
-    /// set it to <see langword="false"/> and apply no region requirement (FMT-PIPE-028); a tab between the tokens of a region
-    /// directive still becomes four spaces, because the preparation phase runs regardless
+    /// set it to <see langword="false"/> and apply no region requirement (FMT-PIPE-028)
     /// </summary>
     public bool FormatsRegionDirectives { get; }
 
