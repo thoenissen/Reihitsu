@@ -5,9 +5,9 @@
 | ID prefix | FMT-REGION |
 | Status | Active |
 | Code owners | `RegionFormattingPhase`, `RegionNamingRewriter`, `RegionDirectiveUtilities` |
-| Uses | FMT-PIPE-002 |
+| Uses | FMT-PIPE-002, FMT-TAB-002 |
 
-This spec covers the region phase: the capitalization of `#region` descriptions and the `// Description` comment on the matching `#endregion`. The phase changes only the text of region directives; it never adds, removes, or moves one.
+This spec covers the region phase: the capitalization of `#region` descriptions, the space between `#region` and its description, and the `// Description` comment on the matching `#endregion`. The phase changes only the text of region directives; it never adds, removes, or moves one.
 
 ## Non-goals
 
@@ -215,9 +215,9 @@ class C
 
 ### FMT-REGION-006 — Regions in disabled code are named too
 
-The formatter MUST apply FMT-REGION-001 and FMT-REGION-002 to region directives inside a conditional-compilation branch the current build does not compile, and MUST NOT change the disabled text around them.
+The formatter MUST apply FMT-REGION-001, FMT-REGION-002, and FMT-REGION-007 to region directives inside a conditional-compilation branch the current build does not compile, and MUST NOT change the disabled text around them.
 
-Why: The analyzer reports region names in inactive branches as well. If the formatter skipped them, it would leave a diagnostic behind that it could fix with the same text-only rewrite it applies to active code.
+Why: The analyzer reports region names in inactive branches as well. If the formatter skipped them, it would leave a diagnostic behind that it could fix with the same text-only rewrite it applies to active code. The space in front of the description is part of that rewrite, so a region line reads the same whether or not its branch is compiled.
 
 Example:
 
@@ -247,6 +247,71 @@ class C
     }
 
     #endregion // Test
+#endif
+}
+```
+
+### FMT-REGION-007 — One space separates `#region` from its description
+
+The formatter MUST write exactly one space between the `region` keyword of a `#region` that has a description and the first character of that description, whatever whitespace stood there before — several spaces, or the four spaces a tab became under FMT-TAB-002. This holds also when FMT-REGION-001 leaves the description unchanged, because it already starts with an upper-case letter or with a character that has no upper-case form. A `#region` without a description is left as FMT-REGION-004 states.
+
+Why: The separator is layout, not part of the name: the description that FMT-REGION-001 and FMT-REGION-002 work with is trimmed. Writing one space only when the name is rewritten made the output depend on whether the name happened to start with a lower-case letter — `#region    foo` became `#region Foo`, while `#region    Bar` kept its four spaces.
+
+Example:
+
+```csharp
+class C
+{
+    #region    Bar
+    int a;
+    #endregion    Bar
+}
+```
+
+```csharp
+class C
+{
+    #region Bar
+
+    int a;
+
+    #endregion // Bar
+}
+```
+
+and a `#region` that already has one space is left unchanged:
+
+```csharp
+class C
+{
+    #region Bar
+
+    int a;
+
+    #endregion // Bar
+}
+```
+
+A region in a branch the build does not compile is written the same way (FMT-REGION-006):
+
+```csharp
+class C
+{
+#if false
+    #region    Bar
+    int a;
+    #endregion // Bar
+#endif
+}
+```
+
+```csharp
+class C
+{
+#if false
+    #region Bar
+    int a;
+    #endregion // Bar
 #endif
 }
 ```
