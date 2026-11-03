@@ -31,7 +31,12 @@ Verdict: lane claimed — bug fix
 
 ## Maintainer answers
 
-Asked (batch before the test implementer): output questions 1 (region directive below a conditional directive directly after `{`) and 2 (region directive at file start behind a comment or directive), as in `01-skeptic.md`. Awaiting answers.
+Asked (batch before the test implementer): output questions 1 (region directive below a conditional directive directly after `{`) and 2 (region directive at file start behind a comment or directive), as in `01-skeptic.md`.
+
+- Q1 — **A**: the formatter inserts the blank line between a conditional directive and a region directive directly below it, also right after `{`. The expected value of `DisabledRegionLayoutTests.RegionInsideActiveConditionalIsStillFormatted` changes accordingly. RH5031 unchanged.
+- Q2 — **A**: at the start of a file, a region directive behind a comment or directive gets the blank line above it; only a directive on the file's first line is exempt. RH5031 unchanged.
+
+The maintainer accepted both recommendations and told the run to continue.
 
 ## Decisions taken
 
