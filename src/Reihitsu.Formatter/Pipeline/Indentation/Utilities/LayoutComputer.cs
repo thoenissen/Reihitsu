@@ -236,6 +236,20 @@ internal static class LayoutComputer
             return targetLineColumn;
         }
 
+        return GetPlacedColumnBeforeRawStringShift(token, model);
+    }
+
+    /// <summary>
+    /// Gets the column of a token once its line is placed, before any line of a multi-line raw string literal moves, as
+    /// <see cref="GetColumnBeforeRawStringShift"/> gives it without the target-position fact: the line's column plus the
+    /// token's distance from the start of the text that starts the line, or the token's own column on a line that is not
+    /// placed (FMT-INDENT-030)
+    /// </summary>
+    /// <param name="token">The token to get the column for</param>
+    /// <param name="model">The layout model</param>
+    /// <returns>The column after its line is placed</returns>
+    private static int GetPlacedColumnBeforeRawStringShift(SyntaxToken token, LayoutModel model)
+    {
         var originalColumn = GetColumn(token);
 
         if (model.TryGetPlacedColumnBeforeRawStringShift(GetLine(token), out var lineColumn) == false
@@ -319,7 +333,9 @@ internal static class LayoutComputer
     /// <summary>
     /// Shifts the block indentation of every line by the root's offset when the caller supplies the column of the root's
     /// first token in its document (FMT-PIPE-017): that column less the column block indentation gives the token. The
-    /// first token then keeps its column, and a line placed by its depth keeps its place relative to it. The alignments
+    /// offset is measured from block indentation alone, also when the root's first token is the first token of the
+    /// target the target-position fact marks, so the fact never cancels it. The first token then keeps its column, and a
+    /// line placed by its depth keeps its place relative to it. The alignments
     /// run after the shift, so a line aligned to an anchor follows the anchor where it stands, also on a line this phase
     /// does not place. When the first token's line is not placed, because the token stands behind the last line of a
     /// multi-line comment, the token keeps its column and the offset is zero
@@ -343,7 +359,7 @@ internal static class LayoutComputer
             return;
         }
 
-        model.ShiftRange(0, int.MaxValue, rootFirstTokenColumn - GetColumnBeforeRawStringShift(firstToken, model), "RootFirstTokenColumn");
+        model.ShiftRange(0, int.MaxValue, rootFirstTokenColumn - GetPlacedColumnBeforeRawStringShift(firstToken, model), "RootFirstTokenColumn");
     }
 
     /// <summary>
