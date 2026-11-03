@@ -148,6 +148,9 @@ public class DisabledRegionLayoutTests : FormatterTestsBase
     /// the other side of the boundary the <c>IsActive</c> guard is taken on
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-013")]
+    [Requirement("SHARED-BLANK-005")]
+    [Requirement("SHARED-BLANK-007")]
     public void RegionInsideActiveConditionalIsStillFormatted()
     {
         // Arrange
@@ -167,6 +170,7 @@ public class DisabledRegionLayoutTests : FormatterTestsBase
                                 class C
                                 {
                                 #if DEBUG
+
                                     #region Test
 
                                     void M()
