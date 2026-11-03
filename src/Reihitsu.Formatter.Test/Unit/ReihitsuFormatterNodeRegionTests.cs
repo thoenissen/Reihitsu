@@ -54,6 +54,43 @@ public class ReihitsuFormatterNodeRegionTests : FormatterTestsBase
                                                }
                                                """;
 
+    /// <summary>
+    /// The tab example input of the spec, with <c>→</c> standing for a tab: a class with a lower-case region description behind
+    /// a tab, an <c>#endregion</c> whose comment stands behind a tab, and a property whose accessor the node-level entry points
+    /// expand
+    /// </summary>
+    private const string TabExampleInput = """
+                                           class C
+                                           {
+                                               #region→bar
+
+                                               int P { get { return 1; } }
+
+                                               #endregion→// Stale
+                                           }
+                                           """;
+
+    /// <summary>
+    /// The tab example output of the spec for the node-level entry points: every tab between directive tokens became four
+    /// spaces, and the rest of both directives is kept
+    /// </summary>
+    private const string TabExampleExpected = """
+                                              class C
+                                              {
+                                                  #region    bar
+
+                                                  int P
+                                                  {
+                                                      get
+                                                      {
+                                                          return 1;
+                                                      }
+                                                  }
+
+                                                  #endregion    // Stale
+                                              }
+                                              """;
+
     #endregion // Constants
 
     #region Methods
@@ -335,6 +372,219 @@ public class ReihitsuFormatterNodeRegionTests : FormatterTestsBase
 
             Assert.AreEqual(NormalizeLineEndings(expected, endOfLine), result.GetText(TestContext.CancellationToken).ToString(), $"Tree output mismatch under {DescribeLineEnding(endOfLine)} line endings.");
         }
+    }
+
+    /// <summary>
+    /// Verifies the tab example of the spec: <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> with the class as target
+    /// formats the property, turns the tab behind each region keyword into four spaces, and keeps the rest of both directives
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-028")]
+    [Requirement("FMT-TAB-002")]
+    public async Task FormatNodeInDocumentAsyncReplacesTabsBehindRegionKeywordsOfTheTabExample()
+    {
+        await AssertNodeInDocument(WithTabs(TabExampleInput), TabExampleExpected, root => FindType(root, "C"), contextSelector: null);
+    }
+
+    /// <summary>
+    /// Verifies the tab example of the spec through <see cref="ReihitsuFormatter.FormatNodeInDocumentWithContextAsync"/>, with
+    /// the class as target and its namespace as context
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-028")]
+    [Requirement("FMT-TAB-002")]
+    public async Task FormatNodeInDocumentWithContextAsyncReplacesTabsBehindRegionKeywords()
+    {
+        const string input = """
+                             namespace N
+                             {
+                                 class C
+                                 {
+                                     #region→bar
+
+                                     int P { get { return 1; } }
+
+                                     #endregion→// Stale
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                namespace N
+                                {
+                                    class C
+                                    {
+                                        #region    bar
+
+                                        int P
+                                        {
+                                            get
+                                            {
+                                                return 1;
+                                            }
+                                        }
+
+                                        #endregion    // Stale
+                                    }
+                                }
+                                """;
+
+        await AssertNodeInDocument(WithTabs(input), expected, root => FindType(root, "C"), root => root.DescendantNodes().OfType<BaseNamespaceDeclarationSyntax>().First());
+    }
+
+    /// <summary>
+    /// Verifies the tab example of the spec through <see cref="ReihitsuFormatter.FormatNode"/> on the detached class
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-028")]
+    [Requirement("FMT-TAB-002")]
+    public void FormatNodeReplacesTabsBehindRegionKeywords()
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var expected = NormalizeLineEndings(TabExampleExpected, endOfLine);
+            var tree = CSharpSyntaxTree.ParseText(NormalizeLineEndings(WithTabs(TabExampleInput), endOfLine), cancellationToken: TestContext.CancellationToken);
+            var target = FindType(tree.GetRoot(TestContext.CancellationToken), "C");
+
+            var firstPass = ReihitsuFormatter.FormatNode(target, cancellationToken: TestContext.CancellationToken).ToFullString();
+
+            Assert.AreEqual(expected, firstPass, $"First pass mismatch under {DescribeLineEnding(endOfLine)} line endings.");
+
+            var secondTree = CSharpSyntaxTree.ParseText(firstPass, cancellationToken: TestContext.CancellationToken);
+            var secondPass = ReihitsuFormatter.FormatNode(FindType(secondTree.GetRoot(TestContext.CancellationToken), "C"), cancellationToken: TestContext.CancellationToken).ToFullString();
+
+            Assert.AreEqual(expected, secondPass, $"Second pass mismatch under {DescribeLineEnding(endOfLine)} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a node-level entry point turns a tab between <c>#</c> and the region keyword into four spaces
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-028")]
+    [Requirement("FMT-TAB-002")]
+    public async Task FormatNodeInDocumentAsyncReplacesTabBetweenHashAndRegionKeyword()
+    {
+        const string input = """
+                             class C
+                             {
+                                 #→region bar
+
+                                 int a;
+
+                                 #→endregion
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    #    region bar
+
+                                    int a;
+
+                                    #    endregion
+                                }
+                                """;
+
+        await AssertNodeInDocument(WithTabs(input), expected, root => FindType(root, "C"), contextSelector: null);
+    }
+
+    /// <summary>
+    /// Verifies that a node-level entry point turns a tab behind a bare <c>#region</c> and a bare <c>#endregion</c> into four
+    /// spaces and keeps them at the end of the line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-028")]
+    [Requirement("FMT-TAB-002")]
+    public async Task FormatNodeInDocumentAsyncReplacesTabBehindBareRegionKeywords()
+    {
+        const string input = "class C\n{\n    #region\t\n\n    int a;\n\n    #endregion\t\n}";
+        const string expected = "class C\n{\n    #region    \n\n    int a;\n\n    #endregion    \n}";
+
+        await AssertNodeInDocument(input, expected, root => FindType(root, "C"), contextSelector: null);
+    }
+
+    /// <summary>
+    /// Verifies that a node-level entry point keeps a tab inside a region description and inside the text behind
+    /// <c>#endregion</c>, while it turns the tab behind the <c>#region</c> keyword into four spaces
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-028")]
+    [Requirement("FMT-TAB-002")]
+    public async Task FormatNodeInDocumentAsyncKeepsTabsInsideRegionDescriptionAndEndRegionText()
+    {
+        const string input = """
+                             class C
+                             {
+                                 #region→bar→baz
+
+                                 int a;
+
+                                 #endregion // bar→baz
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    #region    bar→baz
+
+                                    int a;
+
+                                    #endregion // bar→baz
+                                }
+                                """;
+
+        await AssertNodeInDocument(WithTabs(input), WithTabs(expected), root => FindType(root, "C"), contextSelector: null);
+    }
+
+    /// <summary>
+    /// Verifies the other side of the tab example of the spec: <see cref="ReihitsuFormatter.FormatDocumentAsync"/> applies the
+    /// region requirements to the same input. The property line is the output of the structural transforms that whole-document
+    /// formatting applies and the node-level entry points skip
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-028")]
+    public async Task FormatDocumentAsyncAppliesRegionRequirementsToTheTabExample()
+    {
+        const string expected = """
+                                class C
+                                {
+                                    #region Bar
+
+                                    int P => 1;
+
+                                    #endregion // Bar
+                                }
+                                """;
+
+        foreach (var endOfLine in _lineEndings)
+        {
+            using (var workspace = new AdhocWorkspace())
+            {
+                var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+                var document = project.AddDocument("Test.cs", SourceText.From(NormalizeLineEndings(WithTabs(TabExampleInput), endOfLine)));
+
+                var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken);
+                var text = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
+
+                Assert.AreEqual(NormalizeLineEndings(expected, endOfLine), text, $"Document output mismatch under {DescribeLineEnding(endOfLine)} line endings.");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Replaces every <c>→</c> marker of a test source with a tab
+    /// </summary>
+    /// <param name="source">The source with tab markers</param>
+    /// <returns>The source with tabs</returns>
+    private static string WithTabs(string source)
+    {
+        return source.Replace("→", "\t");
     }
 
     /// <summary>
