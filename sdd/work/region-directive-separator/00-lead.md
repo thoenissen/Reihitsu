@@ -30,6 +30,10 @@ Batch 1 (before the test implementer):
 5. Trailing whitespace on a `#region` line with a description → C: every such line is written as `#region`, one space, the trimmed description.
 6. Code fixes that format a node holding a region pair → B: the general rule applies that a code fix changes only what its diagnostic is about (SHARED-FIX-006). A fix such as RH7105 has nothing to do with regions and must not adjust them; a user who does not use the region rules would otherwise see their region layout changed by an unrelated fix.
 
+Batch 1, second message:
+
+7. Whitespace behind the text of an `#endregion` whose `#region` has no description → B: removed (`#endregion    // Stale···` → `#endregion // Stale`). The maintainer added as a general statement that trailing whitespace is always removed.
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
@@ -45,5 +49,5 @@ Batch 1 (before the test implementer):
 ## Follow-up candidates
 
 1. (Likely absorbed by decision 7 — re-check after the implementer.) A code fix whose target's parent is the root restores the target's leading trivia after the region phase paired its `#region` with an `#endregion` inside the target, so only half the pair is rewritten (e.g. RH7104 on a top-level `partial class C` preceded by `#region    bar`: writes `#endregion // Bar`, keeps `#region    bar`). Pre-existing on `main`. — 02-skeptic.md
-2. Trailing whitespace behind a directive's text is kept (`#warning x···`, and `#region Bar···` depending on output question 2). — 01-spec-author.md, 02-skeptic.md
+2. Trailing whitespace behind the text of directives other than `#region`/`#endregion` is kept (`#warning x···`, `#pragma ...···`). The maintainer stated in answer 7 that trailing whitespace is always removed, so the follow-up carries that direction. — 01-spec-author.md, 02-skeptic.md, maintainer answer 7
 3. Whitespace between `#` and the directive keyword (`#  region Bar`) is kept. Low priority. — 01-spec-author.md, 02-skeptic.md
