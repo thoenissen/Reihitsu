@@ -7,7 +7,7 @@
 | Code owners | `RegionFormattingPhase`, `RegionNamingRewriter`, `RegionDirectiveUtilities` |
 | Uses | FMT-PIPE-002, FMT-PIPE-005, FMT-TAB-002 |
 
-This spec covers the region phase: the capitalization of `#region` descriptions, the form of a `#region` line with a description, the `// Description` comment on the matching `#endregion`, and the space in front of the text of an `#endregion` whose `#region` has no description. The phase changes only the text of region directives; it never adds, removes, or moves one. Its requirements apply when a whole document or syntax tree is formatted.
+This spec covers the region phase: the capitalization of `#region` descriptions, the form of a `#region` line with a description, the `// Description` comment on the matching `#endregion`, the space in front of the text of an `#endregion` whose `#region` has no description, and the end of every region directive line, which ends at its text. The phase changes only the text of region directives; it never adds, removes, or moves one. Its requirements apply when a whole document or syntax tree is formatted.
 
 ## Non-goals
 
@@ -159,9 +159,9 @@ class C
 
 ### FMT-REGION-004 — Regions without a description keep their text
 
-The formatter MUST NOT change a `#region` without a description, and MUST NOT change the text after its matching `#endregion`. When that `#endregion` has text after it, the formatter MUST write exactly one space between the `endregion` keyword and the first character of that text, whatever whitespace stood there before, also when none stood there, and MUST remove whitespace behind that text. A bare `#endregion` MUST stay bare.
+The formatter MUST NOT add text to a `#region` without a description, and MUST NOT change the text after its matching `#endregion`. When that `#endregion` has text after it, the formatter MUST write exactly one space between the `endregion` keyword and the first character of that text, whatever whitespace stood there before, also when none stood there, and MUST remove whitespace behind that text. A `#region` without a description and an `#endregion` without text after it MUST be written as the bare keyword: whitespace behind `region` or `endregion` is removed, and a line that has none is left unchanged. This holds also for region directives inside a conditional-compilation branch the current build does not compile, and, as for FMT-REGION-007, for the directives the phase pairs (FMT-REGION-003).
 
-Why: There is no name to capitalize or to repeat. Removing or rewriting the text after the `#endregion` would change the only label the author wrote for the block. The whitespace in front of that label and behind it is layout, not part of it: the label gets the one space a `#region` line gets in front of its description, and the line ends at the label as a `#region` line ends at its description (FMT-REGION-007).
+Why: There is no name to capitalize or to repeat. Removing or rewriting the text after the `#endregion` would change the only label the author wrote for the block. The whitespace in front of that label and behind it is layout, not part of it: the label gets the one space a `#region` line gets in front of its description, and every region line ends at its last character of text as a `#region` line ends at its description (FMT-REGION-007) — at the keyword when there is no text. The line reads the same whether or not its branch is compiled.
 
 Example:
 
@@ -176,7 +176,7 @@ class C
 }
 ```
 
-is left unchanged, and the whitespace around the label is normalized — `···` stands for three spaces at the end of the line:
+is left unchanged, and the whitespace around the label is normalized — `···` stands for three spaces at the end of a line, in every example of this requirement:
 
 ```csharp
 class C
@@ -201,6 +201,54 @@ class C
 ```
 
 `#endregion//Stale` becomes `#endregion //Stale`: the text after the keyword is kept as written.
+
+A `#region` and an `#endregion` that are followed only by whitespace lose it:
+
+```csharp
+class C
+{
+    #region···
+
+    int _value;
+
+    #endregion···
+}
+```
+
+```csharp
+class C
+{
+    #region
+
+    int _value;
+
+    #endregion
+}
+```
+
+The same holds in a branch the build does not compile:
+
+```csharp
+class C
+{
+#if false
+    #region···
+    int a;
+    #endregion    // Stale···
+#endif
+}
+```
+
+```csharp
+class C
+{
+#if false
+    #region
+    int a;
+    #endregion // Stale
+#endif
+}
+```
 
 ### FMT-REGION-005 — Region directives are never added, removed, or moved
 

@@ -9,7 +9,7 @@
 ## What
 
 - **One form for a `#region` line with a description.** The region phase writes every `#region` that has a description as `#region`, one space, and the trimmed description (FMT-REGION-007). Several spaces or a tab between the keyword and the description become one space, and whitespace behind the description is removed. This holds whether or not the description is capitalized (FMT-REGION-001), and also inside a branch the build does not compile. FMT-REGION-001 used to state this form only for a line it rewrites; it now points to FMT-REGION-007.
-- **One space in front of the text of an `#endregion` whose `#region` has no description, and no whitespace behind it.** The text itself stays as written. A bare `#endregion` stays bare (FMT-REGION-004). Every other `#endregion` already gets one form from FMT-REGION-002.
+- **One space in front of the text of an `#endregion` whose `#region` has no description, and no whitespace behind it.** The text itself stays as written. A `#region` without a description and an `#endregion` without text are written as the bare keyword: whitespace behind them is removed (FMT-REGION-004). This holds also inside a branch the build does not compile. Every other `#endregion` already gets one form from FMT-REGION-002.
 - **Code fixes keep region directives.** The node-level entry points no longer apply any region requirement (FMT-PIPE-028). A code fix that hands the formatter a node holding region directives leaves their text as it was: the separator, the capitalization, and the `#endregion` comment. Region directives are normalized only when a whole document or syntax tree is formatted.
 - FMT-TAB-002's example follows: the four spaces that a tab between `#region` and its description becomes in the preparation phase no longer reach the output.
 
@@ -189,6 +189,62 @@ class C
 
 `#endregion//Stale` changes in the same way: before, it is unchanged; after, it is written as `#endregion //Stale`. Every region directive line the region phase writes now ends at its text.
 
+### Whitespace behind a region directive without a description or label
+
+```csharp
+class C
+{
+    #region···
+
+    int a;
+
+    #endregion···
+}
+```
+
+Before: unchanged.
+
+After:
+
+```csharp
+class C
+{
+    #region
+
+    int a;
+
+    #endregion
+}
+```
+
+### Whitespace behind a region directive without a description, in a branch the build does not compile
+
+```csharp
+class C
+{
+#if false
+    #region···
+    int a;
+    #endregion    // Stale···
+#endif
+}
+```
+
+Before: unchanged.
+
+After:
+
+```csharp
+class C
+{
+#if false
+    #region
+    int a;
+    #endregion // Stale
+#endif
+}
+```
+
 ### Code fixes stop rewriting region directives
 
 This change covers every code fix that hands the formatter a node holding a `#region` and its `#endregion`. RH7105 · Declaration keywords must follow order:
@@ -239,12 +295,78 @@ namespace N
 }
 ```
 
-The same holds for the other type-level fixes that delegate to the formatter, such as RH7104, RH7106, RH8305, RH8307, and RH8309. It also holds for member-level fixes whose formatted member holds a region pair. The region rules report what the fix leaves behind, as they do for any other code: RH7302 for `bar`, and RH7301 for the `#endregion`. The region-rule fixes themselves (RH5031, RH5032, RH7301 to RH7310) do not call the formatter's pipeline, so they are not affected.
+The same holds for the other type-level fixes that delegate to the formatter, such as RH7103, RH7104, RH7106, RH8305, RH8307, and RH8309. It also holds for member-level fixes whose formatted member holds a region pair. The region rules report what the fix leaves behind, as they do for any other code: RH7302 for `bar`, and RH7301 for the `#endregion`. The region-rule fixes themselves (RH5031, RH5032, RH7301 to RH7310) do not call the formatter's pipeline, so they are not affected.
+
+RH7103 · Static elements must appear before instance elements applies its fix inside a type with regions. Input, from the existing test `CodeFixReordersStaticWithinRegionAndIgnoresInstanceMembersInOtherRegions`:
+
+```csharp
+public class TestClass
+{
+    #region Decoy
+
+    public void Decoy()
+    {
+    }
+
+    #endregion
+
+    #region Factories
+
+    public int Counter
+    {
+        get;
+        set;
+    }
+
+    public void Reset()
+    {
+    }
+
+    public static TestClass Create()
+    {
+        return new TestClass();
+    }
+
+    #endregion
+}
+```
+
+Before: the output below, except that the two `#endregion` lines are written as `#endregion // Decoy` and `#endregion // Factories`.
+
+After:
+
+```csharp
+public class TestClass
+{
+    #region Decoy
+
+    public void Decoy()
+    {
+    }
+
+    #endregion
+
+    #region Factories
+
+    public int Counter { get; set; }
+
+    public static TestClass Create()
+    {
+        return new TestClass();
+    }
+
+    public void Reset()
+    {
+    }
+
+    #endregion
+}
+```
 
 ### Unchanged
 
 - A `#region` with a lower-case description and one space, and nothing behind it: written as before (FMT-REGION-001).
-- A `#region` without a description, and a bare `#endregion` (FMT-REGION-004).
+- A `#region` without a description, and a bare `#endregion`, when nothing follows the keyword (FMT-REGION-004).
 - Every `#endregion` whose `#region` has a description (FMT-REGION-002).
 - Diagnostics and rule pages: no rule reports the separator, and RH7302-002 keeps `#region  Fields` unreported.
 - CLI options, exit codes, and messages.
@@ -260,6 +382,11 @@ The same holds for the other type-level fixes that delegate to the formatter, su
 5. Every `#region` line with a description is written as `#region`, one space, and the trimmed description. Whitespace behind the description is removed as well, also on a line whose separator is already one space.
 6. A code fix changes only what its diagnostic is about (SHARED-FIX-006). A fix that has nothing to do with regions must not adjust them. Otherwise a user who does not use the region rules would see their region layout changed by an unrelated fix.
 7. Whitespace behind the text of an `#endregion` whose `#region` has no description is removed (`#endregion    // Stale···` becomes `#endregion // Stale`). The maintainer stated generally that trailing whitespace is always removed; in this change that means every region directive line the region phase writes ends at its text. For other directives it is a follow-up, not part of this change.
+
+### Taken by the lead on the maintainer's answers
+
+- A `#region` without a description and an `#endregion` without text that are followed only by whitespace lose it (`#region···` becomes `#region`). This follows from answer 7: the maintainer's statement that trailing whitespace is always removed covers region directive lines in this change, and a line without text is one of them. FMT-REGION-004 used to keep such a line unchanged.
+- FMT-REGION-004 applies inside a branch the build does not compile, as FMT-REGION-007 does (answer 3). FMT-REGION-004 states this itself; FMT-REGION-006 stays unchanged.
 
 ### The region phase owns the line form
 
