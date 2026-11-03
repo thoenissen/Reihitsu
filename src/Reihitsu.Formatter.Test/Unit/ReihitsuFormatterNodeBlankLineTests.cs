@@ -23,11 +23,11 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies that the blank line above a property is kept when the region phase rewrites a region inside the property
+    /// Verifies that the blank line above a property is kept when the property holds a region, whose directives keep their text
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
-    public async Task KeepsBlankLineAbovePropertyWhenRegionInsideIsRewritten()
+    public async Task KeepsBlankLineAbovePropertyHoldingARegion()
     {
         const string input = """
                              public class TestClass
@@ -56,11 +56,11 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
                                     {
                                         set
                                         {
-                                            #region Assign
+                                            #region assign
 
                                             _d = value;
 
-                                            #endregion // Assign
+                                            #endregion
                                         }
                                     }
                                 }

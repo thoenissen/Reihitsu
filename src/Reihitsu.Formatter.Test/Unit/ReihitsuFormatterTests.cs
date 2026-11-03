@@ -496,9 +496,11 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> preserves and formats regions inside a detached node
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> keeps both region directives inside a detached node, with their
+    /// text as written, while it formats the code around them
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-028")]
     public void FormatNodePreservesRegionsInsideDetachedNode()
     {
         // Arrange
@@ -513,11 +515,11 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         const string expectedWithLf = """
                                       void M()
                                       {
-                                          #region Inner
+                                          #region inner
 
                                           var value = 1;
 
-                                          #endregion // Inner
+                                          #endregion
                                       }
                                       """;
 
@@ -561,7 +563,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     {
         // Arrange
         const string inputWithLf = "void M()\n{\n#region inner\n    var value=1;¶#endregion\n}";
-        const string expectedWithLf = "void M()\n{\n    #region Inner\n\n    var value = 1;\n\n    #endregion // Inner\n}";
+        const string expectedWithLf = "void M()\n{\n    #region inner\n\n    var value = 1;\n\n    #endregion\n}";
 
         foreach (var endOfLine in _lineEndings)
         {
@@ -894,10 +896,12 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> preserves and formats regions inside the target root
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> keeps both region directives inside the target
+    /// root, with their text as written, while it formats the code around them
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
+    [Requirement("FMT-PIPE-028")]
     public async Task FormatNodeInDocumentAsyncPreservesRegionsInsideTargetRoot()
     {
         // Arrange
@@ -917,11 +921,11 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                                       {
                                           void M()
                                           {
-                                              #region Inner
+                                              #region inner
 
                                               var value = 1;
 
-                                              #endregion // Inner
+                                              #endregion
                                           }
                                       }
                                       """;
