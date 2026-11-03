@@ -608,17 +608,96 @@ public class RegionLineFormTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a <c>#region</c> without a description is not changed, also when whitespace stands behind the keyword
+    /// Verifies the spec example: a <c>#region</c> without a description and a bare <c>#endregion</c> lose the whitespace
+    /// behind their keyword
     /// </summary>
     [TestMethod]
     [Requirement("FMT-REGION-004")]
-    public void RegionWithoutDescriptionAndTrailingWhitespaceIsKept()
+    public void TrailingWhitespaceBehindBareRegionAndEndRegionIsRemoved()
+    {
+        // Arrange
+        const string input = "class C\n{\n    #region   \n\n    int _value;\n\n    #endregion   \n}";
+        const string expected = "class C\n{\n    #region\n\n    int _value;\n\n    #endregion\n}";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#region</c> without a description loses the whitespace behind its keyword when its <c>#endregion</c>
+    /// is already bare
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-REGION-004")]
+    public void TrailingWhitespaceBehindRegionWithoutDescriptionIsRemoved()
     {
         // Arrange
         const string input = "class C\n{\n    #region   \n\n    int _value;\n\n    #endregion\n}";
+        const string expected = "class C\n{\n    #region\n\n    int _value;\n\n    #endregion\n}";
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a bare <c>#endregion</c> of an undescribed region loses the whitespace behind its keyword
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-REGION-004")]
+    public void TrailingWhitespaceBehindBareEndRegionIsRemoved()
+    {
+        // Arrange
+        const string input = "class C\n{\n    #region\n\n    int _value;\n\n    #endregion   \n}";
+        const string expected = "class C\n{\n    #region\n\n    int _value;\n\n    #endregion\n}";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a tab behind a bare <c>#endregion</c>, which the preparation phase turns into spaces, is removed
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-REGION-004")]
+    public void TabBehindBareEndRegionIsRemoved()
+    {
+        // Arrange
+        const string input = "class C\n{\n    #region\n\n    int _value;\n\n    #endregion\t\n}";
+        const string expected = "class C\n{\n    #region\n\n    int _value;\n\n    #endregion\n}";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the spec example for a branch the build does not compile: the <c>#region</c> without a description loses its
+    /// trailing whitespace and the text of the <c>#endregion</c> is normalized
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-REGION-004")]
+    public void TrailingWhitespaceBehindRegionWithoutDescriptionInDisabledBranchIsRemoved()
+    {
+        // Arrange
+        const string input = "class C\n{\n#if false\n    #region   \n    int a;\n    #endregion    // Stale   \n#endif\n}";
+        const string expected = "class C\n{\n#if false\n    #region\n    int a;\n    #endregion // Stale\n#endif\n}";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a bare <c>#endregion</c> in a branch the build does not compile loses the whitespace behind its keyword
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-REGION-004")]
+    public void TrailingWhitespaceBehindBareEndRegionInDisabledBranchIsRemoved()
+    {
+        // Arrange
+        const string input = "class C\n{\n#if false\n    #region\n    int a;\n    #endregion   \n#endif\n}";
+        const string expected = "class C\n{\n#if false\n    #region\n    int a;\n    #endregion\n#endif\n}";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>

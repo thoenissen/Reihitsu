@@ -190,6 +190,20 @@ public class ReihitsuFormatterNodeRegionTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that the whitespace behind a <c>#region</c> without a description and behind a bare <c>#endregion</c> is kept
+    /// by a node-level entry point
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-028")]
+    public async Task FormatNodeInDocumentAsyncKeepsWhitespaceBehindBareRegionAndEndRegion()
+    {
+        const string input = "class C\n{\n    #region   \n\n    int a;\n\n    #endregion   \n}";
+
+        await AssertNodeInDocument(input, input, root => FindType(root, "C"), contextSelector: null);
+    }
+
+    /// <summary>
     /// Verifies that a region inside a method body is kept by a node-level entry point that formats the method
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
