@@ -1003,9 +1003,9 @@ class C
 
 ### FMT-PIPE-028 — Node-level entry points apply no region requirement
 
-`FormatNode`, `FormatNodeInDocumentAsync`, and `FormatNodeInDocumentWithContextAsync` MUST NOT apply any of the region phase's requirements (FMT-REGION) to the code they format — not the capitalization of a description, not the form of a `#region` line, not the comment or the space behind an `#endregion`, and not the whitespace at the end of a region directive line. Only `FormatDocumentAsync` and `FormatSyntaxTree` apply them. The preparation phase still runs for these entry points, so a tab between the tokens of a region directive — between `#` and the keyword, or behind the keyword — MUST still become four spaces (FMT-TAB-002, FMT-PIPE-019), while a tab inside a description or inside the text behind `#endregion` is kept, as FMT-TAB-002 keeps a directive's free text. No other part of a region directive's text changes.
+`FormatNode`, `FormatNodeInDocumentAsync`, and `FormatNodeInDocumentWithContextAsync` MUST NOT apply any of the region phase's requirements (FMT-REGION) to the code they format — not the capitalization of a description, not the form of a `#region` line, not the comment or the space behind an `#endregion`, and not the whitespace at the end of a region directive line. Only `FormatDocumentAsync` and `FormatSyntaxTree` apply them. This requirement exempts region directives from the region phase and from nothing else: the preparation phase runs for these entry points as for every entry point (FMT-PIPE-019), and what it does to a directive, it does to a region directive at node level too.
 
-Why: These entry points serve code fixes, and a code fix changes only the code its diagnostic is about (SHARED-FIX-006). A region's name, its line form, and its `#endregion` comment are what the region rules and whole-document formatting decide; a fix for an unrelated diagnostic that rewrote them would hand the user a second edit nobody asked for, also to a user who does not use the region rules. The tab replacement is not a region requirement: it runs before every phase for every entry point, so that no later phase counts a tab as one column (FMT-PIPE-019), and the node-level entry points share it like every other part of the preparation phase.
+Why: These entry points serve code fixes, and a code fix changes only the code its diagnostic is about (SHARED-FIX-006). A region's name, its line form, and its `#endregion` comment are what the region rules and whole-document formatting decide; a fix for an unrelated diagnostic that rewrote them would hand the user a second edit nobody asked for, also to a user who does not use the region rules. The preparation phase is not part of the region requirements: it runs before every phase for every entry point, so that no later phase sees what it removes (FMT-PIPE-019), and the node-level entry points share it as a whole.
 
 Example — `FormatNodeInDocumentAsync` with the class `C` as target:
 
@@ -1037,7 +1037,7 @@ class C
 }
 ```
 
-Example — not shown as an input block because the input contains tabs: `FormatNodeInDocumentAsync` with the class `C` as target, in a class that holds `#region`, a tab, `bar`, the property `int P { get { return 1; } }`, and `#endregion`, a tab, `// Stale`, lays out the property as in the example above and keeps both directives as written, except that each tab becomes four spaces:
+Example — not shown as an input block because the input contains tabs: `FormatNodeInDocumentAsync` with the class `C` as target, in a class that holds `#region`, a tab, `bar`, the property `int P { get { return 1; } }`, and `#endregion`, a tab, `// Stale`, lays out the property as in the example above and applies no region requirement: `bar` stays lower-case and the `#endregion` keeps its stale comment. The preparation phase still runs, so the tab behind each keyword becomes four spaces (FMT-TAB-002):
 
 ```csharp
 class C

@@ -16,7 +16,7 @@ This spec covers the region phase: the capitalization of `#region` descriptions,
 - Whether a region is placed sensibly, for example straddling a member body. The formatter keeps a misplaced region; removing it is an explicit analyzer code-fix action.
 - Unbalanced regions. A `#region` without `#endregion` (or the reverse) is a syntax error, so the whole file is left unchanged under FMT-PIPE-005.
 - Any directive other than `#region` and `#endregion`.
-- Region directives in the code a node-level entry point formats: no requirement of this spec applies there, and only the tab replacement of FMT-TAB-002 changes them — FMT-PIPE-028.
+- Region directives in the code a node-level entry point formats: no requirement of this spec applies there; what node-level formatting still does to them is stated in FMT-PIPE-028.
 
 ## Requirements
 
