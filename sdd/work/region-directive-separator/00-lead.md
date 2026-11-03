@@ -21,7 +21,14 @@ None so far.
 
 ## Maintainer answers
 
-None yet.
+Batch 1 (before the test implementer):
+
+1. Several spaces before a capitalized name (`#region    Bar`) → A: written `#region Bar`.
+2. Tab separator (`#region<tab>Bar`) → A: written `#region Bar` (the preparation phase first turns the tab into four spaces, the region phase then writes one space). A tab inside the description stays. The maintainer asked whether such tabs are not removed by the tab phase; answered: the tab phase replaces them with four spaces (FMT-TAB-001), it does not decide separators.
+3. Inside `#if false` → A: `#region Bar` … `#endregion // Bar`.
+4. `#endregion` of a region without a description → B: one space between `#endregion` and its text (`#endregion    // Stale` → `#endregion // Stale`; `#endregion//Stale` → `#endregion //Stale`).
+5. Trailing whitespace on a `#region` line with a description → C: every such line is written as `#region`, one space, the trimmed description.
+6. Code fixes that format a node holding a region pair → B: the general rule applies that a code fix changes only what its diagnostic is about (SHARED-FIX-006). A fix such as RH7105 has nothing to do with regions and must not adjust them; a user who does not use the region rules would otherwise see their region layout changed by an unrelated fix.
 
 ## Decisions taken
 
@@ -32,10 +39,11 @@ None yet.
 | 3 | Skeptic | Where does the disabled-branch qualifier live (FMT-REGION-006 vs 007)? | In FMT-REGION-007; FMT-REGION-006 stays unchanged | One decision per requirement, each with its own `Why:` | Spec structure only | |
 | 4 | Skeptic | FMT-TAB-002's example still capitalizes `foo` | Keep naming FMT-REGION-001 in FMT-TAB-002's prose and `Uses` beside FMT-REGION-007 | The example relies on both rules | Spec wording only | |
 | 5 | Skeptic | Architecture finding (spec level): the one-space line form is stated in FMT-REGION-001 and FMT-REGION-007 | Change the structure in this run: the line form is stated once, in FMT-REGION-007, and FMT-REGION-001 points to it | A narrow fix would leave a second statement of the rule; the change stays within the region spec | Spec wording only; the code already has one writer (`BuildRegionTrivia`) | |
-| 6 | Skeptic | Change doc says code fixes are unchanged | The spec author corrects the change doc and lists the code-fix output as a visible change (output question) | The skeptic reproduced the change with RH7105/RH7104/RH8305 | Asked as output question | |
+| 6 | Skeptic | Change doc says code fixes are unchanged | The spec author corrects the change doc: code fixes keep region directive text (maintainer answer 6) | The skeptic reproduced the change with RH7105/RH7104/RH8305 | Decided by the maintainer (answer 6) | |
+| 7 | Maintainer answer 6 | Fixes unrelated to regions already rewrite region directives on `main` (capitalize names, write `#endregion // Name`), a pre-existing departure from SHARED-FIX-006 in the mechanism this run changes | Take it into the run: a code fix leaves the text of region directives in its formatted node unchanged (separator, capitalization, `#endregion` comment), so FMT-REGION applies to whole-document formatting only; the spec author states the scope, the skeptic's architecture concern (FC-028, a node-level exception for one sub-rule) is avoided by excluding the whole region rewrite, not only the new separator | An unchanged requirement (SHARED-FIX-006) demands it and the maintainer confirmed the rule; exempting only the new separator would add a node-level exception for one sub-rule and keep the existing departure | Demanded by unchanged SHARED-FIX-006 and covered by maintainer answer 6 | |
 
 ## Follow-up candidates
 
-1. A code fix whose target's parent is the root restores the target's leading trivia after the region phase paired its `#region` with an `#endregion` inside the target, so only half the pair is rewritten (e.g. RH7104 on a top-level `partial class C` preceded by `#region    bar`: writes `#endregion // Bar`, keeps `#region    bar`). Pre-existing on `main`. — 02-skeptic.md
+1. (Likely absorbed by decision 7 — re-check after the implementer.) A code fix whose target's parent is the root restores the target's leading trivia after the region phase paired its `#region` with an `#endregion` inside the target, so only half the pair is rewritten (e.g. RH7104 on a top-level `partial class C` preceded by `#region    bar`: writes `#endregion // Bar`, keeps `#region    bar`). Pre-existing on `main`. — 02-skeptic.md
 2. Trailing whitespace behind a directive's text is kept (`#warning x···`, and `#region Bar···` depending on output question 2). — 01-spec-author.md, 02-skeptic.md
 3. Whitespace between `#` and the directive keyword (`#  region Bar`) is kept. Low priority. — 01-spec-author.md, 02-skeptic.md
