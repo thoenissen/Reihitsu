@@ -819,5 +819,190 @@ public class RegionDirectiveLineAboveTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a line holding nothing but whitespace directly above a region directive counts as the blank line the
+    /// directive requires: no second blank line is inserted, and the whitespace on that line is removed
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-BLANK-001")]
+    [Requirement("SHARED-BLANK-005")]
+    [Requirement("FMT-BLANK-013")]
+    public void WhitespaceOnlyLineAboveRegionCountsAsBlankLine()
+    {
+        // Arrange
+        const string inputTemplate = """
+                                     namespace N;
+
+                                     internal class C
+                                     {
+                                         private int _a;
+                                     {WHITESPACE}
+                                         #region Methods
+
+                                         public void M()
+                                         {
+                                         }
+
+                                         #endregion // Methods
+                                     }
+                                     """;
+        const string expected = """
+                                namespace N;
+
+                                internal class C
+                                {
+                                    private int _a;
+
+                                    #region Methods
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+                                }
+                                """;
+        var input = inputTemplate.Replace("{WHITESPACE}", "    ");
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a line holding nothing but whitespace directly above an end-region directive counts as the blank line
+    /// the directive requires: no second blank line is inserted, and the whitespace on that line is removed
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-BLANK-001")]
+    [Requirement("SHARED-BLANK-005")]
+    [Requirement("FMT-BLANK-013")]
+    public void WhitespaceOnlyLineAboveEndRegionCountsAsBlankLine()
+    {
+        // Arrange
+        const string inputTemplate = """
+                                     internal class C
+                                     {
+                                         #region Methods
+
+                                         public void M()
+                                         {
+                                         }
+                                     {WHITESPACE}
+                                         #endregion // Methods
+
+                                         private int _a;
+                                     }
+                                     """;
+        const string expected = """
+                                internal class C
+                                {
+                                    #region Methods
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+
+                                    private int _a;
+                                }
+                                """;
+        var input = inputTemplate.Replace("{WHITESPACE}", "    ");
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a line holding nothing but whitespace between a comment and the region directive below it counts as
+    /// the blank line the directive requires: no second blank line is inserted, and the whitespace on that line is removed
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-BLANK-001")]
+    [Requirement("SHARED-BLANK-005")]
+    [Requirement("FMT-BLANK-013")]
+    public void WhitespaceOnlyLineBetweenCommentAndRegionCountsAsBlankLine()
+    {
+        // Arrange
+        const string inputTemplate = """
+                                     internal class C
+                                     {
+                                         private int _a;
+
+                                         // Methods
+                                     {WHITESPACE}
+                                         #region Methods
+
+                                         public void M()
+                                         {
+                                         }
+
+                                         #endregion // Methods
+                                     }
+                                     """;
+        const string expected = """
+                                internal class C
+                                {
+                                    private int _a;
+
+                                    // Methods
+
+                                    #region Methods
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+                                }
+                                """;
+        var input = inputTemplate.Replace("{WHITESPACE}", "    ");
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a line holding nothing but whitespace directly above an end-region directive in front of a closing
+    /// brace counts as the blank line the directive requires: no second blank line is inserted, and the whitespace on that
+    /// line is removed
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-BLANK-001")]
+    [Requirement("SHARED-BLANK-005")]
+    [Requirement("FMT-BLANK-013")]
+    public void WhitespaceOnlyLineAboveEndRegionBeforeClosingBraceCountsAsBlankLine()
+    {
+        // Arrange
+        const string inputTemplate = """
+                                     internal class C
+                                     {
+                                         #region Methods
+
+                                         public void M()
+                                         {
+                                         }
+                                     {WHITESPACE}
+                                         #endregion // Methods
+                                     }
+                                     """;
+        const string expected = """
+                                internal class C
+                                {
+                                    #region Methods
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+                                }
+                                """;
+        var input = inputTemplate.Replace("{WHITESPACE}", "    ");
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
