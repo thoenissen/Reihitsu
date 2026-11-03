@@ -75,3 +75,9 @@ The maintainer accepted both recommendations and told the run to continue.
 - SonarCloud's uncovered new lines: `src/Reihitsu.Formatter/Pipeline/BlankLines/Rewriter/BlankLineTriviaBoundaryRewriter.cs` lines 301–345 and 377 (21 lines), `src/Reihitsu.Formatter/Pipeline/BlankLines/Utilities/BlankLineEditor.cs` line 98 (1 line).
 - The audited commit of the original run was 7b22e79; its handovers were deleted before publishing and are in the branch history (`git show 2231fe0:sdd/work/blank-line-rule-list/06-auditor.md` for the auditor's instrumented reachability proof, `…/03-implementer.md`, `…/02-test-implementer.md`).
 - Roles of this round: implementer → test implementer (decision 19) → cleaner → spec checker → auditor (repair only) → validator.
+
+## Repair round 2 (audit of CI repair round 1)
+
+- Worklist: `14-auditor.md` finding 1 (medium, PR-introduced, repeats nothing): the four `WhitespaceOnlyLine…CountsAsBlankLine` tests cannot observe the behavior they were added for, and their summaries claim more than they show. Routed to the test implementer.
+- Hint 2 (lane check and the run note) goes into the run note's suggestions; hint 1 needs nothing.
+- Roles of this round: test implementer → cleaner → spec checker → auditor (repair only) → validator.
