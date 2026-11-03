@@ -1,4 +1,4 @@
-# One form for region directive lines, and code fixes keep region directives
+# One form for region directive lines, and no region requirement in code fixes
 
 | | |
 |---|---|
@@ -10,7 +10,7 @@
 
 - **One form for a `#region` line with a description.** The region phase writes every `#region` that has a description as `#region`, one space, and the trimmed description (FMT-REGION-007). Several spaces or a tab between the keyword and the description become one space, and whitespace behind the description is removed. This holds whether or not the description is capitalized (FMT-REGION-001), and also inside a branch the build does not compile. FMT-REGION-001 used to state this form only for a line it rewrites; it now points to FMT-REGION-007.
 - **One space in front of the text of an `#endregion` whose `#region` has no description, and no whitespace behind it.** The text itself stays as written. A `#region` without a description and an `#endregion` without text are written as the bare keyword: whitespace behind them is removed (FMT-REGION-004). This holds also inside a branch the build does not compile. Every other `#endregion` already gets one form from FMT-REGION-002.
-- **Code fixes keep region directives.** The node-level entry points no longer apply any region requirement (FMT-PIPE-028). A code fix that hands the formatter a node holding region directives no longer rewrites them: the separator, the capitalization, the `#endregion` comment, and whitespace at the end of the line stay as written. The preparation phase still runs for these entry points, as for every entry point and as on `main` (FMT-PIPE-019). Region directives are normalized only when a whole document or syntax tree is formatted.
+- **Code fixes apply no region requirement.** The node-level entry points no longer apply any region requirement (FMT-PIPE-028). A code fix that hands the formatter a node holding region directives no longer has the region phase capitalize a description, write the form of a `#region` line, write the comment or the space behind an `#endregion`, or remove whitespace at the end of a region directive line. The region requirements apply only when a whole document or syntax tree is formatted. The preparation phase still runs for these entry points, as for every entry point and as on `main`, and does to a region directive what it does to any directive (FMT-PIPE-019).
 - FMT-TAB-002's example follows: the four spaces that a tab between `#region` and its description becomes in the preparation phase no longer reach the output.
 
 ## Why
@@ -245,7 +245,7 @@ class C
 }
 ```
 
-### Code fixes stop rewriting region directives
+### Code fixes stop applying the region requirements
 
 This change covers every code fix that hands the formatter a node holding a `#region` and its `#endregion`. RH7105 · Declaration keywords must follow order:
 
