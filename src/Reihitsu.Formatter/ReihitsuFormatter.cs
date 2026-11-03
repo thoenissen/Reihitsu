@@ -295,9 +295,10 @@ public static class ReihitsuFormatter
         var targetTokenAnnotation = new SyntaxAnnotation();
         var originalFirstToken = targetNode.GetFirstToken();
 
-        // Everything in front of the target's first token is written back as it stands in the document, so that token
-        // keeps its line and its column there, and the indentation phase lays out the target's other lines from that
-        // column, wherever the phases leave the token in the context (FMT-PIPE-017, FMT-PIPE-024)
+        // Everything in front of the target's first token is kept as it stands in the document, because only the target
+        // is written back, so that token keeps its line and its column there, and the indentation phase lays out the
+        // target's other lines from that column, wherever the phases leave the token in the context (FMT-PIPE-017,
+        // FMT-PIPE-024)
         var context = new FormattingContext(endOfLine,
                                             baseIndentLevel,
                                             preserveRootDocumentationBoundary: contextNode != root,

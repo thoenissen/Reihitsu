@@ -240,6 +240,21 @@ internal static class LayoutComputer
     }
 
     /// <summary>
+    /// Sets layout for a token if it is first on its line
+    /// </summary>
+    /// <param name="token">The token</param>
+    /// <param name="column">The desired column</param>
+    /// <param name="source">Debug label for the contributor</param>
+    /// <param name="model">The layout model</param>
+    internal static void SetIfFirstOnLine(SyntaxToken token, int column, string source, LayoutModel model)
+    {
+        if (IsFirstOnLine(token))
+        {
+            model.Set(GetLine(token), new TokenLayout(column, source));
+        }
+    }
+
+    /// <summary>
     /// Gets the column of a token once its line is placed, before any line of a multi-line raw string literal moves, as
     /// <see cref="GetColumnBeforeRawStringShift"/> gives it without the target-position fact: the line's column plus the
     /// token's distance from the start of the text that starts the line, or the token's own column on a line that is not
@@ -259,21 +274,6 @@ internal static class LayoutComputer
         }
 
         return lineColumn + (originalColumn - lineTextColumn);
-    }
-
-    /// <summary>
-    /// Sets layout for a token if it is first on its line
-    /// </summary>
-    /// <param name="token">The token</param>
-    /// <param name="column">The desired column</param>
-    /// <param name="source">Debug label for the contributor</param>
-    /// <param name="model">The layout model</param>
-    internal static void SetIfFirstOnLine(SyntaxToken token, int column, string source, LayoutModel model)
-    {
-        if (IsFirstOnLine(token))
-        {
-            model.Set(GetLine(token), new TokenLayout(column, source));
-        }
     }
 
     /// <summary>
