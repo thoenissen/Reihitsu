@@ -5,7 +5,7 @@
 | ID prefix | FMT-PIPE |
 | Status | Active |
 | Code owners | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `PreparationPhase`, `FormattingContext`, `PrecedingTokenFacts`, `RootListPosition`, `RootConstruct`, `RootConstructExtensions`, `TriviaFact`, `FluentChainBoundary`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities`, `BlockWrapTriviaUtilities` |
-| Uses | SHARED-BLANK-002, SHARED-CHAIN-001, SHARED-FIX-001, SHARED-FIX-006, SHARED-FIX-007, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BLANK-018, FMT-BREAK-001, FMT-BREAK-006, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-BREAK-033, FMT-BREAK-036, FMT-CLEAN-001, FMT-CLEAN-005, FMT-CLEAN-007, FMT-CLEAN-008, FMT-DOC-001, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-002, FMT-INDENT-003, FMT-INDENT-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-012, FMT-INDENT-022, FMT-INDENT-024, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-026, FMT-SWITCH-003, FMT-SWITCH-008, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003 |
+| Uses | SHARED-BLANK-002, SHARED-CHAIN-001, SHARED-FIX-001, SHARED-FIX-006, SHARED-FIX-007, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BLANK-018, FMT-BREAK-001, FMT-BREAK-006, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-BREAK-033, FMT-BREAK-036, FMT-CLEAN-001, FMT-CLEAN-005, FMT-CLEAN-007, FMT-CLEAN-008, FMT-DOC-001, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-002, FMT-INDENT-003, FMT-INDENT-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-012, FMT-INDENT-022, FMT-INDENT-024, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-026, FMT-SWITCH-003, FMT-SWITCH-008, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003, FMT-USING-010 |
 
 This spec covers what holds for the formatter as a whole: the public entry points, the fixed phase order, and the invariants every phase must keep. What an individual phase decides is specified in that phase's own spec.
 
@@ -88,7 +88,7 @@ Why: Users run the formatter over whole repositories without reviewing every lin
 
 ### FMT-PIPE-004 — Idempotency
 
-Formatting already formatted output MUST return it unchanged: running the formatter twice MUST give the same text as running it once.
+Formatting already formatted output MUST return it unchanged: running the formatter twice MUST give the same text as running it once. FMT-PIPE-027 requires the same of every phase that runs alone on the output.
 
 Why: The CLI's `--check` mode, the analyzer code fixes that delegate to the formatter, and CI gates all assume that formatted code stays formatted. A non-idempotent result shows up as an endless diff.
 
@@ -966,3 +966,37 @@ class C
 ```
 
 is kept unchanged.
+
+### FMT-PIPE-027 — No phase changes the formatter's output
+
+Every phase, each sub-phase of the preparation phase included, MUST leave the output of `FormatDocumentAsync` and `FormatSyntaxTree` unchanged when it runs alone on it: the output's text, parsed with the parse options of the syntax tree the formatter was given and formatted with the line ending FMT-PIPE-007 detects in it, gives a tree that the phase MUST return with the same text.
+
+- **Output of a run that formatted.** The requirement covers the output of an input the formatter formats. An input with a syntax error or a generated-code marker in its file header is returned unchanged (FMT-PIPE-005, FMT-PIPE-006); its output is not formatted output, and a phase that runs alone on it may change it. `class C{void M(){int x=1;}}` is formatted, and no phase changes its output; `class C{void M(){int x=1}}` comes out unchanged, and the requirement says nothing about a phase run alone on it.
+- **Document and tree entry points.** The requirement covers `FormatDocumentAsync` and `FormatSyntaxTree`. It does not cover the output of `FormatNode`, `FormatNodeInDocumentAsync`, and `FormatNodeInDocumentWithContextAsync`: their phases receive a detached root and the facts of FMT-PIPE-024, not a parsed text. A method that a code fix formats with `FormatNodeInDocumentAsync` is covered once the document that holds it is formatted with `FormatDocumentAsync`.
+- **Text, not tree.** The phase's output is compared with the formatter's output as text. A phase that returns the same text with a run of whitespace or a line break given to the other of the two tokens around it (FMT-PIPE-021) changes nothing.
+
+Why: FMT-PIPE-004 compares the text of two whole passes. Two phases that undo each other in every pass — one removes a blank line and a later one writes it back, one strips the indentation of a line and a later one restores it — give the same text in every pass and meet FMT-PIPE-004, although the formatter's own rules disagree about that output: the two phases own one decision, which FMT-PIPE-001 and FMT-PIPE-025 rule out, and an analyzer code fix that applies the rule of one of them writes the output the other one reverts. Running every phase alone on the output finds such a pair, because the phase that undoes the change is not there to repair it. The node-level entry points run the same phases as the document entry points; a phase run alone on their output text would receive neither their root nor their facts, so it would check another input than the one they format.
+
+Example — the blank line above the comment that leads `using System.Linq;` is kept by the using phase (FMT-USING-010) and asked for by the blank-line phase (FMT-BLANK-011), so neither phase changes this output when it runs alone on it:
+
+```csharp
+using System;
+
+// About Linq
+using System.Linq;
+
+class C;
+```
+
+Example — the line-break phase keeps `2);` on a line of its own, and the indentation phase keeps it in the column of the first argument (FMT-INDENT-012), so neither phase changes this output when it runs alone on it:
+
+```csharp
+class C
+{
+    void M()
+    {
+        Call(1,
+             2);
+    }
+}
+```
