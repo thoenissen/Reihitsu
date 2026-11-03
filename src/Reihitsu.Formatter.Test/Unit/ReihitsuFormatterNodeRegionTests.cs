@@ -91,6 +91,42 @@ public class ReihitsuFormatterNodeRegionTests : FormatterTestsBase
                                               }
                                               """;
 
+    /// <summary>
+    /// A class whose <c>#region</c> and <c>#endregion</c> lines, marked with <c>¶</c>, end in the line ending that is not the
+    /// predominant one, and whose property the node-level entry points expand
+    /// </summary>
+    private const string ForeignLineBreakInput = """
+                                                 class C
+                                                 {
+                                                     #region bar¶
+
+                                                     int P { get { return 1; } }
+
+                                                     #endregion // Stale¶
+                                                 }
+                                                 """;
+
+    /// <summary>
+    /// The node-level output of <see cref="ForeignLineBreakInput"/>: every line break is the predominant line ending, and the
+    /// rest of both directives is kept
+    /// </summary>
+    private const string ForeignLineBreakExpected = """
+                                                    class C
+                                                    {
+                                                        #region bar
+
+                                                        int P
+                                                        {
+                                                            get
+                                                            {
+                                                                return 1;
+                                                            }
+                                                        }
+
+                                                        #endregion // Stale
+                                                    }
+                                                    """;
+
     #endregion // Constants
 
     #region Methods
@@ -578,6 +614,92 @@ public class ReihitsuFormatterNodeRegionTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> with the class as target rewrites the line break
+    /// that ends a region directive to the predominant line ending, and keeps the rest of both directives
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-028")]
+    [Requirement("FMT-EOL-002")]
+    public async Task FormatNodeInDocumentAsyncRewritesForeignLineBreaksEndingRegionDirectives()
+    {
+        await AssertNodeInDocumentWithForeignLineBreaks(ForeignLineBreakInput, ForeignLineBreakExpected, root => FindType(root, "C"), contextSelector: null);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentWithContextAsync"/>, with the class as target and its
+    /// namespace as context, rewrites the line break that ends a region directive to the predominant line ending, and keeps the
+    /// rest of both directives
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-028")]
+    [Requirement("FMT-EOL-002")]
+    public async Task FormatNodeInDocumentWithContextAsyncRewritesForeignLineBreaksEndingRegionDirectives()
+    {
+        const string input = """
+                             namespace N
+                             {
+                                 class C
+                                 {
+                                     #region bar¶
+
+                                     int P { get { return 1; } }
+
+                                     #endregion // Stale¶
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                namespace N
+                                {
+                                    class C
+                                    {
+                                        #region bar
+
+                                        int P
+                                        {
+                                            get
+                                            {
+                                                return 1;
+                                            }
+                                        }
+
+                                        #endregion // Stale
+                                    }
+                                }
+                                """;
+
+        await AssertNodeInDocumentWithForeignLineBreaks(input, expected, root => FindType(root, "C"), root => root.DescendantNodes().OfType<BaseNamespaceDeclarationSyntax>().First());
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> on the detached class rewrites the line break that ends a region
+    /// directive to the predominant line ending, and keeps the rest of both directives
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-028")]
+    [Requirement("FMT-EOL-002")]
+    public void FormatNodeRewritesForeignLineBreaksEndingRegionDirectives()
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var expected = NormalizeLineEndings(ForeignLineBreakExpected, endOfLine);
+            var tree = CSharpSyntaxTree.ParseText(WithForeignLineBreaks(ForeignLineBreakInput, endOfLine), cancellationToken: TestContext.CancellationToken);
+            var target = FindType(tree.GetRoot(TestContext.CancellationToken), "C");
+
+            var firstPass = ReihitsuFormatter.FormatNode(target, cancellationToken: TestContext.CancellationToken).ToFullString();
+
+            Assert.AreEqual(expected, firstPass, $"First pass mismatch with predominant {DescribeLineEnding(endOfLine)} line endings.");
+
+            var secondTree = CSharpSyntaxTree.ParseText(firstPass, cancellationToken: TestContext.CancellationToken);
+            var secondPass = ReihitsuFormatter.FormatNode(FindType(secondTree.GetRoot(TestContext.CancellationToken), "C"), cancellationToken: TestContext.CancellationToken).ToFullString();
+
+            Assert.AreEqual(expected, secondPass, $"Second pass mismatch with predominant {DescribeLineEnding(endOfLine)} line endings.");
+        }
+    }
+
+    /// <summary>
     /// Replaces every <c>→</c> marker of a test source with a tab
     /// </summary>
     /// <param name="source">The source with tab markers</param>
@@ -585,6 +707,20 @@ public class ReihitsuFormatterNodeRegionTests : FormatterTestsBase
     private static string WithTabs(string source)
     {
         return source.Replace("→", "\t");
+    }
+
+    /// <summary>
+    /// Gives every line of a test source the predominant line ending, except the lines marked with a trailing <c>¶</c>, which
+    /// get the other one
+    /// </summary>
+    /// <param name="source">The source with LF line endings and <c>¶</c> markers</param>
+    /// <param name="endOfLine">The predominant line ending</param>
+    /// <returns>The source with mixed line endings</returns>
+    private static string WithForeignLineBreaks(string source, string endOfLine)
+    {
+        var foreignEndOfLine = endOfLine == "\n" ? "\r\n" : "\n";
+
+        return NormalizeLineEndings(source, endOfLine).Replace("¶" + endOfLine, foreignEndOfLine);
     }
 
     /// <summary>
@@ -631,6 +767,41 @@ public class ReihitsuFormatterNodeRegionTests : FormatterTestsBase
                 var secondText = (await secondPass.GetTextAsync(TestContext.CancellationToken)).ToString();
 
                 Assert.AreEqual(normalizedExpected, secondText, $"Second pass mismatch under {endingName} line endings.");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Formats the selected target like <see cref="AssertNodeInDocument"/>, on a document whose lines marked with <c>¶</c> end in
+    /// the line ending that is not the predominant one, for each predominant line ending, and verifies the document text after a
+    /// first and a second pass
+    /// </summary>
+    /// <param name="input">The document source with LF line endings and <c>¶</c> markers</param>
+    /// <param name="expected">The expected document text with LF line endings</param>
+    /// <param name="targetSelector">Selects the target node in a document root</param>
+    /// <param name="contextSelector">Selects the context node in a document root, or <see langword="null"/> for no context</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private async Task AssertNodeInDocumentWithForeignLineBreaks(string input, string expected, Func<SyntaxNode, SyntaxNode> targetSelector, Func<SyntaxNode, SyntaxNode> contextSelector)
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var normalizedExpected = NormalizeLineEndings(expected, endOfLine);
+            var endingName = DescribeLineEnding(endOfLine);
+
+            using (var workspace = new AdhocWorkspace())
+            {
+                var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+                var document = project.AddDocument("Test.cs", SourceText.From(WithForeignLineBreaks(input, endOfLine)));
+
+                var firstPass = await FormatOnce(document, targetSelector, contextSelector);
+                var firstText = (await firstPass.GetTextAsync(TestContext.CancellationToken)).ToString();
+
+                Assert.AreEqual(normalizedExpected, firstText, $"First pass mismatch with predominant {endingName} line endings.");
+
+                var secondPass = await FormatOnce(firstPass, targetSelector, contextSelector);
+                var secondText = (await secondPass.GetTextAsync(TestContext.CancellationToken)).ToString();
+
+                Assert.AreEqual(normalizedExpected, secondText, $"Second pass mismatch with predominant {endingName} line endings.");
             }
         }
     }
