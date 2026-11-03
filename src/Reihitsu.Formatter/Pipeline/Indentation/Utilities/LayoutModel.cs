@@ -120,8 +120,9 @@ internal sealed class LayoutModel
     }
 
     /// <summary>
-    /// Uses the target-position fact (FMT-PIPE-024): the target's first token stands in the given column in the output of the
-    /// indentation phase, whatever line and column the earlier phases left it in within the root (FMT-PIPE-017)
+    /// Uses the target-position fact (FMT-PIPE-024): the lines of the target are laid out as if its first token stood in the given
+    /// column, whatever line and column the earlier phases left it in within the root; a target that starts its line has that
+    /// token put into the column by the entry point's write-back of the leading trivia (FMT-PIPE-017)
     /// </summary>
     /// <param name="targetFirstToken">The first token of the target, in the root this model lays out</param>
     /// <param name="column">The column of that token in its document</param>
