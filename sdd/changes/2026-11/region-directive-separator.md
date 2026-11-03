@@ -9,7 +9,7 @@
 ## What
 
 - **One form for a `#region` line with a description.** The region phase writes every `#region` that has a description as `#region`, one space, and the trimmed description (FMT-REGION-007). Several spaces or a tab between the keyword and the description become one space, and whitespace behind the description is removed. This holds whether or not the description is capitalized (FMT-REGION-001), and also inside a branch the build does not compile. FMT-REGION-001 used to state this form only for a line it rewrites; it now points to FMT-REGION-007.
-- **One space in front of the text of an `#endregion` whose `#region` has no description.** The text itself stays as written. A bare `#endregion` stays bare (FMT-REGION-004). Every other `#endregion` already gets one form from FMT-REGION-002.
+- **One space in front of the text of an `#endregion` whose `#region` has no description, and no whitespace behind it.** The text itself stays as written. A bare `#endregion` stays bare (FMT-REGION-004). Every other `#endregion` already gets one form from FMT-REGION-002.
 - **Code fixes keep region directives.** The node-level entry points no longer apply any region requirement (FMT-PIPE-028). A code fix that hands the formatter a node holding region directives leaves their text as it was: the separator, the capitalization, and the `#endregion` comment. Region directives are normalized only when a whole document or syntax tree is formatted.
 - FMT-TAB-002's example follows: the four spaces that a tab between `#region` and its description becomes in the preparation phase no longer reach the output.
 
@@ -168,7 +168,7 @@ class C
 
     int a;
 
-    #endregion    // Stale
+    #endregion    // Stale···
 }
 ```
 
@@ -187,7 +187,7 @@ class C
 }
 ```
 
-`#endregion//Stale` changes in the same way: before, it is unchanged; after, it is written as `#endregion //Stale`.
+`#endregion//Stale` changes in the same way: before, it is unchanged; after, it is written as `#endregion //Stale`. Every region directive line the region phase writes now ends at its text.
 
 ### Code fixes stop rewriting region directives
 
@@ -259,6 +259,7 @@ The same holds for the other type-level fixes that delegate to the formatter, su
 4. The `#endregion` of a region without a description gets one space in front of its text, also where no whitespace stood (`#endregion//Stale` becomes `#endregion //Stale`).
 5. Every `#region` line with a description is written as `#region`, one space, and the trimmed description. Whitespace behind the description is removed as well, also on a line whose separator is already one space.
 6. A code fix changes only what its diagnostic is about (SHARED-FIX-006). A fix that has nothing to do with regions must not adjust them. Otherwise a user who does not use the region rules would see their region layout changed by an unrelated fix.
+7. Whitespace behind the text of an `#endregion` whose `#region` has no description is removed (`#endregion    // Stale···` becomes `#endregion // Stale`). The maintainer stated generally that trailing whitespace is always removed; in this change that means every region directive line the region phase writes ends at its text. For other directives it is a follow-up, not part of this change.
 
 ### The region phase owns the line form
 

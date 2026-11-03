@@ -159,9 +159,9 @@ class C
 
 ### FMT-REGION-004 — Regions without a description keep their text
 
-The formatter MUST NOT change a `#region` without a description, and MUST NOT change the text after its matching `#endregion`. When that `#endregion` has text after it, the formatter MUST write exactly one space between the `endregion` keyword and the first character of that text, whatever whitespace stood there before, also when none stood there. A bare `#endregion` MUST stay bare.
+The formatter MUST NOT change a `#region` without a description, and MUST NOT change the text after its matching `#endregion`. When that `#endregion` has text after it, the formatter MUST write exactly one space between the `endregion` keyword and the first character of that text, whatever whitespace stood there before, also when none stood there, and MUST remove whitespace behind that text. A bare `#endregion` MUST stay bare.
 
-Why: There is no name to capitalize or to repeat. Removing or rewriting the text after the `#endregion` would change the only label the author wrote for the block. The whitespace in front of that label is layout, not part of it, and gets the one space a `#region` line gets in front of its description (FMT-REGION-007).
+Why: There is no name to capitalize or to repeat. Removing or rewriting the text after the `#endregion` would change the only label the author wrote for the block. The whitespace in front of that label and behind it is layout, not part of it: the label gets the one space a `#region` line gets in front of its description, and the line ends at the label as a `#region` line ends at its description (FMT-REGION-007).
 
 Example:
 
@@ -176,7 +176,7 @@ class C
 }
 ```
 
-is left unchanged, and the space in front of the label is normalized:
+is left unchanged, and the whitespace around the label is normalized — `···` stands for three spaces at the end of the line:
 
 ```csharp
 class C
@@ -185,7 +185,7 @@ class C
 
     int _value;
 
-    #endregion    // Stale
+    #endregion    // Stale···
 }
 ```
 

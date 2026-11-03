@@ -1,16 +1,16 @@
 Role: spec author
-Commit: 24c2b55
+Commit: c1e9ba6
 Verdict: change doc written
 
 Amendment round after the maintainer's answers 1–6 and decisions 2–7 in `00-lead.md`, and `02-skeptic.md`. `01-spec-author.md` stays as the first round's record; this file supersedes its *Changed requirements*, *Examples for the tests*, and *Output questions*.
 
-The change doc `sdd/changes/2026-11/region-directive-separator.md` is set to `Status: Accepted` on the lead's instruction (in a squad run the lead sets it, `sdd/README.md`, *Change docs*), with the six answers under `Decisions` → `Maintainer answers`. If the lead confirms the new output question below differently than recommended, the doc's FMT-REGION-004 section gains that outcome.
+The change doc `sdd/changes/2026-11/region-directive-separator.md` is set to `Status: Accepted` on the lead's instruction (in a squad run the lead sets it, `sdd/README.md`, *Change docs*), with the six answers under `Decisions` → `Maintainer answers`. Maintainer answer 7 is recorded there as well.
 
 ## Changed requirements
 
 - FMT-REGION-007 — A `#region` line is `#region`, one space, and the description — added (rewritten from round 1). The line form is stated here only (decision 5) and covers the trailing whitespace (answer 5, option C), the paired-directive scope (decision 2), and the `#if false` qualifier (decision 3). The examples now include `#region Baz···` → `#region Baz`.
 - FMT-REGION-001 — changed: its last sentence now points to FMT-REGION-007 instead of stating the line form.
-- FMT-REGION-004 — changed: renamed "Regions without a description keep their text". It now writes one space between `endregion` and the text, also where none stood, and keeps a bare `#endregion` bare (answer 4).
+- FMT-REGION-004 — changed: renamed "Regions without a description keep their text". It now writes one space between `endregion` and the text, also where none stood, removes whitespace behind the text, and keeps a bare `#endregion` bare (answers 4 and 7).
 - FMT-REGION-006 — unchanged from `main` (decision 3; the round-1 edit is reverted).
 - `region-formatting.md` — the introduction states the line form, the `#endregion` space, and that the requirements apply to whole-document and syntax-tree formatting. A non-goal points to FMT-PIPE-028. `Uses`: FMT-PIPE-002, FMT-PIPE-005, FMT-TAB-002.
 - FMT-PIPE-028 — Node-level entry points keep region directives — added (answer 6, decision 7). `FormatNode`, `FormatNodeInDocumentAsync`, and `FormatNodeInDocumentWithContextAsync` change no `#region`/`#endregion` text; only `FormatDocumentAsync` and `FormatSyntaxTree` apply FMT-REGION. Its example (the class as target, `#region    fields` and a bare `#endregion` kept while `P`'s accessor is expanded) is derived from FMT-PIPE-010's example, not traced.
@@ -25,7 +25,7 @@ No rule page changes.
 ## Examples for the tests
 
 - FMT-REGION-007 — all three examples: several spaces plus `Baz···`; the already-canonical line, which is left unchanged; and `#if false`. Also the tab case in FMT-TAB-002.
-- FMT-REGION-004 — `#endregion // Stale` unchanged; `#endregion    // Stale` → `#endregion // Stale`; `#endregion//Stale` → `#endregion //Stale`.
+- FMT-REGION-004 — `#endregion // Stale` unchanged; `#endregion    // Stale···` → `#endregion // Stale`; `#endregion//Stale` → `#endregion //Stale`.
 - FMT-PIPE-028 — the node-level example, plus a code-fix case. RH7105 on `namespace N { static public class C { #region    bar … #endregion } }` writes `#region Bar` and `#endregion // Bar` on `9c9ea5c` (traced with `scripts/apply-fix.sh`); after the change, both directives must stay as written.
 - FMT-TAB-002 — the changed example. The two `TabReplacementTests` named in `01-spec-author.md` change their expected output.
 - Expect existing tests to change: any test of a node-level entry point or of a formatter-delegating code fix whose expected output capitalizes a region or writes `#endregion // Name` inside the formatted node. I did not enumerate them.
@@ -41,41 +41,7 @@ No shipped fix whose diagnostic is about regions relies on node-level region for
 
 ## Output questions
 
-### 1 · Formatter — whitespace behind the text of an `#endregion` whose `#region` has no description
-
-This case is within answer 4. Answer 5 decided trailing whitespace for `#region` lines only. FMT-REGION-004 now fixes the space in front of the label, but it does not decide whitespace behind it. That leaves two readings of "MUST NOT change the text after the `#endregion`".
-
-Input (`···` = three spaces at the end of the line):
-
-```csharp
-class C
-{
-    #region
-
-    int a;
-
-    #endregion    // Stale···
-}
-```
-
-Before (`main`): unchanged.
-
-After, A: `#endregion // Stale···` — only the space in front of the label changes.
-
-After, B (recommended):
-
-```csharp
-class C
-{
-    #region
-
-    int a;
-
-    #endregion // Stale
-}
-```
-
-Why B: every region directive line the region phase writes then ends at its text, as answer 5 decided for `#region` lines and as FMT-REGION-002 already does for every other `#endregion`. Requirement ID: FMT-REGION-004 (it would add "and whitespace behind that text is removed").
+_None open._ The round-2 question (whitespace behind the text of an `#endregion` whose `#region` has no description) was answered B (maintainer answer 7). FMT-REGION-004 now removes that whitespace: its example is `#endregion    // Stale···` → `#endregion // Stale`. The change doc records the answer under `Decisions` and adds the trailing whitespace to its visible output change for that case. Answer 7's general statement, that trailing whitespace is always removed, applies to other directives only as a follow-up.
 
 ## Internal choices
 
