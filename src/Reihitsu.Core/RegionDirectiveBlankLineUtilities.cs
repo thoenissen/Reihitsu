@@ -26,7 +26,28 @@ public static class RegionDirectiveBlankLineUtilities
     }
 
     /// <summary>
-    /// Determines whether the directive on the specified line is missing the blank line that must precede it
+    /// Determines whether a region or end region directive is missing the blank line that must precede it. This is the one
+    /// statement of the rule: the line directly above the directive has to be blank, unless the directive stands on the
+    /// first line or the line above ends with an opening brace. Nothing else on the line above, such as a conditional
+    /// directive, and no other directive in the same gap exempts it. The analyzer and its code fix read the facts from the
+    /// source text, the formatter reads them from the trivia around the directive
+    /// </summary>
+    /// <param name="hasLineAbove">Whether a line stands above the directive, that is whether it is not on the first line</param>
+    /// <param name="isLineAboveBlank">Whether the line directly above the directive holds nothing but whitespace</param>
+    /// <param name="doesLineAboveEndWithOpenBrace">
+    /// Whether the last content of the line directly above the directive is an opening brace, with no comment behind it
+    /// </param>
+    /// <returns><see langword="true"/> when a blank line must be inserted before the directive</returns>
+    public static bool IsMissingRequiredBlankLineBefore(bool hasLineAbove, bool isLineAboveBlank, bool doesLineAboveEndWithOpenBrace)
+    {
+        return hasLineAbove
+               && isLineAboveBlank == false
+               && doesLineAboveEndWithOpenBrace == false;
+    }
+
+    /// <summary>
+    /// Determines whether the directive on the specified line is missing the blank line that must precede it, reading the
+    /// facts of <see cref="IsMissingRequiredBlankLineBefore(bool, bool, bool)"/> from the source text
     /// </summary>
     /// <param name="sourceText">Source text</param>
     /// <param name="directiveLineIndex">Zero-based line index of the directive</param>
@@ -34,9 +55,11 @@ public static class RegionDirectiveBlankLineUtilities
     /// <returns><see langword="true"/> when a blank line must be inserted before the directive</returns>
     public static bool IsMissingRequiredBlankLineBefore(SourceText sourceText, int directiveLineIndex, ISet<int> openBraceEndLineIndices)
     {
-        return directiveLineIndex > 0
-               && FormattingTextAnalysisUtilities.IsBlankLine(sourceText, directiveLineIndex - 1) == false
-               && openBraceEndLineIndices.Contains(directiveLineIndex - 1) == false;
+        var hasLineAbove = directiveLineIndex > 0;
+
+        return IsMissingRequiredBlankLineBefore(hasLineAbove,
+                                                hasLineAbove && FormattingTextAnalysisUtilities.IsBlankLine(sourceText, directiveLineIndex - 1),
+                                                hasLineAbove && openBraceEndLineIndices.Contains(directiveLineIndex - 1));
     }
 
     /// <summary>

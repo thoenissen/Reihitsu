@@ -381,6 +381,198 @@ public class RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzerTests : B
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode), actual);
     }
 
+    /// <summary>
+    /// Verifies that a region directive below an active <c>#if</c> directive directly after the opening brace is reported
+    /// and fixed, because only the line directly above the directive counts
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5031-001")]
+    [Requirement("SHARED-BLANK-005")]
+    public async Task VerifyRegionBelowActiveIfDirectiveAfterBraceIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                #if !DEBUG
+                                    {|#0:#region Helpers|}
+
+                                    private int _b;
+
+                                    #endregion
+
+                                #endif
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                 #if !DEBUG
+
+                                     #region Helpers
+
+                                     private int _b;
+
+                                     #endregion
+
+                                 #endif
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a region directive below a header comment at the start of a file is reported and fixed, because only
+    /// a directive on the first line is exempt
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5031-001")]
+    [Requirement("SHARED-BLANK-005")]
+    public async Task VerifyRegionBelowHeaderCommentAtFileStartIsDetectedAndFixed()
+    {
+        const string testData = """
+                                // header
+                                {|#0:#region Helpers|}
+
+                                internal class TestClass
+                                {
+                                }
+
+                                #endregion
+                                """;
+        const string fixedData = """
+                                 // header
+
+                                 #region Helpers
+
+                                 internal class TestClass
+                                 {
+                                 }
+
+                                 #endregion
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a region directive on the first line of a file is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5031-001")]
+    [Requirement("SHARED-BLANK-005")]
+    public async Task VerifyRegionOnFirstLineOfFileIsNotReported()
+    {
+        const string testData = """
+                                #region Helpers
+
+                                internal class TestClass
+                                {
+                                }
+
+                                #endregion
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a region directive below a comment is reported and fixed also when an earlier region directive stands
+    /// in the same gap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5031-001")]
+    [Requirement("SHARED-BLANK-005")]
+    public async Task VerifySecondRegionBelowCommentInSameGapIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int _a;
+
+                                    #region Outer
+
+                                    // c
+                                    {|#0:#region Inner|}
+
+                                    private int _b;
+
+                                    #endregion
+
+                                    #endregion
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     private int _a;
+
+                                     #region Outer
+
+                                     // c
+
+                                     #region Inner
+
+                                     private int _b;
+
+                                     #endregion
+
+                                     #endregion
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an end-region directive below a <c>#pragma</c> directive is reported and fixed also when an earlier
+    /// end-region directive stands in the same gap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5031-001")]
+    [Requirement("SHARED-BLANK-005")]
+    public async Task VerifySecondEndRegionBelowPragmaInSameGapIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    #region Outer
+
+                                    #region Inner
+
+                                    private int _b;
+
+                                    #endregion
+
+                                    #pragma warning disable CS0168
+                                    {|#0:#endregion|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     #region Outer
+
+                                     #region Inner
+
+                                     private int _b;
+
+                                     #endregion
+
+                                     #pragma warning disable CS0168
+
+                                     #endregion
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -134,16 +134,6 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether the trailing trivia of the specified token contains an end region directive
-    /// </summary>
-    /// <param name="token">The token to inspect</param>
-    /// <returns><see langword="true"/> if any end region directive trivia is found in the trailing trivia</returns>
-    private static bool HasEndRegionDirectiveInTrailingTrivia(SyntaxToken token)
-    {
-        return token.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia));
-    }
-
-    /// <summary>
     /// Finds the start index of the line that contains the specified trivia index
     /// </summary>
     /// <param name="trivia">The trivia list to inspect</param>
@@ -281,68 +271,6 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
         return token.WithLeadingTrivia(SyntaxFactory.TriviaList(newTrivia));
     }
 
-    /// <summary>
-    /// Ensures a blank line exists before the first end region directive in the specified token's trailing trivia
-    /// </summary>
-    /// <param name="token">The token whose trailing trivia should be checked</param>
-    /// <returns>The token with a blank line inserted before the first end region directive, or the original if one already exists</returns>
-    private SyntaxToken EnsureBlankLineBeforeFirstEndRegionInTrailingTrivia(SyntaxToken token)
-    {
-        var trivia = token.TrailingTrivia;
-        var directiveIndex = -1;
-
-        for (var triviaIndex = 0; triviaIndex < trivia.Count; triviaIndex++)
-        {
-            // The leading-trivia counterpart in BlankLineEditor.EnsureBlankLineBeforeFirstDirective passes over
-            // directives inside a branch the compiler skipped, because the line break it inserts merges into the
-            // surrounding disabled text and is inserted again on the next run. Disabled text attaches as leading
-            // trivia of the following token, so no fixture reaches this list with such a directive - the guard is
-            // here so the two copies of the policy cannot drift apart.
-            if (trivia[triviaIndex].IsKind(SyntaxKind.EndRegionDirectiveTrivia)
-                && SyntaxTriviaUtilities.IsInactiveDirective(trivia[triviaIndex]) == false)
-            {
-                directiveIndex = triviaIndex;
-
-                break;
-            }
-        }
-
-        if (directiveIndex < 0)
-        {
-            return token;
-        }
-
-        var insertIndex = directiveIndex;
-
-        while (insertIndex > 0 && trivia[insertIndex - 1].IsKind(SyntaxKind.WhitespaceTrivia))
-        {
-            insertIndex--;
-        }
-
-        var endOfLineCount = 0;
-
-        for (var triviaIndex = insertIndex - 1; triviaIndex >= 0 && trivia[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia); triviaIndex--)
-        {
-            endOfLineCount++;
-        }
-
-        if (endOfLineCount >= 2)
-        {
-            return token;
-        }
-
-        var newTrivia = trivia;
-
-        while (endOfLineCount < 2)
-        {
-            newTrivia = newTrivia.Insert(insertIndex, SyntaxFactory.EndOfLine(_context.EndOfLine));
-            insertIndex++;
-            endOfLineCount++;
-        }
-
-        return token.WithTrailingTrivia(newTrivia);
-    }
-
     #endregion // Methods
 
     #region CSharpSyntaxRewriter
@@ -357,7 +285,6 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
         var previousToken = token.GetPreviousToken();
         var previousTokenFacts = PrecedingTokenFacts.Resolve(previousToken, _context);
         var isFirstInBlock = BlockStartUtilities.IsFirstInBlock(previousTokenFacts);
-        var isExemptFromPrecedingBlankLineBeforeRegionDirective = BlankLineEditor.IsExemptFromPrecedingBlankLineBeforeRegionDirective(previousTokenFacts);
 
         if (HasCommentInLeadingTrivia(token)
             && isFirstInBlock == false
@@ -368,13 +295,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
 
         if (HasEndRegionDirectiveInLeadingTrivia(token))
         {
-            token = _editor.EnsureBlankLineBeforeFirstDirective(token, SyntaxKind.EndRegionDirectiveTrivia, previousTokenFacts);
-        }
-
-        if (HasEndRegionDirectiveInTrailingTrivia(token)
-            && isExemptFromPrecedingBlankLineBeforeRegionDirective == false)
-        {
-            token = EnsureBlankLineBeforeFirstEndRegionInTrailingTrivia(token);
+            token = _editor.EnsureBlankLineBeforeRegionDirectives(token, SyntaxKind.EndRegionDirectiveTrivia, previousTokenFacts);
         }
 
         return token;

@@ -7,6 +7,7 @@ using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.BlankLines;
 using Reihitsu.Formatter.Pipeline.BlankLines.Rewriter;
 using Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.BlankLines;
 
@@ -67,6 +68,74 @@ public class BlankLineRegionDirectiveRewriterTests
 
         // Assert
         Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a line holding nothing but whitespace directly above a <c>#region</c> directive is taken for the blank
+    /// line the directive requires, so the rewriter inserts none and returns the input unchanged. The whitespace on the
+    /// line is skipped back to the line break of the token in front of the leading trivia
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-BLANK-001")]
+    [Requirement("SHARED-BLANK-005")]
+    [Requirement("FMT-BLANK-013")]
+    public void WhitespaceOnlyLineAboveRegionIsTakenForRequiredBlankLine()
+    {
+        // Arrange
+        const string inputTemplate = """
+                                     class C
+                                     {
+                                         private int _a;
+                                     {WHITESPACE}
+                                         #region R
+
+                                         private int _b;
+
+                                         #endregion // R
+                                     }
+                                     """;
+        var input = inputTemplate.Replace("{WHITESPACE}", "    ");
+
+        // Act
+        var actual = ApplyRewriter(input);
+
+        // Assert
+        Assert.AreEqual(input, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a line holding nothing but whitespace between a comment and the <c>#region</c> directive below it is
+    /// taken for the blank line the directive requires, so the rewriter inserts none and returns the input unchanged. The
+    /// whitespace on the line is skipped back to the line break behind the comment, inside the same leading trivia
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-BLANK-001")]
+    [Requirement("SHARED-BLANK-005")]
+    [Requirement("FMT-BLANK-013")]
+    public void WhitespaceOnlyLineBetweenCommentAndRegionIsTakenForRequiredBlankLine()
+    {
+        // Arrange
+        const string inputTemplate = """
+                                     class C
+                                     {
+                                         private int _a;
+
+                                         // R
+                                     {WHITESPACE}
+                                         #region R
+
+                                         private int _b;
+
+                                         #endregion // R
+                                     }
+                                     """;
+        var input = inputTemplate.Replace("{WHITESPACE}", "    ");
+
+        // Act
+        var actual = ApplyRewriter(input);
+
+        // Assert
+        Assert.AreEqual(input, actual);
     }
 
     /// <summary>

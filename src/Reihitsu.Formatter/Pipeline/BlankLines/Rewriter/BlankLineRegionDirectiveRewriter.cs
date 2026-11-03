@@ -142,7 +142,7 @@ internal sealed class BlankLineRegionDirectiveRewriter : CSharpSyntaxRewriter
 
         token = EnsureBlankLineAfterRegionDirectives(token);
 
-        return _editor.EnsureBlankLineBeforeFirstDirective(token, SyntaxKind.RegionDirectiveTrivia, previousToken);
+        return _editor.EnsureBlankLineBeforeRegionDirectives(token, SyntaxKind.RegionDirectiveTrivia, previousToken);
     }
 
     #endregion // CSharpSyntaxRewriter
