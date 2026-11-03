@@ -49,6 +49,9 @@ internal record FormattingContext
     /// <param name="rootConstruct">
     /// The facts about the construct the formatting root stands in in its document, or <see cref="RootConstruct.None"/> when the caller supplies none
     /// </param>
+    /// <param name="formatsRegionDirectives">
+    /// Whether the region phase rewrites the text of region directives; the node-level entry points pass <see langword="false"/> (FMT-PIPE-028)
+    /// </param>
     public FormattingContext(string endOfLine,
                              int baseIndentLevel = 0,
                              bool preserveRootDocumentationBoundary = false,
@@ -58,7 +61,8 @@ internal record FormattingContext
                              RootListPosition rootListPosition = default,
                              int? rootFirstTokenColumn = null,
                              FluentChainBoundary rootChainBoundary = default,
-                             RootConstruct rootConstruct = RootConstruct.None)
+                             RootConstruct rootConstruct = RootConstruct.None,
+                             bool formatsRegionDirectives = true)
     {
         EndOfLine = endOfLine;
         BaseIndentLevel = baseIndentLevel;
@@ -70,6 +74,7 @@ internal record FormattingContext
         RootFirstTokenColumn = rootFirstTokenColumn;
         RootChainBoundary = rootChainBoundary;
         RootConstruct = rootConstruct;
+        FormatsRegionDirectives = formatsRegionDirectives;
     }
 
     #endregion // Constructor
@@ -151,6 +156,14 @@ internal record FormattingContext
     /// <see cref="RootConstruct.None"/>, which decides the root as a construct of its own
     /// </summary>
     public RootConstruct RootConstruct { get; }
+
+    /// <summary>
+    /// Whether the region phase rewrites the text of <c>#region</c> and <c>#endregion</c> directives (FMT-REGION). Only
+    /// <see cref="ReihitsuFormatter.FormatDocumentAsync"/> and <see cref="ReihitsuFormatter.FormatSyntaxTree"/> leave it at
+    /// <see langword="true"/>. The node-level entry points serve code fixes, which change only the code their diagnostic is
+    /// about, so they set it to <see langword="false"/> and keep every region directive as written (FMT-PIPE-028)
+    /// </summary>
+    public bool FormatsRegionDirectives { get; }
 
     #endregion // Properties
 

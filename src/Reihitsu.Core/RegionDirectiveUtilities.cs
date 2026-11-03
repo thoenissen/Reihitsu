@@ -66,13 +66,24 @@ public static class RegionDirectiveUtilities
     }
 
     /// <summary>
-    /// Gets the description of an endregion directive
+    /// Gets the text written behind the <c>endregion</c> keyword of an endregion directive, trimmed, with a leading
+    /// <c>//</c> kept as written
+    /// </summary>
+    /// <param name="directive">Directive</param>
+    /// <returns>The trimmed text, or an empty string when only whitespace follows the keyword</returns>
+    public static string GetEndRegionText(EndRegionDirectiveTriviaSyntax directive)
+    {
+        return $"{directive.EndRegionKeyword.TrailingTrivia.ToFullString()}{directive.EndOfDirectiveToken.LeadingTrivia.ToFullString()}".Trim();
+    }
+
+    /// <summary>
+    /// Gets the description of an endregion directive: its text (<see cref="GetEndRegionText"/>) without a leading <c>//</c>
     /// </summary>
     /// <param name="directive">Directive</param>
     /// <returns>Description text</returns>
     public static string GetEndRegionDescription(EndRegionDirectiveTriviaSyntax directive)
     {
-        var description = $"{directive.EndRegionKeyword.TrailingTrivia.ToFullString()}{directive.EndOfDirectiveToken.LeadingTrivia.ToFullString()}".Trim();
+        var description = GetEndRegionText(directive);
 
         if (description.StartsWith("//", StringComparison.Ordinal))
         {
