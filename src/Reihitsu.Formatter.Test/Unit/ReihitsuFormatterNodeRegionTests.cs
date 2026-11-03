@@ -11,8 +11,8 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Unit;
 
 /// <summary>
-/// Tests that the node-level entry points of <see cref="ReihitsuFormatter"/> keep the text of region directives, while the
-/// document and syntax-tree entry points apply the region requirements
+/// Tests that the node-level entry points of <see cref="ReihitsuFormatter"/> apply no region requirement (FMT-PIPE-028), while
+/// the document and syntax-tree entry points apply them
 /// </summary>
 [TestClass]
 public class ReihitsuFormatterNodeRegionTests : FormatterTestsBase

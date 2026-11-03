@@ -245,12 +245,12 @@ public static class ReihitsuFormatter
     /// <returns>A new Document with only the targeted node formatted</returns>
     /// <remarks>
     /// Single-statement accessor blocks are kept rather than converted to expression bodies, and get-only properties and
-    /// indexers keep their accessor list rather than becoming expression-bodied members, and no region requirement
-    /// is applied (FMT-PIPE-028). Version-dependent rules follow the effective language version of the document's project, clamped
-    /// to the newest supported version. The target's leading trivia is written back as it stands in the document, so a
-    /// target that starts a later line of the context keeps that line's column. When the target is the context node,
-    /// formatting is delegated to <see cref="FormatNodeInDocumentAsync(Document, SyntaxNode, CancellationToken)"/>, including
-    /// its removal of the separator whitespace in front of the target
+    /// indexers keep their accessor list rather than becoming expression-bodied members, because this entry point serves code
+    /// fixes; for the same reason, no region requirement is applied (FMT-PIPE-028). Version-dependent rules follow the effective
+    /// language version of the document's project, clamped to the newest supported version. The target's leading trivia is
+    /// written back as it stands in the document, so a target
+    /// that starts a later line of the context keeps that line's column. When the target is the context node, formatting is
+    /// delegated to <see cref="FormatNodeInDocumentAsync(Document, SyntaxNode, CancellationToken)"/>, including its removal of the separator whitespace in front of the target
     /// </remarks>
     public static async Task<Document> FormatNodeInDocumentWithContextAsync(Document document,
                                                                             SyntaxNode targetNode,
