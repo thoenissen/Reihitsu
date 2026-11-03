@@ -37,6 +37,11 @@ Roles: spec author → skeptic → test implementer → implementer → cleaner 
 | 7 | Spec author | Accept the change doc | Status set to Accepted | Skeptic ran, its amendment is written, every visible output change has the maintainer's answer | Every listed change answered by the maintainer | this commit |
 | 8 | Implementer | FMT-PIPE-018/024 passages prescribe guards in the documentation, line-break and blank-line phases that the implementation does not need (the entry point writes back the target's leading trivia and the indentation phase measures the target's first line from the fact) | Restate those passages as results (spec author); build no guards | Maintainer's proportionality guidance; result-level requirements and every test hold without the guards | No output changes: same results, wording only | pending |
 | 9 | Implementer | Unconfirmed probe: `GenericConstraintContributor`/`ConstructorInitializerContributor` with an RH3208 local function with a `where` clause behind a label and several spaces | Hand to the auditor as a probe, not a follow-up yet | No defect shown | — | — |
+| 10 | Auditor | Finding #1 (PR-introduced): fluent-chain fixes change output when the chain is the context statement's expression and the statement is off its depth | Repair round 1: test implementer adds RH5201/RH5112 and formatter tests asserting main's output; implementer repairs; cleaner fixes the inline comment hint in ReihitsuFormatter.cs | Change doc and FMT-PIPE-017 already require main's output for the chain fixes | An unchanged requirement decides the output (main's) | pending |
+
+## Repair rounds
+
+- Round 1: auditor finding #1 (10-auditor.md).
 
 ## Follow-up candidates
 
