@@ -848,7 +848,7 @@ The braces follow the target's first token, which keeps its column in the docume
 
 ### FMT-PIPE-024 — Node-level input facts are plain values
 
-The node-level entry points MUST give the phases the facts in the table below about the document around their root, and no other, besides the line ending (FMT-PIPE-007), the language version (FMT-PIPE-008), and the transforms they skip (FMT-PIPE-011). Every fact MUST be a plain value — a kind, a flag, a number, or the kind and text of a trivia — and MUST NOT hold a node, a token, or a trivia of the document.
+The node-level entry points MUST give the phases the facts in the table below about the document around their root, and no other, besides the line ending (FMT-PIPE-007), the language version (FMT-PIPE-008), and the transforms and rewrites they skip (FMT-PIPE-011, FMT-PIPE-028). Every fact MUST be a plain value — a kind, a flag, a number, or the kind and text of a trivia — and MUST NOT hold a node, a token, or a trivia of the document.
 
 | Fact | Value | `FormatNode` | `FormatNodeInDocumentAsync` | `FormatNodeInDocumentWithContextAsync` |
 |---|---|---|---|---|
@@ -1000,3 +1000,60 @@ class C
     }
 }
 ```
+
+### FMT-PIPE-028 — Node-level entry points apply no region requirement
+
+`FormatNode`, `FormatNodeInDocumentAsync`, and `FormatNodeInDocumentWithContextAsync` MUST NOT apply any of the region phase's requirements (FMT-REGION) to the code they format — not the capitalization of a description, not the form of a `#region` line, not the comment or the space behind an `#endregion`, and not the whitespace at the end of a region directive line. Only `FormatDocumentAsync` and `FormatSyntaxTree` apply them. This requirement exempts region directives from the region phase and from nothing else: the preparation phase runs for these entry points as for every entry point (FMT-PIPE-019), and what it does to a directive, it does to a region directive at node level too.
+
+Why: These entry points serve code fixes, and a code fix changes only the code its diagnostic is about (SHARED-FIX-006). A region's name, its line form, and its `#endregion` comment are what the region rules and whole-document formatting decide; a fix for an unrelated diagnostic that rewrote them would hand the user a second edit nobody asked for, also to a user who does not use the region rules. The preparation phase is not part of the region requirements: it runs before every phase for every entry point, so that no later phase sees what it removes (FMT-PIPE-019), and the node-level entry points share it as a whole.
+
+Example — `FormatNodeInDocumentAsync` with the class `C` as target:
+
+```csharp
+class C
+{
+    #region    fields
+
+    int P { get { return 1; } }
+
+    #endregion
+}
+```
+
+```csharp
+class C
+{
+    #region    fields
+
+    int P
+    {
+        get
+        {
+            return 1;
+        }
+    }
+
+    #endregion
+}
+```
+
+Example — not shown as an input block because the input contains tabs: `FormatNodeInDocumentAsync` with the class `C` as target, in a class that holds `#region`, a tab, `bar`, the property `int P { get { return 1; } }`, and `#endregion`, a tab, `// Stale`, lays out the property as in the example above and applies no region requirement: `bar` stays lower-case and the `#endregion` keeps its stale comment. The preparation phase still runs, so the tab behind each keyword becomes four spaces (FMT-TAB-002):
+
+```csharp
+class C
+{
+    #region    bar
+
+    int P
+    {
+        get
+        {
+            return 1;
+        }
+    }
+
+    #endregion    // Stale
+}
+```
+
+`FormatDocumentAsync` with the same input writes `#region Bar` and `#endregion // Bar`, as the region phase decides.

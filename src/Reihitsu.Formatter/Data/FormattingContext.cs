@@ -49,6 +49,9 @@ internal record FormattingContext
     /// <param name="rootConstruct">
     /// The facts about the construct the formatting root stands in in its document, or <see cref="RootConstruct.None"/> when the caller supplies none
     /// </param>
+    /// <param name="formatsRegionDirectives">
+    /// Whether the region phase applies the region requirements; the node-level entry points pass <see langword="false"/> (FMT-PIPE-028)
+    /// </param>
     public FormattingContext(string endOfLine,
                              int baseIndentLevel = 0,
                              bool preserveRootDocumentationBoundary = false,
@@ -58,7 +61,8 @@ internal record FormattingContext
                              RootListPosition rootListPosition = default,
                              int? rootFirstTokenColumn = null,
                              FluentChainBoundary rootChainBoundary = default,
-                             RootConstruct rootConstruct = RootConstruct.None)
+                             RootConstruct rootConstruct = RootConstruct.None,
+                             bool formatsRegionDirectives = true)
     {
         EndOfLine = endOfLine;
         BaseIndentLevel = baseIndentLevel;
@@ -70,6 +74,7 @@ internal record FormattingContext
         RootFirstTokenColumn = rootFirstTokenColumn;
         RootChainBoundary = rootChainBoundary;
         RootConstruct = rootConstruct;
+        FormatsRegionDirectives = formatsRegionDirectives;
     }
 
     #endregion // Constructor
@@ -151,6 +156,15 @@ internal record FormattingContext
     /// <see cref="RootConstruct.None"/>, which decides the root as a construct of its own
     /// </summary>
     public RootConstruct RootConstruct { get; }
+
+    /// <summary>
+    /// Whether the region phase applies the region requirements (FMT-REGION) to <c>#region</c> and <c>#endregion</c>
+    /// directives. It defaults to <see langword="true"/>, so every context built without the argument keeps it, among them
+    /// those of <see cref="ReihitsuFormatter.FormatDocumentAsync"/> and <see cref="ReihitsuFormatter.FormatSyntaxTree"/>.
+    /// The three node-level entry points serve code fixes, which change only the code their diagnostic is about, so they
+    /// set it to <see langword="false"/> and apply no region requirement (FMT-PIPE-028)
+    /// </summary>
+    public bool FormatsRegionDirectives { get; }
 
     #endregion // Properties
 

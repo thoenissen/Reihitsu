@@ -805,6 +805,128 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : BatchCodeFi
         await Verify(source, fixedSource);
     }
 
+    /// <summary>
+    /// Verifies that the fix of a type that holds a region pair keeps the text of both region directives
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-028")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task FixOfTypeWithRegionPairKeepsTheRegionDirectives()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    {|#0:static|} public class C
+                                    {
+                                        #region    bar
+
+                                        private static int _a;
+
+                                        #endregion
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     public static class C
+                                     {
+                                         #region    bar
+
+                                         private static int _a;
+
+                                         #endregion
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7105DeclarationKeywordsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7105MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a type that holds a region pair with several spaces in front of an upper-case description keeps
+    /// that separator
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-028")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task FixOfTypeWithRegionPairKeepsTheSeparatorOfAnUpperCaseDescription()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    {|#0:static|} public class C
+                                    {
+                                        #region    Bar
+
+                                        private static int _a;
+
+                                        #endregion // Bar
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     public static class C
+                                     {
+                                         #region    Bar
+
+                                         private static int _a;
+
+                                         #endregion // Bar
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7105DeclarationKeywordsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7105MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a type that holds a region pair with a tab behind each region keyword turns each tab into four
+    /// spaces and keeps the rest of both region directives (<c>→</c> stands for a tab)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-028")]
+    [Requirement("FMT-TAB-002")]
+    public async Task FixOfTypeWithRegionPairReplacesTabsBehindRegionKeywords()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    {|#0:static|} public class C
+                                    {
+                                        #region→bar
+
+                                        private static int _a;
+
+                                        #endregion→// Stale
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     public static class C
+                                     {
+                                         #region    bar
+
+                                         private static int _a;
+
+                                         #endregion    // Stale
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode.Replace("→", "\t"), fixedCode, Diagnostics(RH7105DeclarationKeywordsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7105MessageFormat));
+    }
+
     #endregion // Tests
 
     #region Methods

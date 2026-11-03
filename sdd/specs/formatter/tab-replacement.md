@@ -5,7 +5,7 @@
 | ID prefix | FMT-TAB |
 | Status | Active |
 | Code owners | `TabReplacementPhase` |
-| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-019, FMT-RAW-007, FMT-REGION-001, FMT-INDENT-008 |
+| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-019, FMT-RAW-007, FMT-REGION-001, FMT-REGION-007, FMT-INDENT-008 |
 
 This spec covers `TabReplacementPhase`, the TabReplacement sub-phase that the preparation phase runs first (FMT-PIPE-001): the replacement of every tab in whitespace and between the tokens of a directive with four spaces, before any other phase runs, and the text in which tabs are kept.
 
@@ -50,12 +50,12 @@ class C
 }
 ```
 
-A tab between `#region` and its description is whitespace between the directive's tokens and becomes four spaces in this phase; a tab after the first word of the description is part of the description and stays. Whether the four spaces reach the output depends on the region phase that runs later: when it rewrites the `#region` line, it writes one space in front of the description (FMT-REGION-001). So, through the whole pipeline, a region written as `#region`, a tab, `Bar` and closed by a bare `#endregion` keeps the four spaces, while `#region`, a tab, `foo` is rewritten to start with an upper-case letter and is written with one space:
+A tab between `#region` and its description is whitespace between the directive's tokens and becomes four spaces in this phase; a tab after the first word of the description is part of the description and stays. The region phase that runs later writes one space between `#region` and its description (FMT-REGION-007), so the four spaces do not reach the output. Through the whole pipeline, a region written as `#region`, a tab, `Bar` and one written as `#region`, a tab, `foo`, each closed by a bare `#endregion`, are both written with one space; `foo` also starts with an upper-case letter (FMT-REGION-001):
 
 ```csharp
 class C
 {
-    #region    Bar
+    #region Bar
 
     int y;
 
@@ -69,7 +69,7 @@ class C
 }
 ```
 
-A region written as `#region`, a tab, `Baz`, a tab, `qux` keeps the tab between `Baz` and `qux`, in the `#region` line and in the description the `#endregion` comment repeats.
+A region written as `#region`, a tab, `Baz`, a tab, `qux` is written with one space in front of `Baz` and keeps the tab between `Baz` and `qux`, in the `#region` line and in the description the `#endregion` comment repeats.
 
 ### FMT-TAB-003 — Tabs in literals, comments, and disabled text are kept
 

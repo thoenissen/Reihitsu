@@ -319,11 +319,12 @@ public class RegionFormattingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that trailing whitespace on an already normalized opening description does not change a canonical
-    /// close under LF or CRLF
+    /// Verifies that trailing whitespace behind an opening description that already has its one-space separator is
+    /// removed while the canonical close stays unchanged, under LF and CRLF
     /// </summary>
     [TestMethod]
-    public void TrailingOpeningWhitespaceWithCanonicalCloseIsStable()
+    [Requirement("FMT-REGION-007")]
+    public void TrailingOpeningWhitespaceWithCanonicalCloseIsRemoved()
     {
         const string source = """
                               class C
@@ -337,14 +338,17 @@ public class RegionFormattingTests : FormatterTestsBase
                               """;
         var input = source.Replace("#region Fields", "#region Fields   ");
 
-        AssertRuleResult(input);
+        AssertRuleResult(input, source);
     }
 
     /// <summary>
-    /// Verifies that a mismatched close uses the normalized opening description without trailing whitespace
+    /// Verifies that a mismatched close repeats the trimmed opening description and that the whitespace behind the
+    /// opening description is removed
     /// </summary>
     [TestMethod]
-    public void MismatchedCloseUsesNormalizedOpeningDescription()
+    [Requirement("FMT-REGION-002")]
+    [Requirement("FMT-REGION-007")]
+    public void MismatchedCloseUsesTrimmedOpeningDescription()
     {
         const string source = """
                               class C
@@ -367,9 +371,8 @@ public class RegionFormattingTests : FormatterTestsBase
                                    }
                                    """;
         var input = source.Replace("#region Fields", "#region Fields   ");
-        var expected = fixedSource.Replace("#region Fields", "#region Fields   ");
 
-        AssertRuleResult(input, expected);
+        AssertRuleResult(input, fixedSource);
     }
 
     /// <summary>

@@ -418,6 +418,79 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : Batch
         await Verify(testCode, fixedCode, Diagnostics(RH7104PartialElementsMustDeclareAccessModifierAnalyzer.DiagnosticId, AnalyzerResources.RH7104MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the fix of a partial type that holds a region pair keeps the text of both region directives
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-028")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task FixOfPartialTypeWithRegionPairKeepsTheRegionDirectives()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    partial class {|#0:C|}
+                                    {
+                                        #region    Bar
+
+                                        private int _a;
+
+                                        #endregion
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     internal partial class C
+                                     {
+                                         #region    Bar
+
+                                         private int _a;
+
+                                         #endregion
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7104PartialElementsMustDeclareAccessModifierAnalyzer.DiagnosticId, AnalyzerResources.RH7104MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a top-level partial type keeps both halves of a region opened in front of the type and closed
+    /// inside it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-028")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task FixOfTopLevelPartialTypeKeepsRegionOpenedInFrontOfTheType()
+    {
+        const string testCode = """
+                                #region    bar
+                                partial class {|#0:C|}
+                                {
+                                    private int _a;
+
+                                    #endregion
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 #region    bar
+                                 internal partial class C
+                                 {
+                                     private int _a;
+
+                                     #endregion
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7104PartialElementsMustDeclareAccessModifierAnalyzer.DiagnosticId, AnalyzerResources.RH7104MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
