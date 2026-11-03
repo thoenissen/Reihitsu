@@ -364,8 +364,9 @@ internal static class LayoutComputer
 
     /// <summary>
     /// Hands the target-position fact (FMT-PIPE-024) to the model when the root holds the token it marks. The context entry
-    /// point writes back only the target, and everything in front of its first token as it stands in the document, so the
-    /// target's other lines are laid out as if that token stood in its document column (FMT-PIPE-017)
+    /// point writes back only the target, with its own leading trivia, and keeps everything in front of the target as it
+    /// stands in the document, so the target's other lines are laid out as if its first token stood in its document column
+    /// (FMT-PIPE-017)
     /// </summary>
     /// <param name="root">The root syntax node</param>
     /// <param name="model">The layout model</param>
