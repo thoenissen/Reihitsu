@@ -820,14 +820,16 @@ public class RegionDirectiveLineAboveTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a line holding nothing but whitespace directly above a region directive counts as the blank line the
-    /// directive requires: no second blank line is inserted, and the whitespace on that line is removed
+    /// Verifies that the formatted output keeps a line holding nothing but whitespace directly above a region directive as the
+    /// one blank line in front of it, with its whitespace removed. The phase collapses a run of blank lines to one, so this
+    /// output cannot show whether the reader took that line for the required blank line;
+    /// <c>BlankLineRegionDirectiveRewriterTests</c> pins that
     /// </summary>
     [TestMethod]
     [Requirement("SHARED-BLANK-001")]
     [Requirement("SHARED-BLANK-005")]
     [Requirement("FMT-BLANK-013")]
-    public void WhitespaceOnlyLineAboveRegionCountsAsBlankLine()
+    public void WhitespaceOnlyLineAboveRegionIsKeptAsOneEmptyLine()
     {
         // Arrange
         const string inputTemplate = """
@@ -869,14 +871,16 @@ public class RegionDirectiveLineAboveTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a line holding nothing but whitespace directly above an end-region directive counts as the blank line
-    /// the directive requires: no second blank line is inserted, and the whitespace on that line is removed
+    /// Verifies that the formatted output keeps a line holding nothing but whitespace directly above an end-region directive
+    /// as the one blank line in front of it, with its whitespace removed. The phase collapses a run of blank lines to one, so
+    /// this output cannot show whether the reader took that line for the required blank line;
+    /// <c>BlankLineTriviaBoundaryRewriterTests</c> pins that
     /// </summary>
     [TestMethod]
     [Requirement("SHARED-BLANK-001")]
     [Requirement("SHARED-BLANK-005")]
     [Requirement("FMT-BLANK-013")]
-    public void WhitespaceOnlyLineAboveEndRegionCountsAsBlankLine()
+    public void WhitespaceOnlyLineAboveEndRegionIsKeptAsOneEmptyLine()
     {
         // Arrange
         const string inputTemplate = """
@@ -914,14 +918,16 @@ public class RegionDirectiveLineAboveTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a line holding nothing but whitespace between a comment and the region directive below it counts as
-    /// the blank line the directive requires: no second blank line is inserted, and the whitespace on that line is removed
+    /// Verifies that the formatted output keeps a line holding nothing but whitespace between a comment and the region
+    /// directive below it as the one blank line between them, with its whitespace removed. The phase collapses a run of
+    /// blank lines to one, so this output cannot show whether the reader took that line for the required blank line;
+    /// <c>BlankLineRegionDirectiveRewriterTests</c> pins that
     /// </summary>
     [TestMethod]
     [Requirement("SHARED-BLANK-001")]
     [Requirement("SHARED-BLANK-005")]
     [Requirement("FMT-BLANK-013")]
-    public void WhitespaceOnlyLineBetweenCommentAndRegionCountsAsBlankLine()
+    public void WhitespaceOnlyLineBetweenCommentAndRegionIsKeptAsOneEmptyLine()
     {
         // Arrange
         const string inputTemplate = """
@@ -963,15 +969,15 @@ public class RegionDirectiveLineAboveTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a line holding nothing but whitespace directly above an end-region directive in front of a closing
-    /// brace counts as the blank line the directive requires: no second blank line is inserted, and the whitespace on that
-    /// line is removed
+    /// Verifies that the formatted output keeps a line holding nothing but whitespace directly above an end-region directive
+    /// in front of a closing brace as the one blank line in front of it, with its whitespace removed. The phase collapses a
+    /// run of blank lines to one, so this output cannot show which part of the phase decided that line
     /// </summary>
     [TestMethod]
     [Requirement("SHARED-BLANK-001")]
     [Requirement("SHARED-BLANK-005")]
     [Requirement("FMT-BLANK-013")]
-    public void WhitespaceOnlyLineAboveEndRegionBeforeClosingBraceCountsAsBlankLine()
+    public void WhitespaceOnlyLineAboveEndRegionBeforeClosingBraceIsKeptAsOneEmptyLine()
     {
         // Arrange
         const string inputTemplate = """
