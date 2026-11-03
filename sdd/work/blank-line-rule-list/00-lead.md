@@ -59,3 +59,4 @@ The maintainer accepted both recommendations and told the run to continue.
 
 1. Documentation comment directly above a region directive: RH8302 and RH5031 contradict each other, and the formatter's output is decided only by its rewriter order (FMT-BLANK-010 vs FMT-BLANK-013). Source: `01-skeptic.md`, follow-up candidate 1 (carries the output question in form).
 2. SHARED-BLANK-006 is stated twice: Core `RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineAfter` and the formatter's `BlankLineRegionDirectiveRewriter.EnsureBlankLineAfterRegionDirectives`; no drift found yet. Source: `03-implementer.md`.
+3. Region directives inside collection initializers and switch expressions end up at the statement's column rather than the elements' column, and in a switch section `#endregion` sits four columns left of its `#region`; identical on `main`. Source: `06-auditor.md`, *Hints*, 3.
