@@ -1,31 +1,24 @@
 ﻿using System.Collections.Generic;
-using System.Reflection;
 using System.Threading;
 
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Pipeline;
-using Reihitsu.Formatter.Pipeline.BlankLines;
 using Reihitsu.Formatter.Pipeline.Indentation;
 using Reihitsu.Formatter.Test.Helpers;
-using Reihitsu.Formatter.Test.Helpers.Enumerations;
+using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Test.Unit.Pipeline;
 
 /// <summary>
-/// Tests for the phase-level stability check of the formatter test helpers: every production phase, run alone on the
-/// final output of a fixture, must leave it unchanged, apart from the reversals the exception list names
+/// Tests for FMT-PIPE-027 and for the phase-level stability check of the formatter test helpers: every production phase,
+/// run alone on the final output of a fixture, must leave it unchanged
 /// </summary>
 [TestClass]
 public class PhaseStabilityCheckTests : FormatterTestsBase
 {
     #region Constants
-
-    /// <summary>
-    /// The name of the test the recorder tests attribute their fixtures to
-    /// </summary>
-    private const string RecorderTestName = "Sample.Tests.Fixture";
 
     /// <summary>
     /// Formatted source that no phase changes
@@ -47,36 +40,7 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
                                              }
                                              """;
 
-    /// <summary>
-    /// A second source whose only defect is the indentation of one member
-    /// </summary>
-    private const string OtherMisindentedSource = """
-                                                  class D
-                                                  {
-                                                          int _other;
-                                                  }
-                                                  """;
-
     #endregion // Constants
-
-    #region Fields
-
-    /// <summary>
-    /// A cause for the recorder tests whose phase is the indentation phase
-    /// </summary>
-    private static readonly PhaseReversalCause _indentationCause = new(nameof(IndentationPhase), "Test cause of the indentation phase.");
-
-    /// <summary>
-    /// A cause for the recorder and helper tests whose phase is the blank-line phase
-    /// </summary>
-    private static readonly PhaseReversalCause _blankLineCause = new(nameof(BlankLinePhase), "Test cause of the blank-line phase.");
-
-    /// <summary>
-    /// A cause for the helper tests whose phase is <see cref="TextChangingPhase"/>
-    /// </summary>
-    private static readonly PhaseReversalCause _textChangingCause = new(nameof(TextChangingPhase), "Test cause of the text-changing phase.");
-
-    #endregion // Fields
 
     #region Methods
 
@@ -86,6 +50,7 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
     /// from the pipeline is checked without a second list to update
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-027")]
     public void CheckRunsTheProductionPhasesInPipelineOrder()
     {
         // Arrange
@@ -103,6 +68,7 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
     /// Verifies that no phase changes formatted source
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-027")]
     public void CheckFindsNoChangeInFormattedSource()
     {
         // Act & Assert
@@ -124,7 +90,6 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
             Assert.HasCount(1, changes, $"Under {DescribeLineEnding(endOfLine)} line endings.");
             Assert.AreEqual(nameof(IndentationPhase), changes[0].Phase);
             Assert.AreEqual(NormalizeLineEndings(FormattedSource, endOfLine), changes[0].Output);
-            Assert.AreEqual(PhaseStabilityCheck.ComputeFingerprint(FormattedSource), changes[0].OutputFingerprint);
         }
     }
 
@@ -182,22 +147,82 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a single-line comment that leads a using directive of the same group, with a blank line above it,
-    /// passes the check: the using phase keeps that blank line, so no phase run alone changes the output
+    /// passes the check: the using phase keeps that blank line, so no phase run alone changes the output. The source is
+    /// the first example of FMT-PIPE-027
     /// </summary>
     [TestMethod]
     [Requirement("FMT-USING-010")]
+    [Requirement("FMT-PIPE-027")]
     public void CheckFindsNoChangeAboveCommentLedUsingDirectiveOfTheSameGroup()
     {
         // Arrange
         const string source = """
                               using System;
 
-                              // comment
-                              using System.Text;
+                              // About Linq
+                              using System.Linq;
+
+                              class C;
                               """;
 
         // Act & Assert
         AssertNoPhaseChanges(source);
+    }
+
+    /// <summary>
+    /// Verifies that an argument the line-break phase keeps on a line of its own and the indentation phase keeps in the
+    /// column of the first argument is formatter output that no phase run alone changes. The source is the second example
+    /// of FMT-PIPE-027
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-027")]
+    public void CheckFindsNoChangeInArgumentAlignedUnderTheFirstArgument()
+    {
+        // Arrange
+        const string source = """
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      Call(1,
+                                           2);
+                                  }
+                              }
+                              """;
+
+        // Act & Assert
+        AssertNoPhaseChanges(source);
+    }
+
+    /// <summary>
+    /// Verifies that the output of an input the formatter formats, not only of an input it returns unchanged, is changed
+    /// by no phase run alone, with the line ending the formatter detects in that output
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-027")]
+    public void CheckFindsNoChangeInTheOutputOfAnInputTheFormatterFormats()
+    {
+        // Arrange
+        const string input = "class C{void M(){int x=1;}}";
+
+        // Act
+        var output = AssertNoPhaseChangesTheOutputOf(input);
+
+        // Assert
+        Assert.AreNotEqual(input, output, "The formatter should format the input.");
+
+        foreach (var endOfLine in _lineEndings)
+        {
+            // Arrange
+            var inputWithLineBreak = $"class C{{{endOfLine}void M(){{int x=1;}}}}";
+
+            // Act
+            var outputWithLineBreak = AssertNoPhaseChangesTheOutputOf(inputWithLineBreak);
+
+            // Assert
+            Assert.AreNotEqual(inputWithLineBreak, outputWithLineBreak, $"The formatter should format the input under {DescribeLineEnding(endOfLine)} line endings.");
+            AssertUsesLineEnding(outputWithLineBreak, endOfLine);
+        }
     }
 
     /// <summary>
@@ -243,240 +268,6 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
             Assert.AreSequenceEqual(new[] { nameof(IndentationStrippingPhase) }, changes.Select(change => change.Phase).ToList(), $"Under {endingName} line endings.");
             Assert.AreEqual(IndentationStrippingPhase.GetOutput(text, endOfLine), changes[0].Output, $"Under {endingName} line endings.");
         }
-    }
-
-    /// <summary>
-    /// Verifies that one fingerprint names a fixture under both line endings and that different outputs get different
-    /// fingerprints
-    /// </summary>
-    [TestMethod]
-    public void FingerprintIgnoresLineEndingsAndTellsFixturesApart()
-    {
-        // Act
-        var lineFeed = PhaseStabilityCheck.ComputeFingerprint(FormattedSource.Replace("\r\n", "\n"));
-        var carriageReturnLineFeed = PhaseStabilityCheck.ComputeFingerprint(NormalizeLineEndings(FormattedSource, "\r\n"));
-        var other = PhaseStabilityCheck.ComputeFingerprint(MisindentedSource);
-
-        // Assert
-        Assert.AreEqual(lineFeed, carriageReturnLineFeed);
-        Assert.AreNotEqual(lineFeed, other);
-        Assert.AreEqual(16, lineFeed.Length);
-    }
-
-    /// <summary>
-    /// Verifies that a phase that changes a fixture without an entry fails with the fixture, the phase, the phase's output,
-    /// and the line ending
-    /// </summary>
-    [TestMethod]
-    public void UnlistedChangeFailsNamingFixturePhaseOutputAndLineEnding()
-    {
-        foreach (var endOfLine in _lineEndings)
-        {
-            // Arrange
-            var recorder = new PhaseStabilityRecorder(RecorderTestName, []);
-            var text = NormalizeLineEndings(MisindentedSource, endOfLine);
-
-            // Act
-            var failures = recorder.Check(text, endOfLine, null);
-
-            // Assert
-            Assert.HasCount(1, failures);
-            Assert.Contains(nameof(IndentationPhase), failures[0]);
-            Assert.Contains(RecorderTestName, failures[0]);
-            Assert.Contains(PhaseStabilityCheck.ComputeFingerprint(text), failures[0]);
-            Assert.Contains(PhaseStabilityCheck.ComputeFingerprint(FormattedSource), failures[0]);
-            Assert.Contains($"under {DescribeLineEnding(endOfLine)} line endings", failures[0]);
-        }
-    }
-
-    /// <summary>
-    /// Verifies that a listed reversal passes under every line ending its entry covers, and that the entry is reached
-    /// </summary>
-    [TestMethod]
-    public void ListedChangePasses()
-    {
-        // Arrange
-        var entry = CreateEntry(MisindentedSource, _indentationCause, FormattedSource, PhaseReversalLineEndings.Both);
-        var recorder = new PhaseStabilityRecorder(RecorderTestName, [entry]);
-
-        foreach (var endOfLine in _lineEndings)
-        {
-            // Act
-            var failures = recorder.Check(NormalizeLineEndings(MisindentedSource, endOfLine), endOfLine, null);
-
-            // Assert
-            Assert.IsEmpty(failures, $"Under {DescribeLineEnding(endOfLine)} line endings.");
-        }
-
-        Assert.IsEmpty(recorder.FindUnreachedEntries());
-    }
-
-    /// <summary>
-    /// Verifies that an entry whose phase makes a different change than the one the entry records does not hide the
-    /// change: the change fails as unlisted and the entry as stale. This is what a listed fixture shows when its phase
-    /// gains a second change or makes another change instead
-    /// </summary>
-    [TestMethod]
-    public void EntryForTheSamePhaseWithAnotherOutputDoesNotHideTheChange()
-    {
-        foreach (var endOfLine in _lineEndings)
-        {
-            // Arrange
-            var entry = CreateEntry(MisindentedSource, _indentationCause, OtherMisindentedSource, PhaseReversalLineEndings.Both);
-            var recorder = new PhaseStabilityRecorder(RecorderTestName, [entry]);
-
-            // Act
-            var failures = recorder.Check(NormalizeLineEndings(MisindentedSource, endOfLine), endOfLine, null);
-
-            // Assert
-            Assert.HasCount(2, failures, $"Under {DescribeLineEnding(endOfLine)} line endings.");
-            Assert.Contains(failure => failure.StartsWith(nameof(IndentationPhase), StringComparison.Ordinal), failures, "The unlisted change should be reported.");
-            Assert.Contains(failure => failure.StartsWith("Stale phase reversal entry", StringComparison.Ordinal), failures, "The stale entry should be reported.");
-        }
-    }
-
-    /// <summary>
-    /// Verifies that an entry whose phase no longer changes its fixture fails as stale, naming the line ending
-    /// </summary>
-    [TestMethod]
-    public void EntryWhosePhaseNoLongerChangesTheFixtureFailsAsStale()
-    {
-        foreach (var endOfLine in _lineEndings)
-        {
-            // Arrange
-            var entry = CreateEntry(FormattedSource, _blankLineCause, MisindentedSource, PhaseReversalLineEndings.Both);
-            var recorder = new PhaseStabilityRecorder(RecorderTestName, [entry]);
-
-            // Act
-            var failures = recorder.Check(NormalizeLineEndings(FormattedSource, endOfLine), endOfLine, null);
-
-            // Assert
-            Assert.HasCount(1, failures);
-            Assert.Contains("Stale phase reversal entry", failures[0]);
-            Assert.Contains(nameof(BlankLinePhase), failures[0]);
-            Assert.Contains($"under {DescribeLineEnding(endOfLine)} line endings", failures[0]);
-        }
-    }
-
-    /// <summary>
-    /// Verifies that an entry of another phase does not hide the change: the change fails as unlisted and the entry as
-    /// stale
-    /// </summary>
-    [TestMethod]
-    public void EntryForAnotherPhaseDoesNotHideTheChange()
-    {
-        // Arrange
-        var entry = CreateEntry(MisindentedSource, _blankLineCause, FormattedSource, PhaseReversalLineEndings.Both);
-        var recorder = new PhaseStabilityRecorder(RecorderTestName, [entry]);
-
-        // Act
-        var failures = recorder.Check(MisindentedSource.Replace("\r\n", "\n"), "\n", null);
-
-        // Assert
-        Assert.HasCount(2, failures);
-        Assert.Contains(failure => failure.StartsWith(nameof(IndentationPhase), StringComparison.Ordinal), failures, "The unlisted change should be reported.");
-        Assert.Contains(failure => failure.StartsWith("Stale phase reversal entry", StringComparison.Ordinal), failures, "The stale entry should be reported.");
-    }
-
-    /// <summary>
-    /// Verifies that an entry covering LF only hides the change under LF and not under CRLF
-    /// </summary>
-    [TestMethod]
-    public void EntryCoversOnlyTheLineEndingsItNames()
-    {
-        // Arrange
-        var entry = CreateEntry(MisindentedSource, _indentationCause, FormattedSource, PhaseReversalLineEndings.Lf);
-        var recorder = new PhaseStabilityRecorder(RecorderTestName, [entry]);
-
-        // Act
-        var lineFeedFailures = recorder.Check(NormalizeLineEndings(MisindentedSource, "\n"), "\n", null);
-        var carriageReturnLineFeedFailures = recorder.Check(NormalizeLineEndings(MisindentedSource, "\r\n"), "\r\n", null);
-
-        // Assert
-        Assert.IsEmpty(lineFeedFailures);
-        Assert.HasCount(1, carriageReturnLineFeedFailures);
-        Assert.Contains("under CRLF line endings", carriageReturnLineFeedFailures[0]);
-        Assert.IsEmpty(recorder.FindUnreachedEntries());
-    }
-
-    /// <summary>
-    /// Verifies that an entry no fixture of its test reached fails as stale under every line ending it covers
-    /// </summary>
-    [TestMethod]
-    public void EntryNoFixtureReachedFailsAsStale()
-    {
-        // Arrange
-        var entry = CreateEntry(MisindentedSource, _indentationCause, FormattedSource, PhaseReversalLineEndings.Both);
-        var recorder = new PhaseStabilityRecorder(RecorderTestName, [entry]);
-
-        recorder.Check(NormalizeLineEndings(FormattedSource, "\n"), "\n", null);
-
-        // Act
-        var failures = recorder.FindUnreachedEntries();
-
-        // Assert
-        Assert.HasCount(2, failures);
-        Assert.Contains("under LF line endings", failures[0]);
-        Assert.Contains("under CRLF line endings", failures[1]);
-    }
-
-    /// <summary>
-    /// Verifies that an entry reached under one of the line endings it covers still fails as stale for the other
-    /// </summary>
-    [TestMethod]
-    public void EntryReachedUnderOneLineEndingFailsAsStaleForTheOther()
-    {
-        // Arrange
-        var entry = CreateEntry(MisindentedSource, _indentationCause, FormattedSource, PhaseReversalLineEndings.Both);
-        var recorder = new PhaseStabilityRecorder(RecorderTestName, [entry]);
-
-        recorder.Check(NormalizeLineEndings(MisindentedSource, "\n"), "\n", null);
-
-        // Act
-        var failures = recorder.FindUnreachedEntries();
-
-        // Assert
-        Assert.HasCount(1, failures);
-        Assert.Contains("under CRLF line endings", failures[0]);
-    }
-
-    /// <summary>
-    /// Verifies that an entry of another test does not cover the fixtures of this test and is not stale for it
-    /// </summary>
-    [TestMethod]
-    public void EntryOfAnotherTestIsIgnored()
-    {
-        // Arrange
-        var entry = new PhaseReversalEntry("Sample.Tests.OtherFixture", PhaseStabilityCheck.ComputeFingerprint(MisindentedSource), _indentationCause, PhaseStabilityCheck.ComputeFingerprint(FormattedSource), PhaseReversalLineEndings.Both);
-        var recorder = new PhaseStabilityRecorder(RecorderTestName, [entry]);
-
-        // Act
-        var failures = recorder.Check(NormalizeLineEndings(MisindentedSource, "\n"), "\n", null);
-
-        // Assert
-        Assert.HasCount(1, failures);
-        Assert.Contains(nameof(IndentationPhase), failures[0]);
-        Assert.IsEmpty(recorder.FindUnreachedEntries());
-    }
-
-    /// <summary>
-    /// Verifies that the entry of one fixture of a test does not cover another fixture of the same test
-    /// </summary>
-    [TestMethod]
-    public void EntryOfOneFixtureDoesNotCoverAnotherFixtureOfTheSameTest()
-    {
-        // Arrange
-        var entry = CreateEntry(MisindentedSource, _indentationCause, FormattedSource, PhaseReversalLineEndings.Both);
-        var recorder = new PhaseStabilityRecorder(RecorderTestName, [entry]);
-
-        // Act
-        var listedFailures = recorder.Check(NormalizeLineEndings(MisindentedSource, "\n"), "\n", null);
-        var otherFailures = recorder.Check(NormalizeLineEndings(OtherMisindentedSource, "\n"), "\n", null);
-
-        // Assert
-        Assert.IsEmpty(listedFailures);
-        Assert.HasCount(1, otherFailures);
-        Assert.Contains(PhaseStabilityCheck.ComputeFingerprint(OtherMisindentedSource), otherFailures[0]);
     }
 
     /// <summary>
@@ -547,375 +338,52 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the helper for already-formatted source fails when a phase changes the output without an entry,
-    /// naming the phase, the fixture, and the line ending
+    /// Verifies that the helper for already-formatted source fails when a phase changes the output, naming the phase, the
+    /// line ending, and the first changed line
     /// </summary>
     [TestMethod]
-    public void AssertRuleResultWithoutExpectationFailsOnAnUnlistedChange()
+    public void AssertRuleResultWithoutExpectationFailsOnAPhaseThatChangesTheOutput()
     {
         // Arrange
-        PhaseStabilityCheck.OverrideForCurrentTest([], CreateTextChangingPhases);
+        PhaseStabilityCheck.OverrideForCurrentTest(CreateTextChangingPhases);
 
         // Act
         var failure = Assert.Throws<AssertFailedException>(() => AssertRuleResult(FormattedSource));
 
         // Assert
-        AssertUnlistedChangeFailure(failure);
+        AssertChangeFailure(failure);
     }
 
     /// <summary>
-    /// Verifies that the helper with an expectation fails when a phase changes the final output without an entry
+    /// Verifies that the helper with an expectation fails when a phase changes the final output
     /// </summary>
     [TestMethod]
-    public void AssertRuleResultWithExpectationFailsOnAnUnlistedChange()
+    public void AssertRuleResultWithExpectationFailsOnAPhaseThatChangesTheOutput()
     {
         // Arrange
-        PhaseStabilityCheck.OverrideForCurrentTest([], CreateTextChangingPhases);
+        PhaseStabilityCheck.OverrideForCurrentTest(CreateTextChangingPhases);
 
         // Act
         var failure = Assert.Throws<AssertFailedException>(() => AssertRuleResult(MisindentedSource, FormattedSource));
 
         // Assert
-        AssertUnlistedChangeFailure(failure);
+        AssertChangeFailure(failure);
     }
 
     /// <summary>
-    /// Verifies that the second-pass helper fails when a phase changes the final output without an entry
+    /// Verifies that the second-pass helper fails when a phase changes the final output
     /// </summary>
     [TestMethod]
-    public void AssertSecondPassIsStableFailsOnAnUnlistedChange()
+    public void AssertSecondPassIsStableFailsOnAPhaseThatChangesTheOutput()
     {
         // Arrange
-        PhaseStabilityCheck.OverrideForCurrentTest([], CreateTextChangingPhases);
+        PhaseStabilityCheck.OverrideForCurrentTest(CreateTextChangingPhases);
 
         // Act
         var failure = Assert.Throws<AssertFailedException>(() => AssertSecondPassIsStable(MisindentedSource));
 
         // Assert
-        AssertUnlistedChangeFailure(failure);
-    }
-
-    /// <summary>
-    /// Verifies that the helpers pass, and the test cleanup finds nothing stale, when the entry of the test covers the
-    /// change under both line endings
-    /// </summary>
-    [TestMethod]
-    public void HelpersPassOnAListedChange()
-    {
-        // Arrange
-        var entry = new PhaseReversalEntry(typeof(PhaseStabilityCheckTests),
-                                           nameof(HelpersPassOnAListedChange),
-                                           PhaseStabilityCheck.ComputeFingerprint(FormattedSource),
-                                           _textChangingCause,
-                                           PhaseStabilityCheck.ComputeFingerprint(TextChangingPhase.GetOutput(FormattedSource.Replace("\r\n", "\n"), "\n")),
-                                           PhaseReversalLineEndings.Both);
-
-        PhaseStabilityCheck.OverrideForCurrentTest([entry], CreateTextChangingPhases);
-
-        // Act
-        AssertRuleResult(FormattedSource);
-        AssertSecondPassIsStable(MisindentedSource);
-
-        // Assert
-        PhaseStabilityCheck.EndTest();
-    }
-
-    /// <summary>
-    /// Verifies that a helper fails when the entry of its fixture names a phase that no longer changes the final output.
-    /// The entry covers LF only, the line ending the helper checks first, so the test cleanup finds it reached
-    /// </summary>
-    [TestMethod]
-    public void HelperFailsOnAnEntryWhosePhaseNoLongerChangesTheFixture()
-    {
-        // Arrange
-        var entry = new PhaseReversalEntry(typeof(PhaseStabilityCheckTests),
-                                           nameof(HelperFailsOnAnEntryWhosePhaseNoLongerChangesTheFixture),
-                                           PhaseStabilityCheck.ComputeFingerprint(FormattedSource),
-                                           _blankLineCause,
-                                           PhaseStabilityCheck.ComputeFingerprint(MisindentedSource),
-                                           PhaseReversalLineEndings.Lf);
-
-        PhaseStabilityCheck.OverrideForCurrentTest([entry], PhaseStabilityCheck.CreateProductionPhases);
-
-        // Act
-        var failure = Assert.Throws<AssertFailedException>(() => AssertRuleResult(FormattedSource));
-
-        // Assert
-        Assert.Contains("Stale phase reversal entry", failure.Message);
-        Assert.Contains(nameof(BlankLinePhase), failure.Message);
-        Assert.Contains("under LF line endings", failure.Message);
-    }
-
-    /// <summary>
-    /// Verifies that the test cleanup fails on an entry of the test that none of its fixtures reached, under every line
-    /// ending the entry covers
-    /// </summary>
-    [TestMethod]
-    public void TestCleanupFailsOnAnEntryNoFixtureReached()
-    {
-        // Arrange
-        var entry = new PhaseReversalEntry(typeof(PhaseStabilityCheckTests),
-                                           nameof(TestCleanupFailsOnAnEntryNoFixtureReached),
-                                           PhaseStabilityCheck.ComputeFingerprint(MisindentedSource),
-                                           _blankLineCause,
-                                           PhaseStabilityCheck.ComputeFingerprint(FormattedSource),
-                                           PhaseReversalLineEndings.Both);
-
-        PhaseStabilityCheck.OverrideForCurrentTest([entry], PhaseStabilityCheck.CreateProductionPhases);
-        AssertRuleResult(FormattedSource);
-
-        // Act
-        var failure = Assert.Throws<AssertFailedException>(PhaseStabilityCheck.EndTest);
-
-        // Assert
-        Assert.Contains("Stale phase reversal entry", failure.Message);
-        Assert.Contains(PhaseStabilityCheck.ComputeFingerprint(MisindentedSource), failure.Message);
-        Assert.Contains("under LF line endings", failure.Message);
-        Assert.Contains("under CRLF line endings", failure.Message);
-    }
-
-    /// <summary>
-    /// Verifies that every cause names a production phase
-    /// </summary>
-    [TestMethod]
-    public void EveryCauseNamesAProductionPhase()
-    {
-        // Arrange
-        var phaseNames = PhaseStabilityCheck.CreateProductionPhases().Select(PhaseStabilityCheck.GetReportedName).ToList();
-
-        foreach (var cause in GetKnownCauses())
-        {
-            // Act & Assert
-            Assert.Contains(cause.Phase, phaseNames, $"The cause \"{cause.Description}\" names no production phase.");
-        }
-    }
-
-    /// <summary>
-    /// Verifies that a data-driven test keys its entries by data row: the entry of one row covers that row's change, and
-    /// the other row, which formats the same fixture without the change, neither fails on it nor reports it as stale
-    /// </summary>
-    /// <param name="listedRow">Whether this row is the one the entry names</param>
-    [TestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
-    public void DataRowEntryCoversOnlyItsOwnRow(bool listedRow)
-    {
-        // Arrange
-        var entry = new PhaseReversalEntry(typeof(PhaseStabilityCheckTests),
-                                           nameof(DataRowEntryCoversOnlyItsOwnRow),
-                                           PhaseStabilityCheck.ComputeFingerprint(FormattedSource),
-                                           _textChangingCause,
-                                           PhaseStabilityCheck.ComputeFingerprint(TextChangingPhase.GetOutput(FormattedSource.Replace("\r\n", "\n"), "\n")),
-                                           PhaseReversalLineEndings.Both,
-                                           "true");
-
-        PhaseStabilityCheck.OverrideForCurrentTest([entry], listedRow ? CreateTextChangingPhases : PhaseStabilityCheck.CreateProductionPhases);
-
-        // Act
-        AssertRuleResult(FormattedSource);
-
-        // Assert
-        Assert.AreEqual(listedRow ? "true" : "false", DataRowKey.Format(TestContext.TestData));
-        PhaseStabilityCheck.EndTest();
-    }
-
-    /// <summary>
-    /// Verifies that data rows whose only argument is an array are keyed element by element: the entry of row
-    /// <c>[1]</c> covers that row's change, and row <c>[2]</c>, which formats the same fixture without the change, neither
-    /// fails on it nor reports it as stale
-    /// </summary>
-    /// <param name="values">The array argument of the row</param>
-    [TestMethod]
-    [DataRow(new[] { 1 })]
-    [DataRow(new[] { 2 })]
-    public void ArrayDataRowEntryCoversOnlyItsOwnRow(int[] values)
-    {
-        // Arrange
-        var listedRow = values[0] == 1;
-        var entry = new PhaseReversalEntry(typeof(PhaseStabilityCheckTests),
-                                           nameof(ArrayDataRowEntryCoversOnlyItsOwnRow),
-                                           PhaseStabilityCheck.ComputeFingerprint(FormattedSource),
-                                           _textChangingCause,
-                                           PhaseStabilityCheck.ComputeFingerprint(TextChangingPhase.GetOutput(FormattedSource.Replace("\r\n", "\n"), "\n")),
-                                           PhaseReversalLineEndings.Both,
-                                           "System.Int32[1]");
-
-        PhaseStabilityCheck.OverrideForCurrentTest([entry], listedRow ? CreateTextChangingPhases : PhaseStabilityCheck.CreateProductionPhases);
-
-        // Act
-        AssertRuleResult(FormattedSource);
-
-        // Assert
-        Assert.AreEqual(listedRow ? "System.Int32[1]" : "System.Int32[2]", DataRowKey.Format(TestContext.TestData));
-        PhaseStabilityCheck.EndTest();
-    }
-
-    /// <summary>
-    /// Verifies that data rows of strings whose text holds a quoted separator are keyed apart: the two rows below gave the
-    /// same key while strings were quoted without escaping
-    /// </summary>
-    /// <param name="first">The first argument</param>
-    /// <param name="second">The second argument</param>
-    [TestMethod]
-    [DataRow("a\", \"b", "c")]
-    [DataRow("a", "b\", \"c")]
-    public void StringDataRowEntryCoversOnlyItsOwnRow(string first, string second)
-    {
-        // Arrange
-        const string listedKey = "\"a\\\", \\\"b\", \"c\"";
-        var listedRow = first.Length > 1;
-        var entry = new PhaseReversalEntry(typeof(PhaseStabilityCheckTests),
-                                           nameof(StringDataRowEntryCoversOnlyItsOwnRow),
-                                           PhaseStabilityCheck.ComputeFingerprint(FormattedSource),
-                                           _textChangingCause,
-                                           PhaseStabilityCheck.ComputeFingerprint(TextChangingPhase.GetOutput(FormattedSource.Replace("\r\n", "\n"), "\n")),
-                                           PhaseReversalLineEndings.Both,
-                                           listedKey);
-
-        PhaseStabilityCheck.OverrideForCurrentTest([entry], listedRow ? CreateTextChangingPhases : PhaseStabilityCheck.CreateProductionPhases);
-
-        // Act
-        AssertRuleResult(FormattedSource);
-
-        // Assert
-        Assert.AreEqual(listedRow, DataRowKey.Format(TestContext.TestData) == listedKey, $"Row ({first}) ({second}) has the key {DataRowKey.Format(TestContext.TestData)}.");
-        PhaseStabilityCheck.EndTest();
-    }
-
-    /// <summary>
-    /// Verifies the key format: the qualified test name, followed by the data row in parentheses for a data-driven test
-    /// </summary>
-    [TestMethod]
-    public void TestKeyAppendsTheDataRowInParentheses()
-    {
-        // Act & Assert
-        Assert.AreEqual("Sample.Tests.Fixture(1)", PhaseStabilityCheck.FormatTestKey(RecorderTestName, "1"));
-        Assert.AreEqual(RecorderTestName, PhaseStabilityCheck.FormatTestKey(RecorderTestName, null));
-        Assert.AreEqual(PhaseStabilityCheck.FormatTestName(typeof(PhaseStabilityCheckTests).FullName, "M"), PhaseStabilityCheck.FormatTestName(typeof(PhaseStabilityCheckTests), "M"));
-    }
-
-    /// <summary>
-    /// Verifies that the runtime key of the running test equals the key of an entry naming it by type and method, so both
-    /// sides use the one test-name format
-    /// </summary>
-    [TestMethod]
-    public void RuntimeTestNameMatchesTheEntryTestName()
-    {
-        // Arrange
-        var entry = new PhaseReversalEntry(typeof(PhaseStabilityCheckTests),
-                                           nameof(RuntimeTestNameMatchesTheEntryTestName),
-                                           PhaseStabilityCheck.ComputeFingerprint(FormattedSource),
-                                           _textChangingCause,
-                                           PhaseStabilityCheck.ComputeFingerprint(TextChangingPhase.GetOutput(FormattedSource.Replace("\r\n", "\n"), "\n")),
-                                           PhaseReversalLineEndings.Both);
-
-        PhaseStabilityCheck.OverrideForCurrentTest([entry], CreateTextChangingPhases);
-
-        // Act
-        AssertRuleResult(FormattedSource);
-
-        // Assert
-        Assert.AreEqual(PhaseStabilityCheck.FormatTestName(TestContext.FullyQualifiedTestClassName, TestContext.TestName), entry.TestKey);
-        PhaseStabilityCheck.EndTest();
-    }
-
-    /// <summary>
-    /// Verifies that the test cleanup fails on an entry of a test that never runs the check, so an entry outlives no
-    /// helper call
-    /// </summary>
-    [TestMethod]
-    public void TestCleanupFailsOnAnEntryOfATestThatNeverRunsTheCheck()
-    {
-        // Arrange
-        var entry = new PhaseReversalEntry(typeof(PhaseStabilityCheckTests),
-                                           nameof(TestCleanupFailsOnAnEntryOfATestThatNeverRunsTheCheck),
-                                           PhaseStabilityCheck.ComputeFingerprint(MisindentedSource),
-                                           _blankLineCause,
-                                           PhaseStabilityCheck.ComputeFingerprint(FormattedSource),
-                                           PhaseReversalLineEndings.Both);
-
-        PhaseStabilityCheck.OverrideForCurrentTest([entry], PhaseStabilityCheck.CreateProductionPhases);
-
-        // Act
-        var failure = Assert.Throws<AssertFailedException>(PhaseStabilityCheck.EndTest);
-
-        // Assert
-        Assert.Contains("Stale phase reversal entry", failure.Message);
-        Assert.Contains("under LF line endings", failure.Message);
-        Assert.Contains("under CRLF line endings", failure.Message);
-    }
-
-    /// <summary>
-    /// Verifies that every entry names a test method of the formatter test suite and a known cause, that an entry of a
-    /// data-driven method names one of its data rows and an entry of another method names none, and that no test
-    /// execution, fixture, and phase is listed twice
-    /// </summary>
-    [TestMethod]
-    public void EveryEntryNamesATestMethodItsDataRowAndAKnownCause()
-    {
-        // Arrange
-        var causes = GetKnownCauses();
-
-        foreach (var entry in PhaseReversalExceptionList.Entries)
-        {
-            // Act
-            Assert.IsNotNull(entry.TestClass, $"{entry} names its test by name only; the exception list names it by type.");
-
-            var method = entry.TestClass.GetMethod(entry.TestMethod, BindingFlags.Public | BindingFlags.Instance);
-
-            Assert.IsNotNull(method, $"{entry} names no public test method.");
-
-            var dataRows = method.GetCustomAttributes<DataRowAttribute>().Select(row => DataRowKey.Format(row.Data)).ToList();
-            var hasDynamicData = method.IsDefined(typeof(DynamicDataAttribute), inherit: true);
-
-            // Assert
-            Assert.IsTrue(method.IsDefined(typeof(TestMethodAttribute), inherit: true), $"{entry} names a method that is not a test.");
-            Assert.IsTrue(typeof(FormatterTestsBase).IsAssignableFrom(entry.TestClass), $"{entry} names a class whose tests do not run the check.");
-            Assert.Contains(entry.Cause, causes, $"{entry} names no known cause.");
-
-            if (dataRows.Count == 0
-                && hasDynamicData == false)
-            {
-                Assert.IsNull(entry.DataRow, $"{entry} names a data row of a test that is not data-driven.");
-            }
-            else
-            {
-                Assert.IsNotNull(entry.DataRow, $"{entry} names no data row of its data-driven test.");
-
-                if (hasDynamicData == false)
-                {
-                    Assert.Contains(entry.DataRow, dataRows, $"{entry} names a data row its test does not have.");
-                }
-            }
-        }
-
-        var keys = PhaseReversalExceptionList.Entries.Select(entry => (entry.TestKey, entry.Fingerprint, entry.Phase)).ToList();
-
-        Assert.HasCount(keys.Count, keys.Distinct(), "A test execution, fixture, and phase is listed twice.");
-    }
-
-    /// <summary>
-    /// Returns the causes <see cref="PhaseReversalCauses"/> declares
-    /// </summary>
-    /// <returns>The causes</returns>
-    private static List<PhaseReversalCause> GetKnownCauses()
-    {
-        return typeof(PhaseReversalCauses).GetFields(BindingFlags.Public | BindingFlags.Static)
-                                          .Select(field => (PhaseReversalCause)field.GetValue(null))
-                                          .ToList();
-    }
-
-    /// <summary>
-    /// Creates a recorder-test entry for the final output of a fixture
-    /// </summary>
-    /// <param name="finalOutput">The final output of the fixture</param>
-    /// <param name="cause">The cause, which names the phase</param>
-    /// <param name="phaseOutput">The text the phase returns</param>
-    /// <param name="lineEndings">The line endings the entry covers</param>
-    /// <returns>The entry</returns>
-    private static PhaseReversalEntry CreateEntry(string finalOutput, PhaseReversalCause cause, string phaseOutput, PhaseReversalLineEndings lineEndings)
-    {
-        return new PhaseReversalEntry(RecorderTestName, PhaseStabilityCheck.ComputeFingerprint(finalOutput), cause, PhaseStabilityCheck.ComputeFingerprint(phaseOutput), lineEndings);
+        AssertChangeFailure(failure);
     }
 
     /// <summary>
@@ -928,19 +396,19 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Asserts that a helper failed on the unlisted change of <see cref="TextChangingPhase"/> to <see cref="FormattedSource"/>
-    /// under LF line endings, the first line ending the helpers check
+    /// Asserts that a helper failed on the change of <see cref="TextChangingPhase"/> to <see cref="FormattedSource"/> under
+    /// LF line endings, the first line ending the helpers check
     /// </summary>
     /// <param name="failure">The failure</param>
-    private static void AssertUnlistedChangeFailure(AssertFailedException failure)
+    private static void AssertChangeFailure(AssertFailedException failure)
     {
-        Assert.Contains($"{nameof(TextChangingPhase)} changes the final output of fixture {PhaseStabilityCheck.ComputeFingerprint(FormattedSource)}", failure.Message);
-        Assert.Contains(PhaseStabilityCheck.FormatTestName(typeof(PhaseStabilityCheckTests), string.Empty), failure.Message);
-        Assert.Contains("under LF line endings", failure.Message);
+        Assert.Contains($"{nameof(TextChangingPhase)} changes the final output under LF line endings when it runs alone", failure.Message);
+        Assert.Contains($"phase returned \"{TextChangingPhase.AppendedComment}\"", failure.Message);
     }
 
     /// <summary>
-    /// Asserts that no phase changes the source when it runs alone, under LF and CRLF
+    /// Asserts, under LF and CRLF, that the source is a fixed point of <see cref="ReihitsuFormatter.FormatSyntaxTree"/> and
+    /// that no phase changes it when it runs alone
     /// </summary>
     /// <param name="source">The source, a final output of the formatter</param>
     private static void AssertNoPhaseChanges(string source)
@@ -949,26 +417,31 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
         {
             var text = NormalizeLineEndings(source, endOfLine);
 
-            AssertIsFinalOutput(text, endOfLine);
+            var output = AssertNoPhaseChangesTheOutputOf(text);
 
-            var changes = PhaseStabilityCheck.FindChangingPhases(text, endOfLine, null);
-
-            Assert.IsEmpty(changes, $"Under {DescribeLineEnding(endOfLine)} line endings: {string.Join(" ", changes.Select(change => $"{change.Phase}: {change.Difference}"))}");
+            Assert.AreEqual(text, output, $"The source should be a final output of the formatter under {DescribeLineEnding(endOfLine)} line endings.");
         }
     }
 
     /// <summary>
-    /// Asserts that the source is a fixed point of the whole pipeline, so a phase that changes it alone is a reversal
+    /// Formats the input with <see cref="ReihitsuFormatter.FormatSyntaxTree"/> and asserts that no phase changes the output
+    /// when it runs alone on it, parsed with the parse options of the input's tree and formatted with the line ending
+    /// detected in the output
     /// </summary>
-    /// <param name="text">The source</param>
-    /// <param name="endOfLine">The end-of-line sequence to format with</param>
-    private static void AssertIsFinalOutput(string text, string endOfLine)
+    /// <param name="input">The input</param>
+    /// <returns>The output of the formatter</returns>
+    private static string AssertNoPhaseChangesTheOutputOf(string input)
     {
-        var (root, context) = SecondPassInput.Create(text, endOfLine, null);
+        var tree = CSharpSyntaxTree.ParseText(input);
+        var outputRoot = ReihitsuFormatter.FormatSyntaxTree(tree).GetRoot();
+        var output = outputRoot.ToFullString();
+        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(outputRoot);
 
-        var formatted = FormattingPipeline.Execute(root, context, CancellationToken.None).ToFullString();
+        var changes = PhaseStabilityCheck.FindChangingPhases(output, endOfLine, (CSharpParseOptions)tree.Options);
 
-        Assert.AreEqual(text, formatted, $"The source should be a final output of the formatter under {DescribeLineEnding(endOfLine)} line endings.");
+        Assert.IsEmpty(changes, $"Under {DescribeLineEnding(endOfLine)} line endings: {string.Join(" ", changes.Select(change => $"{change.Phase}: {change.Difference}"))}");
+
+        return output;
     }
 
     /// <summary>
@@ -979,11 +452,10 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
     private static void AssertCheckedFixtures(string finalOutput, CSharpParseOptions parseOptions)
     {
         var checkedFixtures = PhaseStabilityCheck.GetCheckedFixtures();
-        var fingerprint = PhaseStabilityCheck.ComputeFingerprint(finalOutput);
 
         Assert.HasCount(2, checkedFixtures);
-        Assert.AreEqual((fingerprint, PhaseReversalLineEndings.Lf, parseOptions), checkedFixtures[0]);
-        Assert.AreEqual((fingerprint, PhaseReversalLineEndings.Crlf, parseOptions), checkedFixtures[1]);
+        Assert.AreEqual((NormalizeLineEndings(finalOutput, "\n"), "\n", parseOptions), checkedFixtures[0]);
+        Assert.AreEqual((NormalizeLineEndings(finalOutput, "\r\n"), "\r\n", parseOptions), checkedFixtures[1]);
     }
 
     #endregion // Methods

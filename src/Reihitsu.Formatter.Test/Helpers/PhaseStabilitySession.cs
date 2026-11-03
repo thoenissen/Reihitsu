@@ -1,26 +1,39 @@
 ﻿using System.Collections.Generic;
 
+using Microsoft.CodeAnalysis.CSharp;
+
 using Reihitsu.Formatter.Pipeline;
 
 namespace Reihitsu.Formatter.Test.Helpers;
 
 /// <summary>
-/// The check's state for one test execution: its key, the entries and phases it applies, and the recorder of its fixtures
+/// The check's state for one test execution: the phases it runs alone and the fixtures it ran on
 /// </summary>
 internal sealed class PhaseStabilitySession
 {
+    #region Fields
+
+    /// <summary>
+    /// The fixtures the check ran on, in the order it ran on them
+    /// </summary>
+    private readonly List<(string FinalOutput, string EndOfLine, CSharpParseOptions ParseOptions)> _checkedFixtures = [];
+
+    /// <summary>
+    /// Creates the phases the check runs alone
+    /// </summary>
+    private Func<IReadOnlyList<IFormattingPhase>> _createPhases;
+
+    #endregion // Fields
+
     #region Constructor
 
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="testKey">The key of the test execution, as <see cref="PhaseStabilityCheck.FormatTestKey"/> formats it</param>
-    /// <param name="entries">The entries to apply</param>
     /// <param name="createPhases">Creates the phases to run alone</param>
-    public PhaseStabilitySession(string testKey, IReadOnlyList<PhaseReversalEntry> entries, Func<IReadOnlyList<IFormattingPhase>> createPhases)
+    public PhaseStabilitySession(Func<IReadOnlyList<IFormattingPhase>> createPhases)
     {
-        TestKey = testKey;
-        Recorder = new PhaseStabilityRecorder(testKey, entries, createPhases);
+        _createPhases = createPhases;
     }
 
     #endregion // Constructor
@@ -28,40 +41,40 @@ internal sealed class PhaseStabilitySession
     #region Properties
 
     /// <summary>
-    /// The key of the test execution
+    /// The fixtures the check ran on, in the order it ran on them: the final output of each, its end-of-line sequence,
+    /// and the parse options it was parsed with
     /// </summary>
-    public string TestKey { get; }
-
-    /// <summary>
-    /// The recorder of the test execution's fixtures
-    /// </summary>
-    public PhaseStabilityRecorder Recorder { get; private set; }
-
-    /// <summary>
-    /// Whether the test's recording has ended
-    /// </summary>
-    public bool IsEnded { get; private set; }
+    public IReadOnlyList<(string FinalOutput, string EndOfLine, CSharpParseOptions ParseOptions)> CheckedFixtures => _checkedFixtures;
 
     #endregion // Properties
 
     #region Methods
 
     /// <summary>
-    /// Replaces the entries and the phases the check applies, before the check first runs
+    /// Replaces the phases the check runs alone, before the check first runs
     /// </summary>
-    /// <param name="entries">The entries to apply</param>
     /// <param name="createPhases">Creates the phases to run alone</param>
-    public void Override(IReadOnlyList<PhaseReversalEntry> entries, Func<IReadOnlyList<IFormattingPhase>> createPhases)
+    public void Override(Func<IReadOnlyList<IFormattingPhase>> createPhases)
     {
-        Recorder = new PhaseStabilityRecorder(TestKey, entries, createPhases);
+        _createPhases = createPhases;
     }
 
     /// <summary>
-    /// Marks the test's recording as ended, so a later end finds nothing left to report
+    /// Runs every phase alone on the final output of a fixture and returns one failure per phase that changes it
     /// </summary>
-    public void End()
+    /// <param name="finalOutput">The final output of the fixture</param>
+    /// <param name="endOfLine">The end-of-line sequence the output was formatted with</param>
+    /// <param name="parseOptions">The parse options the fixture was formatted with, or <see langword="null"/> for the defaults</param>
+    /// <returns>The failures; empty when no phase changes the output</returns>
+    public IReadOnlyList<string> Check(string finalOutput, string endOfLine, CSharpParseOptions parseOptions)
     {
-        IsEnded = true;
+        var endingName = endOfLine == "\n" ? "LF" : "CRLF";
+        var changes = PhaseStabilityCheck.FindChangingPhases(finalOutput, endOfLine, parseOptions, _createPhases());
+
+        _checkedFixtures.Add((finalOutput, endOfLine, parseOptions));
+
+        return changes.Select(change => $"{change.Phase} changes the final output under {endingName} line endings when it runs alone (FMT-PIPE-027). {change.Difference}")
+                      .ToList();
     }
 
     #endregion // Methods

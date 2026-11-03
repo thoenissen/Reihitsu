@@ -1,7 +1,5 @@
-﻿﻿using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 
 using Microsoft.CodeAnalysis.CSharp;
@@ -10,14 +8,15 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline;
 using Reihitsu.Formatter.Pipeline.Preparation;
-using Reihitsu.Formatter.Test.Helpers.Enumerations;
 
 namespace Reihitsu.Formatter.Test.Helpers;
 
 /// <summary>
-/// The phase-level stability check: every phase of the production pipeline, run alone on the final output of a fixture,
-/// must leave that output unchanged. A final output that two phases change and change back in every pass is stable as
-/// text and still fails this check
+/// The phase-level stability check (FMT-PIPE-027): every phase of the production pipeline, run alone on the final output
+/// of a fixture, must leave that output unchanged. A final output that two phases change and change back in every pass is
+/// stable as text and still fails this check. The helpers of <see cref="FormatterTestsBase"/> also run it on the output of
+/// an input with syntax errors, which the requirement does not cover; that is stricter than the requirement, so a failure
+/// there is a reversal between phases, not a violation of FMT-PIPE-027
 /// </summary>
 public static class PhaseStabilityCheck
 {
@@ -40,52 +39,30 @@ public static class PhaseStabilityCheck
     #region Methods
 
     /// <summary>
-    /// Starts recording the phase-level stability check for a test, with the entries of <see cref="PhaseReversalExceptionList"/>
-    /// and the production phases
+    /// Starts the check for a test, with the production phases
     /// </summary>
-    /// <param name="testName">The name of the test method, qualified with the full name of its class</param>
-    /// <param name="dataRow">The data row of the test execution, as <see cref="DataRowKey.Format"/> formats it, or <see langword="null"/> for a test that is not data-driven</param>
-    public static void BeginTest(string testName, string dataRow)
+    public static void BeginTest()
     {
-        _currentSession.Value = new PhaseStabilitySession(FormatTestKey(testName, dataRow), PhaseReversalExceptionList.Entries, CreateProductionPhases);
+        _currentSession.Value = new PhaseStabilitySession(CreateProductionPhases);
     }
 
     /// <summary>
-    /// Ends recording for the current test and fails when an entry of the test was reached by none of its fixtures,
-    /// including an entry of a test that never ran the check. A second call in the same test finds nothing left to report
+    /// Ends the check for the current test
     /// </summary>
     public static void EndTest()
     {
-        var session = _currentSession.Value;
-
         _currentSession.Value = null;
-
-        if (session == null
-            || session.IsEnded)
-        {
-            return;
-        }
-
-        session.End();
-
-        var failures = session.Recorder.FindUnreachedEntries();
-
-        if (failures.Count > 0)
-        {
-            Assert.Fail(string.Join(Environment.NewLine, failures));
-        }
     }
 
     /// <summary>
-    /// Runs the check on the final output of a fixture of the current test and fails on every change without an entry,
-    /// and on every entry of the fixture whose change no longer happens
+    /// Runs the check on the final output of a fixture of the current test and fails on every phase that changes it
     /// </summary>
     /// <param name="finalOutput">The final output of the fixture</param>
     /// <param name="endOfLine">The end-of-line sequence the output was formatted with</param>
     /// <param name="parseOptions">The parse options the fixture was formatted with, or <see langword="null"/> for the defaults</param>
     public static void Verify(string finalOutput, string endOfLine, CSharpParseOptions parseOptions)
     {
-        var failures = GetCurrentSession().Recorder.Check(finalOutput, endOfLine, parseOptions);
+        var failures = GetCurrentSession().Check(finalOutput, endOfLine, parseOptions);
 
         if (failures.Count > 0)
         {
@@ -96,10 +73,10 @@ public static class PhaseStabilityCheck
     /// <summary>
     /// Returns the fixtures the check ran on in the current test so far
     /// </summary>
-    /// <returns>The fingerprint, line ending, and parse options of every checked fixture, in the order the check ran</returns>
-    public static IReadOnlyList<(string Fingerprint, PhaseReversalLineEndings LineEnding, CSharpParseOptions ParseOptions)> GetCheckedFixtures()
+    /// <returns>The final output, end-of-line sequence, and parse options of every checked fixture, in the order the check ran</returns>
+    public static IReadOnlyList<(string FinalOutput, string EndOfLine, CSharpParseOptions ParseOptions)> GetCheckedFixtures()
     {
-        return GetCurrentSession().Recorder.CheckedFixtures;
+        return GetCurrentSession().CheckedFixtures;
     }
 
     /// <summary>
@@ -113,55 +90,6 @@ public static class PhaseStabilityCheck
     public static IReadOnlyList<PhaseChange> FindChangingPhases(string text, string endOfLine, CSharpParseOptions parseOptions)
     {
         return FindChangingPhases(text, endOfLine, parseOptions, CreateProductionPhases());
-    }
-
-    /// <summary>
-    /// Computes the fingerprint that identifies a text: the first 16 hexadecimal digits of the SHA-256 hash of the text
-    /// with every line break written as LF, so one fingerprint names a fixture's output under both line endings
-    /// </summary>
-    /// <param name="text">The text</param>
-    /// <returns>The fingerprint</returns>
-    public static string ComputeFingerprint(string text)
-    {
-        var normalized = text.Replace("\r\n", "\n");
-        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(normalized));
-
-        return Convert.ToHexString(hash, 0, 8).ToLowerInvariant();
-    }
-
-    /// <summary>
-    /// Formats the name of a test method, qualified with the full name of its class
-    /// </summary>
-    /// <param name="testClass">The test class</param>
-    /// <param name="testMethod">The name of the test method</param>
-    /// <returns>The qualified name</returns>
-    public static string FormatTestName(Type testClass, string testMethod)
-    {
-        return FormatTestName(testClass.FullName, testMethod);
-    }
-
-    /// <summary>
-    /// Formats the name of a test method, qualified with the full name of its class. The only statement of the format:
-    /// the runtime key of a test and the key of its entries both come from here
-    /// </summary>
-    /// <param name="testClassName">The full name of the test class, as <see cref="TestContext.FullyQualifiedTestClassName"/> or <see cref="Type.FullName"/> gives it</param>
-    /// <param name="testMethod">The name of the test method</param>
-    /// <returns>The qualified name</returns>
-    public static string FormatTestName(string testClassName, string testMethod)
-    {
-        return $"{testClassName}.{testMethod}";
-    }
-
-    /// <summary>
-    /// Formats the key that identifies one test execution: the qualified test name, followed by the data row in
-    /// parentheses for a data-driven test
-    /// </summary>
-    /// <param name="testName">The name of the test method, qualified with the full name of its class</param>
-    /// <param name="dataRow">The data row, or <see langword="null"/> for a test that is not data-driven</param>
-    /// <returns>The key</returns>
-    public static string FormatTestKey(string testName, string dataRow)
-    {
-        return dataRow == null ? testName : $"{testName}({dataRow})";
     }
 
     /// <summary>
@@ -212,18 +140,17 @@ public static class PhaseStabilityCheck
     }
 
     /// <summary>
-    /// Replaces, for the rest of the current test, the entries and the phases the check uses. The tests of the check use
-    /// it to drive the helpers and the test cleanup into their failures without a real reversal
+    /// Replaces, for the rest of the current test, the phases the check runs alone. The tests of the check use it to drive
+    /// the helpers into their failures without a real reversal
     /// </summary>
-    /// <param name="entries">The entries to apply instead of <see cref="PhaseReversalExceptionList"/></param>
     /// <param name="createPhases">Creates the phases to run alone instead of the production phases</param>
-    internal static void OverrideForCurrentTest(IReadOnlyList<PhaseReversalEntry> entries, Func<IReadOnlyList<IFormattingPhase>> createPhases)
+    internal static void OverrideForCurrentTest(Func<IReadOnlyList<IFormattingPhase>> createPhases)
     {
         var session = GetCurrentSession();
 
-        Assert.IsEmpty(session.Recorder.CheckedFixtures, "The check must be overridden before it first runs in the test.");
+        Assert.IsEmpty(session.CheckedFixtures, "The check must be overridden before it first runs in the test.");
 
-        session.Override(entries, createPhases);
+        session.Override(createPhases);
     }
 
     /// <summary>
