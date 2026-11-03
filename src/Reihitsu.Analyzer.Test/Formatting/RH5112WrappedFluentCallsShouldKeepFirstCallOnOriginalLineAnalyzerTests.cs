@@ -14,6 +14,75 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTests : BatchCodeFixTestsBase<RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer, RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineCodeFixProvider>
 {
+    #region Constants
+
+    /// <summary>
+    /// Source in a file indented by two spaces whose chain is the expression of a statement behind two blank lines, with its
+    /// first link wrapped, an anonymous method argument whose block the depth places, and a space in front of the statement's
+    /// semicolon
+    /// </summary>
+    private const string ChainOfStatementInTwoSpaceIndentedFileTestData = """
+                                                                          using System;
+
+                                                                          internal class Builder
+                                                                          {
+                                                                            internal Builder A(Action action) => this;
+                                                                          }
+
+                                                                          internal class Example
+                                                                          {
+                                                                            private static void M(Builder b)
+                                                                            {
+                                                                            }
+
+                                                                            private static void Run(Builder b)
+                                                                            {
+                                                                              M(b);
+
+
+                                                                              b
+                                                                                {|#0:.|}A(delegate
+                                                                                   {
+                                                                                     M(b);
+                                                                                   }) ;
+                                                                            }
+                                                                          }
+                                                                          """;
+
+    /// <summary>
+    /// Expected result of fixing <see cref="ChainOfStatementInTwoSpaceIndentedFileTestData"/>: only the chain changes, its
+    /// block keeps its place relative to the statement's first token, and the blank lines and the space in front of the
+    /// semicolon stay
+    /// </summary>
+    private const string ChainOfStatementInTwoSpaceIndentedFileResultData = """
+                                                                            using System;
+
+                                                                            internal class Builder
+                                                                            {
+                                                                              internal Builder A(Action action) => this;
+                                                                            }
+
+                                                                            internal class Example
+                                                                            {
+                                                                              private static void M(Builder b)
+                                                                              {
+                                                                              }
+
+                                                                              private static void Run(Builder b)
+                                                                              {
+                                                                                M(b);
+
+
+                                                                                b.A(delegate
+                                                                                {
+                                                                                    M(b);
+                                                                                }) ;
+                                                                              }
+                                                                            }
+                                                                            """;
+
+    #endregion // Constants
+
     #region Tests
 
     /// <summary>
@@ -1106,6 +1175,106 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a chain that is the expression of a statement in a file indented by two spaces changes only the
+    /// chain: the anonymous method's block keeps its place relative to the statement's first token, and the blank lines in
+    /// front of the statement and the space in front of its semicolon stay as written, under LF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    [Requirement("SHARED-CHAIN-009")]
+    public async Task VerifyFixOfChainOfStatementInTwoSpaceIndentedFileChangesOnlyTheChain()
+    {
+        await Verify(ChainOfStatementInTwoSpaceIndentedFileTestData.Replace("\r\n", "\n"),
+                     ChainOfStatementInTwoSpaceIndentedFileResultData.Replace("\r\n", "\n"),
+                     Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a chain that is the expression of a statement in a file indented by two spaces changes only the
+    /// chain: the anonymous method's block keeps its place relative to the statement's first token, and the blank lines in
+    /// front of the statement and the space in front of its semicolon stay as written, under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    [Requirement("SHARED-CHAIN-009")]
+    public async Task VerifyFixOfChainOfStatementInTwoSpaceIndentedFileChangesOnlyTheChainWithCrLf()
+    {
+        await Verify(NormalizeToCarriageReturnLineFeed(ChainOfStatementInTwoSpaceIndentedFileTestData),
+                     NormalizeToCarriageReturnLineFeed(ChainOfStatementInTwoSpaceIndentedFileResultData),
+                     Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a chain that is the expression of a statement indented off its depth changes only the chain:
+    /// the anonymous method's block keeps its place relative to the statement's first token, and the blank lines in front of
+    /// the statement and the space in front of its semicolon stay as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    [Requirement("SHARED-CHAIN-009")]
+    public async Task VerifyFixOfChainOfStatementOffItsDepthChangesOnlyTheChain()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class Builder
+                                {
+                                    internal Builder A(Action action) => this;
+                                }
+
+                                internal class Example
+                                {
+                                    private static void M(Builder b)
+                                    {
+                                    }
+
+                                    private static void Run(Builder b)
+                                    {
+                                        M(b);
+
+
+                                          b
+                                            {|#0:.|}A(delegate
+                                               {
+                                                   M(b);
+                                               }) ;
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System;
+
+                                  internal class Builder
+                                  {
+                                      internal Builder A(Action action) => this;
+                                  }
+
+                                  internal class Example
+                                  {
+                                      private static void M(Builder b)
+                                      {
+                                      }
+
+                                      private static void Run(Builder b)
+                                      {
+                                          M(b);
+
+
+                                            b.A(delegate
+                                            {
+                                                M(b);
+                                            }) ;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
     }
 
     #endregion // Tests

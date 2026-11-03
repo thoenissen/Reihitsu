@@ -826,6 +826,63 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies the context's layout for a chain target that is the expression of its context statement, as the RH5201 and
+    /// RH5112 fixes pass them, when the statement stands two columns deeper than its depth: the target starts the context's
+    /// first line, so the anonymous method's block, which the depth places, is shifted by the context's offset and keeps its
+    /// place relative to the statement's first token, and the wrapped link aligns under the first link
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task ChainTargetStartingItsStatementOffItsDepthShiftsTheBlockByTheContextsOffset()
+    {
+        const string input = "class C\n{\n    void M(B b)\n    {\n          b.A(delegate\n              {\n                  M(b);\n              })\n      .C() ;\n    }\n}";
+        const string expected = "class C\n{\n    void M(B b)\n    {\n          b.A(delegate\n          {\n              M(b);\n          })\n           .C() ;\n    }\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             root => root.DescendantNodes().OfType<InvocationExpressionSyntax>().First(),
+                                             root => root.DescendantNodes().OfType<ExpressionStatementSyntax>().First());
+    }
+
+    /// <summary>
+    /// Verifies the context's layout for a chain target that is the expression of its context statement, as the RH5201 and
+    /// RH5112 fixes pass them, in a file indented by two spaces: the anonymous method's block, which the depth places, is
+    /// shifted by the context's offset and keeps its place relative to the statement's first token
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task ChainTargetStartingItsStatementInTwoSpaceIndentedFileShiftsTheBlockByTheContextsOffset()
+    {
+        const string input = "class C\n{\n  void M(B b)\n  {\n    b.A(delegate\n        {\n          M(b);\n        })\n      .C() ;\n  }\n}";
+        const string expected = "class C\n{\n  void M(B b)\n  {\n    b.A(delegate\n    {\n        M(b);\n    })\n     .C() ;\n  }\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             root => root.DescendantNodes().OfType<InvocationExpressionSyntax>().First(),
+                                             root => root.DescendantNodes().OfType<ExpressionStatementSyntax>().First());
+    }
+
+    /// <summary>
+    /// Verifies the other side of the statement's indentation: for a chain target that is the expression of its context
+    /// statement at its depth, the context's offset is zero and the anonymous method's block stands where the depth places it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task ChainTargetStartingItsStatementAtItsDepthPlacesTheBlockByTheDepth()
+    {
+        const string input = "class C\n{\n    void M(B b)\n    {\n        b.A(delegate\n            {\n                M(b);\n            })\n    .C() ;\n    }\n}";
+        const string expected = "class C\n{\n    void M(B b)\n    {\n        b.A(delegate\n        {\n            M(b);\n        })\n         .C() ;\n    }\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             root => root.DescendantNodes().OfType<InvocationExpressionSyntax>().First(),
+                                             root => root.DescendantNodes().OfType<ExpressionStatementSyntax>().First());
+    }
+
+    /// <summary>
     /// Selects the only node of the given type in the root
     /// </summary>
     /// <typeparam name="TNode">Type of the node</typeparam>
