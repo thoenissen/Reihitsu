@@ -17,7 +17,6 @@ public sealed class PhaseChange
     {
         Phase = phase;
         Output = output;
-        OutputFingerprint = PhaseStabilityCheck.ComputeFingerprint(output);
         Difference = DescribeFirstDifference(input, output);
     }
 
@@ -34,11 +33,6 @@ public sealed class PhaseChange
     /// The text the phase returned
     /// </summary>
     public string Output { get; }
-
-    /// <summary>
-    /// The fingerprint of the text the phase returned, which identifies what the phase changed
-    /// </summary>
-    public string OutputFingerprint { get; }
 
     /// <summary>
     /// A description of the first line the phase changed
