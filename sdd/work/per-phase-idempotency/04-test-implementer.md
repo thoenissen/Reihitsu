@@ -1,5 +1,5 @@
 Role: test implementer
-Commit: (this commit; see `git log` for the sha of "Tests: per-phase check without the exception list")
+Commit: ffc661d (tests); this line amended in the follow-up commit
 Verdict: tests written
 
 My prompt carried no intended fix, suspected cause, or hoped-for verdict beyond the decisions recorded in `00-lead.md`.
