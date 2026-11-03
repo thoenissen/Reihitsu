@@ -848,7 +848,7 @@ The braces follow the target's first token, which keeps its column in the docume
 
 ### FMT-PIPE-024 — Node-level input facts are plain values
 
-The node-level entry points MUST give the phases the facts in the table below about the document around their root, and no other, besides the line ending (FMT-PIPE-007), the language version (FMT-PIPE-008), and the transforms they skip (FMT-PIPE-011). Every fact MUST be a plain value — a kind, a flag, a number, or the kind and text of a trivia — and MUST NOT hold a node, a token, or a trivia of the document.
+The node-level entry points MUST give the phases the facts in the table below about the document around their root, and no other, besides the line ending (FMT-PIPE-007), the language version (FMT-PIPE-008), and the transforms and rewrites they skip (FMT-PIPE-011, FMT-PIPE-028). Every fact MUST be a plain value — a kind, a flag, a number, or the kind and text of a trivia — and MUST NOT hold a node, a token, or a trivia of the document.
 
 | Fact | Value | `FormatNode` | `FormatNodeInDocumentAsync` | `FormatNodeInDocumentWithContextAsync` |
 |---|---|---|---|---|
@@ -998,5 +998,41 @@ class C
         Call(1,
              2);
     }
+}
+```
+
+### FMT-PIPE-028 — Node-level entry points keep region directives
+
+`FormatNode`, `FormatNodeInDocumentAsync`, and `FormatNodeInDocumentWithContextAsync` MUST NOT change the text of a `#region` or `#endregion` directive in the code they format: they apply none of the region phase's requirements (FMT-REGION) — not the capitalization of a description, not the form of a `#region` line, and not the comment or the space behind an `#endregion`. Only `FormatDocumentAsync` and `FormatSyntaxTree` apply them.
+
+Why: These entry points serve code fixes, and a code fix changes only the code its diagnostic is about (SHARED-FIX-006). A region's name, its line form, and its `#endregion` comment are what the region rules and whole-document formatting decide; a fix for an unrelated diagnostic that rewrote them would hand the user a second edit nobody asked for, also to a user who does not use the region rules.
+
+Example — `FormatNodeInDocumentAsync` with the class `C` as target:
+
+```csharp
+class C
+{
+    #region    fields
+
+    int P { get { return 1; } }
+
+    #endregion
+}
+```
+
+```csharp
+class C
+{
+    #region    fields
+
+    int P
+    {
+        get
+        {
+            return 1;
+        }
+    }
+
+    #endregion
 }
 ```

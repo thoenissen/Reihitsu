@@ -5,7 +5,7 @@
 | ID prefix | FMT-TAB |
 | Status | Active |
 | Code owners | `TabReplacementPhase` |
-| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-019, FMT-RAW-007, FMT-REGION-007, FMT-INDENT-008 |
+| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-019, FMT-RAW-007, FMT-REGION-001, FMT-REGION-007, FMT-INDENT-008 |
 
 This spec covers `TabReplacementPhase`, the TabReplacement sub-phase that the preparation phase runs first (FMT-PIPE-001): the replacement of every tab in whitespace and between the tokens of a directive with four spaces, before any other phase runs, and the text in which tabs are kept.
 
@@ -50,7 +50,7 @@ class C
 }
 ```
 
-A tab between `#region` and its description is whitespace between the directive's tokens and becomes four spaces in this phase; a tab after the first word of the description is part of the description and stays. The region phase that runs later writes one space between `#region` and its description (FMT-REGION-007), so the four spaces do not reach the output. Through the whole pipeline, a region written as `#region`, a tab, `Bar` and one written as `#region`, a tab, `foo`, each closed by a bare `#endregion`, are both written with one space:
+A tab between `#region` and its description is whitespace between the directive's tokens and becomes four spaces in this phase; a tab after the first word of the description is part of the description and stays. The region phase that runs later writes one space between `#region` and its description (FMT-REGION-007), so the four spaces do not reach the output. Through the whole pipeline, a region written as `#region`, a tab, `Bar` and one written as `#region`, a tab, `foo`, each closed by a bare `#endregion`, are both written with one space; `foo` also starts with an upper-case letter (FMT-REGION-001):
 
 ```csharp
 class C
