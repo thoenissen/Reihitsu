@@ -5,15 +5,15 @@
 | ID prefix | FMT-USING |
 | Status | Active |
 | Code owners | `UsingDirectiveOrderingPhase`, `UsingDirectiveOrderingRewriter`, `UsingGrouping`, `UsingLeadingTriviaBuilder`, `UsingTrailingTriviaBuilder` |
-| Uses | SHARED-USING-001, SHARED-USING-004, SHARED-USING-007, SHARED-USING-008, SHARED-USING-009, SHARED-USING-010, SHARED-USING-011, FMT-PIPE-003, FMT-BLANK-011, SHARED-FIX-006, SHARED-FIX-007 |
+| Uses | SHARED-USING-001, SHARED-USING-004, SHARED-USING-007, SHARED-USING-008, SHARED-USING-009, SHARED-USING-010, SHARED-USING-011, FMT-PIPE-003, FMT-PIPE-030, FMT-BLANK-011, SHARED-FIX-006, SHARED-FIX-007 |
 
-This spec covers what the `UsingDirectiveOrderingPhase` decides on its own: how a using block is rebuilt once its canonical order is known — blank lines between groups, one directive per line, and where header, leading, and trailing comments end up. The order itself and the safety guard are the shared policy in SHARED-USING. The code fixes of RH7201–RH7207 run this phase on the one block they fix, so its output is also their output.
+This spec covers what the `UsingDirectiveOrderingPhase` decides on its own: how a using block is rebuilt once its canonical order is known — blank lines between groups, one directive per line, and where header, leading, and trailing comments end up. The order itself and the safety guard are the shared policy in SHARED-USING. The code fixes of RH7201–RH7207 organize the one block they fix through `ReihitsuFormatter.OrganizeUsingDirectivesInDocumentAsync`, which runs this phase alone on the block's scope (FMT-PIPE-030), so its output is also their output.
 
 ## Non-goals
 
 - The canonical group order, the order within a group, and when a block is safe to reorder — SHARED-USING-001 to SHARED-USING-009.
 - The blank line the blank-line phase inserts before a comment where none stood, also before a comment that leads a using directive, and the blank lines between the using block and the code around it (FMT-BLANK).
-- The final indentation of each directive (FMT-INDENT). This phase only places a split-off directive at the scope's indentation (SHARED-USING-010); the indentation phase decides the column.
+- The final indentation of each directive in document-level formatting (FMT-INDENT). This phase only places a split-off directive at the scope's indentation (SHARED-USING-010); in the formatter's output the indentation phase decides the column, and in the output of FMT-PIPE-030 that placement is final.
 - Adding, removing, or deduplicating using directives, and moving them into or out of a namespace.
 
 ## Requirements
