@@ -5,7 +5,7 @@
 | ID prefix | FMT-PIPE |
 | Status | Active |
 | Code owners | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `PreparationPhase`, `FormattingContext`, `PrecedingTokenFacts`, `RootListPosition`, `RootConstruct`, `RootConstructExtensions`, `TriviaFact`, `FluentChainBoundary`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities`, `BlockWrapTriviaUtilities` |
-| Uses | RH3208-003, SHARED-BLANK-002, SHARED-CHAIN-001, SHARED-FIX-001, SHARED-FIX-006, SHARED-FIX-007, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BLANK-018, FMT-BREAK-001, FMT-BREAK-006, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-BREAK-033, FMT-BREAK-036, FMT-CLEAN-001, FMT-CLEAN-005, FMT-CLEAN-007, FMT-CLEAN-008, FMT-DOC-001, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-002, FMT-INDENT-003, FMT-INDENT-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-012, FMT-INDENT-018, FMT-INDENT-022, FMT-INDENT-024, FMT-INDENT-028, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-026, FMT-SWITCH-003, FMT-SWITCH-008, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003, FMT-USING-010 |
+| Uses | RH3208-003, SHARED-BLANK-002, SHARED-CHAIN-001, SHARED-FIX-001, SHARED-FIX-006, SHARED-FIX-007, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BLANK-018, FMT-BREAK-001, FMT-BREAK-006, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-BREAK-033, FMT-BREAK-036, FMT-CLEAN-001, FMT-CLEAN-005, FMT-CLEAN-007, FMT-CLEAN-008, FMT-DOC-001, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-002, FMT-INDENT-003, FMT-INDENT-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-012, FMT-INDENT-018, FMT-INDENT-022, FMT-INDENT-024, FMT-INDENT-028, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-023, FMT-STRUCT-026, FMT-SWITCH-003, FMT-SWITCH-008, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003, FMT-USING-010 |
 
 This spec covers what holds for the formatter as a whole: the public entry points, the fixed phase order, and the invariants every phase must keep. What an individual phase decides is specified in that phase's own spec.
 
@@ -1338,3 +1338,78 @@ class C
 ```
 
 `FormatDocumentAsync` with the same input writes `#region Bar` and `#endregion // Bar`, as the region phase decides.
+
+### FMT-PIPE-029 — The context entry point writes back every field the split makes of its target
+
+When the target of `FormatNodeInDocumentWithContextAsync` is a field declaration that the structural phase splits in the context (FMT-STRUCT-021), the entry point MUST write back, in place of the target, every field the split makes of it, in source order, and nothing else of the context (FMT-PIPE-010). The first of these fields stands in for the target in FMT-PIPE-017 and FMT-PIPE-018: it keeps the target's leading trivia as it stands in the document, and its first token keeps the line and the column the target's first token has there. The last keeps the target's trailing trivia (FMT-PIPE-010). Every other line of the fields — the lines of the later fields, of the comments in front of them, and the line breaks and blank lines between two of the fields — is written as the phases lay out the context, and ends in the column FMT-PIPE-017 gives the target's other lines: a later field's first line, which the indentation phase places by the depth, stands where the context's depth places a member. When another member of the context stands in front of the target on the target's line, the first field MUST start the next line instead, as SHARED-FIX-007 requires of a member a fix changes: the whitespace between that member and the target MUST be replaced by the line break and the indentation the phases lay out there, so no whitespace is left at the end of the member's line, and the first field's first token stands where the context's depth places a member. A target behind a token that is not a member, such as the `{` of its type, keeps its line.
+
+This requirement decides the input the RH7101 code fix passes (`AGENTS.md`, *Supported inputs*): a field declaration with more than one declarator that the split does not refuse (FMT-STRUCT-023), as target, and the class, struct, record, or interface declaration whose member it is, as context. Another combined field declaration of the context, or of a type nested in it, is split in the root like the target and is not written back.
+
+Why: The RH7101 fix replaces one declaration by several, a change the structural phase makes only to a member of a type, so the fix needs the type as context. Writing back the split fields, and only them, leaves every other member of the type as it stands and keeps the blank lines and comments above the declaration (SHARED-FIX-006), while the phases lay out the fields the fix creates as document-level formatting lays them out (SHARED-FIX-007). The blank lines between two of the fields are inside the code the fix changes, not between it and a neighbour, so they are the phases' decision. A later field is a line the context's depth places, like any line of a target that the indentation phase places by the depth (FMT-PIPE-017). A member that would share its line with another member after the fix is the one place where the fix changes what stands in front of the declaration, because SHARED-FIX-007 gives each member a fix changes a line of its own.
+
+Example — `FormatNodeInDocumentWithContextAsync` with the field `_x, _y` as target and the class as context; the comment in front of `_y` gets the blank line above it that the blank-line phase writes, and the other field of the class and the field of `D` stay as they are:
+
+```csharp
+class C
+{
+    private int _x, // horizontal
+                /* vertical */ _y;
+    private int _a, _b;
+
+    class D
+    {
+        private int _c, _d;
+    }
+}
+```
+
+```csharp
+class C
+{
+    private int _x; // horizontal
+
+    /* vertical */
+    private int _y;
+    private int _a, _b;
+
+    class D
+    {
+        private int _c, _d;
+    }
+}
+```
+
+Example — the target off its member column: the first field keeps the target's column, and the later field stands where the class's depth places a member:
+
+```csharp
+class C
+{
+      private int _x, _y;
+}
+```
+
+```csharp
+class C
+{
+      private int _x;
+    private int _y;
+}
+```
+
+Example — the target behind another member on its line: the first field starts the next line:
+
+```csharp
+class C
+{
+    private int _p; private int _x, _y;
+}
+```
+
+```csharp
+class C
+{
+    private int _p;
+    private int _x;
+    private int _y;
+}
+```
