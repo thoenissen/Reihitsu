@@ -68,6 +68,16 @@ internal sealed class LayoutModel
     /// </summary>
     private Func<SyntaxToken, int> _getColumnBeforeRawStringShift;
 
+    /// <summary>
+    /// The first token of the target the target-position fact marks, or <see langword="default"/> when the root has none
+    /// </summary>
+    private SyntaxToken _targetFirstToken;
+
+    /// <summary>
+    /// The column of <see cref="_targetFirstToken"/> in its document
+    /// </summary>
+    private int _targetFirstTokenColumn;
+
     #endregion // Fields
 
     #region Properties
@@ -107,6 +117,33 @@ internal sealed class LayoutModel
     {
         _rawStringLineShifts = rawStringLineShifts.IsEmpty ? null : rawStringLineShifts;
         _getColumnBeforeRawStringShift = getColumnBeforeRawStringShift;
+    }
+
+    /// <summary>
+    /// Uses the target-position fact (FMT-PIPE-024): the lines of the target are laid out as if its first token stood in the given
+    /// column, whatever line and column the earlier phases left it in within the root; a target that starts its line has that
+    /// token put into the column by the entry point's write-back of the leading trivia (FMT-PIPE-017)
+    /// </summary>
+    /// <param name="targetFirstToken">The first token of the target, in the root this model lays out</param>
+    /// <param name="column">The column of that token in its document</param>
+    public void UseTargetFirstToken(SyntaxToken targetFirstToken, int column)
+    {
+        _targetFirstToken = targetFirstToken;
+        _targetFirstTokenColumn = column;
+    }
+
+    /// <summary>
+    /// Gets the first token of the target the target-position fact marks, and the column it stands in
+    /// </summary>
+    /// <param name="targetFirstToken">The first token of the target</param>
+    /// <param name="column">The column of that token in its document</param>
+    /// <returns><see langword="true"/> if the root has such a target; otherwise, <see langword="false"/></returns>
+    public bool TryGetTargetFirstToken(out SyntaxToken targetFirstToken, out int column)
+    {
+        targetFirstToken = _targetFirstToken;
+        column = _targetFirstTokenColumn;
+
+        return targetFirstToken.RawKind != 0;
     }
 
     /// <summary>

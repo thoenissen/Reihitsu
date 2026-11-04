@@ -235,8 +235,8 @@ public static class ReihitsuFormatter
 
     /// <summary>
     /// Formats a target node using a containing node for positional context, then rewrites only the
-    /// target node back into the document. This is useful when the target starts in the middle of a
-    /// line and formatter phases need the preceding owner tokens to compute absolute columns
+    /// target node back into the document. This is useful when the formatter phases need the code of the
+    /// context around the target to lay the target out
     /// </summary>
     /// <param name="document">The Roslyn Document containing both nodes</param>
     /// <param name="targetNode">The syntax node whose formatted result should be applied</param>
@@ -248,8 +248,11 @@ public static class ReihitsuFormatter
     /// and indexers keep their accessor list rather than becoming expression-bodied members, because this entry point
     /// serves code fixes; for the same reason, no region requirement is applied (FMT-PIPE-028). Version-dependent rules
     /// follow the effective language version of the document's project, clamped to the newest supported version. The
-    /// target's leading trivia is written back as it stands in the document, so a target that starts a later line of
-    /// the context keeps that line's column. When the target is the context node, formatting is delegated to
+    /// target's leading trivia is written back as it stands in the document, and everything in front of the target on
+    /// its line stays as it is, so the target's first token keeps its line and its column in the document, also where
+    /// the context's layout would put it on another line or in another column; the target's other lines are laid out
+    /// as the formatter lays them out from that column, so a line aligned to an anchor on the target's first line stays
+    /// on that anchor (FMT-PIPE-017, FMT-PIPE-018). When the target is the context node, formatting is delegated to
     /// <see cref="FormatNodeInDocumentAsync(Document, SyntaxNode, CancellationToken)"/>, including its removal of the
     /// separator whitespace in front of the target
     /// </remarks>
@@ -289,15 +292,22 @@ public static class ReihitsuFormatter
                                         : ReihitsuFormatterHelpers.ComputeDocumentColumn(contextNode.GetFirstToken(), countsOwnWhitespaceTabsAsReplaced: false);
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var baseIndentLevel = SyntaxIndentationUtilities.ComputeIndentLevel(contextNode);
+        var targetTokenAnnotation = new SyntaxAnnotation();
+        var originalFirstToken = targetNode.GetFirstToken();
+
+        // Everything in front of the target's first token is kept as it stands in the document, because only the target
+        // is written back, so that token keeps its line and its column there, and the indentation phase lays out the
+        // target's other lines from that column, wherever the phases leave the token in the context (FMT-PIPE-017,
+        // FMT-PIPE-024)
         var context = new FormattingContext(endOfLine,
                                             baseIndentLevel,
                                             preserveRootDocumentationBoundary: contextNode != root,
                                             disabledStructuralTransforms: CodeFixDisabledStructuralTransforms,
                                             languageVersion: LanguageVersionResolver.Resolve(document.Project.ParseOptions),
                                             rootFirstTokenColumn: rootFirstTokenColumn,
-                                            formatsRegionDirectives: false);
-        var targetTokenAnnotation = new SyntaxAnnotation();
-        var originalFirstToken = targetNode.GetFirstToken();
+                                            formatsRegionDirectives: false,
+                                            targetAnnotation: targetTokenAnnotation,
+                                            targetFirstTokenColumn: ReihitsuFormatterHelpers.ComputeDocumentColumn(originalFirstToken, countsOwnWhitespaceTabsAsReplaced: false));
         var annotatedTarget = targetNode.ReplaceToken(originalFirstToken,
                                                       originalFirstToken.WithAdditionalAnnotations(targetTokenAnnotation));
 
@@ -313,9 +323,8 @@ public static class ReihitsuFormatter
         }
 
         // The target's leading trivia is written back as it stands in the document, in every case: its blank lines, its
-        // comments and directives in their columns, and the whitespace in front of its first token (FMT-PIPE-018). A
-        // target that starts a later line of its context therefore keeps that line's column, while its other lines take
-        // the columns the phases gave them - the gap FMT-PIPE-017 records
+        // comments and directives in their columns, and the whitespace in front of its first token (FMT-PIPE-018). The
+        // target's first token therefore stays where the document has it, the column its other lines were laid out from
         var formattedFirstToken = formattedTarget.GetFirstToken();
         var updatedFirstToken = formattedFirstToken.WithLeadingTrivia(originalFirstToken.LeadingTrivia)
                                                    .WithoutAnnotations(targetTokenAnnotation);
