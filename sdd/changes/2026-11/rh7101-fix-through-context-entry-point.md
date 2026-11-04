@@ -11,7 +11,7 @@
 
 Code fixes reach a formatter phase or structural transform only through `ReihitsuFormatter` (FMT-PIPE-009). Two fixes did not, and change:
 
-- **RH7101** stops running the field-split transform on its own. It formats the reported field declaration with `FormatNodeInDocumentWithContextAsync`, the field as target and the type that declares it as context. The structural phase splits the field in the context as document-level formatting splits it (FMT-STRUCT-021, FMT-STRUCT-022), the later phases lay the fields out, and the entry point writes back every field the split makes of the target, and nothing else of the type (FMT-PIPE-029). The first field keeps the target's leading trivia and its first token's line and column in the document (FMT-PIPE-017, FMT-PIPE-018); the last keeps the target's trailing trivia (FMT-PIPE-010); everything between them is the phases' layout. No field shares a line with another member: a member in front of or behind the declaration on its line has the first field, or itself, start the next line, and a comment in that gap stays behind the code in front of it (SHARED-FIX-007). The fix is offered exactly where the formatter splits the declaration; it asks `ReihitsuFormatter.SplitsFieldDeclaration` (FMT-PIPE-031) instead of calling the transform's guard.
+- **RH7101** stops running the field-split transform on its own. It formats the reported field declaration with `FormatNodeInDocumentWithContextAsync`, the field as target and the type that declares it as context. The structural phase splits the field in the context as document-level formatting splits it (FMT-STRUCT-021, FMT-STRUCT-022), the later phases lay the fields out, and the entry point writes back every field the split makes of the target, and nothing else of the type (FMT-PIPE-029). The first field keeps the target's leading trivia and its first token's line and column in the document (FMT-PIPE-017, FMT-PIPE-018); the last keeps the target's trailing trivia (FMT-PIPE-010); everything between them is the phases' layout. No field shares a line with another member: a member in front of or behind the declaration on its line has the first field, or itself, start the next line, with one line break and no blank line; a comment in that gap stays behind the code in front of it, and a documentation comment goes with the member it documents (SHARED-FIX-006, SHARED-FIX-007). The fix is offered exactly where the formatter splits the declaration; it asks `ReihitsuFormatter.SplitsFieldDeclaration` (FMT-PIPE-031) instead of calling the transform's guard.
 - **RH7201–RH7207** stop running the using-directive phase themselves. They call `ReihitsuFormatter.OrganizeUsingDirectivesInDocumentAsync` with the scope of the reported directive (FMT-PIPE-030), which runs that phase alone and writes back the scope's using block. Their output does not change; the scope's indentation in front of a directive the phase moves onto its own line stays that entry point's specified layout (FMT-USING-003, SHARED-USING-010).
 
 The field split loses the layout it wrote only for the RH7101 fix: the indentation in front of each field it creates and of each comment it moves in front of one, and the line break in front of a created field where no separator needs one. It keeps the separators FMT-STRUCT-026 requires of every structural transform, and the two pieces of layout that FMT-STRUCT-022 decides and no later phase decides again: one space in front of a comment that trailed a separating comma, and the line break behind a comment it moves onto its own line.
@@ -311,6 +311,62 @@ class C
 
 The same holds with a member on one side only. A declaration behind the `{` or in front of the `}` of its type keeps its line.
 
+A documentation comment in the gap goes with the member behind it, onto the next line, and gets no blank line above it, where document-level formatting writes one:
+
+```csharp
+// input
+class C
+{
+    private int _p; /** X. */ private int _x, _y;
+}
+```
+
+```csharp
+// before
+class C
+{
+    private int _p; /** X. */ private int _x;
+private int _y;
+}
+```
+
+```csharp
+// after
+class C
+{
+    private int _p;
+    /** X. */ private int _x;
+    private int _y;
+}
+```
+
+```csharp
+// input
+class C
+{
+    private int _a, _b; /** Q. */ private int _q;
+}
+```
+
+```csharp
+// before
+class C
+{
+    private int _a;
+    private int _b; /** Q. */ private int _q;
+}
+```
+
+```csharp
+// after
+class C
+{
+    private int _a;
+    private int _b;
+    /** Q. */ private int _q;
+}
+```
+
 ### 8. A declaration off its member column, with spaces or a tab
 
 ```csharp
@@ -470,10 +526,10 @@ The maintainer took every recommendation of the batch asked before the tests:
 - Case 10: the RH7101 analyzer does not report while the file has a syntax error.
 - Case 12: the node-level entry points do not check the generated-code header; the analyzers' decision governs; document-level formatting and the CLI keep the check.
 - The using fixes go through a `ReihitsuFormatter` entry point that runs only the using-directive phase; their outputs and the scope indentation stay.
-- Code-fix code runs no formatter phase or transform except through `ReihitsuFormatter`; an architecture test enforces it; formatter helpers stay callable.
+- Code-fix code runs no formatter phase or transform except through `ReihitsuFormatter`; an architecture test enforces it; formatter helpers stay callable. The rule is keyed on the phase, transform, and rewriter types and `FormattingPipeline`, not on a namespace, so a utilities class such as `ExpressionBodiedTransformUtilities` stays callable.
 - Principle: where an analyzer reports, a code fix is offered.
 
-Case 7 follows SHARED-FIX-007's shared-line bullet, which is unchanged, and the comment in the gap stays where document-level formatting keeps it.
+Case 7 follows SHARED-FIX-007's shared-line bullet, which is unchanged: a comment in the gap stays behind the code in front of it, and a documentation comment goes with its member, where document-level formatting places both; the gap gets no blank line (SHARED-FIX-006). FMT-PIPE-018 and SHARED-FIX-006 decide the documentation-comment variants, which keep the comment where it is in the trivia.
 
 ### RH7101 formats through the context entry point
 

@@ -273,13 +273,13 @@ Given to `FormatNode` without a parent, the class `Empty` from a tree parsed as 
 
 ### FMT-PIPE-009 — Host-independent entry points
 
-The formatter MUST expose its behavior through `ReihitsuFormatter` on Roslyn objects — `FormatDocumentAsync`, `FormatSyntaxTree`, `FormatNode`, `FormatNodeInDocumentAsync`, `FormatNodeInDocumentWithContextAsync`, `OrganizeUsingDirectivesInDocumentAsync` (FMT-PIPE-030), and `SplitsFieldDeclaration` (FMT-PIPE-031) — and MUST NOT read files, the console, or configuration itself. `FormatDocumentAsync` and `FormatSyntaxTree` MUST produce the same text for the same input and language version. A code fix MUST reach a formatter phase or structural transform only through these members: it MUST NOT run a phase or a transform itself, nor call a member of one. Formatter helpers that are no phase and no transform, such as `ReihitsuFormatterHelpers`, stay callable.
+The formatter MUST expose its behavior through `ReihitsuFormatter` on Roslyn objects — `FormatDocumentAsync`, `FormatSyntaxTree`, `FormatNode`, `FormatNodeInDocumentAsync`, `FormatNodeInDocumentWithContextAsync`, `OrganizeUsingDirectivesInDocumentAsync` (FMT-PIPE-030), and `SplitsFieldDeclaration` (FMT-PIPE-031) — and MUST NOT read files, the console, or configuration itself. `FormatDocumentAsync` and `FormatSyntaxTree` MUST produce the same text for the same input and language version. A code fix MUST reach a formatter phase or structural transform only through these members: it MUST NOT run a phase, a transform, or another rewriter a phase runs, nor call a member of one, nor use `FormattingPipeline`. The rule is keyed on those types, not on a namespace: a formatter helper or utility class that is none of them stays callable, such as `ReihitsuFormatterHelpers` or a utilities class that a transform also calls, like `ExpressionBodiedTransformUtilities`, wherever it is declared.
 
 Why: The CLI, the analyzer code fixes, and the Playground share one engine. Keeping file access and reporting out of the formatter means every host formats identically and a host-specific behavior can never leak into another host. A code fix that runs a phase or a transform on its own takes that component out of the pipeline, so the component has to lay out its own output for the fix, and a change to the pipeline's division of work cannot see the fix; through `ReihitsuFormatter`, every path a code fix takes into the formatter is one this spec names.
 
 ### FMT-PIPE-010 — Node-level entry points format only their target
 
-`FormatNodeInDocumentAsync` and `FormatNodeInDocumentWithContextAsync` MUST rewrite only the target node and keep the rest of the document as it is. The one exception is the whitespace that ended the line before a documentation comment the target moves onto its own line, which MUST be removed as document-level formatting removes it. `FormatNodeInDocumentAsync` MUST keep the target's leading trivia when the target does not start its line or is a direct child of the root; `FormatNodeInDocumentWithContextAsync` MUST keep it in every case (FMT-PIPE-018). Both MUST keep the target's trailing trivia in every case. They format the target, or the context that holds it, as a root of its own (FMT-PIPE-023), and what the phases know of the document around that root is the facts FMT-PIPE-024 lists.
+`FormatNodeInDocumentAsync` and `FormatNodeInDocumentWithContextAsync` MUST rewrite only the target node and keep the rest of the document as it is. There are two exceptions. The first is the whitespace that ended the line before a documentation comment the target moves onto its own line, which MUST be removed as document-level formatting removes it. The second is the whitespace between a target of `FormatNodeInDocumentWithContextAsync` that the split makes several fields of and another member on its line, which FMT-PIPE-029 replaces by a line break. `FormatNodeInDocumentAsync` MUST keep the target's leading trivia when the target does not start its line or is a direct child of the root; `FormatNodeInDocumentWithContextAsync` MUST keep it in every case (FMT-PIPE-018). Both MUST keep the target's trailing trivia, apart from the whitespace FMT-PIPE-029 replaces behind the target. They format the target, or the context that holds it, as a root of its own (FMT-PIPE-023), and what the phases know of the document around that root is the facts FMT-PIPE-024 lists.
 
 Why: These entry points serve code fixes, which change only the code their diagnostic is about (SHARED-FIX-006). Reformatting the surrounding document would turn a one-line fix into an unrelated diff.
 
@@ -874,9 +874,9 @@ Example — not shown as input blocks because the inputs contain tabs: the state
 
 ### FMT-PIPE-018 — The context entry point writes back its target's leading trivia as in the document
 
-`FormatNodeInDocumentWithContextAsync` MUST write back the target's leading trivia as it stands in the document, in every case: its blank lines, its comments and directives in their columns, and the whitespace in front of the target's first token. The blank-line requirements (FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014) and the columns the indentation phase gives those lines do not change it. This requirement does not decide the leading trivia of a target of `FormatNodeInDocumentAsync`, which FMT-PIPE-010 states.
+`FormatNodeInDocumentWithContextAsync` MUST write back the target's leading trivia as it stands in the document, in every case: its blank lines, its comments and directives in their columns, and the whitespace in front of the target's first token. The blank-line requirements (FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014) and the columns the indentation phase gives those lines do not change it. The one exception is a target that FMT-PIPE-029 moves off the line of another member in front of it: its leading trivia is written back as it stands, but the line break written in front of it puts what starts the new line where the context's depth places a member, not in the column the target's first token has in the document. This requirement does not decide the leading trivia of a target of `FormatNodeInDocumentAsync`, which FMT-PIPE-010 states.
 
-Writing that trivia back MUST NOT move a line of the target that the indentation phase lays out: the trivia written back puts the target's first token on its line and in its column in the document, and the indentation phase lays out the target's other lines from that column, which the target-position fact gives it (FMT-PIPE-017, FMT-PIPE-024), not from the column the token has in the root. What the phases do in the root with that trivia and with the code in front of the target — a blank line they add or remove in it, a comment or a directive they move, a line break they add or remove in front of the target's first token, the spacing they write there, or a move of the line that token stands on — is not written back and decides no line or column of the result. For a target that does not start its line, what stands in front of it on that line is outside the target and stays as in the document (FMT-PIPE-010). The write-back also restores the tabs and line endings the preparation phase rewrites in every root (FMT-PIPE-019).
+Writing that trivia back MUST NOT move a line of the target that the indentation phase lays out: the trivia written back puts the target's first token on its line and in its column in the document (in the exception above, in the column the line break gives it), and the indentation phase lays out the target's other lines from that column, which the target-position fact gives it (FMT-PIPE-017, FMT-PIPE-024), not from the column the token has in the root. What the phases do in the root with that trivia and with the code in front of the target — a blank line they add or remove in it, a comment or a directive they move, a line break they add or remove in front of the target's first token, the spacing they write there, or a move of the line that token stands on — is not written back and decides no line or column of the result. For a target that does not start its line, what stands in front of it on that line is outside the target and stays as in the document (FMT-PIPE-010). The write-back also restores the tabs and line endings the preparation phase rewrites in every root (FMT-PIPE-019).
 
 Why: The entry point serves code fixes whose target starts a later line of the context, such as the RH5111 fix of an enum member, a parameter, or a declarator. A fix must not change the blank lines between the code it changes and its neighbours (SHARED-FIX-006), and keeping the trivia as it stands keeps them. The phases lay out the whole context and may decide that trivia differently, but the entry point discards their decision; a line of the target laid out from the place the discarded decision gave the first token — the lines aligned to that token — would stand off it. Laying those lines out from the column the written-back trivia gives the first token makes the write-back agree with the layout, whatever the phases did with the trivia in the root, so no phase needs to leave the trivia alone for it; and the preparation phase can replace tabs and line endings in the whole root before any other phase reads it while a tab-indented file keeps its tabs in front of the target.
 
@@ -1366,15 +1366,16 @@ When the target of `FormatNodeInDocumentWithContextAsync` is a field declaration
 
 The fields MUST NOT share a line with another member of the context, as SHARED-FIX-007 requires of a member a fix changes:
 
-- When another member stands in front of the target on the target's line, the first field MUST start the next line instead of keeping the target's line and column: the whitespace between that member and the target MUST be replaced by the line break and the indentation the phases lay out there, and the first field's first token stands where the context's depth places a member.
-- When another member stands behind the target on the target's line, that member MUST start the next line: the whitespace between the last field and that member MUST be replaced by the line break and the indentation the phases lay out there, and the member keeps everything else as it stands.
-- A comment between the target and the other member on that line stays where it stands, behind the code in front of it: only the whitespace behind the comment is replaced, as document-level formatting replaces it. No whitespace is left at the end of a line.
+- When another member stands in front of the target on the target's first line, the first field MUST start the next line instead of keeping the target's line and column: the whitespace between that member and the target MUST be replaced by a line break and the indentation the phases lay out there, so the first field's line — the target's leading trivia, such as a documentation comment, and then its first token — starts where the context's depth places a member.
+- When another member stands behind the target on the target's last line, that member MUST start the next line: the whitespace between the last field and that member MUST be replaced by a line break and the indentation the phases lay out there, and the member keeps everything else as it stands, its leading trivia included.
+- What stands in such a gap stays with the token whose trivia it is. A comment in the trailing trivia of the token in front of the gap — the last token of the other member in front, or of the target — stays where it stands, behind that token, and only the whitespace behind the comment is replaced. A documentation comment is leading trivia of the token behind the gap and goes with its member onto the next line: in front of the target, it starts the first field's line; behind the target, it starts the other member's line.
+- The gap gets exactly one line break and no blank line, also where document-level formatting writes a blank line there (SHARED-FIX-006). No whitespace is left at the end of a line.
 
 A target behind or in front of a token that is not a member, such as the `{` or the `}` of its type, keeps its line.
 
 This requirement decides the input the RH7101 code fix passes (`AGENTS.md`, *Supported inputs*): a field declaration with more than one declarator that the split does not refuse (FMT-STRUCT-023), as target, and the class, struct, record, or interface declaration whose member it is, as context. Another combined field declaration of the context, or of a type nested in it, is split in the root like the target and is not written back.
 
-Why: The RH7101 fix replaces one declaration by several, a change the structural phase makes only to a member of a type, so the fix needs the type as context. Writing back the split fields, and only them, leaves every other member of the type as it stands and keeps the blank lines and comments above the declaration (SHARED-FIX-006), while the phases lay out the fields the fix creates as document-level formatting lays them out (SHARED-FIX-007). The blank lines between two of the fields are inside the code the fix changes, not between it and a neighbour, so they are the phases' decision. A later field is a line the context's depth places, like any line of a target that the indentation phase places by the depth (FMT-PIPE-017). A member that would share its line with another member after the fix is the one place where the fix changes what stands around the declaration, because SHARED-FIX-007 gives each member a fix changes a line of its own and has the other member start on the next line. A comment in that gap stays with the code it was written behind, as document-level formatting keeps it.
+Why: The RH7101 fix replaces one declaration by several, a change the structural phase makes only to a member of a type, so the fix needs the type as context. Writing back the split fields, and only them, leaves every other member of the type as it stands and keeps the blank lines and comments above the declaration (SHARED-FIX-006), while the phases lay out the fields the fix creates as document-level formatting lays them out (SHARED-FIX-007). The blank lines between two of the fields are inside the code the fix changes, not between it and a neighbour, so they are the phases' decision. A later field is a line the context's depth places, like any line of a target that the indentation phase places by the depth (FMT-PIPE-017). A member that would share its line with another member after the fix is the one place where the fix changes what stands around the declaration, because SHARED-FIX-007 gives each member a fix changes a line of its own and has the other member start on the next line. A comment in that gap stays with the code it was written behind, and a documentation comment goes with the member it documents, as document-level formatting places both: the target's leading trivia is written back as it stands (FMT-PIPE-018), and the other member's leading trivia is code the fix does not change (SHARED-FIX-006). The gap gets no blank line, because the blank lines between the changed code and its neighbours are not the fix's to change (SHARED-FIX-006).
 
 Example — `FormatNodeInDocumentWithContextAsync` with the field `_x, _y` as target and the class as context; the comment in front of `_y` gets the blank line above it that the blank-line phase writes, and the other field of the class and the field of `D` stay as they are:
 
@@ -1443,12 +1444,12 @@ class C
 }
 ```
 
-Example — a member behind the target on its line, and a comment in the gap in front of the target: the comment stays behind `_p;`, and each field and `_q` start a line of their own:
+Example — a member behind the target on its line, and a comment in each gap: `/* c */` stays behind `_p;` and `/* d */` behind `_y;`, and each field and `_q` start a line of their own:
 
 ```csharp
 class C
 {
-    private int _p; /* c */ private int _x, _y; private int _q;
+    private int _p; /* c */ private int _x, _y; /* d */ private int _q;
 }
 ```
 
@@ -1456,6 +1457,44 @@ class C
 class C
 {
     private int _p; /* c */
+    private int _x;
+    private int _y; /* d */
+    private int _q;
+}
+```
+
+Example — a documentation comment in each gap: each goes with the member behind it, and no blank line is written above it, where document-level formatting writes one:
+
+```csharp
+class C
+{
+    private int _p; /** X. */ private int _x, _y; /** Q. */ private int _q;
+}
+```
+
+```csharp
+class C
+{
+    private int _p;
+    /** X. */ private int _x;
+    private int _y;
+    /** Q. */ private int _q;
+}
+```
+
+Example — a target on two lines with a member behind its last line: the member starts the next line:
+
+```csharp
+class C
+{
+    private int _x,
+                _y; private int _q;
+}
+```
+
+```csharp
+class C
+{
     private int _x;
     private int _y;
     private int _q;
@@ -1481,7 +1520,7 @@ class C
 
 ### FMT-PIPE-030 — The using entry point organizes one scope's using block
 
-`OrganizeUsingDirectivesInDocumentAsync` MUST rewrite the using block of the scope it is given — a compilation unit, a namespace, or a file-scoped namespace of the document — as the using-directive phase rewrites it (FMT-USING), with the document's line ending (FMT-PIPE-007) and language version (FMT-PIPE-008), and MUST change nothing else of the document: not the directives of a namespace nested in the scope, and not the code after the block. It MUST run no other phase, so the phase's output is the block's final layout, the scope's indentation in front of a directive that the phase moves onto a line of its own included (FMT-USING-003, SHARED-USING-010). It checks neither syntax errors (FMT-PIPE-005) nor the generated-code marker (FMT-PIPE-006).
+`OrganizeUsingDirectivesInDocumentAsync` MUST rewrite the using block of the scope it is given — a compilation unit, a namespace, or a file-scoped namespace of the document — as the using-directive phase rewrites it (FMT-USING), with the document's line ending (FMT-PIPE-007) and language version (FMT-PIPE-008), and MUST change nothing else of the document: not the directives of a namespace nested in the scope, and not the code after the block. It MUST run no other phase, so the phase's output is the block's final layout, the scope's indentation in front of a directive that the phase moves onto a line of its own included (FMT-USING-003, SHARED-USING-010). The phase MUST read the scope where it stands in the document, not a copy of it as a root of its own (FMT-PIPE-023 does not apply to this entry point): the indentation SHARED-USING-010 takes is that of the document line on which the block's first directive starts, also when the scope does not start that line. It checks neither syntax errors (FMT-PIPE-005) nor the generated-code marker (FMT-PIPE-006).
 
 This requirement decides the input the RH7201–RH7207 code fixes pass (`AGENTS.md`, *Supported inputs*): the scope of the reported directive, whose block holds at least two directives and may be reordered (SHARED-USING-009).
 
@@ -1506,6 +1545,17 @@ namespace N
 
     class C{ }
 }
+```
+
+Example — the same with the namespace `B` as scope, which does not start its line: the first directive starts a line without indentation, so `using System.Linq;`, moved onto a line of its own, gets none, and the code behind the block stays on its line:
+
+```csharp
+namespace A { namespace B { using System.Linq; using System; class C { } } }
+```
+
+```csharp
+namespace A { namespace B { using System;
+using System.Linq; class C { } } }
 ```
 
 ### FMT-PIPE-031 — The formatter answers whether it splits a field declaration
