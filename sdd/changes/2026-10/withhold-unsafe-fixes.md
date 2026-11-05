@@ -146,7 +146,27 @@ class C
 }
 ```
 
-After, in the documentation modes `Parse` and `Diagnose`: no code fix is offered. The same holds for a `/** */` comment in front of the declaration.
+After, in the documentation modes `Parse` and `Diagnose`: no code fix is offered. The same holds for a `/** */` comment in front of the declaration, and for a documentation comment that starts behind the code of another member on the declaration's line:
+
+```csharp
+// input
+class C
+{
+    private int _p; /** X. */ private int _x, _y;
+}
+```
+
+```csharp
+// before: _y loses its documentation
+class C
+{
+    private int _p;
+    /** X. */ private int _x;
+    private int _y;
+}
+```
+
+After: no code fix is offered. This input keeps the output that `rh7101-fix-through-context-entry-point.md` (case 7) gives it only in the documentation mode `None`, where the comment is an ordinary comment.
 
 ### 4. RH7105 and RH7106 — a directive or a comment behind the last modifier
 
@@ -560,6 +580,7 @@ The maintainer approved the visible output changes of this change, listed above,
 - RH7306 is withheld when the partner directive would be left with an empty description.
 - A comment behind the last modifier withholds the RH7105 and RH7106 fixes like a directive.
 - RH7501 keeps the empty block that a lone `break` leaves.
+- RH7101: a documentation comment that starts behind the code of another member on the declaration's line, in the declaration's leading trivia, documents the declaration, so in the documentation modes `Parse` and `Diagnose` the fix is withheld for it as for any documented declaration (RH7101-006). This answer (2026-11-05) supersedes, for those modes, the split shown for this input in case 7 of `rh7101-fix-through-context-entry-point.md`.
 
 ### Out of this change
 

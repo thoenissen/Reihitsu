@@ -101,3 +101,11 @@ _None new._
 ### Architecture findings
 
 _None._ RH7101-006 adds a condition that only the fix owns: the formatter keeps splitting a documented declaration. It does not restate FMT-PIPE-031 or FMT-STRUCT-023, so no rule is stated in two places. The skeptic's earlier note named a future transform guard (thoenissen/Reihitsu#1384). That guard would put the decision in two places only if the formatter also stopped splitting documented declarations, and nothing on `main` does that.
+
+## Maintainer answer to Q1
+
+The maintainer chose A (00-lead.md, *Maintainer answers* 4). Recorded where it takes effect:
+
+- RH7101-006: a new example — `private int _p; /** X. */ private int _x, {|RH7101:_y|};` is reported, and no code fix is offered. The requirement text already decided it (leading trivia, SHARED-DOC-004); the example states it explicitly.
+- `withhold-unsafe-fixes.md`: case 3 of `Visible output changes` gains this input with today's output (measured) and the withheld result; *The maintainer's answers* records the answer and that it supersedes main's case 7 output for modes `Parse`/`Diagnose`.
+- Tests for the test implementer: the RH7101-006 example above; the four case-7 tests named under Q1 change their expectation or move to documentation mode `None`.
