@@ -33,3 +33,36 @@ Roles run: spec author (clarifications of SHARED-FIX-003, RH7309-004, RH7501-004
 # Lane widened: behavior change
 
 After the spec author's repair round, `scripts/lane-check.sh bug-fix` failed because the run's decisions entry lies under `squad/` (tooling). The maintainer reclassified the run as a behavior change and allowed change docs (`squad/decisions/2026-10-27-withhold-unsafe-fixes-lane.md`), before the implementer started. The run now claims the behavior-change lane; the spec author writes the change doc, and the maintainer approves its What and Why before the test implementer starts (escalation 2). Roles run: all eight, as before. The maintainer asked the lead to pause after every role because of the run's budget.
+
+# Maintainer answers
+
+The process on `main` moved escalation answers from `squad/decisions/` into this file; the two decisions entries this run had written are removed and their content is kept here.
+
+1. After the skeptic (2026-10-27), the lead's recommendation on every question:
+   - RH7306 analyzer and fix judge different text (architecture finding): fix narrowly — the fix judges the description through one shared predicate, no private copy.
+   - RH7309, layout-sequential struct: backing fields of auto-properties (also `field`-backed) and of instance field-like events count as instance fields; the fix is withheld.
+   - RH7303, mirror of the straddling region (`#region` in a body, `#endregion` at type level): the fix is withheld like the decided shape.
+   - RH7309, regions that `RegionDirectiveUtilities.GetTopLevelRegions` counts although they belong to a nested enum or an expression: out of this run; follow-up for the helper and the SHARED-TYPEREGION-005 gap.
+   - RH7309, comment above a block that moves, with blank lines before its `#region`: fix withheld.
+   - RH7309, comment directly above a block that keeps its position: fix offered.
+   - RH7306, the `#endregion` partner would be left without description: fix withheld.
+   - RH7105/RH7106, comment between the last modifier and the next token: fix withheld, as for directives.
+   The maintainer also asked the lead to pause after every role because of the run's budget.
+2. Lane (2026-10-27): the maintainer reclassified the run as a behavior change and allowed change docs, overriding the triage notes on #1262 and #1340 that ruled one out. The run note under `squad/notes/` is classified as tooling, so the behavior-change lane stays required.
+3. Change docs (2026-11-05): the maintainer approved `withhold-unsafe-fixes` and `silence-uncorrectable-namespaces-and-regions` as of commit c2e1f67, after `main` was merged and the plan re-checked.
+
+# Decisions taken
+
+| # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
+|---|---|---|---|---|---|---|
+| 1 | Claim | Branch name | `claude/sweet-johnson-msb5hu` instead of `claude/batch-1136-<slug>` | The session environment allows pushes to this branch only | Branch names are internal | d72bbdc |
+| 2 | Skeptic | SHARED-FIX-003 brace-split sentence wider than the maintainer's clarification | Narrowed by the spec author | The maintainer's clarification already decides it | It restores fixes the maintainer did not ask to withhold | c37e8b7 |
+| 3 | After skeptic | Second skeptic pass over the change docs | Skipped | The change docs restate the spec diff the skeptic already checked; budget | No spec text changed | c2e1f67 |
+
+# Follow-up candidates
+
+- `RegionDirectiveUtilities.GetTopLevelRegions` counts regions of a nested enum and regions inside expressions as the type's own; SHARED-TYPEREGION-005 does not classify an equals-value clause, an arrow expression, an attribute argument, or a parameter default (02-skeptic, answer 4C).
+- Audit every fix outside this run against the new SHARED-FIX-003 placement condition (02-skeptic).
+- RH7105/RH7106 fix formats the whole member, against SHARED-FIX-006 (02-skeptic).
+- RH7003 reports a nested namespace that sits only in an excluded `#if` branch (02-skeptic).
+- RH7003 rule page carries an "Exceptions" section the rule-page conventions do not allow (01-spec-author).
