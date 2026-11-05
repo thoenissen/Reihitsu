@@ -449,9 +449,9 @@ public static class ReihitsuFormatter
     /// has in the document (FMT-PIPE-017, FMT-PIPE-018); the last keeps the target's trailing trivia (FMT-PIPE-010); every
     /// other line of the fields is the phases' layout. When another member of the type shares the target's first or last line,
     /// which is read from the context as the phases lay it out and asked only where nothing in the gap starts a line in the
-    /// document, the whitespace in that gap is replaced by one line break and the indentation the phases give a later field, so no field
-    /// shares a line with another member; a comment in the trailing trivia in front of the gap stays behind its token, and the
-    /// leading trivia behind the gap, a documentation comment included, goes with its member onto the next line
+    /// document, the whitespace in that gap is replaced by one line break and the indentation the phases give a later field,
+    /// so no field shares a line with another member; a comment in the trailing trivia in front of the gap stays behind its
+    /// token, and the leading trivia behind the gap, a documentation comment included, goes with its member onto the next line
     /// </remarks>
     private static Document FormatSplitFieldInContext(Document document,
                                                       SyntaxNode root,
