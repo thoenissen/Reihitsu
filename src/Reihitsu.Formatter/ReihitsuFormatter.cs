@@ -448,7 +448,8 @@ public static class ReihitsuFormatter
     /// The first field keeps the target's leading trivia, and its first token the line and column the target's first token
     /// has in the document (FMT-PIPE-017, FMT-PIPE-018); the last keeps the target's trailing trivia (FMT-PIPE-010); every
     /// other line of the fields is the phases' layout. When another member of the type shares the target's first or last line,
-    /// the whitespace in that gap is replaced by one line break and the indentation the phases give a later field, so no field
+    /// which is read from the context as the phases lay it out and asked only where nothing in the gap starts a line in the
+    /// document, the whitespace in that gap is replaced by one line break and the indentation the phases give a later field, so no field
     /// shares a line with another member; a comment in the trailing trivia in front of the gap stays behind its token, and the
     /// leading trivia behind the gap, a documentation comment included, goes with its member onto the next line
     /// </remarks>
@@ -465,23 +466,22 @@ public static class ReihitsuFormatter
         var originalFirstToken = targetField.GetFirstToken();
         var originalLastToken = targetField.GetLastToken();
 
-        // A member shares the target's first or last line exactly where document-level formatting starts that member, or the
-        // first field, on a new line: the line-break phase's statement of a gap without a line break, in which a line break
-        // inside a comment that spans lines counts (FMT-PIPE-029, FMT-BREAK-007)
-        var sharesLineWithPrecedingMember = targetIndex > 0
-                                            && TokenGapUtilities.HasLineBreakBetween(originalFirstToken.GetPreviousToken(), originalFirstToken) == false;
-        var sharesLineWithFollowingMember = targetIndex < members.Count - 1
-                                            && TokenGapUtilities.HasLineBreakBetween(originalLastToken, originalLastToken.GetNextToken()) == false;
-
         var targetTokenAnnotation = new SyntaxAnnotation();
         var targetFieldAnnotation = new SyntaxAnnotation();
 
+        // Whether another member shares the target's first or last line is a question only where nothing in the gap starts a
+        // line in the document; where something does, the gap's trivia stays as it stands (FMT-PIPE-010, FMT-PIPE-018)
+        var mayShareLineWithPrecedingMember = targetIndex > 0
+                                              && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(originalFirstToken.GetPreviousToken(), originalFirstToken) == false;
+        var mayShareLineWithFollowingMember = targetIndex < members.Count - 1
+                                              && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(originalLastToken, originalLastToken.GetNextToken()) == false;
+
         // A first field that keeps the target's line keeps its first token's document column, and the indentation phase lays
         // out its other lines from that column (FMT-PIPE-017). A first field that starts the next line, behind another member,
-        // stands where the phases place a member, so its lines are laid out as the phases place them
-        int? targetFirstTokenColumn = sharesLineWithPrecedingMember
-                                          ? null
-                                          : ReihitsuFormatterHelpers.ComputeDocumentColumn(originalFirstToken, countsOwnWhitespaceTabsAsReplaced: false);
+        // stands where the phases place a member, so its lines are laid out as the phases place them. Which of the two applies
+        // is the phases' result, so a context laid out for the one the result does not confirm is laid out again for the
+        // other; the column is read only by the indentation phase, so the second layout starts the same lines
+        var documentColumn = ReihitsuFormatterHelpers.ComputeDocumentColumn(originalFirstToken, countsOwnWhitespaceTabsAsReplaced: false);
 
         // The split builds every field from the target, so each field it makes carries the target's annotation, and the
         // first of them the annotated first token, which the target-position fact marks (FMT-PIPE-024)
@@ -489,19 +489,39 @@ public static class ReihitsuFormatter
                                              root,
                                              targetField,
                                              contextNode,
-                                             targetFirstTokenColumn,
+                                             mayShareLineWithPrecedingMember ? null : documentColumn,
                                              targetTokenAnnotation,
                                              targetFieldAnnotation,
                                              cancellationToken);
-        var formattedFields = formattedContext.GetAnnotatedNodes(targetFieldAnnotation)
-                                              .OfType<FieldDeclarationSyntax>()
-                                              .ToList();
 
-        if (formattedFields.Count != targetField.Declaration.Variables.Count
-            || formattedFields.Any(field => field.Declaration.Variables.Count != 1))
+        if (TryGetSplitFields(formattedContext, targetField, targetFieldAnnotation, out var formattedFields) == false)
         {
             return document;
         }
+
+        var sharesLineWithPrecedingMember = mayShareLineWithPrecedingMember
+                                            && StartsLineInLayout(formattedFields[0].GetFirstToken());
+
+        if (mayShareLineWithPrecedingMember
+            && sharesLineWithPrecedingMember == false)
+        {
+            formattedContext = FormatContext(document,
+                                             root,
+                                             targetField,
+                                             contextNode,
+                                             documentColumn,
+                                             targetTokenAnnotation,
+                                             targetFieldAnnotation,
+                                             cancellationToken);
+
+            if (TryGetSplitFields(formattedContext, targetField, targetFieldAnnotation, out formattedFields) == false)
+            {
+                return document;
+            }
+        }
+
+        var sharesLineWithFollowingMember = mayShareLineWithFollowingMember
+                                            && StartsLineInLayout(formattedFields[formattedFields.Count - 1].GetLastToken().GetNextToken());
 
         var memberIndentation = SyntaxFactory.Whitespace(new string(' ', SyntaxTokenPositionUtilities.GetColumn(formattedFields[1].GetFirstToken())));
         var lineBreak = SyntaxFactory.EndOfLine(ReihitsuFormatterHelpers.DetectEndOfLine(root));
@@ -569,6 +589,54 @@ public static class ReihitsuFormatter
         }
 
         return document.WithSyntaxRoot(root.ReplaceNode(declaringType, declaringType.WithMembers(SyntaxFactory.List(updatedMembers))));
+    }
+
+    /// <summary>
+    /// Gets the fields the split makes of the target in a formatted copy of the context, in source order
+    /// </summary>
+    /// <param name="formattedContext">The formatted copy of the context</param>
+    /// <param name="targetField">The field declaration the split splits</param>
+    /// <param name="targetFieldAnnotation">The annotation that marks every field the split makes of the target</param>
+    /// <param name="formattedFields">One field per declarator of the target</param>
+    /// <returns><see langword="true"/> if the copy holds one single-declarator field per declarator of the target; otherwise, <see langword="false"/></returns>
+    private static bool TryGetSplitFields(SyntaxNode formattedContext, FieldDeclarationSyntax targetField, SyntaxAnnotation targetFieldAnnotation, out List<FieldDeclarationSyntax> formattedFields)
+    {
+        formattedFields = formattedContext.GetAnnotatedNodes(targetFieldAnnotation)
+                                          .OfType<FieldDeclarationSyntax>()
+                                          .ToList();
+
+        return formattedFields.Count == targetField.Declaration.Variables.Count
+               && formattedFields.All(field => field.Declaration.Variables.Count == 1);
+    }
+
+    /// <summary>
+    /// Determines whether the phases started the line of a member's first token in a formatted copy of the context: the token
+    /// starts its line, or a documentation comment in its leading trivia does (FMT-PIPE-029). The documentation-comment phase
+    /// starts the line of a documentation comment written behind code, and the line-break phase starts a member's line where
+    /// the gap in front of it holds no line break, so reading the result covers both without restating either
+    /// </summary>
+    /// <param name="firstToken">The member's first token in the formatted copy of the context</param>
+    /// <returns><see langword="true"/> if the token or a documentation comment in front of it starts a line; otherwise, <see langword="false"/></returns>
+    private static bool StartsLineInLayout(SyntaxToken firstToken)
+    {
+        if (SyntaxTokenPositionUtilities.StartsLine(firstToken))
+        {
+            return true;
+        }
+
+        var leadingTrivia = firstToken.LeadingTrivia;
+
+        for (var triviaIndex = 0; triviaIndex < leadingTrivia.Count; triviaIndex++)
+        {
+            if ((leadingTrivia[triviaIndex].IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+                 || leadingTrivia[triviaIndex].IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+                && TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(firstToken, triviaIndex))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
