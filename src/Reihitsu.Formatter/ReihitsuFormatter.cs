@@ -628,8 +628,7 @@ public static class ReihitsuFormatter
 
         for (var triviaIndex = 0; triviaIndex < leadingTrivia.Count; triviaIndex++)
         {
-            if ((leadingTrivia[triviaIndex].IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-                 || leadingTrivia[triviaIndex].IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+            if (SyntaxTriviaUtilities.IsDocumentationCommentTrivia(leadingTrivia[triviaIndex])
                 && TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(firstToken, triviaIndex))
             {
                 return true;
