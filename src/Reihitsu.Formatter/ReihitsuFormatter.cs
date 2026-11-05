@@ -295,14 +295,6 @@ public static class ReihitsuFormatter
             return FormatSplitFieldInContext(document, root, fieldDeclaration, contextNode, cancellationToken);
         }
 
-        // Only the target is written back, and its leading trivia as it stands in the document (FMT-PIPE-018), so the
-        // whitespace in front of the context's first token is never rewritten and each of its characters counts as one
-        // column; the indentation phase keeps that token in its column (FMT-PIPE-017)
-        int? rootFirstTokenColumn = contextNode == root
-                                        ? null
-                                        : ReihitsuFormatterHelpers.ComputeDocumentColumn(contextNode.GetFirstToken(), countsOwnWhitespaceTabsAsReplaced: false);
-        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
-        var baseIndentLevel = SyntaxIndentationUtilities.ComputeIndentLevel(contextNode);
         var targetTokenAnnotation = new SyntaxAnnotation();
         var originalFirstToken = targetNode.GetFirstToken();
 
@@ -310,21 +302,14 @@ public static class ReihitsuFormatter
         // is written back, so that token keeps its line and its column there, and the indentation phase lays out the
         // target's other lines from that column, wherever the phases leave the token in the context (FMT-PIPE-017,
         // FMT-PIPE-024)
-        var context = new FormattingContext(endOfLine,
-                                            baseIndentLevel,
-                                            preserveRootDocumentationBoundary: contextNode != root,
-                                            disabledStructuralTransforms: CodeFixDisabledStructuralTransforms,
-                                            languageVersion: LanguageVersionResolver.Resolve(document.Project.ParseOptions),
-                                            rootFirstTokenColumn: rootFirstTokenColumn,
-                                            formatsRegionDirectives: false,
-                                            targetAnnotation: targetTokenAnnotation,
-                                            targetFirstTokenColumn: ReihitsuFormatterHelpers.ComputeDocumentColumn(originalFirstToken, countsOwnWhitespaceTabsAsReplaced: false));
-        var annotatedTarget = targetNode.ReplaceToken(originalFirstToken,
-                                                      originalFirstToken.WithAdditionalAnnotations(targetTokenAnnotation));
-
-        // The copy of the context is the root of a tree of its own, so no phase reaches the code around it (FMT-PIPE-023)
-        var annotatedContext = contextNode.ReplaceNode(targetNode, annotatedTarget);
-        var formattedContext = FormattingPipeline.Execute(annotatedContext, context, cancellationToken);
+        var formattedContext = FormatContext(document,
+                                             root,
+                                             targetNode,
+                                             contextNode,
+                                             ReihitsuFormatterHelpers.ComputeDocumentColumn(originalFirstToken, countsOwnWhitespaceTabsAsReplaced: false),
+                                             targetTokenAnnotation,
+                                             targetNodeAnnotation: null,
+                                             cancellationToken);
 
         var formattedTarget = FindCorrespondingNode(targetNode, formattedContext, targetTokenAnnotation);
 
@@ -400,6 +385,56 @@ public static class ReihitsuFormatter
     }
 
     /// <summary>
+    /// Runs the pipeline on a copy of the context in which the target is marked, with the facts the context entry point gives
+    /// the phases: the document column of the context's first token, the code-fix structural transforms, the project's
+    /// language version, no region requirement, and the target-position fact (FMT-PIPE-017, FMT-PIPE-024, FMT-PIPE-028)
+    /// </summary>
+    /// <param name="document">The Roslyn Document containing both nodes</param>
+    /// <param name="root">The document's root</param>
+    /// <param name="targetNode">The target node, contained in the context</param>
+    /// <param name="contextNode">The containing node that is formatted</param>
+    /// <param name="targetFirstTokenColumn">The column the indentation phase lays out the target's other lines from, or <see langword="null"/> when the target's lines are laid out as the phases place them</param>
+    /// <param name="targetTokenAnnotation">The annotation that marks the target's first token</param>
+    /// <param name="targetNodeAnnotation">An annotation that marks the target node, or <see langword="null"/></param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The formatted copy of the context</returns>
+    private static SyntaxNode FormatContext(Document document,
+                                            SyntaxNode root,
+                                            SyntaxNode targetNode,
+                                            SyntaxNode contextNode,
+                                            int? targetFirstTokenColumn,
+                                            SyntaxAnnotation targetTokenAnnotation,
+                                            SyntaxAnnotation targetNodeAnnotation,
+                                            CancellationToken cancellationToken)
+    {
+        // Only the target is written back, and its leading trivia as it stands in the document (FMT-PIPE-018), so the
+        // whitespace in front of the context's first token is never rewritten and each of its characters counts as one
+        // column; the indentation phase keeps that token in its column (FMT-PIPE-017)
+        int? rootFirstTokenColumn = contextNode == root
+                                        ? null
+                                        : ReihitsuFormatterHelpers.ComputeDocumentColumn(contextNode.GetFirstToken(), countsOwnWhitespaceTabsAsReplaced: false);
+        var context = new FormattingContext(ReihitsuFormatterHelpers.DetectEndOfLine(root),
+                                            SyntaxIndentationUtilities.ComputeIndentLevel(contextNode),
+                                            preserveRootDocumentationBoundary: contextNode != root,
+                                            disabledStructuralTransforms: CodeFixDisabledStructuralTransforms,
+                                            languageVersion: LanguageVersionResolver.Resolve(document.Project.ParseOptions),
+                                            rootFirstTokenColumn: rootFirstTokenColumn,
+                                            formatsRegionDirectives: false,
+                                            targetAnnotation: targetTokenAnnotation,
+                                            targetFirstTokenColumn: targetFirstTokenColumn);
+        var originalFirstToken = targetNode.GetFirstToken();
+        var annotatedTarget = targetNode.ReplaceToken(originalFirstToken, originalFirstToken.WithAdditionalAnnotations(targetTokenAnnotation));
+
+        if (targetNodeAnnotation != null)
+        {
+            annotatedTarget = annotatedTarget.WithAdditionalAnnotations(targetNodeAnnotation);
+        }
+
+        // The copy of the context is the root of a tree of its own, so no phase reaches the code around it (FMT-PIPE-023)
+        return FormattingPipeline.Execute(contextNode.ReplaceNode(targetNode, annotatedTarget), context, cancellationToken);
+    }
+
+    /// <summary>
     /// Formats the type that declares a field declaration the structural phase splits, and writes back in place of the
     /// declaration every field the split makes of it, and nothing else of the context (FMT-PIPE-029)
     /// </summary>
@@ -434,10 +469,6 @@ public static class ReihitsuFormatter
         var sharesLineWithFollowingMember = targetIndex < members.Count - 1
                                             && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(originalLastToken, originalLastToken.GetNextToken()) == false;
 
-        int? rootFirstTokenColumn = contextNode == root
-                                        ? null
-                                        : ReihitsuFormatterHelpers.ComputeDocumentColumn(contextNode.GetFirstToken(), countsOwnWhitespaceTabsAsReplaced: false);
-        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var targetTokenAnnotation = new SyntaxAnnotation();
         var targetFieldAnnotation = new SyntaxAnnotation();
 
@@ -447,21 +478,17 @@ public static class ReihitsuFormatter
         int? targetFirstTokenColumn = sharesLineWithPrecedingMember
                                           ? null
                                           : ReihitsuFormatterHelpers.ComputeDocumentColumn(originalFirstToken, countsOwnWhitespaceTabsAsReplaced: false);
-        var context = new FormattingContext(endOfLine,
-                                            SyntaxIndentationUtilities.ComputeIndentLevel(contextNode),
-                                            preserveRootDocumentationBoundary: contextNode != root,
-                                            disabledStructuralTransforms: CodeFixDisabledStructuralTransforms,
-                                            languageVersion: LanguageVersionResolver.Resolve(document.Project.ParseOptions),
-                                            rootFirstTokenColumn: rootFirstTokenColumn,
-                                            formatsRegionDirectives: false,
-                                            targetAnnotation: targetTokenAnnotation,
-                                            targetFirstTokenColumn: targetFirstTokenColumn);
 
         // The split builds every field from the target, so each field it makes carries the target's annotation, and the
         // first of them the annotated first token, which the target-position fact marks (FMT-PIPE-024)
-        var annotatedTarget = targetField.ReplaceToken(originalFirstToken, originalFirstToken.WithAdditionalAnnotations(targetTokenAnnotation))
-                                         .WithAdditionalAnnotations(targetFieldAnnotation);
-        var formattedContext = FormattingPipeline.Execute(contextNode.ReplaceNode(targetField, annotatedTarget), context, cancellationToken);
+        var formattedContext = FormatContext(document,
+                                             root,
+                                             targetField,
+                                             contextNode,
+                                             targetFirstTokenColumn,
+                                             targetTokenAnnotation,
+                                             targetFieldAnnotation,
+                                             cancellationToken);
         var formattedFields = formattedContext.GetAnnotatedNodes(targetFieldAnnotation)
                                               .OfType<FieldDeclarationSyntax>()
                                               .ToList();
@@ -473,7 +500,7 @@ public static class ReihitsuFormatter
         }
 
         var memberIndentation = SyntaxFactory.Whitespace(new string(' ', GetColumn(formattedFields[1].GetFirstToken())));
-        var lineBreak = SyntaxFactory.EndOfLine(endOfLine);
+        var lineBreak = SyntaxFactory.EndOfLine(ReihitsuFormatterHelpers.DetectEndOfLine(root));
         var fields = new List<MemberDeclarationSyntax>(formattedFields.Count);
 
         for (var fieldIndex = 0; fieldIndex < formattedFields.Count; fieldIndex++)
