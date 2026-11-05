@@ -444,6 +444,159 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies the spec example with a comment that spans lines in each gap: document-level formatting leaves the first field
+    /// behind the closing <c>*/</c> in front and the member behind the closing <c>*/</c> behind, so both keep their place and
+    /// only the later field starts a line of its own
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-029")]
+    [Requirement("FMT-PIPE-010")]
+    public async Task MembersBehindACommentThatSpansLinesInTheGapsKeepTheirPlace()
+    {
+        const string input = """
+                             class C
+                             {
+                                 private int _p; /* a
+                                    b */ private int _x, _y; /* c
+                                    d */ private int _q;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _p; /* a
+                                       b */ private int _x;
+                                    private int _y; /* c
+                                       d */ private int _q;
+                                }
+                                """;
+
+        await AssertSplitsTarget(input, expected, "_x", "C");
+    }
+
+    /// <summary>
+    /// Verifies that the first field keeps its place behind the closing <c>*/</c> of a comment that spans lines in the gap in
+    /// front of the target, and that the member in front keeps its trailing trivia
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-029")]
+    [Requirement("FMT-PIPE-010")]
+    public async Task FirstFieldBehindACommentThatSpansLinesInTheGapInFrontKeepsItsPlace()
+    {
+        const string input = """
+                             class C
+                             {
+                                 private int _p; /* a
+                                    b */ private int _x, _y;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _p; /* a
+                                       b */ private int _x;
+                                    private int _y;
+                                }
+                                """;
+
+        await AssertSplitsTarget(input, expected, "_x", "C");
+    }
+
+    /// <summary>
+    /// Verifies that a member behind the closing <c>*/</c> of a comment that spans lines behind the target keeps its place,
+    /// because document-level formatting does not start it on a new line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-029")]
+    [Requirement("FMT-PIPE-010")]
+    public async Task MemberBehindACommentThatSpansLinesInTheGapBehindKeepsItsPlace()
+    {
+        const string input = """
+                             class C
+                             {
+                                 private int _x, _y; /* a
+                                    b */ private int _q;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _x;
+                                    private int _y; /* a
+                                       b */ private int _q;
+                                }
+                                """;
+
+        await AssertSplitsTarget(input, expected, "_x", "C");
+    }
+
+    /// <summary>
+    /// Verifies the spec example with a member in front of the target on its first line and a comment that spans lines behind
+    /// the separating comma: the first field starts the next line at the member column, the comment ends its line, and the later
+    /// field starts a line of its own at the member column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-029")]
+    public async Task LaterFieldBehindACommentThatSpansLinesBehindTheSeparatorStartsItsOwnLine()
+    {
+        const string input = """
+                             class C
+                             {
+                                 private int _p; private int _x, /* a
+                                    b */ _y;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _p;
+                                    private int _x; /* a
+                                       b */
+                                    private int _y;
+                                }
+                                """;
+
+        await AssertSplitsTarget(input, expected, "_x", "C");
+    }
+
+    /// <summary>
+    /// Verifies that the later field behind a comment that spans lines behind the separating comma starts its own line at the
+    /// member column when no other member stands on the target's lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-029")]
+    public async Task LaterFieldBehindACommentThatSpansLinesStandsAtTheMemberColumn()
+    {
+        const string input = """
+                             class C
+                             {
+                                 private int _x, /* a
+                                    b */ _y;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _x; /* a
+                                       b */
+                                    private int _y;
+                                }
+                                """;
+
+        await AssertSplitsTarget(input, expected, "_x", "C");
+    }
+
+    /// <summary>
     /// Finds the field declaration that declares the variable with the given name
     /// </summary>
     /// <param name="root">The root to search</param>

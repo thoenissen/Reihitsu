@@ -1596,6 +1596,166 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                      });
     }
 
+    /// <summary>
+    /// Verifies the specification example with a comment that spans lines in each gap: the fix lays out the declaration
+    /// as the formatter lays it out, so the first field stays behind the closing <c>*/</c> in front, the member behind the
+    /// closing <c>*/</c> behind stays where it is, and only the later field starts a line of its own
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixLeavesTheMembersBehindACommentThatSpansLinesInTheGapsWhereTheyAre()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _p; /* a
+                                     b */ private int _x, {|RH7101:_y|}; /* c
+                                     d */ private int _q;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _p; /* a
+                                          b */ private int _x;
+                                       private int _y; /* c
+                                          d */ private int _q;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+        AssertFormattingChangesNothing(fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that the fix leaves the first field behind the closing <c>*/</c> of a comment that spans lines in the gap
+    /// in front of the declaration, as the formatter leaves it, and does not change the member in front
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixLeavesTheFirstFieldBehindACommentThatSpansLinesInTheGapInFront()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _p; /* a
+                                     b */ private int _x, {|RH7101:_y|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _p; /* a
+                                          b */ private int _x;
+                                       private int _y;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+        AssertFormattingChangesNothing(fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that the fix leaves a member behind the closing <c>*/</c> of a comment that spans lines behind the
+    /// declaration where it is, as the formatter leaves it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixLeavesTheMemberBehindACommentThatSpansLinesInTheGapBehind()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _x, {|RH7101:_y|}; /* a
+                                     b */ private int _q;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _x;
+                                       private int _y; /* a
+                                          b */ private int _q;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+        AssertFormattingChangesNothing(fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies the specification example with a member in front of the declaration on its line and a comment that spans
+    /// lines behind the separating comma: the first field starts the next line at the member column, the comment ends its
+    /// line, and the later field starts a line of its own at the member column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixStartsTheFieldBehindACommentThatSpansLinesOnItsOwnLineBehindAMemberInFront()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _p; private int _x, /* a
+                                     b */ {|RH7101:_y|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _p;
+                                       private int _x; /* a
+                                          b */
+                                       private int _y;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+        AssertFormattingChangesNothing(fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that the fix ends the first field's line behind a comment that spans lines behind the separating comma, as
+    /// the formatter ends it, and starts the later field on its own line at the member column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixStartsTheFieldBehindACommentThatSpansLinesBehindTheSeparatorOnItsOwnLine()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _x, /* a
+                                     b */ {|RH7101:_y|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _x; /* a
+                                          b */
+                                       private int _y;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+        AssertFormattingChangesNothing(fixedSource);
+    }
+
     #endregion // Tests
 
     #region Methods
@@ -1671,8 +1831,9 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                  }
                                  """;
 
-        // Two combined field declarations sit on adjacent lines with no blank line between them; each fix only
-        // splits its own field declaration, so the batch fixer converges in one pass
+        // Two combined field declarations sit on adjacent lines with no blank line between them; the Fix All provider
+        // applies the fix of one declaration after the other, and each fix only splits its own declaration, so Fix All
+        // converges in one pass
         return new FixAllScenario(testData,
                                   fixedData,
                                   Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat, 2));
