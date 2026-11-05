@@ -34,6 +34,10 @@ Asked after the skeptic (batch before the test implementer); the maintainer took
 - **RH7101 · declaring type itself indented with a tab** (asked after 04-skeptic): **A** — the context's tab counts as one column (FMT-PIPE-017), so the later field gets 5 spaces under `→→private int _x;`; the spec stays as written.
 - Asked for maintainability: RH7101 2A and usings 1A were recommended as the options with the fewest layout owners; the maintainer agreed.
 
+## Audit
+
+Three audits plus repairs: 14 (findings 1–5, repair round 1), 20 (finding 6, a repeated class → structural change rows 24–25, no round used), 28 (findings 7–8, repair round 2), 33 (pass; audited tree 4645c944). Repair rounds used: 2 of 3.
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
@@ -62,10 +66,12 @@ Asked after the skeptic (batch before the test implementer); the maintainer took
 | 23 | Test implementer (16) | `EndOfLineWhitespace` (used by `CleanupPhase`, name not ending in `Utilities`) comes out banned by the reachability-based architecture test | Leave it banned | No code fix uses it; a rename only to unban a helper no fix needs is churn outside the run | Internal | 5284b9cf |
 | 24 | Auditor (20) | Finding 6 repeats the class of finding 2: the context entry point predicts from the input gap whether another member shares the target's first or last line, and misses the documentation-comment phase's relocation (d1, d2, d4, d5, d6, g1, g2) | Architecture finding, change the structure in this run (does not use a repair round): the split write-back reads "shares the line" from the phases' result (the formatted context copy it already holds) instead of predicting it from the input, so no rule of a phase is restated in the entry point. Order: spec author (FMT-PIPE-029 states the decision as the phases' result; examples for the doc-comment members, the gap's blank lines per SHARED-FIX-006) → test implementer (entry-point and fix tests for the failing members, holding members kept) → implementer → cleaner → spec checker → auditor on the change | A repeated class means one more enumeration would only find the next member (`squad/README.md`, *Architecture findings*) | Fix output follows the formatter (answer 1a–1f A) with the blank-line exception SHARED-FIX-006/007 already state | 11179496, 63e88917, 47345884 |
 | 25 | Implementer (23) | FMT-PIPE-029 asks the shared-line question where "the first token behind the gap does not start its line in the document"; the code asks it only where nothing in the gap starts a line (a documentation comment that already starts its line, as in `_p;⏎    /** x */ private int _x, _y;`, keeps its trivia) | Follow the implementation: the spec author aligns the wording with "nothing in the gap starts a line in the document", and the test implementer adds a test for that shape | Matches the spec's own reason (FMT-PIPE-010/018 keep trivia that already starts a line); the literal reading would add a second line break | Output decided by FMT-PIPE-018 (trivia kept as in the document) | 24460b90, 2d4ca663 |
-| 26 | Auditor (28) | Repair round 2 worklist: #7 (no test covers the second layout run of `FormatSplitFieldInContext`; input g02, plus a tab variant), #8 (`StartsLineInLayout` restates `SyntaxTriviaUtilities.IsDocumentationCommentTrivia`), hint (remarks line width at `ReihitsuFormatter.cs:452`) | All PR-introduced, no repeated class; one repair round: test implementer (#7) and implementer (#8) in parallel on separate files → cleaner (hint) → spec checker → auditor on the repair → validator | `squad/lead.md` section 7 | #7's output is decided by FMT-PIPE-017 and answers 3a/3b; #8 is internal | pending |
+| 26 | Auditor (28) | Repair round 2 worklist: #7 (no test covers the second layout run of `FormatSplitFieldInContext`; input g02, plus a tab variant), #8 (`StartsLineInLayout` restates `SyntaxTriviaUtilities.IsDocumentationCommentTrivia`), hint (remarks line width at `ReihitsuFormatter.cs:452`) | All PR-introduced, no repeated class; one repair round: test implementer (#7) and implementer (#8) in parallel on separate files → cleaner (hint) → spec checker → auditor on the repair → validator | `squad/lead.md` section 7 | #7's output is decided by FMT-PIPE-017 and answers 3a/3b; #8 is internal | 15725b91, 1d215751, f46e7f14 |
 | 13 | Lead | A second skeptic pass over the amendment | Run | The amendment adds two entry points and changes FMT-PIPE-005/006/009 | Internal | — |
 
 ## Follow-up candidates
+
+- `RH5114UsingDirectivesMustBePlacedOnSeparateLinesCodeFixProvider` restates `SyntaxTriviaUtilities.IsDocumentationCommentTrivia` inline (pre-existing). — 33-auditor
 
 - Private copies of the trailing-whitespace trim in `StatementShouldBePrecededByABlankLineCodeFixProviderBase` and `LineBreakTriviaUtilities` next to the owner `TriviaListUtilities.RemoveTrailingWhitespace` (pre-existing). — 08-implementer
 
