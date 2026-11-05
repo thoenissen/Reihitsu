@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-10 |
 | Affected requirements | RH7003-005 and RH7304-005 (added by this change) |
 
@@ -19,7 +19,66 @@ RH7003 asks for a file-scoped namespace, but a file cannot hold a file-scoped na
 
 RH7304 aligns a region's directives with the region's first code. A region that reaches into a body, or holds a region of a body, has no such level, and the directive inside executable code is already RH7303's finding. Reporting the pair, and indenting it, aligns a region whose placement is the real problem.
 
+## Visible output changes
+
+The RH7304 "before" was measured with `scripts/apply-fix.sh RH7304` on the code of `main` at `a59a003`, under LF and CRLF alike. RH7003 has no code fix; its "before" is the report the skeptic of this change confirmed from `RH7003FileScopedNamespacesShouldBeUsedAnalyzer` on `735d0db`. Neither rule page changes.
+
+### 1. RH7003 — a namespace that contains a namespace
+
+```csharp
+// input
+namespace A.B
+{
+    namespace Inner
+    {
+        class C
+        {
+        }
+    }
+}
+```
+
+Before: RH7003 is reported on `A.B`. After: RH7003 is not reported. The same holds for a namespace that declares several namespaces, such as `namespace A { namespace B { } namespace C { } }`.
+
+### 2. RH7304 — a region pair with a region directive inside executable code
+
+```csharp
+// input
+class C
+{
+#region Outer
+    void M()
+    {
+        #region Inner
+        M();
+        #endregion
+    }
+#endregion
+}
+```
+
+```csharp
+// before: both directives of Outer are reported, and the fix indents them
+class C
+{
+    #region Outer
+    void M()
+    {
+        #region Inner
+        M();
+        #endregion
+    }
+    #endregion
+}
+```
+
+After: neither directive of `Outer` is reported, and no fix is offered. The same holds for a pair one of whose directives lies inside executable code, such as a type-level `#region` closed inside a method. The directives inside the body stay RH7303's findings.
+
 ## Decisions
+
+### The maintainer's answers
+
+The maintainer approved the visible output changes of this change, listed above, after `main` was merged into the run on 2026-11-05. The maintainer had also reclassified the run as a behavior change, which allows this change doc although the triage of the two issues ruled one out.
 
 ### Silence, not a narrower message
 

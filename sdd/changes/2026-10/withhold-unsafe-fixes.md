@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-10 |
-| Affected requirements | SHARED-FIX-003, SHARED-MODORDER-003, RH7004-004, RH7101-004, RH7109-005, RH7109-006, RH7306-003, RH7309-004, RH7501-004, RH7101-006, RH7303-005, RH7306-004 and RH7309-006 (added by this change) |
+| Affected requirements | SHARED-FIX-003, SHARED-MODORDER-003, RH7004-004, RH7101-004, RH7109-005, RH7109-006, RH7306-003, RH7309-004, RH7501-004, RH7101-006, RH7303-005, RH7306-004 and RH7309-006 (added by this change), FMT-PIPE-031 (reasoning only) |
 
 ## What
 
@@ -21,7 +21,7 @@ The rule specs state what this means for each fix:
 | Rule | Withheld or changed | Requirement |
 |---|---|---|
 | RH7004 | A comment behind the using declaration stays behind the header of the `using` statement instead of moving behind the new block. A directive pair that the new block would split is a SHARED-FIX-003 case. | RH7004-004 |
-| RH7101 | Withheld for a declaration with a `///` or `/** */` documentation comment in documentation mode `Parse` or `Diagnose`. In mode `None` the fix still splits. | RH7101-004, RH7101-006 |
+| RH7101 | Withheld for a declaration with a `///` or `/** */` documentation comment in its leading trivia in documentation mode `Parse` or `Diagnose`, although the formatter splits it. In mode `None`, and for such a comment in front of a later declarator, the fix still splits. | RH7101-004, RH7101-006 |
 | RH7105, RH7106 | Withheld when a comment or a directive stands between the last modifier and the token after it. | SHARED-MODORDER-003 |
 | RH7109 | Withheld when the move reorders the instance fields of a struct without `LayoutKind.Auto` or `LayoutKind.Explicit`, or of a type with `[StructLayout(LayoutKind.Sequential)]`. | RH7109-005, RH7109-006 |
 | RH7303 | Withheld for a reported directive whose partner lies between declarations. | RH7303-005 |
@@ -33,6 +33,505 @@ The rule specs state what this means for each fix:
 
 `AGENTS.md` (*Code-fix coverage*) already calls a fix unsafe when it drops, reorders, or relocates comments, directives, disabled text, or literals. It points to SHARED-FIX-003 for what that means, but SHARED-FIX-003 covered only changed text, not placement, and said nothing about disabled text. Without that wording, several organization fixes produced code that did not compile, compiled differently in another build configuration, changed initializer order or a struct's memory layout, took documentation from a declaration, or left a comment or a `#pragma` acting on other code. Their rule specs often still required the rewrite. A diagnostic without a fix is a supported end state; a fix that hands the user such a defect is not.
 
+## Visible output changes
+
+The "before" outputs were measured with `scripts/apply-fix.sh <ID>` on the code of `main` at `a59a003`, in the documentation mode `Parse`, under LF and CRLF alike, except where a case names another source. The "after" outputs follow from the requirements in the table above. In every case the diagnostic is still reported, before and after.
+
+Unchanged: a `break` that is the only statement of its block is moved behind the closing brace, and the block stays (RH7501-004), as before; a declaration whose `///` or `/** */` comments stand in front of later declarators is split as before (RH7101-006); in the documentation mode `None`, the RH7101 and RH7309 fixes are offered as before.
+
+### 1. RH7004 — a comment behind the using declaration
+
+```csharp
+// input
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        using var s = new MemoryStream(); // resource
+        s.Flush();
+    }
+}
+```
+
+```csharp
+// before
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (var s = new MemoryStream())
+        {
+            s.Flush();
+        } // resource
+    }
+}
+```
+
+```csharp
+// after
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (var s = new MemoryStream()) // resource
+        {
+            s.Flush();
+        }
+    }
+}
+```
+
+### 2. RH7004 — a directive pair the new block would split
+
+```csharp
+// input, with DEBUG defined
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        using var s = new MemoryStream();
+#if DEBUG
+        s.Flush();
+#endif
+    }
+}
+```
+
+```csharp
+// before
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (var s = new MemoryStream())
+        {
+#if DEBUG
+            s.Flush();
+        }
+#endif
+    }
+}
+```
+
+After: no code fix is offered. A build without `DEBUG` would lose the closing brace of the block. Without `DEBUG` defined, the fix is withheld as well (SHARED-FIX-003).
+
+### 3. RH7101 — a documented declaration
+
+```csharp
+// input
+class C
+{
+    /// <summary>The coordinates</summary>
+    public int X, Y;
+}
+```
+
+```csharp
+// before
+class C
+{
+    /// <summary>The coordinates</summary>
+    public int X;
+    public int Y;
+}
+```
+
+After, in the documentation modes `Parse` and `Diagnose`: no code fix is offered. The same holds for a `/** */` comment in front of the declaration.
+
+### 4. RH7105 and RH7106 — a directive or a comment behind the last modifier
+
+```csharp
+// input
+class C
+{
+    static public
+#pragma warning disable CS0169
+    int _a;
+}
+```
+
+```csharp
+// before: does not compile
+class C
+{
+    public static #pragma warning disable CS0169
+    int _a;
+}
+```
+
+```csharp
+// input
+class C
+{
+    static public
+    // the counter
+    int _a;
+}
+```
+
+```csharp
+// before
+class C
+{
+    public static
+
+    // the counter
+    int _a;
+}
+```
+
+After, for both inputs: no code fix is offered.
+
+### 5. RH7109 — the instance fields of a struct
+
+```csharp
+// input
+public struct S
+{
+    public int _a;
+    public readonly int _b;
+}
+```
+
+```csharp
+// before
+public struct S
+{
+    public readonly int _b;
+    public int _a;
+}
+```
+
+After: no code fix is offered. The same holds for a `record struct`, a `ref struct`, and a class declared with `[StructLayout(LayoutKind.Sequential)]`.
+
+### 6. RH7303 — a region that reaches between declarations
+
+```csharp
+// input
+class C
+{
+    #region Members
+
+    void M()
+    {
+        #endregion
+    }
+}
+```
+
+```csharp
+// before
+class C
+{
+
+    void M()
+    {
+    }
+}
+```
+
+After: no code fix is offered. The same holds for the mirror shape, a `#region` in a body whose `#endregion` lies between declarations.
+
+### 7. RH7306 — nothing would remain of a description
+
+```csharp
+// input
+class C
+{
+    #region Implementation
+
+    int _a;
+
+    #endregion // Implementation
+}
+```
+
+```csharp
+// before
+class C
+{
+    #region
+
+    int _a;
+
+    #endregion //
+}
+```
+
+```csharp
+// input
+class C
+{
+    #region IDisposable implementation
+
+    int _a;
+
+    #endregion // implementation
+}
+```
+
+```csharp
+// before
+class C
+{
+    #region IDisposable
+
+    int _a;
+
+    #endregion //
+}
+```
+
+After, for both inputs: no code fix is offered for either directive. For `#endregion //Implementation` behind `#region IDisposable`, the fix was offered and changed nothing (observed by the skeptic of this change on `735d0db`); after, it is not offered.
+
+### 8. RH7309 — a reorder that would change the program or separate a comment
+
+```csharp
+// input
+using System;
+
+public class C : IComparable
+{
+    #region IComparable
+
+    private static readonly int Y = X + 1;
+
+    public int CompareTo(object obj) => Y;
+
+    #endregion // IComparable
+
+    #region Fields
+
+    private static readonly int X = 5;
+
+    #endregion // Fields
+}
+```
+
+```csharp
+// before: Y is 6 instead of 1
+using System;
+
+public class C : IComparable
+{
+    #region Fields
+
+    private static readonly int X = 5;
+
+    #endregion // Fields
+
+    #region IComparable
+
+    private static readonly int Y = X + 1;
+
+    public int CompareTo(object obj) => Y;
+
+    #endregion // IComparable
+}
+```
+
+```csharp
+// input
+using System;
+
+public class C : IDisposable
+{
+    // The disposal logic
+    #region IDisposable
+
+    public void Dispose()
+    {
+    }
+
+    #endregion // IDisposable
+
+    #region Fields
+
+    private int _a;
+
+    #endregion // Fields
+}
+```
+
+```csharp
+// before: the comment heads the Fields block
+using System;
+
+public class C : IDisposable
+{
+    // The disposal logic
+    #region Fields
+
+    private int _a;
+
+    #endregion // Fields
+
+    #region IDisposable
+
+    public void Dispose()
+    {
+    }
+
+    #endregion // IDisposable
+}
+```
+
+```csharp
+// input
+using System;
+
+public class C : IDisposable
+{
+    #region IDisposable
+
+    public void Dispose()
+    {
+    }
+
+    #endregion // IDisposable
+
+    /// <summary>M</summary>
+    #region Methods
+
+    public void M()
+    {
+    }
+
+    #endregion // Methods
+}
+```
+
+```csharp
+// before: the documentation comment documents Dispose
+using System;
+
+public class C : IDisposable
+{
+    #region Methods
+
+    public void M()
+    {
+    }
+
+    #endregion // Methods
+
+    /// <summary>M</summary>
+    #region IDisposable
+
+    public void Dispose()
+    {
+    }
+
+    #endregion // IDisposable
+}
+```
+
+After, for all three inputs: no code fix is offered. The same holds for two instance fields of a struct in two blocks, an auto-property counting as a field, a comment separated from the `#region` line by blank lines, and the other two documentation shapes of RH7309-006. A comment above a block that keeps its place keeps the fix (RH7309-004).
+
+### 9. RH7501 — a `break` that cannot move without rearranging its line or a directive
+
+```csharp
+// input
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                {
+                    A(); /* first */ break;
+                }
+        }
+    }
+
+    void A()
+    {
+    }
+}
+```
+
+```csharp
+// before
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                {
+                    A(); /* first */                 }
+                break;
+        }
+    }
+
+    void A()
+    {
+    }
+}
+```
+
+```csharp
+// input
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                {
+                    A();
+#pragma warning disable CS0162
+                    break;
+#pragma warning restore CS0162
+                }
+        }
+    }
+
+    void A()
+    {
+    }
+}
+```
+
+```csharp
+// before: the warning stays disabled to the end of the file
+class C
+{
+    void M(int x)
+    {
+        switch (x)
+        {
+            case 1:
+                {
+                    A();
+#pragma warning restore CS0162
+                }
+                #pragma warning disable CS0162
+                    break;
+        }
+    }
+
+    void A()
+    {
+    }
+}
+```
+
+After, for both inputs: no code fix is offered. The same holds for a block whose closing brace shares the `break`'s line, for a `#region` or an `#if` branch between the token in front of the `break` and the closing brace, and for code of another build configuration behind the `break`.
+
 ## Decisions
 
 ### One shared condition, with each rule's instances in its own spec
@@ -43,11 +542,17 @@ The placement, disabled-text, and configuration rules are stated once in SHARED-
 
 A pair counts as split when one directive moves across a brace or one new brace lands between the two directives. Braces added wholly inside a governed span are not a split. Counting them would withhold every brace or expression-body fix inside a `#region`, although the code each directive governs stays the same.
 
+### RH7101 withholds its fix where the formatter splits
+
+The RH7101 fix asks the formatter whether it splits a declaration (FMT-PIPE-031) and is not offered where it does not. RH7101-006 withholds it also for a documented declaration that the formatter splits: formatting a file may keep the documentation on the first field, but a fix that the user applies to one diagnostic must not take documentation from a declaration (SHARED-FIX-003). The condition is the fix's own and states no rule of the split, so the reasoning of FMT-PIPE-031 says "not offered where formatting does not split" instead of "exactly where".
+
 ### Comment placement is decided only for the shapes it names
 
 The condition decides a comment at the end of a line of code and a comment that directly heads the next line. A comment that a blank line separates from the code below it, and a comment between two tokens of one line, are left to each rule. RH7309 decides its own case: a comment above a `#region` heads that block, also across blank lines.
 
-### Narrower questions answered by the maintainer
+### The maintainer's answers
+
+The maintainer approved the visible output changes of this change, listed above, after `main` was merged into the run on 2026-11-05. The narrower questions answered before:
 
 - Backing fields count as fields of a layout type.
 - The RH7303 mirror shape (`#region` in a body, `#endregion` between declarations) is withheld like the reported shape.
