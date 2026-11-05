@@ -5,13 +5,13 @@
 | ID prefix | FMT-STRUCT |
 | Status | Active |
 | Code owners | `StructuralTransformPhase`, `ConfigurableStructuralTransforms`, `ControlFlowBraceTransform`, `ExpressionBodiedMethodTransform`, `ExpressionBodiedConstructorTransform`, `ExpressionBodiedOperatorTransform`, `ExpressionBodiedConversionTransform`, `ExpressionBodiedFinalizerTransform`, `ExpressionBodiedLocalFunctionTransform`, `ExpressionBodiedTransformUtilities`, `ExpressionBodyToBlockConverter`, `AccessorExpressionBodyTransform`, `GetOnlyMemberExpressionBodyTransform`, `EmptyTypeDeclarationSemicolonTransform`, `EnumTrailingCommaRemovalTransform`, `InitializerTrailingCommaRemovalTransform`, `TrailingCommaRemovalUtilities`, `FieldDeclarationSplitTransform`, `AttributeListSplitTransform`, `AttributeListMergeTransform`, `AttributeListShapeUtilities` |
-| Uses | FMT-BREAK-013, FMT-BREAK-014, FMT-BREAK-027, FMT-BREAK-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021, FMT-SPACE-003, FMT-SPACE-004, FMT-SPACE-008, FMT-SPACE-012, FMT-SPACE-017, SHARED-ATTR-013 |
+| Uses | FMT-BREAK-013, FMT-BREAK-014, FMT-BREAK-027, FMT-BREAK-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021, FMT-PIPE-029, FMT-SPACE-003, FMT-SPACE-004, FMT-SPACE-008, FMT-SPACE-012, FMT-SPACE-017, SHARED-ATTR-013, SHARED-COMMENT-012 |
 
-This spec covers the phase that rewrites syntax shape before any layout is decided, right after the tabs in whitespace are replaced (FMT-PIPE-001): braces for `if`/`else` bodies, block bodies for expression-bodied functions, expression bodies for simple accessors and get-only members, semicolon declarations for empty types, removal of trailing commas, one field per declaration, one attribute per list on declarations (FMT-STRUCT-028), and the merge of attribute lists that name one target (FMT-STRUCT-029). Every rewrite produces equivalent code (FMT-PIPE-003) and is refused for a construct whose comments, directives, or disabled text it could not carry over (FMT-PIPE-002).
+This spec covers the phase that rewrites syntax shape before any layout is decided, right after the tabs in whitespace are replaced (FMT-PIPE-001): braces for `if`/`else` bodies, block bodies for expression-bodied functions, expression bodies for simple accessors and get-only members, semicolon declarations for empty types, removal of trailing commas, one field per declaration, one attribute per list on declarations (FMT-STRUCT-028), and the merge of attribute lists that name one target (FMT-STRUCT-029). Every rewrite produces equivalent code (FMT-PIPE-003) and is refused for a construct whose comments, directives, or disabled text it could not carry over (FMT-PIPE-002). The RH7101 code fix splits a field by formatting it with its type as context (FMT-PIPE-029), so the field split, laid out by the phases after this one, is also that fix's output.
 
 ## Non-goals
 
-- Line breaks, spacing, and indentation of the rewritten code, apart from the separators FMT-STRUCT-026 names and the layout it leaves to the field split. The phase only builds the new shape; later phases lay it out (FMT-PIPE-001).
+- Line breaks, spacing, and indentation of the rewritten code, apart from the separators and the field split's layout that FMT-STRUCT-026 names. The phase only builds the new shape; later phases lay it out (FMT-PIPE-001).
 - Braces for `while`, `for`, `foreach`, `using`, `lock`, `fixed`, and `do` bodies. The phase braces `if` and `else` bodies only; other unbraced bodies are left as they are.
 - Braces for switch sections — FMT-SWITCH owns them.
 - Expression-bodied properties, indexers, accessors, and lambdas. They are never turned into block bodies.
@@ -1183,9 +1183,9 @@ The trivia a transform carries over keeps what the author wrote:
 
 The transform MAY drop the line breaks in front of the first comment that leads a braced statement, and the whitespace and line breaks of a token it removes when no carried comment stands next to them, such as the line break behind a removed `=>` or the whitespace in front of an expression that has no comment in front of it.
 
-The field split (FMT-STRUCT-021) is outside this requirement: it writes the line break and indentation in front of each field it creates, a space in front of each comment it carries over, and the line break behind each comment it moves onto its own line, because the RH7101 code fix runs it without the phases after it. That exception is recorded until the fix formats through an entry point the pipeline spec names (thoenissen/Reihitsu#1502).
+The field split (FMT-STRUCT-021) writes the separators above and, beyond them, only the layout FMT-STRUCT-022 decides and no later phase decides again: exactly one space in front of each comment that trailed a separating comma, whatever the author wrote there; a line break behind the last of those comments when one of them spans lines — a delimited comment (`/* */`) whose closing `*/` stands on a later line than its opening — so the next field starts its own line; and a line break behind each comment it moves onto its own line in front of a later field. Comments that each start and end on one line write no such line break: `private int _x, /* a */ _y;` gives `private int _x; /* a */private int _y;` in the phase's output, while `private int _x, /* a` followed by a line `b */ _y;` gives `private int _x; /* a`, the line `b */` as the author wrote it, a line break, and `private int _y;`. It MUST NOT write indentation in front of a field it creates or of a comment it moves, and MUST NOT write a line break in front of a field it creates other than these separators: the indentation phase indents those lines (FMT-INDENT), and the line-break phase puts each field on a line of its own (FMT-BREAK). For example, `private int _x, _y;` becomes `private int _x;private int _y;` in the phase's output, `private int _x,// h` followed by a line `_y;` becomes `private int _x; // h`, a line break, and `private int _y;`, and `private int _x,` followed by a line `/* v */ _y;` becomes `private int _x;`, a line break, `/* v */`, a line break, and `private int _y;`, none of them indented.
 
-Why: The phases after this one, the trace, and the documentation phase read the text of this phase's tree, so the text has to be that tree (FMT-PIPE-021). Every other piece of layout is decided again by the phase that owns it — line breaks by FMT-BREAK, spaces by FMT-SPACE, columns by FMT-INDENT — so a transform that writes it makes one decision in two places (FMT-PIPE-001), and the two can disagree. A wrap is not a decision about the comments it carries (FMT-PIPE-013): the gaps the author left around them are what the phases see in code that needs no wrap, and the spacing phase keeps a gap in front of a comment as it finds it. An elastic marker is whitespace to the spacing phase but no character of the text, so a tree that carries one is spaced differently from its own text wherever no spacing rule decides the gap: the spacing phase collapses the marker as whitespace and keeps a space the text does not hold, the difference FMT-PIPE-021 rules out between a phase's tree and its text.
+Why: The phases after this one, the trace, and the documentation phase read the text of this phase's tree, so the text has to be that tree (FMT-PIPE-021). Every other piece of layout is decided again by the phase that owns it — line breaks by FMT-BREAK, spaces by FMT-SPACE, columns by FMT-INDENT — so a transform that writes it makes one decision in two places (FMT-PIPE-001), and the two can disagree. A wrap is not a decision about the comments it carries (FMT-PIPE-013): the gaps the author left around them are what the phases see in code that needs no wrap, and the spacing phase keeps a gap in front of a comment as it finds it. An elastic marker is whitespace to the spacing phase but no character of the text, so a tree that carries one is spaced differently from its own text wherever no spacing rule decides the gap: the spacing phase collapses the marker as whitespace and keeps a space the text does not hold, the difference FMT-PIPE-021 rules out between a phase's tree and its text. The field split's one space in front of a comment that trailed a comma, and its line break behind a comment it moves in front of a later field, are where FMT-STRUCT-022 puts those comments, and no later phase puts them there: the spacing phase keeps the gap in front of a comment as it finds it, and the line-break phase leaves a comment on the line of the member behind it. A field behind the closing `*/` of a comment that spans lines does not start its line (SHARED-COMMENT-012); the split writes the line break in front of it itself, as document-level formatting has always placed that field, rather than depend on how the line-break phase treats a gap whose only line break stands inside a comment. Its indentation, and its line break in front of a field behind a single-line comment or behind no comment, are decided again by the indentation and line-break phases, in every entry point, also for the RH7101 fix (FMT-PIPE-029).
 
 Example — the transform's output for the class of FMT-PIPE-021's first example holds `int Get(){return 42;}` followed by the line break the author wrote behind `;`, the author's line break between `// trailing` and the inserted `}` behind it, and no line break behind either inserted `}` of `M`. The final output is unchanged by this requirement:
 
@@ -1336,6 +1336,33 @@ The transform's output has no line break between the inner inserted `}` and the 
 Example — a created `return` and the expression behind it: `int A() => a;` gives `return a;` in the transform's output, `int B() => \u0061;` gives `return \u0061;`, `int C() => @a;` gives `return@a;`, `int D() => @"s";` gives `return@"s";`, and `int E() => (a);` gives `return(a);`. The final output of each has one space behind `return` (FMT-SPACE-012).
 
 Example — a comment directly at the arrow (FMT-STRUCT-006) keeps the other comments of the member where they are, and a comment that leads the expression keeps leading it: for `int Get() => // c` followed by a line `/* d */ 42;`, for `int Get() => // c` followed by a line `// d` and a line `42;`, and for `int Get()` followed by a line `/* c */ =>` and a line `/* d */ 42;`, the transform's output has a line break between the created `return` and `/* d */` or `// d`. This example decides the transform's output only; FMT-STRUCT-006 leaves the final place of these comments unspecified.
+
+Example — a comment that spans lines behind a separating comma ends the line of the field that comma now ends, and the next field starts its own line; the comment's later lines keep the text the author wrote, also when a one-line comment follows on its last line:
+
+```csharp
+class C
+{
+    private int _x, /* a
+       b */ _y;
+    private int _p, /* a */ /* b
+       c */ _q, /* d
+       e */ /* f */ _r;
+}
+```
+
+```csharp
+class C
+{
+    private int _x; /* a
+       b */
+    private int _y;
+    private int _p; /* a */ /* b
+       c */
+    private int _q; /* d
+       e */ /* f */
+    private int _r;
+}
+```
 
 ### FMT-STRUCT-027 — A removed comma's comment on a line of its own stays there
 

@@ -16,7 +16,8 @@ internal sealed class UsingDirectiveOrderingPhase : IFormattingPhase
 
     /// <inheritdoc/>
     /// <remarks>
-    /// Reused internally by the RH7207 code fix through <c>InternalsVisibleTo</c>
+    /// Also run on its own by <see cref="ReihitsuFormatter.OrganizeUsingDirectivesInDocumentAsync"/>, on one scope where it
+    /// stands in the document (FMT-PIPE-030)
     /// </remarks>
     public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {

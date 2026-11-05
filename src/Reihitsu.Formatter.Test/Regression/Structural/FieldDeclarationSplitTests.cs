@@ -66,6 +66,242 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a block comment that trailed a separating comma on the declarators' line stays behind the field that comma
+    /// now ends, with one space in front of it, and that the field behind it starts a line of its own
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-022")]
+    public void TrailingBlockCommentAfterSeparatorOnTheDeclaratorsLineIsPreserved()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _a,/* first */ _b;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private int _a; /* first */
+                                    private int _b;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a block comment that spans lines behind a separating comma ends the line of the field that comma now
+    /// ends, and that the field behind it starts its own line at the member column
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void BlockCommentThatSpansLinesBehindASeparatorEndsTheLineOfTheField()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _x, /* a
+                                    b */ _y;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private int _x; /* a
+                                       b */
+                                    private int _y;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a block comment that spans lines behind a separating comma ends the line of the field that comma now
+    /// ends when the later declarator stands on the line behind the comment
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void BlockCommentThatSpansLinesBehindASeparatorWithTheDeclaratorOnTheNextLineEndsTheLineOfTheField()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _x, /* a
+                                    b */
+                                     _y;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private int _x; /* a
+                                       b */
+                                    private int _y;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the line of the field ends behind the last comment of a separating comma when that comment spans lines
+    /// and an earlier one starts and ends on one line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void LastOfTwoCommentsBehindASeparatorThatSpansLinesEndsTheLineOfTheField()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _x, /* a */ /* b
+                                    c */ _y;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private int _x; /* a */ /* b
+                                       c */
+                                    private int _y;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the line of the field ends behind the last comment of a separating comma when that comment starts and
+    /// ends on one line and an earlier one spans lines
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void OneLineCommentBehindACommentThatSpansLinesBehindASeparatorEndsTheLineOfTheField()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _x, /* a
+                                    b */ /* c */ _y;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private int _x; /* a
+                                       b */ /* c */
+                                    private int _y;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a single-line comment behind a comment that spans lines behind a separating comma ends the line of the
+    /// field, and that the field behind it starts its own line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void SingleLineCommentBehindACommentThatSpansLinesBehindASeparatorEndsTheLineOfTheField()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _x, /* a
+                                    b */ // c
+                                     _y;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private int _x; /* a
+                                       b */ // c
+                                    private int _y;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that only the field behind a comment that spans lines starts a new line behind it, and that a later
+    /// declarator without a comment is split as any other
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void CommentThatSpansLinesBehindTheFirstOfThreeDeclaratorsEndsTheLineOfTheFirstField()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _x, /* a */ /* b
+                                    c */ _y, _z;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private int _x; /* a */ /* b
+                                       c */
+                                    private int _y;
+                                    private int _z;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the FMT-STRUCT-026 example: each field behind a comment that spans lines starts its own line, and the
+    /// comments' later lines keep the text the author wrote, also when a one-line comment follows on the last line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
+    public void EveryFieldBehindACommentThatSpansLinesStartsItsOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _p, /* a */ /* b
+                                    c */ _q, /* d
+                                    e */ /* f */ _r;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private int _p; /* a */ /* b
+                                       c */
+                                    private int _q; /* d
+                                       e */ /* f */
+                                    private int _r;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a standalone comment line before a later declarator is preserved
     /// </summary>
     [TestMethod]

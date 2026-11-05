@@ -652,6 +652,59 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
         await Verify(testCode, fixedCode, Diagnostics(RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer.DiagnosticId, AnalyzerResources.RH7203MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the code fix of a block in a namespace that does not start its line moves a directive onto a line of its
+    /// own with the indentation of the line the block's first directive starts on, and leaves the code behind the block on its
+    /// line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    public async Task CodeFixOfABlockInANamespaceThatDoesNotStartItsLineKeepsTheLineIndentation()
+    {
+        const string testCode = """
+                                namespace A { namespace B { using System.Linq; using {|RH7203:System|}; class C { } } }
+                                """;
+
+        const string fixedCode = """
+                                 namespace A { namespace B { using System;
+                                 using System.Linq; class C { } } }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix of a block in an indented namespace puts each directive on a line of its own at the
+    /// namespace's indentation and does not format the class behind the block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    public async Task CodeFixOfANamespaceBlockPlacesSplitDirectivesAtTheScopeIndentation()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    using System.Linq; using {|RH7203:System|};
+
+                                    class C{ }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     using System;
+                                     using System.Linq;
+
+                                     class C{ }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

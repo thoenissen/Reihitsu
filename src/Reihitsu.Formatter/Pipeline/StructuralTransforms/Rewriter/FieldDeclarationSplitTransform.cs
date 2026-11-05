@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
 
@@ -46,34 +47,29 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
+    /// Determines whether the transform splits the field declaration: it declares more than one variable, is a member of a
+    /// class, struct, record, or interface, and carries no preprocessor directive or disabled text (FMT-STRUCT-021,
+    /// FMT-STRUCT-023)
+    /// </summary>
+    /// <param name="fieldDeclaration">The field declaration to inspect</param>
+    /// <returns><see langword="true"/> if the transform splits the declaration; otherwise, <see langword="false"/></returns>
+    internal static bool Splits(FieldDeclarationSyntax fieldDeclaration)
+    {
+        return fieldDeclaration.Declaration.Variables.Count > 1
+               && fieldDeclaration.Parent is ClassDeclarationSyntax or StructDeclarationSyntax or RecordDeclarationSyntax or InterfaceDeclarationSyntax
+               && CarriesDirective(fieldDeclaration) == false;
+    }
+
+    /// <summary>
     /// Determines whether a field declaration carries a preprocessor directive or disabled text
     /// anywhere in its trivia, which the split would otherwise drop
     /// </summary>
     /// <param name="fieldDeclaration">The field declaration to inspect</param>
     /// <returns><see langword="true"/> if the declaration carries a directive or disabled text; otherwise, <see langword="false"/></returns>
-    internal static bool CarriesDirective(FieldDeclarationSyntax fieldDeclaration)
+    private static bool CarriesDirective(FieldDeclarationSyntax fieldDeclaration)
     {
         return fieldDeclaration.DescendantTrivia(descendIntoTrivia: true)
                                .Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia);
-    }
-
-    /// <summary>
-    /// Determines whether the member list contains a field declaration that has to be split
-    /// </summary>
-    /// <param name="members">The member list</param>
-    /// <returns><c>true</c> when at least one field declares multiple variables; otherwise <c>false</c></returns>
-    private static bool HasFieldToSplit(SyntaxList<MemberDeclarationSyntax> members)
-    {
-        foreach (var member in members)
-        {
-            if (member is FieldDeclarationSyntax fieldDeclaration
-                && fieldDeclaration.Declaration.Variables.Count > 1)
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /// <summary>
@@ -81,82 +77,24 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     /// </summary>
     /// <param name="trivia">The trivia list</param>
     /// <returns>The comment trivia</returns>
-    private static IEnumerable<SyntaxTrivia> GetComments(SyntaxTriviaList trivia)
+    private static List<SyntaxTrivia> GetComments(SyntaxTriviaList trivia)
     {
-        return trivia.Where(SyntaxTriviaUtilities.IsCommentTrivia);
+        return trivia.Where(SyntaxTriviaUtilities.IsCommentTrivia).ToList();
     }
 
     /// <summary>
-    /// Gets the contiguous whitespace trivia run that starts at the provided index
+    /// Builds the trailing trivia for a split field that a separating comma ended: one space in front of each comment that
+    /// trailed the comma, and a line break where no later phase writes one (FMT-STRUCT-026) — behind a single-line comment,
+    /// behind comments of which one spans lines, and in front of a comment that leads the next field. A gap without a line
+    /// break is broken by the line-break phase; a gap whose only line break is inside a comment is not
+    /// (<see cref="TokenGapUtilities.HasLineBreak(SyntaxTriviaList)"/>), so the split ends the field's line itself
     /// </summary>
-    /// <param name="trivia">The trivia list</param>
-    /// <param name="startIndex">The index the run starts at</param>
-    /// <returns>The whitespace trivia run, which is empty when no whitespace starts at the index</returns>
-    private static SyntaxTriviaList GetWhitespaceRun(SyntaxTriviaList trivia, int startIndex)
-    {
-        var run = new List<SyntaxTrivia>();
-        var triviaIndex = startIndex;
-
-        while (triviaIndex < trivia.Count
-               && trivia[triviaIndex].IsKind(SyntaxKind.WhitespaceTrivia))
-        {
-            run.Add(trivia[triviaIndex]);
-
-            triviaIndex++;
-        }
-
-        return SyntaxFactory.TriviaList(run);
-    }
-
-    /// <summary>
-    /// Gets the indentation trivia for additional generated fields, which is the whitespace that begins the
-    /// physical line the field declaration starts on
-    /// </summary>
-    /// <param name="leadingTrivia">The original leading trivia</param>
-    /// <returns>The indentation trivia</returns>
-    private static SyntaxTriviaList GetMemberIndentationTrivia(SyntaxTriviaList leadingTrivia)
-    {
-        // The whitespace that opens the field's line is the trailing whitespace run of the leading trivia, but only
-        // when the trivia in front of that run ends the previous line. Locating it by scanning for the last
-        // top-level end-of-line trivia is wrong twice over: a single-line documentation comment terminates its line
-        // inside its own structure, so no top-level end-of-line follows it and the scan restarts at the beginning,
-        // summing the whitespace of every preceding line; and an inline comment leaves a second whitespace run on
-        // the same line, which the scan appends to the first.
-        var runStart = leadingTrivia.Count;
-
-        while (runStart > 0
-               && leadingTrivia[runStart - 1].IsKind(SyntaxKind.WhitespaceTrivia))
-        {
-            runStart--;
-        }
-
-        if (runStart > 0
-            && SyntaxTriviaUtilities.EndsLine(leadingTrivia[runStart - 1]) == false)
-        {
-            // The declaration shares its line with preceding trivia, so the run found above is an inner gap rather
-            // than the line's indentation. The whitespace that opens the trivia list opens the line instead.
-            return GetWhitespaceRun(leadingTrivia, 0);
-        }
-
-        // When the field is the first member of its type its leading trivia carries no line break at all (the
-        // newline sits on the opening brace), which leaves the run starting at index 0 — still the right answer.
-        return GetWhitespaceRun(leadingTrivia, runStart);
-    }
-
-    /// <summary>
-    /// Builds the trailing trivia for a split field, re-attaching comments that followed the declarator's separator
-    /// </summary>
-    /// <param name="comments">The comments to re-attach</param>
-    /// <param name="suffixTrivia">The trivia appended after the comments</param>
+    /// <param name="comments">The comments that trailed the comma</param>
+    /// <param name="nextFieldHasLeadingComment">Whether a comment leads the next field</param>
     /// <returns>The trailing trivia</returns>
-    private static SyntaxTriviaList BuildTrailingTrivia(List<SyntaxTrivia> comments, SyntaxTriviaList suffixTrivia)
+    private SyntaxTriviaList BuildTrailingTrivia(List<SyntaxTrivia> comments, bool nextFieldHasLeadingComment)
     {
-        if (comments.Count == 0)
-        {
-            return suffixTrivia;
-        }
-
-        var trivia = new List<SyntaxTrivia>((comments.Count * 2) + suffixTrivia.Count);
+        var trivia = new List<SyntaxTrivia>((comments.Count * 2) + 1);
 
         foreach (var comment in comments)
         {
@@ -164,51 +102,44 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
             trivia.Add(comment);
         }
 
-        trivia.AddRange(suffixTrivia);
+        var triviaList = SyntaxFactory.TriviaList(trivia);
+        var endsWithSingleLineComment = comments.Count > 0
+                                        && comments[comments.Count - 1].IsKind(SyntaxKind.SingleLineCommentTrivia);
 
-        return SyntaxFactory.TriviaList(trivia);
+        if (endsWithSingleLineComment
+            || nextFieldHasLeadingComment
+            || TokenGapUtilities.HasLineBreak(triviaList))
+        {
+            triviaList = triviaList.Add(SyntaxFactory.EndOfLine(_context.EndOfLine));
+        }
+
+        return triviaList;
     }
 
     /// <summary>
-    /// Builds the leading trivia for a split field, re-attaching standalone comments that preceded the declarator
+    /// Builds the leading trivia for a later split field: each comment that preceded its declarator, on a line of its own.
+    /// No indentation is written, because the indentation phase indents those lines (FMT-STRUCT-026)
     /// </summary>
-    /// <param name="indentationTrivia">The indentation trivia for the generated field</param>
-    /// <param name="declaratorLeadingTrivia">The leading trivia of the declarator</param>
+    /// <param name="comments">The comments that preceded the declarator</param>
     /// <returns>The leading trivia</returns>
-    private SyntaxTriviaList BuildLeadingTrivia(SyntaxTriviaList indentationTrivia, SyntaxTriviaList declaratorLeadingTrivia)
+    private SyntaxTriviaList BuildLeadingTrivia(List<SyntaxTrivia> comments)
     {
-        var trivia = new List<SyntaxTrivia>();
+        var trivia = new List<SyntaxTrivia>(comments.Count * 2);
 
-        foreach (var comment in GetComments(declaratorLeadingTrivia))
+        foreach (var comment in comments)
         {
-            AppendLeadingComment(trivia, indentationTrivia, comment);
-        }
+            trivia.Add(comment);
 
-        trivia.AddRange(indentationTrivia);
+            // A single-line documentation comment already terminates its line, so another end-of-line would put a blank
+            // line between the comment and the field it documents. A delimited documentation comment (/** … */) carries
+            // no break and still needs one, which is why the question is asked of the trivia text rather than of its kind
+            if (SyntaxTriviaUtilities.EndsLine(comment) == false)
+            {
+                trivia.Add(SyntaxFactory.EndOfLine(_context.EndOfLine));
+            }
+        }
 
         return SyntaxFactory.TriviaList(trivia);
-    }
-
-    /// <summary>
-    /// Appends one standalone comment and the line break it needs before a generated field
-    /// </summary>
-    /// <param name="trivia">Destination trivia</param>
-    /// <param name="indentationTrivia">Indentation for the comment</param>
-    /// <param name="comment">Comment to append</param>
-    private void AppendLeadingComment(List<SyntaxTrivia> trivia, SyntaxTriviaList indentationTrivia, SyntaxTrivia comment)
-    {
-        trivia.AddRange(indentationTrivia);
-        trivia.Add(comment);
-
-        // A single-line documentation comment already terminates its line, so appending another end-of-line would
-        // put a blank line between the comment and the field it documents. The pipeline's blank-line phase
-        // absorbs that break, but the RH7101 code fix runs this transform on its own and would emit the detached
-        // comment verbatim. A delimited documentation comment (/** … */) carries no break and still needs one,
-        // which is why the question is asked of the trivia text rather than of its kind.
-        if (SyntaxTriviaUtilities.EndsLine(comment) == false)
-        {
-            trivia.Add(SyntaxFactory.EndOfLine(_context.EndOfLine));
-        }
     }
 
     /// <summary>
@@ -218,7 +149,7 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     /// <returns>The updated members</returns>
     private SyntaxList<MemberDeclarationSyntax> SplitFields(SyntaxList<MemberDeclarationSyntax> members)
     {
-        if (HasFieldToSplit(members) == false)
+        if (members.Any(member => member is FieldDeclarationSyntax fieldDeclaration && Splits(fieldDeclaration)) == false)
         {
             return members;
         }
@@ -229,19 +160,18 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            if (member is not FieldDeclarationSyntax fieldDeclaration
-                || fieldDeclaration.Declaration.Variables.Count <= 1
-                || CarriesDirective(fieldDeclaration))
+            // Splitting rebuilds each generated field's trivia from comments only. A preprocessor directive or disabled
+            // text entangled with the declarators or separators would be dropped, so Splits leaves directive-bearing
+            // declarations intact.
+            if (member is FieldDeclarationSyntax fieldDeclaration
+                && Splits(fieldDeclaration))
+            {
+                updatedMembers.AddRange(SplitField(fieldDeclaration));
+            }
+            else
             {
                 updatedMembers.Add(member);
-
-                continue;
             }
-
-            // Splitting rebuilds each generated field's trivia from comments only. A preprocessor directive or
-            // disabled text entangled with the declarators or separators would be dropped, so the guard above leaves
-            // directive-bearing declarations intact.
-            updatedMembers.AddRange(SplitField(fieldDeclaration));
         }
 
         return SyntaxFactory.List(updatedMembers);
@@ -255,13 +185,8 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     private IEnumerable<FieldDeclarationSyntax> SplitField(FieldDeclarationSyntax fieldDeclaration)
     {
         var variables = fieldDeclaration.Declaration.Variables;
-        var indentationTrivia = GetMemberIndentationTrivia(fieldDeclaration.GetLeadingTrivia());
-        var lineBreakTrivia = SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(_context.EndOfLine));
 
-        return variables.Select((_, variableIndex) => CreateSplitField(fieldDeclaration,
-                                                                       variableIndex,
-                                                                       indentationTrivia,
-                                                                       lineBreakTrivia));
+        return variables.Select((_, variableIndex) => CreateSplitField(fieldDeclaration, variableIndex));
     }
 
     /// <summary>
@@ -269,13 +194,8 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     /// </summary>
     /// <param name="fieldDeclaration">Original field declaration</param>
     /// <param name="variableIndex">Index of the declarator to emit</param>
-    /// <param name="indentationTrivia">Indentation for later generated fields</param>
-    /// <param name="lineBreakTrivia">Line break appended after non-final fields</param>
     /// <returns>The generated single-declarator field</returns>
-    private FieldDeclarationSyntax CreateSplitField(FieldDeclarationSyntax fieldDeclaration,
-                                                    int variableIndex,
-                                                    SyntaxTriviaList indentationTrivia,
-                                                    SyntaxTriviaList lineBreakTrivia)
+    private FieldDeclarationSyntax CreateSplitField(FieldDeclarationSyntax fieldDeclaration, int variableIndex)
     {
         var variables = fieldDeclaration.Declaration.Variables;
         var variable = variables[variableIndex];
@@ -291,7 +211,7 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
 
         updatedField = variableIndex == 0
                            ? updatedField.WithLeadingTrivia(fieldDeclaration.GetLeadingTrivia())
-                           : updatedField.WithLeadingTrivia(BuildLeadingTrivia(indentationTrivia, variable.GetLeadingTrivia()));
+                           : updatedField.WithLeadingTrivia(BuildLeadingTrivia(GetComments(variable.GetLeadingTrivia())));
 
         // The separator for every non-final declarator and the declaration semicolon for the final declarator become
         // the generated field's terminator. Trivia before and after that token remains on the same side.
@@ -300,7 +220,8 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
 
         updatedField = isFinalVariable
                            ? updatedField.WithTrailingTrivia(fieldDeclaration.GetTrailingTrivia())
-                           : updatedField.WithTrailingTrivia(BuildTrailingTrivia(GetComments(terminator.TrailingTrivia).ToList(), lineBreakTrivia));
+                           : updatedField.WithTrailingTrivia(BuildTrailingTrivia(GetComments(terminator.TrailingTrivia),
+                                                                                 variables[variableIndex + 1].GetLeadingTrivia().Any(SyntaxTriviaUtilities.IsCommentTrivia)));
 
         return updatedField.WithSemicolonToken(updatedField.SemicolonToken.WithLeadingTrivia(terminator.LeadingTrivia));
     }
