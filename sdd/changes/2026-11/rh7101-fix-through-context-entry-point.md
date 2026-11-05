@@ -428,6 +428,78 @@ class C
 }
 ```
 
+A documentation comment in a gap starts the next line with the member it documents also when a comment in the gap spans lines, the documentation comment itself or one in front of it, because document-level formatting starts that documentation comment's line (FMT-DOC-001). Whether a member moves is read from the phases' layout of the type, not predicted from the gap (FMT-PIPE-029). A comment in front of the documentation comment stays behind the code in front of it, and no blank line is written above the documentation comment:
+
+```csharp
+// input
+class C
+{
+    private int _p; /** a
+       b */ private int _x, _y; /** c
+       d */ private int _q;
+}
+```
+
+```csharp
+// before
+class C
+{
+    private int _p; /** a
+       b */ private int _x;
+private int _y; /** c
+       d */ private int _q;
+}
+```
+
+```csharp
+// after
+class C
+{
+    private int _p;
+    /** a
+       b */ private int _x;
+    private int _y;
+    /** c
+       d */ private int _q;
+}
+```
+
+```csharp
+// input
+class C
+{
+    private int _p; /* a
+       b */ /** c */ private int _x, _y; /* d
+       e */ /** f */ private int _q;
+}
+```
+
+```csharp
+// before
+class C
+{
+    private int _p; /* a
+       b */ /** c */ private int _x;
+private int _y; /* d
+       e */ /** f */ private int _q;
+}
+```
+
+```csharp
+// after
+class C
+{
+    private int _p; /* a
+       b */
+    /** c */ private int _x;
+    private int _y; /* d
+       e */
+    /** f */ private int _q;
+}
+```
+
+The same holds for a one-line comment followed by a documentation comment that spans lines, and for a comment that spans lines followed by one; FMT-PIPE-029 shows both. Where the declaration's first token, or the next member's, already starts its line, the documentation comment in the gap stays where it stands, as before.
+
 ### 8. A declaration off its member column, with spaces or a tab
 
 ```csharp
