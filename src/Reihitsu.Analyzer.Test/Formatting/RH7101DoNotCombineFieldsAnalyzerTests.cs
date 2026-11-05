@@ -1756,6 +1756,640 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
         AssertFormattingChangesNothing(fixedSource);
     }
 
+    /// <summary>
+    /// Verifies the specification example with a documentation comment that spans lines in each gap: the documentation
+    /// comment starts the next line with its member, in front of the first field and in front of the member behind the
+    /// target, and no blank line is written above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixStartsTheMembersBehindADocumentationCommentThatSpansLinesInTheGapsOnTheNextLine()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _p; /** a
+                                     b */ private int _x, {|RH7101:_y|}; /** c
+                                     d */ private int _q;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _p;
+                                       /** a
+                                          b */ private int _x;
+                                       private int _y;
+                                       /** c
+                                          d */ private int _q;
+                                   }
+                                   """;
+
+        const string formattedSource = """
+                                       class C
+                                       {
+                                           private int _p;
+
+                                           /** a
+                                              b */ private int _x;
+                                           private int _y;
+
+                                           /** c
+                                              d */ private int _q;
+                                       }
+                                       """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+        AssertFormattingAddsOnlyBlankLines(source, fixedSource, formattedSource);
+    }
+
+    /// <summary>
+    /// Verifies that the first field starts the next line with the documentation comment in front of it when the gap in
+    /// front of the target holds a documentation comment that spans lines, and that no blank line is written above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixStartsTheFirstFieldBehindADocumentationCommentThatSpansLinesInTheGapInFrontOnTheNextLine()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _p; /** a
+                                     b */ private int _x, {|RH7101:_y|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _p;
+                                       /** a
+                                          b */ private int _x;
+                                       private int _y;
+                                   }
+                                   """;
+
+        const string formattedSource = """
+                                       class C
+                                       {
+                                           private int _p;
+
+                                           /** a
+                                              b */ private int _x;
+                                           private int _y;
+                                       }
+                                       """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+        AssertFormattingAddsOnlyBlankLines(source, fixedSource, formattedSource);
+    }
+
+    /// <summary>
+    /// Verifies that the member behind the target starts the next line with its documentation comment when the gap behind
+    /// the target holds a documentation comment that spans lines, and that no blank line is written above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixStartsTheMemberBehindADocumentationCommentThatSpansLinesInTheGapBehindOnTheNextLine()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _x, {|RH7101:_y|}; /** c
+                                     d */ private int _q;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _x;
+                                       private int _y;
+                                       /** c
+                                          d */ private int _q;
+                                   }
+                                   """;
+
+        const string formattedSource = """
+                                       class C
+                                       {
+                                           private int _x;
+                                           private int _y;
+
+                                           /** c
+                                              d */ private int _q;
+                                       }
+                                       """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+        AssertFormattingAddsOnlyBlankLines(source, fixedSource, formattedSource);
+    }
+
+    /// <summary>
+    /// Verifies the specification example with a comment that spans lines and then a one-line documentation comment in each
+    /// gap: the documentation comment starts the next line with its member, in front of the first field and in front of the
+    /// member behind the target, a comment in front of it stays behind the code in front of it, and no blank line is written
+    /// above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixStartsTheMembersBehindACommentThatSpansLinesAndADocumentationCommentInTheGapsOnTheNextLine()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _p; /* a
+                                     b */ /** c */ private int _x, {|RH7101:_y|}; /* d
+                                     e */ /** f */ private int _q;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _p; /* a
+                                          b */
+                                       /** c */ private int _x;
+                                       private int _y; /* d
+                                          e */
+                                       /** f */ private int _q;
+                                   }
+                                   """;
+
+        const string formattedSource = """
+                                       class C
+                                       {
+                                           private int _p; /* a
+                                              b */
+
+                                           /** c */ private int _x;
+                                           private int _y; /* d
+                                              e */
+
+                                           /** f */ private int _q;
+                                       }
+                                       """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+        AssertFormattingAddsOnlyBlankLines(source, fixedSource, formattedSource);
+    }
+
+    /// <summary>
+    /// Verifies that the first field starts the next line with the documentation comment in front of it when the gap in
+    /// front of the target holds a comment that spans lines and then a one-line documentation comment, and that no blank
+    /// line is written above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixStartsTheFirstFieldBehindACommentThatSpansLinesAndADocumentationCommentInTheGapInFrontOnTheNextLine()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _p; /* a
+                                     b */ /** c */ private int _x, {|RH7101:_y|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _p; /* a
+                                          b */
+                                       /** c */ private int _x;
+                                       private int _y;
+                                   }
+                                   """;
+
+        const string formattedSource = """
+                                       class C
+                                       {
+                                           private int _p; /* a
+                                              b */
+
+                                           /** c */ private int _x;
+                                           private int _y;
+                                       }
+                                       """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+        AssertFormattingAddsOnlyBlankLines(source, fixedSource, formattedSource);
+    }
+
+    /// <summary>
+    /// Verifies that the member behind the target starts the next line with its documentation comment when the gap behind
+    /// the target holds a comment that spans lines and then a one-line documentation comment, and that no blank line is
+    /// written above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixStartsTheMemberBehindACommentThatSpansLinesAndADocumentationCommentInTheGapBehindOnTheNextLine()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _x, {|RH7101:_y|}; /* d
+                                     e */ /** f */ private int _q;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _x;
+                                       private int _y; /* d
+                                          e */
+                                       /** f */ private int _q;
+                                   }
+                                   """;
+
+        const string formattedSource = """
+                                       class C
+                                       {
+                                           private int _x;
+                                           private int _y; /* d
+                                              e */
+
+                                           /** f */ private int _q;
+                                       }
+                                       """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+        AssertFormattingAddsOnlyBlankLines(source, fixedSource, formattedSource);
+    }
+
+    /// <summary>
+    /// Verifies the specification example with a one-line comment and then a documentation comment that spans lines in each
+    /// gap: the documentation comment starts the next line with its member, in front of the first field and in front of the
+    /// member behind the target, a comment in front of it stays behind the code in front of it, and no blank line is written
+    /// above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixStartsTheMembersBehindAOneLineCommentAndADocumentationCommentThatSpansLinesInTheGapsOnTheNextLine()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _p; /* a */ /** b
+                                     c */ private int _x, {|RH7101:_y|}; /* d */ /** e
+                                     f */ private int _q;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _p; /* a */
+                                       /** b
+                                          c */ private int _x;
+                                       private int _y; /* d */
+                                       /** e
+                                          f */ private int _q;
+                                   }
+                                   """;
+
+        const string formattedSource = """
+                                       class C
+                                       {
+                                           private int _p; /* a */
+
+                                           /** b
+                                              c */ private int _x;
+                                           private int _y; /* d */
+
+                                           /** e
+                                              f */ private int _q;
+                                       }
+                                       """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+        AssertFormattingAddsOnlyBlankLines(source, fixedSource, formattedSource);
+    }
+
+    /// <summary>
+    /// Verifies that the first field starts the next line with the documentation comment in front of it when the gap in
+    /// front of the target holds a one-line comment and then a documentation comment that spans lines, and that no blank
+    /// line is written above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixStartsTheFirstFieldBehindAOneLineCommentAndADocumentationCommentThatSpansLinesInTheGapInFrontOnTheNextLine()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _p; /* a */ /** b
+                                     c */ private int _x, {|RH7101:_y|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _p; /* a */
+                                       /** b
+                                          c */ private int _x;
+                                       private int _y;
+                                   }
+                                   """;
+
+        const string formattedSource = """
+                                       class C
+                                       {
+                                           private int _p; /* a */
+
+                                           /** b
+                                              c */ private int _x;
+                                           private int _y;
+                                       }
+                                       """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+        AssertFormattingAddsOnlyBlankLines(source, fixedSource, formattedSource);
+    }
+
+    /// <summary>
+    /// Verifies that the member behind the target starts the next line with its documentation comment when the gap behind
+    /// the target holds a one-line comment and then a documentation comment that spans lines, and that no blank line is
+    /// written above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixStartsTheMemberBehindAOneLineCommentAndADocumentationCommentThatSpansLinesInTheGapBehindOnTheNextLine()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _x, {|RH7101:_y|}; /* d */ /** e
+                                     f */ private int _q;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _x;
+                                       private int _y; /* d */
+                                       /** e
+                                          f */ private int _q;
+                                   }
+                                   """;
+
+        const string formattedSource = """
+                                       class C
+                                       {
+                                           private int _x;
+                                           private int _y; /* d */
+
+                                           /** e
+                                              f */ private int _q;
+                                       }
+                                       """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+        AssertFormattingAddsOnlyBlankLines(source, fixedSource, formattedSource);
+    }
+
+    /// <summary>
+    /// Verifies the specification example with a comment that spans lines and then a documentation comment that spans lines
+    /// in each gap: the documentation comment starts the next line with its member, in front of the first field and in front
+    /// of the member behind the target, a comment in front of it stays behind the code in front of it, and no blank line is
+    /// written above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixStartsTheMembersBehindACommentThatSpansLinesAndADocumentationCommentThatSpansLinesInTheGapsOnTheNextLine()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _p; /* a
+                                     b */ /** c
+                                     d */ private int _x, {|RH7101:_y|}; /* e
+                                     f */ /** g
+                                     h */ private int _q;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _p; /* a
+                                          b */
+                                       /** c
+                                          d */ private int _x;
+                                       private int _y; /* e
+                                          f */
+                                       /** g
+                                          h */ private int _q;
+                                   }
+                                   """;
+
+        const string formattedSource = """
+                                       class C
+                                       {
+                                           private int _p; /* a
+                                              b */
+
+                                           /** c
+                                              d */ private int _x;
+                                           private int _y; /* e
+                                              f */
+
+                                           /** g
+                                              h */ private int _q;
+                                       }
+                                       """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+        AssertFormattingAddsOnlyBlankLines(source, fixedSource, formattedSource);
+    }
+
+    /// <summary>
+    /// Verifies that the first field starts the next line with the documentation comment in front of it when the gap in
+    /// front of the target holds a comment that spans lines and then a documentation comment that spans lines, and that no
+    /// blank line is written above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixStartsTheFirstFieldBehindACommentThatSpansLinesAndADocumentationCommentThatSpansLinesInTheGapInFrontOnTheNextLine()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _p; /* a
+                                     b */ /** c
+                                     d */ private int _x, {|RH7101:_y|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _p; /* a
+                                          b */
+                                       /** c
+                                          d */ private int _x;
+                                       private int _y;
+                                   }
+                                   """;
+
+        const string formattedSource = """
+                                       class C
+                                       {
+                                           private int _p; /* a
+                                              b */
+
+                                           /** c
+                                              d */ private int _x;
+                                           private int _y;
+                                       }
+                                       """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+        AssertFormattingAddsOnlyBlankLines(source, fixedSource, formattedSource);
+    }
+
+    /// <summary>
+    /// Verifies that the member behind the target starts the next line with its documentation comment when the gap behind
+    /// the target holds a comment that spans lines and then a documentation comment that spans lines, and that no blank line
+    /// is written above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixStartsTheMemberBehindACommentThatSpansLinesAndADocumentationCommentThatSpansLinesInTheGapBehindOnTheNextLine()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _x, {|RH7101:_y|}; /* e
+                                     f */ /** g
+                                     h */ private int _q;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _x;
+                                       private int _y; /* e
+                                          f */
+                                       /** g
+                                          h */ private int _q;
+                                   }
+                                   """;
+
+        const string formattedSource = """
+                                       class C
+                                       {
+                                           private int _x;
+                                           private int _y; /* e
+                                              f */
+
+                                           /** g
+                                              h */ private int _q;
+                                       }
+                                       """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+        AssertFormattingAddsOnlyBlankLines(source, fixedSource, formattedSource);
+    }
+
+    /// <summary>
+    /// Verifies the specification example on the other side of the condition: the target's first token and the first token
+    /// of the member behind it already start their lines, so the documentation comments that span lines behind the code in
+    /// front stay where they stand, although document-level formatting moves each onto a line of its own
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixLeavesDocumentationCommentsThatSpanLinesInFrontOfMembersThatStartTheirLinesWhereTheyStand()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _p; /** a
+                                     b */
+                                  private int _x, {|RH7101:_y|}; /** c
+                                     d */
+                                  private int _q;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _p; /** a
+                                          b */
+                                       private int _x;
+                                       private int _y; /** c
+                                          d */
+                                       private int _q;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+    }
+
+    /// <summary>
+    /// Verifies the other side of the condition with a <c>///</c> comment behind the code in front of the target and behind
+    /// the target: the first token behind each comment already starts its line, so the comments stay where they stand
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixLeavesSingleLineDocumentationCommentsInFrontOfMembersThatStartTheirLinesWhereTheyStand()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _p; /// a
+                                  private int _x, {|RH7101:_y|}; /// c
+                                  private int _q;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _p; /// a
+                                       private int _x;
+                                       private int _y; /// c
+                                       private int _q;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+    }
+
     #endregion // Tests
 
     #region Methods
@@ -1804,6 +2438,23 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                         .Single();
 
         return (await changedDocument.GetTextAsync(CancellationToken.None)).ToString();
+    }
+
+    /// <summary>
+    /// Asserts that formatting the source and formatting the fix result both give the formatted source, and that the fix
+    /// result differs from it only by the blank lines the formatter writes, which the fix does not write in the gaps
+    /// around the declaration
+    /// </summary>
+    /// <param name="source">Source text with markup, with LF line endings</param>
+    /// <param name="fixedSource">Expected text after the fix, with LF line endings</param>
+    /// <param name="formattedSource">Expected text after formatting, with LF line endings</param>
+    private static void AssertFormattingAddsOnlyBlankLines(string source, string fixedSource, string formattedSource)
+    {
+        TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+
+        Assert.AreEqual(formattedSource, Format(plainSource), "Formatting the source must give the formatted source.");
+        Assert.AreEqual(formattedSource, Format(fixedSource), "Formatting the fix result must give the formatted source.");
+        Assert.AreEqual(fixedSource, string.Join("\n", formattedSource.Split('\n').Where(line => line.Trim().Length > 0)), "The fix result must differ from the formatted source only by blank lines.");
     }
 
     #endregion // Methods

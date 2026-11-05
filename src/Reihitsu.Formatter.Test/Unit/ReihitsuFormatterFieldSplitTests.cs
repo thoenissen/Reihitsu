@@ -597,6 +597,470 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies the spec example with a documentation comment that spans lines in each gap: the documentation comment starts
+    /// the next line with its member, in front of the first field and in front of the member behind the target, and no blank
+    /// line is written above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-029")]
+    public async Task MembersBehindADocumentationCommentThatSpansLinesInTheGapsStartTheNextLine()
+    {
+        const string input = """
+                             class C
+                             {
+                                 private int _p; /** a
+                                    b */ private int _x, _y; /** c
+                                    d */ private int _q;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _p;
+                                    /** a
+                                       b */ private int _x;
+                                    private int _y;
+                                    /** c
+                                       d */ private int _q;
+                                }
+                                """;
+
+        await AssertSplitsTarget(input, expected, "_x", "C");
+    }
+
+    /// <summary>
+    /// Verifies that the first field starts the next line with the documentation comment in front of it when the gap in
+    /// front of the target holds a documentation comment that spans lines, and that no blank line is written above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-029")]
+    public async Task FirstFieldBehindADocumentationCommentThatSpansLinesInTheGapInFrontStartsTheNextLine()
+    {
+        const string input = """
+                             class C
+                             {
+                                 private int _p; /** a
+                                    b */ private int _x, _y;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _p;
+                                    /** a
+                                       b */ private int _x;
+                                    private int _y;
+                                }
+                                """;
+
+        await AssertSplitsTarget(input, expected, "_x", "C");
+    }
+
+    /// <summary>
+    /// Verifies that the member behind the target starts the next line with its documentation comment when the gap behind
+    /// the target holds a documentation comment that spans lines, and that no blank line is written above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-029")]
+    public async Task MemberBehindADocumentationCommentThatSpansLinesInTheGapBehindStartsTheNextLine()
+    {
+        const string input = """
+                             class C
+                             {
+                                 private int _x, _y; /** c
+                                    d */ private int _q;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _x;
+                                    private int _y;
+                                    /** c
+                                       d */ private int _q;
+                                }
+                                """;
+
+        await AssertSplitsTarget(input, expected, "_x", "C");
+    }
+
+    /// <summary>
+    /// Verifies the spec example with a comment that spans lines and then a one-line documentation comment in each gap: the
+    /// documentation comment starts the next line with its member, in front of the first field and in front of the member
+    /// behind the target, a comment in front of it stays behind the code in front of it, and no blank line is written above
+    /// it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-029")]
+    public async Task MembersBehindACommentThatSpansLinesAndADocumentationCommentInTheGapsStartTheNextLine()
+    {
+        const string input = """
+                             class C
+                             {
+                                 private int _p; /* a
+                                    b */ /** c */ private int _x, _y; /* d
+                                    e */ /** f */ private int _q;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _p; /* a
+                                       b */
+                                    /** c */ private int _x;
+                                    private int _y; /* d
+                                       e */
+                                    /** f */ private int _q;
+                                }
+                                """;
+
+        await AssertSplitsTarget(input, expected, "_x", "C");
+    }
+
+    /// <summary>
+    /// Verifies that the first field starts the next line with the documentation comment in front of it when the gap in
+    /// front of the target holds a comment that spans lines and then a one-line documentation comment, and that no blank
+    /// line is written above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-029")]
+    public async Task FirstFieldBehindACommentThatSpansLinesAndADocumentationCommentInTheGapInFrontStartsTheNextLine()
+    {
+        const string input = """
+                             class C
+                             {
+                                 private int _p; /* a
+                                    b */ /** c */ private int _x, _y;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _p; /* a
+                                       b */
+                                    /** c */ private int _x;
+                                    private int _y;
+                                }
+                                """;
+
+        await AssertSplitsTarget(input, expected, "_x", "C");
+    }
+
+    /// <summary>
+    /// Verifies that the member behind the target starts the next line with its documentation comment when the gap behind
+    /// the target holds a comment that spans lines and then a one-line documentation comment, and that no blank line is
+    /// written above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-029")]
+    public async Task MemberBehindACommentThatSpansLinesAndADocumentationCommentInTheGapBehindStartsTheNextLine()
+    {
+        const string input = """
+                             class C
+                             {
+                                 private int _x, _y; /* d
+                                    e */ /** f */ private int _q;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _x;
+                                    private int _y; /* d
+                                       e */
+                                    /** f */ private int _q;
+                                }
+                                """;
+
+        await AssertSplitsTarget(input, expected, "_x", "C");
+    }
+
+    /// <summary>
+    /// Verifies the spec example with a one-line comment and then a documentation comment that spans lines in each gap: the
+    /// documentation comment starts the next line with its member, in front of the first field and in front of the member
+    /// behind the target, a comment in front of it stays behind the code in front of it, and no blank line is written above
+    /// it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-029")]
+    public async Task MembersBehindAOneLineCommentAndADocumentationCommentThatSpansLinesInTheGapsStartTheNextLine()
+    {
+        const string input = """
+                             class C
+                             {
+                                 private int _p; /* a */ /** b
+                                    c */ private int _x, _y; /* d */ /** e
+                                    f */ private int _q;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _p; /* a */
+                                    /** b
+                                       c */ private int _x;
+                                    private int _y; /* d */
+                                    /** e
+                                       f */ private int _q;
+                                }
+                                """;
+
+        await AssertSplitsTarget(input, expected, "_x", "C");
+    }
+
+    /// <summary>
+    /// Verifies that the first field starts the next line with the documentation comment in front of it when the gap in
+    /// front of the target holds a one-line comment and then a documentation comment that spans lines, and that no blank
+    /// line is written above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-029")]
+    public async Task FirstFieldBehindAOneLineCommentAndADocumentationCommentThatSpansLinesInTheGapInFrontStartsTheNextLine()
+    {
+        const string input = """
+                             class C
+                             {
+                                 private int _p; /* a */ /** b
+                                    c */ private int _x, _y;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _p; /* a */
+                                    /** b
+                                       c */ private int _x;
+                                    private int _y;
+                                }
+                                """;
+
+        await AssertSplitsTarget(input, expected, "_x", "C");
+    }
+
+    /// <summary>
+    /// Verifies that the member behind the target starts the next line with its documentation comment when the gap behind
+    /// the target holds a one-line comment and then a documentation comment that spans lines, and that no blank line is
+    /// written above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-029")]
+    public async Task MemberBehindAOneLineCommentAndADocumentationCommentThatSpansLinesInTheGapBehindStartsTheNextLine()
+    {
+        const string input = """
+                             class C
+                             {
+                                 private int _x, _y; /* d */ /** e
+                                    f */ private int _q;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _x;
+                                    private int _y; /* d */
+                                    /** e
+                                       f */ private int _q;
+                                }
+                                """;
+
+        await AssertSplitsTarget(input, expected, "_x", "C");
+    }
+
+    /// <summary>
+    /// Verifies the spec example with a comment that spans lines and then a documentation comment that spans lines in each
+    /// gap: the documentation comment starts the next line with its member, in front of the first field and in front of the
+    /// member behind the target, a comment in front of it stays behind the code in front of it, and no blank line is written
+    /// above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-029")]
+    public async Task MembersBehindACommentThatSpansLinesAndADocumentationCommentThatSpansLinesInTheGapsStartTheNextLine()
+    {
+        const string input = """
+                             class C
+                             {
+                                 private int _p; /* a
+                                    b */ /** c
+                                    d */ private int _x, _y; /* e
+                                    f */ /** g
+                                    h */ private int _q;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _p; /* a
+                                       b */
+                                    /** c
+                                       d */ private int _x;
+                                    private int _y; /* e
+                                       f */
+                                    /** g
+                                       h */ private int _q;
+                                }
+                                """;
+
+        await AssertSplitsTarget(input, expected, "_x", "C");
+    }
+
+    /// <summary>
+    /// Verifies that the first field starts the next line with the documentation comment in front of it when the gap in
+    /// front of the target holds a comment that spans lines and then a documentation comment that spans lines, and that no
+    /// blank line is written above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-029")]
+    public async Task FirstFieldBehindACommentThatSpansLinesAndADocumentationCommentThatSpansLinesInTheGapInFrontStartsTheNextLine()
+    {
+        const string input = """
+                             class C
+                             {
+                                 private int _p; /* a
+                                    b */ /** c
+                                    d */ private int _x, _y;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _p; /* a
+                                       b */
+                                    /** c
+                                       d */ private int _x;
+                                    private int _y;
+                                }
+                                """;
+
+        await AssertSplitsTarget(input, expected, "_x", "C");
+    }
+
+    /// <summary>
+    /// Verifies that the member behind the target starts the next line with its documentation comment when the gap behind
+    /// the target holds a comment that spans lines and then a documentation comment that spans lines, and that no blank line
+    /// is written above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-029")]
+    public async Task MemberBehindACommentThatSpansLinesAndADocumentationCommentThatSpansLinesInTheGapBehindStartsTheNextLine()
+    {
+        const string input = """
+                             class C
+                             {
+                                 private int _x, _y; /* e
+                                    f */ /** g
+                                    h */ private int _q;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _x;
+                                    private int _y; /* e
+                                       f */
+                                    /** g
+                                       h */ private int _q;
+                                }
+                                """;
+
+        await AssertSplitsTarget(input, expected, "_x", "C");
+    }
+
+    /// <summary>
+    /// Verifies the spec example on the other side of the condition: the target's first token and the first token of the
+    /// member behind it already start their lines, so the documentation comments that span lines behind the code in front
+    /// stay where they stand, although document-level formatting moves each onto a line of its own
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-029")]
+    [Requirement("FMT-PIPE-010")]
+    [Requirement("FMT-PIPE-018")]
+    public async Task DocumentationCommentsThatSpanLinesInFrontOfMembersThatStartTheirLinesStayWhereTheyStand()
+    {
+        const string input = """
+                             class C
+                             {
+                                 private int _p; /** a
+                                    b */
+                                 private int _x, _y; /** c
+                                    d */
+                                 private int _q;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _p; /** a
+                                       b */
+                                    private int _x;
+                                    private int _y; /** c
+                                       d */
+                                    private int _q;
+                                }
+                                """;
+
+        await AssertSplitsTarget(input, expected, "_x", "C");
+    }
+
+    /// <summary>
+    /// Verifies the other side of the condition with a <c>///</c> comment behind the code in front of the target and behind
+    /// the target: the first token behind each comment already starts its line, so the comments stay where they stand
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-029")]
+    [Requirement("FMT-PIPE-010")]
+    [Requirement("FMT-PIPE-018")]
+    public async Task SingleLineDocumentationCommentsInFrontOfMembersThatStartTheirLinesStayWhereTheyStand()
+    {
+        const string input = """
+                             class C
+                             {
+                                 private int _p; /// a
+                                 private int _x, _y; /// c
+                                 private int _q;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _p; /// a
+                                    private int _x;
+                                    private int _y; /// c
+                                    private int _q;
+                                }
+                                """;
+
+        await AssertSplitsTarget(input, expected, "_x", "C");
+    }
+
+    /// <summary>
     /// Finds the field declaration that declares the variable with the given name
     /// </summary>
     /// <param name="root">The root to search</param>
