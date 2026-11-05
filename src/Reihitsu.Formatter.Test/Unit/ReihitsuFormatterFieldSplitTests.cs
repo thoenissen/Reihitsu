@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -267,7 +268,8 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a target behind the opening brace and in front of the closing brace of its type keeps its line, because
-    /// neither brace is a member, and the later field stands at the member column
+    /// neither brace is a member, and the later field stands at the member column. The input holds no line break, so the formatter
+    /// writes <see cref="Environment.NewLine"/> (FMT-PIPE-007), and the test runs under that line ending only
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
@@ -277,7 +279,7 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
         const string input = "class C { private int _x, _y; }";
         const string expected = "class C { private int _x;\n    private int _y; }";
 
-        await AssertSplitsTarget(input, expected, "_x", "C");
+        await AssertSplitsTarget(input, expected, "_x", "C", [Environment.NewLine]);
     }
 
     /// <summary>
@@ -477,9 +479,25 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
     /// <param name="variableName">A variable the target declares</param>
     /// <param name="typeName">The name of the context type</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    private async Task AssertSplitsTarget(string inputWithLf, string expectedWithLf, string variableName, string typeName)
+    private Task AssertSplitsTarget(string inputWithLf, string expectedWithLf, string variableName, string typeName)
     {
-        foreach (var endOfLine in _lineEndings)
+        return AssertSplitsTarget(inputWithLf, expectedWithLf, variableName, typeName, _lineEndings);
+    }
+
+    /// <summary>
+    /// Formats the field that declares the named variable with the named type as context through
+    /// <see cref="ReihitsuFormatter.FormatNodeInDocumentWithContextAsync"/> under the given line endings, asserts the document's text
+    /// after one pass, and that a second pass with the field that now declares the variable as target leaves it unchanged
+    /// </summary>
+    /// <param name="inputWithLf">Input with LF line endings</param>
+    /// <param name="expectedWithLf">Expected output with LF line endings</param>
+    /// <param name="variableName">A variable the target declares</param>
+    /// <param name="typeName">The name of the context type</param>
+    /// <param name="lineEndings">The line endings to run under</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private async Task AssertSplitsTarget(string inputWithLf, string expectedWithLf, string variableName, string typeName, IEnumerable<string> lineEndings)
+    {
+        foreach (var endOfLine in lineEndings)
         {
             var expected = NormalizeLineEndings(expectedWithLf, endOfLine);
             var firstPass = await Format(NormalizeLineEndings(inputWithLf, endOfLine), variableName, typeName);

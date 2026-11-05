@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -54,7 +55,8 @@ public class ReihitsuFormatterUsingDirectivesTests : FormatterTestsBase
     /// <summary>
     /// Verifies the spec example: a scope that does not start its line is read where it stands in the document, so the directive
     /// moved onto a line of its own gets the indentation of the line the block's first directive starts on, which is none, and the
-    /// code behind the block stays on its line
+    /// code behind the block stays on its line. The input holds no line break, so the formatter writes
+    /// <see cref="Environment.NewLine"/> (FMT-PIPE-007), and the test runs under that line ending only
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
@@ -64,7 +66,7 @@ public class ReihitsuFormatterUsingDirectivesTests : FormatterTestsBase
         const string input = "namespace A { namespace B { using System.Linq; using System; class C { } } }";
         const string expected = "namespace A { namespace B { using System;\nusing System.Linq; class C { } } }";
 
-        await AssertOrganizes(input, expected, root => root.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single(scope => scope.Name.ToString() == "B"));
+        await AssertOrganizes(input, expected, root => root.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single(scope => scope.Name.ToString() == "B"), [Environment.NewLine]);
     }
 
     /// <summary>
@@ -193,9 +195,23 @@ public class ReihitsuFormatterUsingDirectivesTests : FormatterTestsBase
     /// <param name="expectedWithLf">Expected output with LF line endings</param>
     /// <param name="selectScope">Selects the scope in the document's root</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    private async Task AssertOrganizes(string inputWithLf, string expectedWithLf, Func<SyntaxNode, SyntaxNode> selectScope)
+    private Task AssertOrganizes(string inputWithLf, string expectedWithLf, Func<SyntaxNode, SyntaxNode> selectScope)
     {
-        foreach (var endOfLine in _lineEndings)
+        return AssertOrganizes(inputWithLf, expectedWithLf, selectScope, _lineEndings);
+    }
+
+    /// <summary>
+    /// Organizes the using block of the selected scope through <see cref="ReihitsuFormatter.OrganizeUsingDirectivesInDocumentAsync"/>
+    /// under the given line endings, and asserts the document's text, written with the document's line ending
+    /// </summary>
+    /// <param name="inputWithLf">Input with LF line endings</param>
+    /// <param name="expectedWithLf">Expected output with LF line endings</param>
+    /// <param name="selectScope">Selects the scope in the document's root</param>
+    /// <param name="lineEndings">The line endings to run under</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private async Task AssertOrganizes(string inputWithLf, string expectedWithLf, Func<SyntaxNode, SyntaxNode> selectScope, IEnumerable<string> lineEndings)
+    {
+        foreach (var endOfLine in lineEndings)
         {
             using (var workspace = new AdhocWorkspace())
             {
