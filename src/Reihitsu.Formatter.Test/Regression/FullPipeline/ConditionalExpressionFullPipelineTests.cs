@@ -557,13 +557,12 @@ public class ConditionalExpressionFullPipelineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a hand-written single-line conditional missing the space after the colon is left
-    /// untouched (control: proves the missing-space fix lives in the dangling-colon join and did not
-    /// leak into the horizontal-spacing policy for ternary colons, which deliberately does not cover
-    /// them)
+    /// Verifies that a hand-written single-line conditional missing the space after the colon gets it, like a conditional whose
+    /// branch the line-break phase joined behind the colon
     /// </summary>
     [TestMethod]
-    public void SingleLineConditionalWithoutColonSpaceIsNotRewritten()
+    [Requirement("FMT-SPACE-018")]
+    public void SingleLineConditionalWithoutColonSpaceGetsOneSpaceBehindTheColon()
     {
         // Arrange
         const string input = """
@@ -575,9 +574,18 @@ public class ConditionalExpressionFullPipelineTests : FormatterTestsBase
                                  }
                              }
                              """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = cond ? a : b;
+                                    }
+                                }
+                                """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>

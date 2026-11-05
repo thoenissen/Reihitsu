@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -39,6 +40,19 @@ public class RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer : Diagnostic
     #region Methods
 
     /// <summary>
+    /// Determines whether an opening brace opens a block statement that follows another statement of its block or switch
+    /// section. The brace starts a statement, so the blank line above it is not reported (RH5025-005)
+    /// </summary>
+    /// <param name="token">The opening brace</param>
+    /// <returns><see langword="true"/> if the brace opens such a block statement</returns>
+    private static bool IsOpeningBraceOfBlockStatementAfterStatement(SyntaxToken token)
+    {
+        return token.Parent is BlockSyntax block
+               && block.OpenBraceToken == token
+               && BlankLineSpacingPolicy.IsBlockStatementAfterStatement(block);
+    }
+
+    /// <summary>
     /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
@@ -48,7 +62,8 @@ public class RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer : Diagnostic
         var sourceText = context.Tree.GetText(context.CancellationToken);
         var openBraceLineIndices = FormattingTextAnalysisUtilities.GetLineIndicesBeginningWithToken(root,
                                                                                                     sourceText,
-                                                                                                    static token => token.IsKind(SyntaxKind.OpenBraceToken));
+                                                                                                    static token => token.IsKind(SyntaxKind.OpenBraceToken)
+                                                                                                                    && IsOpeningBraceOfBlockStatementAfterStatement(token) == false);
 
         foreach (var blankLine in FormattingTextAnalysisUtilities.EnumeratePrecedingBlankLines(sourceText, openBraceLineIndices))
         {

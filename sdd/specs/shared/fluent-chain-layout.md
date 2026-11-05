@@ -5,7 +5,7 @@
 | ID prefix | SHARED-CHAIN |
 | Status | Active |
 | Code owners | `FluentChain`, `FluentChainLink`, `FluentChainAttachedPart`, `FluentChainUtilities`, `FluentChainAnalyzerBase`, `FluentChainCodeFixHelper` |
-| Uses | FMT-PIPE-002, SHARED-COMMENT-012 |
+| Uses | FMT-PIPE-002, SHARED-BLANK-008, SHARED-COMMENT-012 |
 
 This spec covers the layout of member-access chains (`items.Where(…).Select(…)`) that the analyzer and the formatter must agree on: what a chain is, when it counts as wrapped, which links must start a line, and the column wrapped links align to. The analyzer rules RH5112, RH5201, and RH5048 report against this policy, and the code fixes of RH5112 and RH5201 lay a chain out by it; the formatter's line-break phase (FMT-BREAK) and indentation phase (FMT-INDENT) produce it.
 
@@ -50,7 +50,7 @@ class C
 
 ### SHARED-CHAIN-002 — Only the author wraps a chain
 
-A chain MUST count as wrapped only when one of its link operators starts a line or holds a line break. Analyzer and formatter MUST NOT require or introduce a wrap in a chain the author wrote on one line, however long it is.
+A chain MUST count as wrapped only when one of its link operators starts a line (SHARED-BLANK-008) or holds a line break. Analyzer and formatter MUST NOT require or introduce a wrap in a chain the author wrote on one line, however long it is.
 
 Why: Whether a chain is long enough to wrap depends on the reader, the screen, and the surrounding code; the policy only governs how a chain is wrapped once its author decided to wrap it.
 

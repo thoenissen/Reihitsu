@@ -51,9 +51,8 @@ internal sealed class EmptyTypeDeclarationSemicolonTransform : CSharpSyntaxRewri
     /// <returns>The replacement semicolon token</returns>
     private static SyntaxToken CreateSemicolonToken(SyntaxToken closeBraceToken)
     {
-        return SyntaxFactory.Token(SyntaxKind.SemicolonToken)
-                            .WithLeadingTrivia(SyntaxFactory.TriviaList())
-                            .WithTrailingTrivia(closeBraceToken.TrailingTrivia);
+        // Built with explicit trivia, so the created token carries no elastic trivia (FMT-STRUCT-026)
+        return SyntaxFactory.Token(default, SyntaxKind.SemicolonToken, closeBraceToken.TrailingTrivia);
     }
 
     /// <summary>

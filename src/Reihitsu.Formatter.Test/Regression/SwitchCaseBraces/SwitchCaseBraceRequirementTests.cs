@@ -190,6 +190,383 @@ public class SwitchCaseBraceRequirementTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a wrap inside a list element, which the line-break phase joins, does not make the section multi-line,
+    /// so no section is braced
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-003")]
+    public void WrapJoinedInsideListElementDoesNotMakeTheSectionMultiLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             A(out
+                                               var v);
+                                             break;
+                                         case 2:
+                                             B();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                A(out var v);
+                                                break;
+
+                                            case 2:
+                                                B();
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a wrap after an assignment operator, which the line-break phase joins, does not make the section
+    /// multi-line, so no section is braced
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-003")]
+    public void WrapJoinedAfterAssignmentOperatorDoesNotMakeTheSectionMultiLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             var y =
+                                                 1;
+                                             break;
+                                         case 2:
+                                             B();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                var y = 1;
+                                                break;
+
+                                            case 2:
+                                                B();
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped member-access chain, which the line-break phase keeps, makes the section multi-line and
+    /// braces the switch
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-003")]
+    public void WrapKeptInMemberAccessChainMakesTheSectionMultiLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             a.B()
+                                              .C();
+                                             break;
+                                         case 2:
+                                             B();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    a.B()
+                                                     .C();
+                                                }
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    B();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an object initializer written on one line, which the line-break phase lays out over several lines,
+    /// makes the section multi-line and braces the switch
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-003")]
+    public void ObjectInitializerExpandedByLineBreaksMakesTheSectionMultiLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             var y = new D { A = 1, B = 2 };
+                                             break;
+                                         case 2:
+                                             B();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    var y = new D
+                                                            {
+                                                                A = 1,
+                                                                B = 2
+                                                            };
+                                                }
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    B();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a lambda block body written on one line, which the line-break phase lays out over several lines,
+    /// makes the section multi-line and braces the switch
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-003")]
+    public void LambdaBlockBodyExpandedByLineBreaksMakesTheSectionMultiLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             Run(() => { X(); Y(); });
+                                             break;
+                                         case 2:
+                                             B();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    Run(() =>
+                                                        {
+                                                            X();
+                                                            Y();
+                                                        });
+                                                }
+                                                break;
+
+                                            case 2:
+                                                {
+                                                    B();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a statement followed by a <c>return</c> on the same line makes the section multi-line, because the
+    /// line-break phase puts the <c>return</c> on a later line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-003")]
+    public void ReturnAfterStatementOnTheSameLineMakesTheSectionMultiLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             A(); return 1;
+                                         case 2:
+                                             return 2;
+                                     }
+
+                                     return 0;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    A();
+
+                                                    return 1;
+                                                }
+                                            case 2:
+                                                {
+                                                    return 2;
+                                                }
+                                        }
+
+                                        return 0;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a comment between a statement and a <c>return</c> on the same line stays behind the statement while
+    /// the <c>return</c> moves to a later line and makes the section multi-line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-003")]
+    public void ReturnAfterStatementAndCommentOnTheSameLineMakesTheSectionMultiLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             A(); /* c */ return 1;
+                                         case 2:
+                                             return 2;
+                                     }
+
+                                     return 0;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    A(); /* c */
+
+                                                    return 1;
+                                                }
+                                            case 2:
+                                                {
+                                                    return 2;
+                                                }
+                                        }
+
+                                        return 0;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a property pattern spanning several lines in a label makes the section
     /// multi-line
     /// </summary>

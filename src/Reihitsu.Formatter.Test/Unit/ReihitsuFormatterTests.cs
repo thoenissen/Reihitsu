@@ -98,15 +98,6 @@ public class ReihitsuFormatterTests : FormatterTestsBase
 
     #endregion // Constants
 
-    #region Properties
-
-    /// <summary>
-    /// Test context for the current test
-    /// </summary>
-    public TestContext TestContext { get; set; }
-
-    #endregion // Properties
-
     #region Methods
 
     /// <summary>
@@ -337,9 +328,11 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> preserves off-position documentation when its preceding token is outside the target subtree
+    /// Verifies the spec example: <see cref="ReihitsuFormatter.FormatNode"/> keeps a documentation comment written behind the token in
+    /// front of its node in front of the node, and adds no line break in front of the comment, because it does not read that token
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-012")]
     public void FormatNodeWithPreviousTokenOutsideTargetPreservesTrailingDocumentation()
     {
         const string input = """
@@ -349,7 +342,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                                  public int Other { get; set; }
                              }
                              """;
-        const string expectedWithLf = "\n    /// <summary>\n    /// Trailing summary.\n    /// </summary>\n    public int Other { get; set; }";
+        const string expectedWithLf = "    /// <summary>\n    /// Trailing summary.\n    /// </summary>\n    public int Other { get; set; }";
 
         foreach (var endOfLine in _lineEndings)
         {
@@ -503,9 +496,11 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> preserves and formats regions inside a detached node
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> keeps both region directives inside a detached node, with their
+    /// text as written, while it formats the code around them
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-028")]
     public void FormatNodePreservesRegionsInsideDetachedNode()
     {
         // Arrange
@@ -520,11 +515,11 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         const string expectedWithLf = """
                                       void M()
                                       {
-                                          #region Inner
+                                          #region inner
 
                                           var value = 1;
 
-                                          #endregion // Inner
+                                          #endregion
                                       }
                                       """;
 
@@ -556,6 +551,44 @@ public class ReihitsuFormatterTests : FormatterTestsBase
             Assert.AreEqual(firstPass,
                             secondResult.ToFullString(),
                             $"Detached-node formatting should be idempotent under {DescribeLineEnding(endOfLine)} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> formats a detached node that holds a line break other than
+    /// its detected line ending as it formats the node without it, and writes every line break with the detected line ending
+    /// </summary>
+    [TestMethod]
+    public void FormatNodeFormatsDetachedNodeHoldingAForeignLineBreak()
+    {
+        // Arrange
+        const string inputWithLf = "void M()\n{\n#region inner\n    var value=1;¶#endregion\n}";
+        const string expectedWithLf = "void M()\n{\n    #region inner\n\n    var value = 1;\n\n    #endregion\n}";
+
+        foreach (var endOfLine in _lineEndings)
+        {
+            var expected = NormalizeLineEndings(expectedWithLf, endOfLine);
+            var foreignLineBreaks = endOfLine == "\n" ? new[] { "\r\n", "\r", "\u2028" } : new[] { "\n", "\r", "\u2029" };
+
+            foreach (var foreignLineBreak in foreignLineBreaks)
+            {
+                var description = $"{DescribeLineEnding(endOfLine)} line endings with {string.Join(" ", foreignLineBreak.Select(character => $"U+{(int)character:X4}"))} as the foreign line break";
+                var detachedMethod = SyntaxFactory.ParseMemberDeclaration(NormalizeLineEndings(inputWithLf, endOfLine).Replace("¶", foreignLineBreak));
+
+                Assert.IsNotNull(detachedMethod, "Expected the fixture to parse as a method declaration.");
+
+                // Act
+                var firstPass = ReihitsuFormatter.FormatNode(detachedMethod, cancellationToken: TestContext.CancellationToken).ToFullString();
+
+                // Assert
+                Assert.AreEqual(expected, firstPass, $"Unexpected first pass under {description}.");
+                AssertUsesLineEnding(firstPass, endOfLine);
+
+                var reparsedMethod = SyntaxFactory.ParseMemberDeclaration(firstPass);
+
+                Assert.IsNotNull(reparsedMethod, "Expected the first-pass output to parse as a method declaration.");
+                Assert.AreEqual(firstPass, ReihitsuFormatter.FormatNode(reparsedMethod, cancellationToken: TestContext.CancellationToken).ToFullString(), $"The second pass must not change the output under {description}.");
+            }
         }
     }
 
@@ -863,10 +896,12 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> preserves and formats regions inside the target root
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> keeps both region directives inside the target
+    /// root, with their text as written, while it formats the code around them
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
+    [Requirement("FMT-PIPE-028")]
     public async Task FormatNodeInDocumentAsyncPreservesRegionsInsideTargetRoot()
     {
         // Arrange
@@ -886,11 +921,11 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                                       {
                                           void M()
                                           {
-                                              #region Inner
+                                              #region inner
 
                                               var value = 1;
 
-                                              #endregion // Inner
+                                              #endregion
                                           }
                                       }
                                       """;
@@ -1184,25 +1219,16 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> returns the original document for auto-generated source
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> formats the root of a document whose header marks it as
+    /// generated when the root is the target, because the node-level entry points do not check the marker
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
-    public async Task FormatNodeInDocumentAsyncWithAutoGeneratedMarkerReturnsOriginalDocument()
+    [Requirement("FMT-PIPE-006")]
+    public async Task FormatNodeInDocumentAsyncWithAutoGeneratedMarkerFormatsTheRootAsTarget()
     {
-        const string input = """
-                             // <auto-generated />
-                             namespace Test;
-
-                             public class Foo
-                             {
-                                 public int Bar()
-                                 {
-                                     var value = 1;
-                                     return value;
-                                 }
-                             }
-                             """;
+        const string input = "// <auto-generated />\nclass C\n{\n    void M(){int x=1;}\n}";
+        const string expected = "// <auto-generated />\nclass C\n{\n    void M()\n    {\n        int x = 1;\n    }\n}";
 
         using (var workspace = new AdhocWorkspace())
         {
@@ -1213,12 +1239,9 @@ public class ReihitsuFormatterTests : FormatterTestsBase
             Assert.IsNotNull(root);
 
             var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, root, TestContext.CancellationToken);
-            var originalText = await document.GetTextAsync(TestContext.CancellationToken);
             var resultText = await result.GetTextAsync(TestContext.CancellationToken);
 
-            Assert.AreEqual(originalText.ToString(),
-                            resultText.ToString(),
-                            "Auto-generated documents must remain unchanged.");
+            Assert.AreEqual(expected, resultText.ToString(), "The root of a generated document must be formatted when it is the target.");
         }
     }
 

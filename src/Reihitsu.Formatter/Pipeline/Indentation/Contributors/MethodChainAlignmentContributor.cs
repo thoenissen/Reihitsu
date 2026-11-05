@@ -15,7 +15,9 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 /// link operator that starts a line (<c>.</c>, <c>?.</c>, <c>!.</c> or <c>!?.</c>) is aligned to the chain's anchor;
 /// the rest of an operator that blocking trivia keeps on the next line goes under the operator's first token; an
 /// attached part that blocking trivia keeps on its own line goes to the anchor, or to the root when it precedes the
-/// first link
+/// first link. Only the outermost node of a chain is aligned. The chain rule decides which node that is, and for a node
+/// whose decision reads above a node-level formatting root it takes the root's
+/// <see cref="FormattingContext.RootChainBoundary"/>, as the line-break phase does
 /// </summary>
 internal sealed class MethodChainAlignmentContributor : ILayoutContributor
 {
@@ -136,7 +138,7 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     /// <inheritdoc/>
     public void Contribute(SyntaxNode node, LayoutModel model, FormattingContext context)
     {
-        var chain = FluentChain.Create(node, false);
+        var chain = FluentChain.Create(node, false, context.RootChainBoundary);
 
         if (chain == null)
         {

@@ -428,7 +428,6 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
                                                                    /* Keep one. */ 1,
 
                                                                    /* Keep two. */ 2
-
                                                                /* Keep close. */ }
                                                   };
                                   }

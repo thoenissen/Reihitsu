@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Analyzer.Extensions;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Spacing;
 
@@ -64,8 +65,11 @@ public class RH6001KeywordsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBas
 
             var nextToken = token.GetNextToken();
 
+            // A line break before the parenthesis - also the one that ends a `///` comment behind the keyword
+            // (SHARED-BLANK-008) - separates the keyword, so no space is missing (RH6001-002)
             if (nextToken.IsKind(SyntaxKind.OpenParenToken) == false
-                || token.TrailingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) || trivia.IsKind(SyntaxKind.EndOfLineTrivia)))
+                || token.TrailingTrivia.Any(SyntaxKind.WhitespaceTrivia)
+                || SyntaxTriviaUtilities.AreSeparatedByEndOfLine(token, nextToken))
             {
                 continue;
             }

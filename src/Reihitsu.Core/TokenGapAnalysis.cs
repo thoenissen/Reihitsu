@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -240,7 +240,8 @@ public readonly struct TokenGapAnalysis
     }
 
     /// <summary>
-    /// Accumulates blank-line gap state over the text of a single trivia entry that may span multiple lines
+    /// Accumulates blank-line gap state over the text of a single trivia entry that may span multiple lines. Every C# line
+    /// terminator counts (<see cref="LineEndingUtilities.GetLineTerminatorLength"/>), as in Roslyn's line table
     /// </summary>
     /// <param name="text">Full text of the trivia entry</param>
     /// <param name="sawLineBreak">Tracks whether a line break has already been encountered</param>
@@ -252,7 +253,7 @@ public readonly struct TokenGapAnalysis
 
         while (textIndex < text.Length)
         {
-            var lineBreakLength = GetLineBreakLength(text, textIndex);
+            var lineBreakLength = LineEndingUtilities.GetLineTerminatorLength(text, textIndex);
 
             if (lineBreakLength == 0)
             {
@@ -270,26 +271,6 @@ public readonly struct TokenGapAnalysis
             lineHasContent = textIndex + lineBreakLength < text.Length;
             textIndex += lineBreakLength;
         }
-    }
-
-    /// <summary>
-    /// Gets the length of the line-break sequence that starts at the specified index
-    /// </summary>
-    /// <param name="text">The text to inspect</param>
-    /// <param name="index">The index to inspect</param>
-    /// <returns>The length of the line-break sequence; otherwise, <c>0</c></returns>
-    private static int GetLineBreakLength(string text, int index)
-    {
-        if (text[index] == '\r')
-        {
-            return index + 1 < text.Length && text[index + 1] == '\n'
-                       ? 2
-                       : 1;
-        }
-
-        return text[index] == '\n'
-                   ? 1
-                   : 0;
     }
 
     #endregion // Methods

@@ -11,7 +11,8 @@ using Reihitsu.Formatter.Utilities;
 namespace Reihitsu.Cli.Diagnostics;
 
 /// <summary>
-/// Runs the formatter repeatedly while reporting the source changes made by each top-level pipeline phase
+/// Runs the formatter repeatedly while reporting the source changes made by each phase the pipeline reports, the
+/// preparation phase as its two sub-phases
 /// </summary>
 internal static class PipelineTraceCommand
 {

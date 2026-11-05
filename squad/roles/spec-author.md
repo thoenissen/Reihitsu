@@ -14,13 +14,13 @@ Read [`../README.md`](../README.md) and [`sdd/README.md`](../../sdd/README.md) f
 
 ## Inputs
 
-- Every issue of the run, by number, through the GitHub MCP server, and the maintainer's clarifications summarized in `00-lead.md`.
+- Every issue of the run, by number, through the GitHub MCP server, and the maintainer's clarifications and answers summarized in `00-lead.md`.
 - The specs the issues touch (`sdd/specs/README.md` maps code owners to specs) and the `shared/` specs they use.
 - `documentation/rules/RH####.md` when a rule is in scope; it is derived from the spec.
 
 ## Job
 
-1. Decide whether intended behavior changes. If it does, write the change doc first from `sdd/templates/change.md`: What, Why, the decisions taken, and the alternatives rejected, with `Status: Draft`. No task list, no implementation plan. In a run of several issues, one change doc may cover the issues that share a cause; every other issue that requires one gets its own.
+1. Decide whether intended behavior changes. If it does, write the change doc first from `sdd/templates/change.md`: What, Why, the visible output changes, the decisions taken, and the alternatives rejected, with `Status: Draft`. `Visible output changes` lists every change of the formatter's output, a diagnostic, a code-fix result, a rule page, or CLI behavior as an input with its output before and after, in C#; when nothing visible changes, it says so. The lead turns each listed change into an output question and accepts the doc. No task list, no implementation plan. In a run of several issues, one change doc may cover the issues that share a cause; every other issue that requires one gets its own.
 2. Write the spec diff:
    - one requirement per heading, `### <ID> — <short title>`, with the next free ID, inserted at its sorted position in `sdd/specs/requirement-ids.txt`; never reuse or renumber one;
    - the normative sentence first (MUST, MUST NOT, SHOULD), then `Why:`, then `Example:` with before/after C# where behavior is visible — the examples are the seed for the tests;
@@ -34,12 +34,13 @@ Read [`../README.md`](../README.md) and [`sdd/README.md`](../../sdd/README.md) f
 
 ## Open questions about intended behavior
 
-Specs describe current behavior. When the real output looks wrong, do not write it into the spec — no requirement, no non-goal, no note — and do not change it. No GitHub issue is filed for it; every question goes to the maintainer through the lead. Two cases:
+Specs describe current behavior. When the real output looks wrong, do not write it into the spec — no requirement, no non-goal, no note — and do not change it. Three cases:
 
-- **It blocks this run** — an issue's own behavior depends on the answer. Stop and put the question in your handover with `Verdict: open question`: the input, the real output, why it looks wrong, the competing readings with the output each produces, and your recommendation. The lead asks the maintainer and records the answer in `squad/decisions/`.
-- **Found in passing, not blocking** — leave the case out of the spec and put the question in your handover under `Open questions for the maintainer`: the input, the real output, why it looks wrong, the requirement IDs it touches, the competing readings, and your recommendation. The run continues; the lead asks all of them in one message before the auditor runs, and the answer decides what the run does. A PR description is never the only record.
+- **Within the run's issues** — an issue's own behavior depends on the answer, or the case is part of what an issue asks for. Put the question in your handover under `Output questions`: the input, the real output, why it looks wrong, the requirement IDs it touches, the output each competing reading gives, as C#, and your recommendation. When the run cannot write its specs or tests without the answer, set `Verdict: open question`; otherwise the run continues. The lead asks the maintainer in its next batch (`README.md`, *What reaches the maintainer*).
+- **Outside the run's issues** — the question goes under `Follow-up candidates` in the same form. The lead has it filed as an `agent-filed` issue; it is not asked in the run. A case that none of the repository's own callers reaches is not a candidate at all (`AGENTS.md`, *Supported inputs*): leave it out.
+- **Not about visible output** — a question of spec wording, requirement scope, or which spec owns a rule is yours to propose and the lead's to decide: put it under `Internal choices` with your recommendation, and write the spec on that recommendation.
 
-Two readings that would produce different output for the same input are always a blocking question, never a choice you make.
+Two readings that would produce different visible output for the same input are always an output question, never a choice you make.
 
 ## Must not
 
@@ -62,11 +63,14 @@ Verdict: spec written | change doc written | text written | open question | not 
 ## Examples for the tests
 <the requirement IDs whose examples the test implementer derives tests from>
 
-## Open questions for the maintainer
-<one block per question found in passing — input, real output, why it looks wrong, requirement IDs, competing readings, recommendation — or _None._>
+## Output questions
+<one block per question within the run's issues — input, real output, why it looks wrong, requirement IDs, the output of each reading as C#, recommendation — or _None._>
 
-## Decisions needed
-<only with Verdict: open question>
+## Internal choices
+<one line per choice you made on your own recommendation, with the alternative; or _None._>
+
+## Follow-up candidates
+<open questions outside the run's issues, in the same form, and other out-of-scope finds; or _None._>
 ```
 
 Commit the spec, change doc, documentation, and handover with `[skip ci]`.

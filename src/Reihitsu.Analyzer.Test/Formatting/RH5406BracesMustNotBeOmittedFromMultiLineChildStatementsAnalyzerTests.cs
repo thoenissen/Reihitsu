@@ -464,6 +464,51 @@ public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzerTes
         Assert.Contains("            M(a,\n              b);", actual, "The line break the fix keeps inside the body must be LF.");
     }
 
+    /// <summary>
+    /// Verifies that the fix on the multi-line body of an <c>if</c> whose condition carries a trailing line comment keeps the
+    /// comment behind the condition
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-036")]
+    public async Task VerifyFixKeepsTheTrailingCommentOfAnIfCondition()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        if (true) // c
+                                            {|#0:Other(1,
+                                                  2);|}
+                                    }
+
+                                    void Other(int value1, int value2)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method()
+                                     {
+                                         if (true) // c
+                                         {
+                                             Other(1,
+                                                   2);
+                                         }
+                                     }
+
+                                     void Other(int value1, int value2)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer.DiagnosticId, AnalyzerResources.RH5406MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

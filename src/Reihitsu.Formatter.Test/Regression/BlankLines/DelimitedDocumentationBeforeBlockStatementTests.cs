@@ -883,7 +883,6 @@ public class DelimitedDocumentationBeforeBlockStatementTests : FormatterTestsBas
                              """;
         const string expected = """
                                 public class TestClass
-
                                 /* x */ /** Doc */ {
                                     private int _a;
                                 }

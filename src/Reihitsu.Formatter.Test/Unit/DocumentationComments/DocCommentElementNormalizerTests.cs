@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Pipeline.DocumentationComments.Utilities;
 using Reihitsu.Formatter.Test.Helpers;
+using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Test.Unit.DocumentationComments;
 
@@ -149,7 +150,7 @@ public class DocCommentElementNormalizerTests
                                 """;
 
         // Act
-        var result = DocCommentElementNormalizer.BuildReplacement(element, sourceText);
+        var result = DocCommentElementNormalizer.BuildReplacement(element, sourceText, DetectEndOfLine(element));
 
         // Assert
         Assert.AreEqual(expected, result);
@@ -174,7 +175,7 @@ public class DocCommentElementNormalizerTests
                                                  "returns");
 
         // Act
-        var result = DocCommentElementNormalizer.BuildReplacement(element, sourceText);
+        var result = DocCommentElementNormalizer.BuildReplacement(element, sourceText, DetectEndOfLine(element));
 
         // Assert
         Assert.AreEqual("<returns>The value</returns>", result);
@@ -210,7 +211,7 @@ public class DocCommentElementNormalizerTests
                                 """;
 
         // Act
-        var result = DocCommentElementNormalizer.BuildReplacement(element, sourceText);
+        var result = DocCommentElementNormalizer.BuildReplacement(element, sourceText, DetectEndOfLine(element));
 
         // Assert
         Assert.AreEqual(expected, result);
@@ -246,10 +247,20 @@ public class DocCommentElementNormalizerTests
                                 """;
 
         // Act
-        var result = DocCommentElementNormalizer.BuildReplacement(element, sourceText);
+        var result = DocCommentElementNormalizer.BuildReplacement(element, sourceText, DetectEndOfLine(element));
 
         // Assert
         Assert.AreEqual(expected, result);
+    }
+
+    /// <summary>
+    /// Detects the line ending of the file that holds the element, as the formatter's entry points detect it
+    /// </summary>
+    /// <param name="element">The element</param>
+    /// <returns>The detected line ending</returns>
+    private string DetectEndOfLine(XmlElementSyntax element)
+    {
+        return ReihitsuFormatterHelpers.DetectEndOfLine(element.SyntaxTree.GetRoot(TestContext.CancellationToken));
     }
 
     /// <summary>

@@ -365,7 +365,7 @@ class C
 
 ### SHARED-USING-008 — A blank line between groups, none within a group
 
-In an organized block, a directive that starts a new group (SHARED-USING-004) MUST be preceded by a blank line, and a directive that continues the group of its predecessor MUST NOT be. Only the line breaks before the first comment that leads the directive count; a comment attached to the directive stays directly above it.
+In an organized block, a directive that starts a new group (SHARED-USING-004) MUST be preceded by a blank line, and a directive that continues the group of its predecessor MUST NOT be, except where SHARED-USING-011 allows one above a comment that leads it. Only the line breaks before the first comment that leads the directive count; a comment attached to the directive stays directly above it.
 
 Why: The blank line makes the group structure visible, and RH7207 checks exactly this. Counting only the space before an attached comment lets a group-starting directive keep its comment while still being separated from the group above.
 
@@ -468,3 +468,114 @@ class C
 When a directive that shared a line with its predecessor is moved onto a line of its own — by the RH5114 code fix or by the formatter (FMT-USING) — it MUST be placed at the indentation of the line on which the block's first directive starts. When that line begins inside a comment that started on an earlier line, the indentation of the line on which the comment starts MUST be used instead.
 
 Why: The whitespace in front of a directive that did not start its line is the gap after the previous token, not an indentation, so it cannot be kept. The first directive's line is the best evidence of how the user indents the block. In the formatter's final output the indentation phase (FMT-INDENT) re-indents every line anyway, so this rule is visible only in the RH5114 code fix and in the output of the using-directive phase on its own.
+
+### SHARED-USING-011 — A blank line may stand above a comment that leads a directive of the same group
+
+In an organized block, a directive that continues the group of its predecessor MAY be preceded by one or more blank lines when a comment leads it — any comment in its leading trivia, single-line or delimited, ordinary or documentation, on a line of its own or on the directive's line. As in SHARED-USING-008, only the line breaks in front of the first comment that leads the directive count; the blank lines between that comment and the directive, and between two of its comments, are not decided by the using rules. The same directive without a blank line above its comment is organized too. A directive without a leading comment MUST NOT be preceded by a blank line, as SHARED-USING-008 states.
+
+Why: A comment introduces the directive below it, and the blank line above it separates the comment from the directive above; it does not split the group. The blank-line rules ask for that blank line above a comment that starts its line, and RH5020 reports an ordinary comment without it; if the using rules rejected it, such a comment would have no layout that every rule accepts, and the formatter's phases and the code fixes would undo each other. The blank line is allowed rather than required, because whether a comment needs it is the blank-line rules' decision, not the using rules'.
+
+Example — a single-line comment and a documentation comment on lines of their own:
+
+```csharp
+using System;
+
+// About Linq
+using System.Linq;
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+using System;
+
+/** About Text */
+using System.Text;
+
+class C
+{
+    int x;
+}
+```
+
+are organized, and so is the same block without the blank line:
+
+```csharp
+using System;
+// About Linq
+using System.Linq;
+
+class C
+{
+    int x;
+}
+```
+
+and a comment on the directive's line, ordinary or documentation, also one that spans lines:
+
+```csharp
+using System;
+
+/* c */ using System.Linq;
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+using System;
+
+/** first
+   second */ using System.Linq;
+
+class C
+{
+    int x;
+}
+```
+
+and a blank line below the comment, or between two comments:
+
+```csharp
+using System;
+
+// About Linq
+
+using System.Linq;
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+using System;
+// A
+
+// B
+using System.Linq;
+
+class C
+{
+    int x;
+}
+```
+
+while a blank line above a directive of the same group without a comment is not (SHARED-USING-008):
+
+```csharp
+using System;
+
+using System.Linq;
+
+class C
+{
+    int x;
+}
+```

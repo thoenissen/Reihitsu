@@ -5,9 +5,9 @@
 | ID prefix | FMT-TAB |
 | Status | Active |
 | Code owners | `TabReplacementPhase` |
-| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-016, FMT-RAW-007, FMT-REGION-001, FMT-INDENT-008 |
+| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-019, FMT-RAW-007, FMT-REGION-001, FMT-REGION-007, FMT-INDENT-008 |
 
-This spec covers `TabReplacementPhase`, the first phase of the pipeline (FMT-PIPE-001): the replacement of every tab in whitespace and between the tokens of a directive with four spaces, before any other phase runs, and the text in which tabs are kept.
+This spec covers `TabReplacementPhase`, the TabReplacement sub-phase that the preparation phase runs first (FMT-PIPE-001): the replacement of every tab in whitespace and between the tokens of a directive with four spaces, before any other phase runs, and the text in which tabs are kept.
 
 ## Non-goals
 
@@ -21,7 +21,7 @@ This spec covers `TabReplacementPhase`, the first phase of the pipeline (FMT-PIP
 
 The formatter MUST replace every tab character in the whitespace trivia of the code with four spaces. The replacement MUST NOT depend on the column the tab starts in. The whitespace of the code is the whitespace trivia that a token outside every documentation comment and directive carries in front of or behind it, wherever it stands: in front of a line's first token, between two tokens, in front of a comment, at the end of a line, and in the code of an interpolation hole. The whitespace inside a documentation comment is not whitespace of the code and keeps its tabs (FMT-TAB-003); the whitespace between the tokens of a directive follows FMT-TAB-002.
 
-Why: The formatter's indentation unit is four spaces, and a tab renders at a width that depends on the reader's editor. All layout is computed in spaces, so the replacement runs before any phase measures a column; no phase has to count a tab's width (FMT-PIPE-016). A fixed width keeps the result independent of tab-stop settings.
+Why: The formatter's indentation unit is four spaces, and a tab renders at a width that depends on the reader's editor. All layout is computed in spaces, so the replacement runs before any phase measures a column; no phase has to count a tab's width (FMT-PIPE-019). A fixed width keeps the result independent of tab-stop settings.
 
 Example — not shown as an input block because the input contains tabs: in a class whose fields read `int z;`, a tab, `// e` and `int w;`, a space, a tab, a space, `// f`, the gaps become four and six spaces:
 
@@ -50,12 +50,12 @@ class C
 }
 ```
 
-A tab between `#region` and its description is whitespace between the directive's tokens and becomes four spaces in this phase; a tab after the first word of the description is part of the description and stays. Whether the four spaces reach the output depends on the region phase that runs later: when it rewrites the `#region` line, it writes one space in front of the description (FMT-REGION-001). So, through the whole pipeline, a region written as `#region`, a tab, `Bar` and closed by a bare `#endregion` keeps the four spaces, while `#region`, a tab, `foo` is rewritten to start with an upper-case letter and is written with one space:
+A tab between `#region` and its description is whitespace between the directive's tokens and becomes four spaces in this phase; a tab after the first word of the description is part of the description and stays. The region phase that runs later writes one space between `#region` and its description (FMT-REGION-007), so the four spaces do not reach the output. Through the whole pipeline, a region written as `#region`, a tab, `Bar` and one written as `#region`, a tab, `foo`, each closed by a bare `#endregion`, are both written with one space; `foo` also starts with an upper-case letter (FMT-REGION-001):
 
 ```csharp
 class C
 {
-    #region    Bar
+    #region Bar
 
     int y;
 
@@ -69,7 +69,7 @@ class C
 }
 ```
 
-A region written as `#region`, a tab, `Baz`, a tab, `qux` keeps the tab between `Baz` and `qux`, in the `#region` line and in the description the `#endregion` comment repeats.
+A region written as `#region`, a tab, `Baz`, a tab, `qux` is written with one space in front of `Baz` and keeps the tab between `Baz` and `qux`, in the `#region` line and in the description the `#endregion` comment repeats.
 
 ### FMT-TAB-003 — Tabs in literals, comments, and disabled text are kept
 

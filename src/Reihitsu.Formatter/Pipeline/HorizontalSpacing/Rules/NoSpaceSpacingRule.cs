@@ -81,8 +81,9 @@ internal sealed class NoSpaceSpacingRule : ISpacingRule
     /// <summary>
     /// Determines whether the token is a member-access symbol: the dot of a plain, bound or qualified
     /// access, the question mark that opens a conditional access, or the arrow of a pointer access.
-    /// The chain rewriter already closes the gap that follows a conditional access or an arrow, so
-    /// leaving them out here tightened one side only and produced <c>x ?.Foo</c> and <c>p -&gt;V</c>.
+    /// A member access is one name path, so both sides of each symbol are tight (FMT-SPACE-006):
+    /// tightening one side only would leave <c>x ?.Foo</c> or <c>p -&gt;V</c>, which no analyzer rule
+    /// accepts.
     /// </summary>
     /// <param name="token">The token to inspect</param>
     /// <returns><see langword="true"/> if the token is a member-access symbol; otherwise, <see langword="false"/></returns>

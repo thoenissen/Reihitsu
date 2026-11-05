@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
@@ -55,7 +56,7 @@ internal sealed class SwitchCaseWhenLineBreakRewriter : CSharpSyntaxRewriter
     /// <returns><see langword="true"/> if the pattern text spans multiple lines; otherwise, <see langword="false"/></returns>
     private static bool PatternSpansMultipleLines(PatternSyntax pattern)
     {
-        return pattern.ToString().IndexOf('\n') >= 0;
+        return LineEndingUtilities.ContainsLineTerminator(pattern.ToString());
     }
 
     /// <summary>
@@ -85,8 +86,9 @@ internal sealed class SwitchCaseWhenLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Collapses the <c>when</c> keyword onto the line that ends the case pattern, leaving a single
-    /// space before it. The join is refused when the gap holds anything other than whitespace and
+    /// Collapses the <c>when</c> keyword onto the line that ends the case pattern with the minimal
+    /// separator in front of it (FMT-BREAK-031); the space in front of <c>when</c> is the
+    /// horizontal-spacing phase's (FMT-SPACE-020). The join is refused when the gap holds anything other than whitespace and
     /// end-of-line trivia so comments, directives, or disabled text are not absorbed or discarded
     /// </summary>
     /// <param name="node">The case pattern switch label</param>
@@ -107,7 +109,7 @@ internal sealed class SwitchCaseWhenLineBreakRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        var newPatternLastToken = patternLastToken.WithTrailingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.Space));
+        var newPatternLastToken = patternLastToken.WithTrailingTrivia(LineBreakTriviaUtilities.CreateJoinSeparator(patternLastToken, whenKeyword));
         var newWhenKeyword = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(whenKeyword);
 
         return node.ReplaceTokens([patternLastToken, whenKeyword],

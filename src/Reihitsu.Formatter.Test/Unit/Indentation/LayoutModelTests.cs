@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
@@ -355,6 +356,163 @@ public class LayoutModelTests
 
         // Assert
         Assert.IsFalse(model.MatchesColumns(columns));
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="LayoutModel.CaptureColumns"/> captures, for a line of an interpolation hole that no
+    /// construct inside the hole placed, the registered column contributors read, not the column block indentation
+    /// wrote as a stand-in
+    /// </summary>
+    [TestMethod]
+    public void CaptureColumnsCapturesRegisteredColumnOfUnplacedHoleLine()
+    {
+        // Arrange
+        var (hole, _, _) = ParseHole();
+
+        var model = new LayoutModel();
+
+        model.RegisterRawStringHoleLine(1, hole, 6);
+        model.Set(1, new TokenLayout(8, "block"));
+
+        // Act
+        var columns = model.CaptureColumns();
+
+        // Assert
+        Assert.AreEqual(6, columns[1]);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="LayoutModel.MatchesColumns"/> reports a mismatch when a construct inside the hole
+    /// places a hole line with a shift of 0: the layout's column stays, but the column contributors read changes from
+    /// the registered column to the layout's column, so a later sweep has to see it
+    /// </summary>
+    [TestMethod]
+    public void MatchesColumnsAfterZeroShiftPlacesHoleLineAwayFromItsRegisteredColumnReturnsFalse()
+    {
+        // Arrange
+        var (hole, inside, _) = ParseHole();
+
+        var model = new LayoutModel();
+
+        model.RegisterRawStringHoleLine(1, hole, 6);
+        model.Set(1, new TokenLayout(8, "block"));
+
+        var columns = model.CaptureColumns();
+
+        model.Contributor = inside;
+
+        // Act
+        model.ShiftRange(1, 1, 0, "lambda");
+
+        // Assert
+        Assert.IsFalse(model.MatchesColumns(columns));
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="LayoutModel.MatchesColumns"/> reports a mismatch when a construct inside the hole
+    /// places a hole line through <see cref="LayoutModel.Set"/> at the column block indentation already wrote for it,
+    /// away from its registered column
+    /// </summary>
+    [TestMethod]
+    public void MatchesColumnsAfterSetPlacesHoleLineAtItsStandInColumnReturnsFalse()
+    {
+        // Arrange
+        var (hole, inside, _) = ParseHole();
+
+        var model = new LayoutModel();
+
+        model.RegisterRawStringHoleLine(1, hole, 6);
+        model.Set(1, new TokenLayout(8, "block"));
+
+        var columns = model.CaptureColumns();
+
+        model.Contributor = inside;
+
+        // Act
+        model.Set(1, new TokenLayout(8, "chain"));
+
+        // Assert
+        Assert.IsFalse(model.MatchesColumns(columns));
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="LayoutModel.MatchesColumns"/> still reports a match when a construct inside the hole
+    /// places a hole line in its registered column: the column contributors read does not change
+    /// </summary>
+    [TestMethod]
+    public void MatchesColumnsAfterHoleLineIsPlacedInItsRegisteredColumnReturnsTrue()
+    {
+        // Arrange
+        var (hole, inside, _) = ParseHole();
+
+        var model = new LayoutModel();
+
+        model.RegisterRawStringHoleLine(1, hole, 8);
+        model.Set(1, new TokenLayout(8, "block"));
+
+        var columns = model.CaptureColumns();
+
+        model.Contributor = inside;
+
+        // Act
+        model.ShiftRange(1, 1, 0, "lambda");
+
+        // Assert
+        Assert.IsTrue(model.MatchesColumns(columns));
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="LayoutModel.MatchesColumns"/> still reports a match when a contributor of a node outside
+    /// the hole writes a hole line: the write is ignored, so the line stays unplaced and keeps its registered column
+    /// </summary>
+    [TestMethod]
+    public void MatchesColumnsAfterWriteFromOutsideTheHoleReturnsTrue()
+    {
+        // Arrange
+        var (hole, _, outside) = ParseHole();
+
+        var model = new LayoutModel();
+
+        model.RegisterRawStringHoleLine(1, hole, 6);
+        model.Set(1, new TokenLayout(8, "block"));
+
+        var columns = model.CaptureColumns();
+
+        model.Contributor = outside;
+
+        // Act
+        model.Set(1, new TokenLayout(8, "lambda"));
+        model.ShiftRange(1, 1, 0, "lambda");
+
+        // Assert
+        Assert.IsTrue(model.MatchesColumns(columns));
+    }
+
+    /// <summary>
+    /// Parses a method whose expression body is a multi-line interpolated raw string with one hole
+    /// </summary>
+    /// <returns>The hole, a node inside it, and a node outside it</returns>
+    private (InterpolationSyntax Hole, SyntaxNode Inside, SyntaxNode Outside) ParseHole()
+    {
+        const string code = """"
+                            class C
+                            {
+                                string M(int x) => $"""
+                                    {x}
+                                    """;
+                            }
+                            """";
+
+        var tree = CSharpSyntaxTree.ParseText(code, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetCompilationUnitRoot(TestContext.CancellationToken);
+        var hole = root.DescendantNodes()
+                       .OfType<InterpolationSyntax>()
+                       .Single();
+        var method = root.DescendantNodes()
+                         .OfType<MethodDeclarationSyntax>()
+                         .Single();
+
+        return (hole, hole.Expression, method);
     }
 
     #endregion // Methods

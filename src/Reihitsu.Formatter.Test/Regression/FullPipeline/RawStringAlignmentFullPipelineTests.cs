@@ -11,15 +11,6 @@ namespace Reihitsu.Formatter.Test.Regression.FullPipeline;
 [TestClass]
 public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
 {
-    #region Properties
-
-    /// <summary>
-    /// Test context for the current test
-    /// </summary>
-    public TestContext TestContext { get; set; }
-
-    #endregion // Properties
-
     #region Aligned strings - no change expected
 
     /// <summary>

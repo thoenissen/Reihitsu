@@ -1105,7 +1105,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                                      {
                                      }
 
-                                     #endregion // Decoy
+                                     #endregion
 
                                      #region Factories
 
@@ -1120,7 +1120,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                                      {
                                      }
 
-                                     #endregion // Factories
+                                     #endregion
                                  }
                                  """;
 

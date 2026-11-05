@@ -45,22 +45,19 @@ internal sealed class TernaryLineBreakRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Strips a branch's first token of its leading end-of-line and whitespace trivia so it joins
-    /// the operator's line, then guarantees exactly one leading space when nothing else supplied one —
-    /// shared by the <c>?</c> and <c>:</c> joins so both branches land on the operator's line the same way
+    /// Strips a branch's first token of its leading end-of-line and whitespace trivia so it joins the operator's line, and
+    /// writes the minimal separator between the operator and the branch (FMT-BREAK-031) — shared by the <c>?</c> and
+    /// <c>:</c> joins so both branches land on the operator's line the same way. The spaces of the joined gap are the
+    /// horizontal-spacing phase's
     /// </summary>
+    /// <param name="operatorToken">The <c>?</c> or <c>:</c> the branch moves behind</param>
     /// <param name="branchFirstToken">The first token of the branch being moved onto the operator's line</param>
     /// <returns>The token with its leading trivia rebuilt for same-line placement</returns>
-    private static SyntaxToken MoveTokenOntoOperatorLine(SyntaxToken branchFirstToken)
+    private static SyntaxToken MoveTokenOntoOperatorLine(SyntaxToken operatorToken, SyntaxToken branchFirstToken)
     {
         var newToken = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(branchFirstToken);
 
-        if (newToken.LeadingTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
-        {
-            newToken = newToken.WithLeadingTrivia(newToken.LeadingTrivia.Add(SyntaxFactory.Space));
-        }
-
-        return newToken;
+        return newToken.WithLeadingTrivia(LineBreakTriviaUtilities.CreateJoinSeparator(operatorToken, branchFirstToken).AddRange(newToken.LeadingTrivia));
     }
 
     /// <summary>
@@ -145,12 +142,12 @@ internal sealed class TernaryLineBreakRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        var newQuestionTrailing = LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(questionToken.TrailingTrivia);
+        var newQuestionTrailing = LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(questionToken.TrailingTrivia));
         var newConditionTrailing = LineBreakTriviaUtilities.AppendEndOfLine(conditionLastToken.TrailingTrivia, _context.EndOfLine);
         var newConditionLastToken = conditionLastToken.WithTrailingTrivia(newConditionTrailing);
         var newQuestionToken = questionToken.WithTrailingTrivia(newQuestionTrailing);
         var whenTrueFirstToken = node.WhenTrue.GetFirstToken();
-        var newWhenTrueFirstToken = MoveTokenOntoOperatorLine(whenTrueFirstToken);
+        var newWhenTrueFirstToken = MoveTokenOntoOperatorLine(questionToken, whenTrueFirstToken);
 
         return node.ReplaceTokens([conditionLastToken, questionToken, whenTrueFirstToken],
                                   (original, _) =>
@@ -186,12 +183,12 @@ internal sealed class TernaryLineBreakRewriter : CSharpSyntaxRewriter
             }
 
             var whenTrueLastToken = node.WhenTrue.GetLastToken();
-            var newColonTrailing = LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(colonToken.TrailingTrivia);
+            var newColonTrailing = LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(colonToken.TrailingTrivia));
             var newWhenTrueTrailing = LineBreakTriviaUtilities.AppendEndOfLine(whenTrueLastToken.TrailingTrivia, _context.EndOfLine);
             var newWhenTrueLastToken = whenTrueLastToken.WithTrailingTrivia(newWhenTrueTrailing);
             var newColonToken = colonToken.WithTrailingTrivia(newColonTrailing);
             var whenFalseFirstToken = node.WhenFalse.GetFirstToken();
-            var newWhenFalseFirstToken = MoveTokenOntoOperatorLine(whenFalseFirstToken);
+            var newWhenFalseFirstToken = MoveTokenOntoOperatorLine(colonToken, whenFalseFirstToken);
 
             return node.ReplaceTokens([whenTrueLastToken, colonToken, whenFalseFirstToken],
                                       (original, _) =>

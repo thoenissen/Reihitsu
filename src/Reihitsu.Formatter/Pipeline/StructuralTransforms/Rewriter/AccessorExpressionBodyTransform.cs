@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
-using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
 
@@ -192,13 +192,16 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
             return accessor;
         }
 
-        var arrowExpressionClause = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken).WithTrailingTrivia(SyntaxFactory.Space),
+        // The created arrow gets no whitespace on either side; the spacing phase spaces it like every arrow (FMT-STRUCT-026,
+        // FMT-SPACE-017), and the layout trivia that stood between the keyword and the removed body is dropped. The created
+        // tokens are built with explicit trivia, so they carry no elastic trivia
+        var arrowExpressionClause = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.Token(SyntaxFactory.TriviaList(), SyntaxKind.EqualsGreaterThanToken, SyntaxFactory.TriviaList()),
                                                                         bodyExpression);
 
-        return accessor.WithKeyword(accessor.Keyword.WithTrailingTrivia(SyntaxFactory.Space))
+        return accessor.WithKeyword(accessor.Keyword.WithTrailingTrivia(default(SyntaxTriviaList)))
                        .WithBody(null)
                        .WithExpressionBody(arrowExpressionClause)
-                       .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(semicolonTrailingTrivia));
+                       .WithSemicolonToken(SyntaxFactory.Token(default, SyntaxKind.SemicolonToken, semicolonTrailingTrivia));
     }
 
     /// <summary>
@@ -211,7 +214,7 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
     {
         var withoutLineBreaks = SyntaxFactory.TriviaList(triviaList.Where(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false));
 
-        return LineBreakTriviaUtilities.StripTrailingWhitespace(withoutLineBreaks);
+        return TriviaListUtilities.RemoveTrailingWhitespace(withoutLineBreaks);
     }
 
     /// <summary>
@@ -255,7 +258,10 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
 
                     if (RequiresThrowExpressionParentheses(operand))
                     {
-                        operand = SyntaxFactory.ParenthesizedExpression(operand.WithoutTrivia())
+                        // The parentheses are built with explicit trivia, so they carry no elastic trivia (FMT-STRUCT-026)
+                        operand = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.Token(default, SyntaxKind.OpenParenToken, default),
+                                                                        operand.WithoutTrivia(),
+                                                                        SyntaxFactory.Token(default, SyntaxKind.CloseParenToken, default))
                                                .WithTriviaFrom(operand);
                     }
 

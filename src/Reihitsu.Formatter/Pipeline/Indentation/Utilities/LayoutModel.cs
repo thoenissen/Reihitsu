@@ -3,6 +3,8 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Formatter.Pipeline.Indentation.Contributors;
+
 namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 
 /// <summary>
@@ -14,6 +16,11 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 /// <see cref="RawStringLineShifts"/> computes from this model; the model stores each line's column before that move,
 /// which is the indentation the rewriter writes, and converts with the same shift the phase then applies to the line.
 /// Outside such literals both columns are the same.
+/// </para>
+/// <para>
+/// A column is never below 0 after the move, and that floor applies to the column after the move only
+/// (<see cref="GetColumnAfterRawStringShift"/>): a moved line may hold a column below 0 before the move, as when it is
+/// aligned to an anchor on a line the move does not carry that stands left of the move's distance.
 /// </para>
 /// <para>
 /// Lines that a token starts inside an interpolation hole of a multi-line interpolated raw string are placed only by
@@ -41,6 +48,16 @@ internal sealed class LayoutModel
     private readonly HashSet<int> _placedRawStringHoleLines = [];
 
     /// <summary>
+    /// Maps each line to the alignment contributors whose <see cref="Set"/> placed it
+    /// </summary>
+    private readonly Dictionary<int, HashSet<Type>> _alignmentContributors = [];
+
+    /// <summary>
+    /// Maps each line that only a fallback placed (<see cref="SetUnlessPlaced"/>) to the alignment contributor that wrote it
+    /// </summary>
+    private readonly Dictionary<int, Type> _fallbackContributors = [];
+
+    /// <summary>
     /// The moves of the lines of multi-line raw string literals, or <see langword="null"/> when the tree holds no
     /// such literal
     /// </summary>
@@ -50,6 +67,16 @@ internal sealed class LayoutModel
     /// Gets the column a literal's first token has once its line is placed, before any raw string literal's line moves
     /// </summary>
     private Func<SyntaxToken, int> _getColumnBeforeRawStringShift;
+
+    /// <summary>
+    /// The first token of the target the target-position fact marks, or <see langword="default"/> when the root has none
+    /// </summary>
+    private SyntaxToken _targetFirstToken;
+
+    /// <summary>
+    /// The column of <see cref="_targetFirstToken"/> in its document
+    /// </summary>
+    private int _targetFirstTokenColumn;
 
     #endregion // Fields
 
@@ -69,6 +96,13 @@ internal sealed class LayoutModel
     /// </summary>
     public SyntaxNode Contributor { get; set; }
 
+    /// <summary>
+    /// The alignment contributor that is writing to the model, or <see langword="null"/> while block indentation, the
+    /// shift to the root's document column, and comment alignment write to it. Every line an accepted <see cref="Set"/>
+    /// places while it is set is recorded for that contributor (<see cref="GetAlignmentContributors"/>)
+    /// </summary>
+    public ILayoutContributor AlignmentContributor { get; set; }
+
     #endregion // Properties
 
     #region Methods
@@ -86,6 +120,33 @@ internal sealed class LayoutModel
     }
 
     /// <summary>
+    /// Uses the target-position fact (FMT-PIPE-024): the lines of the target are laid out as if its first token stood in the given
+    /// column, whatever line and column the earlier phases left it in within the root; a target that starts its line has that
+    /// token put into the column by the entry point's write-back of the leading trivia (FMT-PIPE-017)
+    /// </summary>
+    /// <param name="targetFirstToken">The first token of the target, in the root this model lays out</param>
+    /// <param name="column">The column of that token in its document</param>
+    public void UseTargetFirstToken(SyntaxToken targetFirstToken, int column)
+    {
+        _targetFirstToken = targetFirstToken;
+        _targetFirstTokenColumn = column;
+    }
+
+    /// <summary>
+    /// Gets the first token of the target the target-position fact marks, and the column it stands in
+    /// </summary>
+    /// <param name="targetFirstToken">The first token of the target</param>
+    /// <param name="column">The column of that token in its document</param>
+    /// <returns><see langword="true"/> if the root has such a target; otherwise, <see langword="false"/></returns>
+    public bool TryGetTargetFirstToken(out SyntaxToken targetFirstToken, out int column)
+    {
+        targetFirstToken = _targetFirstToken;
+        column = _targetFirstTokenColumn;
+
+        return targetFirstToken.RawKind != 0;
+    }
+
+    /// <summary>
     /// Gets the number of columns the indentation phase moves the given line after placing it. The same shift converts
     /// the columns of this model and moves the line, so the move is computed once
     /// </summary>
@@ -97,9 +158,23 @@ internal sealed class LayoutModel
     }
 
     /// <summary>
+    /// Gets the column a line has after the indentation phase moved the lines of multi-line raw string literals, from
+    /// the column it has before that move. This is the one place where a line's column is floored at 0, and the floor
+    /// applies to the column after the move: a line that moves keeps a column below 0 before the move whenever the move
+    /// carries it to 0 or further right
+    /// </summary>
+    /// <param name="lineNumber">The 0-based line number</param>
+    /// <param name="columnBeforeShift">The column the line has before the move</param>
+    /// <returns>The column after the move, at least 0</returns>
+    public int GetColumnAfterRawStringShift(int lineNumber, int columnBeforeShift)
+    {
+        return FloorColumn(columnBeforeShift + GetRawStringShift(lineNumber));
+    }
+
+    /// <summary>
     /// Sets the desired layout for a token on the given line.
     /// Later calls override earlier ones (alignment overrides block indentation). The layout's column is the column
-    /// the line has in the output of the indentation phase. A line of an interpolation hole is placed by the write of a
+    /// the line has in the output of the indentation phase, floored at 0 (<see cref="GetColumnAfterRawStringShift"/>). A line of an interpolation hole is placed by the write of a
     /// contributor of a node inside that hole, and ignores the write of a contributor of a node outside it
     /// (<see cref="Contributor"/>)
     /// </summary>
@@ -113,12 +188,54 @@ internal sealed class LayoutModel
         }
 
         RecordPlacement(lineNumber);
+        RecordAlignmentContributor(lineNumber);
 
-        var shift = GetRawStringShift(lineNumber);
+        _layouts[lineNumber] = ToLayoutBeforeRawStringShift(layout.Column, layout.Source, GetRawStringShift(lineNumber));
+    }
 
-        _layouts[lineNumber] = shift == 0
-                                   ? layout
-                                   : new TokenLayout(layout.Column - shift, layout.Source);
+    /// <summary>
+    /// Sets a fallback layout for a line: it places the line only while no alignment contributor has placed it through
+    /// <see cref="Set"/>, and a later <see cref="Set"/> takes the line over. A contributor uses it for a line it aligns only
+    /// because no construct on the line lays the line out itself, such as a line that continues a list element, so the
+    /// construct that does lay the line out is its only owner
+    /// </summary>
+    /// <param name="lineNumber">The 0-based line number</param>
+    /// <param name="layout">The fallback layout</param>
+    public void SetUnlessPlaced(int lineNumber, TokenLayout layout)
+    {
+        if (_alignmentContributors.ContainsKey(lineNumber)
+            || AcceptsWrite(lineNumber) == false)
+        {
+            return;
+        }
+
+        RecordPlacement(lineNumber);
+
+        if (AlignmentContributor != null)
+        {
+            _fallbackContributors[lineNumber] = AlignmentContributor.GetType();
+        }
+
+        _layouts[lineNumber] = ToLayoutBeforeRawStringShift(layout.Column, layout.Source, GetRawStringShift(lineNumber));
+    }
+
+    /// <summary>
+    /// Gets the alignment contributors that placed the line while the alignment sweeps ran: the contributors whose
+    /// <see cref="Set"/> placed it, or, when none did, the contributor whose fallback (<see cref="SetUnlessPlaced"/>) placed
+    /// it. A contributor that only moved the line with a range (<see cref="ShiftRange"/>) is not counted
+    /// </summary>
+    /// <param name="lineNumber">The 0-based line number</param>
+    /// <returns>The types of the contributors that placed the line; empty when none did</returns>
+    public IReadOnlyCollection<Type> GetAlignmentContributors(int lineNumber)
+    {
+        if (_alignmentContributors.TryGetValue(lineNumber, out var contributors))
+        {
+            return contributors;
+        }
+
+        return _fallbackContributors.TryGetValue(lineNumber, out var fallbackContributor)
+                   ? [fallbackContributor]
+                   : [];
     }
 
     /// <summary>
@@ -135,6 +252,28 @@ internal sealed class LayoutModel
     }
 
     /// <summary>
+    /// Gets the interpolation hole the line is registered with: the innermost hole of a multi-line interpolated raw
+    /// string around the token that starts the line. A construct that is placed only in such a hole reads the hole here,
+    /// so it decides which hole owns its lines exactly as the registration does
+    /// </summary>
+    /// <param name="lineNumber">The 0-based line number</param>
+    /// <param name="hole">The hole the line is registered with, if any</param>
+    /// <returns><see langword="true"/> if the line is a line of such a hole; otherwise, <see langword="false"/></returns>
+    public bool TryGetRawStringHole(int lineNumber, out InterpolationSyntax hole)
+    {
+        if (_rawStringHoleLines.TryGetValue(lineNumber, out var holeLine) == false)
+        {
+            hole = null;
+
+            return false;
+        }
+
+        hole = holeLine.Hole;
+
+        return true;
+    }
+
+    /// <summary>
     /// Gets the column the line has in the output of the indentation phase, after the phase moved the lines of
     /// multi-line raw string literals: the layout's column, or, for a line of an interpolation hole that no construct
     /// inside the hole placed, its registered column
@@ -144,12 +283,14 @@ internal sealed class LayoutModel
     /// <returns><see langword="true"/> if the line has a column; otherwise, <see langword="false"/></returns>
     public bool TryGetPlacedColumn(int lineNumber, out int column)
     {
-        if (TryGetPlacedColumnBeforeRawStringShift(lineNumber, out column) == false)
+        if (TryGetPlacedColumnBeforeRawStringShift(lineNumber, out var columnBeforeShift) == false)
         {
+            column = 0;
+
             return false;
         }
 
-        column += GetRawStringShift(lineNumber);
+        column = GetColumnAfterRawStringShift(lineNumber, columnBeforeShift);
 
         return true;
     }
@@ -157,7 +298,7 @@ internal sealed class LayoutModel
     /// <summary>
     /// Gets the column the line has once it is placed, before the lines of multi-line raw string literals move: the
     /// layout's column, or, for a line of an interpolation hole that no construct inside the hole placed, its
-    /// registered column
+    /// registered column. A line that moves can have a column below 0 here (<see cref="GetColumnAfterRawStringShift"/>)
     /// </summary>
     /// <param name="lineNumber">The 0-based line number</param>
     /// <param name="column">The column if the line has one</param>
@@ -200,7 +341,7 @@ internal sealed class LayoutModel
             return false;
         }
 
-        column = layout.Column + GetRawStringShift(lineNumber);
+        column = GetColumnAfterRawStringShift(lineNumber, layout.Column);
 
         return true;
     }
@@ -218,8 +359,9 @@ internal sealed class LayoutModel
     }
 
     /// <summary>
-    /// Tries to get the layout for the given line number. Its column is the indentation the rewriter writes, before
-    /// the lines of multi-line raw string literals move
+    /// Tries to get the layout for the given line number. Its column is the column before the lines of multi-line raw
+    /// string literals move, which is below 0 for a line that only the move carries to its column
+    /// (<see cref="GetColumnAfterRawStringShift"/>)
     /// </summary>
     /// <param name="lineNumber">The 0-based line number</param>
     /// <param name="layout">The layout if found</param>
@@ -245,7 +387,11 @@ internal sealed class LayoutModel
     /// <summary>
     /// Captures the current column of every entry, so a later state can be compared against it.
     /// Only the columns are captured: the <see cref="TokenLayout.Source"/> label is a debug aid and
-    /// two states that differ only in which contributor last wrote the same column are equivalent
+    /// two states that differ only in which contributor last wrote the same column are equivalent.
+    /// The captured column is the one contributors read (<see cref="TryGetPlacedColumnBeforeRawStringShift"/>): for a
+    /// line of an interpolation hole that no construct inside the hole placed, its registered column. So a construct
+    /// that places such a line without changing its layout's column still changes the state whenever the line's
+    /// column changes by being placed
     /// </summary>
     /// <returns>A snapshot mapping line numbers to their currently desired column</returns>
     public Dictionary<int, int> CaptureColumns()
@@ -254,14 +400,15 @@ internal sealed class LayoutModel
 
         foreach (var entry in _layouts)
         {
-            columns[entry.Key] = entry.Value.Column;
+            columns[entry.Key] = GetCapturedColumn(entry.Key, entry.Value);
         }
 
         return columns;
     }
 
     /// <summary>
-    /// Determines whether every entry still holds the column it held in the given snapshot
+    /// Determines whether every entry still holds the column it held in the given snapshot, as
+    /// <see cref="CaptureColumns"/> captures it
     /// </summary>
     /// <param name="columns">A snapshot previously returned by <see cref="CaptureColumns"/></param>
     /// <returns><see langword="true"/> if no column changed and no entry was added; otherwise, <see langword="false"/></returns>
@@ -275,7 +422,7 @@ internal sealed class LayoutModel
         foreach (var entry in _layouts)
         {
             if (columns.TryGetValue(entry.Key, out var column) == false
-                || column != entry.Value.Column)
+                || column != GetCapturedColumn(entry.Key, entry.Value))
             {
                 return false;
             }
@@ -285,9 +432,12 @@ internal sealed class LayoutModel
     }
 
     /// <summary>
-    /// Shifts the column of all existing entries within the specified line range by the given delta. A line of an
-    /// interpolation hole is placed when the contributor shifting the range belongs to a node inside that hole, and
-    /// skipped when it belongs to a node outside it (<see cref="Contributor"/>)
+    /// Shifts the column of all existing entries within the specified line range by the given delta. The shifted column
+    /// is floored at 0 after the lines of multi-line raw string literals move (<see cref="GetColumnAfterRawStringShift"/>),
+    /// not before. A line of an interpolation hole is placed when the contributor shifting the range belongs to a node
+    /// inside that hole, and skipped when it belongs to a node outside it (<see cref="Contributor"/>). The range places
+    /// its lines whether or not the delta changes their columns: a delta of 0 means the lines already stand where the
+    /// contributor puts them, not that it leaves them unplaced
     /// </summary>
     /// <param name="startLine">The inclusive start line</param>
     /// <param name="endLine">The inclusive end line</param>
@@ -295,11 +445,6 @@ internal sealed class LayoutModel
     /// <param name="source">The source identifier for the shifted entries</param>
     public void ShiftRange(int startLine, int endLine, int delta, string source)
     {
-        if (delta == 0)
-        {
-            return;
-        }
-
         var keysToUpdate = _layouts.Keys
                                    .Where(key => key >= startLine && key <= endLine)
                                    .ToList();
@@ -313,16 +458,52 @@ internal sealed class LayoutModel
 
             RecordPlacement(key);
 
-            var existing = _layouts[key];
-            var newColumn = existing.Column + delta;
-
-            if (newColumn < 0)
+            if (delta == 0)
             {
-                newColumn = 0;
+                continue;
             }
 
-            _layouts[key] = new TokenLayout(newColumn, source);
+            var shift = GetRawStringShift(key);
+
+            _layouts[key] = ToLayoutBeforeRawStringShift(_layouts[key].Column + delta + shift, source, shift);
         }
+    }
+
+    /// <summary>
+    /// Floors a column after the lines of multi-line raw string literals moved at 0
+    /// </summary>
+    /// <param name="columnAfterShift">The column after the move</param>
+    /// <returns>The column, at least 0</returns>
+    private static int FloorColumn(int columnAfterShift)
+    {
+        return Math.Max(0, columnAfterShift);
+    }
+
+    /// <summary>
+    /// Creates the layout the model stores for a line from the column the line has after the lines of multi-line raw
+    /// string literals moved: that column floored at 0, less the line's move
+    /// </summary>
+    /// <param name="columnAfterShift">The column after the move</param>
+    /// <param name="source">The source identifier of the layout</param>
+    /// <param name="shift">The line's move, as <see cref="GetRawStringShift"/> gives it</param>
+    /// <returns>The layout with the column before the move</returns>
+    private static TokenLayout ToLayoutBeforeRawStringShift(int columnAfterShift, string source, int shift)
+    {
+        return new TokenLayout(FloorColumn(columnAfterShift) - shift, source);
+    }
+
+    /// <summary>
+    /// Gets the column <see cref="CaptureColumns"/> captures for an entry: the registered column of a line of an
+    /// interpolation hole that no construct inside the hole placed, and the layout's column otherwise
+    /// </summary>
+    /// <param name="lineNumber">The 0-based line number</param>
+    /// <param name="layout">The line's layout</param>
+    /// <returns>The column contributors read for the line</returns>
+    private int GetCapturedColumn(int lineNumber, TokenLayout layout)
+    {
+        return IsUnplacedRawStringHoleLine(lineNumber, out var holeLine)
+                   ? holeLine.Column
+                   : layout.Column;
     }
 
     /// <summary>
@@ -350,6 +531,26 @@ internal sealed class LayoutModel
         return Contributor == null
                || _rawStringHoleLines.TryGetValue(lineNumber, out var holeLine) == false
                || holeLine.Hole.Span.Contains(Contributor.Span);
+    }
+
+    /// <summary>
+    /// Records that the current alignment contributor placed the line, when one is writing
+    /// </summary>
+    /// <param name="lineNumber">The 0-based line number</param>
+    private void RecordAlignmentContributor(int lineNumber)
+    {
+        if (AlignmentContributor == null)
+        {
+            return;
+        }
+
+        if (_alignmentContributors.TryGetValue(lineNumber, out var contributors) == false)
+        {
+            contributors = [];
+            _alignmentContributors[lineNumber] = contributors;
+        }
+
+        contributors.Add(AlignmentContributor.GetType());
     }
 
     /// <summary>

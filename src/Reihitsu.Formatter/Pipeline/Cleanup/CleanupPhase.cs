@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.Cleanup;
@@ -135,9 +136,9 @@ internal sealed class CleanupPhase : IFormattingPhase
             {
                 if (startsText
                     && triviaIndex == 0
-                    && ReihitsuFormatterHelpers.StartsWithByteOrderMark(triviaList[triviaIndex]))
+                    && ByteOrderMarkUtilities.StartsWithByteOrderMark(triviaList[triviaIndex]))
                 {
-                    var byteOrderMark = ReihitsuFormatterHelpers.CreateByteOrderMarkTrivia();
+                    var byteOrderMark = ByteOrderMarkUtilities.CreateByteOrderMarkTrivia();
 
                     if (triviaList[triviaIndex].ToFullString() == byteOrderMark.ToFullString())
                     {

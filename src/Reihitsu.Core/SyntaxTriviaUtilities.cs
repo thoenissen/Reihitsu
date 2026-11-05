@@ -25,15 +25,50 @@ public static class SyntaxTriviaUtilities
     #region Methods
 
     /// <summary>
-    /// Determines whether adjacent tokens are separated by an end-of-line trivia
+    /// Determines whether a line break separates two adjacent tokens, so that the right token stands on a later line than
+    /// the left one (SHARED-BLANK-008). The line break is an end-of-line trivia, or the line break that ends a single-line
+    /// documentation comment, a directive, or disabled text, which those trivia carry inside their own text; a line break
+    /// inside the text of a multi-line comment does not separate the tokens (SHARED-BLANK-002)
     /// </summary>
     /// <param name="left">Token on the left side of the gap</param>
     /// <param name="right">Token on the right side of the gap</param>
-    /// <returns><see langword="true"/> if the tokens are separated by an end-of-line trivia; otherwise, <see langword="false"/></returns>
+    /// <returns><see langword="true"/> if a line break separates the tokens; otherwise, <see langword="false"/></returns>
     public static bool AreSeparatedByEndOfLine(SyntaxToken left, SyntaxToken right)
     {
-        return left.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-               || right.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+        return left.TrailingTrivia.Any(EndsLine)
+               || right.LeadingTrivia.Any(EndsLine);
+    }
+
+    /// <summary>
+    /// Determines whether a trivia ends its line: an end-of-line trivia, or a trivia that carries the line break ending its
+    /// line inside its own text (<see cref="EndsWithLineBreak"/>)
+    /// </summary>
+    /// <param name="trivia">The trivia to check</param>
+    /// <returns><see langword="true"/> if the trivia ends its line; otherwise, <see langword="false"/></returns>
+    public static bool EndsLine(SyntaxTrivia trivia)
+    {
+        return trivia.IsKind(SyntaxKind.EndOfLineTrivia)
+               || EndsWithLineBreak(trivia);
+    }
+
+    /// <summary>
+    /// Determines whether a trivia carries the line break that ends its line inside its own text. Roslyn files that line
+    /// break into the structure of a single-line documentation comment (<c>///</c>) and of a directive, and into the text of
+    /// disabled code, rather than into a separate <see cref="SyntaxKind.EndOfLineTrivia"/>. Every other trivia leaves its
+    /// line break as a sibling trivia, and a multi-line comment ends at its closing delimiter, so a line break inside its
+    /// text never ends its line. A directive or comment at the end of a file without a final line break ends no line
+    /// </summary>
+    /// <param name="trivia">The trivia to check</param>
+    /// <returns><see langword="true"/> if the trivia's own text ends with a line terminator; otherwise, <see langword="false"/></returns>
+    public static bool EndsWithLineBreak(SyntaxTrivia trivia)
+    {
+        if (IsDirectiveOrDisabledTextTrivia(trivia) == false
+            && trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) == false)
+        {
+            return false;
+        }
+
+        return LineEndingUtilities.EndsWithLineTerminator(trivia.ToFullString());
     }
 
     /// <summary>
@@ -229,7 +264,7 @@ public static class SyntaxTriviaUtilities
                 return false;
             }
 
-            return CommentEndsOwnLine(trivia) ? lineBreaksSeen == 0 : lineBreaksSeen == 1;
+            return EndsWithLineBreak(trivia) ? lineBreaksSeen == 0 : lineBreaksSeen == 1;
         }
 
         return false;
@@ -621,28 +656,6 @@ public static class SyntaxTriviaUtilities
         }
 
         return nestingLevel != 0;
-    }
-
-    /// <summary>
-    /// Determines whether a comment trivia's own text ends its line. Only a single-line documentation comment
-    /// (<c>///</c>) can do this — its structured trivia swallows the line terminator that follows it, so no
-    /// separate <see cref="SyntaxKind.EndOfLineTrivia"/> appears after it in the trivia list. An ordinary
-    /// comment or a multi-line (documentation) comment always leaves its trailing line break as a sibling
-    /// trivia instead, and an unterminated documentation comment at the end of a file leaves no line break at
-    /// all
-    /// </summary>
-    /// <param name="trivia">The comment trivia to inspect</param>
-    /// <returns><see langword="true"/> if the trivia's own text ends with a line break; otherwise, <see langword="false"/></returns>
-    private static bool CommentEndsOwnLine(SyntaxTrivia trivia)
-    {
-        if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) == false)
-        {
-            return false;
-        }
-
-        var text = trivia.ToFullString();
-
-        return text.Length > 0 && DocumentationCommentUtilities.IsLineTerminator(text[text.Length - 1]);
     }
 
     /// <summary>

@@ -2,7 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Pipeline.StructuralTransforms.Enumerations;
 using Reihitsu.Formatter.Pipeline.StructuralTransforms.Utilities;
 
@@ -69,7 +69,7 @@ internal sealed class ExpressionBodiedMethodTransform : CSharpSyntaxRewriter
                                                                node.SemicolonToken);
 
         var closeParen = node.ParameterList.CloseParenToken;
-        var cleanTrailing = LineBreakTriviaUtilities.StripTrailingWhitespace(closeParen.TrailingTrivia);
+        var cleanTrailing = TriviaListUtilities.RemoveTrailingWhitespace(closeParen.TrailingTrivia);
 
         return node.WithParameterList(node.ParameterList.WithCloseParenToken(closeParen.WithTrailingTrivia(cleanTrailing)))
                    .WithBody(block)

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -20,15 +21,6 @@ namespace Reihitsu.Formatter.Test.Unit;
 [TestClass]
 public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
 {
-    #region Properties
-
-    /// <summary>
-    /// Test context for the current test
-    /// </summary>
-    public TestContext TestContext { get; set; }
-
-    #endregion // Properties
-
     #region Methods
 
     /// <summary>
@@ -198,25 +190,6 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Characterizes the gap FMT-PIPE-017 records for a target that starts a later line of its context: the argument's first
-    /// line keeps its column in the document, because the entry point writes back the whitespace in front of it, while the
-    /// argument's own wrapped argument stands in the column the indentation phase gave it, under the first argument as it
-    /// stood with the target's line in the phase's column, and not under the first argument where it ends up
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
-    [TestMethod]
-    public async Task ArgumentTargetOnALaterLineOfItsContextKeepsItsFirstLineColumnAndLeavesTheAlignedLineInThePhaseLayout()
-    {
-        const string input = "class C\n{\n    void M()\n    {\n        Call(1,\n                 Other(2,\n                 3));\n    }\n}";
-        const string expected = "class C\n{\n    void M()\n    {\n        Call(1,\n                 Other(2,\n                   3));\n    }\n}";
-
-        await AssertFormatsTargetWithContext(input,
-                                             expected,
-                                             root => root.DescendantNodes().OfType<ArgumentSyntax>().Single(argument => argument.ToString().StartsWith("Other", StringComparison.Ordinal)),
-                                             SelectSingle<ExpressionStatementSyntax>);
-    }
-
-    /// <summary>
     /// Verifies that a one-line argument that starts a later line of its statement, formatted with the statement as context,
     /// keeps the whitespace in front of it as in the document, while the argument itself is formatted
     /// </summary>
@@ -253,9 +226,9 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the other side of the gap FMT-PIPE-017 records: a target that starts the first line of its context keeps the
-    /// whitespace in front of it, and the phases lay out the target from that column, so the wrapped argument aligns behind
-    /// the first argument
+    /// Verifies that a target that starts the first line of its context, whose first token the context's layout leaves in
+    /// place, keeps the whitespace in front of it, and the phases lay out the target from that column, so the wrapped argument
+    /// aligns behind the first argument
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
@@ -571,6 +544,345 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a statement target indented with tabs that holds a line break other than the document's line ending, which
+    /// the preparation phase rewrites before every other phase, still counts each of its tabs as four columns, so the statement
+    /// starts in column 8 and the wrapped argument aligns behind it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task StatementTargetIndentedWithTabsHoldingAForeignLineBreakCountsEachOfItsTabsAsFourColumns()
+    {
+        const string input = "class C\n{\n\tvoid M()\n\t{\n\t\tCall(1,¶2);\n\t}\n}";
+        const string expected = "class C\n{\n\tvoid M()\n\t{\n        Call(1,\n             2);\n\t}\n}";
+
+        await AssertFormatsTargetWithForeignLineBreaks(input, expected, SelectSingle<ExpressionStatementSyntax>, null);
+    }
+
+    /// <summary>
+    /// Verifies that a misindented statement target led by a one-line comment that holds a line break other than the
+    /// document's line ending keeps its first token in its column, and the wrapped argument aligns under the first argument
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task MisindentedStatementTargetHoldingAForeignLineBreakKeepsItsFirstTokenAndAlignsTheWrappedArgument()
+    {
+        const string input = "class C\n{\n    void M()\n    {\n     /* c */ Call(1,¶2);\n    }\n}";
+        const string expected = "class C\n{\n    void M()\n    {\n     /* c */ Call(1,\n                  2);\n    }\n}";
+
+        await AssertFormatsTargetWithForeignLineBreaks(input, expected, SelectSingle<ExpressionStatementSyntax>, null);
+    }
+
+    /// <summary>
+    /// Verifies that a chain target formatted with an equals-value clause as context, whose wrapped link follows a line break
+    /// other than the document's line ending, aligns the wrapped link under the first link behind the last line of a
+    /// multi-line comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task ChainTargetWithContextHoldingAForeignLineBreakAlignsTheWrappedLink()
+    {
+        const string input = "class C\n{\n    void M(string s)\n    {\n        var x = /* a\n                   b */ s.Trim()¶.ToUpper();\n    }\n}";
+        const string expected = "class C\n{\n    void M(string s)\n    {\n        var x = /* a\n                   b */ s.Trim()\n                         .ToUpper();\n    }\n}";
+
+        await AssertFormatsTargetWithForeignLineBreaks(input,
+                                                       expected,
+                                                       root => root.DescendantNodes().OfType<InvocationExpressionSyntax>().First(),
+                                                       SelectSingle<EqualsValueClauseSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a block target whose closing brace starts its line behind a documentation comment written behind the
+    /// block's last statement places that brace in the column of its method, as document-level formatting does
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-INDENT-002")]
+    public async Task BlockTargetPlacesClosingBraceBehindStrayDocumentationComment()
+    {
+        const string input = "class C\n{\n    void M()\n    {\n        var x = 1; /// x\n            }\n}";
+        const string expected = "class C\n{\n    void M()\n    {\n        var x = 1; /// x\n    }\n}";
+
+        await AssertFormatsTarget(input, expected, SelectSingle<BlockSyntax>);
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> on a detached type whose closing brace starts its line behind
+    /// a documentation comment written behind the last field places that brace in the column of its type, as
+    /// document-level formatting does
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-002")]
+    public void DetachedTypePlacesClosingBraceBehindStrayDocumentationComment()
+    {
+        const string input = "class D\n{\n    int A; /// <summary>end</summary>\n          }";
+        const string expected = "class D\n{\n    int A; /// <summary>end</summary>\n}";
+
+        foreach (var endOfLine in _lineEndings)
+        {
+            var detachedRoot = SyntaxFactory.ParseCompilationUnit(NormalizeLineEndings(input, endOfLine));
+
+            var firstPass = ReihitsuFormatter.FormatNode(detachedRoot, cancellationToken: TestContext.CancellationToken).ToFullString();
+
+            Assert.AreEqual(NormalizeLineEndings(expected, endOfLine), firstPass, $"Unexpected first pass under {DescribeLineEnding(endOfLine)} line endings.");
+
+            var secondPass = ReihitsuFormatter.FormatNode(SyntaxFactory.ParseCompilationUnit(firstPass), cancellationToken: TestContext.CancellationToken).ToFullString();
+
+            Assert.AreEqual(firstPass, secondPass, $"The second pass must not change the output under {DescribeLineEnding(endOfLine)} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that the interpolated raw string literal itself, as target with the local declaration as context, is found and
+    /// formatted although the indentation phase moves its lines: its first token stays on the unmoved opening line, and its
+    /// lines take the phases' columns under the opening quotes
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-022")]
+    public async Task RawStringLiteralTargetWhoseLinesMoveIsFormattedUnderItsOpeningQuotes()
+    {
+        const string input = "class C\n{\n    void M()\n    {\n        var s = $\"\"\"\n            a {Call(1,\n            2)} b\n            \"\"\";\n    }\n}";
+        const string expected = "class C\n{\n    void M()\n    {\n        var s = $\"\"\"\n                 a {Call(1,\n                         2)} b\n                 \"\"\";\n    }\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             SelectSingle<InterpolatedStringExpressionSyntax>,
+                                             SelectSingle<LocalDeclarationStatementSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that with the literal already under its opening quotes, the phases change nothing in front of the invocation
+    /// target on its line, and <c>2</c> is placed under <c>1</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task InvocationTargetInsideAnAlignedRawStringLiteralPlacesItsSecondLineUnderTheFirstArgument()
+    {
+        const string input = "class C\n{\n    void M()\n    {\n        var s = $\"\"\"\n                 a {Call(1,\n            2)} b\n                 \"\"\";\n    }\n}";
+        const string expected = "class C\n{\n    void M()\n    {\n        var s = $\"\"\"\n                 a {Call(1,\n                         2)} b\n                 \"\"\";\n    }\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             SelectSingle<InvocationExpressionSyntax>,
+                                             SelectSingle<LocalDeclarationStatementSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies the first way of FMT-PIPE-017: a declarator target that starts a later line of its declaration, which the
+    /// context's layout puts in another column, keeps its column, and its wrapped argument stands under the first argument
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task DeclaratorTargetOnALaterLineOfItsContextKeepsItsColumnAndAlignsTheWrappedArgumentUnderTheFirstArgument()
+    {
+        const string input = "class C\n{\n    static int Other(int x, int y)\n    {\n        return x + y;\n    }\n\n    void M()\n    {\n        int a = 1,\n              b =\n                  Other(1,\n                        2);\n    }\n}";
+        const string expected = "class C\n{\n    static int Other(int x, int y)\n    {\n        return x + y;\n    }\n\n    void M()\n    {\n        int a = 1,\n              b = Other(1,\n                        2);\n    }\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             root => root.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single(declarator => declarator.Identifier.Text == "b"),
+                                             SelectSingle<LocalDeclarationStatementSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a declarator target that starts a later line of a tab-indented declaration keeps the tabs in front of
+    /// it, and its wrapped argument stands under the first argument with each of those tabs counted as one column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-PIPE-018")]
+    public async Task DeclaratorTargetOnALaterLineOfATabIndentedContextAlignsTheWrappedArgumentWithEachTabInFrontOfItAsOneColumn()
+    {
+        const string input = "class C\n{\n\tvoid M()\n\t{\n\t\tint a = 1,\n\t\t    b =\n\t\t        Other(1,\n\t\t              2);\n\t}\n}";
+        const string expected = "class C\n{\n\tvoid M()\n\t{\n\t\tint a = 1,\n\t\t    b = Other(1,\n                2);\n\t}\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             root => root.DescendantNodes().OfType<VariableDeclaratorSyntax>().Last(),
+                                             SelectSingle<LocalDeclarationStatementSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies the first way of FMT-PIPE-017 with a join: the first parameter target on the line after the opening
+    /// parenthesis, which the context's layout joins to the parenthesis, stays on its line in its column, and its wrapped
+    /// binary operator stands under the value
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-PIPE-024")]
+    public async Task FirstParameterTargetOnTheLineAfterTheOpeningParenthesisIsNotJoinedAndAlignsTheWrappedOperatorUnderTheValue()
+    {
+        const string input = "class C\n{\n    void M(\n        int a\n            = 1 +\n              2)\n    {\n    }\n}";
+        const string expected = "class C\n{\n    void M(\n        int a = 1\n                + 2)\n    {\n    }\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             SelectSingle<ParameterSyntax>,
+                                             SelectSingle<ParameterListSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies the second way of FMT-PIPE-017 with a line break: a parameter target behind another parameter on its line,
+    /// which the context's layout puts on a line of its own, stays on that line in its column, and its wrapped binary
+    /// operator stands under the value
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-PIPE-024")]
+    public async Task ParameterTargetBehindAnotherParameterIsNotBrokenOffItsLineAndAlignsTheWrappedOperatorUnderTheValue()
+    {
+        const string input = "class C\n{\n    void M(int a,\n           int b, string c\n               = \"x\" +\n                 \"y\")\n    {\n    }\n}";
+        const string expected = "class C\n{\n    void M(int a,\n           int b, string c = \"x\"\n                             + \"y\")\n    {\n    }\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             root => root.DescendantNodes().OfType<ParameterSyntax>().Last(),
+                                             SelectSingle<ParameterListSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies the second way of FMT-PIPE-017 with a line break: an enum member target behind the opening brace, which the
+    /// context's layout puts on a line of its own, stays on that line in its column, and its wrapped binary operator stands
+    /// under the value
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-PIPE-024")]
+    public async Task EnumMemberTargetBehindTheOpeningBraceIsNotBrokenOffItsLineAndAlignsTheWrappedOperatorUnderTheValue()
+    {
+        const string input = "enum E { A =\n           1 +\n           2 }";
+        const string expected = "enum E { A = 1\n             + 2 }";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             SelectSingle<EnumMemberDeclarationSyntax>,
+                                             SelectSingle<EnumDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies the second way of FMT-PIPE-017 with spacing: a declarator target behind its type and several spaces, which
+    /// the context's layout reduces to one, keeps them, and its wrapped argument stands under the first argument
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task DeclaratorTargetBehindItsTypeAndSeveralSpacesKeepsThemAndAlignsTheWrappedArgumentUnderTheFirstArgument()
+    {
+        const string input = "class C\n{\n    static int Other(int x, int y)\n    {\n        return x + y;\n    }\n\n    void M()\n    {\n        int    a =\n            Other(1,\n                  2);\n    }\n}";
+        const string expected = "class C\n{\n    static int Other(int x, int y)\n    {\n        return x + y;\n    }\n\n    void M()\n    {\n        int    a = Other(1,\n                         2);\n    }\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             SelectSingle<VariableDeclaratorSyntax>,
+                                             SelectSingle<LocalDeclarationStatementSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies the second way of FMT-PIPE-017 with spacing: a local function target behind a label and several spaces,
+    /// with the labeled statement as context, keeps those spaces, its wrapped parameter stands under the first parameter,
+    /// and its block, which the depth places, starts in the column of the label's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task LocalFunctionTargetBehindALabelAndSeveralSpacesKeepsThemAndAlignsTheWrappedParameterUnderTheFirstParameter()
+    {
+        const string input = "class C\n{\n    void M()\n    {\n        L:    int F(int a,\n                 int b)\n        {\n            return a + b;\n        }\n    }\n}";
+        const string expected = "class C\n{\n    void M()\n    {\n        L:    int F(int a,\n                    int b)\n        {\n            return a + b;\n        }\n    }\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             SelectSingle<LocalFunctionStatementSyntax>,
+                                             SelectSingle<LabeledStatementSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies the third way of FMT-PIPE-017: a declarator target behind the closing line of a raw string literal whose
+    /// lines the indentation phase moves keeps the literal's lines and its own column as in the document, and its wrapped
+    /// binary operator stands under the value
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task DeclaratorTargetBehindTheClosingLineOfAMovingRawStringKeepsItsColumnAndAlignsTheWrappedOperatorUnderTheValue()
+    {
+        const string input = "class C\n{\n    void M()\n    {\n        string a = \"\"\"\n            x\n            \"\"\", b =\n            \"y\" +\n            \"z\";\n    }\n}";
+        const string expected = "class C\n{\n    void M()\n    {\n        string a = \"\"\"\n            x\n            \"\"\", b = \"y\"\n                     + \"z\";\n    }\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             root => root.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single(declarator => declarator.Identifier.Text == "b"),
+                                             SelectSingle<LocalDeclarationStatementSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies the context's layout for a chain target that is the expression of its context statement, as the RH5201 and
+    /// RH5112 fixes pass them, when the statement stands two columns deeper than its depth: the target starts the context's
+    /// first line, so the anonymous method's block, which the depth places, is shifted by the context's offset and keeps its
+    /// place relative to the statement's first token, and the wrapped link aligns under the first link
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task ChainTargetStartingItsStatementOffItsDepthShiftsTheBlockByTheContextsOffset()
+    {
+        const string input = "class C\n{\n    void M(B b)\n    {\n          b.A(delegate\n              {\n                  M(b);\n              })\n      .C() ;\n    }\n}";
+        const string expected = "class C\n{\n    void M(B b)\n    {\n          b.A(delegate\n          {\n              M(b);\n          })\n           .C() ;\n    }\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             root => root.DescendantNodes().OfType<InvocationExpressionSyntax>().First(),
+                                             root => root.DescendantNodes().OfType<ExpressionStatementSyntax>().First());
+    }
+
+    /// <summary>
+    /// Verifies the context's layout for a chain target that is the expression of its context statement, as the RH5201 and
+    /// RH5112 fixes pass them, in a file indented by two spaces: the anonymous method's block, which the depth places, is
+    /// shifted by the context's offset and keeps its place relative to the statement's first token
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task ChainTargetStartingItsStatementInTwoSpaceIndentedFileShiftsTheBlockByTheContextsOffset()
+    {
+        const string input = "class C\n{\n  void M(B b)\n  {\n    b.A(delegate\n        {\n          M(b);\n        })\n      .C() ;\n  }\n}";
+        const string expected = "class C\n{\n  void M(B b)\n  {\n    b.A(delegate\n    {\n        M(b);\n    })\n     .C() ;\n  }\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             root => root.DescendantNodes().OfType<InvocationExpressionSyntax>().First(),
+                                             root => root.DescendantNodes().OfType<ExpressionStatementSyntax>().First());
+    }
+
+    /// <summary>
+    /// Verifies the other side of the statement's indentation: for a chain target that is the expression of its context
+    /// statement at its depth, the context's offset is zero and the anonymous method's block stands where the depth places it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task ChainTargetStartingItsStatementAtItsDepthPlacesTheBlockByTheDepth()
+    {
+        const string input = "class C\n{\n    void M(B b)\n    {\n        b.A(delegate\n            {\n                M(b);\n            })\n    .C() ;\n    }\n}";
+        const string expected = "class C\n{\n    void M(B b)\n    {\n        b.A(delegate\n        {\n            M(b);\n        })\n         .C() ;\n    }\n}";
+
+        await AssertFormatsTargetWithContext(input,
+                                             expected,
+                                             root => root.DescendantNodes().OfType<InvocationExpressionSyntax>().First(),
+                                             root => root.DescendantNodes().OfType<ExpressionStatementSyntax>().First());
+    }
+
+    /// <summary>
     /// Selects the only node of the given type in the root
     /// </summary>
     /// <typeparam name="TNode">Type of the node</typeparam>
@@ -636,6 +948,36 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
             var secondPass = await Format(firstPass, selectTarget, selectContext);
 
             Assert.AreEqual(expected, secondPass, $"The second pass must not change the output under {DescribeLineEnding(endOfLine)} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Formats the selected target under LF and CRLF, with every <c>¶</c> of the input replaced by a line break other than the
+    /// document's line ending, and asserts the document's text after one pass, and that a second pass leaves it unchanged
+    /// </summary>
+    /// <param name="inputWithLf">Input with LF line endings, where <c>¶</c> marks the foreign line break</param>
+    /// <param name="expectedWithLf">Expected output with LF line endings</param>
+    /// <param name="selectTarget">Selects the target in the document's root</param>
+    /// <param name="selectContext">Selects the context node, or <see langword="null"/> to format without a context</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private async Task AssertFormatsTargetWithForeignLineBreaks(string inputWithLf, string expectedWithLf, Func<SyntaxNode, SyntaxNode> selectTarget, Func<SyntaxNode, SyntaxNode> selectContext)
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var expected = NormalizeLineEndings(expectedWithLf, endOfLine);
+            var foreignLineBreaks = endOfLine == "\n" ? new[] { "\r\n", "\r", "\u2028" } : new[] { "\n", "\r", "\u2029" };
+
+            foreach (var foreignLineBreak in foreignLineBreaks)
+            {
+                var description = $"{DescribeLineEnding(endOfLine)} line endings with {string.Join(" ", foreignLineBreak.Select(character => $"U+{(int)character:X4}"))} as the foreign line break";
+                var firstPass = await Format(NormalizeLineEndings(inputWithLf, endOfLine).Replace("¶", foreignLineBreak), selectTarget, selectContext);
+
+                Assert.AreEqual(expected, firstPass, $"Unexpected first pass under {description}.");
+
+                var secondPass = await Format(firstPass, selectTarget, selectContext);
+
+                Assert.AreEqual(expected, secondPass, $"The second pass must not change the output under {description}.");
+            }
         }
     }
 

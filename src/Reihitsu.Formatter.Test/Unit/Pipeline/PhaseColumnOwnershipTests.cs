@@ -7,8 +7,9 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Unit.Pipeline;
 
 /// <summary>
-/// Tests that observe every phase of the production pipeline: no phase after the first receives or returns a tab in the
-/// whitespace of the code or between directive tokens, and no phase after the indentation phase moves anything within its line
+/// Tests that observe every phase of the production pipeline: no phase after the TabReplacement sub-phase of the preparation
+/// phase receives or returns a tab in the whitespace of the code or between directive tokens, and no phase after the
+/// indentation phase moves anything within its line
 /// </summary>
 [TestClass]
 public class PhaseColumnOwnershipTests : FormatterTestsBase
@@ -133,11 +134,11 @@ public class PhaseColumnOwnershipTests : FormatterTestsBase
     #region No phase after the first sees a tab in whitespace
 
     /// <summary>
-    /// Verifies the spec example: the first phase writes four spaces for every tab of the indentation, every later phase
-    /// receives and returns that text without a tab, and the result is the formatted block
+    /// Verifies the spec example: the TabReplacement sub-phase writes four spaces for every tab of the indentation, every later
+    /// phase receives and returns that text without a tab, and the result is the formatted block
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-PIPE-016")]
+    [Requirement("FMT-PIPE-019")]
     public void FirstPhaseReplacesEveryIndentationTabAndNoLaterPhaseSeesOne()
     {
         const string input = "class C\n{\n\tvoid M()\n\t{\n\t\tCall(1,\n\t\t\t2);\n\t}\n}";
@@ -148,7 +149,7 @@ public class PhaseColumnOwnershipTests : FormatterTestsBase
             var normalizedInput = NormalizeLineEndings(input, endOfLine);
             var phases = ObservedPipeline.Run(normalizedInput, endOfLine);
 
-            Assert.AreEqual("TabReplacementPhase", phases[0].Name, "The first phase of the pipeline should be the tab replacement.");
+            Assert.AreEqual(ObservedPipeline.TabReplacementPhaseName, phases[0].Name, "The first phase of the pipeline should be the TabReplacement sub-phase of the preparation phase.");
             Assert.AreEqual(normalizedInput.Replace("\t", "    "), phases[0].Output.ToFullString(), $"The first phase should write four spaces for every tab under {DescribeLineEnding(endOfLine)} line endings.");
 
             AssertNoPhaseAfterTheFirstSeesATab(phases, endOfLine);
@@ -163,7 +164,7 @@ public class PhaseColumnOwnershipTests : FormatterTestsBase
     /// inside a documentation comment, which is outside the requirement, is kept through the pipeline
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-PIPE-016")]
+    [Requirement("FMT-PIPE-019")]
     public void NoPhaseAfterTheFirstSeesATabInTheWhitespaceOfTheCodeOrBetweenDirectiveTokens()
     {
         const string input = "class C\n{\n\tvoid M()\n\t{\n\t\tint\tx = 1;\t// e\n#pragma\twarning disable CS0168\n\t\tvar name = \"x\";\n\t\tvar a = $\"\"\"\n    Hello {\n\t    name\n    }\n    \"\"\";\n\t}\n\n\t/// <param\tname=\"x\">b</param>\n\tvoid N(int x)\n\t{\n\t}\n}";
@@ -173,7 +174,7 @@ public class PhaseColumnOwnershipTests : FormatterTestsBase
         {
             var phases = ObservedPipeline.Run(NormalizeLineEndings(input, endOfLine), endOfLine);
 
-            Assert.AreEqual("TabReplacementPhase", phases[0].Name, "The first phase of the pipeline should be the tab replacement.");
+            Assert.AreEqual(ObservedPipeline.TabReplacementPhaseName, phases[0].Name, "The first phase of the pipeline should be the TabReplacement sub-phase of the preparation phase.");
 
             AssertNoPhaseAfterTheFirstSeesATab(phases, endOfLine);
 
@@ -186,7 +187,7 @@ public class PhaseColumnOwnershipTests : FormatterTestsBase
     /// indentation phase, which rewrites that whitespace with spaces when it indents the marker
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-PIPE-016")]
+    [Requirement("FMT-PIPE-019")]
     public void TabInFrontOfDocumentationContinuationLineIsReplacedByTheIndentationPhase()
     {
         const string input = "class C\n{\n    /// <summary>\n\t/// a\n    /// </summary>\n    void M()\n    {\n    }\n}";
@@ -198,7 +199,7 @@ public class PhaseColumnOwnershipTests : FormatterTestsBase
             var phases = ObservedPipeline.Run(normalizedInput, endOfLine);
             var indentationPhase = phases.Single(phase => phase.Name == IndentationPhaseName);
 
-            Assert.AreEqual("TabReplacementPhase", phases[0].Name, "The first phase of the pipeline should be the tab replacement.");
+            Assert.AreEqual(ObservedPipeline.TabReplacementPhaseName, phases[0].Name, "The first phase of the pipeline should be the TabReplacement sub-phase of the preparation phase.");
             Assert.AreEqual(normalizedInput, phases[0].Output.ToFullString(), "The first phase should keep the tab in front of the continuation line's marker.");
             Assert.AreEqual(NormalizeLineEndings(expected, endOfLine), indentationPhase.Output.ToFullString(), $"The indentation phase should rewrite the marker's whitespace with spaces under {DescribeLineEnding(endOfLine)} line endings.");
             Assert.AreEqual(NormalizeLineEndings(expected, endOfLine), phases[^1].Output.ToFullString(), $"Formatter output mismatch under {DescribeLineEnding(endOfLine)} line endings.");

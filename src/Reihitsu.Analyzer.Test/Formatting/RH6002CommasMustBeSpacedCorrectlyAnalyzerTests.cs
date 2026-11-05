@@ -515,6 +515,79 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies the specification example: a comma that starts its line behind a documentation comment, and a comma in
+    /// front of one, are not reported for the gap the comment breaks
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6002-001")]
+    [Requirement("RH6002-002")]
+    [Requirement("SHARED-BLANK-008")]
+    public async Task VerifyCommasAroundStrayDocumentationCommentAreNotReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    internal void M(int a, int b)
+                                    {
+                                        M(a /// stray
+                                          , b);
+                                        M(a,   /// stray
+                                          b);
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the whitespace in front of a documentation comment between an argument and a comma that starts its
+    /// line behind the comment is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6002-001")]
+    public async Task VerifyCommaStartingItsLineBehindStrayDocumentationCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    internal void M(int a, int b)
+                                    {
+                                        M(a /// stray
+                                          , b);
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the whitespace between a comma and a documentation comment behind it is not reported, because the
+    /// next token starts its line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6002-002")]
+    public async Task VerifyCommaInFrontOfStrayDocumentationCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    internal void M(int a, int b)
+                                    {
+                                        M(a,   /// stray
+                                          b);
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

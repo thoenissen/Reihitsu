@@ -5,13 +5,13 @@
 | ID prefix | FMT-EOL |
 | Status | Active |
 | Code owners | `LineEndingNormalizationPhase` |
-| Uses | FMT-PIPE-002, FMT-PIPE-007 |
+| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-007, FMT-PIPE-019 |
 
-This spec covers `LineEndingNormalizationPhase`: as the last phase, it rewrites every line break that is still not the file's detected line ending (FMT-PIPE-007) — in code, in directives, and in documentation comments — and leaves the line breaks inside literals alone.
+This spec covers `LineEndingNormalizationPhase`, the LineEndings sub-phase that the preparation phase runs after TabReplacement and before every other phase (FMT-PIPE-001): it rewrites every line break that is not the file's detected line ending (FMT-PIPE-007) — in code, in directives, and in documentation comments — and leaves the line breaks inside literals alone.
 
 ## Non-goals
 
-- How the line ending is detected, and which line ending the earlier phases write — FMT-PIPE-007.
+- How the line ending is detected, and which line ending the other phases write — FMT-PIPE-007 and FMT-PIPE-019.
 - Whether the file ends with a line break — FMT-CLEAN-005 to FMT-CLEAN-007.
 - Line breaks inside multi-line block comments and disabled text. The phase currently leaves them as written; normalizing them is a decided behavior change, tracked in thoenissen/Reihitsu#959.
 
@@ -21,7 +21,7 @@ This spec covers `LineEndingNormalizationPhase`: as the last phase, it rewrites 
 
 The formatter MUST rewrite every end-of-line trivia whose text differs from the detected line ending to that line ending. This MUST cover every line terminator C# recognizes: `\r\n`, `\n`, a lone `\r`, and the Unicode terminators U+0085, U+2028, and U+2029.
 
-Why: A file with mixed line endings produces whole-file diffs and editor warnings (FMT-PIPE-007). The phase runs last, so it also catches a line break an earlier phase copied from the input instead of writing it fresh. An exotic terminator is a line break to the compiler but often not to other tools, so it is replaced like any other.
+Why: A file with mixed line endings produces whole-file diffs and editor warnings (FMT-PIPE-007). The phase runs before every other phase, so no phase sees a line break of another kind and every phase that numbers lines counts the lines the tree holds (FMT-PIPE-019). An exotic terminator is a line break to the compiler but often not to other tools, so it is replaced like any other.
 
 Example — the input has one `\r\n` among `\n` line breaks (`␍` marks a `\r`):
 
@@ -92,7 +92,7 @@ class C
 
 The formatter MUST rewrite every line break inside a documentation comment — single-line `///` and delimited `/** */` — that differs from the detected line ending to that line ending.
 
-Why: The lines of a documentation comment are separated by newline tokens of the documentation structure, not by end-of-line trivia, so they need their own pass; to the reader they are lines of the file like any other. The documentation-comment phase keeps whatever separator it finds (FMT-DOC), relying on this phase to normalize it.
+Why: The lines of a documentation comment are separated by newline tokens of the documentation structure, not by end-of-line trivia, so they need their own pass; to the reader they are lines of the file like any other. The phase runs before the documentation-comment phase, so the separators that phase keeps (FMT-DOC) are already the detected line ending.
 
 Example — a `\r\n` file in which one documentation line ends in `\n`:
 

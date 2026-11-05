@@ -17,15 +17,6 @@ namespace Reihitsu.Formatter.Test.Regression.TabReplacement;
 [TestClass]
 public class TabReplacementTests : FormatterTestsBase
 {
-    #region Properties
-
-    /// <summary>
-    /// Test context for the current test
-    /// </summary>
-    public TestContext TestContext { get; set; }
-
-    #endregion // Properties
-
     #region Whitespace of the code
 
     /// <summary>
@@ -317,29 +308,31 @@ public class TabReplacementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the spec example: the four spaces that replace the tab between <c>#region</c> and its description reach the
-    /// output when the region phase keeps the line, and one space does when it rewrites the description
+    /// Verifies the spec example: the four spaces that replace the tab between <c>#region</c> and its description do not reach
+    /// the output; the line is written with one space, whether or not the description is capitalized
     /// </summary>
     [TestMethod]
     [Requirement("FMT-TAB-002")]
-    public void TabBetweenRegionKeywordAndDescriptionKeepsFourSpacesUnlessTheRegionLineIsRewritten()
+    [Requirement("FMT-REGION-007")]
+    public void TabBetweenRegionKeywordAndDescriptionBecomesOneSpace()
     {
         const string input = "class C\n{\n    #region\tBar\n\n    int y;\n\n    #endregion\n\n    #region\tfoo\n\n    int x;\n\n    #endregion\n}";
-        const string expected = "class C\n{\n    #region    Bar\n\n    int y;\n\n    #endregion // Bar\n\n    #region Foo\n\n    int x;\n\n    #endregion // Foo\n}";
+        const string expected = "class C\n{\n    #region Bar\n\n    int y;\n\n    #endregion // Bar\n\n    #region Foo\n\n    int x;\n\n    #endregion // Foo\n}";
 
         AssertRuleResult(input, expected);
     }
 
     /// <summary>
     /// Verifies the spec example: a tab inside a region description is kept in the <c>#region</c> line and in the description
-    /// the <c>#endregion</c> comment repeats
+    /// the <c>#endregion</c> comment repeats, while the tab in front of the description becomes one space
     /// </summary>
     [TestMethod]
     [Requirement("FMT-TAB-002")]
+    [Requirement("FMT-REGION-007")]
     public void TabInsideRegionDescriptionIsKeptInBothDirectives()
     {
         const string input = "class C\n{\n    #region\tBaz\tqux\n\n    int z;\n\n    #endregion\n}";
-        const string expected = "class C\n{\n    #region    Baz\tqux\n\n    int z;\n\n    #endregion // Baz\tqux\n}";
+        const string expected = "class C\n{\n    #region Baz\tqux\n\n    int z;\n\n    #endregion // Baz\tqux\n}";
 
         AssertRuleResult(input, expected);
     }

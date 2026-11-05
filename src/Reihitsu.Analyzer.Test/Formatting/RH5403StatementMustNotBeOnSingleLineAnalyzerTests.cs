@@ -366,6 +366,48 @@ public class RH5403StatementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTes
         await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
     }
 
+    /// <summary>
+    /// Verifies that the fix of a one-line loop body that holds a switch statement lays out every switch section and its
+    /// first statement on lines of their own, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-033")]
+    [Requirement("FMT-BREAK-035")]
+    public async Task VerifyFixOfABodyHoldingASwitchPutsEverySectionOnItsOwnLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int[] xs)
+                                    {
+                                        foreach (var x in xs) {|RH5403:{|} switch (x) { case 1: continue; case 2: return; } }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int[] xs)
+                                     {
+                                         foreach (var x in xs)
+                                         {
+                                             switch (x)
+                                             {
+                                                 case 1:
+                                                     continue;
+                                                 case 2:
+                                                     return;
+                                             }
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

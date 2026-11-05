@@ -130,5 +130,34 @@ public class SyntaxTokenPositionUtilitiesTests
         Assert.IsTrue(SyntaxTokenPositionUtilities.IsFirstOnLine(movedModifier));
     }
 
+    /// <summary>
+    /// Verifies that <see cref="SyntaxTokenPositionUtilities.GetColumn"/> returns zero for a token at the beginning of a line
+    /// </summary>
+    [TestMethod]
+    public void GetColumnReturnsZeroForTokenAtBeginningOfLine()
+    {
+        var root = CoreSyntaxTestHelper.ParseCompilationUnit("class Foo { }");
+        var classKeyword = root.DescendantTokens().First(token => token.IsKind(SyntaxKind.ClassKeyword));
+
+        Assert.AreEqual(0, SyntaxTokenPositionUtilities.GetColumn(classKeyword));
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="SyntaxTokenPositionUtilities.GetColumn"/> returns the column of an indented token
+    /// </summary>
+    [TestMethod]
+    public void GetColumnReturnsColumnOfIndentedToken()
+    {
+        const string source = """
+                              namespace Test;
+                                  class Foo { }
+                              """;
+
+        var root = CoreSyntaxTestHelper.ParseCompilationUnit(source);
+        var classKeyword = root.DescendantTokens().First(token => token.IsKind(SyntaxKind.ClassKeyword));
+
+        Assert.AreEqual(4, SyntaxTokenPositionUtilities.GetColumn(classKeyword));
+    }
+
     #endregion // Tests
 }

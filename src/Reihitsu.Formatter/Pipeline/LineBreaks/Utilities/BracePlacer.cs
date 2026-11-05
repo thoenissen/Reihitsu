@@ -71,14 +71,14 @@ internal sealed class BracePlacer
 
         if (openBrace.IsMissing == false)
         {
-            node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, openBrace, withOpenBrace, blankLineCount: 0);
+            node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, openBrace, withOpenBrace);
         }
 
         var closeBrace = getCloseBrace(node);
 
         if (closeBrace.IsMissing == false)
         {
-            node = _gapNormalizer.NormalizeGapBeforeOwnedToken(node, closeBrace, withCloseBrace, blankLineCount: 0);
+            node = _gapNormalizer.NormalizeGapBeforeOwnedToken(node, closeBrace, withCloseBrace);
         }
 
         return node;
@@ -158,16 +158,19 @@ internal sealed class BracePlacer
     /// because the token preceding the open brace lives outside that node. A rewriter that visits
     /// the braced node alone receives a detached node whenever one of its descendants changed
     /// during the same pass, so the anchor cannot be resolved and the brace stays put. Each token is
-    /// re-selected from the current node between steps, because every step returns a new node.
+    /// re-selected from the current node between steps, because every step returns a new node. The whitespace that ends
+    /// the line in front of the open brace stays; the cleanup phase removes it (FMT-BREAK-029).
     /// </remarks>
     public TNode NormalizeOwnedBraces<TNode>(TNode node,
                                              Func<TNode, SyntaxToken> getOpenBrace,
                                              Func<TNode, SyntaxToken> getCloseBrace)
         where TNode : SyntaxNode
     {
-        node = _gapNormalizer.NormalizeGapBeforeToken(node, getOpenBrace(node), blankLineCount: 0);
+        node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node,
+                                                                                   getOpenBrace(node),
+                                                                                   (owner, openBrace) => owner.ReplaceToken(getOpenBrace(owner), openBrace));
         node = EnsureFirstContentOnNewLine(node, getOpenBrace(node));
-        node = _gapNormalizer.NormalizeGapBeforeToken(node, getCloseBrace(node), blankLineCount: 0);
+        node = _gapNormalizer.NormalizeGapBeforeToken(node, getCloseBrace(node));
 
         return node;
     }
@@ -197,7 +200,7 @@ internal sealed class BracePlacer
 
             if (TokenGapUtilities.HasLineBreakBetween(previousToken, currentToken) == false)
             {
-                node = _gapNormalizer.NormalizeGapBeforeToken(node, currentToken, blankLineCount: 0);
+                node = _gapNormalizer.NormalizeGapBeforeToken(node, currentToken);
             }
         }
 
@@ -222,13 +225,13 @@ internal sealed class BracePlacer
         node = node.ReplaceNode(block, block.WithAdditionalAnnotations(blockAnnotation));
 
         block = TokenLocator.GetAnnotatedNode<BlockSyntax>(node, blockAnnotation);
-        node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, block.OpenBraceToken, (owner, token) => owner.ReplaceToken(TokenLocator.GetAnnotatedNode<BlockSyntax>(owner, blockAnnotation).OpenBraceToken, token), blankLineCount: 0);
+        node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, block.OpenBraceToken, (owner, token) => owner.ReplaceToken(TokenLocator.GetAnnotatedNode<BlockSyntax>(owner, blockAnnotation).OpenBraceToken, token));
 
         block = TokenLocator.GetAnnotatedNode<BlockSyntax>(node, blockAnnotation);
         node = EnsureFirstContentOnNewLine(node, block.OpenBraceToken);
 
         block = TokenLocator.GetAnnotatedNode<BlockSyntax>(node, blockAnnotation);
-        node = _gapNormalizer.NormalizeGapBeforeToken(node, block.CloseBraceToken, blankLineCount: 0);
+        node = _gapNormalizer.NormalizeGapBeforeToken(node, block.CloseBraceToken);
 
         block = TokenLocator.GetAnnotatedNode<BlockSyntax>(node, blockAnnotation);
 

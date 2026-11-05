@@ -55,8 +55,22 @@ public static class SyntaxIndentationUtilities
     /// <returns>Number of indentation levels owned by the statement's syntax ancestors</returns>
     public static int ComputeStatementIndentLevel(StatementSyntax statement)
     {
+        return ComputeIndentLevel(statement);
+    }
+
+    /// <summary>
+    /// Computes the indentation level the full-tree layout gives a node at its position: the sum of
+    /// <see cref="GetChildIndentLevel"/> over the node and each of its ancestors. That is one level per enclosing brace
+    /// scope or switch section and one per unbraced embedded statement the node is or lies in, none for an <c>else if</c>,
+    /// and none for an initializer or anonymous object (see <see cref="ComputeStatementIndentLevel"/>). A node without a
+    /// parent has level 0. The formatter takes this as the depth of a node-level formatting root
+    /// </summary>
+    /// <param name="node">Node whose indentation level should be computed</param>
+    /// <returns>Number of indentation levels owned by the node's syntax ancestors</returns>
+    public static int ComputeIndentLevel(SyntaxNode node)
+    {
         var indentLevel = 0;
-        SyntaxNode child = statement;
+        var child = node;
         var parent = child.Parent;
 
         while (parent != null)
@@ -211,14 +225,12 @@ public static class SyntaxIndentationUtilities
     /// Determines whether an ancestor owns an indenting scope containing the specified position. This model
     /// additionally recognizes <see cref="InitializerExpressionSyntax"/> and
     /// <see cref="AnonymousObjectCreationExpressionSyntax"/>, unlike <see cref="GetIndentingScopeRange"/>, because
-    /// its only uncancelled consumer - <see cref="ComputeBaseIndentLevel"/>'s callers in
-    /// <c>ReihitsuFormatter.FormatNode</c> and the document-scoped overloads - needs an absolute level for every
-    /// node, including one nested in an initializer, rather than a level that stops at the nearest brace scope.
-    /// The approximation this produces for an initializer-nested node is deliberately inexact: it
-    /// undercounts the anchor-derived column by not accounting for the initializer's own alignment, but the two
-    /// document-scoped overloads cancel that undercount, because the indentation phase lays out their node shifted
-    /// to its first token's original column, and the detached overload's only production caller can never reach an
-    /// initializer ancestor. A caller that instead needs the exact anchor-derived column - as the code fixes in
+    /// its consumer - <see cref="ComputeBaseIndentLevel"/>'s caller in the attribute-placement code fixes - needs an
+    /// absolute level for every node, including one nested in an initializer, rather than a level that stops at the
+    /// nearest brace scope. The formatter does not use this count: its node-level entry points take the depth the
+    /// indentation phase gives a node through <see cref="GetChildIndentLevel"/>. The approximation this produces for an
+    /// initializer-nested node is deliberately inexact: it undercounts the anchor-derived column by not accounting for
+    /// the initializer's own alignment. A caller that instead needs the exact anchor-derived column - as the code fixes in
     /// <c>Reihitsu.Analyzer.CodeFixes</c> do - must check <see cref="HasAnchorScopeAncestor"/> and read the
     /// column from source text when it returns <see langword="true"/>, the same way those code fixes do
     /// </summary>

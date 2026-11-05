@@ -1572,6 +1572,119 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
         await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the fix of a local function behind a label and several spaces keeps those spaces, keeps the wrapped
+    /// parameter under the first parameter, and starts the block in the column of the label's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3208-003")]
+    [Requirement("FMT-PIPE-017")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyLocalFunctionBehindALabelAndSeveralSpacesKeepsItsWrappedParameterUnderTheFirstParameter()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        L:    int F(int a,
+                                                    int b) {|#0:=> a + b|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         L:    int F(int a,
+                                                     int b)
+                                         {
+                                             return a + b;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a local function one space behind its label keeps the wrapped parameter under the first
+    /// parameter and starts the block in the column of the label's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3208-003")]
+    [Requirement("FMT-PIPE-017")]
+    public async Task VerifyLocalFunctionOneSpaceBehindALabelKeepsItsWrappedParameterUnderTheFirstParameter()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        L: int F(int a,
+                                                 int b) {|#0:=> a + b|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         L: int F(int a,
+                                                  int b)
+                                         {
+                                             return a + b;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a local function directly behind its label keeps the wrapped parameter under the first
+    /// parameter and starts the block in the column of the label's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3208-003")]
+    [Requirement("FMT-PIPE-017")]
+    public async Task VerifyLocalFunctionDirectlyBehindALabelKeepsItsWrappedParameterUnderTheFirstParameter()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        L:int F(int a,
+                                                int b) {|#0:=> a + b|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         L:int F(int a,
+                                                 int b)
+                                         {
+                                             return a + b;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

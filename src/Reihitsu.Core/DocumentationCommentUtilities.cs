@@ -363,17 +363,6 @@ public static class DocumentationCommentUtilities
     }
 
     /// <summary>
-    /// Determines whether the character terminates a line for the purposes of documentation comment scanning.
-    /// This is the C# line-terminator set, which is what <see cref="SourceText.Lines"/> recognizes as well
-    /// </summary>
-    /// <param name="character">Character</param>
-    /// <returns><see langword="true"/> when the character terminates a line</returns>
-    internal static bool IsLineTerminator(char character)
-    {
-        return character is '\r' or '\n' or '\u0085' or '\u2028' or '\u2029';
-    }
-
-    /// <summary>
     /// Rewrites the exterior and its suffix on every documentation line of the given comment text
     /// </summary>
     /// <param name="commentText">Full text of a single-line documentation comment trivia</param>
@@ -423,7 +412,7 @@ public static class DocumentationCommentUtilities
 
         while (contentStart < commentText.Length
                && char.IsWhiteSpace(commentText[contentStart])
-               && IsLineTerminator(commentText[contentStart]) == false)
+               && LineEndingUtilities.IsLineTerminator(commentText[contentStart]) == false)
         {
             contentStart++;
         }
@@ -453,7 +442,7 @@ public static class DocumentationCommentUtilities
     /// <returns>The index of the line terminator, or the text length when none remains</returns>
     private static int FindLineEnd(string text, int startIndex)
     {
-        while (startIndex < text.Length && IsLineTerminator(text[startIndex]) == false)
+        while (startIndex < text.Length && LineEndingUtilities.IsLineTerminator(text[startIndex]) == false)
         {
             startIndex++;
         }
@@ -475,11 +464,7 @@ public static class DocumentationCommentUtilities
             return terminatorIndex;
         }
 
-        var terminatorLength = text[terminatorIndex] == '\r'
-                               && terminatorIndex + 1 < text.Length
-                               && text[terminatorIndex + 1] == '\n'
-                                   ? 2
-                                   : 1;
+        var terminatorLength = LineEndingUtilities.GetLineTerminatorLength(text, terminatorIndex);
 
         builder.Append(text, terminatorIndex, terminatorLength);
 

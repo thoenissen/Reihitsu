@@ -182,8 +182,8 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a block comment on its own line before the parameter type keeps the blank line the blank-line
-    /// rules require, and that the comment and the type are aligned with the attribute list
+    /// Verifies that a block comment that starts the line of the parameter type gets no blank line above it, and that the
+    /// comment and the type are aligned with the attribute list
     /// </summary>
     [TestMethod]
     public void RecordParameterTypeAfterAttributeListAndBlockCommentLineIsAligned()
@@ -203,7 +203,6 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
                                 namespace Demo;
 
                                 internal sealed record Example([param: Obsolete]
-
                                                                /* keep */ int Id);
                                 """;
 

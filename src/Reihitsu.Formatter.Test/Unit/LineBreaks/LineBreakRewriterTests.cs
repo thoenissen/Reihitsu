@@ -512,9 +512,11 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
-    /// Verifies that a multi-line auto-property with only <c>get;</c> collapses to one line
+    /// Verifies that a multi-line auto-property with only <c>get;</c> collapses to one line, joined to the declaration without
+    /// whitespace while the gaps already on one line keep theirs
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-031")]
     public void CollapsesGetOnlyAutoPropertyToSingleLine()
     {
         // Arrange
@@ -530,14 +532,16 @@ public class LineBreakRewriterTests
         var result = ExecuteLineBreakPhase(input);
 
         // Assert
-        Assert.Contains("public int Prop { get; }", result, "Get-only auto-property should be on one line.");
+        Assert.Contains("public int Prop{ get; }", result, "Get-only auto-property should be on one line.");
         Assert.DoesNotContain($"Prop{Environment.NewLine}                                 {{ get; }}", result, "Get-only auto-property should not remain split across lines.");
     }
 
     /// <summary>
-    /// Verifies that a multi-line auto-property with <c>get;</c>/<c>set;</c> collapses to one line
+    /// Verifies that a multi-line auto-property with <c>get;</c>/<c>set;</c> collapses to one line, joined to the declaration
+    /// without whitespace while the gaps already on one line keep theirs
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-031")]
     public void CollapsesGetSetAutoPropertyToSingleLine()
     {
         // Arrange
@@ -553,7 +557,7 @@ public class LineBreakRewriterTests
         var result = ExecuteLineBreakPhase(input);
 
         // Assert
-        Assert.Contains("public int Prop { get; set; }", result, "Get/set auto-property should be on one line.");
+        Assert.Contains("public int Prop{ get; set; }", result, "Get/set auto-property should be on one line.");
         Assert.DoesNotContain($"Prop{Environment.NewLine}                                 {{ get; set; }}", result, "Get/set auto-property should not remain split across lines.");
     }
 
@@ -581,9 +585,11 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
-    /// Verifies that a multi-line auto-property with property attributes collapses to one line
+    /// Verifies that a multi-line auto-property with property attributes collapses to one line, every join written without
+    /// whitespace
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-031")]
     public void CollapsesPropertyAttributedAutoPropertyToSingleLine()
     {
         // Arrange
@@ -608,7 +614,7 @@ public class LineBreakRewriterTests
 
         // Assert
         Assert.Contains("[Test]", result, "Property attribute should be preserved.");
-        Assert.Contains("public int Prop { get; set; }", result, "Property-attributed auto-property should be on one line.");
+        Assert.Contains("public int Prop{get;set;}", result, "Property-attributed auto-property should be on one line.");
     }
 
     /// <summary>
@@ -788,6 +794,7 @@ public class LineBreakRewriterTests
     /// collapsed, since the joined signature becomes single-line.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-031")]
     public void CollapsesAutoPropertyWithJoinableWrappedSignature()
     {
         // Arrange
@@ -809,11 +816,11 @@ public class LineBreakRewriterTests
         var result = ExecuteLineBreakPhase(input);
 
         // Assert
-        // No space after the comma: HorizontalSpacingPhase runs after LineBreakPhase, so this
-        // phase-level result is unspaced. Only the join and the accessor-list collapse belong to
-        // LineBreakPhase; the comma spacing belongs to a later phase and is covered separately by
-        // the full-pipeline regression tests.
-        Assert.Contains("Dictionary<string,string> Prop { get; set; }", result, "A joinable signature should collapse onto one line.");
+        // No space after the comma and none at the joins of the accessor list: HorizontalSpacingPhase
+        // runs after LineBreakPhase, so this phase-level result is unspaced. Only the join and the
+        // accessor-list collapse belong to LineBreakPhase; the spaces belong to a later phase and are
+        // covered separately by the full-pipeline regression tests.
+        Assert.Contains("Dictionary<string,string> Prop{get;set;}", result, "A joinable signature should collapse onto one line.");
     }
 
     /// <summary>
@@ -1007,9 +1014,11 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
-    /// Verifies that multi-line expression-bodied properties collapse to a single line
+    /// Verifies that multi-line expression-bodied properties collapse to a single line, the arrow joined to the name without
+    /// whitespace while the gap behind it, already on one line, keeps its space
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-031")]
     public void CollapsesExpressionBodiedProperty()
     {
         // Arrange — expression-bodied property split across lines
@@ -1025,7 +1034,7 @@ public class LineBreakRewriterTests
         var result = ExecuteLineBreakPhase(input);
 
         // Assert — property should be collapsed to a single line
-        Assert.Contains("Value => 42;", result, "Expression-bodied property should be collapsed to a single line.");
+        Assert.Contains("Value=> 42;", result, "Expression-bodied property should be collapsed to a single line.");
 
         Assert.DoesNotContain($"Value{Environment.NewLine}", result, "Expression-bodied property should not keep the property name on a separate line.");
     }
@@ -1210,9 +1219,10 @@ public class LineBreakRewriterTests
 
     /// <summary>
     /// Verifies that a variable declaration whose value starts on a new line after the equals sign
-    /// is collapsed so the value begins on the same line as the equals sign
+    /// is collapsed so the value begins on the same line as the equals sign; the join writes no whitespace, and a gap already on one line keeps its own
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-031")]
     public void CollapsesVariableValueToEqualsLine()
     {
         // Arrange — value on line after =
@@ -1231,14 +1241,15 @@ public class LineBreakRewriterTests
         var result = ExecuteLineBreakPhase(input);
 
         // Assert — value must start on same line as =
-        Assert.Contains("var value = \"test\";", result, "Value must start on the same line as the equals operator.");
+        Assert.Contains("var value =\"test\";", result, "Value must start on the same line as the equals operator, joined without whitespace.");
     }
 
     /// <summary>
     /// Verifies that a variable declaration whose equals sign is on a new line after the variable name
-    /// is collapsed so the equals sign is on the same line as the name
+    /// is collapsed so the equals sign is on the same line as the name; the join writes no whitespace, and a gap already on one line keeps its own
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-031")]
     public void CollapsesVariableEqualsToTargetLine()
     {
         // Arrange — = on line after variable name
@@ -1257,14 +1268,15 @@ public class LineBreakRewriterTests
         var result = ExecuteLineBreakPhase(input);
 
         // Assert — = must be on the same line as the variable name
-        Assert.Contains("var value = \"test\";", result, "Equals sign must be on the same line as the variable name.");
+        Assert.Contains("var value= \"test\";", result, "Equals sign must be on the same line as the variable name, joined without whitespace.");
     }
 
     /// <summary>
     /// Verifies that a variable declaration where both the equals sign and the value
-    /// are on separate lines is fully collapsed to a single assignment line
+    /// are on separate lines is fully collapsed to a single assignment line; the join writes no whitespace, and a gap already on one line keeps its own
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-031")]
     public void CollapsesVariableEqualsAndValueToTargetLine()
     {
         // Arrange — = and value both on separate lines
@@ -1284,14 +1296,15 @@ public class LineBreakRewriterTests
         var result = ExecuteLineBreakPhase(input);
 
         // Assert — all three must end up on one line
-        Assert.Contains("int x = 42;", result, "Variable name, equals sign, and value must all be on the same line.");
+        Assert.Contains("int x=42;", result, "Variable name, equals sign, and value must all be on the same line.");
     }
 
     /// <summary>
     /// Verifies that an assignment expression whose right-hand side starts on a new line
-    /// after the equals sign is collapsed to the same line
+    /// after the equals sign is collapsed to the same line; the join writes no whitespace, and a gap already on one line keeps its own
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-031")]
     public void CollapsesAssignmentValueToEqualsLine()
     {
         // Arrange — right-hand side on line after =
@@ -1312,14 +1325,15 @@ public class LineBreakRewriterTests
         var result = ExecuteLineBreakPhase(input);
 
         // Assert — right-hand side must start on the same line as =
-        Assert.Contains("string result = CalculateValue();", result, "Right-hand side must start on the same line as the equals operator.");
+        Assert.Contains("string result =CalculateValue();", result, "Right-hand side must start on the same line as the equals operator.");
     }
 
     /// <summary>
     /// Verifies that an assignment expression whose equals sign is on a new line
-    /// after the property target is collapsed so the equals sign is on the target line
+    /// after the property target is collapsed so the equals sign is on the target line; the join writes no whitespace, and a gap already on one line keeps its own
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-031")]
     public void CollapsesPropertyAssignmentEqualsToTargetLine()
     {
         // Arrange — = on line after property name
@@ -1340,14 +1354,15 @@ public class LineBreakRewriterTests
         var result = ExecuteLineBreakPhase(input);
 
         // Assert — = must be on the same line as the property target
-        Assert.Contains("Value = \"test\";", result, "Equals sign must be on the same line as the assignment target.");
+        Assert.Contains("Value= \"test\";", result, "Equals sign must be on the same line as the assignment target.");
     }
 
     /// <summary>
     /// Verifies that a field declaration whose value starts on a new line after the equals sign
-    /// is collapsed so the value begins on the same line as the equals sign
+    /// is collapsed so the value begins on the same line as the equals sign; the join writes no whitespace, and a gap already on one line keeps its own
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-031")]
     public void CollapsesFieldValueToEqualsLine()
     {
         // Arrange — field with value on line after =
@@ -1363,14 +1378,15 @@ public class LineBreakRewriterTests
         var result = ExecuteLineBreakPhase(input);
 
         // Assert — value must start on the same line as =
-        Assert.Contains("_name = \"default\";", result, "Field value must start on the same line as the equals operator.");
+        Assert.Contains("_name =\"default\";", result, "Field value must start on the same line as the equals operator.");
     }
 
     /// <summary>
     /// Verifies that a member initialization whose value starts on a new line
-    /// after the equals sign is collapsed to the same line
+    /// after the equals sign is collapsed to the same line; the join writes no whitespace, and a gap already on one line keeps its own
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-031")]
     public void CollapsesMemberInitializationValueToEqualsLine()
     {
         // Arrange — member init with value on new line
@@ -1394,14 +1410,15 @@ public class LineBreakRewriterTests
         var result = ExecuteLineBreakPhase(input);
 
         // Assert — member init value must start on the same line as =
-        Assert.Contains("Name = \"test\"", result, "Member initialization value must start on the same line as the equals operator.");
+        Assert.Contains("Name =\"test\"", result, "Member initialization value must start on the same line as the equals operator.");
     }
 
     /// <summary>
     /// Verifies that an index assignment whose equals sign is on a new line
-    /// after the index target is collapsed so the equals sign is on the target line
+    /// after the index target is collapsed so the equals sign is on the target line; the join writes no whitespace, and a gap already on one line keeps its own
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-031")]
     public void CollapsesIndexAssignmentEqualsToTargetLine()
     {
         // Arrange — = on line after index target
@@ -1421,7 +1438,7 @@ public class LineBreakRewriterTests
         var result = ExecuteLineBreakPhase(input);
 
         // Assert — = must be on the same line as the index target
-        Assert.Contains("values[0] = 42;", result, "Equals sign must be on the same line as the index assignment target.");
+        Assert.Contains("values[0]= 42;", result, "Equals sign must be on the same line as the index assignment target.");
     }
 
     /// <summary>
@@ -1480,9 +1497,10 @@ public class LineBreakRewriterTests
 
     /// <summary>
     /// Verifies that a raw multiline string whose opening quotes start on the line after the equals sign
-    /// is collapsed so the opening quotes begin on the same line as the equals sign
+    /// is collapsed so the opening quotes begin on the same line as the equals sign; the join writes no whitespace, and a gap already on one line keeps its own
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-031")]
     public void CollapsesRawMultilineStringAssignmentToEqualsLine()
     {
         // Arrange — raw multiline string opening quotes on line after =
@@ -1492,14 +1510,15 @@ public class LineBreakRewriterTests
         var result = ExecuteLineBreakPhase(input, "\n");
 
         // Assert — raw multiline string must start on the equals line
-        Assert.Contains("var text = \"\"\"\n", result, "Raw multiline string opening quotes must be moved to the equals line.");
+        Assert.Contains("var text =\"\"\"\n", result, "Raw multiline string opening quotes must be moved to the equals line.");
     }
 
     /// <summary>
     /// Verifies that an interpolated raw multiline string whose opening quotes start on the line after the equals sign
-    /// is collapsed so the opening quotes begin on the same line as the equals sign
+    /// is collapsed so the opening quotes begin on the same line as the equals sign; the join writes no whitespace, and a gap already on one line keeps its own
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-031")]
     public void CollapsesInterpolatedRawMultilineStringAssignmentToEqualsLine()
     {
         // Arrange — interpolated raw multiline string opening quotes on line after =
@@ -1509,7 +1528,7 @@ public class LineBreakRewriterTests
         var result = ExecuteLineBreakPhase(input, "\n");
 
         // Assert — interpolated raw multiline string must start on the equals line
-        Assert.Contains("var text = $\"\"\"\n", result, "Interpolated raw multiline string opening quotes must be moved to the equals line.");
+        Assert.Contains("var text =$\"\"\"\n", result, "Interpolated raw multiline string opening quotes must be moved to the equals line.");
     }
 
     /// <summary>

@@ -20,23 +20,14 @@ namespace Reihitsu.Formatter.Test.Unit;
 [TestClass]
 public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
 {
-    #region Properties
-
-    /// <summary>
-    /// Test context for the current test
-    /// </summary>
-    public TestContext TestContext { get; set; }
-
-    #endregion // Properties
-
     #region Methods
 
     /// <summary>
-    /// Verifies that the blank line above a property is kept when the region phase rewrites a region inside the property
+    /// Verifies that the blank line above a property is kept when the property holds a region, whose directives keep their text
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
-    public async Task KeepsBlankLineAbovePropertyWhenRegionInsideIsRewritten()
+    public async Task KeepsBlankLineAbovePropertyHoldingARegion()
     {
         const string input = """
                              public class TestClass
@@ -65,11 +56,11 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
                                     {
                                         set
                                         {
-                                            #region Assign
+                                            #region assign
 
                                             _d = value;
 
-                                            #endregion // Assign
+                                            #endregion
                                         }
                                     }
                                 }
@@ -177,6 +168,32 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
                              """;
 
         await AssertFormatsTarget(input, BracedPropertyAfterField("\n"), SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that two blank lines above a structurally rewritten property whose body holds a line break other than the
+    /// document's line ending collapse to exactly one
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task CollapsesTwoBlankLinesAboveRewrittenPropertyHoldingAForeignLineBreakToOne()
+    {
+        await AssertFormatsTargetWithForeignLineBreaks(UnbracedPropertyAfterField("\n\n").Replace("if (value != null)\n", "if (value != null)¶"),
+                                                       BracedPropertyAfterField("\n"),
+                                                       SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line above a structurally rewritten property whose body holds a line break other than the
+    /// document's line ending is kept
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task KeepsBlankLineAboveRewrittenPropertyHoldingAForeignLineBreak()
+    {
+        await AssertFormatsTargetWithForeignLineBreaks(UnbracedPropertyAfterField("\n").Replace("if (value != null)\n", "if (value != null)¶"),
+                                                       BracedPropertyAfterField("\n"),
+                                                       SelectSingle<PropertyDeclarationSyntax>);
     }
 
     /// <summary>
@@ -2430,11 +2447,13 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a block statement that directly follows a closing brace gets the same gap as in document-level formatting, where the line-break phase keeps its opening brace directly below the preceding closing brace
+    /// Verifies that a block statement that directly follows a closing brace gets the blank line that follows a closing brace, as in document-level formatting
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
-    public async Task DoesNotInsertBlankLineAboveBlockStatementAfterClosingBrace()
+    [Requirement("FMT-PIPE-024")]
+    [Requirement("FMT-BLANK-017")]
+    public async Task InsertsBlankLineAboveBlockStatementAfterClosingBrace()
     {
         const string input = """
                              public class C
@@ -2462,6 +2481,7 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
                                         {
                                             value--;
                                         }
+
                                         {
                                             Consume(value);
                                         }
@@ -2575,11 +2595,13 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that no blank line is inserted between a directive and a block statement that follows a closing brace, because document-level formatting keeps the opening brace directly below the directive
+    /// Verifies that the blank line that follows a closing brace is inserted below a directive and above a block statement, as in document-level formatting
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
-    public async Task DoesNotInsertBlankLineBelowDirectiveAboveBlockStatementAfterClosingBrace()
+    [Requirement("FMT-PIPE-024")]
+    [Requirement("FMT-BLANK-017")]
+    public async Task InsertsBlankLineBelowDirectiveAboveBlockStatementAfterClosingBrace()
     {
         const string input = """
                              public class C
@@ -2610,6 +2632,7 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
                                             value--;
                                         }
                                 #if !DEBUG
+
                                         {
                                             value++;
                                         }
@@ -2779,11 +2802,13 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a block statement that directly follows a break statement gets the same gap as in document-level formatting, where the line-break phase keeps its opening brace directly below the break statement
+    /// Verifies that a block statement that directly follows a break statement gets the blank line that follows a break statement, as in document-level formatting
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
-    public async Task DoesNotInsertBlankLineAboveBlockStatementAfterBreak()
+    [Requirement("FMT-PIPE-024")]
+    [Requirement("FMT-BLANK-017")]
+    public async Task InsertsBlankLineAboveBlockStatementAfterBreak()
     {
         const string input = """
                              public class C
@@ -2810,9 +2835,113 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
                                         while (value > 0)
                                         {
                                             break;
+
                                             {
                                                 value++;
                                             }
+                                        }
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectLast<BlockSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that the author's blank line above a block statement that follows a statement not ending with a closing brace is kept, as in document-level formatting
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-024")]
+    [Requirement("FMT-BLANK-017")]
+    public async Task KeepsAuthorBlankLineAboveBlockStatementAfterOtherStatement()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     value--;
+
+                                     {
+                                         Consume(value);
+                                     }
+
+                                     return value;
+                                 }
+                             }
+                             """;
+
+        await AssertFormatsTarget(input, input, SelectLast<BlockSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above a block statement that follows a statement not ending with a closing brace when the author wrote none, as in document-level formatting
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-024")]
+    [Requirement("FMT-BLANK-017")]
+    public async Task InsertsNoBlankLineAboveBlockStatementAfterOtherStatement()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     value--;
+                                     {
+                                         Consume(value);
+                                     }
+
+                                     return value;
+                                 }
+                             }
+                             """;
+
+        await AssertFormatsTarget(input, input, SelectLast<BlockSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line that follows a closing brace is inserted above a comment glued to the opening brace of a block statement, as in document-level formatting
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-024")]
+    [Requirement("FMT-BLANK-017")]
+    public async Task InsertsBlankLineAboveGluedCommentOfBlockStatementAfterClosingBrace()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     if (value > 1)
+                                     {
+                                         value--;
+                                     }
+                                     /* Scope */ {
+                                         Consume(value);
+                                     }
+
+                                     return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        if (value > 1)
+                                        {
+                                            value--;
+                                        }
+
+                                        /* Scope */ {
+                                            Consume(value);
                                         }
 
                                         return value;
@@ -2990,6 +3119,61 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that of two delimited documentation comments behind the previous member, at the start of the target's
+    /// leading trivia, only the first starts a new line below a blank line, and the second stays behind it, as at
+    /// document level
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task MovesFirstOfTwoDelimitedDocumentationCommentsBehindPreviousMember()
+    {
+        const string input = "public class TestClass\n{\n    private string _d; /** a */ /** b */\n    public string Description { get; set; }\n}";
+        const string expected = "public class TestClass\n{\n    private string _d;\n\n    /** a */ /** b */\n    public string Description { get; set; }\n}";
+
+        await AssertFormatsTarget(input, expected, SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that two delimited documentation comments behind the previous member stay where they are when the target
+    /// starts behind them on their line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task KeepsTwoDelimitedDocumentationCommentsBehindPreviousMemberWhenTargetSharesTheirLine()
+    {
+        const string input = "public class TestClass\n{\n    private string _d; /** a */ /** b */ public string Description { get; set; }\n}";
+
+        await AssertFormatsTarget(input, input, SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment behind the previous member stays where it is when the target starts
+    /// behind it on its line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-010")]
+    public async Task KeepsDelimitedDocumentationBehindPreviousMemberWhenTargetSharesItsLine()
+    {
+        const string input = "public class TestClass\n{\n    private string _d; /** d */ public string Description { get; set; }\n}";
+
+        await AssertFormatsTarget(input, input, SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment behind the opening brace of a type stays where it is when the target
+    /// starts behind it on the brace's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task KeepsDelimitedDocumentationBehindOpeningBraceWhenTargetSharesItsLine()
+    {
+        const string input = "public class TestClass\n{ /** d */ public string Description { get; set; }\n}";
+
+        await AssertFormatsTarget(input, input, SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
     /// Selects the first node of the given type below the root
     /// </summary>
     /// <typeparam name="TNode">The node type</typeparam>
@@ -3100,6 +3284,37 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
             var secondPass = await FormatTarget(firstPass, selectTarget);
 
             Assert.AreEqual(firstPass, secondPass, $"The second pass must not change the output under {DescribeLineEnding(endOfLine)} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Formats the selected target under LF and CRLF, with every <c>¶</c> of the input replaced by a line break other than the
+    /// document's line ending, asserts the expected text, and asserts that formatting the same target of the result a second
+    /// time changes nothing
+    /// </summary>
+    /// <param name="inputWithLf">The input with LF line endings, where <c>¶</c> marks the foreign line break</param>
+    /// <param name="expectedWithLf">The expected output with LF line endings</param>
+    /// <param name="selectTarget">Selects the target node from the document root</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private async Task AssertFormatsTargetWithForeignLineBreaks(string inputWithLf, string expectedWithLf, Func<SyntaxNode, SyntaxNode> selectTarget)
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var expected = NormalizeLineEndings(expectedWithLf, endOfLine);
+            var foreignLineBreaks = endOfLine == "\n" ? new[] { "\r\n", "\r", "\u2028" } : new[] { "\n", "\r", "\u2029" };
+
+            foreach (var foreignLineBreak in foreignLineBreaks)
+            {
+                var description = $"{DescribeLineEnding(endOfLine)} line endings with {string.Join(" ", foreignLineBreak.Select(character => $"U+{(int)character:X4}"))} as the foreign line break";
+                var firstPass = await FormatTarget(NormalizeLineEndings(inputWithLf, endOfLine).Replace("¶", foreignLineBreak), selectTarget);
+
+                Assert.AreEqual(expected, firstPass, $"Unexpected first pass under {description}.");
+                AssertUsesLineEnding(firstPass, endOfLine);
+
+                var secondPass = await FormatTarget(firstPass, selectTarget);
+
+                Assert.AreEqual(firstPass, secondPass, $"The second pass must not change the output under {description}.");
+            }
         }
     }
 

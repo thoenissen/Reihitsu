@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
@@ -59,149 +60,56 @@ internal sealed class BlankLineEditor
     }
 
     /// <summary>
-    /// Determines whether the specified token is the first token in a block or switch section
+    /// Determines whether the region or end region directive whose line starts at the specified index of a trivia list is
+    /// missing the blank line that must precede it. The decision is the Core rule
+    /// <see cref="RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineBefore(bool, bool, bool)"/>, which RH5031's
+    /// analyzer and code fix read from the source text; this method only reads its facts about the line directly above the
+    /// directive from the trivia. Only that one line counts: a blank line further up the gap, such as above a header comment,
+    /// does not satisfy the rule, and a conditional directive, a comment, or another directive on the line above does not
+    /// exempt the directive
     /// </summary>
-    /// <param name="previousToken">The token that precedes the token being evaluated</param>
-    /// <returns><see langword="true"/> if the token is the first in its containing block</returns>
-    public static bool IsFirstInBlock(SyntaxToken previousToken)
-    {
-        return IsFirstInBlock(PrecedingTokenFacts.From(previousToken));
-    }
-
-    /// <summary>
-    /// Determines whether the token that follows the specified preceding token is the first token in a block or switch
-    /// section. A token without a known preceding token counts as first
-    /// </summary>
-    /// <param name="previousToken">The facts about the token that precedes the token being evaluated</param>
-    /// <returns><see langword="true"/> if the token is the first in its containing block</returns>
-    public static bool IsFirstInBlock(PrecedingTokenFacts previousToken)
-    {
-        return previousToken.Exists == false
-               || previousToken.Kind == SyntaxKind.OpenBraceToken
-               || previousToken.IsSwitchLabelColon;
-    }
-
-    /// <summary>
-    /// Determines whether the specified token is exempt from requiring a blank line before a region or end
-    /// region directive, matching the Core policy in
-    /// <see cref="RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineBefore"/>. Unlike
-    /// <see cref="IsFirstInBlock(PrecedingTokenFacts)"/>, a switch-label colon is not exempt here. An opening brace is
-    /// only exempt when nothing but whitespace follows it on its own line — Core's
-    /// <see cref="FormattingTextAnalysisUtilities.GetLineIndicesEndingWithToken"/> excludes a brace line that
-    /// carries a trailing comment, so the exemption must too.
-    /// </summary>
-    /// <param name="previousToken">
-    /// The facts about the token that precedes the token being evaluated. A token without a known preceding token is exempt
+    /// <param name="trivia">The trivia list that holds the directive</param>
+    /// <param name="lineStartIndex">The index in <paramref name="trivia"/> at which the directive's line starts, in front of its indentation</param>
+    /// <param name="hasTokenBefore">Whether a token stands in front of <paramref name="trivia"/>; without one the list starts the file</param>
+    /// <param name="tokenBeforeEndsLine">Whether the trivia of the token in front of <paramref name="trivia"/> ends that token's line</param>
+    /// <param name="tokenBeforeIsOpenBraceWithoutComment">
+    /// Whether the token in front of <paramref name="trivia"/> is an opening brace with no comment behind it on its line
     /// </param>
-    /// <returns><see langword="true"/> if no blank line is required before the directive</returns>
-    public static bool IsExemptFromPrecedingBlankLineBeforeRegionDirective(PrecedingTokenFacts previousToken)
+    /// <returns><see langword="true"/> when a blank line must be inserted at <paramref name="lineStartIndex"/></returns>
+    public static bool IsMissingRequiredBlankLineBeforeRegionDirective(SyntaxTriviaList trivia, int lineStartIndex, bool hasTokenBefore, bool tokenBeforeEndsLine, bool tokenBeforeIsOpenBraceWithoutComment)
     {
-        if (previousToken.Exists == false)
+        if (lineStartIndex == 0)
         {
-            return true;
+            // The directive's line starts the list, so the line above is the line of the token in front of it
+            return RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineBefore(hasTokenBefore, false, tokenBeforeIsOpenBraceWithoutComment);
         }
 
-        return previousToken.Kind == SyntaxKind.OpenBraceToken
-               && previousToken.HasTrailingComment == false;
-    }
-
-    /// <summary>
-    /// Determines whether a region or end region directive in a token's leading trivia is exempt from requiring a blank
-    /// line before it. A token without a known preceding token — the start of the file — is exempt whatever trivia stands
-    /// in front of the directive. An opening brace (see <see cref="IsExemptFromPrecedingBlankLineBeforeRegionDirective(PrecedingTokenFacts)"/>)
-    /// exempts the directive when nothing but whitespace, line breaks, conditional-compilation directives (<c>#if</c>,
-    /// <c>#elif</c>, <c>#else</c>, <c>#endif</c>), and the disabled text of a branch not taken stands between the brace and
-    /// the directive. A comment or any other directive there, such as <c>#pragma</c>, ends the exemption, so it is
-    /// separated from the region directive below it. Conditional-compilation directives keep the exemption even when one
-    /// of them is the line directly above the region directive, so such a directive is not separated from it
-    /// </summary>
-    /// <param name="previousToken">
-    /// The facts about the token that precedes the token being evaluated. A token without a known preceding token is exempt
-    /// </param>
-    /// <param name="leadingTrivia">The leading trivia that holds the directive</param>
-    /// <param name="directiveIndex">The index of the directive in <paramref name="leadingTrivia"/></param>
-    /// <returns><see langword="true"/> if no blank line is required before the directive</returns>
-    public static bool IsExemptFromPrecedingBlankLineBeforeRegionDirective(PrecedingTokenFacts previousToken, SyntaxTriviaList leadingTrivia, int directiveIndex)
-    {
-        if (IsExemptFromPrecedingBlankLineBeforeRegionDirective(previousToken) == false)
+        if (trivia[lineStartIndex - 1].IsKind(SyntaxKind.EndOfLineTrivia) == false)
         {
-            return false;
+            // A directive, a documentation comment, or disabled text carries the line break that ends the line above in its
+            // own text, so that line holds it
+            return RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineBefore(true, false, false);
         }
 
-        if (previousToken.Exists == false)
+        var triviaIndex = lineStartIndex - 2;
+
+        while (triviaIndex >= 0 && trivia[triviaIndex].IsKind(SyntaxKind.WhitespaceTrivia))
         {
-            return true;
+            triviaIndex--;
         }
 
-        for (var triviaIndex = 0; triviaIndex < directiveIndex; triviaIndex++)
+        if (triviaIndex >= 0)
         {
-            switch (leadingTrivia[triviaIndex].Kind())
-            {
-                case SyntaxKind.WhitespaceTrivia:
-                case SyntaxKind.EndOfLineTrivia:
-                case SyntaxKind.IfDirectiveTrivia:
-                case SyntaxKind.ElifDirectiveTrivia:
-                case SyntaxKind.ElseDirectiveTrivia:
-                case SyntaxKind.EndIfDirectiveTrivia:
-                case SyntaxKind.DisabledTextTrivia:
-                    break;
-
-                default:
-                    return false;
-            }
+            return RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineBefore(true, SyntaxTriviaUtilities.EndsLine(trivia[triviaIndex]), false);
         }
 
-        return true;
-    }
+        // The line above starts the list: it is blank when the list starts a line, and otherwise it continues the line of
+        // the token in front of the list
+        var isLineAboveBlank = hasTokenBefore == false || tokenBeforeEndsLine;
 
-    /// <summary>
-    /// Determines whether the single line immediately preceding a leading-trivia index is blank
-    /// </summary>
-    /// <param name="token">The token whose leading trivia should be inspected</param>
-    /// <param name="leadingTriviaEndExclusive">
-    /// Exclusive upper bound in the leading-trivia list, typically the position reached after backing up over a
-    /// directive's own indentation whitespace
-    /// </param>
-    /// <param name="previousToken">
-    /// The facts about the token that precedes <paramref name="token"/> in the original, unmodified tree. Must be resolved
-    /// before any earlier trivia edit to <paramref name="token"/> in the same rewrite step rather than re-derived from a
-    /// possibly detached <paramref name="token"/>.
-    /// </param>
-    /// <returns><see langword="true"/> if the line immediately before the index is blank</returns>
-    /// <remarks>
-    /// Scans backward from <paramref name="leadingTriviaEndExclusive"/> and stops at the first non-blank
-    /// content, matching <see cref="RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineBefore"/>,
-    /// which only ever inspects the single line directly above the directive. Counting blank lines anywhere in
-    /// the full gap (as <see cref="AnalyzeGapBeforeLeadingTriviaIndex(SyntaxToken, int, PrecedingTokenFacts)"/> does) would let
-    /// an unrelated blank line further up the gap — for example above a preceding header comment — incorrectly
-    /// satisfy the requirement.
-    /// </remarks>
-    public static bool HasBlankLineImmediatelyBeforeIndex(SyntaxToken token, int leadingTriviaEndExclusive, PrecedingTokenFacts previousToken)
-    {
-        var trivia = token.LeadingTrivia;
-        var lineBreakCount = 0;
-
-        for (var triviaIndex = leadingTriviaEndExclusive - 1; triviaIndex >= 0; triviaIndex--)
-        {
-            var kind = trivia[triviaIndex].Kind();
-
-            if (kind == SyntaxKind.EndOfLineTrivia)
-            {
-                lineBreakCount++;
-
-                if (lineBreakCount >= 2)
-                {
-                    return true;
-                }
-            }
-            else if (kind != SyntaxKind.WhitespaceTrivia)
-            {
-                return false;
-            }
-        }
-
-        return lineBreakCount >= 1
-               && previousToken.EndsLine;
+        return RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineBefore(true,
+                                                                                  isLineAboveBlank,
+                                                                                  isLineAboveBlank == false && tokenBeforeIsOpenBraceWithoutComment);
     }
 
     /// <summary>
@@ -267,12 +175,9 @@ internal sealed class BlankLineEditor
     }
 
     /// <summary>
-    /// Ensures a blank line exists before the first region or end region directive of the specified kind in the token's
-    /// leading trivia, unless the directive is exempt (<see cref="IsExemptFromPrecedingBlankLineBeforeRegionDirective(PrecedingTokenFacts, SyntaxTriviaList, int)"/>):
-    /// at the start of the file, or behind an opening brace with nothing but whitespace, line breaks, conditional-compilation
-    /// directives, and disabled text in between.
-    /// Directives inside a branch the compiler skipped are passed over, so the first match is the first directive that is
-    /// actually part of the build
+    /// Ensures a blank line exists before every active region or end region directive of the specified kind in the token's
+    /// leading trivia that SHARED-BLANK-005 requires one for (<see cref="IsMissingRequiredBlankLineBeforeRegionDirective"/>).
+    /// Directives inside a branch the compiler skipped are passed over
     /// </summary>
     /// <param name="token">The token whose leading trivia should be checked</param>
     /// <param name="directiveKind">Kind of the directive that requires a preceding blank line</param>
@@ -281,56 +186,47 @@ internal sealed class BlankLineEditor
     /// resolve them before making any earlier trivia edit to <paramref name="token"/> in the same rewrite step and pass
     /// them through rather than letting them be re-derived from a possibly detached <paramref name="token"/>.
     /// </param>
-    /// <returns>The token with a blank line inserted before the first matching directive, or the original if one already exists</returns>
+    /// <returns>The token with a blank line inserted before each directive that lacks one, or the original if none does</returns>
     /// <remarks>
-    /// Checks specifically whether the single line immediately before the directive is blank, via
-    /// <see cref="HasBlankLineImmediatelyBeforeIndex"/>, rather than the contiguous end-of-line trivia run
-    /// immediately before the directive or a blank-line count over the full gap. A comment sitting in that gap
-    /// (for example <c>code();\n// header\n#region R</c>) ends its own line with a single end-of-line trivia
-    /// that is not itself a blank line, but a run-length count could mistake it for one; and an unrelated blank
-    /// line further up the gap — for example above the header comment itself — must not satisfy the
-    /// requirement either.
+    /// The directives are visited from the last to the first, so an insertion never shifts the index of a directive still to
+    /// be visited, and an insertion only adds a blank line above its own directive, so it never changes the line directly
+    /// above another one
     /// </remarks>
-    public SyntaxToken EnsureBlankLineBeforeFirstDirective(SyntaxToken token, SyntaxKind directiveKind, PrecedingTokenFacts previousToken)
+    public SyntaxToken EnsureBlankLineBeforeRegionDirectives(SyntaxToken token, SyntaxKind directiveKind, PrecedingTokenFacts previousToken)
     {
         var trivia = token.LeadingTrivia;
-        var directiveIndex = -1;
+        var isChanged = false;
+        var tokenBeforeIsOpenBraceWithoutComment = previousToken.Kind == SyntaxKind.OpenBraceToken
+                                                   && previousToken.HasTrailingComment == false;
 
-        for (var triviaIndex = 0; triviaIndex < trivia.Count; triviaIndex++)
+        for (var directiveIndex = trivia.Count - 1; directiveIndex >= 0; directiveIndex--)
         {
             // A directive inside a branch the compiler skipped is surrounded by disabled text, so the inserted
-            // line break merges into that text and HasBlankLineImmediatelyBeforeIndex can never see it again -
-            // the next run inserts another one.
-            if (trivia[triviaIndex].IsKind(directiveKind)
-                && SyntaxTriviaUtilities.IsInactiveDirective(trivia[triviaIndex]) == false)
+            // line break merges into that text where the line above can never be read as blank again - the
+            // next run would insert another one.
+            if (trivia[directiveIndex].IsKind(directiveKind) == false
+                || SyntaxTriviaUtilities.IsInactiveDirective(trivia[directiveIndex]))
             {
-                directiveIndex = triviaIndex;
+                continue;
+            }
 
-                break;
+            var lineStartIndex = directiveIndex;
+
+            while (lineStartIndex > 0 && trivia[lineStartIndex - 1].IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                lineStartIndex--;
+            }
+
+            if (IsMissingRequiredBlankLineBeforeRegionDirective(trivia, lineStartIndex, previousToken.Exists, previousToken.EndsLine, tokenBeforeIsOpenBraceWithoutComment))
+            {
+                trivia = trivia.Insert(lineStartIndex, SyntaxFactory.EndOfLine(_context.EndOfLine));
+                isChanged = true;
             }
         }
 
-        if (directiveIndex < 0
-            || IsExemptFromPrecedingBlankLineBeforeRegionDirective(previousToken, trivia, directiveIndex))
-        {
-            return token;
-        }
-
-        var insertIndex = directiveIndex;
-
-        while (insertIndex > 0 && trivia[insertIndex - 1].IsKind(SyntaxKind.WhitespaceTrivia))
-        {
-            insertIndex--;
-        }
-
-        if (HasBlankLineImmediatelyBeforeIndex(token, insertIndex, previousToken))
-        {
-            return token;
-        }
-
-        var newTrivia = trivia.Insert(insertIndex, SyntaxFactory.EndOfLine(_context.EndOfLine));
-
-        return token.WithLeadingTrivia(newTrivia);
+        return isChanged
+                   ? token.WithLeadingTrivia(trivia)
+                   : token;
     }
 
     /// <summary>
@@ -360,6 +256,22 @@ internal sealed class BlankLineEditor
         }
 
         return InsertBlankLineBeforeToken(statement, firstToken, insertIndex: 0);
+    }
+
+    /// <summary>
+    /// Ensures a blank line exists before the first token of the specified switch section (FMT-BLANK-004). The line-break
+    /// phase, which runs before this phase, has already started the section's line (FMT-BREAK-033), so only the blank line
+    /// is added
+    /// </summary>
+    /// <param name="section">The switch section</param>
+    /// <returns>The section with a blank line inserted before it, or the original if one already exists</returns>
+    public SwitchSectionSyntax EnsureBlankLineBeforeSection(SwitchSectionSyntax section)
+    {
+        var firstToken = section.GetFirstToken();
+
+        return HasBlankLineBeforeToken(firstToken)
+                   ? section
+                   : InsertBlankLineBeforeToken(section, firstToken, insertIndex: 0);
     }
 
     /// <summary>
@@ -410,13 +322,17 @@ internal sealed class BlankLineEditor
     }
 
     /// <summary>
-    /// Inserts a blank line into the leading trivia of the specified token at the given index
+    /// Inserts a blank line into the leading trivia of the specified token at the given index. When the gap in front of the
+    /// index does not end its line — the token stands on the line of the preceding token, or behind the last line of a
+    /// multi-line comment there — the line break that ends that line is inserted together with the blank line
     /// </summary>
-    /// <param name="statement">The statement whose token should be replaced</param>
+    /// <typeparam name="TNode">The syntax node type containing the token</typeparam>
+    /// <param name="node">The node whose token should be replaced</param>
     /// <param name="token">The token to insert the blank line before</param>
     /// <param name="insertIndex">The leading-trivia index at which to insert the blank line</param>
-    /// <returns>The statement with the token replaced by a copy carrying the inserted blank line</returns>
-    private StatementSyntax InsertBlankLineBeforeToken(StatementSyntax statement, SyntaxToken token, int insertIndex)
+    /// <returns>The node with the token replaced by a copy carrying the inserted blank line</returns>
+    private TNode InsertBlankLineBeforeToken<TNode>(TNode node, SyntaxToken token, int insertIndex)
+        where TNode : SyntaxNode
     {
         var eol = SyntaxFactory.EndOfLine(_context.EndOfLine);
         var previousToken = ResolvePrecedingToken(token);
@@ -432,7 +348,7 @@ internal sealed class BlankLineEditor
 
         var newToken = token.WithLeadingTrivia(newLeading);
 
-        return statement.ReplaceToken(token, newToken);
+        return node.ReplaceToken(token, newToken);
     }
 
     #endregion // Methods

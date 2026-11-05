@@ -38,6 +38,34 @@ internal static class ListElementInteriorUtilities
     }
 
     /// <summary>
+    /// Determines whether a node is, or lies inside, a list element (<see cref="IsListElement"/>) with no construct between
+    /// the node and that element that lays out the lines inside it (<see cref="FindOwningConstruct"/>), the node itself
+    /// included. This is the fact a node-level entry point captures for its formatting root, which has no parent, so that the
+    /// interior wraps of the root are joined as they are joined in its document
+    /// </summary>
+    /// <param name="node">The node, still part of its document</param>
+    /// <returns><see langword="true"/> if the node's interior wraps belong to the list element around it</returns>
+    internal static bool LiesInListElement(SyntaxNode node)
+    {
+        for (var current = node; current != null; current = current.Parent)
+        {
+            if (IsListElement(current))
+            {
+                return true;
+            }
+
+            // Every token of the node that may be joined lies behind the node's first token, so a collection expression
+            // owns it whichever token it is
+            if (IsOwningConstruct(current, default))
+            {
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Finds the innermost construct between a token and its list element that lays out the lines inside it - a brace
     /// scope, an initializer, an anonymous object, a switch expression, the interior of a collection expression, a
     /// recursive, list, or parenthesized pattern, an interpolation hole, or the clauses of a query

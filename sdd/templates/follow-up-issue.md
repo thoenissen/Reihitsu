@@ -19,6 +19,7 @@ This format is not a public issue template and does not go under `.github/ISSUE_
 - **`Lane:`** — one of the lanes in [`squad/README.md`](../../squad/README.md#lanes), spelled as `scripts/lane-check.sh` takes it: `docs`, `tests`, `bug-fix`, `behavior-change`, or `tooling`.
 - **`Principle:`** — optional. The principle the issue's decision rests on: its label or requirement ID and where it is stated, for example `P11 — sdd/README.md, The formatter may do more than the analyzers` or `SHARED-FIX-003 — sdd/specs/shared/code-fixes.md`. Leave the line out when no decision rests on one.
 - **Self-contained body.** The issue is read later, by someone without the run's context: no "see chat", "as discussed", or pointer to `sdd/work/`, which is deleted before merge. Quote the input and output it needs; name files as repository-relative paths in backticks, since relative links do not resolve in an issue.
+- **Label:** an issue an agent writes carries `agent-filed`, so its text reads as not reviewed by the maintainer; only the maintainer removes the label.
 - English, and short: one line per field where one line is enough.
 
 ## Spec bug

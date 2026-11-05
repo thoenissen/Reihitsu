@@ -14,6 +14,7 @@ The lead spawns a role by its `subagent_type` and passes no model argument, so r
 | `spec-checker` | `sonnet` | `medium` | `Edit`, `NotebookEdit` | Compares written text with the diff against a fixed checklist |
 | `auditor` | `opus` | `high` | `Edit`, `NotebookEdit` | The last independent check, against the specs and every failure class |
 | `validator` | `haiku` | `low` | `Edit`, `NotebookEdit` | Runs three scripts and reports; keeps thousands of output lines out of the lead's context |
+| `issue-manager` | `sonnet` | `medium` | `Edit`, `NotebookEdit` | Searches for duplicates and writes self-contained issues from the run's candidates; keeps the search results out of the lead's context, which is the most expensive one |
 
 Every role keeps `Write`, because every role writes its handover under `sdd/work/<slug>/`, and the skeptic and the auditor write disposable fixtures outside the repository. The read-only roles lose `Edit`, so they cannot change an existing repository file; that they write nothing but their handover is stated in their role files.
 
