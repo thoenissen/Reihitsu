@@ -14,7 +14,7 @@ Code fixes reach a formatter phase or structural transform only through `Reihits
 - **RH7101** stops running the field-split transform on its own. It formats the reported field declaration with `FormatNodeInDocumentWithContextAsync`, the field as target and the type that declares it as context. The structural phase splits the field in the context as document-level formatting splits it (FMT-STRUCT-021, FMT-STRUCT-022), the later phases lay the fields out, and the entry point writes back every field the split makes of the target, and nothing else of the type (FMT-PIPE-029). The first field keeps the target's leading trivia and its first token's line and column in the document (FMT-PIPE-017, FMT-PIPE-018); the last keeps the target's trailing trivia (FMT-PIPE-010); everything between them is the phases' layout. No field shares a line with another member: a member in front of or behind the declaration on its line has the first field, or itself, start the next line, with one line break and no blank line; a comment in that gap stays behind the code in front of it, and a documentation comment goes with the member it documents (SHARED-FIX-006, SHARED-FIX-007). The fix is offered exactly where the formatter splits the declaration; it asks `ReihitsuFormatter.SplitsFieldDeclaration` (FMT-PIPE-031) instead of calling the transform's guard.
 - **RH7201–RH7207** stop running the using-directive phase themselves. They call `ReihitsuFormatter.OrganizeUsingDirectivesInDocumentAsync` with the scope of the reported directive (FMT-PIPE-030), which runs that phase alone and writes back the scope's using block. Their output does not change; the scope's indentation in front of a directive the phase moves onto its own line stays that entry point's specified layout (FMT-USING-003, SHARED-USING-010).
 
-The field split loses the layout it wrote only for the RH7101 fix: the indentation in front of each field it creates and of each comment it moves in front of one, and the line break in front of a created field where no separator needs one. It keeps the separators FMT-STRUCT-026 requires of every structural transform, and the two pieces of layout that FMT-STRUCT-022 decides and no later phase decides again: one space in front of a comment that trailed a separating comma, and the line break behind a comment it moves onto its own line.
+The field split loses the layout it wrote only for the RH7101 fix: the indentation in front of each field it creates and of each comment it moves in front of one, and the line break in front of a created field where no separator needs one. It keeps the separators FMT-STRUCT-026 requires of every structural transform, and the two pieces of layout that FMT-STRUCT-022 decides and no later phase decides again: one space in front of a comment that trailed a separating comma, the line break behind such comments when one of them spans lines, and the line break behind a comment it moves onto its own line.
 
 The RH7101 analyzer reports nothing in a file with a syntax error (SHARED-JOIN-002) and nothing in an extension block, where the formatter would not split, so that where it reports, a fix is offered.
 
@@ -367,6 +367,67 @@ class C
 }
 ```
 
+A comment that spans lines in a gap leaves the member behind its closing `*/` where document-level formatting leaves it, and a comment that spans lines behind a separating comma ends the line of the field in front of it:
+
+```csharp
+// input
+class C
+{
+    private int _p; /* a
+       b */ private int _x, _y;
+}
+```
+
+```csharp
+// before
+class C
+{
+    private int _p; /* a
+       b */ private int _x;
+private int _y;
+}
+```
+
+```csharp
+// after
+class C
+{
+    private int _p; /* a
+       b */ private int _x;
+    private int _y;
+}
+```
+
+```csharp
+// input
+class C
+{
+    private int _p; private int _x, /* a
+       b */ _y;
+}
+```
+
+```csharp
+// before
+class C
+{
+    private int _p; private int _x; /* a
+       b */
+private int _y;
+}
+```
+
+```csharp
+// after
+class C
+{
+    private int _p;
+    private int _x; /* a
+       b */
+    private int _y;
+}
+```
+
 ### 8. A declaration off its member column, with spaces or a tab
 
 ```csharp
@@ -545,7 +606,7 @@ Today RH7101 reports such a field and offers a fix that changes nothing. Two out
 
 ### The field split keeps the layout FMT-STRUCT-022 decides
 
-The issue proposed that the split write no line break beyond the separators FMT-STRUCT-026 requires. Formatting the shapes such a split would leave shows that two pieces of its layout are decisions no later phase makes again: the spacing phase keeps the gap in front of a trailing comment as it finds it (`_x;// h` stays), and the line-break phase leaves a leading comment on the line of the member behind it (`/* v */private int _y;` stays). Dropping them would change document-level output, which this change does not touch. The indentation the split wrote is redone by the indentation phase, and the line break in front of a field without a comment in front of it by the line-break phase (one member per line), so the split writes neither.
+The issue proposed that the split write no line break beyond the separators FMT-STRUCT-026 requires. Formatting the shapes such a split would leave shows that three pieces of its layout are decisions no later phase makes again: the spacing phase keeps the gap in front of a trailing comment as it finds it (`_x;// h` stays), and the line-break phase leaves a leading comment on the line of the member behind it (`/* v */private int _y;` stays). The third is the line break behind the comments that trailed a separating comma when one of them spans lines: the field behind the closing `*/` does not start its line (SHARED-COMMENT-012), and the line-break phase leaves a member behind such a comment where it stands (`b */private int _y;` stays). Dropping them would change document-level output, which this change does not touch. The indentation the split wrote is redone by the indentation phase, and the line break in front of a field behind a single-line comment or behind no comment by the line-break phase (one member per line), so the split writes neither.
 
 ### The using fixes get an entry point of their own
 
