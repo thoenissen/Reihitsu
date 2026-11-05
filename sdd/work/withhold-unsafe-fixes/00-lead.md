@@ -34,6 +34,10 @@ Roles run: spec author (clarifications of SHARED-FIX-003, RH7309-004, RH7501-004
 
 After the spec author's repair round, `scripts/lane-check.sh bug-fix` failed because the run's decisions entry lies under `squad/` (tooling). The maintainer reclassified the run as a behavior change and allowed change docs (`squad/decisions/2026-10-27-withhold-unsafe-fixes-lane.md`), before the implementer started. The run now claims the behavior-change lane; the spec author writes the change doc, and the maintainer approves its What and Why before the test implementer starts (escalation 2). Roles run: all eight, as before. The maintainer asked the lead to pause after every role because of the run's budget.
 
+# Issue status
+
+All seven issues carry the `agent-filed` label (checked 2026-11-05): their goals are proposals, not binding (`squad/README.md`, *Issues are hypotheses*). The lead decides a goal where nothing visible is in question; the maintainer answers below stay binding.
+
 # Maintainer answers
 
 The process on `main` moved escalation answers from `squad/decisions/` into this file; the two decisions entries this run had written are removed and their content is kept here.
@@ -49,7 +53,7 @@ The process on `main` moved escalation answers from `squad/decisions/` into this
    - RH7105/RH7106, comment between the last modifier and the next token: fix withheld, as for directives.
    The maintainer also asked the lead to pause after every role because of the run's budget.
 2. Lane (2026-10-27): the maintainer reclassified the run as a behavior change and allowed change docs, overriding the triage notes on #1262 and #1340 that ruled one out. The run note under `squad/notes/` is classified as tooling, so the behavior-change lane stays required.
-3. Change docs (2026-11-05): the maintainer approved `withhold-unsafe-fixes` and `silence-uncorrectable-namespaces-and-regions` as of commit c2e1f67, after `main` was merged and the plan re-checked.
+3. Change docs (2026-11-05): the maintainer approved the visible output changes of `withhold-unsafe-fixes` and `silence-uncorrectable-namespaces-and-regions` as of commit c2e1f67, after `main` was merged and the plan re-checked.
 
 # Decisions taken
 
