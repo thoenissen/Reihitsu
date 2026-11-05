@@ -66,6 +66,33 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a block comment that trailed a separating comma on the declarators' line stays behind the field that comma
+    /// now ends, with one space in front of it, and that the field behind it starts a line of its own
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-022")]
+    public void TrailingBlockCommentAfterSeparatorOnTheDeclaratorsLineIsPreserved()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _a,/* first */ _b;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private int _a; /* first */
+                                    private int _b;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a standalone comment line before a later declarator is preserved
     /// </summary>
     [TestMethod]
