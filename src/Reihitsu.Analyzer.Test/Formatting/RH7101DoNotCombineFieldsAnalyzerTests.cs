@@ -2390,6 +2390,69 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
         await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
     }
 
+    /// <summary>
+    /// Verifies that the fix leaves a documentation comment that starts its line in front of the target and in front of the
+    /// member behind it where it stands, although the token behind it shares its line: the first field keeps the target's line
+    /// and column behind the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixLeavesDocumentationCommentsThatStartTheirLinesInFrontOfMembersOnTheSameLineWhereTheyStand()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _p;
+                                  /** x */ private int _x, {|RH7101:_y|};
+                                  /** q */ private int _q;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _p;
+                                       /** x */ private int _x;
+                                       private int _y;
+                                       /** q */ private int _q;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+    }
+
+    /// <summary>
+    /// Verifies the gap in front of the target alone: the fix leaves a documentation comment that starts its line in front of
+    /// the target, with the target's first token behind it on that line, where it stands
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixLeavesTheFirstFieldBehindADocumentationCommentThatStartsItsLineInTheGapInFrontOnTheTargetsLine()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _p;
+                                  /** x */ private int _x, {|RH7101:_y|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _p;
+                                       /** x */ private int _x;
+                                       private int _y;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+    }
+
     #endregion // Tests
 
     #region Methods

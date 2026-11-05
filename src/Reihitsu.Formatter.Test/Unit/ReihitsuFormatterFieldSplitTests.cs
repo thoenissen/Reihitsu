@@ -1061,6 +1061,71 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a documentation comment that starts its line in front of the target and in front of the member behind it
+    /// keeps its trivia although the token behind it shares its line: the gap holds a line break, so the first field keeps the
+    /// target's line and column behind the comment, and the member behind the target stays as it stands
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-029")]
+    [Requirement("FMT-PIPE-010")]
+    [Requirement("FMT-PIPE-018")]
+    public async Task DocumentationCommentsThatStartTheirLinesInFrontOfMembersOnTheSameLineStayWhereTheyStand()
+    {
+        const string input = """
+                             class C
+                             {
+                                 private int _p;
+                                 /** x */ private int _x, _y;
+                                 /** q */ private int _q;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _p;
+                                    /** x */ private int _x;
+                                    private int _y;
+                                    /** q */ private int _q;
+                                }
+                                """;
+
+        await AssertSplitsTarget(input, expected, "_x", "C");
+    }
+
+    /// <summary>
+    /// Verifies the gap in front of the target alone: a documentation comment that starts its line in front of the target,
+    /// with the target's first token behind it on that line, keeps the target's leading trivia, so the first field keeps the
+    /// target's line and column behind the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-029")]
+    [Requirement("FMT-PIPE-018")]
+    public async Task FirstFieldBehindADocumentationCommentThatStartsItsLineInTheGapInFrontKeepsTheTargetsLine()
+    {
+        const string input = """
+                             class C
+                             {
+                                 private int _p;
+                                 /** x */ private int _x, _y;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _p;
+                                    /** x */ private int _x;
+                                    private int _y;
+                                }
+                                """;
+
+        await AssertSplitsTarget(input, expected, "_x", "C");
+    }
+
+    /// <summary>
     /// Finds the field declaration that declares the variable with the given name
     /// </summary>
     /// <param name="root">The root to search</param>
