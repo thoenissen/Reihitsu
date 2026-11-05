@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-029 (new), FMT-PIPE-030 (new), FMT-PIPE-031 (new), FMT-STRUCT-026, FMT-USING (scope sentence, non-goal), RH7101-001, RH7101-002, RH7101-004, RH7101-005 |
 | Depends on | [The context entry point's target keeps its first line, and its other lines follow it](context-target-first-line.md) |
