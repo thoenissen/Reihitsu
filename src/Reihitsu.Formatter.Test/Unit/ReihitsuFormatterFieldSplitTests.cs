@@ -267,6 +267,55 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a first field that keeps the target's line behind a comment that spans lines, with more than one space in
+    /// front of it, keeps the column of the target's first token, and that its wrapped line is laid out from that column: the
+    /// operator stands under the operand it continues
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-029")]
+    [Requirement("FMT-PIPE-017")]
+    public async Task WrappedLineOfAFirstFieldBehindACommentThatSpansLinesIsLaidOutFromTheTargetsColumn()
+    {
+        const string input = """
+                             class C
+                             {
+                                 private int _p; /* a
+                                b */      private int _x = 1 +
+                                     2, _y;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _p; /* a
+                                   b */      private int _x = 1
+                                                              + 2;
+                                    private int _y;
+                                }
+                                """;
+
+        await AssertSplitsTarget(input, expected, "_x", "C");
+    }
+
+    /// <summary>
+    /// Verifies that the tabs in front of a first field that keeps the target's line behind a comment that spans lines count as
+    /// one column each, and that its wrapped line is laid out from that column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-029")]
+    [Requirement("FMT-PIPE-017")]
+    public async Task WrappedLineOfAFirstFieldBehindACommentThatSpansLinesAndTabsCountsEachTabAsOneColumn()
+    {
+        const string input = "class C\n{\n    private int _p; /* a\n   b */\t\tprivate int _x = 1 +\n        2, _y;\n}";
+        const string expected = "class C\n{\n    private int _p; /* a\n   b */\t\tprivate int _x = 1\n                          + 2;\n    private int _y;\n}";
+
+        await AssertSplitsTarget(input, expected, "_x", "C");
+    }
+
+    /// <summary>
     /// Verifies that a target behind the opening brace and in front of the closing brace of its type keeps its line, because
     /// neither brace is a member, and the later field stands at the member column. The input holds no line break, so the formatter
     /// writes <see cref="Environment.NewLine"/> (FMT-PIPE-007), and the test runs under that line ending only

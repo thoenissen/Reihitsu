@@ -1197,6 +1197,71 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     }
 
     /// <summary>
+    /// Verifies that a first field that keeps the declaration's line behind a comment that spans lines, with more than one
+    /// space in front of it, keeps the column of the declaration's first token, and that its wrapped line is laid out from
+    /// that column, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixLaysOutTheWrappedLineOfAFirstFieldBehindACommentThatSpansLinesFromTheDeclarationsColumn()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _p; /* a
+                                 b */      private int _x = 1 +
+                                      2, {|RH7101:_y|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _p; /* a
+                                      b */      private int _x = 1
+                                                                 + 2;
+                                       private int _y;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+    }
+
+    /// <summary>
+    /// Verifies that the tabs in front of a first field that keeps the declaration's line behind a comment that spans lines
+    /// count as one column each, and that its wrapped line is laid out from that column, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixCountsEachTabInFrontOfAFirstFieldBehindACommentThatSpansLinesAsOneColumn()
+    {
+        var source = ExpandWhitespaceMarkers("""
+                                             class C
+                                             {
+                                                 private int _p; /* a
+                                                b */→→private int _x = 1 +
+                                                     2, {|RH7101:_y|};
+                                             }
+                                             """);
+
+        var fixedSource = ExpandWhitespaceMarkers("""
+                                                  class C
+                                                  {
+                                                      private int _p; /* a
+                                                     b */→→private int _x = 1
+                                                                            + 2;
+                                                      private int _y;
+                                                  }
+                                                  """);
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+    }
+
+    /// <summary>
     /// Verifies the specification example: the fix of one declaration leaves another combined declaration of the type
     /// as it is, which keeps its diagnostic, under LF and CRLF
     /// </summary>
