@@ -498,7 +498,7 @@ class C
 }
 ```
 
-The same holds for a one-line comment followed by a documentation comment that spans lines, and for a comment that spans lines followed by one; FMT-PIPE-029 shows both. Where the declaration's first token, or the next member's, already starts its line, the documentation comment in the gap stays where it stands, as before.
+The same holds for a one-line comment followed by a documentation comment that spans lines, and for a comment that spans lines followed by one; FMT-PIPE-029 shows both. Where something in the gap already starts a line — the declaration's first token or the next member's, or a documentation comment in front of it — the gap stays as it stands, as before.
 
 ### 8. A declaration off its member column, with spaces or a tab
 
