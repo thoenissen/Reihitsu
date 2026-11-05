@@ -56,7 +56,7 @@ public class CodeFixFormatterAccessTests
     [DataRow("Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter.FieldDeclarationSplitTransform")]
     public void BannedTypesIncludeThePhasesTheTransformsAndThePipeline(string typeName)
     {
-        CollectionAssert.Contains(GetTypesCodeFixesMustNotUse().Select(type => type.FullName).ToList(), typeName);
+        Assert.Contains(typeName, GetTypesCodeFixesMustNotUse().Select(type => type.FullName).ToList());
     }
 
     /// <summary>
@@ -72,7 +72,7 @@ public class CodeFixFormatterAccessTests
     public void BannedTypesExcludeHelpersAndUtilityClasses(string typeName)
     {
         Assert.IsNotNull(FormatterAssembly.GetType(typeName), $"The type {typeName} must exist in the formatter assembly.");
-        CollectionAssert.DoesNotContain(GetTypesCodeFixesMustNotUse().Select(type => type.FullName).ToList(), typeName);
+        Assert.DoesNotContain(typeName, GetTypesCodeFixesMustNotUse().Select(type => type.FullName).ToList());
     }
 
     #endregion // Tests
