@@ -464,10 +464,14 @@ public static class ReihitsuFormatter
         var targetIndex = members.IndexOf(targetField);
         var originalFirstToken = targetField.GetFirstToken();
         var originalLastToken = targetField.GetLastToken();
+
+        // A member shares the target's first or last line exactly where document-level formatting starts that member, or the
+        // first field, on a new line: the line-break phase's statement of a gap without a line break, in which a line break
+        // inside a comment that spans lines counts (FMT-PIPE-029, FMT-BREAK-007)
         var sharesLineWithPrecedingMember = targetIndex > 0
-                                            && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(originalFirstToken.GetPreviousToken(), originalFirstToken) == false;
+                                            && TokenGapUtilities.HasLineBreakBetween(originalFirstToken.GetPreviousToken(), originalFirstToken) == false;
         var sharesLineWithFollowingMember = targetIndex < members.Count - 1
-                                            && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(originalLastToken, originalLastToken.GetNextToken()) == false;
+                                            && TokenGapUtilities.HasLineBreakBetween(originalLastToken, originalLastToken.GetNextToken()) == false;
 
         var targetTokenAnnotation = new SyntaxAnnotation();
         var targetFieldAnnotation = new SyntaxAnnotation();
@@ -499,7 +503,7 @@ public static class ReihitsuFormatter
             return document;
         }
 
-        var memberIndentation = SyntaxFactory.Whitespace(new string(' ', GetColumn(formattedFields[1].GetFirstToken())));
+        var memberIndentation = SyntaxFactory.Whitespace(new string(' ', SyntaxTokenPositionUtilities.GetColumn(formattedFields[1].GetFirstToken())));
         var lineBreak = SyntaxFactory.EndOfLine(ReihitsuFormatterHelpers.DetectEndOfLine(root));
         var fields = new List<MemberDeclarationSyntax>(formattedFields.Count);
 
@@ -565,16 +569,6 @@ public static class ReihitsuFormatter
         }
 
         return document.WithSyntaxRoot(root.ReplaceNode(declaringType, declaringType.WithMembers(SyntaxFactory.List(updatedMembers))));
-    }
-
-    /// <summary>
-    /// Gets the column of a token in the tree it belongs to
-    /// </summary>
-    /// <param name="token">The token</param>
-    /// <returns>The column</returns>
-    private static int GetColumn(SyntaxToken token)
-    {
-        return token.GetLocation().GetLineSpan().StartLinePosition.Character;
     }
 
     /// <summary>

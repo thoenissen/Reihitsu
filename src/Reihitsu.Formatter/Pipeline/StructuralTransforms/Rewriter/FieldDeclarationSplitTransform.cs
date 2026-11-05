@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
 
@@ -83,8 +84,10 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
 
     /// <summary>
     /// Builds the trailing trivia for a split field that a separating comma ended: one space in front of each comment that
-    /// trailed the comma, and a line break where a separator needs one (FMT-STRUCT-026) — behind a single-line comment, and in
-    /// front of a comment that leads the next field
+    /// trailed the comma, and a line break where no later phase writes one (FMT-STRUCT-026) — behind a single-line comment,
+    /// behind comments of which one spans lines, and in front of a comment that leads the next field. A gap without a line
+    /// break is broken by the line-break phase; a gap whose only line break is inside a comment is not
+    /// (<see cref="TokenGapUtilities.HasLineBreak(SyntaxTriviaList)"/>), so the split ends the field's line itself
     /// </summary>
     /// <param name="comments">The comments that trailed the comma</param>
     /// <param name="nextFieldHasLeadingComment">Whether a comment leads the next field</param>
@@ -99,15 +102,18 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
             trivia.Add(comment);
         }
 
+        var triviaList = SyntaxFactory.TriviaList(trivia);
         var endsWithSingleLineComment = comments.Count > 0
                                         && comments[comments.Count - 1].IsKind(SyntaxKind.SingleLineCommentTrivia);
 
-        if (endsWithSingleLineComment || nextFieldHasLeadingComment)
+        if (endsWithSingleLineComment
+            || nextFieldHasLeadingComment
+            || TokenGapUtilities.HasLineBreak(triviaList))
         {
-            trivia.Add(SyntaxFactory.EndOfLine(_context.EndOfLine));
+            triviaList = triviaList.Add(SyntaxFactory.EndOfLine(_context.EndOfLine));
         }
 
-        return SyntaxFactory.TriviaList(trivia);
+        return triviaList;
     }
 
     /// <summary>
