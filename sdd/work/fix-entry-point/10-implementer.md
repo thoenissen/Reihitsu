@@ -1,5 +1,5 @@
 Role: implementer
-Commit: see the commit that adds this file
+Commit: 30e0f4f7 (production change; this line amended in the next commit)
 Verdict: tests pass
 
 My prompt carried no intended fix, suspected cause, or hoped-for verdict. It named the change: decision 20 of `00-lead.md`, which takes up the architecture finding in `08-implementer.md`.
