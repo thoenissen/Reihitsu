@@ -101,7 +101,7 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : CodeFixProv
 
         var layout = new RegionBlockLayout(blocks.Select(block => block.Span).ToList(), order);
 
-        return layout.ChangesMemberOrder(typeDeclaration, OrderingDeclarationUtilities.FieldOrderSetsLayout(typeSymbol)) == false
+        return layout.ChangesMemberOrder(typeDeclaration, typeSymbol) == false
                && SeparatesCommentFromBlock(regions, order) == false
                && ChangesDocumentedDeclaration(typeDeclaration, layout) == false;
     }

@@ -74,7 +74,7 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsCodeFixPro
     {
         return base.IsMoveSafe(semanticModel, typeDeclaration, memberDeclaration, targetMember)
                && semanticModel?.GetDeclaredSymbol(typeDeclaration) is INamedTypeSymbol typeSymbol
-               && OrderingDeclarationUtilities.ChangesMemberOrder(typeDeclaration, OrderingDeclarationUtilities.FieldOrderSetsLayout(typeSymbol), memberDeclaration, targetMember) == false;
+               && OrderingDeclarationUtilities.ChangesMemberOrder(typeDeclaration, typeSymbol, memberDeclaration, targetMember) == false;
     }
 
     #endregion // TypeMemberOrderingCodeFixProviderBase

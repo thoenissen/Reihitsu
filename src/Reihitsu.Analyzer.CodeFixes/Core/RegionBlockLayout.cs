@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
@@ -59,15 +60,15 @@ internal sealed class RegionBlockLayout
 
     /// <summary>
     /// Determines whether the reorder puts two members of the type into the other order where their order is
-    /// behavior, as <see cref="OrderingDeclarationUtilities.ChangesMemberOrder(TypeDeclarationSyntax, bool, System.Func{int, int})"/>
+    /// behavior, as <see cref="OrderingDeclarationUtilities.ChangesMemberOrder(TypeDeclarationSyntax, INamedTypeSymbol, System.Func{int, int})"/>
     /// decides it for the segments of this layout
     /// </summary>
     /// <param name="typeDeclaration">Type declaration whose blocks are reordered</param>
-    /// <param name="fieldOrderSetsLayout">Whether the order of the type's instance fields sets its layout</param>
+    /// <param name="typeSymbol">Symbol of the type, which decides whether the order of its instance fields sets its layout</param>
     /// <returns><see langword="true"/> if the reorder changes initializer execution order or the layout</returns>
-    public bool ChangesMemberOrder(TypeDeclarationSyntax typeDeclaration, bool fieldOrderSetsLayout)
+    public bool ChangesMemberOrder(TypeDeclarationSyntax typeDeclaration, INamedTypeSymbol typeSymbol)
     {
-        return OrderingDeclarationUtilities.ChangesMemberOrder(typeDeclaration, fieldOrderSetsLayout, position => GetNewRank(GetSegment(position)));
+        return OrderingDeclarationUtilities.ChangesMemberOrder(typeDeclaration, typeSymbol, position => GetNewRank(GetSegment(position)));
     }
 
     /// <summary>

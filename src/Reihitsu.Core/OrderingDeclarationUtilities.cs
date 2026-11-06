@@ -266,27 +266,9 @@ public static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Determines whether moving a member before another member would change the execution order of
-    /// field, event field, or property initializers. Initializers run in declaration order within their execution
-    /// context (static initializers in the static constructor, instance initializers in the instance
-    /// constructor), so reordering a member carrying an initializer past another member of the same
-    /// context that also carries an initializer can silently change observable values. The order is decided as
-    /// <see cref="ChangesMemberOrder(TypeDeclarationSyntax, bool, MemberDeclarationSyntax, MemberDeclarationSyntax)"/>
-    /// decides it, without a layout
-    /// </summary>
-    /// <param name="typeDeclaration">Type declaration</param>
-    /// <param name="memberToMove">Member to move</param>
-    /// <param name="targetMember">Target member</param>
-    /// <returns><see langword="true"/> if the move would change initializer execution order</returns>
-    public static bool ChangesInitializerExecutionOrder(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberToMove, MemberDeclarationSyntax targetMember)
-    {
-        return ChangesMemberOrder(typeDeclaration, false, memberToMove, targetMember);
-    }
-
-    /// <summary>
     /// Determines whether moving a member before another member puts two members of the type into the other order
     /// where their order is behavior, as
-    /// <see cref="ChangesMemberOrder(TypeDeclarationSyntax, bool, Func{int, int})"/> decides it. The move
+    /// <see cref="ChangesMemberOrder(TypeDeclarationSyntax, INamedTypeSymbol, Func{int, int})"/> decides it. The move
     /// keeps the text in front of the target member, the moved member with its leading trivia, the text from the
     /// target member up to the moved member, and the text behind the moved member, each in itself, and puts the moved
     /// member in front of the target member's leading trivia. Code that an <c>#if</c> branch excludes in the moved
@@ -294,112 +276,30 @@ public static class OrderingDeclarationUtilities
     /// is crossed
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
-    /// <param name="fieldOrderSetsLayout">Whether the order of the type's instance fields sets its layout (<see cref="FieldOrderSetsLayout"/>)</param>
+    /// <param name="typeSymbol">Symbol of the type, which decides whether the order of its instance fields sets its layout</param>
     /// <param name="memberToMove">Member to move</param>
     /// <param name="targetMember">Target member</param>
     /// <returns><see langword="true"/> if the move changes initializer execution order or the layout</returns>
-    public static bool ChangesMemberOrder(TypeDeclarationSyntax typeDeclaration, bool fieldOrderSetsLayout, MemberDeclarationSyntax memberToMove, MemberDeclarationSyntax targetMember)
+    public static bool ChangesMemberOrder(TypeDeclarationSyntax typeDeclaration, INamedTypeSymbol typeSymbol, MemberDeclarationSyntax memberToMove, MemberDeclarationSyntax targetMember)
     {
-        var members = typeDeclaration.Members;
-        var memberToMoveIndex = members.IndexOf(memberToMove);
-        var targetMemberIndex = members.IndexOf(targetMember);
-
-        if (memberToMoveIndex < 0
-            || targetMemberIndex < 0
-            || memberToMoveIndex <= targetMemberIndex)
-        {
-            return false;
-        }
-
-        var targetStart = targetMember.FullSpan.Start;
-        var movedSpan = memberToMove.FullSpan;
-
-        int GetNewRank(int position)
-        {
-            if (position < targetStart)
-            {
-                return 0;
-            }
-
-            if (movedSpan.Contains(position))
-            {
-                return 1;
-            }
-
-            return position < movedSpan.Start
-                       ? 2
-                       : 3;
-        }
-
-        return ChangesMemberOrder(typeDeclaration, fieldOrderSetsLayout, GetNewRank);
+        return ChangesMemberOrder(typeDeclaration, FieldOrderSetsLayout(typeSymbol), memberToMove, targetMember);
     }
 
     /// <summary>
     /// Determines whether a reorder of the type's body puts two members of the type into the other order where
     /// their order is behavior: two members of one context — both static or both instance — that each have a runtime
-    /// initializer (SHARED-ORDER-007), or two instance fields of a type whose field order sets its layout. Members in
-    /// code that an <c>#if</c> branch excludes count as well, at the position of that code, because another build
-    /// configuration compiles them. The reorder is given as the rank, after the reorder, of the part of the body
-    /// that holds a position; code within one part keeps its order
+    /// initializer (SHARED-ORDER-007), or two instance fields of a type whose field order sets its layout, which the
+    /// type's symbol decides. Members in code that an <c>#if</c> branch excludes count as well, at the position of
+    /// that code, because another build configuration compiles them. The reorder is given as the rank, after the
+    /// reorder, of the part of the body that holds a position; code within one part keeps its order
     /// </summary>
     /// <param name="typeDeclaration">Type declaration whose body is reordered</param>
-    /// <param name="fieldOrderSetsLayout">Whether the order of the type's instance fields sets its layout (<see cref="FieldOrderSetsLayout"/>)</param>
+    /// <param name="typeSymbol">Symbol of the type, which decides whether the order of its instance fields sets its layout</param>
     /// <param name="getNewRank">Rank after the reorder of the part of the body that holds a position</param>
     /// <returns><see langword="true"/> if the reorder changes initializer execution order or the layout</returns>
-    public static bool ChangesMemberOrder(TypeDeclarationSyntax typeDeclaration, bool fieldOrderSetsLayout, Func<int, int> getNewRank)
+    public static bool ChangesMemberOrder(TypeDeclarationSyntax typeDeclaration, INamedTypeSymbol typeSymbol, Func<int, int> getNewRank)
     {
-        var members = typeDeclaration.Members
-                                     .Select(member => (Position: member.SpanStart, Member: member))
-                                     .Concat(GetMembersOfDisabledText(typeDeclaration))
-                                     .ToList();
-
-        bool ChangesOrder(Func<MemberDeclarationSyntax, bool> isOrdered)
-        {
-            var writtenOrder = members.Where(member => isOrdered(member.Member))
-                                      .Select(member => member.Position)
-                                      .OrderBy(position => position)
-                                      .ToList();
-            var newOrder = writtenOrder.OrderBy(getNewRank)
-                                       .ThenBy(position => position);
-
-            return writtenOrder.SequenceEqual(newOrder) == false;
-        }
-
-        return ChangesOrder(member => HasInitializer(member) && IsStatic(member))
-               || ChangesOrder(member => HasInitializer(member) && IsStatic(member) == false)
-               || (fieldOrderSetsLayout && ChangesOrder(IsLayoutField));
-    }
-
-    /// <summary>
-    /// Determines whether the order of the type's instance fields sets its memory layout: a struct, which has
-    /// sequential layout unless it declares <c>LayoutKind.Auto</c> or <c>LayoutKind.Explicit</c>, and any other class
-    /// declared with <c>[StructLayout(LayoutKind.Sequential)]</c>. Under explicit layout each field's
-    /// <c>[FieldOffset]</c> sets its offset. The attributes of every part of a partial type count, and a layout
-    /// argument whose value is not known counts as sequential layout
-    /// </summary>
-    /// <param name="typeSymbol">Type</param>
-    /// <returns><see langword="true"/> if reordering the instance fields changes the layout</returns>
-    public static bool FieldOrderSetsLayout(INamedTypeSymbol typeSymbol)
-    {
-        var isStruct = typeSymbol.TypeKind == TypeKind.Struct;
-
-        if (isStruct == false && typeSymbol.TypeKind != TypeKind.Class)
-        {
-            return false;
-        }
-
-        var layoutAttribute = typeSymbol.GetAttributes().FirstOrDefault(IsStructLayoutAttribute);
-
-        if (layoutAttribute == null)
-        {
-            return isStruct;
-        }
-
-        var layoutKind = layoutAttribute.ConstructorArguments.Length > 0 && layoutAttribute.ConstructorArguments[0].Value is { } value
-                             ? Convert.ToInt32(value, CultureInfo.InvariantCulture)
-                             : (int?)null;
-
-        return layoutKind is not ((int)LayoutKind.Auto or (int)LayoutKind.Explicit);
+        return ChangesMemberOrder(typeDeclaration, FieldOrderSetsLayout(typeSymbol), getNewRank);
     }
 
     /// <summary>
@@ -440,6 +340,138 @@ public static class OrderingDeclarationUtilities
                    PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Initializer != null,
                    _ => false,
                };
+    }
+
+    /// <summary>
+    /// Determines whether moving a member before another member would change the execution order of
+    /// field, event field, or property initializers. Initializers run in declaration order within their execution
+    /// context (static initializers in the static constructor, instance initializers in the instance
+    /// constructor), so reordering a member carrying an initializer past another member of the same
+    /// context that also carries an initializer can silently change observable values. The members are ranked as
+    /// <see cref="ChangesMemberOrder(TypeDeclarationSyntax, INamedTypeSymbol, MemberDeclarationSyntax, MemberDeclarationSyntax)"/>
+    /// ranks them, without the layout check that only the type's symbol decides, so no code fix asks this question:
+    /// a code fix asks <see cref="ChangesMemberOrder(TypeDeclarationSyntax, INamedTypeSymbol, MemberDeclarationSyntax, MemberDeclarationSyntax)"/>
+    /// </summary>
+    /// <param name="typeDeclaration">Type declaration</param>
+    /// <param name="memberToMove">Member to move</param>
+    /// <param name="targetMember">Target member</param>
+    /// <returns><see langword="true"/> if the move would change initializer execution order</returns>
+    internal static bool ChangesInitializerExecutionOrder(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberToMove, MemberDeclarationSyntax targetMember)
+    {
+        return ChangesMemberOrder(typeDeclaration, false, memberToMove, targetMember);
+    }
+
+    /// <summary>
+    /// Determines whether moving a member before another member puts two members of the type into the other order
+    /// where their order is behavior, ranking the members as
+    /// <see cref="ChangesMemberOrder(TypeDeclarationSyntax, INamedTypeSymbol, MemberDeclarationSyntax, MemberDeclarationSyntax)"/>
+    /// describes
+    /// </summary>
+    /// <param name="typeDeclaration">Type declaration</param>
+    /// <param name="fieldOrderSetsLayout">Whether the order of the type's instance fields sets its layout (<see cref="FieldOrderSetsLayout"/>)</param>
+    /// <param name="memberToMove">Member to move</param>
+    /// <param name="targetMember">Target member</param>
+    /// <returns><see langword="true"/> if the move changes initializer execution order or the layout</returns>
+    private static bool ChangesMemberOrder(TypeDeclarationSyntax typeDeclaration, bool fieldOrderSetsLayout, MemberDeclarationSyntax memberToMove, MemberDeclarationSyntax targetMember)
+    {
+        var members = typeDeclaration.Members;
+        var memberToMoveIndex = members.IndexOf(memberToMove);
+        var targetMemberIndex = members.IndexOf(targetMember);
+
+        if (memberToMoveIndex < 0
+            || targetMemberIndex < 0
+            || memberToMoveIndex <= targetMemberIndex)
+        {
+            return false;
+        }
+
+        var targetStart = targetMember.FullSpan.Start;
+        var movedSpan = memberToMove.FullSpan;
+
+        int GetNewRank(int position)
+        {
+            if (position < targetStart)
+            {
+                return 0;
+            }
+
+            if (movedSpan.Contains(position))
+            {
+                return 1;
+            }
+
+            return position < movedSpan.Start
+                       ? 2
+                       : 3;
+        }
+
+        return ChangesMemberOrder(typeDeclaration, fieldOrderSetsLayout, GetNewRank);
+    }
+
+    /// <summary>
+    /// Determines whether a reorder of the type's body puts two members of the type into the other order where
+    /// their order is behavior, as
+    /// <see cref="ChangesMemberOrder(TypeDeclarationSyntax, INamedTypeSymbol, Func{int, int})"/> describes, with the
+    /// layout check given as a flag
+    /// </summary>
+    /// <param name="typeDeclaration">Type declaration whose body is reordered</param>
+    /// <param name="fieldOrderSetsLayout">Whether the order of the type's instance fields sets its layout (<see cref="FieldOrderSetsLayout"/>)</param>
+    /// <param name="getNewRank">Rank after the reorder of the part of the body that holds a position</param>
+    /// <returns><see langword="true"/> if the reorder changes initializer execution order or the layout</returns>
+    private static bool ChangesMemberOrder(TypeDeclarationSyntax typeDeclaration, bool fieldOrderSetsLayout, Func<int, int> getNewRank)
+    {
+        var members = typeDeclaration.Members
+                                     .Select(member => (Position: member.SpanStart, Member: member))
+                                     .Concat(GetMembersOfDisabledText(typeDeclaration))
+                                     .ToList();
+
+        bool ChangesOrder(Func<MemberDeclarationSyntax, bool> isOrdered)
+        {
+            var writtenOrder = members.Where(member => isOrdered(member.Member))
+                                      .Select(member => member.Position)
+                                      .OrderBy(position => position)
+                                      .ToList();
+            var newOrder = writtenOrder.OrderBy(getNewRank)
+                                       .ThenBy(position => position);
+
+            return writtenOrder.SequenceEqual(newOrder) == false;
+        }
+
+        return ChangesOrder(member => HasInitializer(member) && IsStatic(member))
+               || ChangesOrder(member => HasInitializer(member) && IsStatic(member) == false)
+               || (fieldOrderSetsLayout && ChangesOrder(IsLayoutField));
+    }
+
+    /// <summary>
+    /// Determines whether the order of the type's instance fields sets its memory layout: a struct, which has
+    /// sequential layout unless it declares <c>LayoutKind.Auto</c> or <c>LayoutKind.Explicit</c>, and any other class
+    /// declared with <c>[StructLayout(LayoutKind.Sequential)]</c>. Under explicit layout each field's
+    /// <c>[FieldOffset]</c> sets its offset. The attributes of every part of a partial type count, and a layout
+    /// argument whose value is not known counts as sequential layout
+    /// </summary>
+    /// <param name="typeSymbol">Type</param>
+    /// <returns><see langword="true"/> if reordering the instance fields changes the layout</returns>
+    private static bool FieldOrderSetsLayout(INamedTypeSymbol typeSymbol)
+    {
+        var isStruct = typeSymbol.TypeKind == TypeKind.Struct;
+
+        if (isStruct == false && typeSymbol.TypeKind != TypeKind.Class)
+        {
+            return false;
+        }
+
+        var layoutAttribute = typeSymbol.GetAttributes().FirstOrDefault(IsStructLayoutAttribute);
+
+        if (layoutAttribute == null)
+        {
+            return isStruct;
+        }
+
+        var layoutKind = layoutAttribute.ConstructorArguments.Length > 0 && layoutAttribute.ConstructorArguments[0].Value is { } value
+                             ? Convert.ToInt32(value, CultureInfo.InvariantCulture)
+                             : (int?)null;
+
+        return layoutKind is not ((int)LayoutKind.Auto or (int)LayoutKind.Explicit);
     }
 
     /// <summary>
