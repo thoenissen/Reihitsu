@@ -370,6 +370,120 @@ public class RH4114PublicPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that a property override whose rename would cascade to an override in another source type of a property declared in a referenced assembly keeps its diagnostic but gets no fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheRenameCascadesToAPropertyOverrideOfAReferencedAssemblyProperty()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public abstract class MetaBase
+                                      {
+                                          public abstract int count { get; }
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using Meta;
+
+                                public class Middle : MetaBase
+                                {
+                                    public override int {|RH4114:count|} => 0;
+                                }
+
+                                public class Leaf : Middle
+                                {
+                                    public override int {|RH4114:count|} => 1;
+                                }
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that a property override whose rename would cascade to a source base type's implementation of an interface property declared in a referenced assembly keeps its diagnostic but gets no fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheRenameCascadesToAnImplementationOfAReferencedAssemblyInterfaceProperty()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface IMeta
+                                      {
+                                          int count { get; }
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using Meta;
+
+                                public class Middle : IMeta
+                                {
+                                    public virtual int {|RH4114:count|} => 0;
+                                }
+
+                                public class Leaf : Middle
+                                {
+                                    public override int {|RH4114:count|} => 1;
+                                }
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that a property keeps its diagnostic but gets no fix when it is the member of a record's positional parameter of the same name, because after the rename the compiler would declare a second public property for the parameter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheRenameWouldSplitThePropertyFromItsPositionalParameter()
+    {
+        const string testCode = """
+                                public record R(int count)
+                                {
+                                    public int {|RH4114:count|} { get; init; } = count;
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a property of a record struct keeps its diagnostic but gets no fix when it is the member of a positional parameter of the same name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheRenameWouldSplitARecordStructPropertyFromItsPositionalParameter()
+    {
+        const string testCode = """
+                                public record struct R(int count)
+                                {
+                                    public int {|RH4114:count|} { get; init; } = count;
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

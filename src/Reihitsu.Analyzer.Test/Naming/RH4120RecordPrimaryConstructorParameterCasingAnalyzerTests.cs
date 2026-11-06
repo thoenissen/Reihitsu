@@ -226,6 +226,98 @@ public class RH4120RecordPrimaryConstructorParameterCasingAnalyzerTests : BatchC
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that a positional parameter keeps its diagnostic but gets no fix when its new name is the name of a property its record inherits, because the record's own public property would disappear
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4120-003")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheRenameWouldMatchAnInheritedProperty()
+    {
+        const string testCode = """
+                                public record B(int Count);
+
+                                public record D(int {|RH4120:count|}) : B(count);
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a positional parameter of a base record keeps its diagnostic but gets no fix when a derived record has a positional parameter of the new name, because the derived record's own public property would disappear
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4120-003")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheRenameWouldGiveADerivedRecordAnInheritedPropertyOfItsParameterName()
+    {
+        const string testCode = """
+                                public record B(int {|RH4120:count|});
+
+                                public record D(int Count) : B(Count);
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that matching positional parameters of a base and a derived record keep their diagnostics but get no fix, because renaming either alone gives the derived record a public property it did not declare before, and Fix All renames neither
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4120-003")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedForEitherOfTwoMatchingPositionalParametersOfABaseAndADerivedRecord()
+    {
+        const string testCode = """
+                                public record B(int {|RH4120:count|});
+
+                                public record D(int {|RH4120:count|}) : B(count);
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a positional parameter keeps its diagnostic but gets no fix when the record declares a property of its name, because after the rename the compiler would declare a second public property
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheRenameWouldSplitTheParameterFromItsDeclaredProperty()
+    {
+        const string testCode = """
+                                public record R(int {|RH4120:count|})
+                                {
+                                    public int count { get; init; } = count;
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a positional parameter of a record struct keeps its diagnostic but gets no fix when the record struct declares a property of its name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheRenameWouldSplitARecordStructParameterFromItsDeclaredProperty()
+    {
+        const string testCode = """
+                                public record struct R(int {|RH4120:count|})
+                                {
+                                    public int count { get; init; } = count;
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

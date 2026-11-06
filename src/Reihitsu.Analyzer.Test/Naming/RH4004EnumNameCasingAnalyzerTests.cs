@@ -272,6 +272,31 @@ public class RH4004EnumNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4004Enu
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that an enum is renamed when one of its members has the new name, because an enum member may have the name of its enum
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixIsOfferedWhenAnEnumMemberHasTheNewName()
+    {
+        const string testCode = """
+                                enum {|RH4004:color|}
+                                {
+                                    Color,
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 enum Color
+                                 {
+                                     Color,
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

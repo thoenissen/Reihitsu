@@ -573,6 +573,7 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-CASING-007")]
     [Requirement("SHARED-FIX-003")]
     public async Task FixLeavesAnExcludedBranchThatDoesNotNameTheFieldUnchanged()
     {
@@ -669,6 +670,169 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
                                  """;
 
         await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a field keeps its diagnostic but gets no fix when an excluded <c>#if</c> branch references it, because the rename would leave that reference behind
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenAnExcludedIfBranchReferencesTheField()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int {|RH4106:Value|};
+
+                                    public int Get()
+                                    {
+                                #if NEVER
+                                        return Value + 1;
+                                #else
+                                        return Value;
+                                #endif
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a field keeps its diagnostic but gets no fix when an excluded <c>#elif</c> branch references it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenAnExcludedElifBranchReferencesTheField()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int {|RH4106:Value|};
+
+                                    public int Get()
+                                    {
+                                #if NEVER
+                                        return 0;
+                                #elif OTHER
+                                        return Value + 1;
+                                #else
+                                        return Value;
+                                #endif
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a field keeps its diagnostic but gets no fix when an <c>#if false</c> block references it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenAnIfFalseBlockReferencesTheField()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int {|RH4106:Value|};
+
+                                    public int Get()
+                                    {
+                                #if false
+                                        return Value + 1;
+                                #endif
+                                        return Value;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a field keeps its diagnostic but gets no fix when an excluded branch declares the same field, which the rename would leave under the old name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenAnExcludedBranchDeclaresTheFieldAgain()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                #if NEVER
+                                    private int Value = 1;
+                                #else
+                                    private int {|RH4106:Value|};
+                                #endif
+
+                                    public int Get() => Value;
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a field keeps its diagnostic but gets no fix when an excluded branch declares a member of the new name, which would be declared twice in a build that includes the branch
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenAnExcludedBranchDeclaresTheNewName()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int {|RH4106:Value|};
+
+                                #if NEVER
+                                    private int _value;
+                                #endif
+
+                                    public int Get() => Value;
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a field keeps its diagnostic but gets no fix when an excluded <c>#if</c> branch references it, also in a document with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenAnExcludedIfBranchReferencesTheFieldWithCarriageReturnLineFeed()
+    {
+        var testCode = NormalizeToCarriageReturnLineFeed("""
+                                                         public class C
+                                                         {
+                                                             private int {|RH4106:Value|};
+
+                                                             public int Get()
+                                                             {
+                                                         #if NEVER
+                                                                 return Value + 1;
+                                                         #else
+                                                                 return Value;
+                                                         #endif
+                                                             }
+                                                         }
+                                                         """);
+
+        await Verify(testCode, testCode);
     }
 
     #endregion // Tests

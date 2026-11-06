@@ -407,6 +407,33 @@ public class RH4104LocalFunctionNameCasingAnalyzerTests : BatchCodeFixTestsBase<
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that an <c>extern</c> local function declared with <c>DllImport</c> and no entry point keeps its diagnostic but gets no fix, because the runtime looks the native function up by its name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4104-002")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedForAnExternLocalFunctionBoundByItsName()
+    {
+        const string testCode = """
+                                using System.Runtime.InteropServices;
+
+                                public class C
+                                {
+                                    public int M()
+                                    {
+                                        return getpid();
+
+                                        [DllImport("libc")]
+                                        static extern int {|RH4104:getpid|}();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

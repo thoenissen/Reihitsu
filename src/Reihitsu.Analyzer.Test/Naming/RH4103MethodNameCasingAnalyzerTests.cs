@@ -14,6 +14,35 @@ namespace Reihitsu.Analyzer.Test.Naming;
 [TestClass]
 public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103MethodNameCasingAnalyzer, RH4103MethodNameCasingCodeFixProvider>
 {
+    #region Constants
+
+    /// <summary>
+    /// Source of the referenced assembly that declares members with names that are not in PascalCase
+    /// </summary>
+    private const string MetaAssemblySource = """
+                                              namespace Meta
+                                              {
+                                                  public abstract class MetaBase
+                                                  {
+                                                      public abstract void process();
+                                                  }
+
+                                                  public interface IMeta
+                                                  {
+                                                      void process();
+                                                  }
+
+                                                  public class MetaImpl
+                                                  {
+                                                      public void process()
+                                                      {
+                                                      }
+                                                  }
+                                              }
+                                              """;
+
+    #endregion // Constants
+
     #region Tests
 
     /// <summary>
@@ -602,6 +631,427 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
                                  """;
 
         await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a method bound to a native entry point by its own name keeps its diagnostic but gets no fix, while a method whose literal entry point stays is renamed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixIsWithheldForANativeEntryPointTakenFromTheMethodName()
+    {
+        const string testCode = """
+                                using System.Runtime.InteropServices;
+
+                                public static class C
+                                {
+                                    [DllImport("libc")]
+                                    public static extern int {|RH4103:getpid|}();
+
+                                    [DllImport("libc", EntryPoint = "getppid")]
+                                    public static extern int {|RH4103:getppid|}();
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Runtime.InteropServices;
+
+                                 public static class C
+                                 {
+                                     [DllImport("libc")]
+                                     public static extern int {|RH4103:getpid|}();
+
+                                     [DllImport("libc", EntryPoint = "getppid")]
+                                     public static extern int Getppid();
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a method declared with <c>DllImport</c> and no entry point keeps its diagnostic but gets no fix, also when it is called
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedForADllImportMethodWithoutEntryPoint()
+    {
+        const string testCode = """
+                                using System.Runtime.InteropServices;
+
+                                internal static class Native
+                                {
+                                    [DllImport("libc")]
+                                    internal static extern int {|RH4103:getpid|}();
+
+                                    internal static int Current()
+                                    {
+                                        return getpid();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a method whose entry point is <c>nameof</c> of the method itself keeps its diagnostic but gets no fix, because the rename would change the entry point
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedForADllImportMethodWhoseEntryPointIsNameofTheMethod()
+    {
+        const string testCode = """
+                                using System.Runtime.InteropServices;
+
+                                internal static class Native
+                                {
+                                    [DllImport("libc", EntryPoint = nameof(getpid))]
+                                    internal static extern int {|RH4103:getpid|}();
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a method declared with <c>DllImport</c> and a literal entry point is renamed, because the native function it calls stays the same
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixRenamesADllImportMethodWithALiteralEntryPoint()
+    {
+        const string testCode = """
+                                using System.Runtime.InteropServices;
+
+                                internal static class Native
+                                {
+                                    [DllImport("libc", EntryPoint = "getpid")]
+                                    internal static extern int {|RH4103:getpid|}();
+
+                                    internal static int Current()
+                                    {
+                                        return getpid();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Runtime.InteropServices;
+
+                                 internal static class Native
+                                 {
+                                     [DllImport("libc", EntryPoint = "getpid")]
+                                     internal static extern int Getpid();
+
+                                     internal static int Current()
+                                     {
+                                         return Getpid();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>partial</c> method declared with <c>LibraryImport</c> and no entry point keeps its diagnostic but gets no fix. No source generator runs in the test, so the missing implementation is reported before and after
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedForALibraryImportMethodWithoutEntryPoint()
+    {
+        const string testCode = """
+                                using System.Runtime.InteropServices;
+
+                                internal static partial class Native
+                                {
+                                    [LibraryImport("libc")]
+                                    internal static partial int {|CS8795:{|RH4103:getpid|}|}();
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>partial</c> method declared with <c>LibraryImport</c> and a literal entry point is renamed, because the native function it calls stays the same
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixRenamesALibraryImportMethodWithALiteralEntryPoint()
+    {
+        const string testCode = """
+                                using System.Runtime.InteropServices;
+
+                                internal static partial class Native
+                                {
+                                    [LibraryImport("libc", EntryPoint = "getpid")]
+                                    internal static partial int {|CS8795:{|RH4103:getpid|}|}();
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Runtime.InteropServices;
+
+                                 internal static partial class Native
+                                 {
+                                     [LibraryImport("libc", EntryPoint = "getpid")]
+                                     internal static partial int {|CS8795:Getpid|}();
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that an override whose rename would cascade to an override in another source type of a member declared in a referenced assembly keeps its diagnostic but gets no fix, because that other type would no longer compile
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheRenameCascadesToAnOverrideOfAReferencedAssemblyMember()
+    {
+        const string testCode = """
+                                using Meta;
+
+                                public class Middle : MetaBase
+                                {
+                                    public override void {|RH4103:process|}()
+                                    {
+                                    }
+                                }
+
+                                public class Leaf : Middle
+                                {
+                                    public override void {|RH4103:process|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", MetaAssemblySource);
+
+        await Verify(testCode, testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that a direct override of a member declared in a referenced assembly keeps its diagnostic but gets no fix, because the renamed override would override nothing
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedForADirectOverrideOfAReferencedAssemblyMember()
+    {
+        const string testCode = """
+                                using Meta;
+
+                                public class Middle : MetaBase
+                                {
+                                    public override void {|RH4103:process|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", MetaAssemblySource);
+
+        await Verify(testCode, testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that an override chain declared entirely in source is renamed together, so the fix stays offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixRenamesAnOverrideChainDeclaredInSourceTogether()
+    {
+        const string testCode = """
+                                public abstract class SourceBase
+                                {
+                                    public abstract void {|RH4103:process|}();
+                                }
+
+                                public class Middle : SourceBase
+                                {
+                                    public override void {|RH4103:process|}()
+                                    {
+                                    }
+                                }
+
+                                public class Leaf : Middle
+                                {
+                                    public override void {|RH4103:process|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public abstract class SourceBase
+                                 {
+                                     public abstract void Process();
+                                 }
+
+                                 public class Middle : SourceBase
+                                 {
+                                     public override void Process()
+                                     {
+                                     }
+                                 }
+
+                                 public class Leaf : Middle
+                                 {
+                                     public override void Process()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that an override whose rename would cascade to a source base type's implementation of an interface declared in a referenced assembly keeps its diagnostic but gets no fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheRenameCascadesToAnImplementationOfAReferencedAssemblyInterface()
+    {
+        const string testCode = """
+                                using Meta;
+
+                                public class Middle : IMeta
+                                {
+                                    public virtual void {|RH4103:process|}()
+                                    {
+                                    }
+                                }
+
+                                public class Leaf : Middle
+                                {
+                                    public override void {|RH4103:process|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", MetaAssemblySource);
+
+        await Verify(testCode, testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that a method that a derived source type uses to implement an interface declared in a referenced assembly keeps its diagnostic but gets no fix, because the derived type would no longer implement the interface
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenADerivedTypeImplementsAReferencedAssemblyInterfaceWithTheMethod()
+    {
+        const string testCode = """
+                                using Meta;
+
+                                public class A
+                                {
+                                    public void {|RH4103:process|}()
+                                    {
+                                    }
+                                }
+
+                                public class B : A, IMeta
+                                {
+                                }
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", MetaAssemblySource);
+
+        await Verify(testCode, testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that a method that a derived type uses to implement an interface declared in source is renamed together with the interface member, so the fix stays offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixRenamesAMethodThatADerivedTypeUsesToImplementASourceInterface()
+    {
+        const string testCode = """
+                                public interface ISource
+                                {
+                                    void {|RH4103:process|}();
+                                }
+
+                                public class A
+                                {
+                                    public void {|RH4103:process|}()
+                                    {
+                                    }
+                                }
+
+                                public class B : A, ISource
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public interface ISource
+                                 {
+                                     void Process();
+                                 }
+
+                                 public class A
+                                 {
+                                     public void Process()
+                                     {
+                                     }
+                                 }
+
+                                 public class B : A, ISource
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that an interface method declared in source, which a type implements with a method inherited from a referenced assembly, keeps its diagnostic but gets no fix, because the implementing type would no longer implement the interface
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenASourceInterfaceMethodIsImplementedByAReferencedAssemblyMember()
+    {
+        const string testCode = """
+                                using Meta;
+
+                                public interface ISource
+                                {
+                                    void {|RH4103:process|}();
+                                }
+
+                                public class Impl : MetaImpl, ISource
+                                {
+                                }
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", MetaAssemblySource);
+
+        await Verify(testCode, testCode, test => test.TestState.AdditionalReferences.Add(reference));
     }
 
     #endregion // Tests
