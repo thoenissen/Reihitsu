@@ -1,5 +1,5 @@
 Role: cleaner
-Commit: HEAD
+Commit: dfc524f
 Verdict: clean
 
 ## Whole run
