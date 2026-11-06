@@ -22,9 +22,9 @@ The rule specs state what this means for each fix:
 |---|---|---|
 | RH7004 | A comment behind the using declaration stays behind the header of the `using` statement instead of moving behind the new block. A directive pair that the new block would split is a SHARED-FIX-003 case. | RH7004-004 |
 | RH7101 | Withheld for a declaration with a `///` or `/** */` documentation comment in its leading trivia in documentation mode `Parse` or `Diagnose`, although the formatter splits it. In mode `None`, and for such a comment in front of a later declarator, the fix still splits. | RH7101-004, RH7101-006 |
-| RH7103 | Withheld when the move crosses a static member with a runtime initializer that code excluded by an `#if`, `#elif`, or `#else` branch declares. Excluded code in front of the moved member moves with it and does not withhold the fix. | SHARED-ORDER-007, RH7103-007 |
+| RH7103 | Withheld when the move crosses a static member with a runtime initializer that code excluded by an `#if`, `#elif`, or `#else` branch declares. Excluded code in front of the moved member moves with it and crosses what the moved member crosses: withheld when one of its static members has a runtime initializer and the move crosses an initialized static member, and, in a type whose field order sets its layout, when it declares an instance field and the move crosses an instance field. | SHARED-ORDER-007, RH7103-007 |
 | RH7105, RH7106 | Withheld when a comment or a directive stands between the last modifier and the token after it. | SHARED-MODORDER-003 |
-| RH7109 | Withheld when the move reorders the instance fields of a struct without `LayoutKind.Auto` or `LayoutKind.Explicit`, or of a type with `[StructLayout(LayoutKind.Sequential)]`. Withheld, like RH7103, when the move crosses an instance member with a runtime initializer that excluded code declares. | SHARED-ORDER-007, RH7109-005, RH7109-006 |
+| RH7109 | Withheld when the move reorders the instance fields of a struct without `LayoutKind.Auto` or `LayoutKind.Explicit`, or of a type with `[StructLayout(LayoutKind.Sequential)]`. Withheld, like RH7103, when the move crosses an instance member with a runtime initializer that excluded code declares, and when excluded code in front of the moved field moves with it and reorders initializers or the instance fields of such a type. | SHARED-ORDER-007, RH7109-005, RH7109-006 |
 | RH7303 | Withheld for a reported directive whose partner lies between declarations. | RH7303-005 |
 | RH7306 | The partner directive is judged by its description, as the analyzer judges it. Withheld when the description of the reported directive, or of the partner it would edit, is the word `implementation` alone. | RH7306-003, RH7306-004 |
 | RH7309 | Withheld when the reorder would swap two runtime initializers of one context, swap two instance fields of a layout type, move a block away from a comment above its `#region` line (also across blank lines), or hand a documentation comment to another declaration in mode `Parse` or `Diagnose`. A comment above a block that keeps its place does not withhold it. | RH7309-004, RH7309-006 |
@@ -553,7 +553,7 @@ class C
 
 After, for both inputs: no code fix is offered. The same holds for a block whose closing brace shares the `break`'s line, for a `#region` or an `#if` branch between the token in front of the `break` and the closing brace, and for code of another build configuration behind the `break`.
 
-### 10. RH7103 and RH7109 — a move that crosses an initialized member of excluded code
+### 10. RH7103 and RH7109 — a move that reorders initializers or instance fields of excluded code
 
 ```csharp
 // input, without DEBUG defined
@@ -621,13 +621,98 @@ public class C
 }
 ```
 
-After, for both inputs: no code fix is offered. The fix stays offered when the excluded member has no initializer, and when the `#if` pair stands directly in front of the moved member, because the excluded code then moves with it and both builds keep the initializer order (SHARED-ORDER-007).
+After, for both inputs: no code fix is offered. The fix stays offered when the crossed excluded member has no initializer.
+
+Excluded code directly in front of the moved member moves with it, and its members cross what the moved member crosses (SHARED-ORDER-007):
+
+```csharp
+// input, without DEBUG defined
+public class C
+{
+    private int _a = Log("a");
+#if DEBUG
+    private int _c = Log("c");
+#endif
+    private readonly int _b;
+
+    private static int Log(string name) => 0;
+}
+```
+
+```csharp
+// before (RH7109): a build with DEBUG runs Log("c") before Log("a")
+public class C
+{
+#if DEBUG
+    private int _c = Log("c");
+#endif
+    private readonly int _b;
+    private int _a = Log("a");
+
+    private static int Log(string name)
+    {
+        return 0;
+    }
+}
+```
+
+```csharp
+// input, without DEBUG defined
+public struct S
+{
+    private static int _s;
+    private int _x;
+#if DEBUG
+    private int _y;
+#endif
+    private static readonly int _r;
+}
+```
+
+```csharp
+// before (RH7109): a build with DEBUG lays out _y before _x
+public struct S
+{
+#if DEBUG
+    private int _y;
+#endif
+    private static readonly int _r;
+    private static int _s;
+    private int _x;
+}
+```
+
+```csharp
+// input, without DEBUG defined
+public struct S
+{
+    private int _x;
+#if DEBUG
+    private int _y;
+#endif
+    private static int _s;
+}
+```
+
+```csharp
+// before (RH7103): a build with DEBUG lays out _y before _x
+public struct S
+{
+#if DEBUG
+    private int _y;
+#endif
+    private static int _s;
+    private int _x;
+}
+```
+
+After, for all three inputs: no code fix is offered. The fix stays offered when the excluded code in front of the moved member crosses no initialized member of its context and, in a type whose field order sets its layout, no instance field; the excluded code then keeps its place in front of the moved member, as in the second example of SHARED-ORDER-007. Without the excluded field, the RH7103 fix for the last input is offered as before.
 
 ## Decisions
 
 ### One shared condition, with each rule's instances in its own spec
 
-The placement, disabled-text, and configuration rules are stated once in SHARED-FIX-003. A rule spec names its own instances as "withheld" requirements with examples, and an "unless withheld" in the requirement that states the rewrite, so no rule spec reads as requiring a rewrite that SHARED-FIX-003 forbids. The layout guard of RH7109 is not stated again in `shared/ordering-move-safety.md`. RH7309-006 takes its runtime-initializer definition from SHARED-ORDER-007.
+The placement, disabled-text, and configuration rules are stated once in SHARED-FIX-003. A rule spec names its own instances as "withheld" requirements with examples, and an "unless withheld" in the requirement that states the rewrite, so no rule spec reads as requiring a rewrite that SHARED-FIX-003 forbids. The layout guard of RH7103 and RH7109 is not stated again in `shared/ordering-move-safety.md`; SHARED-ORDER-007 states only which members a move moves and crosses, for that guard as for initializers. RH7309-006 takes its runtime-initializer definition from SHARED-ORDER-007.
 
 ### The brace split follows the maintainer's clarification
 
@@ -641,9 +726,11 @@ The RH7101 fix asks the formatter whether it splits a declaration (FMT-PIPE-031)
 
 The condition decides a comment at the end of a line of code and a comment that directly heads the next line. A comment that a blank line separates from the code below it, and a comment between two tokens of one line, are left to each rule. RH7309 decides its own case: a comment above a `#region` heads that block, also across blank lines.
 
-### Excluded code counts in the initializer guard
+### Excluded code counts in the initializer and layout guards
 
-A member that an `#if`, `#elif`, or `#else` branch excludes counts in the initializer guard of the RH7103 and RH7109 fixes (SHARED-ORDER-007), and in RH7309, which counts initializers the same way. A build that includes the member runs its initializer, so a move across it changes the order in that build. Case 10 was added to this change after the maintainer approved it. No new question was asked, because the *Build configurations* condition of SHARED-FIX-003, which the maintainer approved with this change, already demands the withheld fix: the move changes the program only in a build with the symbol defined. On `main` both fixes are offered for case 10.
+A member that an `#if`, `#elif`, or `#else` branch excludes counts in the initializer guard of the RH7103 and RH7109 fixes (SHARED-ORDER-007), and in RH7309, which counts initializers the same way. A build that includes the member runs its initializer, so a move across it changes the order in that build. Excluded code in the moved member's leading trivia moves with it (SHARED-ORDER-002), so its members are moved members: they cross what the moved member crosses, for the initializer guard and for the layout guard of SHARED-FIX-003 *Run time* alike. RH7103 applies the layout guard as RH7109 does; a static member reorders instance fields only through such excluded code.
+
+Case 10 was added to this change after the maintainer approved it. No new question was asked, because the *Build configurations* condition of SHARED-FIX-003, which the maintainer approved with this change, already demands every withheld fix of case 10: each move changes the initializer order or the field layout only in a build with the symbol defined. On `main` every fix of case 10 is offered.
 
 ### The maintainer's answers
 

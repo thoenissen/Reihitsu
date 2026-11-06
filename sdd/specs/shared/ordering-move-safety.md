@@ -306,9 +306,18 @@ public class TestClass
 
 ### SHARED-ORDER-007 — Initializer execution order is kept
 
-A member reordering fix that can move fields, event fields, or properties with a runtime initializer MUST NOT offer a move when the moved member has a runtime initializer and a crossed member of the same context — both static or both instance — also has one. A `const` field has no runtime initializer. A member that code excluded by an `#if`, `#elif`, or `#else` branch declares counts like any other member: it is crossed when it lies in the crossed span (SHARED-ORDER-003), because a build that includes it runs the two initializers in the other order (SHARED-FIX-003, *Build configurations*). Excluded code in the moved declaration's own leading trivia travels with it (SHARED-ORDER-002) and is not crossed. RH7103 and RH7109 apply this guard, and RH7309 counts initializers the same way.
+A member reordering fix that can move fields, event fields, or properties with a runtime initializer MUST NOT offer a move when a member that the move moves has a runtime initializer and a member of the same context that the move crosses — both static or both instance — also has one. A `const` field has no runtime initializer. A member that code excluded by an `#if`, `#elif`, or `#else` branch declares counts like any other member, because a build that includes it runs its initializer (SHARED-FIX-003, *Build configurations*):
 
-Why: Initializers run in declaration order within their context, the static ones in the static constructor and the instance ones in each instance constructor. Swapping two of them can change observable values silently. Static and instance initializers run at different times, so crossing a member of the other context is safe.
+- a member of excluded code in the crossed span (SHARED-ORDER-003) is crossed;
+- a member of excluded code in the moved declaration's own leading trivia moves, because that trivia travels with the declaration (SHARED-ORDER-002), and it crosses every member the declaration crosses. The move is refused when such a member has a runtime initializer and a crossed member of its context has one, also when the moved declaration itself has none.
+
+The moved members are the moved declaration and the members of excluded code in its leading trivia; no other member moves.
+
+A fix that withholds a move because it would reorder the instance fields of a type whose field order sets its layout (SHARED-FIX-003, *Run time*) counts the instance fields the same way: an instance field of excluded code in the moved declaration's leading trivia moves across every instance field the move crosses, and an instance field of excluded code in the crossed span is crossed. A move of a static member therefore reorders instance fields when excluded code in its leading trivia declares one and the move crosses an instance field.
+
+RH7103 and RH7109 apply both guards, and RH7309 counts initializers and instance fields the same way.
+
+Why: Initializers run in declaration order within their context, the static ones in the static constructor and the instance ones in each instance constructor. Swapping two of them can change observable values silently. Static and instance initializers run at different times, so crossing a member of the other context is safe. Excluded code is compiled by another build, and the code in front of the moved declaration goes where the declaration goes, so in that build its members are moved like the declaration itself; refusing only for the declaration's own initializer would let the fix reorder that build's initializers or fields.
 
 Example:
 
@@ -341,7 +350,24 @@ public class C
 }
 ```
 
-is reported by RH7109, and no code fix is offered: moving `_b` in front of `_a` would run `Log("b")` before `Log("c")` in a build with `DEBUG`. Excluded code in front of the moved member moves with it, so the order stays the same in every build, and the fix is offered:
+is reported by RH7109, and no code fix is offered: moving `_b` in front of `_a` would run `Log("b")` before `Log("c")` in a build with `DEBUG`.
+
+Excluded code in front of the moved member moves with it, and its members cross what the moved member crosses. Without `DEBUG` defined,
+
+```csharp
+public class C
+{
+    private int _a = Log("a");
+#if DEBUG
+    private int _c = Log("c");
+#endif
+    private readonly int {|RH7109:_b|};
+
+    private static int Log(string name) => 0;
+}
+```
+
+is reported by RH7109, and no code fix is offered: `_b` has no initializer, but `_c` moves with it in front of `_a`, so a build with `DEBUG` would run `Log("c")` before `Log("a")`. When the crossed members have no initializer, the fix is offered, and the excluded code keeps its place in front of the moved member:
 
 ```csharp
 public class C
@@ -376,6 +402,21 @@ public class C
     }
 }
 ```
+
+The instance fields of a layout type are counted the same way. Without `DEBUG` defined,
+
+```csharp
+public struct S
+{
+    private int _x;
+#if DEBUG
+    private int _y;
+#endif
+    private static int {|RH7103:_s|};
+}
+```
+
+is reported by RH7103, and no code fix is offered: `_y` moves with `_s` in front of `_x`, so a build with `DEBUG` would lay out `_y` before `_x`.
 
 Crossing an instance initializer is allowed:
 
