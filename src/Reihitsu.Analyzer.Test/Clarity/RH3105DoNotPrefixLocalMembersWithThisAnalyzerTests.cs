@@ -481,11 +481,13 @@ public class RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests : BatchCodeFixTe
     }
 
     /// <summary>
-    /// Characterizes that the fix removes comments on both sides of the dot together with the qualifier
+    /// Verifies comments on both sides of the dot are reported without a code fix, because the fix would delete them
+    /// with the qualifier
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixRemovesCommentsAroundTheDotWithTheQualifier()
+    [Requirement("RH3105-006")]
+    public async Task CommentsAroundTheDotAreReportedWithoutACodeFix()
     {
         const string testCode = """
                                 class C
@@ -499,28 +501,17 @@ public class RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests : BatchCodeFixTe
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 class C
-                                 {
-                                     int _a;
-
-                                     int M()
-                                     {
-                                         return _a;
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Characterizes that removing the qualifier from the right operand of a <c>&lt;</c> in an argument leaves a name
-    /// that, with the <c>&gt;</c> of the next argument, reads as a generic invocation
+    /// Verifies the qualified right operand of a <c>&lt;</c> in an argument is reported without a code fix, because the
+    /// name without the qualifier would, with the <c>&gt;</c> of the next argument, read as a generic invocation
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfQualifiedOperandAfterLessThanBeforeAGreaterThanArgumentWritesAGenericReading()
+    [Requirement("RH3105-005")]
+    public async Task QualifiedOperandAfterLessThanBeforeAGreaterThanArgumentIsReportedWithoutACodeFix()
     {
         const string testCode = """
                                 class C
@@ -535,39 +526,22 @@ public class RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests : BatchCodeFixTe
 
                                     void Run()
                                     {
-                                        M(A < this.B, D > (7));
+                                        M(A < {|RH3105:this|}.B, D > (7));
                                     }
                                 }
                                 """;
 
-        const string expectedCode = """
-                                    class C
-                                    {
-                                        int A;
-                                        int B;
-                                        int D;
-
-                                        void M(bool x, bool y)
-                                        {
-                                        }
-
-                                        void Run()
-                                        {
-                                            M(A < B, D > (7));
-                                        }
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Characterizes that removing the qualifier from the left operand of a <c>&gt;</c> in an argument leaves a name
-    /// that, with the <c>&lt;</c> of the previous argument, reads as a generic invocation
+    /// Verifies the qualified left operand of a <c>&gt;</c> in an argument after a <c>&lt;</c> argument is reported
+    /// without a code fix, because the name without the qualifier would read as a type argument of a generic invocation
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfQualifiedOperandBeforeGreaterThanAfterALessThanArgumentWritesAGenericReading()
+    [Requirement("RH3105-005")]
+    public async Task QualifiedOperandBeforeGreaterThanAfterALessThanArgumentIsReportedWithoutACodeFix()
     {
         const string testCode = """
                                 class C
@@ -582,39 +556,22 @@ public class RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests : BatchCodeFixTe
 
                                     void Run()
                                     {
-                                        M(A < B, this.D > (7));
+                                        M(A < B, {|RH3105:this|}.D > (7));
                                     }
                                 }
                                 """;
 
-        const string expectedCode = """
-                                    class C
-                                    {
-                                        int A;
-                                        int B;
-                                        int D;
-
-                                        void M(bool x, bool y)
-                                        {
-                                        }
-
-                                        void Run()
-                                        {
-                                            M(A < B, D > (7));
-                                        }
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Characterizes that removing the qualifier from an argument between a <c>&lt;</c> argument and a <c>&gt;</c>
-    /// argument leaves a name that reads as a type argument of a generic invocation
+    /// Verifies a qualified argument between a <c>&lt;</c> argument and a <c>&gt;</c> argument is reported without a
+    /// code fix, because the name without the qualifier would read as a type argument of a generic invocation
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfQualifiedArgumentBetweenLessThanAndGreaterThanArgumentsWritesAGenericReading()
+    [Requirement("RH3105-005")]
+    public async Task QualifiedArgumentBetweenLessThanAndGreaterThanArgumentsIsReportedWithoutACodeFix()
     {
         const string testCode = """
                                 class C
@@ -630,40 +587,23 @@ public class RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests : BatchCodeFixTe
 
                                     void Run()
                                     {
-                                        M(A < B, this.X, D > (7));
+                                        M(A < B, {|RH3105:this|}.X, D > (7));
                                     }
                                 }
                                 """;
 
-        const string expectedCode = """
-                                    class C
-                                    {
-                                        int A;
-                                        int B;
-                                        int X;
-                                        int D;
-
-                                        void M(bool x, int z, bool y)
-                                        {
-                                        }
-
-                                        void Run()
-                                        {
-                                            M(A < B, X, D > (7));
-                                        }
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Characterizes that removing the qualifier from the middle operand of a user-defined comparison chain leaves a
-    /// name that reads as the type argument of a generic invocation
+    /// Verifies the qualified middle operand of a comparison chain is reported without a code fix, because the name
+    /// without the qualifier would, with the <c>&lt;</c> in front and the <c>&gt;</c> behind it, read as a generic
+    /// invocation
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfQualifiedOperandInAComparisonChainWritesAGenericReading()
+    [Requirement("RH3105-005")]
+    public async Task QualifiedOperandInAComparisonChainIsReportedWithoutACodeFix()
     {
         const string testCode = """
                                 class U
@@ -687,39 +627,287 @@ public class RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests : BatchCodeFixTe
 
                                     bool Run()
                                     {
-                                        return A < this.B > (7);
+                                        return A < {|RH3105:this|}.B > (7);
                                     }
                                 }
                                 """;
 
-        const string expectedCode = """
-                                    class U
-                                    {
-                                        public static bool operator >(U a, int b) => true;
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
 
-                                        public static bool operator <(U a, int b) => true;
+    /// <summary>
+    /// Verifies a qualified delegate field in parentheses that is invoked is reported without a code fix, because the
+    /// name alone in parentheses would read as a cast
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3105-005")]
+    public async Task ParenthesizedThisAccessFollowedByAnArgumentListIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    Action<int> A;
+
+                                    void Run()
+                                    {
+                                        ({|RH3105:this|}.A)(5);
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a qualified field in parentheses followed by the null-forgiving operator is reported without a code
+    /// fix,
+    /// because the name alone in parentheses would read as a cast
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3105-005")]
+    public async Task ParenthesizedThisAccessFollowedByANullForgivingOperatorIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string S;
+
+                                    int Run()
+                                    {
+                                        return ({|RH3105:this|}.S)!.Length;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a qualified field in parentheses followed by <c>with</c> is reported without a code fix, because the
+    /// name alone in parentheses would read as a cast
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3105-005")]
+    public async Task ParenthesizedThisAccessFollowedByWithIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                record R(int X);
+
+                                class C
+                                {
+                                    R Q;
+
+                                    R Run()
+                                    {
+                                        return ({|RH3105:this|}.Q) with { X = 1 };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a qualified field in parentheses is still fixed where the parentheses keep reading as a parenthesized
+    /// expression
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3105-004")]
+    [Requirement("RH3105-005")]
+    public async Task ParenthesizedThisAccessFollowedByABinaryOperatorIsFixed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int N;
+
+                                    int Run()
+                                    {
+                                        return ({|RH3105:this|}.N) - 1;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int N;
+
+                                     int Run()
+                                     {
+                                         return (N) - 1;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies Fix All leaves an access whose fix would read as a generic name as written and reported, and fixes the
+    /// other accesses of the document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3105-005")]
+    public async Task FixAllLeavesAnAccessThatWouldReadAsAGenericNameReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int A;
+                                    int B;
+                                    int D;
+
+                                    void M(bool x, bool y)
+                                    {
                                     }
 
-                                    class T
+                                    int Run()
                                     {
-                                        public static U operator <(T a, int b) => null;
+                                        M(A < {|RH3105:this|}.B, D > (7));
 
-                                        public static U operator >(T a, int b) => null;
+                                        return {|RH3105:this|}.A + {|RH3105:this|}.D;
                                     }
+                                }
+                                """;
 
-                                    class C
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int A;
+                                     int B;
+                                     int D;
+
+                                     void M(bool x, bool y)
+                                     {
+                                     }
+
+                                     int Run()
+                                     {
+                                         M(A < {|RH3105:this|}.B, D > (7));
+
+                                         return A + D;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a comment between <c>this</c> and the dot alone is reported without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3105-006")]
+    public async Task CommentInFrontOfTheDotIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int _a;
+
+                                    int M()
                                     {
-                                        T A;
-                                        int B;
-
-                                        bool Run()
-                                        {
-                                            return A < B > (7);
-                                        }
+                                        return {|RH3105:this|} /* a */._a;
                                     }
-                                    """;
+                                }
+                                """;
 
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an end-of-line comment between the dot and the member name alone is reported without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3105-006")]
+    public async Task CommentBehindTheDotIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int _a;
+
+                                    int M()
+                                    {
+                                        return {|RH3105:this|}. // b
+                                            _a;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a preprocessor directive between <c>this</c> and the member name is reported without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3105-006")]
+    public async Task DirectiveBetweenThisAndTheMemberNameIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int _a;
+
+                                    int M()
+                                    {
+                                        return {|RH3105:this|}
+                                #if DEBUG
+                                #endif
+                                            ._a;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the comments in front of <c>this</c> and behind the member name do not withhold the fix and stay
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3105-004")]
+    [Requirement("RH3105-006")]
+    public async Task CommentsOutsideTheAccessDoNotWithholdTheFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int _a;
+
+                                    int M()
+                                    {
+                                        return /* a */ {|RH3105:this|}._a /* b */;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int _a;
+
+                                     int M()
+                                     {
+                                         return /* a */ _a /* b */;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests

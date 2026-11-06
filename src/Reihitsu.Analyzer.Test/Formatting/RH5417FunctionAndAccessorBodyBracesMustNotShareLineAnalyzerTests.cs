@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -1034,7 +1036,193 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
                      Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the one-line body of a lambda inside an interpolation of a non-verbatim interpolated string is not
+    /// reported when the code is compiled with C# 10, because the interpolation cannot contain a line break
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5417-005")]
+    public async Task LambdaBodyInsideAnInterpolationIsNotReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    string M() => $"{((Func<int>)(() => { return 1; }))()}";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add((solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp10)));
+    }
+
+    /// <summary>
+    /// Verifies the one-line body of an anonymous method inside an interpolation of a non-verbatim interpolated string
+    /// is not reported when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5417-005")]
+    public async Task AnonymousMethodBodyInsideAnInterpolationIsNotReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    string M() => $"{((Func<int>)delegate { return 1; })()}";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add((solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp10)));
+    }
+
+    /// <summary>
+    /// Verifies the one-line body of a lambda inside a verbatim interpolated string that stands in an interpolation of
+    /// a non-verbatim interpolated string is not reported when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5417-005")]
+    public async Task BodyInsideAVerbatimInterpolationNestedInAnInterpolationIsNotReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    string M() => $"{$@"{((Func<int>)(() => { return 1; }))()}"}";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add((solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp10)));
+    }
+
+    /// <summary>
+    /// Verifies the one-line body of a lambda inside a non-verbatim interpolated string that stands in an interpolation
+    /// of a verbatim interpolated string is not reported when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5417-005")]
+    public async Task BodyInsideAnInterpolationNestedInAVerbatimInterpolationIsNotReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    string M() => $@"{$"{((Func<int>)(() => { return 1; }))()}"}";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add((solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp10)));
+    }
+
+    /// <summary>
+    /// Verifies the one-line body of a lambda inside an interpolation of a non-verbatim interpolated string is reported
+    /// when the code is compiled with C# 11
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5417-005")]
+    public async Task LambdaBodyInsideAnInterpolationIsReportedFromCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    string M() => $"{((Func<int>)(() => {|RH5417:{|} return 1; }))()}";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add((solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp11)));
+    }
+
+    /// <summary>
+    /// Verifies the one-line body of a lambda inside a verbatim interpolated string that stands in an interpolation of
+    /// a non-verbatim interpolated string is reported when the code is compiled with C# 11
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5417-005")]
+    public async Task BodyInsideAVerbatimInterpolationNestedInAnInterpolationIsReportedFromCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    string M() => $"{$@"{((Func<int>)(() => {|RH5417:{|} return 1; }))()}"}";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add((solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp11)));
+    }
+
+    /// <summary>
+    /// Verifies the one-line body of a lambda inside an interpolation of a verbatim interpolated string written
+    /// <c>$@</c> is reported when the code is compiled with C# 10, because its interpolations accept line breaks
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5417-005")]
+    public async Task LambdaBodyInsideAVerbatimInterpolationIsReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    string M() => $@"{((Func<int>)(() => {|RH5417:{|} return 1; }))()}";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add((solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp10)));
+    }
+
+    /// <summary>
+    /// Verifies the one-line body of a lambda inside an interpolation of a verbatim interpolated string written
+    /// <c>@$</c> is reported when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5417-005")]
+    public async Task LambdaBodyInsideAnAtDollarVerbatimInterpolationIsReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    string M() => @$"{((Func<int>)(() => {|RH5417:{|} return 1; }))()}";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add((solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp10)));
+    }
+
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Sets the language version of the test project
+    /// </summary>
+    /// <param name="solution">Solution</param>
+    /// <param name="projectId">Project ID</param>
+    /// <param name="languageVersion">Language version</param>
+    /// <returns>The solution with the language version applied to the project</returns>
+    private static Solution ApplyLanguageVersion(Solution solution, ProjectId projectId, LanguageVersion languageVersion)
+    {
+        return solution.GetProject(projectId)?.ParseOptions is CSharpParseOptions parseOptions
+                   ? solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(languageVersion))
+                   : solution;
+    }
+
+    #endregion // Methods
 
     #region BatchCodeFixTestsBase
 

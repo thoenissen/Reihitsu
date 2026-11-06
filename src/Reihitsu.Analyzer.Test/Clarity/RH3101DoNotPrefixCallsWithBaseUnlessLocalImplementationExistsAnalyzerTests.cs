@@ -502,12 +502,13 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
     }
 
     /// <summary>
-    /// Characterizes that the fix removes the qualifier of a virtual method called from a type that is not sealed,
-    /// although a derived type overrides the method
+    /// Verifies the access of a virtual method from a type that is not sealed is reported without a code fix, because
+    /// the call without the qualifier would dispatch to the override of a derived type
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfVirtualMethodInUnsealedTypeRemovesTheQualifier()
+    [Requirement("RH3101-007")]
+    public async Task VirtualMethodInUnsealedTypeIsReportedWithoutACodeFix()
     {
         const string testCode = """
                                 class B
@@ -529,23 +530,45 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
                                 }
                                 """;
 
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the access of a virtual method from a sealed type is fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3101-004")]
+    [Requirement("RH3101-007")]
+    public async Task VirtualMethodInSealedTypeIsFixed()
+    {
+        const string testCode = """
+                                class B
+                                {
+                                    public virtual int M() => 1;
+                                }
+
+                                sealed class D : B
+                                {
+                                    int Run()
+                                    {
+                                        return {|RH3101:base|}.M();
+                                    }
+                                }
+                                """;
+
         const string fixedCode = """
                                  class B
                                  {
                                      public virtual int M() => 1;
                                  }
 
-                                 class D : B
+                                 sealed class D : B
                                  {
-                                     public int Run()
+                                     int Run()
                                      {
                                          return M();
                                      }
-                                 }
-
-                                 class E : D
-                                 {
-                                     public override int M() => 2;
                                  }
                                  """;
 
@@ -553,11 +576,199 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
     }
 
     /// <summary>
-    /// Characterizes that the fix removes comments on both sides of the dot together with the qualifier
+    /// Verifies the access of an override that is not sealed from a type that is not sealed is reported without a code
+    /// fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixRemovesCommentsAroundTheDotWithTheQualifier()
+    [Requirement("RH3101-007")]
+    public async Task UnsealedOverrideInUnsealedTypeIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class A
+                                {
+                                    public virtual int M() => 1;
+                                }
+
+                                class B : A
+                                {
+                                    public override int M() => 2;
+                                }
+
+                                class D : B
+                                {
+                                    int Run()
+                                    {
+                                        return {|RH3101:base|}.M();
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the access of a sealed override from a type that is not sealed is fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3101-004")]
+    [Requirement("RH3101-007")]
+    public async Task SealedOverrideInUnsealedTypeIsFixed()
+    {
+        const string testCode = """
+                                class A
+                                {
+                                    public virtual int M() => 1;
+                                }
+
+                                class B : A
+                                {
+                                    public sealed override int M() => 2;
+                                }
+
+                                class D : B
+                                {
+                                    int Run()
+                                    {
+                                        return {|RH3101:base|}.M();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class A
+                                 {
+                                     public virtual int M() => 1;
+                                 }
+
+                                 class B : A
+                                 {
+                                     public sealed override int M() => 2;
+                                 }
+
+                                 class D : B
+                                 {
+                                     int Run()
+                                     {
+                                         return M();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the access of a virtual property and of a virtual indexer from a type that is not sealed is reported
+    /// without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3101-007")]
+    public async Task VirtualPropertyAndIndexerInUnsealedTypeAreReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class B
+                                {
+                                    public virtual int P => 1;
+                                    public virtual int this[int i] => i;
+                                }
+
+                                class D : B
+                                {
+                                    int Run()
+                                    {
+                                        return {|RH3101:base|}.P + {|RH3101:base|}[0];
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the access of a virtual indexer from a sealed type is fixed to <c>this</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3101-004")]
+    [Requirement("RH3101-007")]
+    public async Task VirtualIndexerInSealedTypeIsFixed()
+    {
+        const string testCode = """
+                                class B
+                                {
+                                    public virtual int this[int i] => i;
+                                }
+
+                                sealed class D : B
+                                {
+                                    int Run()
+                                    {
+                                        return {|RH3101:base|}[0];
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class B
+                                 {
+                                     public virtual int this[int i] => i;
+                                 }
+
+                                 sealed class D : B
+                                 {
+                                     int Run()
+                                     {
+                                         return this[0];
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the access of an inherited override from a struct, which no type can derive from, is fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3101-004")]
+    [Requirement("RH3101-007")]
+    public async Task InheritedOverrideInStructIsFixed()
+    {
+        const string testCode = """
+                                struct S
+                                {
+                                    int Run()
+                                    {
+                                        return {|RH3101:base|}.GetHashCode();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 struct S
+                                 {
+                                     int Run()
+                                     {
+                                         return GetHashCode();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies comments on both sides of the dot of a member access are reported without a code fix, because the fix
+    /// would delete them with the qualifier
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3101-006")]
+    public async Task CommentsAroundTheDotAreReportedWithoutACodeFix()
     {
         const string testCode = """
                                 class B
@@ -574,17 +785,126 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
                                 }
                                 """;
 
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a comment between <c>base</c> and the dot alone is reported without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3101-006")]
+    public async Task CommentInFrontOfTheDotIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class B
+                                {
+                                    public int M() => 1;
+                                }
+
+                                class D : B
+                                {
+                                    int Run()
+                                    {
+                                        return {|RH3101:base|} /* a */.M();
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an end-of-line comment between the dot and the member name alone is reported without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3101-006")]
+    public async Task CommentBehindTheDotIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class B
+                                {
+                                    public int M() => 1;
+                                }
+
+                                class D : B
+                                {
+                                    int Run()
+                                    {
+                                        return {|RH3101:base|}. // b
+                                            M();
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a preprocessor directive between <c>base</c> and the member name is reported without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3101-006")]
+    public async Task DirectiveBetweenBaseAndTheMemberNameIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class B
+                                {
+                                    public int M() => 1;
+                                }
+
+                                class D : B
+                                {
+                                    int Run()
+                                    {
+                                        return {|RH3101:base|}
+                                #if DEBUG
+                                #endif
+                                            .M();
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a comment between <c>base</c> and the bracket of an element access does not withhold the fix and stays
+    /// behind the <c>this</c> the fix writes
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3101-006")]
+    public async Task CommentInAnElementAccessStaysBehindThis()
+    {
+        const string testCode = """
+                                class B
+                                {
+                                    public int this[int i] => i;
+                                }
+
+                                class D : B
+                                {
+                                    int Run()
+                                    {
+                                        return {|RH3101:base|} /* a */ [0];
+                                    }
+                                }
+                                """;
+
         const string fixedCode = """
                                  class B
                                  {
-                                     public int M() => 1;
+                                     public int this[int i] => i;
                                  }
 
                                  class D : B
                                  {
                                      int Run()
                                      {
-                                         return M();
+                                         return this /* a */ [0];
                                      }
                                  }
                                  """;
@@ -593,12 +913,13 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
     }
 
     /// <summary>
-    /// Characterizes that removing the qualifier from the right operand of a <c>&lt;</c> in an argument leaves a name
-    /// that, with the <c>&gt;</c> of the next argument, reads as a generic invocation
+    /// Verifies the qualified right operand of a <c>&lt;</c> in an argument is reported without a code fix, because the
+    /// name without the qualifier would, with the <c>&gt;</c> of the next argument, read as a generic invocation
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfBaseOperandAfterLessThanBeforeAGreaterThanArgumentWritesAGenericReading()
+    [Requirement("RH3101-005")]
+    public async Task BaseOperandAfterLessThanBeforeAGreaterThanArgumentIsReportedWithoutACodeFix()
     {
         const string testCode = """
                                 class P
@@ -617,43 +938,22 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
 
                                     void Run()
                                     {
-                                        M(A < base.B, D > (7));
+                                        M(A < {|RH3101:base|}.B, D > (7));
                                     }
                                 }
                                 """;
 
-        const string expectedCode = """
-                                    class P
-                                    {
-                                        protected int B;
-                                    }
-
-                                    class C : P
-                                    {
-                                        int A;
-                                        int D;
-
-                                        void M(bool x, bool y)
-                                        {
-                                        }
-
-                                        void Run()
-                                        {
-                                            M(A < B, D > (7));
-                                        }
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Characterizes that removing the qualifier from an argument between a <c>&lt;</c> argument and a <c>&gt;</c>
-    /// argument leaves a name that reads as a type argument of a generic invocation
+    /// Verifies a qualified argument between a <c>&lt;</c> argument and a <c>&gt;</c> argument is reported without a
+    /// code fix, because the name without the qualifier would read as a type argument of a generic invocation
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfBaseArgumentBetweenLessThanAndGreaterThanArgumentsWritesAGenericReading()
+    [Requirement("RH3101-005")]
+    public async Task BaseArgumentBetweenLessThanAndGreaterThanArgumentsIsReportedWithoutACodeFix()
     {
         const string testCode = """
                                 class P
@@ -673,35 +973,227 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
 
                                     void Run()
                                     {
-                                        M(A < B, base.X, D > (7));
+                                        M(A < B, {|RH3101:base|}.X, D > (7));
                                     }
                                 }
                                 """;
 
-        const string expectedCode = """
-                                    class P
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the qualified left operand of a <c>&gt;</c> in an argument after a <c>&lt;</c> argument is reported
+    /// without a code fix, because the name without the qualifier would read as a type argument of a generic invocation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3101-005")]
+    public async Task BaseOperandBeforeGreaterThanAfterALessThanArgumentIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class P
+                                {
+                                    protected int D;
+                                }
+
+                                class C : P
+                                {
+                                    int A;
+                                    int B;
+
+                                    void M(bool x, bool y)
                                     {
-                                        protected int X;
                                     }
 
-                                    class C : P
+                                    void Run()
                                     {
-                                        int A;
-                                        int B;
-                                        int D;
-
-                                        void M(bool x, int z, bool y)
-                                        {
-                                        }
-
-                                        void Run()
-                                        {
-                                            M(A < B, X, D > (7));
-                                        }
+                                        M(A < B, {|RH3101:base|}.D > (7));
                                     }
-                                    """;
+                                }
+                                """;
 
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a qualified delegate field in parentheses that is invoked is reported without a code fix, because the
+    /// name alone in parentheses would read as a cast
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3101-005")]
+    public async Task ParenthesizedBaseAccessFollowedByAnArgumentListIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                using System;
+
+                                class P
+                                {
+                                    protected Action<int> A;
+                                }
+
+                                class C : P
+                                {
+                                    void Run()
+                                    {
+                                        ({|RH3101:base|}.A)(5);
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a qualified field in parentheses followed by the null-forgiving operator is reported without a code
+    /// fix,
+    /// because the name alone in parentheses would read as a cast
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3101-005")]
+    public async Task ParenthesizedBaseAccessFollowedByANullForgivingOperatorIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class P
+                                {
+                                    protected string S;
+                                }
+
+                                class C : P
+                                {
+                                    int Run()
+                                    {
+                                        return ({|RH3101:base|}.S)!.Length;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a qualified field in parentheses followed by <c>with</c> is reported without a code fix, because the
+    /// name alone in parentheses would read as a cast
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3101-005")]
+    public async Task ParenthesizedBaseAccessFollowedByWithIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                record R(int X);
+
+                                class P
+                                {
+                                    protected R Q;
+                                }
+
+                                class C : P
+                                {
+                                    R Run()
+                                    {
+                                        return ({|RH3101:base|}.Q) with { X = 1 };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a qualified field in parentheses is still fixed where the parentheses keep reading as a parenthesized
+    /// expression
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3101-004")]
+    [Requirement("RH3101-005")]
+    public async Task ParenthesizedBaseAccessFollowedByABinaryOperatorIsFixed()
+    {
+        const string testCode = """
+                                class P
+                                {
+                                    protected int N;
+                                }
+
+                                class C : P
+                                {
+                                    int Run()
+                                    {
+                                        return ({|RH3101:base|}.N) - 1;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class P
+                                 {
+                                     protected int N;
+                                 }
+
+                                 class C : P
+                                 {
+                                     int Run()
+                                     {
+                                         return (N) - 1;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies Fix All leaves an access whose fix would read as a cast as written and reported, and fixes the other
+    /// accesses of the document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3101-005")]
+    public async Task FixAllLeavesAnAccessThatWouldReadAsACastReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                class P
+                                {
+                                    protected Action<int> A;
+                                    protected int N;
+                                }
+
+                                class C : P
+                                {
+                                    int Run()
+                                    {
+                                        ({|RH3101:base|}.A)(5);
+
+                                        return {|RH3101:base|}.N + {|RH3101:base|}.N;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class P
+                                 {
+                                     protected Action<int> A;
+                                     protected int N;
+                                 }
+
+                                 class C : P
+                                 {
+                                     int Run()
+                                     {
+                                         ({|RH3101:base|}.A)(5);
+
+                                         return N + N;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests

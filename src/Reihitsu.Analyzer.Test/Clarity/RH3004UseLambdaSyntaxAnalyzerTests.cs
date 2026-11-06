@@ -60,6 +60,8 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3004-003")]
+    [Requirement("RH3004-006")]
     public async Task AnonymousMethodWithBlockBodyIsConverted()
     {
         const string testCode = """
@@ -85,10 +87,11 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                  {
                                      public Action<string> GetLogger()
                                      {
-                                         return (string message) => {
-                                             Console.WriteLine(message);
-                                             Console.WriteLine("Logged");
-                                         };
+                                         return (string message) =>
+                                                {
+                                                    Console.WriteLine(message);
+                                                    Console.WriteLine("Logged");
+                                                };
                                      }
                                  }
                                  """;
@@ -211,6 +214,7 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3004-003")]
+    [Requirement("RH3004-006")]
     public async Task CommentInsideSingleReturnBlockIsPreserved()
     {
         const string testCode = """
@@ -232,7 +236,10 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                  {
                                      public void Process()
                                      {
-                                         Func<int, int> square = (int x) => { return x * x; /* keep me */ };
+                                         Func<int, int> square = (int x) =>
+                                                                 {
+                                                                     return x * x; /* keep me */
+                                                                 };
                                      }
                                  }
                                  """;
@@ -307,6 +314,7 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3004-006")]
     public async Task DocumentationCommentedAnonymousMethodKeepsItsBody()
     {
         const string testCode = """
@@ -332,7 +340,8 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                  {
                                      public Func<int> Run()
                                      {
-                                         return () => {
+                                         return () =>
+                                                {
                                                     /// <summary>Result of the callback.</summary>
                                                     return 1;
                                                 };
@@ -526,6 +535,7 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3004-003")]
+    [Requirement("RH3004-006")]
     public async Task FixWritesAnExpressionBodyOnlyForASingleReturnStatement()
     {
         const string testCode = """
@@ -553,9 +563,18 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                      void M()
                                      {
                                          Func<int, int> a = (int x) => x + 1;
-                                         Action<int> b = (int x) => { Console.WriteLine(x); };
-                                         Func<Task> c = async () => { await Task.Delay(1); };
-                                         Func<int, int> d = (int x) => { return x; /* c */ };
+                                         Action<int> b = (int x) =>
+                                                         {
+                                                             Console.WriteLine(x);
+                                                         };
+                                         Func<Task> c = async () =>
+                                                        {
+                                                            await Task.Delay(1);
+                                                        };
+                                         Func<int, int> d = (int x) =>
+                                                            {
+                                                                return x; /* c */
+                                                            };
                                      }
                                  }
                                  """;
@@ -621,11 +640,13 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     }
 
     /// <summary>
-    /// Characterizes that the fix writes the lambda as the operand of a cast without parentheses
+    /// Verifies an anonymous method that is the operand of a cast is reported without a code fix, because a lambda does
+    /// not parse as the operand of a cast
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfCastOperandWritesTheLambdaWithoutParentheses()
+    [Requirement("RH3004-005")]
+    public async Task CastOperandIsReportedWithoutACodeFix()
     {
         const string testCode = """
                                 using System;
@@ -634,33 +655,22 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 {
                                     void M()
                                     {
-                                        var f = (Func<int, int>)delegate (int x) { return x + 1; };
+                                        var f = (Func<int, int>){|RH3004:delegate|} (int x) { return x + 1; };
                                     }
                                 }
                                 """;
 
-        const string expectedCode = """
-                                    using System;
-
-                                    class C
-                                    {
-                                        void M()
-                                        {
-                                            var f = (Func<int, int>)(int x) => x + 1;
-                                        }
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Characterizes that the fix of a left binary operand writes an expression-bodied lambda that takes in the rest
-    /// of the binary expression
+    /// Verifies an anonymous method that is the left operand of a binary operator is reported without a code fix,
+    /// because the expression body of the lambda would take in the rest of the binary expression
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfLeftBinaryOperandWritesTheLambdaWithoutParentheses()
+    [Requirement("RH3004-005")]
+    public async Task LeftBinaryOperandIsReportedWithoutACodeFix()
     {
         const string testCode = """
                                 using System;
@@ -669,32 +679,22 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 {
                                     void M(Func<int> h)
                                     {
-                                        Func<int> f = delegate () { return 1; } + h;
+                                        Func<int> f = {|RH3004:delegate|} () { return 1; } + h;
                                     }
                                 }
                                 """;
 
-        const string expectedCode = """
-                                    using System;
-
-                                    class C
-                                    {
-                                        void M(Func<int> h)
-                                        {
-                                            Func<int> f = () => 1 + h;
-                                        }
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Characterizes that the fix of a right binary operand with a block body writes the lambda without parentheses
+    /// Verifies an anonymous method with a block body that is the right operand of a binary operator is reported
+    /// without a code fix, because a lambda does not parse as the right operand of a binary operator
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfRightBinaryOperandWithBlockBodyWritesTheLambdaWithoutParentheses()
+    [Requirement("RH3004-005")]
+    public async Task RightBinaryOperandIsReportedWithoutACodeFix()
     {
         const string testCode = """
                                 using System;
@@ -703,32 +703,22 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 {
                                     void M(Action g)
                                     {
-                                        Action f = g + delegate () { };
+                                        Action f = g + {|RH3004:delegate|} () { };
                                     }
                                 }
                                 """;
 
-        const string expectedCode = """
-                                    using System;
-
-                                    class C
-                                    {
-                                        void M(Action g)
-                                        {
-                                            Action f = g + () => { };
-                                        }
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Characterizes that the fix of a middle binary operand writes an expression-bodied lambda without parentheses
+    /// Verifies an anonymous method that is the right operand of one binary operator and the left operand of the next
+    /// is reported without a code fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfMiddleBinaryOperandWritesTheLambdaWithoutParentheses()
+    [Requirement("RH3004-005")]
+    public async Task MiddleBinaryOperandIsReportedWithoutACodeFix()
     {
         const string testCode = """
                                 using System;
@@ -737,24 +727,315 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 {
                                     void M(Func<int> g, Func<int> h)
                                     {
-                                        Func<int> f = g + delegate () { return 1; } + h;
+                                        Func<int> f = g + {|RH3004:delegate|} () { return 1; } + h;
                                     }
                                 }
                                 """;
 
-        const string expectedCode = """
-                                    using System;
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
 
-                                    class C
+    /// <summary>
+    /// Verifies an anonymous method that is the right operand of <c>??</c> is reported without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-005")]
+    public async Task RightOperandOfNullCoalescingIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M(Action g)
                                     {
-                                        void M(Func<int> g, Func<int> h)
-                                        {
-                                            Func<int> f = g + () => 1 + h;
-                                        }
+                                        Action f = g ?? {|RH3004:delegate|} () { };
                                     }
-                                    """;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method with a block body that is the left operand of a binary operator is reported
+    /// without a code fix, because a lambda block body in front of an operator draws a warning
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-005")]
+    public async Task LeftBinaryOperandWithBlockBodyIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M(Action g)
+                                    {
+                                        Action f = {|RH3004:delegate|} () { } + g;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the operands of a cast and of binary operators from the specification are reported without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-005")]
+    public async Task CastAndBinaryOperandsAreReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M(Func<int> h, Action g)
+                                    {
+                                        var a = (Func<int, int>){|RH3004:delegate|} (int x) { return x + 1; };
+                                        var b = {|RH3004:delegate|} () { return 1; } + h;
+                                        var c = g + {|RH3004:delegate|} () { };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method inside parentheses that are the operand of a cast, and one that is the value of a
+    /// compound assignment, are rewritten
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-003")]
+    [Requirement("RH3004-005")]
+    public async Task ParenthesizedCastOperandAndCompoundAssignmentValueAreFixed()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M(Func<int> g)
+                                    {
+                                        var a = (Func<int, int>)({|RH3004:delegate|} (int x) { return x + 1; });
+                                        g += {|RH3004:delegate|} () { return 1; };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M(Func<int> g)
+                                     {
+                                         var a = (Func<int, int>)((int x) => x + 1);
+                                         g += () => 1;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method that is a branch of a conditional expression is rewritten, because a lambda is a
+    /// valid branch
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-003")]
+    [Requirement("RH3004-005")]
+    public async Task ConditionalBranchIsFixed()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M(bool b, Func<int> h)
+                                    {
+                                        Func<int> f = b ? {|RH3004:delegate|} () { return 1; } : h;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M(bool b, Func<int> h)
+                                     {
+                                         Func<int> f = b ? () => 1 : h;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies Fix All leaves an anonymous method that is a binary operand as written and reported, and rewrites the
+    /// other anonymous methods of the document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-005")]
+    public async Task FixAllLeavesABinaryOperandReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M(Func<int> h)
+                                    {
+                                        var b = {|RH3004:delegate|} () { return 1; } + h;
+                                        Func<int> c = {|RH3004:delegate|} () { return 2; };
+                                        Func<int> d = {|RH3004:delegate|} () { return 3; };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M(Func<int> h)
+                                     {
+                                         var b = {|RH3004:delegate|} () { return 1; } + h;
+                                         Func<int> c = () => 2;
+                                         Func<int> d = () => 3;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix lays out a lambda whose block stood on lines of its own, with the opening brace on the line
+    /// after the parameter list, as the formatter lays it out, and writes an expression body on the line of the arrow
+    /// for a single <see langword="return"/>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-003")]
+    [Requirement("RH3004-006")]
+    public async Task FixLaysOutABlockOnItsOwnLinesAsTheFormatter()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> b = {|RH3004:delegate|} (int x)
+                                        {
+                                            Console.WriteLine(x);
+                                        };
+                                        Func<int, int> e = {|RH3004:delegate|} (int x)
+                                        {
+                                            return x + 1;
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<int> b = (int x) =>
+                                                         {
+                                                             Console.WriteLine(x);
+                                                         };
+                                         Func<int, int> e = (int x) => x + 1;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix lays out a lambda whose block stood on lines of its own as the formatter lays it out in a
+    /// document whose line breaks are CRLF, and keeps those line breaks
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixLaysOutABlockOnItsOwnLinesAsTheFormatterWithCarriageReturnLineFeed()
+    {
+        var testCode = NormalizeToCarriageReturnLineFeed("""
+                                                         using System;
+
+                                                         class C
+                                                         {
+                                                             void M()
+                                                             {
+                                                                 Action<int> b = delegate (int x)
+                                                                 {
+                                                                     Console.WriteLine(x);
+                                                                 };
+                                                             }
+                                                         }
+                                                         """);
+
+        var expectedCode = NormalizeToCarriageReturnLineFeed("""
+                                                             using System;
+
+                                                             class C
+                                                             {
+                                                                 void M()
+                                                                 {
+                                                                     Action<int> b = (int x) =>
+                                                                                     {
+                                                                                         Console.WriteLine(x);
+                                                                                     };
+                                                                 }
+                                                             }
+                                                             """);
 
         Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+    }
+
+    /// <summary>
+    /// Verifies the fix of an anonymous method whose block stood on one line gives the formatter nothing to change
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixOfAOneLineBlockMatchesTheFormatter()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Threading.Tasks;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<Task> c = async delegate () { await Task.Delay(1); };
+                                    }
+                                }
+                                """;
+
+        AssertFormattingChangesNothing(await ApplyCodeFixAsync(testCode));
     }
 
     #endregion // Tests

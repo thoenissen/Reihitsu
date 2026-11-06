@@ -1,6 +1,8 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -899,12 +901,13 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
     }
 
     /// <summary>
-    /// Characterizes that an unbound <c>Nullable&lt;&gt;</c> in <c>typeof</c> is reported and the fix writes a
-    /// question mark without a type
+    /// Verifies an unbound <c>Nullable&lt;&gt;</c> in <c>typeof</c> is not reported, because <c>?</c> without a type
+    /// argument is no type
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfUnboundNullableGenericInTypeofWritesAQuestionMarkOnly()
+    [Requirement("RH3103-007")]
+    public async Task UnboundNullableGenericInTypeofIsNotReported()
     {
         const string testCode = """
                                 using System;
@@ -915,25 +918,17 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
                                 }
                                 """;
 
-        const string expectedCode = """
-                                    using System;
-
-                                    class C
-                                    {
-                                        Type M() => typeof(?);
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await Verify(testCode);
     }
 
     /// <summary>
-    /// Characterizes that a <c>Nullable&lt;T&gt;</c> that qualifies a member inside <c>nameof</c> is reported and
-    /// fixed to the shorthand
+    /// Verifies a <c>Nullable&lt;T&gt;</c> that qualifies a member inside <c>nameof</c> is not reported, because the
+    /// receiver of a member access takes a name, not a nullable type
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfNullableGenericQualifyingAMemberInNameofWritesTheShorthand()
+    [Requirement("RH3103-007")]
+    public async Task NullableGenericQualifyingAMemberInNameofIsNotReported()
     {
         const string testCode = """
                                 using System;
@@ -944,53 +939,75 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
                                 }
                                 """;
 
-        const string expectedCode = """
-                                    using System;
-
-                                    class C
-                                    {
-                                        string M() => nameof(int?.HasValue);
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await Verify(testCode);
     }
 
     /// <summary>
-    /// Characterizes that a <c>Nullable&lt;T&gt;</c> that receives a static method call is reported and fixed to
-    /// the shorthand
+    /// Verifies a <c>Nullable&lt;T&gt;</c> that receives a static method call is not reported, written unqualified,
+    /// with dots, or behind <c>global::</c>, because the receiver of a member access takes a name, not a nullable type
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfNullableGenericReceivingAStaticCallWritesTheShorthand()
+    [Requirement("RH3103-007")]
+    public async Task NullableGenericReceivingAStaticCallIsNotReported()
     {
         const string testCode = """
                                 using System;
 
                                 class C
                                 {
-                                    bool M() => Nullable<int>.Equals(1, 2);
+                                    bool E() => Nullable<int>.Equals(1, 2);
+                                    bool F() => System.Nullable<int>.Equals(1, 2);
+                                    bool G() => global::System.Nullable<int>.Equals(1, 2);
                                 }
                                 """;
 
-        const string expectedCode = """
-                                    using System;
-
-                                    class C
-                                    {
-                                        bool M() => int?.Equals(1, 2);
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await Verify(testCode);
     }
 
     /// <summary>
-    /// Characterizes that a <c>Nullable&lt;T&gt;</c> in a using alias is reported and fixed to the shorthand
+    /// Verifies a <c>Nullable&lt;T&gt;</c> as the target of a using alias is reported and fixed to the shorthand when
+    /// the
+    /// code is compiled with C# 12 or later
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfNullableGenericInUsingAliasWritesTheShorthand()
+    [Requirement("RH3103-001")]
+    [Requirement("RH3103-004")]
+    [Requirement("RH3103-007")]
+    public async Task NullableGenericInUsingAliasIsReportedAndFixedFromCSharp12()
+    {
+        const string testCode = """
+                                using N = {|RH3103:System.Nullable<int>|};
+
+                                class C
+                                {
+                                    N _a;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using N = int?;
+
+                                 class C
+                                 {
+                                     N _a;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.SolutionTransforms.Add((solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp12)));
+    }
+
+    /// <summary>
+    /// Verifies a <c>Nullable&lt;T&gt;</c> as the target of a using alias is not reported when the code is compiled
+    /// with
+    /// C# 11, because a nullable type as the target of a using alias needs C# 12
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3103-001")]
+    [Requirement("RH3103-007")]
+    public async Task NullableGenericInUsingAliasIsNotReportedBeforeCSharp12()
     {
         const string testCode = """
                                 using N = System.Nullable<int>;
@@ -1001,59 +1018,128 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
                                 }
                                 """;
 
-        const string expectedCode = """
-                                    using N = int?;
-
-                                    class C
-                                    {
-                                        N _a;
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await Verify(testCode, test => test.SolutionTransforms.Add((solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp11)));
     }
 
     /// <summary>
-    /// Verifies a dotted <c>Nullable&lt;T&gt;</c> as the argument of <c>nameof</c> is reported on the generic name
-    /// alone and no fix is offered, because the generic name is the <c>Name</c> of a member access, not a
-    /// <see cref="QualifiedNameSyntax"/>, so replacing it with a <see cref="NullableTypeSyntax"/> would not fit
+    /// Verifies a <c>Nullable&lt;T&gt;</c> as a type argument in the target of a using alias is reported and fixed when
+    /// the code is compiled with C# 11
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3103-006")]
-    public async Task DottedNullableGenericAsNameofArgumentDoesNotOfferFix()
+    [Requirement("RH3103-001")]
+    [Requirement("RH3103-007")]
+    public async Task NullableGenericAsTypeArgumentInUsingAliasIsReportedAndFixedBeforeCSharp12()
+    {
+        const string testCode = """
+                                using L = System.Collections.Generic.List<{|RH3103:System.Nullable<int>|}>;
+
+                                class C
+                                {
+                                    L _a;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using L = System.Collections.Generic.List<int?>;
+
+                                 class C
+                                 {
+                                     L _a;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.SolutionTransforms.Add((solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp11)));
+    }
+
+    /// <summary>
+    /// Verifies a <c>Nullable&lt;T&gt;</c> as the type of a <c>using static</c> directive is not reported, because
+    /// <c>using static</c> takes a name, not a nullable type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3103-007")]
+    public async Task NullableGenericInUsingStaticIsNotReported()
+    {
+        const string testCode = """
+                                using static System.Nullable<int>;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a <c>Nullable&lt;T&gt;</c> as a type argument in the type of a <c>using static</c> directive is
+    /// reported
+    /// and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3103-001")]
+    [Requirement("RH3103-007")]
+    public async Task NullableGenericAsTypeArgumentInUsingStaticIsReportedAndFixed()
+    {
+        const string testCode = """
+                                using static System.Collections.Generic.List<{|RH3103:System.Nullable<int>|}>;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using static System.Collections.Generic.List<int?>;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a dotted <c>Nullable&lt;T&gt;</c> as the argument of <c>nameof</c> is not reported, because
+    /// <c>nameof</c> takes a name, not a nullable type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3103-007")]
+    public async Task DottedNullableGenericAsNameofArgumentIsNotReported()
     {
         const string testCode = """
                                 using System;
 
                                 class C
                                 {
-                                    string M() => nameof(System.{|RH3103:Nullable<int>|});
+                                    string M() => nameof(System.Nullable<int>);
                                 }
                                 """;
 
-        await VerifyNoCodeFixIsOffered(testCode);
+        await Verify(testCode);
     }
 
     /// <summary>
-    /// Verifies a dotted <c>Nullable&lt;T&gt;</c> qualified behind <c>global::</c> as the argument of <c>nameof</c>
-    /// is reported on the generic name alone and no fix is offered, because the generic name is the <c>Name</c> of a
-    /// member access, not a <see cref="QualifiedNameSyntax"/>, so replacing it with a <see cref="NullableTypeSyntax"/>
-    /// would not fit
+    /// Verifies a dotted <c>Nullable&lt;T&gt;</c> behind <c>global::</c> as the argument of <c>nameof</c> is not
+    /// reported, because <c>nameof</c> takes a name, not a nullable type
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3103-006")]
-    public async Task GlobalDottedNullableGenericAsNameofArgumentDoesNotOfferFix()
+    [Requirement("RH3103-007")]
+    public async Task GlobalDottedNullableGenericAsNameofArgumentIsNotReported()
     {
         const string testCode = """
                                 class C
                                 {
-                                    string M() => nameof(global::System.{|RH3103:Nullable<int>|});
+                                    string M() => nameof(global::System.Nullable<int>);
                                 }
                                 """;
 
-        await VerifyNoCodeFixIsOffered(testCode);
+        await Verify(testCode);
     }
 
     /// <summary>
@@ -1090,7 +1176,132 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies the specification example of the positions where the shorthand cannot be written is not reported when
+    /// the code is compiled with C# 11
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3103-007")]
+    public async Task PositionsWithoutTheShorthandAreNotReportedBeforeCSharp12()
+    {
+        const string testCode = """
+                                using System;
+                                using static System.Nullable<int>;
+                                using N = System.Nullable<int>;
+
+                                class C
+                                {
+                                    string A() => nameof(System.Nullable<int>);
+                                    string B() => nameof(global::System.Nullable<int>);
+                                    string D() => nameof(Nullable<int>.HasValue);
+                                    bool E() => Nullable<int>.Equals(1, 2);
+                                    bool F() => System.Nullable<int>.Equals(1, 2);
+                                    Type G() => typeof(Nullable<>);
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add((solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp11)));
+    }
+
+    /// <summary>
+    /// Verifies that of the specification example only the using alias is reported and fixed when the code is compiled
+    /// with C# 12
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3103-007")]
+    public async Task OnlyTheUsingAliasIsReportedFromCSharp12()
+    {
+        const string testCode = """
+                                using System;
+                                using static System.Nullable<int>;
+                                using N = {|RH3103:System.Nullable<int>|};
+
+                                class C
+                                {
+                                    string A() => nameof(System.Nullable<int>);
+                                    string B() => nameof(global::System.Nullable<int>);
+                                    string D() => nameof(Nullable<int>.HasValue);
+                                    bool E() => Nullable<int>.Equals(1, 2);
+                                    bool F() => System.Nullable<int>.Equals(1, 2);
+                                    Type G() => typeof(Nullable<>);
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using static System.Nullable<int>;
+                                 using N = int?;
+
+                                 class C
+                                 {
+                                     string A() => nameof(System.Nullable<int>);
+                                     string B() => nameof(global::System.Nullable<int>);
+                                     string D() => nameof(Nullable<int>.HasValue);
+                                     bool E() => Nullable<int>.Equals(1, 2);
+                                     bool F() => System.Nullable<int>.Equals(1, 2);
+                                     Type G() => typeof(Nullable<>);
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.SolutionTransforms.Add((solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp12)));
+    }
+
+    /// <summary>
+    /// Verifies a <c>Nullable&lt;T&gt;</c> as the type of an <c>is</c>, an <c>as</c>, and a cast is reported and fixed,
+    /// because the shorthand is valid in each of these positions
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3103-001")]
+    [Requirement("RH3103-007")]
+    public async Task NullableGenericInIsAsAndCastIsReportedAndFixed()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    bool A(object o) => o is {|RH3103:Nullable<int>|};
+                                    int? B(object o) => o as {|RH3103:Nullable<int>|};
+                                    int? D(object o) => ({|RH3103:Nullable<int>|})o;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     bool A(object o) => o is int?;
+                                     int? B(object o) => o as int?;
+                                     int? D(object o) => (int?)o;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Sets the language version of the test project
+    /// </summary>
+    /// <param name="solution">Solution</param>
+    /// <param name="projectId">Project ID</param>
+    /// <param name="languageVersion">Language version</param>
+    /// <returns>The solution with the language version applied to the project</returns>
+    private static Solution ApplyLanguageVersion(Solution solution, ProjectId projectId, LanguageVersion languageVersion)
+    {
+        return solution.GetProject(projectId)?.ParseOptions is CSharpParseOptions parseOptions
+                   ? solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(languageVersion))
+                   : solution;
+    }
+
+    #endregion // Methods
 
     #region BatchCodeFixTestsBase
 

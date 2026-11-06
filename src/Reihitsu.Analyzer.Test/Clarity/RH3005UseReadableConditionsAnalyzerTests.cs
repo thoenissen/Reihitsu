@@ -854,43 +854,121 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
     }
 
     /// <summary>
-    /// Characterizes that the fix of a comparison whose left operand is itself a comparison writes the swapped
-    /// operands without parentheses
+    /// Verifies a comparison whose left operand is an equality comparison of the same level is reported without a code
+    /// fix, because the swapped comparison would group its operands differently
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfComparisonWithComparisonOperandWritesTheSwapWithoutParentheses()
+    [Requirement("RH3005-007")]
+    public async Task ComparisonWithAComparisonOperandThatWouldRegroupIsReportedWithoutACodeFix()
     {
         const string testCode = """
                                 class C
                                 {
                                     void M(bool b)
                                     {
-                                        if (1 == 1 == b) { }
+                                        if (1 == 1 {|RH3005:==|} b) { }
                                     }
                                 }
                                 """;
 
-        const string expectedCode = """
-                                    class C
-                                    {
-                                        void M(bool b)
-                                        {
-                                            if (b == 1 == 1) { }
-                                        }
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Characterizes that the fix of a constant-left comparison in an argument writes a new <c>&lt;</c> that, with the
-    /// <c>&gt;</c> of the next argument, reads as a generic invocation
+    /// Verifies a comparison whose left operand is an inequality comparison of the same level is reported without a
+    /// code fix, because the swapped comparison would group its operands differently
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfConstantLeftArgumentBeforeAGreaterThanArgumentWritesAGenericReading()
+    [Requirement("RH3005-007")]
+    public async Task ComparisonWithAnInequalityOperandThatWouldRegroupIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool b)
+                                    {
+                                        if (1 != 2 {|RH3005:==|} b) { }
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a comparison whose right operand is a relational comparison is still fixed, because the swapped
+    /// comparison groups its operands the same way
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3005-007")]
+    public async Task ComparisonWithAComparisonOperandThatKeepsItsGroupingIsFixed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(int a, int b)
+                                    {
+                                        return true {|RH3005:==|} a < b;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(int a, int b)
+                                     {
+                                         return a < b == true;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a comparison whose left operand is a relational comparison of constants is still fixed, because the
+    /// swapped comparison groups its operands the same way
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3005-007")]
+    public async Task ComparisonWithARelationalLeftOperandThatKeepsItsGroupingIsFixed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(bool b)
+                                    {
+                                        return 1 < 2 {|RH3005:==|} b;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(bool b)
+                                     {
+                                         return b == 1 < 2;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a constant-left comparison in an argument is reported without a code fix, because the <c>&lt;</c> the
+    /// fix writes would, with the <c>&gt;</c> of the next argument, read as a generic invocation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3005-008")]
+    public async Task ConstantLeftArgumentBeforeAGreaterThanArgumentIsReportedWithoutACodeFix()
     {
         const string testCode = """
                                 class C
@@ -905,39 +983,23 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
 
                                     void Run()
                                     {
-                                        M(Max > G, B > (7));
+                                        M(Max {|RH3005:>|} G, B > (7));
                                     }
                                 }
                                 """;
 
-        const string expectedCode = """
-                                    class C
-                                    {
-                                        const int Max = 1;
-                                        int G;
-                                        int B;
-
-                                        void M(bool x, bool y)
-                                        {
-                                        }
-
-                                        void Run()
-                                        {
-                                            M(G < Max, B > (7));
-                                        }
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Characterizes that the fix of a comparison with a <c>static readonly</c> left operand in an array initializer
-    /// writes a new <c>&lt;</c> that, with the <c>&gt;</c> of the next element, reads as a generic invocation
+    /// Verifies a comparison with a <c>static readonly</c> left operand in an array initializer is reported without a
+    /// code fix, because the <c>&lt;</c> the fix writes would, with the <c>&gt;</c> of the next element, read as a
+    /// generic invocation
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfStaticReadonlyLeftElementBeforeAGreaterThanElementWritesAGenericReading()
+    [Requirement("RH3005-008")]
+    public async Task StaticReadonlyLeftElementBeforeAGreaterThanElementIsReportedWithoutACodeFix()
     {
         const string testCode = """
                                 class C
@@ -948,35 +1010,23 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
 
                                     void Run()
                                     {
-                                        var a = new[] { Min > G, B > (7) };
+                                        var a = new[] { Min {|RH3005:>|} G, B > (7) };
                                     }
                                 }
                                 """;
 
-        const string expectedCode = """
-                                    class C
-                                    {
-                                        static readonly int Min = 1;
-                                        int G;
-                                        int B;
-
-                                        void Run()
-                                        {
-                                            var a = new[] { G < Min, B > (7) };
-                                        }
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Characterizes that the fix of a literal-left comparison in an argument writes a new <c>&gt;</c> that, with the
-    /// <c>&lt;</c> of the previous argument, reads as a generic invocation
+    /// Verifies a literal-left comparison in an argument is reported without a code fix, because the <c>&gt;</c> the
+    /// fix
+    /// writes would, with the <c>&lt;</c> of the previous argument, read as a generic invocation
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfLiteralLeftArgumentAfterALessThanArgumentWritesAGenericReading()
+    [Requirement("RH3005-008")]
+    public async Task LiteralLeftArgumentAfterALessThanArgumentIsReportedWithoutACodeFix()
     {
         const string testCode = """
                                 class C
@@ -991,30 +1041,112 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
 
                                     void Run()
                                     {
-                                        M(G < A, (7) < B);
+                                        M(G < A, (7) {|RH3005:<|} B);
                                     }
                                 }
                                 """;
 
-        const string expectedCode = """
-                                    class C
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a constant-left comparison in an argument is still fixed where the <c>&lt;</c> the fix writes and the
+    /// <c>&gt;</c> of the next argument still read as comparisons
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3005-008")]
+    public async Task ConstantLeftArgumentWhoseSwapStillReadsAsAComparisonIsFixed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    const int Max = 1;
+                                    int G;
+                                    int B;
+
+                                    void M(bool x, bool y)
                                     {
-                                        int G;
-                                        int A;
-                                        int B;
-
-                                        void M(bool x, bool y)
-                                        {
-                                        }
-
-                                        void Run()
-                                        {
-                                            M(G < A, B > (7));
-                                        }
                                     }
-                                    """;
 
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+                                    void Run()
+                                    {
+                                        M(Max {|RH3005:>|} G, B > 7);
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     const int Max = 1;
+                                     int G;
+                                     int B;
+
+                                     void M(bool x, bool y)
+                                     {
+                                     }
+
+                                     void Run()
+                                     {
+                                         M(G < Max, B > 7);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies Fix All leaves a comparison whose swap would read as a generic name as written and reported, and fixes
+    /// the other comparisons of the document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3005-008")]
+    public async Task FixAllLeavesAComparisonThatWouldReadAsAGenericNameReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    const int Max = 1;
+                                    int G;
+                                    int B;
+
+                                    void M(bool x, bool y)
+                                    {
+                                    }
+
+                                    bool Run()
+                                    {
+                                        M(Max {|RH3005:>|} G, B > (7));
+
+                                        return 0 {|RH3005:<|} G && 1 {|RH3005:==|} B;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     const int Max = 1;
+                                     int G;
+                                     int B;
+
+                                     void M(bool x, bool y)
+                                     {
+                                     }
+
+                                     bool Run()
+                                     {
+                                         M(Max {|RH3005:>|} G, B > (7));
+
+                                         return G > 0 && B == 1;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests
