@@ -756,6 +756,49 @@ public class RH4121TypeParameterNameCasingAnalyzerTests : BatchCodeFixTestsBase<
                      });
     }
 
+    /// <summary>
+    /// Verifies that the fix renames the type parameter of only the reported part of a partial method when the other part spells its type parameter differently, and that an excluded <c>#if</c> branch naming that other spelling does not withhold the fix, because the renamer leaves that type parameter as it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    public async Task FixIsOfferedWhenAnExcludedBranchNamesTheDifferentlySpelledTypeParameterOfTheOtherPartOfAPartialMethod()
+    {
+        const string testCode = """
+                                public partial class C
+                                {
+                                    partial void Run<{|RH4121:Key|}>(Key value);
+                                }
+                                """;
+
+        const string otherPartCode = """
+                                     public partial class C
+                                     {
+                                         partial void Run<TItem>(TItem value)
+                                         {
+                                     #if NEVER
+                                             TItem copy = value;
+                                     #endif
+                                         }
+                                     }
+                                     """;
+
+        const string fixedCode = """
+                                 public partial class C
+                                 {
+                                     partial void Run<TKey>(TKey value);
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherPartCode));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", otherPartCode));
+                     });
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
