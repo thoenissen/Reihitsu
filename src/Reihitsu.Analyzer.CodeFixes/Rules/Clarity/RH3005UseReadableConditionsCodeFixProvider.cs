@@ -150,7 +150,7 @@ public class RH3005UseReadableConditionsCodeFixProvider : CodeFixProvider
     /// </remarks>
     public sealed override FixAllProvider GetFixAllProvider()
     {
-        return DocumentOrderFixAllProvider.Instance;
+        return DocumentOrderFixAllProvider.Create(new RH3005UseReadableConditionsAnalyzer());
     }
 
     /// <inheritdoc/>

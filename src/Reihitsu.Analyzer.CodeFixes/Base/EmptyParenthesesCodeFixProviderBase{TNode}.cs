@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Core;
@@ -36,6 +37,11 @@ public abstract class EmptyParenthesesCodeFixProviderBase<TNode> : CodeFixProvid
     /// </summary>
     private readonly string _title;
 
+    /// <summary>
+    /// Analyzer that reports the diagnostic
+    /// </summary>
+    private readonly DiagnosticAnalyzer _analyzer;
+
     #endregion // Fields
 
     #region Constructor
@@ -45,10 +51,12 @@ public abstract class EmptyParenthesesCodeFixProviderBase<TNode> : CodeFixProvid
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
     /// <param name="title">Title</param>
-    private protected EmptyParenthesesCodeFixProviderBase(string diagnosticId, string title)
+    /// <param name="analyzer">Analyzer that reports the diagnostic</param>
+    private protected EmptyParenthesesCodeFixProviderBase(string diagnosticId, string title, DiagnosticAnalyzer analyzer)
     {
         _diagnosticId = diagnosticId;
         _title = title;
+        _analyzer = analyzer;
     }
 
     #endregion // Constructor
@@ -207,7 +215,7 @@ public abstract class EmptyParenthesesCodeFixProviderBase<TNode> : CodeFixProvid
     /// </remarks>
     public sealed override FixAllProvider GetFixAllProvider()
     {
-        return DocumentOrderFixAllProvider.Instance;
+        return DocumentOrderFixAllProvider.Create(_analyzer);
     }
 
     /// <inheritdoc/>

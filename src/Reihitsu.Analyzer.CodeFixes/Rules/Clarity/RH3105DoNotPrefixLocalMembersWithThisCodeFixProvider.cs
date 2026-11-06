@@ -60,7 +60,7 @@ public class RH3105DoNotPrefixLocalMembersWithThisCodeFixProvider : CodeFixProvi
     /// </remarks>
     public sealed override FixAllProvider GetFixAllProvider()
     {
-        return DocumentOrderFixAllProvider.Instance;
+        return DocumentOrderFixAllProvider.Create(new RH3105DoNotPrefixLocalMembersWithThisAnalyzer());
     }
 
     /// <inheritdoc/>

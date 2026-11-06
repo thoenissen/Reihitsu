@@ -140,7 +140,7 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsCodeFi
     /// </remarks>
     public sealed override FixAllProvider GetFixAllProvider()
     {
-        return DocumentOrderFixAllProvider.Instance;
+        return DocumentOrderFixAllProvider.Create(new RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer());
     }
 
     /// <inheritdoc/>

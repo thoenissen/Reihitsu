@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Text;
 using System.Threading;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Clarity;
 using Reihitsu.Core;
 using Reihitsu.Formatter;
@@ -112,8 +114,12 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
     /// its first to its last statement, with their comments, directives, and the blank lines between them, keeps its own
     /// layout, and every one of its lines moves by the same column delta, so that the block's first statement line
     /// stands one level inside the braces the formatter laid out. A directive line in column 0 other than
-    /// <c>#region</c> and <c>#endregion</c> stays in column 0. Statements that shared the block's line stay on one line.
-    /// A comment behind the opening brace on its line stays behind the new opening brace
+    /// <c>#region</c> and <c>#endregion</c>, and a line whose comment starts in column 0, stay in column 0, and a line
+    /// that continues a verbatim string literal keeps its columns. When the first statement shares the opening brace's
+    /// line, the lines after it move by their own delta that puts the leftmost of them in the statement column, where one
+    /// of them starts left of the first statement. Otherwise, where the delta would put a moved line left of column 0,
+    /// every moved line moves by the delta that puts the leftmost of them in the statement column. Statements that shared
+    /// the block's line stay on one line. A comment behind the opening brace on its line stays behind the new opening brace
     /// </summary>
     /// <param name="originalDocument">Document before the fix</param>
     /// <param name="formattedDocument">Document with the formatted lambda</param>
@@ -161,35 +167,63 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
         var firstLine = originalText.Lines.GetLineFromPosition(contentStart);
         var startsOnOpenBraceLine = originalText.Lines.GetLineFromPosition(originalBlock.OpenBraceToken.SpanStart).LineNumber == firstLine.LineNumber;
         var measuredPosition = GetFirstStatementLinePosition(originalRoot, originalText, originalBlock, contentStart, contentEnd);
-        var columnDelta = contentIndentation.Length - GetColumn(originalText, measuredPosition);
+        var measuredColumn = GetColumn(originalText, measuredPosition);
+        var columnDelta = contentIndentation.Length - measuredColumn;
+        var laterLineNumber = startsOnOpenBraceLine ? firstLine.LineNumber + 1 : firstLine.LineNumber;
+        var laterColumns = GetMovedLineColumns(originalRoot, originalText, laterLineNumber, contentEnd);
+        var laterColumnDelta = columnDelta;
+
+        if (startsOnOpenBraceLine
+            && originalText.Lines.GetLineFromPosition(measuredPosition).LineNumber == firstLine.LineNumber)
+        {
+            // The first statement shares the opening brace's line: the lines after it keep their offset to it only when
+            // none of them starts left of it, otherwise the leftmost of them moves into the statement column
+            if (laterColumns.Count > 0
+                && laterColumns.Min() < measuredColumn)
+            {
+                laterColumnDelta = contentIndentation.Length - laterColumns.Min();
+            }
+        }
+        else
+        {
+            // The whole block moves by one number of columns; where the measured one would put a line left of column 0,
+            // the leftmost line moves into the statement column instead
+            var movedColumns = startsOnOpenBraceLine
+                                   ? laterColumns.Append(GetColumn(originalText, contentStart)).ToList()
+                                   : laterColumns;
+
+            if (movedColumns.Count > 0
+                && movedColumns.Min() + columnDelta < 0)
+            {
+                columnDelta = contentIndentation.Length - movedColumns.Min();
+                laterColumnDelta = columnDelta;
+            }
+        }
+
         var content = new StringBuilder();
 
         content.Append(openBraceTail)
                .Append(endOfLine);
 
-        var lineIndex = firstLine.LineNumber;
-
         if (startsOnOpenBraceLine)
         {
-            content.Append(new string(' ', Math.Max(0, GetColumn(originalText, contentStart) + columnDelta)))
+            content.Append(new string(' ', GetColumn(originalText, contentStart) + columnDelta))
                    .Append(originalText.ToString(TextSpan.FromBounds(contentStart, Math.Min(firstLine.EndIncludingLineBreak, contentEnd))));
-
-            lineIndex++;
         }
 
-        for (; lineIndex < originalText.Lines.Count && originalText.Lines[lineIndex].Start < contentEnd; lineIndex++)
+        for (var lineIndex = laterLineNumber; lineIndex < originalText.Lines.Count && originalText.Lines[lineIndex].Start < contentEnd; lineIndex++)
         {
             var line = originalText.Lines[lineIndex];
             var lineEnd = Math.Min(line.EndIncludingLineBreak, contentEnd);
             var textStart = SkipIndentation(originalText, line.Start, Math.Min(line.End, contentEnd));
             var copyStart = line.Start;
 
-            if (IsColumnZeroDirectiveLine(originalRoot, line) == false
-                && CanMoveLine(originalRoot, originalText, line.Start, columnDelta))
+            if (StaysInColumnZero(originalRoot, originalText, line) == false
+                && KeepsColumns(originalRoot, line.Start) == false)
             {
                 if (textStart < Math.Min(line.End, contentEnd))
                 {
-                    content.Append(ShiftIndentation(originalText.ToString(TextSpan.FromBounds(line.Start, textStart)), columnDelta));
+                    content.Append(ShiftIndentation(originalText.ToString(TextSpan.FromBounds(line.Start, textStart)), laterColumnDelta));
                 }
 
                 copyStart = textStart;
@@ -211,7 +245,8 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
     /// block's first statement line. That is the first line, in source order, on which a statement starts, whether the
     /// statement is active code or disabled text of an inactive branch, so the result does not depend on which
     /// preprocessor symbols are defined. A line of disabled text holds a statement when it holds anything other than
-    /// whitespace and comments. A block in which no line holds a statement is measured on its first line
+    /// whitespace and comments. A block in which no line holds a statement is measured on its first line that does not
+    /// stay in column 0
     /// </summary>
     /// <param name="root">Root of the original document</param>
     /// <param name="text">Text of the original document</param>
@@ -239,6 +274,18 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
 
             if (position < line.End
                 && IsDisabledStatementLine(root, text, line, position))
+            {
+                return position;
+            }
+        }
+
+        for (var lineNumber = firstLineNumber; lineNumber <= lastLineNumber; lineNumber++)
+        {
+            var line = text.Lines[lineNumber];
+            var position = SkipIndentation(text, Math.Max(line.Start, contentStart), line.End);
+
+            if (position < line.End
+                && StaysInColumnZero(root, text, line) == false)
             {
                 return position;
             }
@@ -274,13 +321,16 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Determines whether the line is a preprocessor directive line that starts in column 0 and is neither
-    /// <c>#region</c> nor <c>#endregion</c>. Such a directive belongs to no nesting depth and keeps its column
+    /// Determines whether the line stays in column 0: a preprocessor directive line that starts in column 0 and is
+    /// neither <c>#region</c> nor <c>#endregion</c>, or a line whose comment starts in column 0, also in disabled text.
+    /// Such a line belongs to no nesting depth and keeps its column. The continuation line of a multi-line comment is
+    /// not such a line, and it moves with its comment
     /// </summary>
     /// <param name="root">Root of the original document</param>
+    /// <param name="text">Text of the original document</param>
     /// <param name="line">Line</param>
     /// <returns><see langword="true"/> if the line keeps column 0</returns>
-    private static bool IsColumnZeroDirectiveLine(SyntaxNode root, TextLine line)
+    private static bool StaysInColumnZero(SyntaxNode root, SourceText text, TextLine line)
     {
         if (line.Span.IsEmpty)
         {
@@ -289,10 +339,62 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
 
         var trivia = root.FindTrivia(line.Start);
 
-        return trivia.IsDirective
-               && trivia.SpanStart == line.Start
-               && trivia.IsKind(SyntaxKind.RegionDirectiveTrivia) == false
-               && trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia) == false;
+        if (trivia.IsKind(SyntaxKind.DisabledTextTrivia))
+        {
+            return line.Span.Length >= 2
+                   && text[line.Start] == '/'
+                   && (text[line.Start + 1] == '/' || text[line.Start + 1] == '*');
+        }
+
+        if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
+        {
+            // One documentation comment spans every one of its lines, each of which starts with its own marker
+            return text.ToString(TextSpan.FromBounds(line.Start, line.End)).StartsWith("///", StringComparison.Ordinal);
+        }
+
+        if (trivia.SpanStart != line.Start)
+        {
+            return false;
+        }
+
+        if (trivia.IsDirective)
+        {
+            return trivia.IsKind(SyntaxKind.RegionDirectiveTrivia) == false
+                   && trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia) == false;
+        }
+
+        return trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
+               || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
+               || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
+    }
+
+    /// <summary>
+    /// Gets the columns of the lines of the moved code from a line on that move with the code: every line that holds
+    /// text, except the lines that stay in column 0 and the lines that keep their columns
+    /// </summary>
+    /// <param name="root">Root of the original document</param>
+    /// <param name="text">Text of the original document</param>
+    /// <param name="firstLineNumber">Number of the first line</param>
+    /// <param name="contentEnd">End of the moved code</param>
+    /// <returns>The columns</returns>
+    private static List<int> GetMovedLineColumns(SyntaxNode root, SourceText text, int firstLineNumber, int contentEnd)
+    {
+        var columns = new List<int>();
+
+        for (var lineNumber = firstLineNumber; lineNumber < text.Lines.Count && text.Lines[lineNumber].Start < contentEnd; lineNumber++)
+        {
+            var line = text.Lines[lineNumber];
+            var textStart = SkipIndentation(text, line.Start, Math.Min(line.End, contentEnd));
+
+            if (textStart < Math.Min(line.End, contentEnd)
+                && StaysInColumnZero(root, text, line) == false
+                && KeepsColumns(root, line.Start) == false)
+            {
+                columns.Add(GetColumn(text, textStart));
+            }
+        }
+
+        return columns;
     }
 
     /// <summary>
@@ -327,50 +429,47 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Determines whether a line of the moved code can move by the column delta. A line that starts inside the text of
-    /// a string literal other than a raw string literal keeps its columns, because its whitespace is part of the
-    /// literal's value. A line inside a multi-line raw string literal moves together with the literal's closing marker,
-    /// which keeps the literal's value, unless the closing marker's indentation is narrower than a move to the left
+    /// Determines whether a line of the moved code keeps its columns: a line that starts inside the text of a string
+    /// literal continues the literal, and its whitespace is part of the literal's value. A multi-line raw string literal
+    /// withholds the fix (RH3004-007), so only verbatim string literals reach this
     /// </summary>
     /// <param name="root">Root of the original document</param>
-    /// <param name="text">Text of the original document</param>
     /// <param name="lineStart">Start of the line</param>
-    /// <param name="columnDelta">Number of columns the moved code moves</param>
-    /// <returns><see langword="true"/> if the line moves</returns>
-    private static bool CanMoveLine(SyntaxNode root, SourceText text, int lineStart, int columnDelta)
+    /// <returns><see langword="true"/> if the line keeps its columns</returns>
+    private static bool KeepsColumns(SyntaxNode root, int lineStart)
     {
         var token = root.FindToken(lineStart, findInsideTrivia: true);
 
-        if (token.Span.Start >= lineStart
-            || token.Span.End <= lineStart)
-        {
-            return true;
-        }
+        return token.Span.Start < lineStart
+               && token.Span.End > lineStart;
+    }
 
-        var literal = token.Parent?.AncestorsAndSelf().FirstOrDefault(static node => node is LiteralExpressionSyntax or InterpolatedStringExpressionSyntax);
+    /// <summary>
+    /// Determines whether the block holds a multi-line raw string literal, also an interpolated or a UTF-8 one, in its
+    /// code or in the disabled text of an inactive branch, so that the fix does not depend on the defined preprocessor
+    /// symbols
+    /// </summary>
+    /// <param name="block">Block of the anonymous method</param>
+    /// <returns><see langword="true"/> if the block holds a multi-line raw string literal</returns>
+    private static bool ContainsMultiLineRawStringLiteral(BlockSyntax block)
+    {
+        return block.DescendantTokens().Any(IsMultiLineRawStringLiteralToken)
+               || block.DescendantTrivia()
+                       .Where(static trivia => trivia.IsKind(SyntaxKind.DisabledTextTrivia))
+                       .Any(static trivia => SyntaxFactory.ParseTokens(trivia.ToFullString()).Any(IsMultiLineRawStringLiteralToken));
+    }
 
-        if (literal == null)
-        {
-            return true;
-        }
-
-        var isRawStringLiteral = literal switch
-                                 {
-                                     LiteralExpressionSyntax literalExpression => literalExpression.Token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken)
-                                                                                  || literalExpression.Token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken),
-                                     InterpolatedStringExpressionSyntax interpolatedString => interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken),
-                                     _ => false,
-                                 };
-
-        if (isRawStringLiteral == false)
-        {
-            return false;
-        }
-
-        var closingLine = text.Lines.GetLineFromPosition(literal.Span.End);
-
-        return columnDelta >= 0
-               || GetColumn(text, SkipIndentation(text, closingLine.Start, closingLine.End)) + columnDelta >= 0;
+    /// <summary>
+    /// Determines whether the token is a multi-line raw string literal or the start of a multi-line interpolated raw
+    /// string literal
+    /// </summary>
+    /// <param name="token">Token</param>
+    /// <returns><see langword="true"/> for such a token</returns>
+    private static bool IsMultiLineRawStringLiteralToken(SyntaxToken token)
+    {
+        return token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken)
+               || token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken)
+               || token.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken);
     }
 
     /// <summary>
@@ -500,9 +599,13 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
     public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH3004UseLambdaSyntaxAnalyzer.DiagnosticId];
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// The fixes of a document are applied in document order, so that an anonymous method inside the block of another
+    /// is fixed where the outer fix moved it (SHARED-FIX-002)
+    /// </remarks>
     public sealed override FixAllProvider GetFixAllProvider()
     {
-        return WellKnownFixAllProviders.BatchFixer;
+        return DocumentOrderFixAllProvider.Create(new RH3004UseLambdaSyntaxAnalyzer());
     }
 
     /// <inheritdoc/>
@@ -518,7 +621,8 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
 
                 if (anonymousMethodExpression?.ParameterList != null
                     && ContainsDiscardedTrivia(anonymousMethodExpression) == false
-                    && IsOperandOfCastOrBinaryOperator(anonymousMethodExpression) == false)
+                    && IsOperandOfCastOrBinaryOperator(anonymousMethodExpression) == false
+                    && ContainsMultiLineRawStringLiteral(anonymousMethodExpression.Block) == false)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3004Title,
                                                               token => ApplyCodeFixAsync(context.Document, anonymousMethodExpression, token),

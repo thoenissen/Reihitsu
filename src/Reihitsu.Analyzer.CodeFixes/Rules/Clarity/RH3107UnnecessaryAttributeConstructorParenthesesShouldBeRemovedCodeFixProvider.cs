@@ -22,7 +22,7 @@ public class RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedCode
     /// Constructor
     /// </summary>
     public RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedCodeFixProvider()
-        : base(RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzer.DiagnosticId, CodeFixResources.RH3107Title)
+        : base(RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzer.DiagnosticId, CodeFixResources.RH3107Title, new RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzer())
     {
     }
 
