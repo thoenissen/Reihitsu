@@ -37,6 +37,9 @@ Batch 1 (before the test implementer), all answered with the recommended option:
 4. RH3106, an anonymous method with an empty parameter list as an argument whose parameter type is not a delegate type (e.g. the only overload takes `object`): **A** — not reported, like answer 2. Arguments where competing overloads or type inference decide the binding stay reported with the fix withheld (RH3106-002).
 5. RH3201, `return /**/a;` (whitespace in front of the empty comment, the comment directly in front of the next token): **A** — the fix writes `return a;`, keeping the separating whitespace (today `returna;`). Raised by 04-test-implementer (test `FixOfCommentDirectlyInFrontOfAnIdentifierJoinsTheTokens`).
 6. RH3004, a one-line block with several statements (`delegate (int x) { int y = x+1; Console.WriteLine(y); }`): the maintainer chose **A** (statements stay on one line between the braces laid out per answer 1) on the condition that A needs no special handling; otherwise **B** (statements formatted, one per line). Lead's assessment: A follows from the general moved-code path (braces laid out, inner text moved with an indentation shift) and B would need its own case. If the implementer finds A needs a dedicated code path for several statements in a one-line block, the answer is B: stop and report it in the handover.
+7. RH3004, a conditional directive in column 0 inside the block the fix moves: **B** — directive lines keep column 0; the statements shift with the block.
+
+Standing instruction from the maintainer (after answer 7): ask no further questions in this run; every further output question is decided by the lead on the role's or its own recommendation, recorded here as "decided on recommendation", and summed up in the PR's run report.
 
 ## Decisions taken
 
@@ -64,6 +67,7 @@ Batch 1 (before the test implementer), all answered with the recommended option:
 | 20 | Repair 1 impl | Answer 6 condition | Resolved to A: the implementer took the general moved-code path, no dedicated path for several statements | Maintainer's condition holds | Maintainer answer 6 | 1c476cb0 |
 | 21 | Repair 1 impl | `var x = b ? delegate () { } : someAction;` is not reported by the new `TakesNaturalType` though the target is a delegate type | Defect against RH3106-003 ("a delegate target, also through a conditional, MUST be reported"); repair in round 1: test, then implementer | Same requirement | RH3106-003 decides it | pending |
 | 22 | Repair 1 impl | RH3004 indentation delta taken from the block's first line, which can be a column-0 directive, shifting the statements one level too deep | Defect against SHARED-FIX-007 moved-code bullet (indentation follows the new nesting); spec author words RH3004-006 on the first statement's line, test, implementer | Same requirement | SHARED-FIX-007 decides it | pending |
+| 23 | Repair 1 spec | RH3106-003 widened to the switch arm and `new[] { … }` element whose other arm/element gives a delegate type (same defect as row 21) | Fix all three in this round | Same requirement, same mechanism | RH3106-003 decides it | d7b72d0b |
 
 Repair rounds used: 1 (started after audit 1).
 
