@@ -486,11 +486,13 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
                                            .ToList();
         var oldNames = ImmutableHashSet.CreateBuilder<string>(StringComparer.Ordinal);
 
-        foreach (var symbol in cascade.Where(static symbol => symbol.CanBeReferencedByName))
+        foreach (var name in cascade.Where(static symbol => symbol.CanBeReferencedByName).Select(static symbol => symbol.Name))
         {
-            if (remainingNames.Remove(symbol.Name) == false)
+            var isRetained = remainingNames.Remove(name);
+
+            if (isRetained == false)
             {
-                oldNames.Add(symbol.Name);
+                oldNames.Add(name);
             }
         }
 
