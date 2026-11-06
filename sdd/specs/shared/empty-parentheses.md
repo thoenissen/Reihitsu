@@ -35,7 +35,7 @@ class C
 
 ### SHARED-PARENS-002 — The fix removes the empty list
 
-For a reported list that holds nothing but whitespace between `(` and `)`, the code fix MUST remove the list from `(` to `)`. A comment in front of `(` MUST stay.
+For a reported list that holds nothing but whitespace between `(` and `)`, the code fix MUST remove the list from `(` to `)`. A comment in front of `(` MUST stay. The whitespace that the removal leaves next to each other is laid out as the formatter lays it out (SHARED-FIX-007): one space between `delegate` and the body of an anonymous method, and no space in front of the `]` or `,` behind an attribute.
 
 Why: Without the parentheses the construct means the same; a comment in front of the list belongs to the code before it.
 
@@ -82,6 +82,34 @@ using System;
 [Obsolete, Serializable /* a */]
 class C
 {
+}
+```
+
+Example — the whitespace around the removed list:
+
+```csharp
+using System;
+
+class C
+{
+    [Obsolete /* a */ {|RH3107:()|}]
+    void M()
+    {
+        Action a = delegate {|RH3106:()|} { };
+    }
+}
+```
+
+```csharp
+using System;
+
+class C
+{
+    [Obsolete /* a */]
+    void M()
+    {
+        Action a = delegate { };
+    }
 }
 ```
 
