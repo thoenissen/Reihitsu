@@ -1747,6 +1747,990 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies one Fix All application rewrites an anonymous method nested in the block of another anonymous method:
+    /// the outer fix moves the inner one with its block, and the same application rewrites it where it now stands
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    [Requirement("SHARED-FIX-002")]
+    public async Task FixAllRewritesAnAnonymousMethodNestedInTheBlockOfAnotherInTheSameApplication()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> a = {|RH3004:delegate|} (int x)
+                                        {
+                                            Action<int> b = {|RH3004:delegate|} (int y)
+                                            {
+                                                Console.WriteLine(y);
+                                            };
+                                            b(x);
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<int> a = (int x) =>
+                                                         {
+                                                             Action<int> b = (int y) =>
+                                                                             {
+                                                                                 Console.WriteLine(y);
+                                                                             };
+                                                             b(x);
+                                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         // One Fix All application corrects both diagnostics
+                         test.NumberOfIncrementalIterations = 2;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a block that holds a multi-line raw string literal: the anonymous method
+    /// is reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-007")]
+    public async Task FixWithheldForABlockHoldingAMultiLineRawStringLiteral()
+    {
+        const string testCode = """"
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> b = {|RH3004:delegate|} (int x)
+                                        {
+                                            Console.WriteLine("""
+                                                a
+                                                """);
+                                        };
+                                    }
+                                }
+                                """";
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no code fix is offered for a block that holds a multi-line raw string literal with a line of only
+    /// whitespace that is wider than the indentation of the closing quotes, whose extra whitespace is part of the
+    /// literal's value
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-007")]
+    public async Task FixWithheldForABlockHoldingAMultiLineRawStringLiteralWithAWhitespaceOnlyLine()
+    {
+        var testCode = ExpandWhitespaceMarkers(""""
+                                               using System;
+
+                                               class C
+                                               {
+                                                   void M()
+                                                   {
+                                                       Action<int> b = {|RH3004:delegate|} (int x)
+                                                       {
+                                                           var s = """
+                                                               a
+                                               ······················
+                                                               b
+                                                               """;
+                                                           Console.WriteLine(s);
+                                                       };
+                                                   }
+                                               }
+                                               """");
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no code fix is offered for a block that holds a multi-line interpolated raw string literal
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-007")]
+    public async Task FixWithheldForABlockHoldingAMultiLineInterpolatedRawStringLiteral()
+    {
+        const string testCode = """"
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> b = {|RH3004:delegate|} (int x)
+                                        {
+                                            Console.WriteLine($"""
+                                                {x}
+                                                """);
+                                        };
+                                    }
+                                }
+                                """";
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no code fix is offered for a block that holds a multi-line UTF-8 raw string literal
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-007")]
+    public async Task FixWithheldForABlockHoldingAMultiLineUtf8RawStringLiteral()
+    {
+        const string testCode = """"
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> b = {|RH3004:delegate|} (int x)
+                                        {
+                                            ReadOnlySpan<byte> s = """
+                                                a
+                                                """u8;
+                                            Console.WriteLine(s.Length + x);
+                                        };
+                                    }
+                                }
+                                """";
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no code fix is offered for a block whose single return statement returns a multi-line raw string
+    /// literal, which the fix would otherwise write as an expression body
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-007")]
+    public async Task FixWithheldForASingleReturnOfAMultiLineRawStringLiteral()
+    {
+        const string testCode = """"
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<int, string> b = {|RH3004:delegate|} (int x)
+                                        {
+                                            return """
+                                                a
+                                                """;
+                                        };
+                                    }
+                                }
+                                """";
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a block that holds a raw string literal on one line: the fix is offered
+    /// and lays out the lambda
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    [Requirement("RH3004-007")]
+    public async Task FixRewritesABlockHoldingARawStringLiteralOnOneLine()
+    {
+        const string testCode = """"
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> b = {|RH3004:delegate|} (int x) { Console.WriteLine("""a"""); };
+                                    }
+                                }
+                                """";
+
+        const string fixedCode = """"
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<int> b = (int x) =>
+                                                         {
+                                                             Console.WriteLine("""a""");
+                                                         };
+                                     }
+                                 }
+                                 """";
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a block that holds a verbatim string literal over several lines is fixed, and the literal's
+    /// continuation line keeps its columns, so the literal's value stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    [Requirement("RH3004-007")]
+    public async Task FixKeepsTheContinuationLineOfAMultiLineVerbatimStringInItsColumns()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> b = {|RH3004:delegate|} (int x)
+                                        {
+                                            Console.WriteLine(@"a
+                                b");
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<int> b = (int x) =>
+                                                         {
+                                                             Console.WriteLine(@"a
+                                 b");
+                                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a first statement on the line of the opening brace and later lines that
+    /// start left of it: the later lines move together until the leftmost of them stands in the statement column, and
+    /// keep their indentation relative to each other
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixMovesTheLinesAfterASharedOpeningBraceLineSoTheLeftmostStandsInTheStatementColumn()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void Run(Action<int> a)
+                                    {
+                                    }
+
+                                    void Foo(int x)
+                                    {
+                                    }
+
+                                    void M()
+                                    {
+                                        Run({|RH3004:delegate|} (int x) { Foo(x);
+                                            if (x > 0)
+                                                Foo(x + 1);
+                                        });
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void Run(Action<int> a)
+                                     {
+                                     }
+
+                                     void Foo(int x)
+                                     {
+                                     }
+
+                                     void M()
+                                     {
+                                         Run((int x) =>
+                                             {
+                                                 Foo(x);
+                                                 if (x > 0)
+                                                     Foo(x + 1);
+                                             });
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a first statement on the line of the opening brace and later lines that
+    /// start left of it in a document whose line breaks are CRLF, and keeps those line breaks
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixMovesTheLinesAfterASharedOpeningBraceLineSoTheLeftmostStandsInTheStatementColumnWithCarriageReturnLineFeed()
+    {
+        var testCode = NormalizeToCarriageReturnLineFeed("""
+                                                         using System;
+
+                                                         class C
+                                                         {
+                                                             void Run(Action<int> a)
+                                                             {
+                                                             }
+
+                                                             void Foo(int x)
+                                                             {
+                                                             }
+
+                                                             void M()
+                                                             {
+                                                                 Run(delegate (int x) { Foo(x);
+                                                                     if (x > 0)
+                                                                         Foo(x + 1);
+                                                                 });
+                                                             }
+                                                         }
+                                                         """);
+
+        var expectedCode = NormalizeToCarriageReturnLineFeed("""
+                                                             using System;
+
+                                                             class C
+                                                             {
+                                                                 void Run(Action<int> a)
+                                                                 {
+                                                                 }
+
+                                                                 void Foo(int x)
+                                                                 {
+                                                                 }
+
+                                                                 void M()
+                                                                 {
+                                                                     Run((int x) =>
+                                                                         {
+                                                                             Foo(x);
+                                                                             if (x > 0)
+                                                                                 Foo(x + 1);
+                                                                         });
+                                                                 }
+                                                             }
+                                                             """);
+
+        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a first statement on the line of the opening brace and a later line that
+    /// does not start left of it: the later line keeps its indentation relative to the first statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixKeepsTheLinesAfterASharedOpeningBraceLineRelativeToTheFirstStatement()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void Foo(int x, int y)
+                                    {
+                                    }
+
+                                    void M()
+                                    {
+                                        Action<int> c = {|RH3004:delegate|} (int x) { Foo(x,
+                                                                               x + 1);
+                                                                         };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void Foo(int x, int y)
+                                     {
+                                     }
+
+                                     void M()
+                                     {
+                                         Action<int> c = (int x) =>
+                                                         {
+                                                             Foo(x,
+                                                                 x + 1);
+                                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a first statement on the line of the opening brace and a later statement that starts left of it, with
+    /// the closing brace behind it: the later statement stands in the statement column, not left of the braces
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixMovesALaterStatementInFrontOfAClosingBraceOnItsLineIntoTheStatementColumn()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void Foo(int x)
+                                    {
+                                    }
+
+                                    void M()
+                                    {
+                                        Action<int> c = {|RH3004:delegate|} (int x) { Foo(x);
+                                            Foo(x + 1); };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void Foo(int x)
+                                     {
+                                     }
+
+                                     void M()
+                                     {
+                                         Action<int> c = (int x) =>
+                                                         {
+                                                             Foo(x);
+                                                             Foo(x + 1);
+                                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a comment line in column 0 after an opening brace that shares its line with the first statement stays
+    /// in column 0 and does not count for the leftmost line: the later statement stands in the statement column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixKeepsAColumnZeroCommentLineAfterASharedOpeningBraceLineInColumnZero()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void Run(Action<int> a)
+                                    {
+                                    }
+
+                                    void Foo(int x)
+                                    {
+                                    }
+
+                                    void M()
+                                    {
+                                        Run({|RH3004:delegate|} (int x) { Foo(x);
+                                // Foo(x + 2);
+                                            Foo(x + 1);
+                                        });
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void Run(Action<int> a)
+                                     {
+                                     }
+
+                                     void Foo(int x)
+                                     {
+                                     }
+
+                                     void M()
+                                     {
+                                         Run((int x) =>
+                                             {
+                                                 Foo(x);
+                                 // Foo(x + 2);
+                                                 Foo(x + 1);
+                                             });
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a comment line in column 0 in a block whose shift moves its lines to the
+    /// left: the comment line stays in column 0, and the statement moves into the statement column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixKeepsAColumnZeroCommentLineInColumnZero()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void Run(Action a)
+                                    {
+                                    }
+
+                                    void Foo()
+                                    {
+                                    }
+
+                                    void M()
+                                    {
+                                        Run(
+                                            {|RH3004:delegate|} ()
+                                                {
+                                                    Foo();
+                                // note
+                                                });
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void Run(Action a)
+                                     {
+                                     }
+
+                                     void Foo()
+                                     {
+                                     }
+
+                                     void M()
+                                     {
+                                         Run(
+                                             () =>
+                                             {
+                                                 Foo();
+                                 // note
+                                             });
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a comment line in column 8 in a block whose shift moves its lines to the
+    /// left: no line would stand left of column 0, so every line moves by the measured shift, also the comment left of
+    /// the braces
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixMovesACommentLineInAnotherColumnByTheMeasuredShift()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void Run(Action a)
+                                    {
+                                    }
+
+                                    void Foo()
+                                    {
+                                    }
+
+                                    void M()
+                                    {
+                                        Run(
+                                            {|RH3004:delegate|} ()
+                                                {
+                                                    Foo();
+                                        // note
+                                                });
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void Run(Action a)
+                                     {
+                                     }
+
+                                     void Foo()
+                                     {
+                                     }
+
+                                     void M()
+                                     {
+                                         Run(
+                                             () =>
+                                             {
+                                                 Foo();
+                                     // note
+                                             });
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a comment line in column 2 in a block whose shift moves its lines to the
+    /// left: the shift would put the comment left of column 0, so the lines move together until the comment stands in
+    /// the statement column, and the statement keeps its offset to it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixMovesTheLinesOfABlockSoTheLeftmostStandsInTheStatementColumnWhenTheShiftWouldCrossColumnZero()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void Run(Action a)
+                                    {
+                                    }
+
+                                    void Foo()
+                                    {
+                                    }
+
+                                    void M()
+                                    {
+                                        Run(
+                                            {|RH3004:delegate|} ()
+                                                {
+                                                    Foo();
+                                  // note
+                                                });
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void Run(Action a)
+                                     {
+                                     }
+
+                                     void Foo()
+                                     {
+                                     }
+
+                                     void M()
+                                     {
+                                         Run(
+                                             () =>
+                                             {
+                                                                   Foo();
+                                                 // note
+                                             });
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a conditional directive line in column 0 in a block whose shift moves its lines to the left stays in
+    /// column 0 and does not count for the leftmost line: the statement moves into the statement column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixKeepsAColumnZeroDirectiveLineInColumnZeroWhenTheShiftMovesTheLinesLeft()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void Run(Action a)
+                                    {
+                                    }
+
+                                    void Foo()
+                                    {
+                                    }
+
+                                    void M()
+                                    {
+                                        Run(
+                                            {|RH3004:delegate|} ()
+                                                {
+                                #if DEBUG
+                                                    Foo();
+                                #endif
+                                                });
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void Run(Action a)
+                                     {
+                                     }
+
+                                     void Foo()
+                                     {
+                                     }
+
+                                     void M()
+                                     {
+                                         Run(
+                                             () =>
+                                             {
+                                 #if DEBUG
+                                                 Foo();
+                                 #endif
+                                             });
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.SolutionTransforms.Add(DefineDebug));
+    }
+
+    /// <summary>
+    /// Verifies a directive line in column 2 in front of the first statement counts for the leftmost line when the
+    /// shift would put it left of column 0: the lines move together until the directive stands in the statement column,
+    /// and the statement keeps its offset to it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixMovesADirectiveLineInAnotherColumnIntoTheStatementColumnWhenTheShiftWouldCrossColumnZero()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void Run(Action a)
+                                    {
+                                    }
+
+                                    void Foo()
+                                    {
+                                    }
+
+                                    void M()
+                                    {
+                                        Run(
+                                            {|RH3004:delegate|} ()
+                                                {
+                                  #region Calls
+                                                    Foo();
+                                  #endregion
+                                                });
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void Run(Action a)
+                                     {
+                                     }
+
+                                     void Foo()
+                                     {
+                                     }
+
+                                     void M()
+                                     {
+                                         Run(
+                                             () =>
+                                             {
+                                                 #region Calls
+                                                                   Foo();
+                                                 #endregion
+                                             });
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a statement in an #if branch in front of an active statement in another
+    /// column with the symbol defined: the output is the same as without the symbol
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixMeasuresTheShiftOnAnActiveStatementInFrontOfAStatementInAnotherColumn()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> b = {|RH3004:delegate|} (int x)
+                                        {
+                                #if DEBUG
+                                            Console.WriteLine(x);
+                                #endif
+                                                Console.WriteLine(-x);
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<int> b = (int x) =>
+                                                         {
+                                 #if DEBUG
+                                                             Console.WriteLine(x);
+                                 #endif
+                                                                 Console.WriteLine(-x);
+                                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.SolutionTransforms.Add(DefineDebug));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a statement in an inactive #if branch in front of an active statement in
+    /// another column without the symbol defined: the disabled statement decides the shift
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixMeasuresTheShiftOnADisabledStatementInFrontOfAStatementInAnotherColumn()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> b = {|RH3004:delegate|} (int x)
+                                        {
+                                #if DEBUG
+                                            Console.WriteLine(x);
+                                #endif
+                                                Console.WriteLine(-x);
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<int> b = (int x) =>
+                                                         {
+                                 #if DEBUG
+                                                             Console.WriteLine(x);
+                                 #endif
+                                                                 Console.WriteLine(-x);
+                                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region Methods
@@ -1802,7 +2786,7 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH3004UseLambdaSyntaxAnalyzer.DiagnosticId, "Use lambda syntax.", 2),
-                                  config => config.NumberOfFixAllIterations = 2);
+                                  config => config.NumberOfFixAllIterations = 1);
     }
 
     #endregion // BatchCodeFixTestsBase

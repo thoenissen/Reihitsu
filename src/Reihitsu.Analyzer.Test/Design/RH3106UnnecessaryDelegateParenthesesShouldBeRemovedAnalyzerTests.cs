@@ -1338,6 +1338,655 @@ public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzerTests : 
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies an empty parameter list of an anonymous method that is the value of a compound assignment with two
+    /// competing <see langword="static"/> user-defined operators is reported without a code fix, because without the
+    /// list the compound assignment would be ambiguous
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-002")]
+    public async Task CompoundAssignmentWithCompetingStaticOperatorsIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    public static C operator +(C c, Action a) => c;
+
+                                    public static C operator +(C c, Action<int> a) => c;
+
+                                    void M(C c)
+                                    {
+                                        c += delegate {|RH3106:()|} { };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an empty parameter list of an anonymous method that is the value of a compound assignment with one
+    /// <see langword="static"/> user-defined operator is removed, because the compound assignment still binds the same
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-002")]
+    public async Task CompoundAssignmentWithASingleStaticOperatorIsFixed()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    public static C operator +(C c, Action a) => c;
+
+                                    void M(C c)
+                                    {
+                                        c += delegate {|RH3106:()|} { };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     public static C operator +(C c, Action a) => c;
+
+                                     void M(C c)
+                                     {
+                                         c += delegate { };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies an empty parameter list of an anonymous method that is the value of a compound assignment with two
+    /// competing instance compound assignment operators is reported without a code fix, because without the list the
+    /// call of the operator would be ambiguous
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-002")]
+    public async Task CompoundAssignmentWithCompetingInstanceCompoundAssignmentOperatorsIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                using System;
+
+                                class D
+                                {
+                                    public void operator +=(Action a)
+                                    {
+                                    }
+
+                                    public void operator +=(Action<int> a)
+                                    {
+                                    }
+
+                                    void M(D d)
+                                    {
+                                        d += delegate {|RH3106:()|} { };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an empty parameter list of an anonymous method that is the value of a compound assignment with one
+    /// instance compound assignment operator is removed, because the compound assignment still binds the same
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-002")]
+    public async Task CompoundAssignmentWithASingleInstanceCompoundAssignmentOperatorIsFixed()
+    {
+        const string testCode = """
+                                using System;
+
+                                class D
+                                {
+                                    public void operator +=(Action a)
+                                    {
+                                    }
+
+                                    void M(D d)
+                                    {
+                                        d += delegate {|RH3106:()|} { };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class D
+                                 {
+                                     public void operator +=(Action a)
+                                     {
+                                     }
+
+                                     void M(D d)
+                                     {
+                                         d += delegate { };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies an empty parameter list of an anonymous method that is an element of a collection initializer with two
+    /// competing <c>Add</c> methods is reported without a code fix, because without the list the call of <c>Add</c>
+    /// would be ambiguous
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-002")]
+    public async Task CollectionInitializerElementWithCompetingAddMethodsIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Collections;
+
+                                class Coll : IEnumerable
+                                {
+                                    public void Add(Action a)
+                                    {
+                                    }
+
+                                    public void Add(Action<int> a)
+                                    {
+                                    }
+
+                                    public IEnumerator GetEnumerator() => throw new NotSupportedException();
+                                }
+
+                                class E
+                                {
+                                    void M()
+                                    {
+                                        var e = new Coll { delegate {|RH3106:()|} { } };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an empty parameter list of an anonymous method that is an element of a collection initializer with one
+    /// <c>Add</c> method is removed, because the collection initializer still binds the same
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-002")]
+    public async Task CollectionInitializerElementWithASingleAddMethodIsFixed()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Collections;
+
+                                class Coll : IEnumerable
+                                {
+                                    public void Add(Action a)
+                                    {
+                                    }
+
+                                    public IEnumerator GetEnumerator() => throw new NotSupportedException();
+                                }
+
+                                class E
+                                {
+                                    void M()
+                                    {
+                                        var e = new Coll { delegate {|RH3106:()|} { } };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using System.Collections;
+
+                                 class Coll : IEnumerable
+                                 {
+                                     public void Add(Action a)
+                                     {
+                                     }
+
+                                     public IEnumerator GetEnumerator() => throw new NotSupportedException();
+                                 }
+
+                                 class E
+                                 {
+                                     void M()
+                                     {
+                                         var e = new Coll { delegate { } };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of the compound assignments and the collection initializer whose binding
+    /// competing operators or <c>Add</c> methods decide: every list is reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-002")]
+    public async Task CompoundAssignmentsAndACollectionInitializerWithCompetingCandidatesAreReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Collections;
+
+                                class C
+                                {
+                                    public static C operator +(C c, Action a) => c;
+
+                                    public static C operator +(C c, Action<int> a) => c;
+                                }
+
+                                class D
+                                {
+                                    public void operator +=(Action a)
+                                    {
+                                    }
+
+                                    public void operator +=(Action<int> a)
+                                    {
+                                    }
+                                }
+
+                                class Coll : IEnumerable
+                                {
+                                    public void Add(Action a)
+                                    {
+                                    }
+
+                                    public void Add(Action<int> a)
+                                    {
+                                    }
+
+                                    public IEnumerator GetEnumerator() => throw new NotSupportedException();
+                                }
+
+                                class E
+                                {
+                                    void M(C c, D d)
+                                    {
+                                        c += delegate {|RH3106:()|} { };
+                                        d += delegate {|RH3106:()|} { };
+                                        var e = new Coll { delegate {|RH3106:()|} { } };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an empty parameter list of an anonymous method inside a lambda passed to a non-generic method with one
+    /// overload is removed, because the lambda's delegate type gives the anonymous method its target
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-002")]
+    public async Task AnonymousMethodReturnedByALambdaPassedToASingleNonGenericOverloadIsFixed()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static Action Run(Func<Action> f) => f();
+
+                                    void M()
+                                    {
+                                        Run(() => delegate {|RH3106:()|} { });
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     static Action Run(Func<Action> f) => f();
+
+                                     void M()
+                                     {
+                                         Run(() => delegate { });
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of an anonymous method that another anonymous method under <c>var</c>
+    /// returns, and of an element of a collection expression whose elements are <see cref="object"/>: neither is
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodReturnedByAnAnonymousMethodOrInACollectionExpressionOfObjectElementsIsNotReported()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Collections;
+
+                                class Coll : IEnumerable
+                                {
+                                    public void Add(Action a)
+                                    {
+                                    }
+
+                                    public void Add(Action<int> a)
+                                    {
+                                    }
+
+                                    public IEnumerator GetEnumerator() => throw new NotSupportedException();
+                                }
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var n = delegate () { return delegate () { }; };
+                                        Coll e = [delegate () { }];
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method that one of several <see langword="return"/> statements of an anonymous method under
+    /// <c>var</c> returns is not reported, because the outer anonymous method's return type is inferred from it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodReturnedByOneOfSeveralReturnsOfAnAnonymousMethodUnderVarIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var n = delegate (int x)
+                                                {
+                                                    if (x > 0)
+                                                    {
+                                                        return delegate () { };
+                                                    }
+
+                                                    return null;
+                                                };
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method that another anonymous method returns is reported and fixed when the outer
+    /// anonymous method's target is a delegate type, which gives the inner one its target
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-001")]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodReturnedByAnAnonymousMethodWithADelegateTargetIsReportedAndFixed()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<Action> n = delegate {|RH3106:()|} { return delegate {|RH3106:()|} { }; };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Func<Action> n = delegate { return delegate { }; };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies an empty parameter list of an anonymous method that is an element of a collection expression whose
+    /// element type is a delegate type is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-001")]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodInACollectionExpressionOfDelegateElementsIsReportedAndFixed()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        List<Action> l = [delegate {|RH3106:()|} { }];
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         List<Action> l = [delegate { }];
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of anonymous methods whose target is a delegate type, also where a lambda
+    /// declares its return type: every list is reported and removed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-001")]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodsWithADelegateTargetAlsoFromADeclaredLambdaReturnTypeAreReportedAndFixed()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M(bool b)
+                                    {
+                                        Action a = b ? delegate {|RH3106:()|} { } : null;
+                                        Action e = (delegate {|RH3106:()|} { });
+                                        Action[] h = new Action[] { delegate {|RH3106:()|} { } };
+                                        Func<Action> f = () => delegate {|RH3106:()|} { };
+                                        var g = Action () => delegate {|RH3106:()|} { };
+                                        var k = Action () =>
+                                        {
+                                            return delegate {|RH3106:()|} { };
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M(bool b)
+                                     {
+                                         Action a = b ? delegate { } : null;
+                                         Action e = (delegate { });
+                                         Action[] h = new Action[] { delegate { } };
+                                         Func<Action> f = () => delegate { };
+                                         var g = Action () => delegate { };
+                                         var k = Action () =>
+                                         {
+                                             return delegate { };
+                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies an empty parameter list of an anonymous method that a lambda with a declared return type returns as its
+    /// expression body is reported and removed under <c>var</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-001")]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodReturnedByTheExpressionBodyOfALambdaWithADeclaredReturnTypeIsReportedAndFixed()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var f = Action () => delegate {|RH3106:()|} { };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var f = Action () => delegate { };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies an empty parameter list of an anonymous method that a lambda with a declared return type returns is
+    /// reported and removed where the lambda is converted to <see cref="object"/>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-001")]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodReturnedByALambdaWithADeclaredReturnTypeUnderObjectIsReportedAndFixed()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        object o = Action () => delegate {|RH3106:()|} { };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         object o = Action () => delegate { };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies an empty parameter list of an anonymous method in a conditional expression whose other branch is of a
+    /// delegate type is reported and removed where the conditional is converted to <see cref="object"/>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-001")]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodInAConditionalWithADelegateTypedOtherBranchUnderObjectIsReportedAndFixed()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M(bool b, Action someAction)
+                                    {
+                                        object o = b ? delegate {|RH3106:()|} { } : someAction;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M(bool b, Action someAction)
+                                     {
+                                         object o = b ? delegate { } : someAction;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

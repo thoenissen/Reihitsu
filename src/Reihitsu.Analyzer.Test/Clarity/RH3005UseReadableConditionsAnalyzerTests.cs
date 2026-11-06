@@ -1261,6 +1261,83 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies one Fix All application swaps a comparison nested in an operand of another one: the outer fix moves the
+    /// inner comparison, and the same application swaps it where it now stands
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-002")]
+    public async Task FixAllSwapsAComparisonNestedInTheOperandOfAnotherInTheSameApplication()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        var b = 1 {|RH3005:<|} (1 {|RH3005:<|} x ? 2 : 3);
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int x)
+                                     {
+                                         var b = (x > 1 ? 2 : 3) > 1;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         // One Fix All application corrects both diagnostics
+                         test.NumberOfIncrementalIterations = 2;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one Fix All application swaps an equality and a comparison nested in its operand
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-002")]
+    public async Task FixAllSwapsAComparisonNestedInTheOperandOfAnEqualityInTheSameApplication()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        var b = 2 {|RH3005:==|} (3 {|RH3005:>|} x ? 4 : 5);
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int x)
+                                     {
+                                         var b = (x < 3 ? 4 : 5) == 2;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         // One Fix All application corrects both diagnostics
+                         test.NumberOfIncrementalIterations = 2;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
     #endregion // Tests
 
     #region Methods
