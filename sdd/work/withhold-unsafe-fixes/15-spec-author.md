@@ -213,3 +213,37 @@ _None._ The candidate in the #1279 section above is now handled by row 31.
 ### Whole run
 
 - `scripts/test.sh --project architecture`: 114 passed, 1 failed. The failure is the same expected one: "RH3004-007: no test covers it".
+
+## Amendment — row 33
+
+Commit: 8aed8eb1. Verdict: spec written. This is a clarification in the bug-fix lane: no change doc and no rule page. My prompt carried the lead's decision (row 33) and no other intended fix or verdict.
+
+### Changed requirements
+
+- RH3004-006 — clarified (row 33).
+  - A line whose comment starts in column 0 MUST stay in column 0, as a column-0 directive does. An example is code commented out by an editor's comment toggle. A comment line that starts in another column moves with the statements.
+  - The shift sentence now names column-0 comment lines among its exceptions.
+  - Column-0 directive and comment lines neither move nor count for the leftmost-line rule, in both the shared-brace-line paragraph and the column-0 paragraph.
+  - A block in which no line holds a statement is now measured on its first line that does not stay in column 0. Without this, a block holding only a column-0 comment would be measured on a line that does not move.
+  - The Why gives the reason.
+  - The row 31 examples are replaced by three, all with braces at column 12, statement column 16, and a measured shift of −4:
+    - comment in column 0: it stays at 0, and `Foo();` lands at 16;
+    - comment in column 8: it moves by the measured shift to 4, and `Foo();` lands at 16;
+    - comment in column 2: the measured shift would put it left of column 0, so the leftmost-line rule applies. The comment lands at 16 and `Foo();` at 34, keeping their offset of 18.
+  - Existing examples are unaffected: none of them holds a column-0 comment line.
+
+### Examples for the tests
+
+- RH3004-006: the three `Run(` examples, one test each. The column-0 comment example replaces the row 31 example with `Foo();` at 36.
+
+### Output questions
+
+_None._ The standing instruction applies.
+
+### Internal choices
+
+- "A line whose comment starts in column 0" is read as a line whose first character is a comment, `//`, `///`, or `/*`. The continuation line of a multi-line `/* */` that happens to start in column 0 is not such a line, and it moves with its comment. The alternative was to keep every line that starts in column 0 inside a comment, which would split a block comment's lines across columns.
+
+### Whole run
+
+- `scripts/test.sh --project architecture`: 114 passed, 1 failed. The failure is the same expected one, "RH3004-007: no test covers it".
