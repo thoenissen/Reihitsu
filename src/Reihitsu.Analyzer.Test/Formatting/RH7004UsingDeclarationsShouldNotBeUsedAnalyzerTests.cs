@@ -1,9 +1,7 @@
 ﻿using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -1260,13 +1258,13 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Verifies that a code fix offered for a using declaration with a comment behind the <c>using</c> keyword keeps the
-    /// comment
+    /// Verifies that a comment behind the using keyword stays behind it, in the header the declaration is rewritten
+    /// into
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-FIX-003")]
-    public async Task OfferedFixKeepsACommentBehindTheUsingKeyword()
+    public async Task FixKeepsACommentBehindTheUsingKeyword()
     {
         const string source = """
                               using System.IO;
@@ -1275,23 +1273,38 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
                               {
                                   void M()
                                   {
-                                      using /* c */ var s = new MemoryStream();
+                                      {|RH7004:using|} /* c */ var s = new MemoryStream();
                                       s.Flush();
                                   }
                               }
                               """;
 
-        await AssertEveryOfferedFixKeeps(source, "/* c */");
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           using /* c */ (var s = new MemoryStream())
+                                           {
+                                               s.Flush();
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
     }
 
     /// <summary>
-    /// Verifies that a code fix offered for a using declaration with a comment in front of its semicolon keeps the
-    /// comment
+    /// Verifies that a comment on the line in front of the semicolon stays on the line in front of the closing parenthesis
+    /// the semicolon is rewritten into, laid out as the formatter lays it out
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-FIX-003")]
-    public async Task OfferedFixKeepsACommentInFrontOfTheSemicolon()
+    public async Task FixKeepsACommentInFrontOfTheSemicolon()
     {
         const string source = """
                               using System.IO;
@@ -1300,7 +1313,7 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
                               {
                                   void M()
                                   {
-                                      using var s = new MemoryStream()
+                                      {|RH7004:using|} var s = new MemoryStream()
                                           // c
                                           ;
                                       s.Flush();
@@ -1308,7 +1321,380 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
                               }
                               """;
 
-        await AssertEveryOfferedFixKeeps(source, "// c");
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           using (var s = new MemoryStream()
+
+                                           // c
+                                           )
+                                           {
+                                               s.Flush();
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind the using declaration that does not end its line stays behind the new block, in
+    /// front of the code that follows it on its line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-004")]
+    public async Task FixKeepsACommentThatDoesNotEndItsLineBehindTheNewBlock()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream(); /* c */ }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           using (var s = new MemoryStream())
+                                           {
+                                           } /* c */ }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind the using declaration that does not end its line stays behind the new block under LF
+    /// and under CRLF line endings, with the document's line ending kept
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-004")]
+    public async Task FixKeepsACommentThatDoesNotEndItsLineBehindTheNewBlockUnderBothLineEndings()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      using var s = new MemoryStream(); /* c */ }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           using (var s = new MemoryStream())
+                                           {
+                                           } /* c */ }
+                                   }
+                                   """;
+
+        Assert.AreEqual(fixedSource, await ApplyCodeFixAsync(source), "Unexpected fix result under LF line endings.");
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedSource), await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(source)), "Unexpected fix result under CRLF line endings.");
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered when the declaration and every following statement lie inside a conditional
+    /// pair whose <c>#endif</c> stands in front of the enclosing closing brace: both braces of the new block lie inside
+    /// the pair
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-004")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixIsOfferedInsideAConditionalPairThatEndsInFrontOfTheClosingBrace()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                              #if DEBUG
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      s.Flush();
+                              #endif
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                   #if DEBUG
+                                           using (var s = new MemoryStream())
+                                           {
+                                               s.Flush();
+                                           }
+                                   #endif
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, test => test.SolutionTransforms.Add(DefineDebug));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered when the declaration and every following statement lie in the active branch of a
+    /// conditional pair whose <c>#else</c> branch and <c>#endif</c> stand in front of the enclosing closing brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-004")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixIsOfferedInsideTheActiveBranchOfAConditionalPairWhoseElseBranchEndsInFrontOfTheClosingBrace()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                              #if DEBUG
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      s.Flush();
+                              #else
+                                      System.Console.WriteLine();
+                              #endif
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                   #if DEBUG
+                                           using (var s = new MemoryStream())
+                                           {
+                                               s.Flush();
+                                           }
+                                   #else
+                                           System.Console.WriteLine();
+                                   #endif
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, test => test.SolutionTransforms.Add(DefineDebug));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#pragma warning disable</c> among the following statements that no directive restores moves into
+    /// the block with them: it has no partner the new block could split
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-004")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixIsOfferedForAPragmaWarningDirectiveWithoutRestoreAmongTheFollowingStatements()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      s.Flush();
+                              #pragma warning disable CS0618
+                                      s.Close();
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           using (var s = new MemoryStream())
+                                           {
+                                               s.Flush();
+                                   #pragma warning disable CS0618
+                                               s.Close();
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#pragma warning disable</c> without restore among the following statements does not withhold
+    /// the fix under LF and under CRLF line endings, with the document's line ending kept
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-004")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixIsOfferedForAPragmaWarningDirectiveWithoutRestoreAmongTheFollowingStatementsUnderBothLineEndings()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      using var s = new MemoryStream();
+                                      s.Flush();
+                              #pragma warning disable CS0618
+                                      s.Close();
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           using (var s = new MemoryStream())
+                                           {
+                                               s.Flush();
+                                   #pragma warning disable CS0618
+                                               s.Close();
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        Assert.AreEqual(fixedSource, await ApplyCodeFixAsync(source), "Unexpected fix result under LF line endings.");
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedSource), await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(source)), "Unexpected fix result under CRLF line endings.");
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#nullable</c> directive among the following statements that no later <c>#nullable</c> directive
+    /// ends moves into the block with them: it has no partner the new block could split
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-004")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixIsOfferedForANullableDirectiveWithoutPartnerAmongTheFollowingStatements()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      s.Flush();
+                              #nullable enable
+                                      s.Close();
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           using (var s = new MemoryStream())
+                                           {
+                                               s.Flush();
+                                   #nullable enable
+                                               s.Close();
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#pragma warning disable</c> of one warning in front of the type does not pair with a balanced
+    /// pair of another warning among the following statements: neither pair is split, so the fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-004")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixIsOfferedForAPragmaPairOfTheFollowingStatementsBehindADisableOfAnotherWarning()
+    {
+        const string source = """
+                              using System.IO;
+
+                              #pragma warning disable CS0169
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      s.Flush();
+                              #pragma warning disable CS0618
+                                      s.Close();
+                              #pragma warning restore CS0618
+                                      s.Dispose();
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   #pragma warning disable CS0169
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           using (var s = new MemoryStream())
+                                           {
+                                               s.Flush();
+                                   #pragma warning disable CS0618
+                                               s.Close();
+                                   #pragma warning restore CS0618
+                                               s.Dispose();
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
     }
 
     #endregion // Tests
@@ -1326,39 +1712,6 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
         return solution.GetProject(projectId)?.ParseOptions is CSharpParseOptions parseOptions
                    ? solution.WithProjectParseOptions(projectId, parseOptions.WithPreprocessorSymbols("DEBUG"))
                    : solution;
-    }
-
-    /// <summary>
-    /// Applies every code fix offered for the using declaration of the source and asserts that each result still holds
-    /// the given comment
-    /// </summary>
-    /// <param name="source">Source text without markup</param>
-    /// <param name="comment">Text of the comment</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    private static async Task AssertEveryOfferedFixKeeps(string source, string comment)
-    {
-        var actions = await GetCodeFixActionsAsync(source,
-                                                   RH7004UsingDeclarationsShouldNotBeUsedAnalyzer.DiagnosticId,
-                                                   root => root.DescendantNodes()
-                                                               .OfType<LocalDeclarationStatementSyntax>()
-                                                               .First()
-                                                               .UsingKeyword
-                                                               .GetLocation());
-
-        foreach (var action in actions)
-        {
-            var operations = await action.GetOperationsAsync(CancellationToken.None);
-            var changedDocument = operations.OfType<ApplyChangesOperation>()
-                                            .Single()
-                                            .ChangedSolution
-                                            .Projects
-                                            .Single()
-                                            .Documents
-                                            .Single();
-            var text = (await changedDocument.GetTextAsync(CancellationToken.None)).ToString();
-
-            Assert.Contains(comment, text, $"The fix must keep the comment. Result:\n{text}");
-        }
     }
 
     #endregion // Methods

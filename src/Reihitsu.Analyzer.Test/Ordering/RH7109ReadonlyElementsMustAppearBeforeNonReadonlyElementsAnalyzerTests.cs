@@ -1001,6 +1001,299 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
         await Verify(source, fixedSource);
     }
 
+    /// <summary>
+    /// Verifying that the fix is withheld for the instance fields of a partial class whose sequential layout another part
+    /// declares
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixForAPartialClassWithSequentialLayoutOnAnotherPart()
+    {
+        const string source = """
+                              using System.Runtime.InteropServices;
+
+                              [StructLayout(LayoutKind.Sequential)]
+                              public partial class P
+                              {
+                              }
+
+                              public partial class P
+                              {
+                                  public int _a;
+                                  public readonly int {|RH7109:_b|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that the fix is withheld for the instance fields of a partial record whose sequential layout another part
+    /// declares
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixForAPartialRecordWithSequentialLayoutOnAnotherPart()
+    {
+        const string source = """
+                              using System.Runtime.InteropServices;
+
+                              [StructLayout(LayoutKind.Sequential)]
+                              public partial record R;
+
+                              public partial record R
+                              {
+                                  public int _a;
+                                  public readonly int {|RH7109:_b|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying the fix reorders the fields of a partial struct whose automatic layout another part declares
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixReordersTheFieldsOfAPartialStructWithAutoLayoutOnAnotherPart()
+    {
+        const string testCode = """
+                                using System.Runtime.InteropServices;
+
+                                [StructLayout(LayoutKind.Auto)]
+                                public partial struct S
+                                {
+                                }
+
+                                public partial struct S
+                                {
+                                    public int _a;
+                                    public readonly long {|RH7109:_b|};
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Runtime.InteropServices;
+
+                                 [StructLayout(LayoutKind.Auto)]
+                                 public partial struct S
+                                 {
+                                 }
+
+                                 public partial struct S
+                                 {
+                                     public readonly long _b;
+                                     public int _a;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifying the fix reorders the fields of a partial struct whose explicit layout another part declares, where each
+    /// field's offset attribute moves with it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixReordersTheFieldsOfAPartialStructWithExplicitLayoutOnAnotherPart()
+    {
+        const string testCode = """
+                                using System.Runtime.InteropServices;
+
+                                [StructLayout(LayoutKind.Explicit)]
+                                public partial struct S
+                                {
+                                }
+
+                                public partial struct S
+                                {
+                                    [FieldOffset(0)]
+                                    public int _a;
+                                    [FieldOffset(8)]
+                                    public readonly long {|RH7109:_b|};
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Runtime.InteropServices;
+
+                                 [StructLayout(LayoutKind.Explicit)]
+                                 public partial struct S
+                                 {
+                                 }
+
+                                 public partial struct S
+                                 {
+                                     [FieldOffset(8)]
+                                     public readonly long _b;
+                                     [FieldOffset(0)]
+                                     public int _a;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifying the fix reorders the fields of a struct whose automatic layout is written as a named argument
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixReordersTheFieldsOfAStructWithAutoLayoutWrittenAsANamedArgument()
+    {
+        const string testCode = """
+                                using System.Runtime.InteropServices;
+
+                                [StructLayout(layoutKind: LayoutKind.Auto)]
+                                public struct S
+                                {
+                                    public int _a;
+                                    public readonly long {|RH7109:_b|};
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Runtime.InteropServices;
+
+                                 [StructLayout(layoutKind: LayoutKind.Auto)]
+                                 public struct S
+                                 {
+                                     public readonly long _b;
+                                     public int _a;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifying the shared specification example: without <c>DEBUG</c> defined, the move would cross an initialized field
+    /// of excluded code, whose initializer a build with <c>DEBUG</c> would then run after the moved one, so no code fix
+    /// is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenTheMoveCrossesAnInitializedFieldOfExcludedCode()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a;
+                              #if DEBUG
+                                  private int _c = Log("c");
+                              #endif
+                                  private int _d;
+                                  private readonly int {|RH7109:_b|} = Log("b");
+
+                                  private static int Log(string name) => 0;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a field of excluded code without an initializer does not withhold the move that crosses it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task FixCrossesAFieldOfExcludedCodeWithoutInitializer()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int _a;
+                                #if DEBUG
+                                    private int _c;
+                                #endif
+                                    private int _d;
+                                    private readonly int {|RH7109:_b|} = Log("b");
+
+                                    private static int Log(string name)
+                                    {
+                                        return 0;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     private readonly int _b = Log("b");
+                                     private int _a;
+                                 #if DEBUG
+                                     private int _c;
+                                 #endif
+                                     private int _d;
+
+                                     private static int Log(string name)
+                                     {
+                                         return 0;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifying the shared specification example: excluded code in front of the moved field moves with it, so the order
+    /// of the initializers stays the same in every build, and the fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task FixMovesExcludedCodeInFrontOfTheMovedFieldWithIt()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int _a;
+                                    private int _d;
+                                #if DEBUG
+                                    private int _c = Log("c");
+                                #endif
+                                    private readonly int {|RH7109:_b|} = Log("b");
+
+                                    private static int Log(string name)
+                                    {
+                                        return 0;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                 #if DEBUG
+                                     private int _c = Log("c");
+                                 #endif
+                                     private readonly int _b = Log("b");
+                                     private int _a;
+                                     private int _d;
+
+                                     private static int Log(string name)
+                                     {
+                                         return 0;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

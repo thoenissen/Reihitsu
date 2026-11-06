@@ -1670,6 +1670,80 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                      });
     }
 
+    /// <summary>
+    /// Verifying the counterpart of the shared specification example: without <c>DEBUG</c> defined, the move would cross
+    /// an initialized static field of excluded code, whose initializer a build with <c>DEBUG</c> would then run after the
+    /// moved one, so no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7103-007")]
+    public async Task NoCodeFixWhenTheMoveCrossesAnInitializedStaticFieldOfExcludedCode()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _instance;
+                              #if DEBUG
+                                  private static int _c = Log("c");
+                              #endif
+                                  private int _other;
+                                  private static int {|RH7103:_b|} = Log("b");
+
+                                  private static int Log(string name) => 0;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying the counterpart of the shared specification example: excluded code in front of the moved static field
+    /// moves with it, so the order of the initializers stays the same in every build, and the fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task FixMovesExcludedCodeInFrontOfTheMovedStaticFieldWithIt()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int _instance;
+                                    private int _other;
+                                #if DEBUG
+                                    private static int _c = Log("c");
+                                #endif
+                                    private static int {|RH7103:_b|} = Log("b");
+
+                                    private static int Log(string name)
+                                    {
+                                        return 0;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                 #if DEBUG
+                                     private static int _c = Log("c");
+                                 #endif
+                                     private static int _b = Log("b");
+                                     private int _instance;
+                                     private int _other;
+
+                                     private static int Log(string name)
+                                     {
+                                         return 0;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region Methods

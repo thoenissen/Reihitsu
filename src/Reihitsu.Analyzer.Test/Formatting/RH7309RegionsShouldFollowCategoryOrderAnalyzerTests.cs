@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -2425,6 +2426,342 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
                                    """;
 
         await Verify(source, fixedSource, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld for the instance fields of a partial class whose sequential layout another part
+    /// declares
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-006")]
+    public async Task NoCodeFixForTheInstanceFieldsOfAPartialClassWithSequentialLayoutOnAnotherPart()
+    {
+        const string source = """
+                              using System;
+                              using System.Runtime.InteropServices;
+
+                              [StructLayout(LayoutKind.Sequential)]
+                              public partial class P
+                              {
+                              }
+
+                              public partial class P : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  private int _handle;
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private int _a;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that the fix reorders the instance fields of a partial struct whose automatic layout another part
+    /// declares
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-006")]
+    public async Task CodeFixReordersTheInstanceFieldsOfAPartialStructWithAutoLayoutOnAnotherPart()
+    {
+        const string source = """
+                              using System;
+                              using System.Runtime.InteropServices;
+
+                              [StructLayout(LayoutKind.Auto)]
+                              public partial struct S
+                              {
+                              }
+
+                              public partial struct S : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  private int _handle;
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private int _a;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System;
+                                   using System.Runtime.InteropServices;
+
+                                   [StructLayout(LayoutKind.Auto)]
+                                   public partial struct S
+                                   {
+                                   }
+
+                                   public partial struct S : IDisposable
+                                   {
+                                       #region Fields
+
+                                       private int _a;
+
+                                       #endregion // Fields
+
+                                       #region IDisposable
+
+                                       private int _handle;
+
+                                       public void Dispose()
+                                       {
+                                       }
+
+                                       #endregion // IDisposable
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that a property that reads a member named <c>field</c> before C# 14 has no backing field, so the reorder
+    /// keeps the order of the struct's instance fields and the fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-006")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task CodeFixReordersAStructWhosePropertyReadsAMemberNamedFieldBeforeCSharp14()
+    {
+        const string source = """
+                              using System;
+
+                              public struct S : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  public int P
+                                  {
+                                      get
+                                      {
+                                          return field;
+                                      }
+                                  }
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private static int field;
+
+                                  private int _a;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System;
+
+                                   public struct S : IDisposable
+                                   {
+                                       #region Fields
+
+                                       private static int field;
+
+                                       private int _a;
+
+                                       #endregion // Fields
+
+                                       #region IDisposable
+
+                                       public int P
+                                       {
+                                           get
+                                           {
+                                               return field;
+                                           }
+                                       }
+
+                                       public void Dispose()
+                                       {
+                                       }
+
+                                       #endregion // IDisposable
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     test => test.SolutionTransforms.Add((solution, projectId) => solution.GetProject(projectId)?.ParseOptions is CSharpParseOptions parseOptions
+                                                                                      ? solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion.CSharp13))
+                                                                                      : solution));
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment above the <c>#endregion</c> line of the last block, which documents nothing,
+    /// withholds the fix when the block moves: behind the moved block, it would document the first member of the block
+    /// that follows
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-006")]
+    public async Task NoCodeFixWhenADocumentationCommentAboveTheLastEndRegionLineWouldDocumentAMember()
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Methods|}
+
+                                  public void M()
+                                  {
+                                  }
+
+                                  /// <summary>Stray</summary>
+                                  #endregion // Methods
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment behind the last code of the last block, which documents nothing, withholds
+    /// the fix when the block moves: in front of the block that follows it, it would document that block's first member
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-006")]
+    public async Task NoCodeFixWhenADocumentationCommentBehindTheLastCodeOfTheLastBlockWouldDocumentAMember()
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Methods|}
+
+                                  public void M()
+                                  {
+                                  } /// <summary>Stray</summary>
+
+                                  #endregion // Methods
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment above the <c>#endregion</c> line of a last block that keeps its place, which
+    /// documents nothing before and after the reorder, does not withhold the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-006")]
+    public async Task CodeFixKeepsADocumentationCommentThatDocumentsNothingInALastBlockThatKeepsItsPlace()
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable, IComparable
+                              {
+                                  #region IDisposable
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private int _a;
+
+                                  #endregion // Fields
+
+                                  #region IComparable
+
+                                  public int CompareTo(object obj)
+                                  {
+                                      return 0;
+                                  }
+
+                                  /// <summary>Stray</summary>
+                                  #endregion // IComparable
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System;
+
+                                   public class C : IDisposable, IComparable
+                                   {
+                                       #region Fields
+
+                                       private int _a;
+
+                                       #endregion // Fields
+
+                                       #region IDisposable
+
+                                       public void Dispose()
+                                       {
+                                       }
+
+                                       #endregion // IDisposable
+
+                                       #region IComparable
+
+                                       public int CompareTo(object obj)
+                                       {
+                                           return 0;
+                                       }
+
+                                       /// <summary>Stray</summary>
+                                       #endregion // IComparable
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
     }
 
     #endregion // Tests

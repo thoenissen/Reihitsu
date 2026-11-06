@@ -589,8 +589,9 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
     }
 
     /// <summary>
-    /// Verifies that the fix moves the break behind the block, indented like the closing brace, together with the comment
-    /// on the line in front of it and the comment behind it, and keeps a layout the formatter would not produce
+    /// Verifies the specification example: the fix moves the break behind the block, indented like the closing brace,
+    /// together with the comment on the line in front of it, a comment in front of it on its line, and the comment behind
+    /// it, and keeps a layout the formatter would not produce
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -614,7 +615,7 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
                                             case 2:
                                             {
                                                 A();
-                                                {|RH7501:break|};
+                                                /* exit */ {|RH7501:break|};
                                             }
                                         }
                                     }
@@ -643,7 +644,7 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
                                              {
                                                  A();
                                              }
-                                             break;
+                                             /* exit */ break;
                                          }
                                      }
 
@@ -1398,8 +1399,8 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
     }
 
     /// <summary>
-    /// Verifies the specification example: a break that shares its line with other code, and a block whose closing brace
-    /// shares its line with the break, are reported without a fix
+    /// Verifies the specification example: a break that shares its line with other code or with the block's opening
+    /// brace, and a block whose closing brace shares its line with the break, are reported without a fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1424,6 +1425,10 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
                                               {
                                                   A();
                                                   {|RH7501:break|}; }
+
+                                          case 4:
+                                              { {|RH7501:break|};
+                                              }
                                       }
                                   }
 
@@ -1506,6 +1511,33 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
 
                                   void A()
                                   {
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a break behind the block's opening brace on the brace's line withholds the fix, although it is the
+    /// block's only statement and the closing brace starts its own line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7501-004")]
+    public async Task NoCodeFixWhenTheBreakSharesItsLineWithTheOpeningBrace()
+    {
+        const string source = """
+                              class C
+                              {
+                                  void M(int x)
+                                  {
+                                      switch (x)
+                                      {
+                                          case 4:
+                                              { {|RH7501:break|};
+                                              }
+                                      }
                                   }
                               }
                               """;
