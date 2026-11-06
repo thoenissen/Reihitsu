@@ -303,46 +303,6 @@ public static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Determines whether the declaration declares an instance field of the type's layout: an instance field, an
-    /// instance field-like event, or an instance property that the compiler gives a backing field, because it is an
-    /// auto-property or uses the <c>field</c> keyword
-    /// </summary>
-    /// <param name="memberDeclaration">Declaration</param>
-    /// <returns><see langword="true"/> if the declaration declares an instance field</returns>
-    public static bool IsLayoutField(MemberDeclarationSyntax memberDeclaration)
-    {
-        if (IsStatic(memberDeclaration) || IsConst(memberDeclaration))
-        {
-            return false;
-        }
-
-        return memberDeclaration switch
-               {
-                   FieldDeclarationSyntax => true,
-                   EventFieldDeclarationSyntax => true,
-                   PropertyDeclarationSyntax propertyDeclaration => HasBackingField(propertyDeclaration),
-                   _ => false,
-               };
-    }
-
-    /// <summary>
-    /// Determines whether the declaration carries a runtime initializer
-    /// </summary>
-    /// <param name="memberDeclaration">Declaration</param>
-    /// <returns><see langword="true"/> if the declaration carries a runtime initializer</returns>
-    public static bool HasInitializer(MemberDeclarationSyntax memberDeclaration)
-    {
-        return memberDeclaration switch
-               {
-                   FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) == false
-                                                              && fieldDeclaration.Declaration.Variables.Any(variable => variable.Initializer != null),
-                   EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Declaration.Variables.Any(variable => variable.Initializer != null),
-                   PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Initializer != null,
-                   _ => false,
-               };
-    }
-
-    /// <summary>
     /// Determines whether moving a member before another member would change the execution order of
     /// field, event field, or property initializers. Initializers run in declaration order within their execution
     /// context (static initializers in the static constructor, instance initializers in the instance
@@ -472,6 +432,46 @@ public static class OrderingDeclarationUtilities
                              : (int?)null;
 
         return layoutKind is not ((int)LayoutKind.Auto or (int)LayoutKind.Explicit);
+    }
+
+    /// <summary>
+    /// Determines whether the declaration declares an instance field of the type's layout: an instance field, an
+    /// instance field-like event, or an instance property that the compiler gives a backing field, because it is an
+    /// auto-property or uses the <c>field</c> keyword
+    /// </summary>
+    /// <param name="memberDeclaration">Declaration</param>
+    /// <returns><see langword="true"/> if the declaration declares an instance field</returns>
+    private static bool IsLayoutField(MemberDeclarationSyntax memberDeclaration)
+    {
+        if (IsStatic(memberDeclaration) || IsConst(memberDeclaration))
+        {
+            return false;
+        }
+
+        return memberDeclaration switch
+               {
+                   FieldDeclarationSyntax => true,
+                   EventFieldDeclarationSyntax => true,
+                   PropertyDeclarationSyntax propertyDeclaration => HasBackingField(propertyDeclaration),
+                   _ => false,
+               };
+    }
+
+    /// <summary>
+    /// Determines whether the declaration carries a runtime initializer
+    /// </summary>
+    /// <param name="memberDeclaration">Declaration</param>
+    /// <returns><see langword="true"/> if the declaration carries a runtime initializer</returns>
+    private static bool HasInitializer(MemberDeclarationSyntax memberDeclaration)
+    {
+        return memberDeclaration switch
+               {
+                   FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) == false
+                                                              && fieldDeclaration.Declaration.Variables.Any(variable => variable.Initializer != null),
+                   EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Declaration.Variables.Any(variable => variable.Initializer != null),
+                   PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Initializer != null,
+                   _ => false,
+               };
     }
 
     /// <summary>
