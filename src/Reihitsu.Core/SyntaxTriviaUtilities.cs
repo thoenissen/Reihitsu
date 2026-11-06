@@ -494,6 +494,104 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
+    /// Determines whether inserting a pair of braces at the two positions would split a directive pair across a
+    /// brace: one brace lands inside the code a directive governs and the other outside it. A conditional directive
+    /// governs the code up to the next directive of its <c>#if</c> group, a region directive the code up to its
+    /// partner, and a <c>#pragma</c>, <c>#nullable</c>, or <c>#line</c> directive the code up to the next directive
+    /// of its kind, or to the end of the file. A pair of braces wholly inside or wholly outside that code does not
+    /// split it. A brace inserted at the position of a directive lands in front of it
+    /// </summary>
+    /// <param name="root">Syntax root of the document</param>
+    /// <param name="openBracePosition">Position the opening brace is inserted at</param>
+    /// <param name="closeBracePosition">Position the closing brace is inserted at</param>
+    /// <returns><see langword="true"/> if the braces would split a directive pair</returns>
+    public static bool SplitsDirectivePair(SyntaxNode root, int openBracePosition, int closeBracePosition)
+    {
+        var conditionalGroups = new Stack<int>();
+        var regionStarts = new Stack<int>();
+        var lastDirectiveOfKind = new Dictionary<SyntaxKind, int>();
+
+        bool SplitsSpan(int start, int end)
+        {
+            var openInside = start < openBracePosition && openBracePosition <= end;
+            var closeInside = start < closeBracePosition && closeBracePosition <= end;
+
+            return openInside != closeInside;
+        }
+
+        foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true).Where(trivia => trivia.IsDirective))
+        {
+            var position = trivia.SpanStart;
+
+            switch (trivia.Kind())
+            {
+                case SyntaxKind.IfDirectiveTrivia:
+                    {
+                        conditionalGroups.Push(position);
+                    }
+                    break;
+
+                case SyntaxKind.ElifDirectiveTrivia:
+                case SyntaxKind.ElseDirectiveTrivia:
+                case SyntaxKind.EndIfDirectiveTrivia:
+                    {
+                        if (conditionalGroups.Count > 0)
+                        {
+                            if (SplitsSpan(conditionalGroups.Pop(), position))
+                            {
+                                return true;
+                            }
+
+                            if (trivia.IsKind(SyntaxKind.EndIfDirectiveTrivia) == false)
+                            {
+                                conditionalGroups.Push(position);
+                            }
+                        }
+                    }
+                    break;
+
+                case SyntaxKind.RegionDirectiveTrivia:
+                    {
+                        regionStarts.Push(position);
+                    }
+                    break;
+
+                case SyntaxKind.EndRegionDirectiveTrivia:
+                    {
+                        if (regionStarts.Count > 0
+                            && SplitsSpan(regionStarts.Pop(), position))
+                        {
+                            return true;
+                        }
+                    }
+                    break;
+
+                case SyntaxKind.PragmaWarningDirectiveTrivia:
+                case SyntaxKind.PragmaChecksumDirectiveTrivia:
+                case SyntaxKind.NullableDirectiveTrivia:
+                case SyntaxKind.LineDirectiveTrivia:
+                case SyntaxKind.LineSpanDirectiveTrivia:
+                    {
+                        var kind = trivia.IsKind(SyntaxKind.LineSpanDirectiveTrivia)
+                                       ? SyntaxKind.LineDirectiveTrivia
+                                       : trivia.Kind();
+
+                        if (lastDirectiveOfKind.TryGetValue(kind, out var previousPosition)
+                            && SplitsSpan(previousPosition, position))
+                        {
+                            return true;
+                        }
+
+                        lastDirectiveOfKind[kind] = position;
+                    }
+                    break;
+            }
+        }
+
+        return lastDirectiveOfKind.Values.Any(position => SplitsSpan(position, root.FullSpan.End));
+    }
+
+    /// <summary>
     /// Sets the trailing whitespace of a token to the specified number of spaces while preserving non-whitespace trivia
     /// </summary>
     /// <param name="token">Token whose trailing whitespace to normalize</param>

@@ -111,17 +111,27 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer : Diagno
     }
 
     /// <summary>
-    /// Analyzes region pairs after excluding directives within element bodies from matching
+    /// Analyzes the region pairs as the compiler pairs them, skipping every pair whose directives, or a region
+    /// directive between them, lie inside executable code: such a region has no declaration level to align with
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
     {
         var syntaxRoot = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
+        var bodyDirectivePositions = syntaxRoot.DescendantTrivia(descendIntoTrivia: true)
+                                               .Where(directiveTrivia => SyntaxTriviaUtilities.IsRegionDirective(directiveTrivia)
+                                                                         && RegionDirectiveUtilities.IsWithinElementBody(directiveTrivia))
+                                               .Select(directiveTrivia => directiveTrivia.SpanStart)
+                                               .ToList();
 
-        foreach (var (regionTrivia, endRegionTrivia) in RegionDirectiveUtilities.GetRegionPairs(syntaxRoot,
-                                                                                                static directiveTrivia => RegionDirectiveUtilities.IsWithinElementBody(directiveTrivia) == false))
+        foreach (var (regionTrivia, endRegionTrivia) in RegionDirectiveUtilities.GetRegionPairs(syntaxRoot, includeDirective: null))
         {
+            if (bodyDirectivePositions.Any(position => position >= regionTrivia.SpanStart && position <= endRegionTrivia.SpanStart))
+            {
+                continue;
+            }
+
             AnalyzeRegionPair(context, syntaxRoot, sourceText, regionTrivia, endRegionTrivia);
         }
     }

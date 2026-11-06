@@ -73,7 +73,8 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsCodeFixPro
     protected override bool IsMoveSafe(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberDeclaration, MemberDeclarationSyntax targetMember)
     {
         return base.IsMoveSafe(typeDeclaration, memberDeclaration, targetMember)
-               && OrderingDeclarationUtilities.ChangesInitializerExecutionOrder(typeDeclaration, memberDeclaration, targetMember) == false;
+               && OrderingDeclarationUtilities.ChangesInitializerExecutionOrder(typeDeclaration, memberDeclaration, targetMember) == false
+               && OrderingDeclarationUtilities.ChangesLayoutOrder(typeDeclaration, memberDeclaration, targetMember) == false;
     }
 
     #endregion // TypeMemberOrderingCodeFixProviderBase

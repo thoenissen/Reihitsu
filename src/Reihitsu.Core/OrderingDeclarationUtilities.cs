@@ -303,11 +303,108 @@ public static class OrderingDeclarationUtilities
     }
 
     /// <summary>
+    /// Determines whether moving a member before another member would change the order of the instance fields of a
+    /// type whose field order sets its layout. The instance fields include the backing fields the compiler declares
+    /// for auto-properties, for properties that use the <c>field</c> keyword, and for instance field-like events
+    /// </summary>
+    /// <param name="typeDeclaration">Type declaration</param>
+    /// <param name="memberToMove">Member to move</param>
+    /// <param name="targetMember">Target member</param>
+    /// <returns><see langword="true"/> if the move would change the type's layout</returns>
+    public static bool ChangesLayoutOrder(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberToMove, MemberDeclarationSyntax targetMember)
+    {
+        var members = typeDeclaration.Members;
+        var memberToMoveIndex = members.IndexOf(memberToMove);
+        var targetMemberIndex = members.IndexOf(targetMember);
+
+        if (memberToMoveIndex < 0
+            || targetMemberIndex < 0
+            || memberToMoveIndex <= targetMemberIndex
+            || IsLayoutField(memberToMove) == false
+            || FieldOrderSetsLayout(typeDeclaration) == false)
+        {
+            return false;
+        }
+
+        for (var index = targetMemberIndex; index < memberToMoveIndex; index++)
+        {
+            if (IsLayoutField(members[index]))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether the order of the type's instance fields sets its memory layout: a struct, which has
+    /// sequential layout unless it declares <c>LayoutKind.Auto</c> or <c>LayoutKind.Explicit</c>, and any other type
+    /// declared with <c>[StructLayout(LayoutKind.Sequential)]</c>. Under explicit layout each field's
+    /// <c>[FieldOffset]</c> sets its offset. A layout argument that is not written as one of the
+    /// <c>LayoutKind</c> members counts as sequential layout. Only the attribute lists of the given declaration are
+    /// inspected
+    /// </summary>
+    /// <param name="typeDeclaration">Type declaration</param>
+    /// <returns><see langword="true"/> if reordering the instance fields changes the layout</returns>
+    public static bool FieldOrderSetsLayout(TypeDeclarationSyntax typeDeclaration)
+    {
+        var isStruct = typeDeclaration is StructDeclarationSyntax
+                       || typeDeclaration is RecordDeclarationSyntax { ClassOrStructKeyword.RawKind: (int)SyntaxKind.StructKeyword };
+
+        if (isStruct == false && typeDeclaration is not ClassDeclarationSyntax and not RecordDeclarationSyntax)
+        {
+            return false;
+        }
+
+        var layoutAttribute = typeDeclaration.AttributeLists
+                                             .SelectMany(attributeList => attributeList.Attributes)
+                                             .FirstOrDefault(IsStructLayoutAttribute);
+
+        if (layoutAttribute == null)
+        {
+            return isStruct;
+        }
+
+        var layoutKind = layoutAttribute.ArgumentList?.Arguments.FirstOrDefault(argument => argument.NameEquals == null && argument.NameColon == null)?.Expression switch
+                         {
+                             MemberAccessExpressionSyntax memberAccess => memberAccess.Name.Identifier.ValueText,
+                             IdentifierNameSyntax identifierName => identifierName.Identifier.ValueText,
+                             _ => null
+                         };
+
+        return layoutKind is not ("Auto" or "Explicit");
+    }
+
+    /// <summary>
+    /// Determines whether the declaration declares an instance field of the type's layout: an instance field, an
+    /// instance field-like event, or an instance property that the compiler gives a backing field, because it is an
+    /// auto-property or uses the <c>field</c> keyword
+    /// </summary>
+    /// <param name="memberDeclaration">Declaration</param>
+    /// <returns><see langword="true"/> if the declaration declares an instance field</returns>
+    public static bool IsLayoutField(MemberDeclarationSyntax memberDeclaration)
+    {
+        if (IsStatic(memberDeclaration) || IsConst(memberDeclaration))
+        {
+            return false;
+        }
+
+        return memberDeclaration switch
+               {
+                   FieldDeclarationSyntax => true,
+                   EventFieldDeclarationSyntax => true,
+                   PropertyDeclarationSyntax propertyDeclaration => HasBackingField(propertyDeclaration),
+                   _ => false,
+               };
+    }
+
+    /// <summary>
     /// Determines whether the declaration carries a runtime initializer
     /// </summary>
     /// <param name="memberDeclaration">Declaration</param>
     /// <returns><see langword="true"/> if the declaration carries a runtime initializer</returns>
-    private static bool HasInitializer(MemberDeclarationSyntax memberDeclaration)
+    public static bool HasInitializer(MemberDeclarationSyntax memberDeclaration)
     {
         return memberDeclaration switch
                {
@@ -317,6 +414,53 @@ public static class OrderingDeclarationUtilities
                    PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Initializer != null,
                    _ => false,
                };
+    }
+
+    /// <summary>
+    /// Determines whether the property has a backing field the compiler declares: an auto-property, whose accessors
+    /// have no body, or a property that uses the <c>field</c> keyword. Abstract and extern properties have none, and
+    /// neither has the bodiless defining declaration of a partial property
+    /// </summary>
+    /// <param name="propertyDeclaration">Property declaration</param>
+    /// <returns><see langword="true"/> if the property has a backing field</returns>
+    private static bool HasBackingField(PropertyDeclarationSyntax propertyDeclaration)
+    {
+        if (propertyDeclaration.Modifiers.Any(SyntaxKind.AbstractKeyword)
+            || propertyDeclaration.Modifiers.Any(SyntaxKind.ExternKeyword))
+        {
+            return false;
+        }
+
+        if (propertyDeclaration.AccessorList is { } accessorList
+            && accessorList.Accessors.All(accessor => accessor.Body == null && accessor.ExpressionBody == null))
+        {
+            return propertyDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword) == false;
+        }
+
+        return propertyDeclaration.DescendantTokens()
+                                  .Any(token => token.IsKind(SyntaxKind.FieldKeyword)
+                                                || (token.IsKind(SyntaxKind.IdentifierToken)
+                                                    && token.ValueText == "field"
+                                                    && token.Parent is IdentifierNameSyntax));
+    }
+
+    /// <summary>
+    /// Determines whether the attribute is <c>StructLayout</c>, written with or without its namespace or the
+    /// <c>Attribute</c> suffix
+    /// </summary>
+    /// <param name="attribute">Attribute</param>
+    /// <returns><see langword="true"/> if the attribute is <c>StructLayout</c></returns>
+    private static bool IsStructLayoutAttribute(AttributeSyntax attribute)
+    {
+        var name = attribute.Name switch
+                   {
+                       QualifiedNameSyntax qualifiedName => qualifiedName.Right.Identifier.ValueText,
+                       AliasQualifiedNameSyntax aliasQualifiedName => aliasQualifiedName.Name.Identifier.ValueText,
+                       SimpleNameSyntax simpleName => simpleName.Identifier.ValueText,
+                       _ => null
+                   };
+
+        return name is "StructLayout" or "StructLayoutAttribute";
     }
 
     #endregion // Methods

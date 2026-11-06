@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Organization;
+using Reihitsu.Core;
 using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Organization;
@@ -53,10 +54,25 @@ public class RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider : CodeFixProv
 
         var followingStatements = parentBlock.Statements.Skip(statementIndex + 1);
         var formattingAnnotation = new SyntaxAnnotation();
+        var semicolonToken = usingDeclaration.SemicolonToken;
+        var closeParenToken = SyntaxFactory.Token(SyntaxKind.CloseParenToken)
+                                           .WithLeadingTrivia(semicolonToken.LeadingTrivia);
+        var statementTrailingTrivia = usingDeclaration.GetTrailingTrivia();
+
+        if (semicolonToken.TrailingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia))
+        {
+            // A comment behind the declaration describes the resource, so it stays behind the header of the new
+            // statement, on the header's line, together with the line break that ends that line
+            closeParenToken = closeParenToken.WithTrailingTrivia(semicolonToken.TrailingTrivia);
+            statementTrailingTrivia = SyntaxFactory.TriviaList(semicolonToken.TrailingTrivia.Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)).Take(1));
+        }
+
         var newUsingStatement = SyntaxFactory.UsingStatement(usingDeclaration.Declaration, null, SyntaxFactory.Block(followingStatements))
                                              .WithAwaitKeyword(usingDeclaration.AwaitKeyword)
+                                             .WithUsingKeyword(usingDeclaration.UsingKeyword)
+                                             .WithCloseParenToken(closeParenToken)
                                              .WithLeadingTrivia(usingDeclaration.GetLeadingTrivia())
-                                             .WithTrailingTrivia(usingDeclaration.GetTrailingTrivia())
+                                             .WithTrailingTrivia(statementTrailingTrivia)
                                              .WithAdditionalAnnotations(formattingAnnotation);
         var updatedStatements = SyntaxFactory.List(parentBlock.Statements.Take(statementIndex).Concat([newUsingStatement]));
         var updatedBlock = parentBlock.WithStatements(updatedStatements);
@@ -90,6 +106,29 @@ public class RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider : CodeFixProv
         return followingStatements.Any(static statement => statement is LocalFunctionStatementSyntax or LabeledStatementSyntax);
     }
 
+    /// <summary>
+    /// Determines whether the new block would separate a directive from the code it governs. The block opens behind
+    /// the using declaration and closes in front of the trivia of the enclosing block's closing brace, so it must not
+    /// put one brace into the code a directive pair governs and the other outside it (SHARED-FIX-003). A conditional
+    /// directive or disabled text in front of the enclosing block's closing brace withholds the fix as well: in
+    /// another build configuration, that code follows the declaration and would end up behind the new block
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="parentBlock">Block that contains the using declaration</param>
+    /// <param name="usingDeclaration">Using declaration</param>
+    /// <returns><see langword="true"/> when the new block would separate a directive from its code; otherwise <see langword="false"/></returns>
+    private static bool WouldSeparateDirective(SyntaxNode root, BlockSyntax parentBlock, LocalDeclarationStatementSyntax usingDeclaration)
+    {
+        var closeBraceToken = parentBlock.CloseBraceToken;
+
+        return SyntaxTriviaUtilities.SplitsDirectivePair(root, usingDeclaration.FullSpan.End, closeBraceToken.FullSpan.Start)
+               || closeBraceToken.LeadingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.IfDirectiveTrivia)
+                                                              || trivia.IsKind(SyntaxKind.ElifDirectiveTrivia)
+                                                              || trivia.IsKind(SyntaxKind.ElseDirectiveTrivia)
+                                                              || trivia.IsKind(SyntaxKind.EndIfDirectiveTrivia)
+                                                              || trivia.IsKind(SyntaxKind.DisabledTextTrivia));
+    }
+
     #endregion // Methods
 
     #region CodeFixProvider
@@ -121,7 +160,9 @@ public class RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider : CodeFixProv
                                        .OfType<LocalDeclarationStatementSyntax>()
                                        .FirstOrDefault();
 
-            if (usingDeclaration?.Parent is BlockSyntax parentBlock && HasFollowingStatementsThatPreventConversion(parentBlock, usingDeclaration) == false)
+            if (usingDeclaration?.Parent is BlockSyntax parentBlock
+                && HasFollowingStatementsThatPreventConversion(parentBlock, usingDeclaration) == false
+                && WouldSeparateDirective(root, parentBlock, usingDeclaration) == false)
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7004Title,
                                                           token => ApplyCodeFixAsync(context.Document, usingDeclaration, token),
