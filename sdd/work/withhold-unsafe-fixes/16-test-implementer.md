@@ -121,3 +121,67 @@ scripts/test.sh --configuration Debug --project architecture
 ```
 
 On 57e119d2 with these tests: analyzer 164 total, 23 failed, 141 passed — exactly the 23 tests marked "fails" above (RH3004 13 including the base `FixAllCorrectsEveryDiagnostic`, RH3005 1, RH3106 9). Architecture: 115 passed (RH3004-007 is now covered).
+
+## Amendment — row 35
+
+Commit: 693a0308 (head the tests were written on)
+Verdict: tests written
+
+My prompt named row 35 of `00-lead.md`. It carried no intended fix, suspected cause, or hoped-for verdict, so I had nothing to set aside. I raised no output questions.
+
+New file `src/Reihitsu.Core.Test/RewriteBindingUtilitiesTests.cs`. It holds the first semantic tests in the Core test project. The private `CompileRoot` helper compiles against the trusted platform assemblies and asserts that the input compiles, so no test is checked on an input that does not compile. The one exception is the test that needs an existing error, and it says so. Each replacement is built the way a consumer builds it: `RemoveList` as the RH3106 fix does it (`WithParameterList(null)`), and `Probe` as the RH3106 analyzer does it (one `int` parameter). There is one exception: a replacement whose body has an error, which tests the error criterion directly. As with row 13, the tests carry no requirement tag. The requirements belong to RH3106, and these tests check only the shared helper.
+
+### Tests
+
+| Test | Requirement / failure class | Helper | Expected now |
+|---|---|---|---|
+| `BindsAsBeforeReturnsTrueForRemovedListWithDelegateTarget` (`Action a = …`; out type `Action`) | FC-003 (holding side) | direct call | passes |
+| `BindsAsBeforeReturnsTrueForProbeUnderImplicitlyTypedLocal` (`var a = …`; out type `Action<int>`) | FC-003 (conversion, holding side) | direct call | passes |
+| `BindsAsBeforeReturnsFalseForProbeThatDoesNotConvertToDelegateTarget` (out type `null`) | FC-003 (conversion) | direct call | passes |
+| `BindsAsBeforeReturnsFalseForRemovedListUnderImplicitlyTypedLocal` | FC-003 (conversion) | direct call | passes |
+| `BindsAsBeforeReturnsFalseForReplacementThatAddsBinderError` (`delegate { Missing(); }`) | FC-003 (error) | direct call | passes |
+| `BindsAsBeforeReturnsFalseForRemovedListThatLeavesLambdaReturnTypeUninferred` (`var g = () => delegate () { };`) | FC-003 (error) | direct call | passes |
+| `BindsAsBeforeReturnsTrueForRemovedListBesideExistingBinderError` (`Run(delegate () { }, Missing)`) | FC-003 (error, holding side: only new errors count) | direct call | passes |
+| `BindsAsBeforeReturnsTrueForRemovedListWithSingleOverload` | FC-003 (overload, holding side) | direct call | passes |
+| `BindsAsBeforeReturnsFalseForRemovedListThatMakesOverloadsAmbiguous` | FC-003 (overload) | direct call | passes |
+| `BindsAsBeforeReturnsFalseForProbeThatChoosesAnotherOverload` | FC-003 (overload) | direct call | passes |
+| `BindsAsBeforeReturnsFalseForProbeThatChoosesAnotherConstructor` (`: this(…)`) | FC-003 (overload), FC-016 | direct call | passes |
+| `BindsAsBeforeReturnsTrueForRemovedListWithSingleOperator` (`c += …`) | FC-003 (operator, holding side) | direct call | passes |
+| `BindsAsBeforeReturnsFalseForRemovedListThatMakesOperatorsAmbiguous` (`c += …`) | FC-003 (operator) | direct call | passes |
+| `BindsAsBeforeReturnsFalseForProbeThatChoosesAnotherOperator` (`c + …`) | FC-003 (operator) | direct call | passes |
+| `BindsAsBeforeReturnsTrueForRemovedListWithSingleAddMethod` | FC-003 (`Add`, holding side) | direct call | passes |
+| `BindsAsBeforeReturnsFalseForRemovedListThatMakesAddMethodsAmbiguous` | FC-003 (`Add`) | direct call | passes |
+| `BindsAsBeforeReturnsFalseForProbeThatChoosesAnotherAddMethod` | FC-003 (`Add`) | direct call | passes |
+| `BindsAsBeforeReturnsFalseForRemovedListThatBreaksTypeInference` (`Run<T>(T)`) | FC-003 (inferred type argument) | direct call | passes |
+| `BindsAsBeforeBindsReturnStatementTogetherWithDeclarationAroundLambda` (`var g = () => { return delegate () { }; };`, probe; out type `Action<int>`) | FC-003 (binding root past an anonymous function) | direct call | passes |
+| `BindsAsBeforeReturnsTrueForRemovedListInFieldInitializerAndExpressionBody` | FC-016 (binding-root kinds) | direct call | passes |
+| `BindsAsBeforeReturnsFalseWhenNoBindingRootSurroundsExpression` (attribute argument; out type `null`) | FC-003 (no root) | direct call | passes |
+
+### Each criterion checked on its own
+
+I made temporary single-line mutations of `src/Reihitsu.Core/RewriteBindingUtilities.cs` in the working tree. I reverted each one with `git checkout` right after its run and committed none of them. Each mutation fails exactly these tests:
+
+| Mutation | Fails |
+|---|---|
+| Conversion check removed | `…ProbeThatDoesNotConvertToDelegateTarget` |
+| Error-count check removed | `…RemovedListThatLeavesLambdaReturnTypeUninferred` |
+| Errors counted without the original's baseline (`> 0`) | `…RemovedListBesideExistingBinderError` |
+| Symbol comparison removed | the four `…ProbeThatChoosesAnother{Overload,Constructor,Operator,AddMethod}` |
+| Collection-initializer `Add` comparison removed | `…ProbeThatChoosesAnotherAddMethod` |
+| Innermost binding root instead of outermost | `…WithDelegateTarget`, `…ProbeUnderImplicitlyTypedLocal`, `…WithSingleAddMethod`, `…DeclarationAroundLambda` |
+
+Observation, no finding: the first error-criterion test (`delegate { Missing(); }`) is also caught by the conversion check. An anonymous method whose body has a binder error reports a conversion that does not exist. So I added the lambda-return case, which only the error count catches.
+
+### Not covered, and why
+
+- `PrimaryConstructorBaseTypeSyntax` root: an anonymous method cannot be a primary-constructor base argument that the RH3106 tests do not already reach. The root kind goes through the same speculative-model switch arm as the others, and the field-initializer and expression-body test exercises that switch.
+- CRLF and trivia: the helper compares bound symbols and errors, not text, so line endings never reach it.
+- Consumer-specific decisions (the analyzer's "follows the natural type" rule, the fix's converted-type equality): these belong to the consumers and stay covered by the RH3106 analyzer tests.
+
+### Commands
+
+```shell
+scripts/test.sh --configuration Debug --project core --filter "FullyQualifiedName~RewriteBindingUtilitiesTests"
+```
+
+Run state: Core 642 passed, 0 failed. Architecture 115 passed, 0 failed. After the last edit, `scripts/format.sh` changed nothing.
