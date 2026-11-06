@@ -55,6 +55,7 @@ The process on `main` moved escalation answers from `squad/decisions/` into this
 2. Lane (2026-10-27): the maintainer reclassified the run as a behavior change and allowed change docs, overriding the triage notes on #1262 and #1340 that ruled one out. The run note under `squad/notes/` is classified as tooling, so the behavior-change lane stays required.
 3. Change docs (2026-11-05): the maintainer approved the visible output changes of `withhold-unsafe-fixes` and `silence-uncorrectable-namespaces-and-regions` as of commit c2e1f67, after `main` was merged and the plan re-checked.
 4. RH7101 output question (2026-11-05, 05-spec-author Q1): a `/** */` or `///` comment that starts behind code on the line and stands in the leading trivia of a combined field declaration documents the declaration; in documentation mode `Parse`/`Diagnose` the fix is withheld (option A). The four tests of main's accepted case 7 change their expectation or move to mode `None`.
+5. Pausing (2026-11-06): the maintainer withdrew the request to pause after every role; the run continues without stops except for output questions and escalations.
 
 # Decisions taken
 
