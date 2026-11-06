@@ -691,12 +691,14 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     }
 
     /// <summary>
-    /// Characterizes current behavior that no requirement states: the fix reorders the fields of a struct without a
-    /// layout attribute, whose fields the runtime lays out sequentially
+    /// Verifying that the fix is withheld for the instance fields of a struct without a layout attribute, whose fields
+    /// the runtime lays out sequentially, and the diagnostic is still reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixReordersTheFieldsOfAStructWithDefaultLayout()
+    [Requirement("SHARED-FIX-003")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixForTheFieldsOfAStructWithDefaultLayout()
     {
         const string source = """
                               struct S
@@ -706,15 +708,7 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
                               }
                               """;
 
-        const string fixedSource = """
-                                   struct S
-                                   {
-                                       public readonly int B;
-                                       public int A;
-                                   }
-                                   """;
-
-        await Verify(source, fixedSource);
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     /// <summary>
@@ -799,6 +793,212 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
                               """;
 
         await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifying the shared specification example: the fields of a public struct without a layout attribute are reported,
+    /// and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixForTheSpecificationExampleStruct()
+    {
+        const string source = """
+                              public struct S
+                              {
+                                  public int _a;
+                                  public readonly int {|RH7109:_b|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that the fix is withheld for the instance fields of a record struct
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixForTheFieldsOfARecordStruct()
+    {
+        const string source = """
+                              public record struct S
+                              {
+                                  public int _a;
+                                  public readonly int {|RH7109:_b|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that the fix is withheld for the instance fields of a ref struct
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixForTheFieldsOfARefStruct()
+    {
+        const string source = """
+                              public ref struct S
+                              {
+                                  public int _a;
+                                  public readonly int {|RH7109:_b|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that the fix is withheld for the instance fields of a class declared with sequential layout
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixForTheFieldsOfAClassWithSequentialLayout()
+    {
+        const string source = """
+                              using System.Runtime.InteropServices;
+
+                              [StructLayout(LayoutKind.Sequential)]
+                              public class C
+                              {
+                                  public int _a;
+                                  public readonly int {|RH7109:_b|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that the fix is withheld for the instance fields of a record declared with sequential layout
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixForTheFieldsOfARecordWithSequentialLayout()
+    {
+        const string source = """
+                              using System.Runtime.InteropServices;
+
+                              [StructLayout(LayoutKind.Sequential)]
+                              public record R
+                              {
+                                  public int _a;
+                                  public readonly int {|RH7109:_b|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that the fix is withheld for a class whose sequential layout attribute is written with its full name and
+    /// a named argument
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixForAClassWithAFullyQualifiedSequentialLayoutAttribute()
+    {
+        const string source = """
+                              [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential, Pack = 1)]
+                              public class C
+                              {
+                                  public int _a;
+                                  public readonly int {|RH7109:_b|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that the fix is withheld for the instance fields of a struct nested in a class
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixForTheFieldsOfAStructNestedInAClass()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  public struct S
+                                  {
+                                      public int _a;
+                                      public readonly int {|RH7109:_b|};
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that the fix is withheld for the instance fields of one part of a partial struct
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixForTheFieldsOfAPartOfAPartialStruct()
+    {
+        const string source = """
+                              public partial struct S
+                              {
+                                  public int _a;
+                                  public readonly int {|RH7109:_b|};
+                              }
+
+                              public partial struct S
+                              {
+                                  public void M()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying the shared specification example: static fields are no part of a struct's layout, so the fix moves them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixReordersTheStaticFieldsOfAStruct()
+    {
+        const string source = """
+                              public struct S
+                              {
+                                  public static int _a;
+                                  public static readonly int {|RH7109:_b|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public struct S
+                                   {
+                                       public static readonly int _b;
+                                       public static int _a;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
     }
 
     #endregion // Tests

@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
@@ -1503,6 +1503,928 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     public async Task MovedRegionBlocksKeepTheirLayoutInCarriageReturnLineFeedDocument()
     {
         await Verify(NormalizeToCarriageReturnLineFeed(MovedCodeSource), NormalizeToCarriageReturnLineFeed(MovedCodeFixedSource));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: moving the block would run a static initializer before the one that reads its
+    /// field, so no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-006")]
+    public async Task NoCodeFixWhenAnInitializerReadsAFieldOfABlockItWouldCross()
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IComparable
+                              {
+                                  #region IComparable
+
+                                  private static readonly int Y = X + 1;
+
+                                  public int CompareTo(object obj) => Y;
+
+                                  #endregion // IComparable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private static readonly int X = 5;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld when the reorder would put a static initializer of a block in front of a static
+    /// initializer between the blocks that runs before it today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-006")]
+    public async Task NoCodeFixWhenAnInitializerWouldChangeOrderWithAMemberBetweenTheBlocks()
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  private static readonly int Y = X + 1;
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  private static readonly int X = 5;
+
+                                  {|RH7309:#region Fields|}
+
+                                  private static int _z = 1;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld when the reorder would swap two instance field initializers
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-006")]
+    public async Task NoCodeFixWhenTwoInstanceInitializersWouldChangeOrder()
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  private int _a = 1;
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private int _b = 2;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld when the reorder would swap the initializer of an event field and the initializer
+    /// of a property
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-006")]
+    public async Task NoCodeFixWhenAnEventInitializerAndAPropertyInitializerWouldChangeOrder()
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  public event EventHandler Changed = delegate { };
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                                  public int Count { get; set; } = 1;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld when the reorder would swap an initializer that another build configuration
+    /// compiles with an initializer of the other block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoCodeFixWhenAnInitializerInDisabledTextWouldChangeOrder()
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IComparable
+                              {
+                                  #region IComparable
+
+                              #if DEBUG
+                                  private static readonly int Y = X + 1;
+                              #endif
+
+                                  public int CompareTo(object obj) => 0;
+
+                                  #endregion // IComparable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private static readonly int X = 5;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a static and an instance initializer, which run at different times, do not withhold the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-006")]
+    public async Task CodeFixReordersAStaticAndAnInstanceInitializer()
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  private static int _s = 1;
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private int _i = 2;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System;
+
+                                   public class C : IDisposable
+                                   {
+                                       #region Fields
+
+                                       private int _i = 2;
+
+                                       #endregion // Fields
+
+                                       #region IDisposable
+
+                                       private static int _s = 1;
+
+                                       public void Dispose()
+                                       {
+                                       }
+
+                                       #endregion // IDisposable
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that constant fields, which have no runtime initializer, do not withhold the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-006")]
+    public async Task CodeFixReordersConstantFields()
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  private const int A = 1;
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private const int B = A;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System;
+
+                                   public class C : IDisposable
+                                   {
+                                       #region Fields
+
+                                       private const int B = A;
+
+                                       #endregion // Fields
+
+                                       #region IDisposable
+
+                                       private const int A = 1;
+
+                                       public void Dispose()
+                                       {
+                                       }
+
+                                       #endregion // IDisposable
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that initializers of nested types in the blocks, which belong to other contexts, do not withhold the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-006")]
+    public async Task CodeFixReordersInitializersOfNestedTypes()
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  private class Inner
+                                  {
+                                      public int A = 1;
+                                  }
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                                  public void M()
+                                  {
+                                  }
+
+                                  private class Other
+                                  {
+                                      public int B = 2;
+                                  }
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System;
+
+                                   public class C : IDisposable
+                                   {
+                                       #region Fields
+
+                                       public void M()
+                                       {
+                                       }
+
+                                       private class Other
+                                       {
+                                           public int B = 2;
+                                       }
+
+                                       #endregion // Fields
+
+                                       #region IDisposable
+
+                                       private class Inner
+                                       {
+                                           public int A = 1;
+                                       }
+
+                                       public void Dispose()
+                                       {
+                                       }
+
+                                       #endregion // IDisposable
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: moving the block would change the order of the struct's instance fields, so
+    /// no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-006")]
+    public async Task NoCodeFixForTheInstanceFieldsOfAStruct()
+    {
+        const string source = """
+                              using System;
+
+                              public struct S : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  private int _handle;
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private int _a;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the backing field of an auto-property counts like a declared field of the
+    /// struct, so no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-006")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoCodeFixForAnAutoPropertyOfAStruct()
+    {
+        const string source = """
+                              using System;
+
+                              public struct S : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  public int Handle { get; set; }
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private int _a;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that the backing field of an instance field-like event counts like a declared field of the struct, so no
+    /// code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-006")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoCodeFixForAnInstanceFieldLikeEventOfAStruct()
+    {
+        const string source = """
+                              using System;
+
+                              public struct S : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  public event EventHandler Changed;
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private int _a;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that the backing field of a property that uses the <c>field</c> keyword counts like a declared field of
+    /// the struct, so no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-006")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoCodeFixForAPropertyThatUsesTheFieldKeywordOfAStruct()
+    {
+        const string source = """
+                              using System;
+
+                              public struct S : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  public int Handle { get => field; set => field = value; }
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private int _a;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld when the reorder would change the order of the instance fields of a class
+    /// declared with sequential layout
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-006")]
+    public async Task NoCodeFixForTheInstanceFieldsOfAClassWithSequentialLayout()
+    {
+        const string source = """
+                              using System;
+                              using System.Runtime.InteropServices;
+
+                              [StructLayout(LayoutKind.Sequential)]
+                              public class C : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  private int _handle;
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private int _a;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a comment directly above the <c>#region</c> line of a block the fix would move
+    /// withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-006")]
+    public async Task NoCodeFixWhenACommentStandsDirectlyAboveABlockThatWouldMove()
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable
+                              {
+                                  // The disposal logic
+                                  #region IDisposable
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private int _a;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a comment directly above the <c>#region</c> line of a block the fix would move withholds the fix in a
+    /// document with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-006")]
+    public async Task NoCodeFixWhenACommentStandsDirectlyAboveABlockThatWouldMoveInCarriageReturnLineFeedDocument()
+    {
+        var source = NormalizeToCarriageReturnLineFeed("""
+                                                       using System;
+
+                                                       public class C : IDisposable
+                                                       {
+                                                           // The disposal logic
+                                                           #region IDisposable
+
+                                                           public void Dispose()
+                                                           {
+                                                           }
+
+                                                           #endregion // IDisposable
+
+                                                           {|RH7309:#region Fields|}
+
+                                                           private int _a;
+
+                                                           #endregion // Fields
+                                                       }
+                                                       """);
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a comment above the <c>#region</c> line of a block the fix would move, with a
+    /// blank line between them, withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-006")]
+    public async Task NoCodeFixWhenACommentAboveABlockThatWouldMoveIsSeparatedByABlankLine()
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable
+                              {
+                                  // The disposal logic
+
+                                  #region IDisposable
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private int _a;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a comment above the <c>#region</c> line of a block that keeps its place does
+    /// not withhold the fix and stays above that block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-004")]
+    [Requirement("RH7309-006")]
+    public async Task CodeFixKeepsACommentAboveABlockThatKeepsItsPlace()
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable
+                              {
+                                  // The fields
+                                  #region Fields
+
+                                  private int _a;
+
+                                  #endregion // Fields
+
+                                  #region IDisposable
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Methods|}
+
+                                  public void M()
+                                  {
+                                  }
+
+                                  #endregion // Methods
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System;
+
+                                   public class C : IDisposable
+                                   {
+                                       // The fields
+                                       #region Fields
+
+                                       private int _a;
+
+                                       #endregion // Fields
+
+                                       #region Methods
+
+                                       public void M()
+                                       {
+                                       }
+
+                                       #endregion // Methods
+
+                                       #region IDisposable
+
+                                       public void Dispose()
+                                       {
+                                       }
+
+                                       #endregion // IDisposable
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a documentation comment behind the closing brace of the last member of a block
+    /// documents the first member of the next block, so no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-006")]
+    public async Task NoCodeFixWhenADocumentationCommentBehindTheLastCodeOfABlockDocumentsTheNextBlock()
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  public void Dispose()
+                                  {
+                                  } /// <summary>M</summary>
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Methods|}
+
+                                  public void M()
+                                  {
+                                  }
+
+                                  #endregion // Methods
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a documentation comment above a <c>#region</c> line documents the first
+    /// member of the block, so no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-006")]
+    public async Task NoCodeFixWhenADocumentationCommentAboveTheRegionLineDocumentsTheBlock()
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  /// <summary>M</summary>
+                                  {|RH7309:#region Methods|}
+
+                                  public void M()
+                                  {
+                                  }
+
+                                  #endregion // Methods
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a documentation comment above an <c>#endregion</c> line documents the first
+    /// member of the next block, so no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-006")]
+    public async Task NoCodeFixWhenADocumentationCommentAboveTheEndRegionLineDocumentsTheNextBlock()
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  /// <summary>M</summary>
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Methods|}
+
+                                  public void M()
+                                  {
+                                  }
+
+                                  #endregion // Methods
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment above a <c>#region</c> line withholds the fix in the documentation mode
+    /// Diagnose as well
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-006")]
+    public async Task NoCodeFixWhenADocumentationCommentAboveTheRegionLineDocumentsTheBlockInDocumentationModeDiagnose()
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  /// <summary>M</summary>
+                                  {|RH7309:#region Methods|}
+
+                                  public void M()
+                                  {
+                                  }
+
+                                  #endregion // Methods
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source, DocumentationMode.Diagnose);
+    }
+
+    /// <summary>
+    /// Verifies the specification example in the documentation mode None: the comment behind the closing brace is an
+    /// ordinary comment that moves with its block, and the fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-006")]
+    public async Task CodeFixMovesAnOrdinaryCommentBehindTheLastCodeOfABlockWithTheBlockInDocumentationModeNone()
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  public void Dispose()
+                                  {
+                                  } /// <summary>M</summary>
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Methods|}
+
+                                  public void M()
+                                  {
+                                  }
+
+                                  #endregion // Methods
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System;
+
+                                   public class C : IDisposable
+                                   {
+                                       #region Methods
+
+                                       public void M()
+                                       {
+                                       }
+
+                                       #endregion // Methods
+
+                                       #region IDisposable
+
+                                       public void Dispose()
+                                       {
+                                       } /// <summary>M</summary>
+
+                                       #endregion // IDisposable
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
     }
 
     #endregion // Tests

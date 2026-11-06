@@ -239,6 +239,114 @@ public class RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzerTests
         await Verify(testData, fixedData);
     }
 
+    /// <summary>
+    /// Verifies the specification example: no code fix is offered for a directive whose description is the word alone, in
+    /// any casing and also without a space behind the comment marker
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7306-004")]
+    public async Task NoCodeFixWhenNothingRemainsOfTheDescription()
+    {
+        const string source = """
+                              class C
+                              {
+                                  {|RH7306:#region Implementation|}
+
+                                  int _a;
+
+                                  {|RH7306:#endregion // Implementation|}
+
+                                  #region IDisposable
+
+                                  int _b;
+
+                                  {|RH7306:#endregion //Implementation|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: no code fix is offered for either directive when the partner's description is
+    /// the word alone
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7306-004")]
+    public async Task NoCodeFixWhenNothingWouldRemainOfThePartnerDescription()
+    {
+        const string source = """
+                              class C
+                              {
+                                  {|RH7306:#region IDisposable implementation|}
+
+                                  int _a;
+
+                                  {|RH7306:#endregion // implementation|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered for either directive when the partner's description, written without a space
+    /// behind the comment marker, is the word alone
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7306-004")]
+    public async Task NoCodeFixWhenNothingWouldRemainOfAPartnerDescriptionWithoutASpace()
+    {
+        const string source = """
+                              class C
+                              {
+                                  {|RH7306:#region IDisposable implementation|}
+
+                                  int _a;
+
+                                  {|RH7306:#endregion //implementation|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that the fix removes the word from a partner whose description follows the comment marker without a space
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7306-003")]
+    public async Task CodeFixRemovesTheTrailingWordFromAPartnerWithoutASpaceBehindTheCommentMarker()
+    {
+        const string source = """
+                              class C
+                              {
+                                  {|RH7306:#region IDisposable implementation|}
+
+                                  int _a;
+
+                                  {|RH7306:#endregion //IDisposable implementation|}
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       #region IDisposable
+
+                                       int _a;
+
+                                       #endregion //IDisposable
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

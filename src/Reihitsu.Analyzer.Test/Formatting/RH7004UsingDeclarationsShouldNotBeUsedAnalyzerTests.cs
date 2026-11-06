@@ -1,7 +1,10 @@
 ﻿using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -903,7 +906,462 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
         await Verify(source, fixedSource);
     }
 
+    /// <summary>
+    /// Verifies the specification example: a comment behind the using declaration at the end of its line stays behind the
+    /// header of the <c>using</c> statement, on the header's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-004")]
+    public async Task FixKeepsACommentBehindTheDeclarationOnTheHeaderLine()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream(); // resource
+                                      s.Flush();
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           using (var s = new MemoryStream()) // resource
+                                           {
+                                               s.Flush();
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind the using declaration stays on the header's line under LF and under CRLF line
+    /// endings, with the document's line ending kept
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-004")]
+    public async Task FixKeepsACommentBehindTheDeclarationOnTheHeaderLineUnderBothLineEndings()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      using var s = new MemoryStream(); // resource
+                                      s.Flush();
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           using (var s = new MemoryStream()) // resource
+                                           {
+                                               s.Flush();
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        Assert.AreEqual(fixedSource, await ApplyCodeFixAsync(source), "Unexpected fix result under LF line endings.");
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedSource), await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(source)), "Unexpected fix result under CRLF line endings.");
+    }
+
+    /// <summary>
+    /// Verifies the specification example with <c>DEBUG</c> defined: the block of the new <c>using</c> statement would end
+    /// between <c>#if DEBUG</c> and <c>#endif</c>, so no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoCodeFixWhenTheNewBlockWouldEndInsideAConditionalPairWithTheSymbolDefined()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                              #if DEBUG
+                                      s.Flush();
+                              #endif
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source, DocumentationMode.Diagnose, "DEBUG");
+    }
+
+    /// <summary>
+    /// Verifies the specification example without <c>DEBUG</c> defined: the block of the new <c>using</c> statement would
+    /// end in front of <c>#if DEBUG</c>, so a build with <c>DEBUG</c> would call the method outside the scope of the
+    /// resource, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoCodeFixWhenTheNewBlockWouldEndInFrontOfAConditionalPairWithTheSymbolUndefined()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                              #if DEBUG
+                                      s.Flush();
+                              #endif
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example with <c>DEBUG</c> defined: a conditional pair that lies wholly in the statements
+    /// the fix moves into the block moves with them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixMovesABalancedConditionalPairOfTheFollowingStatementsIntoTheBlockWithTheSymbolDefined()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                              #if DEBUG
+                                      s.Flush();
+                              #endif
+                                      s.Close();
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           using (var s = new MemoryStream())
+                                           {
+                                   #if DEBUG
+                                               s.Flush();
+                                   #endif
+                                               s.Close();
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, test => test.SolutionTransforms.Add(DefineDebug));
+    }
+
+    /// <summary>
+    /// Verifies the specification example without <c>DEBUG</c> defined: a conditional pair that lies wholly in the
+    /// statements the fix moves into the block moves with them, and its disabled text keeps its text
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixMovesABalancedConditionalPairOfTheFollowingStatementsIntoTheBlockWithTheSymbolUndefined()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                              #if DEBUG
+                                      s.Flush();
+                              #endif
+                                      s.Close();
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           using (var s = new MemoryStream())
+                                           {
+                                   #if DEBUG
+                                           s.Flush();
+                                   #endif
+                                               s.Close();
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: both braces of the new block lie between the two directives of a pragma pair,
+    /// which keep governing the same code, so the fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixIsOfferedForAPragmaPairAroundTheDeclarationAndEveryFollowingStatement()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                              #pragma warning disable CS0618
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      s.Flush();
+                              #pragma warning restore CS0618
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                   #pragma warning disable CS0618
+                                           using (var s = new MemoryStream())
+                                           {
+                                               s.Flush();
+                                           }
+                                   #pragma warning restore CS0618
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when the new block would take the opening directive of a pragma pair in
+    /// front of the following statement into the block and leave its partner behind the block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoCodeFixWhenTheNewBlockWouldSplitAPragmaPair()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                              #pragma warning disable CS0618
+                                      s.Flush();
+                              #pragma warning restore CS0618
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when the new block would take the opening directive of a nullable pair in
+    /// front of the following statement into the block and leave its partner behind the block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoCodeFixWhenTheNewBlockWouldSplitANullablePair()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                              #nullable disable
+                                      s.Flush();
+                              #nullable restore
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when the new block would take the opening directive of a region pair in
+    /// front of the following statement into the block and leave its partner behind the block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoCodeFixWhenTheNewBlockWouldSplitARegionPair()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      #region Work
+                                      s.Flush();
+                                      #endregion
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a code fix offered for a using declaration with a comment behind the <c>using</c> keyword keeps the
+    /// comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task OfferedFixKeepsACommentBehindTheUsingKeyword()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      using /* c */ var s = new MemoryStream();
+                                      s.Flush();
+                                  }
+                              }
+                              """;
+
+        await AssertEveryOfferedFixKeeps(source, "/* c */");
+    }
+
+    /// <summary>
+    /// Verifies that a code fix offered for a using declaration with a comment in front of its semicolon keeps the
+    /// comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task OfferedFixKeepsACommentInFrontOfTheSemicolon()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      using var s = new MemoryStream()
+                                          // c
+                                          ;
+                                      s.Flush();
+                                  }
+                              }
+                              """;
+
+        await AssertEveryOfferedFixKeeps(source, "// c");
+    }
+
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Defines the preprocessor symbol <c>DEBUG</c> for the test project
+    /// </summary>
+    /// <param name="solution">Solution</param>
+    /// <param name="projectId">Project ID</param>
+    /// <returns>Solution</returns>
+    private static Solution DefineDebug(Solution solution, ProjectId projectId)
+    {
+        return solution.GetProject(projectId)?.ParseOptions is CSharpParseOptions parseOptions
+                   ? solution.WithProjectParseOptions(projectId, parseOptions.WithPreprocessorSymbols("DEBUG"))
+                   : solution;
+    }
+
+    /// <summary>
+    /// Applies every code fix offered for the using declaration of the source and asserts that each result still holds
+    /// the given comment
+    /// </summary>
+    /// <param name="source">Source text without markup</param>
+    /// <param name="comment">Text of the comment</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task AssertEveryOfferedFixKeeps(string source, string comment)
+    {
+        var actions = await GetCodeFixActionsAsync(source,
+                                                   RH7004UsingDeclarationsShouldNotBeUsedAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<LocalDeclarationStatementSyntax>()
+                                                               .First()
+                                                               .UsingKeyword
+                                                               .GetLocation());
+
+        foreach (var action in actions)
+        {
+            var operations = await action.GetOperationsAsync(CancellationToken.None);
+            var changedDocument = operations.OfType<ApplyChangesOperation>()
+                                            .Single()
+                                            .ChangedSolution
+                                            .Projects
+                                            .Single()
+                                            .Documents
+                                            .Single();
+            var text = (await changedDocument.GetTextAsync(CancellationToken.None)).ToString();
+
+            Assert.Contains(comment, text, $"The fix must keep the comment. Result:\n{text}");
+        }
+    }
+
+    #endregion // Methods
 
     #region BatchCodeFixTestsBase
 

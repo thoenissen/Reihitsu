@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Testing;
@@ -185,6 +186,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
 
     /// <summary>
     /// Verifies that the fix indents every generated field at the member level when the declaration is documented
+    /// in the documentation mode None, where a documentation comment of the declaration does not withhold the fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -211,12 +213,13 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
+        await Verify(testData, fixedData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
     }
 
     /// <summary>
     /// Verifies that the fix keeps the documentation comment above the declaration where the author wrote it, and
     /// places the generated fields at the member column rather than at the column of the documentation comment
+    /// in the documentation mode None, where a documentation comment of the declaration does not withhold the fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -243,12 +246,13 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
+        await Verify(testData, fixedData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
     }
 
     /// <summary>
     /// Verifies that the fix keeps a documentation comment that starts on the opening brace line where the author
     /// wrote it, and places the generated fields at the member column rather than at column zero
+    /// in the documentation mode None, where a documentation comment of the declaration does not withhold the fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -273,7 +277,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
+        await Verify(testData, fixedData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
     }
 
     /// <summary>
@@ -715,6 +719,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7101-004")]
+    [Requirement("RH7101-006")]
     public async Task FixLaysOutDocumentationCommentsInFrontOfLaterDeclaratorsAsTheFormatterLaysThemOut()
     {
         const string source = """
@@ -1031,13 +1036,13 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     }
 
     /// <summary>
-    /// Verifies that a documentation comment in the gap in front of the declaration goes with the first field onto the
-    /// next line, with no blank line above it
+    /// Verifies that a documentation comment in the gap in front of the declaration, behind the member in front on its line, which is in the declaration's leading trivia and documents it, withholds the fix in the
+    /// documentation modes Parse and Diagnose, and that the diagnostic is still reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH7101-004")]
-    public async Task FixMovesADocumentationCommentInTheGapInFrontWithTheFirstField()
+    [Requirement("RH7101-006")]
+    public async Task DocumentationCommentInTheGapInFrontWithholdsTheFix()
     {
         const string source = """
                               class C
@@ -1046,16 +1051,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                               }
                               """;
 
-        const string fixedSource = """
-                                   class C
-                                   {
-                                       private int _p;
-                                       /** X. */ private int _x;
-                                       private int _y;
-                                   }
-                                   """;
-
-        await Verify(source, fixedSource);
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     /// <summary>
@@ -1822,14 +1818,13 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     }
 
     /// <summary>
-    /// Verifies the specification example with a documentation comment that spans lines in each gap: the documentation
-    /// comment starts the next line with its member, in front of the first field and in front of the member behind the
-    /// target, and no blank line is written above it
+    /// Verifies that a documentation comment that spans lines in the gap in front of the declaration, with another one in the gap behind it, which is in the declaration's leading trivia and documents it, withholds the fix in the
+    /// documentation modes Parse and Diagnose, and that the diagnostic is still reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH7101-004")]
-    public async Task FixStartsTheMembersBehindADocumentationCommentThatSpansLinesInTheGapsOnTheNextLine()
+    [Requirement("RH7101-006")]
+    public async Task DocumentationCommentThatSpansLinesInTheGapInFrontWithholdsTheFixAlsoWithOneInTheGapBehind()
     {
         const string source = """
                               class C
@@ -1840,45 +1835,17 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                               }
                               """;
 
-        const string fixedSource = """
-                                   class C
-                                   {
-                                       private int _p;
-                                       /** a
-                                          b */ private int _x;
-                                       private int _y;
-                                       /** c
-                                          d */ private int _q;
-                                   }
-                                   """;
-
-        const string formattedSource = """
-                                       class C
-                                       {
-                                           private int _p;
-
-                                           /** a
-                                              b */ private int _x;
-                                           private int _y;
-
-                                           /** c
-                                              d */ private int _q;
-                                       }
-                                       """;
-
-        await Verify(source, fixedSource);
-        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
-        AssertFormattingAddsOnlyBlankLines(source, fixedSource, formattedSource);
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     /// <summary>
-    /// Verifies that the first field starts the next line with the documentation comment in front of it when the gap in
-    /// front of the target holds a documentation comment that spans lines, and that no blank line is written above it
+    /// Verifies that a documentation comment that spans lines in the gap in front of the declaration, which is in the declaration's leading trivia and documents it, withholds the fix in the
+    /// documentation modes Parse and Diagnose, and that the diagnostic is still reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH7101-004")]
-    public async Task FixStartsTheFirstFieldBehindADocumentationCommentThatSpansLinesInTheGapInFrontOnTheNextLine()
+    [Requirement("RH7101-006")]
+    public async Task DocumentationCommentThatSpansLinesInTheGapInFrontWithholdsTheFix()
     {
         const string source = """
                               class C
@@ -1888,30 +1855,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                               }
                               """;
 
-        const string fixedSource = """
-                                   class C
-                                   {
-                                       private int _p;
-                                       /** a
-                                          b */ private int _x;
-                                       private int _y;
-                                   }
-                                   """;
-
-        const string formattedSource = """
-                                       class C
-                                       {
-                                           private int _p;
-
-                                           /** a
-                                              b */ private int _x;
-                                           private int _y;
-                                       }
-                                       """;
-
-        await Verify(source, fixedSource);
-        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
-        AssertFormattingAddsOnlyBlankLines(source, fixedSource, formattedSource);
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     /// <summary>
@@ -1958,15 +1902,13 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     }
 
     /// <summary>
-    /// Verifies the specification example with a comment that spans lines and then a one-line documentation comment in each
-    /// gap: the documentation comment starts the next line with its member, in front of the first field and in front of the
-    /// member behind the target, a comment in front of it stays behind the code in front of it, and no blank line is written
-    /// above it
+    /// Verifies that a documentation comment behind a comment that spans lines in the gap in front of the declaration, with the same pair in the gap behind it, which is in the declaration's leading trivia and documents it, withholds the fix in the
+    /// documentation modes Parse and Diagnose, and that the diagnostic is still reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH7101-004")]
-    public async Task FixStartsTheMembersBehindACommentThatSpansLinesAndADocumentationCommentInTheGapsOnTheNextLine()
+    [Requirement("RH7101-006")]
+    public async Task DocumentationCommentBehindACommentThatSpansLinesInTheGapInFrontWithholdsTheFixAlsoWithOneInTheGapBehind()
     {
         const string source = """
                               class C
@@ -1977,46 +1919,17 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                               }
                               """;
 
-        const string fixedSource = """
-                                   class C
-                                   {
-                                       private int _p; /* a
-                                          b */
-                                       /** c */ private int _x;
-                                       private int _y; /* d
-                                          e */
-                                       /** f */ private int _q;
-                                   }
-                                   """;
-
-        const string formattedSource = """
-                                       class C
-                                       {
-                                           private int _p; /* a
-                                              b */
-
-                                           /** c */ private int _x;
-                                           private int _y; /* d
-                                              e */
-
-                                           /** f */ private int _q;
-                                       }
-                                       """;
-
-        await Verify(source, fixedSource);
-        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
-        AssertFormattingAddsOnlyBlankLines(source, fixedSource, formattedSource);
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     /// <summary>
-    /// Verifies that the first field starts the next line with the documentation comment in front of it when the gap in
-    /// front of the target holds a comment that spans lines and then a one-line documentation comment, and that no blank
-    /// line is written above it
+    /// Verifies that a documentation comment behind a comment that spans lines in the gap in front of the declaration, which is in the declaration's leading trivia and documents it, withholds the fix in the
+    /// documentation modes Parse and Diagnose, and that the diagnostic is still reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH7101-004")]
-    public async Task FixStartsTheFirstFieldBehindACommentThatSpansLinesAndADocumentationCommentInTheGapInFrontOnTheNextLine()
+    [Requirement("RH7101-006")]
+    public async Task DocumentationCommentBehindACommentThatSpansLinesInTheGapInFrontWithholdsTheFix()
     {
         const string source = """
                               class C
@@ -2026,30 +1939,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                               }
                               """;
 
-        const string fixedSource = """
-                                   class C
-                                   {
-                                       private int _p; /* a
-                                          b */
-                                       /** c */ private int _x;
-                                       private int _y;
-                                   }
-                                   """;
-
-        const string formattedSource = """
-                                       class C
-                                       {
-                                           private int _p; /* a
-                                              b */
-
-                                           /** c */ private int _x;
-                                           private int _y;
-                                       }
-                                       """;
-
-        await Verify(source, fixedSource);
-        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
-        AssertFormattingAddsOnlyBlankLines(source, fixedSource, formattedSource);
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     /// <summary>
@@ -2097,15 +1987,13 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     }
 
     /// <summary>
-    /// Verifies the specification example with a one-line comment and then a documentation comment that spans lines in each
-    /// gap: the documentation comment starts the next line with its member, in front of the first field and in front of the
-    /// member behind the target, a comment in front of it stays behind the code in front of it, and no blank line is written
-    /// above it
+    /// Verifies that a documentation comment that spans lines behind a one-line comment in the gap in front of the declaration, with the same pair in the gap behind it, which is in the declaration's leading trivia and documents it, withholds the fix in the
+    /// documentation modes Parse and Diagnose, and that the diagnostic is still reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH7101-004")]
-    public async Task FixStartsTheMembersBehindAOneLineCommentAndADocumentationCommentThatSpansLinesInTheGapsOnTheNextLine()
+    [Requirement("RH7101-006")]
+    public async Task DocumentationCommentThatSpansLinesBehindAOneLineCommentInTheGapInFrontWithholdsTheFixAlsoWithOneInTheGapBehind()
     {
         const string source = """
                               class C
@@ -2116,46 +2004,17 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                               }
                               """;
 
-        const string fixedSource = """
-                                   class C
-                                   {
-                                       private int _p; /* a */
-                                       /** b
-                                          c */ private int _x;
-                                       private int _y; /* d */
-                                       /** e
-                                          f */ private int _q;
-                                   }
-                                   """;
-
-        const string formattedSource = """
-                                       class C
-                                       {
-                                           private int _p; /* a */
-
-                                           /** b
-                                              c */ private int _x;
-                                           private int _y; /* d */
-
-                                           /** e
-                                              f */ private int _q;
-                                       }
-                                       """;
-
-        await Verify(source, fixedSource);
-        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
-        AssertFormattingAddsOnlyBlankLines(source, fixedSource, formattedSource);
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     /// <summary>
-    /// Verifies that the first field starts the next line with the documentation comment in front of it when the gap in
-    /// front of the target holds a one-line comment and then a documentation comment that spans lines, and that no blank
-    /// line is written above it
+    /// Verifies that a documentation comment that spans lines behind a one-line comment in the gap in front of the declaration, which is in the declaration's leading trivia and documents it, withholds the fix in the
+    /// documentation modes Parse and Diagnose, and that the diagnostic is still reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH7101-004")]
-    public async Task FixStartsTheFirstFieldBehindAOneLineCommentAndADocumentationCommentThatSpansLinesInTheGapInFrontOnTheNextLine()
+    [Requirement("RH7101-006")]
+    public async Task DocumentationCommentThatSpansLinesBehindAOneLineCommentInTheGapInFrontWithholdsTheFix()
     {
         const string source = """
                               class C
@@ -2165,30 +2024,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                               }
                               """;
 
-        const string fixedSource = """
-                                   class C
-                                   {
-                                       private int _p; /* a */
-                                       /** b
-                                          c */ private int _x;
-                                       private int _y;
-                                   }
-                                   """;
-
-        const string formattedSource = """
-                                       class C
-                                       {
-                                           private int _p; /* a */
-
-                                           /** b
-                                              c */ private int _x;
-                                           private int _y;
-                                       }
-                                       """;
-
-        await Verify(source, fixedSource);
-        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
-        AssertFormattingAddsOnlyBlankLines(source, fixedSource, formattedSource);
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     /// <summary>
@@ -2236,15 +2072,13 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     }
 
     /// <summary>
-    /// Verifies the specification example with a comment that spans lines and then a documentation comment that spans lines
-    /// in each gap: the documentation comment starts the next line with its member, in front of the first field and in front
-    /// of the member behind the target, a comment in front of it stays behind the code in front of it, and no blank line is
-    /// written above it
+    /// Verifies that a documentation comment that spans lines behind a comment that spans lines in the gap in front of the declaration, with the same pair in the gap behind it, which is in the declaration's leading trivia and documents it, withholds the fix in the
+    /// documentation modes Parse and Diagnose, and that the diagnostic is still reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH7101-004")]
-    public async Task FixStartsTheMembersBehindACommentThatSpansLinesAndADocumentationCommentThatSpansLinesInTheGapsOnTheNextLine()
+    [Requirement("RH7101-006")]
+    public async Task DocumentationCommentThatSpansLinesBehindACommentThatSpansLinesInTheGapInFrontWithholdsTheFixAlsoWithOneInTheGapBehind()
     {
         const string source = """
                               class C
@@ -2257,50 +2091,17 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                               }
                               """;
 
-        const string fixedSource = """
-                                   class C
-                                   {
-                                       private int _p; /* a
-                                          b */
-                                       /** c
-                                          d */ private int _x;
-                                       private int _y; /* e
-                                          f */
-                                       /** g
-                                          h */ private int _q;
-                                   }
-                                   """;
-
-        const string formattedSource = """
-                                       class C
-                                       {
-                                           private int _p; /* a
-                                              b */
-
-                                           /** c
-                                              d */ private int _x;
-                                           private int _y; /* e
-                                              f */
-
-                                           /** g
-                                              h */ private int _q;
-                                       }
-                                       """;
-
-        await Verify(source, fixedSource);
-        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
-        AssertFormattingAddsOnlyBlankLines(source, fixedSource, formattedSource);
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     /// <summary>
-    /// Verifies that the first field starts the next line with the documentation comment in front of it when the gap in
-    /// front of the target holds a comment that spans lines and then a documentation comment that spans lines, and that no
-    /// blank line is written above it
+    /// Verifies that a documentation comment that spans lines behind a comment that spans lines in the gap in front of the declaration, which is in the declaration's leading trivia and documents it, withholds the fix in the
+    /// documentation modes Parse and Diagnose, and that the diagnostic is still reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH7101-004")]
-    public async Task FixStartsTheFirstFieldBehindACommentThatSpansLinesAndADocumentationCommentThatSpansLinesInTheGapInFrontOnTheNextLine()
+    [Requirement("RH7101-006")]
+    public async Task DocumentationCommentThatSpansLinesBehindACommentThatSpansLinesInTheGapInFrontWithholdsTheFix()
     {
         const string source = """
                               class C
@@ -2311,32 +2112,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                               }
                               """;
 
-        const string fixedSource = """
-                                   class C
-                                   {
-                                       private int _p; /* a
-                                          b */
-                                       /** c
-                                          d */ private int _x;
-                                       private int _y;
-                                   }
-                                   """;
-
-        const string formattedSource = """
-                                       class C
-                                       {
-                                           private int _p; /* a
-                                              b */
-
-                                           /** c
-                                              d */ private int _x;
-                                           private int _y;
-                                       }
-                                       """;
-
-        await Verify(source, fixedSource);
-        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
-        AssertFormattingAddsOnlyBlankLines(source, fixedSource, formattedSource);
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     /// <summary>
@@ -2390,6 +2166,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     /// Verifies the specification example on the other side of the condition: the target's first token and the first token
     /// of the member behind it already start their lines, so the documentation comments that span lines behind the code in
     /// front stay where they stand, although document-level formatting moves each onto a line of its own
+    /// in the documentation mode None, where a documentation comment of the declaration does not withhold the fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -2419,13 +2196,14 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                    }
                                    """;
 
-        await Verify(source, fixedSource);
-        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+        await Verify(source, fixedSource, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y", DocumentationMode.None);
     }
 
     /// <summary>
     /// Verifies the other side of the condition with a <c>///</c> comment behind the code in front of the target and behind
     /// the target: the first token behind each comment already starts its line, so the comments stay where they stand
+    /// in the documentation mode None, where a documentation comment of the declaration does not withhold the fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -2451,14 +2229,15 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                    }
                                    """;
 
-        await Verify(source, fixedSource);
-        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+        await Verify(source, fixedSource, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y", DocumentationMode.None);
     }
 
     /// <summary>
     /// Verifies that the fix leaves a documentation comment that starts its line in front of the target and in front of the
     /// member behind it where it stands, although the token behind it shares its line: the first field keeps the target's line
     /// and column behind the comment
+    /// in the documentation mode None, where a documentation comment of the declaration does not withhold the fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -2484,13 +2263,14 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                    }
                                    """;
 
-        await Verify(source, fixedSource);
-        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+        await Verify(source, fixedSource, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y", DocumentationMode.None);
     }
 
     /// <summary>
     /// Verifies the gap in front of the target alone: the fix leaves a documentation comment that starts its line in front of
     /// the target, with the target's first token behind it on that line, where it stands
+    /// in the documentation mode None, where a documentation comment of the declaration does not withhold the fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -2514,8 +2294,212 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                    }
                                    """;
 
+        await Verify(source, fixedSource, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y", DocumentationMode.None);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a declaration with a <c>///</c> and one with a <c>/** */</c> documentation
+    /// comment in their leading trivia are reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-006")]
+    public async Task DocumentedDeclarationsAreReportedWithoutAFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <summary>The coordinates</summary>
+                                  public int X, {|RH7101:Y|};
+
+                                  /** <summary>The sizes</summary> */
+                                  public int Width, {|RH7101:Height|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example in the documentation mode Diagnose: a documented declaration is reported, and
+    /// no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-006")]
+    public async Task DocumentedDeclarationsAreReportedWithoutAFixInDocumentationModeDiagnose()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <summary>The coordinates</summary>
+                                  public int X, {|RH7101:Y|};
+
+                                  /** <summary>The sizes</summary> */
+                                  public int Width, {|RH7101:Height|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source, DocumentationMode.Diagnose);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment in front of an attribute list of the declaration withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-006")]
+    public async Task DocumentationCommentInFrontOfTheAttributesOfTheDeclarationWithholdsTheFix()
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  /// <summary>The coordinates</summary>
+                                  [NonSerialized]
+                                  public int X, {|RH7101:Y|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example in the documentation mode None: the comments are ordinary comments, and the
+    /// fix splits both declarations
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    [Requirement("RH7101-006")]
+    public async Task FixSplitsDeclarationsWithDocumentationStyleCommentsInDocumentationModeNone()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <summary>The coordinates</summary>
+                                  public int X, {|RH7101:Y|};
+
+                                  /** <summary>The sizes</summary> */
+                                  public int Width, {|RH7101:Height|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       /// <summary>The coordinates</summary>
+                                       public int X;
+                                       public int Y;
+
+                                       /** <summary>The sizes</summary> */
+                                       public int Width;
+                                       public int Height;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that in the documentation mode None a <c>/** */</c> comment that starts behind the code of another member on
+    /// the declaration's line is an ordinary comment between the two members, which stays behind the code in front of it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    [Requirement("RH7101-006")]
+    public async Task FixKeepsAnOrdinaryCommentInTheGapInFrontBehindTheMemberInFrontInDocumentationModeNone()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _p; /** X. */ private int _x, {|RH7101:_y|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _p; /** X. */
+                                       private int _x;
+                                       private int _y;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y", DocumentationMode.None);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: an ordinary comment in front of the declaration does not withhold the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-006")]
+    public async Task OrdinaryCommentInFrontOfTheDeclarationDoesNotWithholdTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  // The coordinates
+                                  public int X, {|RH7101:Y|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       // The coordinates
+                                       public int X;
+                                       public int Y;
+                                   }
+                                   """;
+
         await Verify(source, fixedSource);
-        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered for a combined declaration in a block-scoped namespace, where the fix would
+    /// change nothing
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-005")]
+    public async Task NoCodeFixForACombinedDeclarationInABlockScopedNamespace()
+    {
+        const string source = """
+                              namespace N
+                              {
+                                  int a, b;
+                              }
+                              """;
+
+        var actions = await GetCodeFixActionsAsync(source, RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, GetSecondDeclaratorLocation);
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered for a combined declaration in a file-scoped namespace, where the fix would
+    /// change nothing
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-005")]
+    public async Task NoCodeFixForACombinedDeclarationInAFileScopedNamespace()
+    {
+        const string source = """
+                              namespace N;
+
+                              int a, b;
+                              """;
+
+        var actions = await GetCodeFixActionsAsync(source, RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, GetSecondDeclaratorLocation);
+
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Tests
@@ -2532,10 +2516,25 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     private static async Task AssertSingleFixUnderBothLineEndings(string source, string fixedSource, string reportedDeclaratorName)
     {
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, reportedDeclaratorName, DocumentationMode.Parse);
+    }
+
+    /// <summary>
+    /// Applies the fix of the declaration whose declarator has the given name, under LF and under CRLF, with the syntax
+    /// tree parsed in the given documentation mode, and asserts the document's text after the fix, with the document's
+    /// line ending kept
+    /// </summary>
+    /// <param name="source">Source text without markup, with LF line endings</param>
+    /// <param name="fixedSource">Expected text after the fix, with LF line endings</param>
+    /// <param name="reportedDeclaratorName">Name of the declarator the diagnostic is reported on</param>
+    /// <param name="documentationMode">Documentation mode of the syntax tree</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task AssertSingleFixUnderBothLineEndings(string source, string fixedSource, string reportedDeclaratorName, DocumentationMode documentationMode)
+    {
         TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
 
-        Assert.AreEqual(fixedSource, await ApplyFixOfDeclarationAsync(plainSource, reportedDeclaratorName), "Unexpected fix result under LF line endings.");
-        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedSource), await ApplyFixOfDeclarationAsync(NormalizeToCarriageReturnLineFeed(plainSource), reportedDeclaratorName), "Unexpected fix result under CRLF line endings.");
+        Assert.AreEqual(fixedSource, await ApplyFixOfDeclarationAsync(plainSource, reportedDeclaratorName, documentationMode), "Unexpected fix result under LF line endings.");
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedSource), await ApplyFixOfDeclarationAsync(NormalizeToCarriageReturnLineFeed(plainSource), reportedDeclaratorName, documentationMode), "Unexpected fix result under CRLF line endings.");
     }
 
     /// <summary>
@@ -2543,8 +2542,9 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     /// </summary>
     /// <param name="source">Source text without markup</param>
     /// <param name="reportedDeclaratorName">Name of the declarator the diagnostic is reported on</param>
+    /// <param name="documentationMode">Documentation mode of the syntax tree</param>
     /// <returns>The document's text after the fix</returns>
-    private static async Task<string> ApplyFixOfDeclarationAsync(string source, string reportedDeclaratorName)
+    private static async Task<string> ApplyFixOfDeclarationAsync(string source, string reportedDeclaratorName, DocumentationMode documentationMode)
     {
         var actions = await GetCodeFixActionsAsync(source,
                                                    RH7101DoNotCombineFieldsAnalyzer.DiagnosticId,
@@ -2552,7 +2552,8 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                                                .OfType<VariableDeclaratorSyntax>()
                                                                .Single(declarator => declarator.Identifier.ValueText == reportedDeclaratorName)
                                                                .Identifier
-                                                               .GetLocation());
+                                                               .GetLocation(),
+                                                   documentationMode);
 
         Assert.HasCount(1, actions, "Exactly one fix must be offered for the declaration.");
 
@@ -2583,6 +2584,21 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
         Assert.AreEqual(formattedSource, Format(plainSource), "Formatting the source must give the formatted source.");
         Assert.AreEqual(formattedSource, Format(fixedSource), "Formatting the fix result must give the formatted source.");
         Assert.AreEqual(fixedSource, string.Join("\n", formattedSource.Split('\n').Where(line => line.Trim().Length > 0)), "The fix result must differ from the formatted source only by blank lines.");
+    }
+
+    /// <summary>
+    /// Gets the location of the second declarator of the first variable declaration in the syntax root
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <returns>The location of the declarator's identifier</returns>
+    private static Location GetSecondDeclaratorLocation(SyntaxNode root)
+    {
+        return root.DescendantNodes()
+                   .OfType<VariableDeclarationSyntax>()
+                   .First()
+                   .Variables[1]
+                   .Identifier
+                   .GetLocation();
     }
 
     #endregion // Methods
