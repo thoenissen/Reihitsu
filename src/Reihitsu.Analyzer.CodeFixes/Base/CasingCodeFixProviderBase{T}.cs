@@ -435,8 +435,8 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
-    /// Gets the rename cascade of a declared symbol: the symbol itself and every symbol declared in source that a rename
-    /// of it renames with it, as Roslyn determines it
+    /// Gets the rename cascade of a declared symbol: the symbol itself and at least every symbol declared in source that a
+    /// rename of it renames with it, as Roslyn determines it
     /// </summary>
     /// <param name="solution">Solution containing the symbol</param>
     /// <param name="symbol">Declared symbol</param>
