@@ -84,3 +84,38 @@ class C
 {
 }
 ```
+
+### SHARED-PARENS-003 — A comment inside the list withholds the fix
+
+The code fix MUST NOT be offered when a comment or a preprocessor directive stands between `(` and `)` of the reported list. The diagnostic is still reported. A comment in front of `(` MUST NOT withhold the fix and stays as SHARED-PARENS-002 states.
+
+Why: The fix removes the list from `(` to `)`; a comment inside it would be deleted with the parentheses (SHARED-FIX-003).
+
+Example — RH3106:
+
+```csharp
+using System;
+
+class C
+{
+    void M()
+    {
+        Action a = delegate {|RH3106:( /* none */ )|} { };
+    }
+}
+```
+
+is reported, and no code fix is offered.
+
+Example — RH3107:
+
+```csharp
+using System;
+
+[Obsolete{|RH3107:(/* none */)|}]
+class C
+{
+}
+```
+
+is reported, and no code fix is offered.
