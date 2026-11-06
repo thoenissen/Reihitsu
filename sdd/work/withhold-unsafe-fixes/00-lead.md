@@ -57,3 +57,4 @@ Batch 1 (before the test implementer), all answered with the recommended option:
 - RH3106-001 states the report only for variable initializers but the analyzer reports every empty parameter list; widen after Q2 (01-spec-author, 02-skeptic).
 - The four `-004` conditions (RH3001, RH3005, RH3101, RH3105) leave unspecified the safe inputs today's fixes rewrite (01-spec-author).
 - RH3201-005 does not cover a comment at the start of a line followed by code, or code on both sides where tokens would not merge (01-spec-author, 02-skeptic).
+- RH3201-007 does not decide `return /**//**/a;` (whitespace in front of the first of two adjacent empty comments) and has no test for it (04-test-implementer, amendment).
