@@ -34,18 +34,20 @@ public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedCodeFixProvider 
     #region Methods
 
     /// <summary>
-    /// Determines whether the node binds a call whose target overload resolution or type inference chooses: an
-    /// invocation, an object creation, a constructor initializer, a primary constructor base type, or an element access
+    /// Determines whether the node binds a call or an operator whose target overload resolution or type inference
+    /// chooses: an invocation, an object creation, a constructor initializer, a primary constructor base type, an element
+    /// access, or a binary operator
     /// </summary>
     /// <param name="node">Node</param>
-    /// <returns><see langword="true"/> if the node binds such a call</returns>
+    /// <returns><see langword="true"/> if the node binds such a call or operator</returns>
     private static bool IsOverloadResolvedCall(SyntaxNode node)
     {
         return node is InvocationExpressionSyntax
                     or BaseObjectCreationExpressionSyntax
                     or ConstructorInitializerSyntax
                     or PrimaryConstructorBaseTypeSyntax
-                    or ElementAccessExpressionSyntax;
+                    or ElementAccessExpressionSyntax
+                    or BinaryExpressionSyntax;
     }
 
     /// <summary>
@@ -84,14 +86,15 @@ public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedCodeFixProvider 
     private protected override async Task<bool> KeepsMeaningAsync(Document document, SyntaxNode root, AnonymousMethodExpressionSyntax node, CancellationToken cancellationToken)
     {
         // Without a parameter list, an anonymous method converts to a delegate of any parameter list and has no natural
-        // type, so another overload can become applicable, the call can become ambiguous, or a type argument inferred
-        // from the anonymous method can no longer be inferred. The list stays where any call that takes the anonymous
-        // method as an argument binds differently without it, or where the anonymous method converts to another type
+        // type, so another overload or user-defined operator can become applicable, the call or the operator can become
+        // ambiguous, or a type argument inferred from the anonymous method can no longer be inferred. The list stays
+        // where any call that takes the anonymous method as an argument, or any binary operator that takes it as an
+        // operand, binds differently without it, or where the anonymous method converts to another type
         var enclosingNodes = node.Ancestors()
                                  .TakeWhile(static ancestor => ancestor is not (StatementSyntax or MemberDeclarationSyntax))
                                  .ToList();
 
-        if (enclosingNodes.Any(static ancestor => ancestor is ArgumentSyntax) == false)
+        if (enclosingNodes.Any(static ancestor => ancestor is ArgumentSyntax or BinaryExpressionSyntax) == false)
         {
             return true;
         }
@@ -127,7 +130,8 @@ public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedCodeFixProvider 
         {
             var originalSymbolText = GetBoundSymbolText(semanticModel, call, cancellationToken);
 
-            if (originalSymbolText == null
+            // A binary operator such as `??` or `as` binds to no operator method, so for it only an unchanged binding counts
+            if ((originalSymbolText == null && call is not BinaryExpressionSyntax)
                 || updatedTreeRoot.GetCurrentNode(call) is not { } updatedCall
                 || GetBoundSymbolText(updatedSemanticModel, updatedCall, cancellationToken) != originalSymbolText)
             {

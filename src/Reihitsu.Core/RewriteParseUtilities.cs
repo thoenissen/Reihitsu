@@ -1,7 +1,8 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.Threading;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Reihitsu.Core;
@@ -20,7 +21,9 @@ public static class RewriteParseUtilities
     /// <summary>
     /// Determines whether the text of a rewritten root parses back into the same tokens and the same structure as the
     /// rewritten root itself. Trivia is not compared; the parse options of the original tree are used, so the language
-    /// version and the preprocessor symbols stay the same
+    /// version and the preprocessor symbols stay the same. The work is bounded by the rewrite: only the smallest node
+    /// that contains every change is re-parsed, incrementally, and only the innermost member declaration around it is
+    /// compared, so the cost does not grow with the size of the document
     /// </summary>
     /// <param name="originalRoot">Root of the syntax tree the rewrite started from</param>
     /// <param name="rewrittenRoot">Root with the rewrite applied, built from <paramref name="originalRoot"/></param>
@@ -28,15 +31,120 @@ public static class RewriteParseUtilities
     /// <returns><see langword="true"/> if the rewritten text parses as written; otherwise, <see langword="false"/></returns>
     public static bool ParsesAsWritten(SyntaxNode originalRoot, SyntaxNode rewrittenRoot, CancellationToken cancellationToken)
     {
+        if (originalRoot.IsIncrementallyIdenticalTo(rewrittenRoot))
+        {
+            return true;
+        }
+
+        var path = new List<int>();
+        var changedOriginal = originalRoot;
+        var changedRewritten = rewrittenRoot;
+        var comparedRewritten = rewrittenRoot;
+        var comparedOriginalStart = originalRoot.FullSpan.Start;
+        var comparedDepth = 0;
+
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (changedOriginal is MemberDeclarationSyntax and not BaseNamespaceDeclarationSyntax
+                && changedRewritten.RawKind == changedOriginal.RawKind)
+            {
+                comparedRewritten = changedRewritten;
+                comparedOriginalStart = changedOriginal.FullSpan.Start;
+                comparedDepth = path.Count;
+            }
+
+            var changedChildIndex = GetOnlyChangedChildNode(changedOriginal, changedRewritten);
+
+            if (changedChildIndex < 0)
+            {
+                break;
+            }
+
+            path.Add(changedChildIndex);
+            changedOriginal = changedOriginal.ChildNodesAndTokens()[changedChildIndex].AsNode();
+            changedRewritten = changedRewritten.ChildNodesAndTokens()[changedChildIndex].AsNode();
+        }
+
+        // The change replaces only the text of the smallest node that contains every difference, so the parser re-parses
+        // the region around the rewrite and reuses the rest of the original tree
         var originalTree = originalRoot.SyntaxTree;
         var originalText = originalTree.GetText(cancellationToken);
-        var change = GetChange(originalText.ToString(), rewrittenRoot.ToFullString());
+        var change = new TextChange(changedOriginal.FullSpan, changedRewritten.ToFullString());
+        var reparsedNode = originalTree.WithChangedText(originalText.WithChanges(change)).GetRoot(cancellationToken);
 
-        // The change covers only the text between the common prefix and the common suffix, so the parser re-parses
-        // the region around the rewrite and reuses the rest of the original tree
-        var reparsedTree = originalTree.WithChangedText(originalText.WithChanges(change));
+        for (var depth = 0; depth < comparedDepth; depth++)
+        {
+            var children = reparsedNode.ChildNodesAndTokens();
 
-        return HaveSameTokensAndStructure(reparsedTree.GetRoot(cancellationToken), rewrittenRoot);
+            if (path[depth] >= children.Count
+                || children[path[depth]].AsNode() is not { } child)
+            {
+                return false;
+            }
+
+            reparsedNode = child;
+        }
+
+        return reparsedNode.FullSpan == new TextSpan(comparedOriginalStart, comparedRewritten.FullSpan.Length)
+               && HaveSameTokensAndStructure(reparsedNode, comparedRewritten);
+    }
+
+    /// <summary>
+    /// Gets the index of the only child in which a rewritten node differs from the node it was built from, when that child
+    /// is a node on both sides
+    /// </summary>
+    /// <param name="original">Original node</param>
+    /// <param name="rewritten">Rewritten node</param>
+    /// <returns>The index of the child, or -1 when the nodes differ in their own children, in a token, or in more than one child</returns>
+    private static int GetOnlyChangedChildNode(SyntaxNode original, SyntaxNode rewritten)
+    {
+        if (original.RawKind != rewritten.RawKind)
+        {
+            return -1;
+        }
+
+        var originalChildren = original.ChildNodesAndTokens();
+        var rewrittenChildren = rewritten.ChildNodesAndTokens();
+
+        if (originalChildren.Count != rewrittenChildren.Count)
+        {
+            return -1;
+        }
+
+        var changedChildIndex = -1;
+
+        for (var childIndex = 0; childIndex < originalChildren.Count; childIndex++)
+        {
+            var originalChild = originalChildren[childIndex];
+            var rewrittenChild = rewrittenChildren[childIndex];
+
+            if (originalChild.IsNode
+                && rewrittenChild.IsNode
+                && originalChild.AsNode().IsIncrementallyIdenticalTo(rewrittenChild.AsNode()))
+            {
+                continue;
+            }
+
+            if (originalChild.IsToken
+                && rewrittenChild.IsToken
+                && originalChild.AsToken().IsIncrementallyIdenticalTo(rewrittenChild.AsToken()))
+            {
+                continue;
+            }
+
+            if (changedChildIndex >= 0
+                || originalChild.IsNode == false
+                || rewrittenChild.IsNode == false)
+            {
+                return -1;
+            }
+
+            changedChildIndex = childIndex;
+        }
+
+        return changedChildIndex;
     }
 
     /// <summary>
@@ -87,36 +195,6 @@ public static class RewriteParseUtilities
         }
 
         return true;
-    }
-
-    /// <summary>
-    /// Gets the one text change that turns the original text into the rewritten text: the text between their common
-    /// prefix and their common suffix
-    /// </summary>
-    /// <param name="originalText">Original text</param>
-    /// <param name="rewrittenText">Rewritten text</param>
-    /// <returns>The text change</returns>
-    private static TextChange GetChange(string originalText, string rewrittenText)
-    {
-        var maximumLength = Math.Min(originalText.Length, rewrittenText.Length);
-        var prefixLength = 0;
-
-        while (prefixLength < maximumLength
-               && originalText[prefixLength] == rewrittenText[prefixLength])
-        {
-            prefixLength++;
-        }
-
-        var suffixLength = 0;
-
-        while (suffixLength < maximumLength - prefixLength
-               && originalText[originalText.Length - suffixLength - 1] == rewrittenText[rewrittenText.Length - suffixLength - 1])
-        {
-            suffixLength++;
-        }
-
-        return new TextChange(TextSpan.FromBounds(prefixLength, originalText.Length - suffixLength),
-                              rewrittenText.Substring(prefixLength, rewrittenText.Length - suffixLength - prefixLength));
     }
 
     #endregion // Methods

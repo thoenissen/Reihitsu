@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Clarity;
 using Reihitsu.Core;
 
@@ -52,9 +53,14 @@ public class RH3105DoNotPrefixLocalMembersWithThisCodeFixProvider : CodeFixProvi
     public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH3105DoNotPrefixLocalMembersWithThisAnalyzer.DiagnosticId];
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// The fixes of a document are applied in document order, each decided on the code the fixes in front of it
+    /// produced, so that two fixes that are safe alone cannot together write the code the guard withholds
+    /// (SHARED-FIX-002)
+    /// </remarks>
     public sealed override FixAllProvider GetFixAllProvider()
     {
-        return WellKnownFixAllProviders.BatchFixer;
+        return DocumentOrderFixAllProvider.Instance;
     }
 
     /// <inheritdoc/>

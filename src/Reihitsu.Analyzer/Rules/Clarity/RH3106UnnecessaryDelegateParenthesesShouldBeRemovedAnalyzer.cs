@@ -39,35 +39,77 @@ public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzer : Empty
     #region Methods
 
     /// <summary>
-    /// Determines whether the anonymous method takes its natural type: no delegate type is its target, and no overload
+    /// Determines whether the expression takes its natural type: no delegate type is its target, and no overload
     /// resolution or type inference chooses one. Without a parameter list, an anonymous method has no natural type, so
-    /// the list cannot be removed there. That is the case for the initializer of an implicitly typed local, for a cast to
-    /// a type that is not a delegate type, for a conversion to a type that is not a delegate type, such as
-    /// <see langword="object"/> or <see cref="System.Delegate"/>, and for an argument of such a parameter type when no
-    /// other overload is a candidate for the call and no type argument is inferred
+    /// the list cannot be removed there. That is the case for the initializer of an implicitly typed local, for an
+    /// element of an implicitly typed array creation, for the expression a lambda returns when that lambda takes its
+    /// natural type itself, for a cast to a type that is not a delegate type, for a conversion to a type that is not a
+    /// delegate type, such as <see langword="object"/> or <see cref="System.Delegate"/>, and for an argument of such a
+    /// parameter type when no other overload is a candidate for the call and no type argument is inferred. An expression
+    /// inside parentheses, in a branch of a conditional expression, or in an arm of a switch expression stands in the
+    /// position of that expression
     /// </summary>
-    /// <param name="node">Anonymous method</param>
+    /// <param name="node">Anonymous method, or a lambda that returns one</param>
     /// <param name="semanticModel">Semantic model</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns><see langword="true"/> if the anonymous method takes its natural type</returns>
-    private static bool TakesNaturalType(AnonymousMethodExpressionSyntax node, SemanticModel semanticModel, CancellationToken cancellationToken)
+    /// <returns><see langword="true"/> if the expression takes its natural type</returns>
+    private static bool TakesNaturalType(ExpressionSyntax node, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
-        switch (node.Parent)
+        var expression = GetPositionExpression(node);
+
+        switch (expression.Parent)
         {
             case EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Type.IsVar: true } } }:
+            case InitializerExpressionSyntax { Parent: ImplicitArrayCreationExpressionSyntax }:
                 return true;
 
             case CastExpressionSyntax castExpression:
                 return IsDelegateType(semanticModel.GetTypeInfo(castExpression.Type, cancellationToken).Type) == false;
+
+            case LambdaExpressionSyntax lambda when lambda.ExpressionBody == expression:
+                return TakesNaturalType(lambda, semanticModel, cancellationToken);
+
+            case ReturnStatementSyntax returnStatement when returnStatement.Ancestors().FirstOrDefault(static ancestor => ancestor is AnonymousFunctionExpressionSyntax or LocalFunctionStatementSyntax or BaseMethodDeclarationSyntax or AccessorDeclarationSyntax) is LambdaExpressionSyntax lambda:
+                return TakesNaturalType(lambda, semanticModel, cancellationToken);
         }
 
-        if (IsDelegateType(semanticModel.GetTypeInfo(node, cancellationToken).ConvertedType))
+        if (IsDelegateType(semanticModel.GetTypeInfo(expression, cancellationToken).ConvertedType))
         {
             return false;
         }
 
-        return node.Parent is not ArgumentSyntax { Parent: BaseArgumentListSyntax { Parent: { } call } }
+        return expression.Parent is not ArgumentSyntax { Parent: BaseArgumentListSyntax { Parent: { } call } }
                || HasCompetingCandidates(call, semanticModel, cancellationToken) == false;
+    }
+
+    /// <summary>
+    /// Gets the expression whose position the expression stands in: the outermost parenthesized expression, conditional
+    /// expression whose branch it is, or switch expression whose arm it is
+    /// </summary>
+    /// <param name="expression">Expression</param>
+    /// <returns>The expression whose position decides the target</returns>
+    private static ExpressionSyntax GetPositionExpression(ExpressionSyntax expression)
+    {
+        while (true)
+        {
+            switch (expression.Parent)
+            {
+                case ParenthesizedExpressionSyntax parenthesizedExpression:
+                    expression = parenthesizedExpression;
+                    break;
+
+                case ConditionalExpressionSyntax conditionalExpression when conditionalExpression.Condition != expression:
+                    expression = conditionalExpression;
+                    break;
+
+                case SwitchExpressionArmSyntax { Parent: SwitchExpressionSyntax switchExpression } switchExpressionArm when switchExpressionArm.Expression == expression:
+                    expression = switchExpression;
+                    break;
+
+                default:
+                    return expression;
+            }
+        }
     }
 
     /// <summary>

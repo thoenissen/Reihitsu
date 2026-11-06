@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 
+using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
@@ -199,9 +200,14 @@ public abstract class EmptyParenthesesCodeFixProviderBase<TNode> : CodeFixProvid
     public sealed override ImmutableArray<string> FixableDiagnosticIds => [_diagnosticId];
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// The fixes of a document are applied in document order, each decided on the code the fixes in front of it
+    /// produced, so that two fixes that are safe alone cannot together write the code the guard withholds
+    /// (SHARED-FIX-002)
+    /// </remarks>
     public sealed override FixAllProvider GetFixAllProvider()
     {
-        return WellKnownFixAllProviders.BatchFixer;
+        return DocumentOrderFixAllProvider.Instance;
     }
 
     /// <inheritdoc/>
