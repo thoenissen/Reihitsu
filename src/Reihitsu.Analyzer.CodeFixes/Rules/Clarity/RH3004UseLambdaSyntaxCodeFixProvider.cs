@@ -109,10 +109,11 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
 
     /// <summary>
     /// Writes the content of the anonymous method's block into the formatted lambda's block as moved code: the text from
-    /// its first to its last statement, with their comments and the blank lines between them, keeps its own layout, and
-    /// every one of its lines moves by the same column delta, so that its first line stands one level inside the braces
-    /// the formatter laid out. Statements that shared the block's line stay on one line. A comment behind the opening
-    /// brace on its line stays behind the new opening brace
+    /// its first to its last statement, with their comments, directives, and the blank lines between them, keeps its own
+    /// layout, and every one of its lines moves by the same column delta, so that the block's first statement line
+    /// stands one level inside the braces the formatter laid out. A directive line in column 0 other than
+    /// <c>#region</c> and <c>#endregion</c> stays in column 0. Statements that shared the block's line stay on one line.
+    /// A comment behind the opening brace on its line stays behind the new opening brace
     /// </summary>
     /// <param name="originalDocument">Document before the fix</param>
     /// <param name="formattedDocument">Document with the formatted lambda</param>
@@ -152,25 +153,38 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
 
         var originalRoot = await originalDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        var columnDelta = contentIndentation.Length - GetColumn(originalText, contentStart);
+        if (originalRoot == null)
+        {
+            return formattedDocument;
+        }
+
+        var firstLine = originalText.Lines.GetLineFromPosition(contentStart);
+        var startsOnOpenBraceLine = originalText.Lines.GetLineFromPosition(originalBlock.OpenBraceToken.SpanStart).LineNumber == firstLine.LineNumber;
+        var measuredPosition = GetFirstStatementLinePosition(originalRoot, originalText, originalBlock, contentStart, contentEnd);
+        var columnDelta = contentIndentation.Length - GetColumn(originalText, measuredPosition);
         var content = new StringBuilder();
 
         content.Append(openBraceTail)
-               .Append(endOfLine)
-               .Append(contentIndentation);
+               .Append(endOfLine);
 
-        var firstLine = originalText.Lines.GetLineFromPosition(contentStart);
+        var lineIndex = firstLine.LineNumber;
 
-        content.Append(originalText.ToString(TextSpan.FromBounds(contentStart, Math.Min(firstLine.EndIncludingLineBreak, contentEnd))));
+        if (startsOnOpenBraceLine)
+        {
+            content.Append(new string(' ', Math.Max(0, GetColumn(originalText, contentStart) + columnDelta)))
+                   .Append(originalText.ToString(TextSpan.FromBounds(contentStart, Math.Min(firstLine.EndIncludingLineBreak, contentEnd))));
 
-        for (var lineIndex = firstLine.LineNumber + 1; lineIndex < originalText.Lines.Count && originalText.Lines[lineIndex].Start < contentEnd; lineIndex++)
+            lineIndex++;
+        }
+
+        for (; lineIndex < originalText.Lines.Count && originalText.Lines[lineIndex].Start < contentEnd; lineIndex++)
         {
             var line = originalText.Lines[lineIndex];
             var lineEnd = Math.Min(line.EndIncludingLineBreak, contentEnd);
             var textStart = SkipIndentation(originalText, line.Start, Math.Min(line.End, contentEnd));
             var copyStart = line.Start;
 
-            if (originalRoot != null
+            if (IsColumnZeroDirectiveLine(originalRoot, line) == false
                 && CanMoveLine(originalRoot, originalText, line.Start, columnDelta))
             {
                 if (textStart < Math.Min(line.End, contentEnd))
@@ -190,6 +204,95 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
         var change = new TextChange(TextSpan.FromBounds(formattedBlock.OpenBraceToken.Span.End, formattedBlock.CloseBraceToken.SpanStart), content.ToString());
 
         return formattedDocument.WithText(formattedText.WithChanges(change));
+    }
+
+    /// <summary>
+    /// Gets the position the column delta of the moved code is measured on: the first character of the moved code on the
+    /// block's first statement line. That is the first line, in source order, on which a statement starts, whether the
+    /// statement is active code or disabled text of an inactive branch, so the result does not depend on which
+    /// preprocessor symbols are defined. A line of disabled text holds a statement when it holds anything other than
+    /// whitespace and comments. A block in which no line holds a statement is measured on its first line
+    /// </summary>
+    /// <param name="root">Root of the original document</param>
+    /// <param name="text">Text of the original document</param>
+    /// <param name="block">Block of the anonymous method</param>
+    /// <param name="contentStart">Start of the moved code</param>
+    /// <param name="contentEnd">End of the moved code</param>
+    /// <returns>The position the column delta is measured on</returns>
+    private static int GetFirstStatementLinePosition(SyntaxNode root, SourceText text, BlockSyntax block, int contentStart, int contentEnd)
+    {
+        var firstLineNumber = text.Lines.GetLineFromPosition(contentStart).LineNumber;
+        var lastLineNumber = block.Statements.Count > 0
+                                 ? text.Lines.GetLineFromPosition(block.Statements[0].SpanStart).LineNumber
+                                 : text.Lines.GetLineFromPosition(contentEnd).LineNumber;
+
+        for (var lineNumber = firstLineNumber; lineNumber <= lastLineNumber; lineNumber++)
+        {
+            var line = text.Lines[lineNumber];
+            var position = SkipIndentation(text, Math.Max(line.Start, contentStart), line.End);
+
+            if (lineNumber == lastLineNumber
+                && block.Statements.Count > 0)
+            {
+                return position;
+            }
+
+            if (position < line.End
+                && IsDisabledStatementLine(root, text, line, position))
+            {
+                return position;
+            }
+        }
+
+        return contentStart;
+    }
+
+    /// <summary>
+    /// Determines whether the line is disabled text of an inactive branch that holds anything other than whitespace and
+    /// comments
+    /// </summary>
+    /// <param name="root">Root of the original document</param>
+    /// <param name="text">Text of the original document</param>
+    /// <param name="line">Line</param>
+    /// <param name="position">First position on the line that is neither a space nor a tab</param>
+    /// <returns><see langword="true"/> if the line holds a statement in disabled text</returns>
+    private static bool IsDisabledStatementLine(SyntaxNode root, SourceText text, TextLine line, int position)
+    {
+        if (root.FindTrivia(position).IsKind(SyntaxKind.DisabledTextTrivia) == false)
+        {
+            return false;
+        }
+
+        var lineText = text.ToString(TextSpan.FromBounds(position, line.End));
+        var trivia = SyntaxFactory.ParseLeadingTrivia(lineText);
+
+        return trivia.FullSpan.Length < lineText.Length
+               || trivia.Any(static triviaItem => triviaItem.IsKind(SyntaxKind.WhitespaceTrivia) == false
+                                                  && triviaItem.IsKind(SyntaxKind.EndOfLineTrivia) == false
+                                                  && triviaItem.IsKind(SyntaxKind.SingleLineCommentTrivia) == false
+                                                  && triviaItem.IsKind(SyntaxKind.MultiLineCommentTrivia) == false);
+    }
+
+    /// <summary>
+    /// Determines whether the line is a preprocessor directive line that starts in column 0 and is neither
+    /// <c>#region</c> nor <c>#endregion</c>. Such a directive belongs to no nesting depth and keeps its column
+    /// </summary>
+    /// <param name="root">Root of the original document</param>
+    /// <param name="line">Line</param>
+    /// <returns><see langword="true"/> if the line keeps column 0</returns>
+    private static bool IsColumnZeroDirectiveLine(SyntaxNode root, TextLine line)
+    {
+        if (line.Span.IsEmpty)
+        {
+            return false;
+        }
+
+        var trivia = root.FindTrivia(line.Start);
+
+        return trivia.IsDirective
+               && trivia.SpanStart == line.Start
+               && trivia.IsKind(SyntaxKind.RegionDirectiveTrivia) == false
+               && trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia) == false;
     }
 
     /// <summary>

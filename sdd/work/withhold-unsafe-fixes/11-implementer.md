@@ -74,3 +74,54 @@ One decision is close to the formatter without being a copy: which lines of move
 - RH3004: the delta is taken from the block's first content line. When that line is a directive in column 0 (`#if` directly after `{`), every following statement moves by the directive's delta and ends up one level deeper than the directive. RH3004-006 says "the block's first line", so this is as specified, but the spec could name the first statement's line instead.
 - RH3106-003 conditional-under-`var` reading above (spec wording).
 - Hint 1 of the audit (`HaveSameTokensAndStructure` recursion depth): its depth is now bounded by the innermost member around the change rather than by the file, but it is still recursive.
+
+## Amendment — rows 21–25
+
+Commit: a60c2f1b. Verdict: tests pass. Repair round 1 amendment for decisions 21–25 and maintainer answer 7 (`00-lead.md`), against the tests of `10-test-implementer.md` (amendments rows 21–24 and row 25) and the RH3004-006 / RH3106-003 spec diffs since 1c476cb0. My prompt named the decided rows and the standing instruction; it carried no intended fix, suspected cause, or hoped-for verdict to set aside. No test file and no file under `sdd/specs` was changed.
+
+### thoenissen/Reihitsu#1281 (RH3106, rows 21 and 23)
+
+| File | What changed | Requirement |
+|---|---|---|
+| `src/Reihitsu.Analyzer/Rules/Clarity/RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzer.cs` | `TakesNaturalType` first asks `HasDelegateTypedNeighbor`: walking up through parentheses, conditional branches, and switch arms, it looks at the other branch of each conditional, the other arms of each switch expression, and, where the walk ends in the initializer of an implicitly typed array creation, the other elements. When one of them is not an anonymous function (inside any parentheses) and its type is a delegate type, the anonymous method is not in its natural type and is reported, also under `var`. Otherwise the existing position rules decide unchanged | RH3106-003 |
+
+This also reports a conditional with a delegate-typed other branch under a non-delegate target, e.g. `object o = b ? delegate () { } : someAction;`, which RH3106-003 as amended demands ("in every position"); no test covers that member, and no existing test asserts the opposite.
+
+### thoenissen/Reihitsu#1279 (RH3004, rows 22, 24, 25, answer 7)
+
+| File | What changed | Requirement |
+|---|---|---|
+| `src/Reihitsu.Analyzer.CodeFixes/Rules/Clarity/RH3004UseLambdaSyntaxCodeFixProvider.cs` | `MoveStatementsAsync` measures the column delta on `GetFirstStatementLinePosition`: the first character of moved code on the first line, in source order, that holds the start of the block's first statement or is disabled text holding anything other than whitespace and comments (`IsDisabledStatementLine`, checked by parsing the line's text as leading trivia); a block without a statement on either side is measured on its first content line, as before. Every content line, the first one included, now moves by that delta (the first line used to be placed at the content column unconditionally); a line that shares the opening brace's line is placed at its column plus the delta. `IsColumnZeroDirectiveLine` keeps a directive line whose `#` is in column 0 where it is, unless it is `#region`/`#endregion`; it applies to active and inactive directives alike | RH3004-006 |
+
+Answer 6 (A) is unaffected: a one-line block still has its content on the opening brace's line, measured there, so it lands one level inside the braces.
+
+### Policy owners
+
+- Column-0 directives: `rg -ln "RegionDirectiveTrivia" src/Reihitsu.Formatter` finds `IndentationRewriter.IsNonRegionDirectiveTrivia` (private, active directives only), which places such directives in column 0 in the indentation phase. That is the formatter's own column decision; the fix's predicate decides which moved lines keep their column, and code fixes may not call a phase's rewriter members (FMT-PIPE-009). Not a copy of one decision, but the two name the same directive set; a shared `SyntaxTriviaUtilities` predicate would be the place if they drift.
+- Disabled-text "holds a statement": `rg -n "ParseLeadingTrivia" src` (non-test) finds the formatter's documentation-comment phase and `RawStringLineShifts`, neither of which decides this; no other owner.
+- RH3106 position walk: `GetPositionExpression` and the new `HasDelegateTypedNeighbor` walk the same three parents in the same file; they answer different questions (which position vs. which neighbors), so they stay two methods side by side.
+
+### Tests run
+
+| Command | Result |
+|---|---|
+| `scripts/test.sh --configuration Debug --project analyzer --filter "FullyQualifiedName~RH3004UseLambdaSyntaxAnalyzerTests\|FullyQualifiedName~RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzerTests"` on a60c2f1b, before the change | Failed 12, Passed 74, Total 86: exactly the four RH3106 and eight RH3004 tests the handovers name |
+| same, after the change | Passed 86, Failed 0 |
+| `scripts/test.sh --configuration Debug --project analyzer` | Passed 6866, Failed 0 |
+| `scripts/test.sh --configuration Debug --project core` | Passed 621, Failed 0 |
+| `scripts/test.sh --configuration Debug --project architecture` | Passed 115, Failed 0 |
+| `scripts/build.sh` (Release) | 0 warnings, 0 errors (after replacing two loops with `Any`, S3267; RH3106 tests re-run: 40 passed) |
+
+`scripts/format.sh` was run over both changed files.
+
+### Disputed tests or scope
+
+_None._
+
+### Architecture findings
+
+_None._
+
+### Follow-up candidates
+
+- The formatter's `IndentationRewriter.IsNonRegionDirectiveTrivia` counts only active directives; RH3004-006 keeps every column-0 non-region directive, active or not. Whether an inactive nested directive in column 0 is left there by the formatter was not checked; if it is not, the fix's result would get a second formatting diff for that line.

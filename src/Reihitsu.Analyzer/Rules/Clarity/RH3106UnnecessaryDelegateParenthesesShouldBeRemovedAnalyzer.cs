@@ -47,7 +47,8 @@ public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzer : Empty
     /// delegate type, such as <see langword="object"/> or <see cref="System.Delegate"/>, and for an argument of such a
     /// parameter type when no other overload is a candidate for the call and no type argument is inferred. An expression
     /// inside parentheses, in a branch of a conditional expression, or in an arm of a switch expression stands in the
-    /// position of that expression
+    /// position of that expression. Where another branch, arm, or element gives the surrounding expression a delegate
+    /// type, that delegate type is the expression's target in every position, also under <see langword="var"/>
     /// </summary>
     /// <param name="node">Anonymous method, or a lambda that returns one</param>
     /// <param name="semanticModel">Semantic model</param>
@@ -55,6 +56,11 @@ public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzer : Empty
     /// <returns><see langword="true"/> if the expression takes its natural type</returns>
     private static bool TakesNaturalType(ExpressionSyntax node, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
+        if (HasDelegateTypedNeighbor(node, semanticModel, cancellationToken))
+        {
+            return false;
+        }
+
         var expression = GetPositionExpression(node);
 
         switch (expression.Parent)
@@ -110,6 +116,91 @@ public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzer : Empty
                     return expression;
             }
         }
+    }
+
+    /// <summary>
+    /// Determines whether an expression next to the expression gives it a delegate type as its target: another branch of
+    /// a conditional expression, another arm of a switch expression, or another element of an implicitly typed array
+    /// creation, which is not an anonymous function and whose type is a delegate type. The surrounding expression then
+    /// takes that delegate type, and the expression converts to it. Parentheses, conditional branches, and switch arms
+    /// are followed as in <see cref="GetPositionExpression"/>
+    /// </summary>
+    /// <param name="expression">Expression</param>
+    /// <param name="semanticModel">Semantic model</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> if a neighboring expression gives the expression a delegate type</returns>
+    private static bool HasDelegateTypedNeighbor(ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        while (true)
+        {
+            switch (expression.Parent)
+            {
+                case ParenthesizedExpressionSyntax parenthesizedExpression:
+                    {
+                        expression = parenthesizedExpression;
+                    }
+                    break;
+
+                case ConditionalExpressionSyntax conditionalExpression when conditionalExpression.Condition != expression:
+                    {
+                        var otherBranch = conditionalExpression.WhenTrue == expression
+                                              ? conditionalExpression.WhenFalse
+                                              : conditionalExpression.WhenTrue;
+
+                        if (IsDelegateTypedNonAnonymousFunction(otherBranch, semanticModel, cancellationToken))
+                        {
+                            return true;
+                        }
+
+                        expression = conditionalExpression;
+                    }
+                    break;
+
+                case SwitchExpressionArmSyntax { Parent: SwitchExpressionSyntax switchExpression } switchExpressionArm when switchExpressionArm.Expression == expression:
+                    {
+                        if (switchExpression.Arms.Any(arm => arm != switchExpressionArm
+                                                             && IsDelegateTypedNonAnonymousFunction(arm.Expression, semanticModel, cancellationToken)))
+                        {
+                            return true;
+                        }
+
+                        expression = switchExpression;
+                    }
+                    break;
+
+                case InitializerExpressionSyntax { Parent: ImplicitArrayCreationExpressionSyntax } initializer:
+                    {
+                        var element = expression;
+
+                        return initializer.Expressions.Any(otherElement => otherElement != element
+                                                                           && IsDelegateTypedNonAnonymousFunction(otherElement, semanticModel, cancellationToken));
+                    }
+
+                default:
+                    {
+                        return false;
+                    }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Determines whether the expression, inside any parentheses, is not an anonymous function and its type is a
+    /// delegate type
+    /// </summary>
+    /// <param name="expression">Expression</param>
+    /// <param name="semanticModel">Semantic model</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> if the expression gives a delegate type</returns>
+    private static bool IsDelegateTypedNonAnonymousFunction(ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        while (expression is ParenthesizedExpressionSyntax parenthesizedExpression)
+        {
+            expression = parenthesizedExpression.Expression;
+        }
+
+        return expression is not AnonymousFunctionExpressionSyntax
+               && IsDelegateType(semanticModel.GetTypeInfo(expression, cancellationToken).Type);
     }
 
     /// <summary>
