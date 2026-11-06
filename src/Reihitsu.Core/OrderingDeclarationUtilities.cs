@@ -316,7 +316,7 @@ public static class OrderingDeclarationUtilities
     /// <param name="memberToMove">Member to move</param>
     /// <param name="targetMember">Target member</param>
     /// <returns><see langword="true"/> if the move would change initializer execution order</returns>
-    internal static bool ChangesInitializerExecutionOrder(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberToMove, MemberDeclarationSyntax targetMember)
+    public static bool ChangesInitializerExecutionOrder(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberToMove, MemberDeclarationSyntax targetMember)
     {
         return ChangesMemberOrder(typeDeclaration, false, memberToMove, targetMember);
     }
