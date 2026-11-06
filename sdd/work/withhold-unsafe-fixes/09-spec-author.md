@@ -89,3 +89,17 @@ Why A: SHARED-FIX-007's moved-code bullet keeps line breaks and token spacing "a
 ## Follow-up candidates
 
 - Spec gap (RH3106), no output decided: an anonymous method returned by a lambda that is itself an argument whose return type method type inference decides, e.g. `Run(() => delegate () { })` with `static void Run<T>(Func<T> f)`. Without the list the call fails (CS0411). Today the anonymous method is reported, and SHARED-FIX-003 already forbids the fix. Whether it is reported (like RH3106-002) or not (like RH3106-003) is not stated. Recommendation: reported, fix withheld, as RH3106-002's inference case. No issue's case depends on it.
+
+## Amendment — RH3106-003 example
+
+Commit: 1f4dfe6e. Verdict: spec written. A clarification in the bug-fix lane. No normative outcome changes, and no rule page changes. My prompt carried no intended fix or verdict to set aside.
+
+- RH3106-003 — clarified.
+  - Removed `var g = b ? delegate () { } : delegate () { };` from the not-reported example: it does not compile (CS0173). A switch expression of anonymous-method arms under `var` does not compile either (CS8506). My earlier note above, that the conditional "under `var`" was written down as not reported, was wrong: that input does not exist.
+  - Added a sentence after the parentheses/conditional/switch sentence. A conditional or switch expression whose branches are all anonymous methods has no natural type, so under `var` it does not compile. Its anonymous methods reach RH3106-003 through a target that is not a delegate type, such as `object`. This is explanatory only; the position rule is unchanged.
+  - Added a second not-reported example that shows the rule with a target that compiles: `object g = b ? delegate () { } : delegate () { };` and a returned `object` switch expression with arms `delegate () { }` and `(delegate () { })`.
+- Test check, with no tests edited:
+  - `AnonymousMethodsThatTakeTheirNaturalTypeAreNotReported` now matches the first not-reported example verbatim.
+  - `AnonymousMethodInAConditionalOrASwitchArmWithAnObjectTargetIsNotReported` matches the new second example verbatim.
+  - No differences.
+- `scripts/test.sh --project architecture`: 115 passed.
