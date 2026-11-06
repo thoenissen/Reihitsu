@@ -755,7 +755,7 @@ public class RH4105MethodParameterCasingAnalyzerTests : BatchCodeFixTestsBase<RH
                                          partial void Run(int other)
                                          {
                                      #if NEVER
-                                             int arg = other;
+                                             int arg = 0;
                                      #endif
                                          }
                                      }
