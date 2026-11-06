@@ -1460,6 +1460,44 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifying the other side of the crossing condition: an instance field of excluded code in front of the moved
+    /// static field of a struct moves with it, but the move crosses only a static field and reorders no instance field,
+    /// so the fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixCarriesAnInstanceFieldOfExcludedCodeInFrontOfTheMovedStaticFieldOfAStructAcrossOnlyAStaticField()
+    {
+        const string testCode = """
+                                public struct S
+                                {
+                                    private int _x;
+                                    private static int _s;
+                                #if DEBUG
+                                    private int _y;
+                                #endif
+                                    private static readonly int {|RH7109:_r|};
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public struct S
+                                 {
+                                     private int _x;
+                                 #if DEBUG
+                                     private int _y;
+                                 #endif
+                                     private static readonly int _r;
+                                     private static int _s;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

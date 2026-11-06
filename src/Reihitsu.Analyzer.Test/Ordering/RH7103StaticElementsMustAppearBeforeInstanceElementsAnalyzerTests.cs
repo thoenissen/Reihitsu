@@ -1833,6 +1833,52 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifying the other side of the crossing condition: an instance field of excluded code in front of the moved
+    /// static method of a struct moves with it, but the move crosses only an instance method and reorders no instance
+    /// field, so the fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7103-007")]
+    public async Task FixCarriesAnInstanceFieldOfExcludedCodeInFrontOfTheMovedStaticMethodOfAStructAcrossOnlyAMethod()
+    {
+        const string testCode = """
+                                public struct S
+                                {
+                                    public void M()
+                                    {
+                                    }
+
+                                #if DEBUG
+                                    private int _y;
+                                #endif
+                                    public static void {|RH7103:N|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public struct S
+                                 {
+                                 #if DEBUG
+                                     private int _y;
+                                 #endif
+                                     public static void N()
+                                     {
+                                     }
+
+                                     public void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region Methods
