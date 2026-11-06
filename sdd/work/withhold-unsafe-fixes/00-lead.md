@@ -84,3 +84,4 @@ Repair rounds used: 1 (started after audit 1).
 - RH3106 spec does not decide `Run(() => delegate () { })` with `Run<T>(Func<T>)`; SHARED-FIX-003 already rules out the fix (09-spec-author).
 - RH7004 and `TypeMemberOrderingCodeFixProviderBase` reformat the code they move, against SHARED-FIX-007's moved-code bullet; a shared "move lines by a delta" helper (RH3004 now has one privately) would serve both (11-implementer).
 - `RewriteParseUtilities.HaveSameTokensAndStructure` is recursive without a depth guard (now bounded by the enclosing member) (08-auditor hint, 11-implementer).
+- The formatter's `IndentationRewriter.IsNonRegionDirectiveTrivia` counts only active directives for its column-0 rule while the RH3004 fix keeps inactive column-0 directives too; check whether an inactive nested directive in column 0 gets a second formatting diff after the fix (11-implementer, amendment rows 21–25).
