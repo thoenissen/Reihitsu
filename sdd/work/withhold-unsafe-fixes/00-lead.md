@@ -63,6 +63,7 @@ The process on `main` moved escalation answers from `squad/decisions/` into this
 | 1 | Claim | Branch name | `claude/sweet-johnson-msb5hu` instead of `claude/batch-1136-<slug>` | The session environment allows pushes to this branch only | Branch names are internal | d72bbdc |
 | 2 | Skeptic | SHARED-FIX-003 brace-split sentence wider than the maintainer's clarification | Narrowed by the spec author | The maintainer's clarification already decides it | It restores fixes the maintainer did not ask to withhold | c37e8b7 |
 | 3 | After skeptic | Second skeptic pass over the change docs | Skipped | The change docs restate the spec diff the skeptic already checked; budget | No spec text changed | c2e1f67 |
+| 4 | Test implementer | #1336 B3 (`namespace N { int a, b; }`, fix changes nothing) does not reproduce on bd9283a: main's RH7101 change already withholds the fix | Keep the tests as SHARED-FIX-005 characterization; #1336 stays `Closes`, since every other instance reproduced; the PR states that B3 was already fixed on `main` | The issue's other instances are fixed by this run | The output asserted is today's output on `main` | 0e8d0a7 |
 
 # Follow-up candidates
 
@@ -71,3 +72,5 @@ The process on `main` moved escalation answers from `squad/decisions/` into this
 - RH7105/RH7106 fix formats the whole member, against SHARED-FIX-006 (02-skeptic).
 - RH7003 reports a nested namespace that sits only in an excluded `#if` branch (02-skeptic).
 - RH7003 rule page carries an "Exceptions" section the rule-page conventions do not allow (01-spec-author).
+- RH7004 fix adds blank lines around an `#endregion` that stands in front of the using declaration, against SHARED-FIX-006 (06-test-implementer).
+- RH7309 fix is offered and changes nothing when the first member of the reported block is a nested type (FC-009, SHARED-FIX-005) (06-test-implementer).
