@@ -927,6 +927,142 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : BatchCodeFi
         await Verify(testCode.Replace("→", "\t"), fixedCode, Diagnostics(RH7105DeclarationKeywordsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7105MessageFormat));
     }
 
+    /// <summary>
+    /// Verifying the shared specification example: a directive between the last modifier and the type withholds the
+    /// fix, and the diagnostic is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-MODORDER-003")]
+    public async Task DirectiveBehindTheLastModifierWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  {|RH7105:static|} public
+                              #pragma warning disable CS0169
+                                  int _a;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying the shared specification example: a comment on its own line, and a comment in front of the type on its
+    /// line, between the last modifier and the type withhold the fix, and the diagnostic is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-MODORDER-003")]
+    public async Task CommentBetweenTheLastModifierAndTheTypeWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  {|RH7105:static|} public
+                                  // the counter
+                                  int _a;
+
+                                  {|RH7105:static|} public
+                                  /* the total */ int _b;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a nullable directive between the last modifier and the type withholds the fix, and the diagnostic
+    /// is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-MODORDER-003")]
+    public async Task NullableDirectiveBehindTheLastModifierWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  {|RH7105:static|} public
+                              #nullable disable
+                                  string _a;
+                              #nullable restore
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that conditional directives between the last modifier and the type withhold the fix, and the diagnostic
+    /// is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-MODORDER-003")]
+    public async Task ConditionalDirectivesBehindTheLastModifierWithholdTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  {|RH7105:static|} public
+                              #if DEBUG
+                                  int _a;
+                              #else
+                                  long _a;
+                              #endif
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a region directive between the last modifier and the type withholds the fix, and the diagnostic is
+    /// still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-MODORDER-003")]
+    public async Task RegionDirectiveBehindTheLastModifierWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  {|RH7105:static|} public
+                                  #region Fields
+                                  int _a;
+                                  #endregion
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a directive between the last modifier and the <c>class</c> keyword of a nested type withholds the
+    /// fix, and the diagnostic is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-MODORDER-003")]
+    public async Task DirectiveBehindTheLastModifierOfATypeWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  {|RH7105:static|} public
+                              #pragma warning disable CS0169
+                                  class D
+                                  {
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
     #endregion // Tests
 
     #region Methods

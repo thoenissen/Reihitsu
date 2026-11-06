@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -494,6 +495,170 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
+    /// Determines whether inserting a pair of braces at the two positions would split a directive pair across a
+    /// brace: one brace lands inside the code between a directive and its partner and the other outside it. A
+    /// conditional directive pairs with the next directive of its <c>#if</c> group and a region directive with its
+    /// partner. A <c>#pragma warning</c> directive pairs, for each warning it names, with the next
+    /// <c>#pragma warning</c> directive that names that warning or names none; a directive that names none stands for
+    /// every warning. A <c>#nullable</c> directive pairs in the same way for the warnings and the annotations setting,
+    /// and a <c>#line</c> or <c>#pragma checksum</c> directive with the next directive of its kind. A directive without
+    /// a partner ends no effect in front of the end of the file, so it splits nothing. A pair of braces wholly inside
+    /// or wholly outside the code between two partners does not split them. A brace inserted at the position of a
+    /// directive lands in front of it
+    /// </summary>
+    /// <param name="root">Syntax root of the document</param>
+    /// <param name="openBracePosition">Position the opening brace is inserted at</param>
+    /// <param name="closeBracePosition">Position the closing brace is inserted at</param>
+    /// <returns><see langword="true"/> if the braces would split a directive pair</returns>
+    public static bool SplitsDirectivePair(SyntaxNode root, int openBracePosition, int closeBracePosition)
+    {
+        var conditionalGroups = new Stack<int>();
+        var regionStarts = new Stack<int>();
+        var lastDirectiveOfSetting = new Dictionary<(SyntaxKind Kind, string Setting), int>();
+        var lastDirectiveOfAllSettings = new Dictionary<SyntaxKind, int>();
+
+        bool SplitsSpan(int start, int end)
+        {
+            var openInside = start < openBracePosition && openBracePosition <= end;
+            var closeInside = start < closeBracePosition && closeBracePosition <= end;
+
+            return openInside != closeInside;
+        }
+
+        bool SplitsSettingPair(SyntaxKind kind, IReadOnlyList<string> settings, int position)
+        {
+            var splits = false;
+
+            if (settings.Count == 0)
+            {
+                foreach (var entry in lastDirectiveOfSetting.Where(entry => entry.Key.Kind == kind).ToList())
+                {
+                    splits |= SplitsSpan(entry.Value, position);
+                    lastDirectiveOfSetting.Remove(entry.Key);
+                }
+
+                if (lastDirectiveOfAllSettings.TryGetValue(kind, out var previousPosition))
+                {
+                    splits |= SplitsSpan(previousPosition, position);
+                }
+
+                lastDirectiveOfAllSettings[kind] = position;
+
+                return splits;
+            }
+
+            foreach (var setting in settings)
+            {
+                var hasPrevious = lastDirectiveOfSetting.TryGetValue((kind, setting), out var previousPosition);
+
+                if (lastDirectiveOfAllSettings.TryGetValue(kind, out var allSettingsPosition)
+                    && (hasPrevious == false || allSettingsPosition > previousPosition))
+                {
+                    previousPosition = allSettingsPosition;
+                    hasPrevious = true;
+                }
+
+                splits |= hasPrevious && SplitsSpan(previousPosition, position);
+                lastDirectiveOfSetting[(kind, setting)] = position;
+            }
+
+            return splits;
+        }
+
+        foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true).Where(trivia => trivia.IsDirective))
+        {
+            var position = trivia.SpanStart;
+
+            switch (trivia.GetStructure())
+            {
+                case IfDirectiveTriviaSyntax:
+                    {
+                        conditionalGroups.Push(position);
+                    }
+                    break;
+
+                case ElifDirectiveTriviaSyntax:
+                case ElseDirectiveTriviaSyntax:
+                case EndIfDirectiveTriviaSyntax:
+                    {
+                        if (conditionalGroups.Count > 0)
+                        {
+                            if (SplitsSpan(conditionalGroups.Pop(), position))
+                            {
+                                return true;
+                            }
+
+                            if (trivia.IsKind(SyntaxKind.EndIfDirectiveTrivia) == false)
+                            {
+                                conditionalGroups.Push(position);
+                            }
+                        }
+                    }
+                    break;
+
+                case RegionDirectiveTriviaSyntax:
+                    {
+                        regionStarts.Push(position);
+                    }
+                    break;
+
+                case EndRegionDirectiveTriviaSyntax:
+                    {
+                        if (regionStarts.Count > 0
+                            && SplitsSpan(regionStarts.Pop(), position))
+                        {
+                            return true;
+                        }
+                    }
+                    break;
+
+                case PragmaWarningDirectiveTriviaSyntax pragmaWarningDirective:
+                    {
+                        if (SplitsSettingPair(SyntaxKind.PragmaWarningDirectiveTrivia, pragmaWarningDirective.ErrorCodes.Select(GetWarningCode).ToList(), position))
+                        {
+                            return true;
+                        }
+                    }
+                    break;
+
+                case NullableDirectiveTriviaSyntax nullableDirective:
+                    {
+                        IReadOnlyList<string> settings = nullableDirective.TargetToken.IsKind(SyntaxKind.None)
+                                                             ? []
+                                                             : [nullableDirective.TargetToken.ValueText];
+
+                        if (SplitsSettingPair(SyntaxKind.NullableDirectiveTrivia, settings, position))
+                        {
+                            return true;
+                        }
+                    }
+                    break;
+
+                case PragmaChecksumDirectiveTriviaSyntax:
+                    {
+                        if (SplitsSettingPair(SyntaxKind.PragmaChecksumDirectiveTrivia, [], position))
+                        {
+                            return true;
+                        }
+                    }
+                    break;
+
+                case LineDirectiveTriviaSyntax:
+                case LineSpanDirectiveTriviaSyntax:
+                    {
+                        if (SplitsSettingPair(SyntaxKind.LineDirectiveTrivia, [], position))
+                        {
+                            return true;
+                        }
+                    }
+                    break;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Sets the trailing whitespace of a token to the specified number of spaces while preserving non-whitespace trivia
     /// </summary>
     /// <param name="token">Token whose trailing whitespace to normalize</param>
@@ -788,6 +953,18 @@ public static class SyntaxTriviaUtilities
         }
 
         return normalized;
+    }
+
+    /// <summary>
+    /// Gets the warning a <c>#pragma warning</c> directive names, so that <c>CS0219</c> and <c>219</c> name the same one
+    /// </summary>
+    /// <param name="errorCode">Error code as written in the directive</param>
+    /// <returns>The warning</returns>
+    private static string GetWarningCode(ExpressionSyntax errorCode)
+    {
+        return errorCode is LiteralExpressionSyntax { Token.Value: int number }
+                   ? "CS" + number.ToString("D4", CultureInfo.InvariantCulture)
+                   : errorCode.ToString().Trim();
     }
 
     #endregion // Methods

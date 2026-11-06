@@ -70,10 +70,11 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsCodeFixPro
     }
 
     /// <inheritdoc/>
-    protected override bool IsMoveSafe(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberDeclaration, MemberDeclarationSyntax targetMember)
+    protected override bool IsMoveSafe(SemanticModel semanticModel, TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberDeclaration, MemberDeclarationSyntax targetMember)
     {
-        return base.IsMoveSafe(typeDeclaration, memberDeclaration, targetMember)
-               && OrderingDeclarationUtilities.ChangesInitializerExecutionOrder(typeDeclaration, memberDeclaration, targetMember) == false;
+        return base.IsMoveSafe(semanticModel, typeDeclaration, memberDeclaration, targetMember)
+               && semanticModel?.GetDeclaredSymbol(typeDeclaration) is INamedTypeSymbol typeSymbol
+               && OrderingDeclarationUtilities.ChangesMemberOrder(typeDeclaration, typeSymbol, memberDeclaration, targetMember) == false;
     }
 
     #endregion // TypeMemberOrderingCodeFixProviderBase

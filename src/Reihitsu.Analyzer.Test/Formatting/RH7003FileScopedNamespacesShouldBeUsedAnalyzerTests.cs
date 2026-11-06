@@ -301,5 +301,76 @@ public class RH7003FileScopedNamespacesShouldBeUsedAnalyzerTests : AnalyzerTests
         }
     }
 
+    /// <summary>
+    /// Verifying the specification example: a namespace whose only member is a namespace is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7003-005")]
+    public async Task NamespaceThatContainsANamespaceIsNotReported()
+    {
+        const string source = """
+                              namespace A.B
+                              {
+                                  namespace Inner
+                                  {
+                                      class C
+                                      {
+                                      }
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: a namespace that declares several namespaces is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7003-005")]
+    public async Task NamespaceThatContainsSeveralNamespacesIsNotReported()
+    {
+        const string source = """
+                              namespace A
+                              {
+                                  namespace B
+                                  {
+                                  }
+
+                                  namespace C
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifying that a namespace that declares a namespace behind a type is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7003-005")]
+    public async Task NamespaceThatContainsATypeAndANamespaceIsNotReported()
+    {
+        const string source = """
+                              namespace A
+                              {
+                                  class C
+                                  {
+                                  }
+
+                                  namespace B
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
     #endregion // Tests
 }

@@ -1,5 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -286,30 +291,30 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : B
     }
 
     /// <summary>
-    /// Verifies that a region opening inside an excluded element body cannot consume the first included endregion
-    /// after that body during pairing
+    /// Verifies that neither a region opened inside an element body and closed between declarations, nor the type-level
+    /// region that holds it, is reported, because a region directive of each lies inside executable code
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7304-005")]
     public async Task VerifyExcludedElementBodyDirectiveCannotPairWithContainingTypeDirective()
     {
         const string testData = """
                                 internal class Example
                                 {
-                                {|#0:#region Outer|}
+                                #region Outer
 
                                     internal void DoWork()
                                     {
                                 #region Body
                                     }
 
-                                {|#1:#endregion // Body|}
+                                #endregion // Body
                                 #endregion // Outer
                                 }
                                 """;
 
-        await Verify(testData,
-                     Diagnostics(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, AnalyzerResources.RH7304MessageFormat, 2));
+        await Verify(testData);
     }
 
     /// <summary>
@@ -568,7 +573,172 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : B
         await Verify(testData, fixedData);
     }
 
+    /// <summary>
+    /// Verifies the specification example: a region that holds a region of a method body, and a region closed inside a
+    /// method body, are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7304-005")]
+    public async Task RegionsWithADirectiveInsideExecutableCodeAreNotReported()
+    {
+        const string source = """
+                              class C
+                              {
+                              #region Outer
+                                  void M()
+                                  {
+                                      #region Inner
+                                      M();
+                                      #endregion
+                                  }
+                              #endregion
+
+                              #region Members
+                                  void N()
+                                  {
+                                      #endregion
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies that a misindented type-level region that holds a region of a method body is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7304-005")]
+    public async Task RegionThatHoldsARegionOfAMethodBodyIsNotReported()
+    {
+        const string source = """
+                              class C
+                              {
+                              #region Outer
+                                  void M()
+                                  {
+                                      #region Inner
+                                      M();
+                                      #endregion
+                                  }
+                              #endregion
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies that a misindented type-level <c>#region</c> whose <c>#endregion</c> lies inside a method body is not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7304-005")]
+    public async Task RegionClosedInsideAMethodBodyIsNotReported()
+    {
+        const string source = """
+                              class C
+                              {
+                              #region Members
+                                  void N()
+                                  {
+                                      #endregion
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies that every code fix offered for a region whose first code has a comment in front of the first token of the region on its line produces code
+    /// without a syntax error
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task OfferedFixKeepsTheCodeParseableWhenACommentPrecedesTheFirstToken()
+    {
+        const string source = """
+                              class C
+                              {
+                              #region Fields
+                                  /* c */ int _a;
+                              #endregion
+                              }
+                              """;
+
+        await AssertEveryOfferedFixParses(source);
+    }
+
+    /// <summary>
+    /// Verifies that every code fix offered for a region whose first code has the last line of a comment that spans lines in front of the first token of the region produces code
+    /// without a syntax error
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task OfferedFixKeepsTheCodeParseableWhenACommentThatSpansLinesEndsInFrontOfTheFirstToken()
+    {
+        const string source = """
+                              class C
+                              {
+                              #region Fields
+                                  /* a
+                                  b */ int _a;
+                              #endregion
+                              }
+                              """;
+
+        await AssertEveryOfferedFixParses(source);
+    }
+
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Applies every code fix offered for each region directive of the source and asserts that each result parses
+    /// without a syntax error
+    /// </summary>
+    /// <param name="source">Source text without markup</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task AssertEveryOfferedFixParses(string source)
+    {
+        foreach (var directiveIndex in new[] { 0, 1 })
+        {
+            var actions = await GetCodeFixActionsAsync(source,
+                                                       RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId,
+                                                       root => root.DescendantTrivia()
+                                                                   .Where(trivia => trivia.IsKind(SyntaxKind.RegionDirectiveTrivia) || trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
+                                                                   .ElementAt(directiveIndex)
+                                                                   .GetLocation());
+
+            foreach (var action in actions)
+            {
+                var operations = await action.GetOperationsAsync(CancellationToken.None);
+                var changedDocument = operations.OfType<ApplyChangesOperation>()
+                                                .Single()
+                                                .ChangedSolution
+                                                .Projects
+                                                .Single()
+                                                .Documents
+                                                .Single();
+                var text = (await changedDocument.GetTextAsync(CancellationToken.None)).ToString();
+                var errors = CSharpSyntaxTree.ParseText(text)
+                                             .GetDiagnostics()
+                                             .Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)
+                                             .ToList();
+
+                Assert.IsEmpty(errors, $"The fix result must parse. Result:\n{text}");
+            }
+        }
+    }
+
+    #endregion // Methods
 
     #region BatchCodeFixTestsBase
 

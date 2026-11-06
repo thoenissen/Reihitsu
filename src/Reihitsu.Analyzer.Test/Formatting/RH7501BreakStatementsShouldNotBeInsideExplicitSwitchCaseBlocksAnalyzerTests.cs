@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -588,8 +589,9 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
     }
 
     /// <summary>
-    /// Verifies that the fix moves the break behind the block, indented like the closing brace, together with the comment
-    /// on the line in front of it and the comment behind it, and keeps a layout the formatter would not produce
+    /// Verifies the specification example: the fix moves the break behind the block, indented like the closing brace,
+    /// together with the comment on the line in front of it, a comment in front of it on its line, and the comment behind
+    /// it, and keeps a layout the formatter would not produce
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -613,7 +615,7 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
                                             case 2:
                                             {
                                                 A();
-                                                {|RH7501:break|};
+                                                /* exit */ {|RH7501:break|};
                                             }
                                         }
                                     }
@@ -642,7 +644,7 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
                                              {
                                                  A();
                                              }
-                                             break;
+                                             /* exit */ break;
                                          }
                                      }
 
@@ -991,397 +993,318 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
     }
 
     /// <summary>
-    /// Characterizes the fix when code that #if excludes lies in front of the break: the fix is offered and moves the
-    /// directives and the excluded code behind the block together with the break. This test pins today's behavior
-    /// without stating it as intended
+    /// Verifies the specification example without <c>DEBUG</c> defined: conditional directives and the code they exclude
+    /// between the statement in front of the break and the break withhold the fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCodeFixMovesExcludedCodeInFrontOfBreakBehindBlock()
+    [Requirement("RH7501-004")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoCodeFixWhenExcludedCodeLiesInFrontOfTheBreak()
     {
-        const string testCode = """
-                                class C
-                                {
-                                    void M(int x)
-                                    {
-                                        switch (x)
-                                        {
-                                            case 1:
-                                                {
-                                                    var y = 1;
-                                #if DEBUG
-                                                    A(y);
-                                #endif
-                                                    break;
-                                                }
-                                        }
-                                    }
+        const string source = """
+                              class C
+                              {
+                                  void M(int x)
+                                  {
+                                      switch (x)
+                                      {
+                                          case 1:
+                                              {
+                                                  var y = 1;
+                              #if DEBUG
+                                                  A(y);
+                              #endif
+                                                  {|RH7501:break|};
+                                              }
+                                      }
+                                  }
 
-                                    void A(int y)
-                                    {
-                                    }
-                                }
-                                """;
+                                  void A(int y)
+                                  {
+                                  }
+                              }
+                              """;
 
-        const string expectedCode = """
-                                    class C
-                                    {
-                                        void M(int x)
-                                        {
-                                            switch (x)
-                                            {
-                                                case 1:
-                                                    {
-                                                        var y = 1;
-                                                    }
-                                                    #if DEBUG
-                                                        A(y);
-                                    #endif
-                                                        break;
-                                            }
-                                        }
-
-                                        void A(int y)
-                                        {
-                                        }
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     /// <summary>
-    /// Characterizes the fix when a region encloses the break inside the block: the fix is offered, moves the region
-    /// directive behind the block with the break, and leaves the end of the region inside the block. This test pins
-    /// today's behavior without stating it as intended
+    /// Verifies the specification example with <c>DEBUG</c> defined: conditional directives between the statement in
+    /// front of the break and the break withhold the fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCodeFixSplitsRegionAroundBreak()
+    [Requirement("RH7501-004")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoCodeFixWhenConditionalCodeLiesInFrontOfTheBreakWithTheSymbolDefined()
     {
-        const string testCode = """
-                                class C
-                                {
-                                    void M(int x)
-                                    {
-                                        switch (x)
-                                        {
-                                            case 1:
-                                                {
-                                                    A();
-                                                    #region Exit
-                                                    break;
-                                                    #endregion
-                                                }
-                                        }
-                                    }
+        const string source = """
+                              class C
+                              {
+                                  void M(int x)
+                                  {
+                                      switch (x)
+                                      {
+                                          case 1:
+                                              {
+                                                  var y = 1;
+                              #if DEBUG
+                                                  A(y);
+                              #endif
+                                                  {|RH7501:break|};
+                                              }
+                                      }
+                                  }
 
-                                    void A()
-                                    {
-                                    }
-                                }
-                                """;
+                                  void A(int y)
+                                  {
+                                  }
+                              }
+                              """;
 
-        const string expectedCode = """
-                                    class C
-                                    {
-                                        void M(int x)
-                                        {
-                                            switch (x)
-                                            {
-                                                case 1:
-                                                    {
-                                                        A();
-                                                        #endregion
-                                                    }
-                                                    #region Exit
-                                                        break;
-                                            }
-                                        }
-
-                                        void A()
-                                        {
-                                        }
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(source, DocumentationMode.Diagnose, "DEBUG");
     }
 
     /// <summary>
-    /// Characterizes the fix when conditional code follows the break inside the block: the fix is offered, moves the break
-    /// behind the block, and leaves the conditional code inside it. This test pins today's behavior without stating it as
-    /// intended
+    /// Verifies the specification example: a region pair around the break withholds the fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCodeFixLeavesConditionalCodeBehindBreakInsideBlock()
+    [Requirement("RH7501-004")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoCodeFixWhenARegionEnclosesTheBreak()
     {
-        const string testCode = """
-                                class C
-                                {
-                                    void M(int x)
-                                    {
-                                        switch (x)
-                                        {
-                                            case 1:
-                                                {
-                                                    A();
-                                                    break;
-                                #if DEBUG
-                                                    A();
-                                #endif
-                                                }
-                                        }
-                                    }
+        const string source = """
+                              class C
+                              {
+                                  void M(int x)
+                                  {
+                                      switch (x)
+                                      {
+                                          case 1:
+                                              {
+                                                  A();
+                                                  #region Exit
+                                                  {|RH7501:break|};
+                                                  #endregion
+                                              }
+                                      }
+                                  }
 
-                                    void A()
-                                    {
-                                    }
-                                }
-                                """;
+                                  void A()
+                                  {
+                                  }
+                              }
+                              """;
 
-        const string expectedCode = """
-                                    class C
-                                    {
-                                        void M(int x)
-                                        {
-                                            switch (x)
-                                            {
-                                                case 1:
-                                                    {
-                                                        A();
-                                    #if DEBUG
-                                                        A();
-                                    #endif
-                                                    }
-                                                    break;
-                                            }
-                                        }
-
-                                        void A()
-                                        {
-                                        }
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     /// <summary>
-    /// Characterizes the fix when a pragma pair encloses the break inside the block: the fix is offered, moves the
-    /// disabling pragma behind the block with the break, and leaves the restoring pragma inside the block. This test pins
-    /// today's behavior without stating it as intended
+    /// Verifies the specification example without <c>DEBUG</c> defined: code that <c>#if</c> excludes between the break and
+    /// the closing brace withholds the fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCodeFixSeparatesPragmaPairAroundBreak()
+    [Requirement("RH7501-004")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoCodeFixWhenCodeOfAnotherBuildConfigurationFollowsTheBreak()
     {
-        const string testCode = """
-                                class C
-                                {
-                                    void M(int x)
-                                    {
-                                        switch (x)
-                                        {
-                                            case 1:
-                                                {
-                                                    A();
-                                #pragma warning disable CS0162
-                                                    break;
-                                #pragma warning restore CS0162
-                                                }
-                                        }
-                                    }
+        const string source = """
+                              class C
+                              {
+                                  void M(int x)
+                                  {
+                                      switch (x)
+                                      {
+                                          case 1:
+                                              {
+                                                  A();
+                                                  {|RH7501:break|};
+                              #if DEBUG
+                                                  A();
+                              #endif
+                                              }
+                                      }
+                                  }
 
-                                    void A()
-                                    {
-                                    }
-                                }
-                                """;
+                                  void A()
+                                  {
+                                  }
+                              }
+                              """;
 
-        const string expectedCode = """
-                                    class C
-                                    {
-                                        void M(int x)
-                                        {
-                                            switch (x)
-                                            {
-                                                case 1:
-                                                    {
-                                                        A();
-                                    #pragma warning restore CS0162
-                                                    }
-                                                    #pragma warning disable CS0162
-                                                        break;
-                                            }
-                                        }
-
-                                        void A()
-                                        {
-                                        }
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     /// <summary>
-    /// Characterizes the fix when the whole section block shares the line of its case label: the fix is offered and
-    /// duplicates text of the line in front of the brace. This test pins today's behavior without stating it as
-    /// intended
+    /// Verifies the specification example: moving the break would split the pragma pair around it across the closing brace,
+    /// so the fix is withheld
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCodeFixOnSectionBlockOnOneLine()
+    [Requirement("RH7501-004")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoCodeFixWhenAPragmaPairEnclosesTheBreak()
     {
-        const string testCode = """
-                                class C
-                                {
-                                    void M(int x)
-                                    {
-                                        switch (x)
-                                        {
-                                            case 1: { A(); break; }
-                                            default: { A(); break; }
-                                        }
-                                    }
+        const string source = """
+                              class C
+                              {
+                                  void M(int x)
+                                  {
+                                      switch (x)
+                                      {
+                                          case 1:
+                                              {
+                                                  A();
+                              #pragma warning disable CS0162
+                                                  {|RH7501:break|};
+                              #pragma warning restore CS0162
+                                              }
+                                      }
+                                  }
 
-                                    void A()
-                                    {
-                                    }
-                                }
-                                """;
+                                  void A()
+                                  {
+                                  }
+                              }
+                              """;
 
-        const string expectedCode = """
-                                    class C
-                                    {
-                                        void M(int x)
-                                        {
-                                            switch (x)
-                                            {
-                                                case 1: { A(); }
-                                                case 1: { A(); break; break;             default: { A(); break; }
-                                            }
-                                        }
-
-                                        void A()
-                                        {
-                                        }
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     /// <summary>
-    /// Characterizes the fix when the break shares its line with the block's closing brace: the fix is offered and writes a
-    /// second break the user did not write. This test pins today's behavior without stating it as intended
+    /// Verifies that a break that shares its line with other code and with the closing brace, in a section block written on
+    /// the line of its case label, withholds the fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCodeFixWhenBreakSharesLineWithClosingBrace()
+    [Requirement("RH7501-004")]
+    public async Task NoCodeFixWhenTheSectionBlockSharesTheLineOfItsCaseLabel()
     {
-        const string testCode = """
-                                class C
-                                {
-                                    void M(int x)
-                                    {
-                                        switch (x)
-                                        {
-                                            case 1:
-                                                {
-                                                    A();
-                                                    break; }
-                                        }
-                                    }
+        const string source = """
+                              class C
+                              {
+                                  void M(int x)
+                                  {
+                                      switch (x)
+                                      {
+                                          case 1: { A(); {|RH7501:break|}; }
+                                          default: { A(); {|RH7501:break|}; }
+                                      }
+                                  }
 
-                                    void A()
-                                    {
-                                    }
-                                }
-                                """;
+                                  void A()
+                                  {
+                                  }
+                              }
+                              """;
 
-        const string expectedCode = """
-                                    class C
-                                    {
-                                        void M(int x)
-                                        {
-                                            switch (x)
-                                            {
-                                                case 1:
-                                                    {
-                                                        A();
-                                    }
-                                                        break; break;         }
-                                        }
-
-                                        void A()
-                                        {
-                                        }
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     /// <summary>
-    /// Characterizes the fix when the break shares its line with the statement in front of it: the fix is offered and joins
-    /// the block's closing brace onto that statement's line. This test pins today's behavior without stating it as intended
+    /// Verifies that a closing brace that shares its line with the break withholds the fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCodeFixWhenBreakSharesLineWithStatementInFrontOfIt()
+    [Requirement("RH7501-004")]
+    public async Task NoCodeFixWhenTheBreakSharesItsLineWithTheClosingBrace()
     {
-        const string testCode = """
-                                class C
-                                {
-                                    void M(int x)
-                                    {
-                                        switch (x)
-                                        {
-                                            case 1:
-                                                {
-                                                    A(); break;
-                                                }
-                                        }
-                                    }
+        const string source = """
+                              class C
+                              {
+                                  void M(int x)
+                                  {
+                                      switch (x)
+                                      {
+                                          case 1:
+                                              {
+                                                  A();
+                                                  {|RH7501:break|}; }
+                                      }
+                                  }
 
-                                    void A()
-                                    {
-                                    }
-                                }
-                                """;
+                                  void A()
+                                  {
+                                  }
+                              }
+                              """;
 
-        const string expectedCode = """
-                                    class C
-                                    {
-                                        void M(int x)
-                                        {
-                                            switch (x)
-                                            {
-                                                case 1:
-                                                    {
-                                                        A();                 }
-                                                    break;
-                                            }
-                                        }
-
-                                        void A()
-                                        {
-                                        }
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     /// <summary>
-    /// Characterizes the fix when the break is the only statement of the section block: the fix is offered and leaves an
-    /// empty block in front of the break. This test pins today's behavior without stating it as intended
+    /// Verifies that a break that shares its line with the statement in front of it withholds the fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7501-004")]
+    public async Task NoCodeFixWhenTheBreakSharesItsLineWithTheStatementInFrontOfIt()
+    {
+        const string source = """
+                              class C
+                              {
+                                  void M(int x)
+                                  {
+                                      switch (x)
+                                      {
+                                          case 1:
+                                              {
+                                                  A(); {|RH7501:break|};
+                                              }
+                                      }
+                                  }
+
+                                  void A()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a break that shares its line with the statement in front of it withholds the fix in a document with
+    /// CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7501-004")]
+    public async Task NoCodeFixWhenTheBreakSharesItsLineWithTheStatementInFrontOfItInCarriageReturnLineFeedDocument()
+    {
+        const string source = """
+                              class C
+                              {
+                                  void M(int x)
+                                  {
+                                      switch (x)
+                                      {
+                                          case 1:
+                                              {
+                                                  A(); {|RH7501:break|};
+                                              }
+                                      }
+                                  }
+
+                                  void A()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(source));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a break that is the only statement of the section block is moved, and the
+    /// empty block stays
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7501-004")]
     public async Task VerifyCodeFixLeavesEmptyBlockWhenBreakIsOnlyStatement()
     {
         const string testCode = """
@@ -1473,6 +1396,153 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
                                     """;
 
         Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a break that shares its line with other code or with the block's opening
+    /// brace, and a block whose closing brace shares its line with the break, are reported without a fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7501-004")]
+    public async Task NoCodeFixForTheSharedLineSpecificationExample()
+    {
+        const string source = """
+                              class C
+                              {
+                                  void M(int x)
+                                  {
+                                      switch (x)
+                                      {
+                                          case 1: { A(); {|RH7501:break|}; }
+
+                                          case 2:
+                                              {
+                                                  A(); /* first */ {|RH7501:break|};
+                                              }
+
+                                          case 3:
+                                              {
+                                                  A();
+                                                  {|RH7501:break|}; }
+
+                                          case 4:
+                                              { {|RH7501:break|};
+                                              }
+                                      }
+                                  }
+
+                                  void A()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a conditional pair in front of the break, and a region pair around it, are
+    /// reported without a fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7501-004")]
+    public async Task NoCodeFixForTheDirectiveSpecificationExample()
+    {
+        const string source = """
+                              class C
+                              {
+                                  void M(int x)
+                                  {
+                                      switch (x)
+                                      {
+                                          case 1:
+                                              {
+                                                  var y = 1;
+                              #if DEBUG
+                                                  A(y);
+                              #endif
+                                                  {|RH7501:break|};
+                                              }
+
+                                          case 2:
+                                              {
+                                                  A(0);
+                                                  #region Exit
+                                                  {|RH7501:break|};
+                                                  #endregion
+                                              }
+                                      }
+                                  }
+
+                                  void A(int y)
+                                  {
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a nullable directive between the statement in front of the break and the break withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7501-004")]
+    public async Task NoCodeFixWhenANullableDirectiveStandsInFrontOfTheBreak()
+    {
+        const string source = """
+                              class C
+                              {
+                                  void M(int x)
+                                  {
+                                      switch (x)
+                                      {
+                                          case 1:
+                                              {
+                                                  A();
+                              #nullable disable
+                                                  {|RH7501:break|};
+                                              }
+                                      }
+                                  }
+
+                                  void A()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a break behind the block's opening brace on the brace's line withholds the fix, although it is the
+    /// block's only statement and the closing brace starts its own line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7501-004")]
+    public async Task NoCodeFixWhenTheBreakSharesItsLineWithTheOpeningBrace()
+    {
+        const string source = """
+                              class C
+                              {
+                                  void M(int x)
+                                  {
+                                      switch (x)
+                                      {
+                                          case 4:
+                                              { {|RH7501:break|};
+                                              }
+                                      }
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     #endregion // Tests

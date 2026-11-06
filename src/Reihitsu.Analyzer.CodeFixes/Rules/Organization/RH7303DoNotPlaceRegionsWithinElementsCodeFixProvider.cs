@@ -34,7 +34,7 @@ public class RH7303DoNotPlaceRegionsWithinElementsCodeFixProvider : CodeFixProvi
         var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         if (syntaxRoot == null
-            || RegionDirectiveUtilities.TryFindMatchingDirective(syntaxRoot, directiveTrivia, out var matchingDirectiveTrivia) == false)
+            || TryFindRemovablePartner(syntaxRoot, directiveTrivia, out var matchingDirectiveTrivia) == false)
         {
             return document;
         }
@@ -59,6 +59,21 @@ public class RH7303DoNotPlaceRegionsWithinElementsCodeFixProvider : CodeFixProvi
         updatedText = updatedText.Replace(TextSpan.FromBounds(regionDirectiveLine.Start, regionRemovalEnd), string.Empty);
 
         return document.WithText(updatedText);
+    }
+
+    /// <summary>
+    /// Tries to find the partner of the reported directive that the fix removes with it. The partner must lie inside
+    /// executable code as well, so it is reported too: a partner between declarations stands where regions belong,
+    /// and removing it would drop a directive the diagnostic is not about
+    /// </summary>
+    /// <param name="syntaxRoot">Syntax root</param>
+    /// <param name="directiveTrivia">Reported directive trivia</param>
+    /// <param name="matchingDirectiveTrivia">Partner directive trivia</param>
+    /// <returns><see langword="true"/> if the partner exists and lies inside executable code</returns>
+    private static bool TryFindRemovablePartner(SyntaxNode syntaxRoot, SyntaxTrivia directiveTrivia, out SyntaxTrivia matchingDirectiveTrivia)
+    {
+        return RegionDirectiveUtilities.TryFindMatchingDirective(syntaxRoot, directiveTrivia, out matchingDirectiveTrivia)
+               && RegionDirectiveUtilities.IsWithinElementBody(matchingDirectiveTrivia);
     }
 
     #endregion // Methods
@@ -88,7 +103,7 @@ public class RH7303DoNotPlaceRegionsWithinElementsCodeFixProvider : CodeFixProvi
         {
             var directiveTrivia = syntaxRoot.FindTrivia(diagnostic.Location.SourceSpan.Start);
 
-            if (RegionDirectiveUtilities.TryFindMatchingDirective(syntaxRoot, directiveTrivia, out _))
+            if (TryFindRemovablePartner(syntaxRoot, directiveTrivia, out _))
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7303Title,
                                                           token => ApplyCodeFixAsync(context.Document, directiveTrivia, token),

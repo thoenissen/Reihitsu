@@ -426,6 +426,48 @@ public class RH7106ProtectedMustComeBeforeInternalAnalyzerTests : BatchCodeFixTe
         await Verify(source, fixedSource);
     }
 
+    /// <summary>
+    /// Verifying that a directive between the last modifier and the type withholds the fix, and the diagnostic is still
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-MODORDER-003")]
+    public async Task DirectiveBehindTheLastModifierWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  internal {|RH7106:protected|}
+                              #pragma warning disable CS0169
+                                  int _a;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a comment between the last modifier and the type withholds the fix, and the diagnostic is still
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-MODORDER-003")]
+    public async Task CommentBetweenTheLastModifierAndTheTypeWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  internal {|RH7106:protected|}
+                                  // the counter
+                                  int _a;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

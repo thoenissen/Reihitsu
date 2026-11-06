@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Organization;
 using Reihitsu.Core;
 using Reihitsu.Core.Enumerations;
@@ -36,53 +38,137 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : CodeFixProv
     private static async Task<Document> ReorderRegionsAsync(Document document, TypeDeclarationSyntax typeDeclaration, CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+        if (TryCreateReorder(typeDeclaration, semanticModel, sourceText, cancellationToken, out var blocks, out var order) == false
+            || order.SequenceEqual(Enumerable.Range(0, order.Count)))
+        {
+            return document;
+        }
+
+        var changes = blocks.Select((block, slot) => new TextChange(block.Span, blocks[order[slot]].Text));
+
+        return document.WithText(sourceText.WithChanges(changes));
+    }
+
+    /// <summary>
+    /// Determines the region blocks of the type and the order the fix puts them in, and whether that reorder is safe
+    /// to offer: it must neither move a directive across (RH7309-005) nor change the program or separate a comment
+    /// from its block (RH7309-006)
+    /// </summary>
+    /// <param name="typeDeclaration">Type declaration whose regions should be reordered</param>
+    /// <param name="semanticModel">Semantic model of the document</param>
+    /// <param name="sourceText">Source text of the document</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <param name="blocks">Region blocks in written order</param>
+    /// <param name="order">For each block position, the index of the block that the fix puts there</param>
+    /// <returns><see langword="true"/> if the reorder can be offered</returns>
+    private static bool TryCreateReorder(TypeDeclarationSyntax typeDeclaration, SemanticModel semanticModel, SourceText sourceText, CancellationToken cancellationToken, out List<(TextSpan Span, string Text)> blocks, out IReadOnlyList<int> order)
+    {
+        blocks = [];
+        order = [];
 
         if (semanticModel?.GetDeclaredSymbol(typeDeclaration, cancellationToken) is not INamedTypeSymbol typeSymbol)
         {
-            return document;
+            return false;
         }
 
         var regions = RegionDirectiveUtilities.GetTopLevelRegions(typeDeclaration);
 
-        if (regions.Count < 2)
-        {
-            return document;
-        }
-
-        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
         if (CanReorderSafely(typeDeclaration, regions, sourceText) == false)
         {
-            return document;
+            return false;
         }
 
-        var blocks = new List<(TextSpan Span, string Text, RegionCategory Category, int Index)>();
+        var categories = new List<RegionCategory>();
 
-        for (var index = 0; index < regions.Count; index++)
+        foreach (var region in regions)
         {
-            var region = regions[index];
-
             if (region.Region.GetStructure() is not RegionDirectiveTriviaSyntax regionDirective)
             {
-                return document;
+                return false;
             }
 
             var span = GetRegionBlockSpan(sourceText, region);
-            var description = RegionDirectiveUtilities.GetRegionDescription(regionDirective);
 
-            blocks.Add((span, sourceText.ToString(span), RegionCategoryUtilities.GetRegionCategory(typeSymbol, description), index));
+            blocks.Add((span, sourceText.ToString(span)));
+            categories.Add(RegionCategoryUtilities.GetRegionCategory(typeSymbol, RegionDirectiveUtilities.GetRegionDescription(regionDirective)));
         }
 
-        var orderedBlocks = blocks.OrderBy(block => block.Category).ToList();
+        order = Enumerable.Range(0, blocks.Count)
+                          .OrderBy(index => categories[index])
+                          .ToList();
 
-        if (orderedBlocks.Select(block => block.Index).SequenceEqual(blocks.Select(block => block.Index)))
+        var layout = new RegionBlockLayout(blocks.Select(block => block.Span).ToList(), order);
+
+        return layout.ChangesMemberOrder(typeDeclaration, typeSymbol) == false
+               && SeparatesCommentFromBlock(regions, order) == false
+               && ChangesDocumentedDeclaration(typeDeclaration, layout) == false;
+    }
+
+    /// <summary>
+    /// Determines whether a block that the fix moves has a comment above its <c>#region</c> line, with nothing but
+    /// blank lines between the comment and that line. The text between blocks stays in place, so the comment would
+    /// head another block
+    /// </summary>
+    /// <param name="regions">Top-level region pairs of the type</param>
+    /// <param name="order">For each block position, the index of the block that the fix puts there</param>
+    /// <returns><see langword="true"/> if a moved block would lose its comment</returns>
+    private static bool SeparatesCommentFromBlock(IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> regions, IReadOnlyList<int> order)
+    {
+        for (var index = 0; index < regions.Count; index++)
         {
-            return document;
+            if (order[index] != index
+                && HasCommentAbove(regions[index].Region))
+            {
+                return true;
+            }
         }
 
-        var changes = blocks.Select((block, index) => new TextChange(block.Span, orderedBlocks[index].Text));
+        return false;
+    }
 
-        return document.WithText(sourceText.WithChanges(changes));
+    /// <summary>
+    /// Determines whether a comment stands above the directive's line, with nothing but blank lines between them.
+    /// A comment behind code belongs to the trailing trivia of that code's last token, so only comments that start a
+    /// line of the directive's leading trivia are found
+    /// </summary>
+    /// <param name="directiveTrivia">Directive trivia</param>
+    /// <returns><see langword="true"/> if a comment stands above the directive</returns>
+    private static bool HasCommentAbove(SyntaxTrivia directiveTrivia)
+    {
+        var leadingTrivia = directiveTrivia.Token.LeadingTrivia;
+        var index = leadingTrivia.IndexOf(directiveTrivia) - 1;
+
+        while (index >= 0
+               && (leadingTrivia[index].IsKind(SyntaxKind.WhitespaceTrivia) || leadingTrivia[index].IsKind(SyntaxKind.EndOfLineTrivia)))
+        {
+            index--;
+        }
+
+        return index >= 0
+               && SyntaxTriviaUtilities.IsCommentTrivia(leadingTrivia[index]);
+    }
+
+    /// <summary>
+    /// Determines whether the reorder would change which declaration a documentation comment documents. A
+    /// documentation comment in the leading trivia of a member that stands in another block, or between blocks,
+    /// documents that member only as long as the text between the two stays the same. A documentation comment in the
+    /// leading trivia of the type's closing brace documents nothing, and keeps documenting nothing only as long as the
+    /// text between it and the closing brace stays the same; otherwise it would stand in front of the member that
+    /// follows it after the reorder. In the documentation mode <c>None</c>, the parser reads no documentation
+    /// comments, so there are none to check
+    /// </summary>
+    /// <param name="typeDeclaration">Type declaration whose regions should be reordered</param>
+    /// <param name="layout">Layout of the region blocks before and after the reorder</param>
+    /// <returns><see langword="true"/> if a documentation comment would document another declaration</returns>
+    private static bool ChangesDocumentedDeclaration(TypeDeclarationSyntax typeDeclaration, RegionBlockLayout layout)
+    {
+        return typeDeclaration.Members
+                              .Select(member => (LeadingTrivia: member.GetLeadingTrivia(), Start: member.SpanStart))
+                              .Append((LeadingTrivia: typeDeclaration.CloseBraceToken.LeadingTrivia, Start: typeDeclaration.CloseBraceToken.SpanStart))
+                              .Any(owner => owner.LeadingTrivia.Any(trivia => SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia)
+                                                                              && layout.KeepsSequenceBetween(trivia.SpanStart, owner.Start) == false));
     }
 
     /// <summary>
@@ -179,6 +265,7 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : CodeFixProv
         }
 
         var sourceText = await context.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
+        var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
         var reorderableTypes = new Dictionary<TypeDeclarationSyntax, bool>();
 
         foreach (var diagnostic in context.Diagnostics)
@@ -190,7 +277,7 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : CodeFixProv
 
             if (reorderableTypes.TryGetValue(typeDeclaration, out var canReorder) == false)
             {
-                canReorder = CanReorderSafely(typeDeclaration, RegionDirectiveUtilities.GetTopLevelRegions(typeDeclaration), sourceText);
+                canReorder = TryCreateReorder(typeDeclaration, semanticModel, sourceText, context.CancellationToken, out _, out _);
                 reorderableTypes[typeDeclaration] = canReorder;
             }
 
