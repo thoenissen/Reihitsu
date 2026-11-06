@@ -50,6 +50,11 @@ Batch 1 (before the test implementer), all answered with the recommended option:
 | 7 | Skeptic | RH3106/RH3107 fixes leave stray whitespace (`delegate  { }`, `[Obsolete /* x */ ]`), pinned by tests | Adjacent fix in this run | Same shared removal the run changes; small; SHARED-FIX-007 already demands the formatter's layout | Demanded by unchanged SHARED-FIX-007 | pending |
 | 8 | Skeptic | Issue #1257's `M(G < A, B > !x)` does not compile as input | Use the valid `switch` form as the reproduction | An input that does not compile is not a case | Internal (test input) | — |
 | 9 | Spec author amendment | RH3106: report of a delegate-target argument whose call would bind elsewhere, be ambiguous, or fail | Stays reported, fix withheld (RH3106-002) | The error comes from competing overloads / inference, not the position (SHARED-DIAG-011); matches #1281 and maintainer answers 2 and 4 | Covered by maintainer answer 4 | a68f412f |
+| 10 | Implementer | Nine `FixAll…Reported` tests lack `MarkupMode.Allow` for the fixed/batch-fixed state | Test implementer adds the configuration; assertions unchanged | Test-harness configuration, the expected outputs are right | Expected outputs unchanged | pending |
+| 11 | Implementer | Spec `Uses` rows miss SHARED-FIX-003/-007/SHARED-DIAG-011, RH3106/RH3107 list SHARED-PARENS-003 without referencing it (`UsesListsExactlyTheReferencedRequirements`) | Spec author repairs the `Uses` rows | Spec structure | Spec text only | pending |
+| 12 | Implementer | Architecture finding: RH3004 fix writes `///` comments in the block back after `FormatNodeInDocumentAsync` rewrote them | Fix narrowly in this run; file a follow-up for a layout-only mode of the node-level entry point (and the multi-line `///` continuation-column gap) | The structural change is in the formatter, a component this run does not change; the narrow fix adds no copy of a formatter decision, it only restores user text | RH3004-003 (statements unchanged) and SHARED-FIX-003 decide the output | 6961521a |
+| 13 | Implementer | `RewriteParseUtilities` (new, public in Core, five consumers) has no direct unit tests | Test implementer adds focused Core tests | Shared helper should be tested where it lives | Internal | pending |
+| 14 | Implementer | RH3103 fix's member-access arm is no longer reached | Keep as a guard | Removing it is a cleanup outside the fix's need; harmless | No output changes | — |
 
 ## Follow-up candidates
 
@@ -58,3 +63,4 @@ Batch 1 (before the test implementer), all answered with the recommended option:
 - The four `-004` conditions (RH3001, RH3005, RH3101, RH3105) leave unspecified the safe inputs today's fixes rewrite (01-spec-author).
 - RH3201-005 does not cover a comment at the start of a line followed by code, or code on both sides where tokens would not merge (01-spec-author, 02-skeptic).
 - RH3201-007 does not decide `return /**//**/a;` (whitespace in front of the first of two adjacent empty comments) and has no test for it (04-test-implementer, amendment).
+- Formatter: a layout-only mode for the node-level entry point so code fixes need not restore `///` text the documentation-comment phase rewrites; today RH3004 restores it, and a multi-line `///` inside a moved block keeps its old continuation columns (05-implementer, Decision 12).
