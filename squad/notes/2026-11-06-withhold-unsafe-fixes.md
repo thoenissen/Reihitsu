@@ -28,6 +28,7 @@
 - Repair rounds: 3 of 3. One structural change (single owner of the member-order decision, which also takes the layout check) replaced a repair round after audit 2 found a repeated class.
 - Roles spawned more than once: spec author 6×, test implementer 4×, implementer 4×, cleaner 4×, spec checker 4×, auditor 4× — the merge of `main`, three repair rounds, and the structural change.
 - Expensive: the first spec author (a long-running agent continued three times before the process moved to fresh agents per follow-up), the skeptic, the first test implementer and implementer, and the auditors.
+- CI after publishing: the self-hosting scans failed because decision 15 had put `InternalsVisibleTo` in `Reihitsu.Core.csproj`, which the self-hosting compilation does not read; the local validator does not run those scans. A first narrowing (making the method public again) reopened a class three audits had closed, and the CI audit caught it; the fix moved the attribute to `Properties/AssemblyInfo.cs`. Cost: two implementers, two auditors, two validators.
 - The process changed under the run: `squad/decisions/` was removed on `main` mid-run; the two entries the run had written moved into its lead handover.
 
 ## Usage
@@ -36,9 +37,10 @@ The output of `scripts/usage.sh` is not pasted here: this session's environment 
 
 ## Decisions taken
 
-16, listed in the pull request's run report. The ones the lead would have liked the maintainer to see: decision 12 (structural change after a repeated audit class, RH7103 taken in as an adjacent fix) and decision 11 (withheld fixes added after the change-doc approval, judged covered by the approved *Build configurations* condition).
+19, listed in the pull request's run report. The ones the lead would have liked the maintainer to see: decision 12 (structural change after a repeated audit class, RH7103 taken in as an adjacent fix) and decision 11 (withheld fixes added after the change-doc approval, judged covered by the approved *Build configurations* condition).
 
 ## Suggestions
 
 - `scripts/lane-check.sh` classifies `squad/notes/` as tooling, so every bug-fix run that writes its note fails the lane check unless it widens to behavior change. A note is the lead's own record, like `sdd/work/`; excluding it from the classification would keep the bug-fix lane usable.
+- The self-hosting scans are the one check the local validator skips, and the only one that failed in CI; a quick self-hosting compile of changed projects before publishing would have caught it.
 - The usage section requires model identifiers, which some session environments forbid pushing.
