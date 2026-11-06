@@ -1925,13 +1925,14 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     }
 
     /// <summary>
-    /// Verifies no code fix is offered for a block whose single return statement returns a multi-line raw string
-    /// literal, which the fix would otherwise write as an expression body
+    /// Verifies the specification example of a block whose single return statement returns a multi-line raw string
+    /// literal: the fix writes an expression body, the literal's lines move under its opening quotes, and its value
+    /// stays
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3004-007")]
-    public async Task FixWithheldForASingleReturnOfAMultiLineRawStringLiteral()
+    public async Task FixRewritesASingleReturnOfAMultiLineRawStringLiteralAsAnExpressionBody()
     {
         const string testCode = """"
                                 using System;
@@ -1940,17 +1941,33 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 {
                                     void M()
                                     {
-                                        Func<int, string> b = {|RH3004:delegate|} (int x)
+                                        Func<string> f = {|RH3004:delegate|} ()
                                         {
                                             return """
                                                 a
+                                                  b
                                                 """;
                                         };
                                     }
                                 }
                                 """";
 
-        await VerifyNoCodeFixIsOffered(testCode);
+        const string fixedCode = """"
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Func<string> f = () => """
+                                                                a
+                                                                  b
+                                                                """;
+                                     }
+                                 }
+                                 """";
+
+        await Verify(testCode, fixedCode);
     }
 
     /// <summary>
@@ -2723,6 +2740,237 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                                              Console.WriteLine(x);
                                  #endif
                                                                  Console.WriteLine(-x);
+                                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a first statement line that starts with a comment in column 0: the line
+    /// holds code, so it moves, the shift is measured from its first character, the comment, and the later statement
+    /// keeps its offset to it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixMovesAFirstStatementLineThatStartsWithAColumnZeroCommentAndMeasuresTheShiftFromTheComment()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> b = {|RH3004:delegate|} (int x)
+                                        {
+                                /* note */ Console.WriteLine(x);
+                                            Console.WriteLine(x + 1);
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<int> b = (int x) =>
+                                                         {
+                                                             /* note */ Console.WriteLine(x);
+                                                                         Console.WriteLine(x + 1);
+                                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a first statement line that starts with a comment in column 0 in a
+    /// document whose line breaks are CRLF, and keeps those line breaks
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixMovesAFirstStatementLineThatStartsWithAColumnZeroCommentWithCarriageReturnLineFeed()
+    {
+        var testCode = NormalizeToCarriageReturnLineFeed("""
+                                                         using System;
+
+                                                         class C
+                                                         {
+                                                             void M()
+                                                             {
+                                                                 Action<int> b = delegate (int x)
+                                                                 {
+                                                         /* note */ Console.WriteLine(x);
+                                                                     Console.WriteLine(x + 1);
+                                                                 };
+                                                             }
+                                                         }
+                                                         """);
+
+        var expectedCode = NormalizeToCarriageReturnLineFeed("""
+                                                             using System;
+
+                                                             class C
+                                                             {
+                                                                 void M()
+                                                                 {
+                                                                     Action<int> b = (int x) =>
+                                                                                     {
+                                                                                         /* note */ Console.WriteLine(x);
+                                                                                                     Console.WriteLine(x + 1);
+                                                                                     };
+                                                                 }
+                                                             }
+                                                             """);
+
+        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+    }
+
+    /// <summary>
+    /// Verifies a block comment over two lines that starts in column 0 behind the first statement: the comment holds no
+    /// code, so its first line stays in column 0 and its continuation line stays in its columns with it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixKeepsBothLinesOfABlockCommentThatStartsInColumnZeroInTheirColumns()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> b = {|RH3004:delegate|} (int x)
+                                        {
+                                            Console.WriteLine(x);
+                                /* Console.WriteLine(x + 1);
+                                   Console.WriteLine(x + 2); */
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<int> b = (int x) =>
+                                                         {
+                                                             Console.WriteLine(x);
+                                 /* Console.WriteLine(x + 1);
+                                    Console.WriteLine(x + 2); */
+                                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a block comment over two lines that starts in column 12 behind the first statement: its first line
+    /// moves, so its continuation line moves with it by the same shift
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixMovesBothLinesOfABlockCommentThatStartsInAnotherColumnByTheShift()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> b = {|RH3004:delegate|} (int x)
+                                        {
+                                            Console.WriteLine(x);
+                                            /* Console.WriteLine(x + 3);
+                                               Console.WriteLine(x + 4); */
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<int> b = (int x) =>
+                                                         {
+                                                             Console.WriteLine(x);
+                                                             /* Console.WriteLine(x + 3);
+                                                                Console.WriteLine(x + 4); */
+                                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of two block comments over two lines each, one starting in column 0 and one
+    /// in column 12: the first stays with both its lines, the second moves with both its lines by the shift
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixKeepsOrMovesEveryLineOfABlockCommentWithTheLineOnWhichTheCommentStarts()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> b = {|RH3004:delegate|} (int x)
+                                        {
+                                            Console.WriteLine(x);
+                                /* Console.WriteLine(x + 1);
+                                   Console.WriteLine(x + 2); */
+                                            /* Console.WriteLine(x + 3);
+                                               Console.WriteLine(x + 4); */
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<int> b = (int x) =>
+                                                         {
+                                                             Console.WriteLine(x);
+                                 /* Console.WriteLine(x + 1);
+                                    Console.WriteLine(x + 2); */
+                                                             /* Console.WriteLine(x + 3);
+                                                                Console.WriteLine(x + 4); */
                                                          };
                                      }
                                  }

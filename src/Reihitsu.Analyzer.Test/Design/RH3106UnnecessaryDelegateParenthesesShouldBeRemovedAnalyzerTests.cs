@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -1980,6 +1981,407 @@ public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzerTests : 
                                      void M(bool b, Action someAction)
                                      {
                                          object o = b ? delegate { } : someAction;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method under <c>var</c> inside an <see langword="if"/> block is not reported, also where a
+    /// later statement of the block calls the local whose type follows the anonymous method's natural type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodUnderVarInAnIfBlockWithALaterCallOfTheLocalIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool b)
+                                    {
+                                        if (b)
+                                        {
+                                            var a = delegate () { };
+                                            a();
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method under <c>var</c> inside a <see langword="using"/> block is not reported, also where
+    /// a later statement of the block converts the local to <see cref="System.Action"/>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodUnderVarInAUsingBlockWithALaterUseOfTheLocalIsNotReported()
+    {
+        const string testCode = """
+                                using System;
+                                using System.IO;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        using (var s = new MemoryStream())
+                                        {
+                                            var a = delegate () { };
+                                            Action b = a;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method in an implicitly typed array under <c>var</c> inside a <see langword="foreach"/>
+    /// block is not reported, also where a later statement of the block calls an element of the array
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodInAnImplicitlyTypedArrayInAForeachBlockWithALaterCallOfAnElementIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int[] items)
+                                    {
+                                        foreach (var i in items)
+                                        {
+                                            var arr = new[] { delegate () { } };
+                                            arr[0]();
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method that the expression body of a lambda under <c>var</c> returns inside an
+    /// <see langword="if"/> block is not reported, also where a later statement of the block calls the result of the
+    /// lambda
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodReturnedByALambdaUnderVarInAnIfBlockWithALaterCallIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool b)
+                                    {
+                                        if (b)
+                                        {
+                                            var g = () => delegate () { };
+                                            g()();
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method under <c>var</c> in the block body of a lambda is not reported, also where a later
+    /// statement of the body calls the local
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodUnderVarInALambdaBodyWithALaterCallOfTheLocalIsNotReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action x = () =>
+                                                   {
+                                                       var a = delegate () { };
+                                                       a();
+                                                   };
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method under <c>var</c> in the body of another anonymous method is not reported, also
+    /// where a later statement of the body calls the local
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodUnderVarInAnAnonymousMethodBodyWithALaterCallOfTheLocalIsNotReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action x = delegate
+                                                   {
+                                                       var a = delegate () { };
+                                                       a();
+                                                   };
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method under <c>var</c> in the body of a local function is not reported, also where a
+    /// later statement of the body calls the local
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodUnderVarInALocalFunctionBodyWithALaterCallOfTheLocalIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        L();
+
+                                        void L()
+                                        {
+                                            var a = delegate () { };
+                                            a();
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method under <c>var</c> inside an <see langword="if"/> block of top-level statements is
+    /// not reported, also where a later statement of the block calls the local
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodUnderVarInAnIfBlockOfTopLevelStatementsWithALaterCallOfTheLocalIsNotReported()
+    {
+        const string testCode = """
+                                if (args.Length > 0)
+                                {
+                                    var a = delegate () { };
+                                    a();
+                                }
+                                """;
+
+        await Verify(testCode, static test => test.TestState.OutputKind = OutputKind.ConsoleApplication);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method under <c>var</c> inside an <see langword="if"/> block of an async method is not
+    /// reported, also where a later statement of the block calls the local
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodUnderVarInAnIfBlockOfAnAsyncMethodWithALaterCallOfTheLocalIsNotReported()
+    {
+        const string testCode = """
+                                using System.Threading.Tasks;
+
+                                class C
+                                {
+                                    async Task M(bool b)
+                                    {
+                                        await Task.Yield();
+
+                                        if (b)
+                                        {
+                                            var a = delegate () { };
+                                            a();
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method under <c>var</c> inside an <see langword="if"/> block of an iterator method is not
+    /// reported, also where a later statement of the block calls the local
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodUnderVarInAnIfBlockOfAnIteratorMethodWithALaterCallOfTheLocalIsNotReported()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    IEnumerable<int> M(bool b)
+                                    {
+                                        if (b)
+                                        {
+                                            var a = delegate () { };
+                                            a();
+                                        }
+
+                                        yield return 1;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method under <c>var</c> inside a labeled block of a method with <see langword="goto"/> is
+    /// not reported, also where a later statement of the block calls the local
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodUnderVarInALabeledBlockOfAGotoMethodWithALaterCallOfTheLocalIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int n)
+                                    {
+                                    Start:
+                                        {
+                                            var a = delegate () { };
+                                            a();
+                                        }
+
+                                        if (--n > 0)
+                                        {
+                                            goto Start;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method under <c>var</c> inside an <see langword="if"/> block is not reported where no
+    /// later statement uses the local
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodUnderVarInAnIfBlockWithoutALaterUseIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool b)
+                                    {
+                                        if (b)
+                                        {
+                                            var a = delegate () { };
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method assigned to <see cref="object"/> inside an <see langword="if"/> block is not
+    /// reported, also where a later statement of the block casts the local to <see cref="System.Action"/> and calls it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodUnderObjectInAnIfBlockWithALaterCastAndCallIsNotReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M(bool b)
+                                    {
+                                        if (b)
+                                        {
+                                            object o = delegate () { };
+                                            ((Action)o)();
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method with a delegate type as its target inside an <see langword="if"/> block is reported
+    /// and fixed, also where a later statement of the block calls the local
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-001")]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodWithADelegateTargetInAnIfBlockWithALaterCallOfTheLocalIsReportedAndFixed()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M(bool b)
+                                    {
+                                        if (b)
+                                        {
+                                            Action a = delegate {|RH3106:()|} { };
+                                            a();
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M(bool b)
+                                     {
+                                         if (b)
+                                         {
+                                             Action a = delegate { };
+                                             a();
+                                         }
                                      }
                                  }
                                  """;

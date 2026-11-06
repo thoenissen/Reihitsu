@@ -565,6 +565,110 @@ public class RewriteBindingUtilitiesTests
         Assert.IsNull(convertedType);
     }
 
+    /// <summary>
+    /// Verifies that the probe binds as before under an implicitly typed local inside an <see langword="if"/> block
+    /// whose later statement calls the local: the error the probe's natural type causes in that sibling statement does
+    /// not count, because the sibling statement is not on the path from the expression to its binding root
+    /// </summary>
+    [TestMethod]
+    public void BindsAsBeforeReturnsTrueForProbeWhoseNaturalTypeBreaksSiblingStatementInBlock()
+    {
+        var (semanticModel, expression) = Compile("""
+                                                  class C
+                                                  {
+                                                      void M(bool b)
+                                                      {
+                                                          if (b)
+                                                          {
+                                                              var a = delegate () { };
+                                                              a();
+                                                          }
+                                                      }
+                                                  }
+                                                  """);
+
+        Assert.IsTrue(RewriteBindingUtilities.BindsAsBefore(semanticModel, expression, Probe(expression), out var convertedType, CancellationToken.None));
+        Assert.AreEqual("System.Action<int>", convertedType?.ToDisplayString());
+    }
+
+    /// <summary>
+    /// Verifies that the probe binds as before under an implicitly typed local in the block body of a lambda whose
+    /// later statement calls the local: the error in that sibling statement of the lambda's body does not count
+    /// </summary>
+    [TestMethod]
+    public void BindsAsBeforeReturnsTrueForProbeWhoseNaturalTypeBreaksSiblingStatementInLambdaBody()
+    {
+        var (semanticModel, expression) = Compile("""
+                                                  using System;
+
+                                                  class C
+                                                  {
+                                                      void M()
+                                                      {
+                                                          Action x = () =>
+                                                                     {
+                                                                         var a = delegate () { };
+                                                                         a();
+                                                                     };
+                                                      }
+                                                  }
+                                                  """);
+
+        Assert.IsTrue(RewriteBindingUtilities.BindsAsBefore(semanticModel, expression, Probe(expression), out var convertedType, CancellationToken.None));
+        Assert.AreEqual("System.Action<int>", convertedType?.ToDisplayString());
+    }
+
+    /// <summary>
+    /// Verifies that the probe binds as before where it decides the inferred return type of a lambda under an
+    /// implicitly typed local inside an <see langword="if"/> block, and a later statement calls the lambda's result:
+    /// the lambda's declaration is on the path and binds without error, the sibling statement is not on the path
+    /// </summary>
+    [TestMethod]
+    public void BindsAsBeforeReturnsTrueForProbeReturnedByLambdaWhoseResultBreaksSiblingStatement()
+    {
+        var (semanticModel, expression) = Compile("""
+                                                  class C
+                                                  {
+                                                      void M(bool b)
+                                                      {
+                                                          if (b)
+                                                          {
+                                                              var g = () => delegate () { };
+                                                              g()();
+                                                          }
+                                                      }
+                                                  }
+                                                  """);
+
+        Assert.IsTrue(RewriteBindingUtilities.BindsAsBefore(semanticModel, expression, Probe(expression), out var convertedType, CancellationToken.None));
+        Assert.AreEqual("System.Action<int>", convertedType?.ToDisplayString());
+    }
+
+    /// <summary>
+    /// Verifies that removing the parameter list still does not bind as before where it leaves the inferred return
+    /// type of a lambda inside an <see langword="if"/> block without a type, also beside a sibling statement: the
+    /// error stays on the path from the expression to its binding root
+    /// </summary>
+    [TestMethod]
+    public void BindsAsBeforeReturnsFalseForRemovedListThatLeavesLambdaReturnTypeUninferredInBlock()
+    {
+        var (semanticModel, expression) = Compile("""
+                                                  class C
+                                                  {
+                                                      void M(bool b)
+                                                      {
+                                                          if (b)
+                                                          {
+                                                              var g = () => delegate () { };
+                                                              g()();
+                                                          }
+                                                      }
+                                                  }
+                                                  """);
+
+        Assert.IsFalse(RewriteBindingUtilities.BindsAsBefore(semanticModel, expression, RemoveList(expression), out _, CancellationToken.None));
+    }
+
     #endregion // Tests
 
     #region Methods
