@@ -207,3 +207,39 @@ _None._
 ### Follow-up candidates
 
 _None._
+
+## Amendment — row 25
+
+Commit: b7307e27. This is a clarification in the bug-fix lane, so it needs no change doc and no rule page change. My prompt carried the lead's decision (row 25) and no verdict beyond it.
+
+### Changed requirements
+
+- RH3004-006 — clarified (row 25).
+  - The shift is measured on the block's first statement line: the first line, in source order, on which a statement starts, whether the statement is active code or disabled text of an inactive branch. A line of disabled text counts when it holds anything other than whitespace and comments.
+  - The fix's output MUST NOT depend on which preprocessor symbols are defined.
+  - A block in which no line holds a statement, active or disabled, is measured on its first line.
+  - The `#region` example now states that it gives the same output with and without `DEBUG`. The expected output is unchanged: without `DEBUG`, the disabled `Console.WriteLine(x);` at column 12 decides, which is the same 16-column shift.
+  - New example (one side, FC-002): a disabled statement at column 12 in front of an active statement at column 16. Both builds move the lines by 16 columns. Measuring on active code alone would give 12 without `DEBUG`.
+  - New example (other side): a block that holds only a comment, at column 4, is measured on its first line and the comment moves to column 28.
+
+### Examples for the tests
+
+- RH3004-006: the `#region` example, now also without `DEBUG` (the reading the test implementer left untested).
+- RH3004-006: the new disabled-before-active example, with and without `DEBUG`.
+- RH3004-006: the comment-only block example. The existing test `FixMeasuresTheShiftOfABlockWithoutAStatementOnItsFirstLine` may already cover it.
+
+### Decided on recommendation
+
+- RH3004-006: a line of disabled text counts as a statement line when it holds anything other than whitespace and comments. Disabled text is not parsed, so "holds a statement" needs a test that works on text. The alternative was to count every non-blank disabled line. Under that alternative, a comment line in an inactive branch would decide the shift, while the same comment in active code would not.
+
+### Output questions
+
+_None._ The standing instruction applies.
+
+### Internal choices
+
+_None._
+
+### Follow-up candidates
+
+_None._
