@@ -220,6 +220,25 @@ public class RH4006DelegateNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH400
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that a delegate declared directly in a namespace keeps its diagnostic but gets no fix when its new name is the name of one of its type parameters
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenANamespaceDelegateWouldHaveATypeParameterOfItsName()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    delegate void {|RH4006:handler|}<Handler>();
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

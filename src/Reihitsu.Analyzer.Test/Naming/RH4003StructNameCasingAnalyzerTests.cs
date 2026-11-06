@@ -276,6 +276,28 @@ public class RH4003StructNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4003S
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that a struct declared directly in a namespace keeps its diagnostic but gets no fix when its new name is the name of one of its fields
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenANamespaceStructWouldHaveAFieldOfItsName()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    struct {|RH4003:order|}
+                                    {
+                                        public int Order;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -1432,6 +1432,34 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that a local variable keeps its diagnostic but gets no fix when an excluded <c>#if</c> branch references it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenAnExcludedBranchReferencesTheLocalVariable()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    public int M()
+                                    {
+                                        var {|RH4115:Total|} = 1;
+
+                                #if NEVER
+                                        Total++;
+                                #endif
+
+                                        return Total;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region Methods

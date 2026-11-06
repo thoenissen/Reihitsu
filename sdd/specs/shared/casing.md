@@ -5,7 +5,7 @@
 | ID prefix | SHARED-CASING |
 | Status | Active |
 | Code owners | `CasingAnalyzerBase`, `CasingCodeFixProviderBase<T>`, `NamingAccessibilityClassifier`, `NamespaceCasingHelper`, `CasingUtilities` |
-| Uses | SHARED-FIX-002 |
+| Uses | SHARED-FIX-002, SHARED-FIX-003 |
 
 This spec covers the rules that require one kind of name to be written in a naming style. It defines the styles, the accessibility groups of fields and properties, how a namespace name is checked, and the code fix that renames a reported name. Each rule that uses this spec states which declarations it checks, which style it requires, where its diagnostic is located, and any exceptions of its own.
 
@@ -277,7 +277,14 @@ public class C
 
 The code fix MUST rename the reported declaration's symbol with the Roslyn renamer, so that the declaration and every reference to it in the active code of the solution change together. It MUST NOT be offered when the declared symbol cannot be resolved.
 
-This requirement covers an old name that SHARED-CASING-006 covers, and a derived name that is written without the verbatim prefix `@` at the declaration and at every reference: a name that is not a reserved C# keyword, and not `await` inside an async member. Contextual keywords such as `value`, `var`, and `nameof` are covered and stay as they are. For a type declared directly in a namespace, including the global namespace (a type declared at file level), it covers a type none of whose type parameters, and none of whose members other than enum members, already has the new name.
+The symbols that one such rename renames are the reported symbol's *rename cascade*: the symbol itself and every symbol the renamer renames with it, in whichever document or project of the solution that symbol is declared. Which symbols these are is the renamer's own determination, not a list of relations; for example, a member the symbol overrides, a member that overrides it, an interface member it implements, an implementation of it, and the other part of a partial method or a partial indexer together with its parameter at the same position, however that part spells it, and the other part of a partial method together with its type parameter of the same name, each of these in turn with the symbols the renamer renames with it. A member declared in a referenced assembly is not renamed and is not part of the cascade. Every other statement of this spec about the rename cascade refers to this one.
+
+This requirement covers an old name that SHARED-CASING-006 covers, and a derived name that is written without the verbatim prefix `@` at the declaration and at every reference: a name that is not a reserved C# keyword, and not `await` inside an async member. Contextual keywords such as `value`, `var`, and `nameof` are covered and stay as they are. It further covers only a rename for which both of the following hold:
+
+- Neither the old name of a symbol of the rename cascade nor the new name occurs as an identifier in code that an `#if`, `#elif`, or `#else` branch excludes, in a document where a symbol of the rename cascade can be referred to. The old names are those of every symbol of the cascade that source can refer to by its name, not only the reported symbol's: a symbol of the cascade that is spelled differently from the reported one, such as the parameter of the other part of a partial method, adds its own spelling. A symbol whose name source never writes, such as a property's accessor or a type's constructor, adds no old name, and neither does a symbol outside the cascade, such as a type parameter of the other part of a partial method that this part spells differently, which the renamer leaves as it is. A document where no symbol of the cascade can be referred to is outside the region, even when its excluded code names an old name or the new name.
+- For no record does the rename change which parameters of its primary constructor have a member of the same name, declared in the record or inherited from its base type. The compiler declares a property for a positional parameter only when no such member exists, so a rename that changes the match adds or removes a public member.
+
+A rename outside this coverage is withheld where SHARED-FIX-003 withholds it.
 
 Why: Renaming only the declaration would leave every use pointing at a name that no longer exists.
 
@@ -313,6 +320,144 @@ public class Calculator
 }
 ```
 
+Example — a name in excluded code, for RH4106:
+
+```csharp
+public class C
+{
+    private int {|RH4106:Value|};
+
+    public int Get()
+    {
+#if NEVER
+        return Value + 1;
+#else
+        return Value;
+#endif
+    }
+}
+```
+
+is reported, and no code fix is offered: the rename would leave `Value` in the excluded branch, which does not compile in a build that defines `NEVER` (SHARED-FIX-003). The same holds when the excluded branch declares `_value`, the new name. When the excluded branch names neither `Value` nor `_value`, the fix is offered and renames the field and the active reference.
+
+Example — a name in excluded code reached through the rename cascade, for RH4103, in two documents:
+
+```csharp
+public class Base
+{
+    public virtual void {|RH4103:process|}()
+    {
+    }
+
+    public void Run()
+    {
+#if NEVER
+        process();
+#endif
+    }
+}
+```
+
+```csharp
+file class Leaf : Base
+{
+    public override void {|RH4103:process|}()
+    {
+    }
+}
+```
+
+Both diagnostics are reported, and no code fix is offered for either: renaming `Leaf.process` renames `Base.process` with it, and `Base.process` can be referred to in the first document, whose excluded branch names `process`. That `Leaf` is file-local and cannot be referred to in the first document does not matter. The same holds when the overriding type is a private nested type, for an implementation of an interface method, and when `Base` is declared in another project of the solution. When the excluded branch names neither `process` nor `Process`, the fix is offered and renames both methods.
+
+Example — a name in excluded code reached through the other part of a partial method, for RH4121, in two documents:
+
+```csharp
+public partial class C
+{
+    public void Use()
+    {
+        Run<int>(1);
+    }
+
+    partial void Run<{|RH4121:Key|}>(Key value);
+}
+```
+
+```csharp
+public partial class C
+{
+    partial void Run<{|RH4121:Key|}>(Key value)
+    {
+#if NEVER
+        Key copy = value;
+#endif
+    }
+}
+```
+
+Both diagnostics are reported, and no code fix is offered for either: renaming the type parameter `Key` of either part renames the type parameter of the other part with it, and the excluded branch of the second document names `Key`. That the type parameter of the first part cannot be referred to in the second document does not matter. The same holds in the other direction, when the excluded code that names `Key` stands in the first document, for example `#if NEVER` around `[System.Obsolete(nameof(Key))]` on the declaration without a body, and the second document has none. When no excluded branch names `Key` or `TKey`, the fix is offered and renames the type parameter and its references in both parts to `TKey`.
+
+Example — an old name of a differently spelled part in excluded code, for RH4105, in two documents:
+
+```csharp
+public partial class C
+{
+    public void Use()
+    {
+        Run(1);
+    }
+
+    partial void Run(int {|RH4105:Arg|});
+}
+```
+
+```csharp
+public partial class C
+{
+    partial void Run(int other)
+    {
+#if NEVER
+        other++;
+#endif
+    }
+}
+```
+
+is reported, and no code fix is offered: renaming `Arg` to `arg` renames the parameter `other` of the second part with it, and the excluded branch of the second document names `other`, which no longer exists after the rename. That `other` is not the reported name does not matter. The same holds in the other direction, when the second part spells the parameter `Other`, which is reported, and the first part carries `#if NEVER` around `[System.Obsolete(nameof(Arg))]` on its declaration: no code fix is offered for `Other`. It holds as well for the parameter of a partial indexer, `this[int Index]` in one part and `this[int position]` in the other, when an excluded branch of the second part names `position`. When no excluded branch names `Arg`, `other`, or `arg`, the fix is offered and renames the parameter in both parts and its references to `arg`.
+
+When the parts of a partial method spell a type parameter differently, `Run<Key>` in one part and `Run<TItem>` in the other, the renamer renames only the reported part, so `TItem` is not an old name: an excluded branch of the second part that names `TItem` does not withhold the fix on `Key`, and the fix renames `Key` to `TKey` in the first part only.
+
+Example — excluded code of an unrelated type, for RH4106, in two documents:
+
+```csharp
+public class C
+{
+    private int {|RH4106:Value|};
+
+    public int Get()
+    {
+        return Value;
+    }
+}
+```
+
+```csharp
+public class D
+{
+#if NEVER
+    private int Value;
+    private int _value;
+
+    public int Other()
+    {
+        return Value + _value;
+    }
+#endif
+}
+```
+
+The fix is offered and renames `C.Value` and its reference to `_value`; the second document stays unchanged. The rename cascade of the private field `C.Value` is the field alone, and it cannot be referred to in the second document, so the excluded branch there is outside the region.
+
 ### SHARED-CASING-008 — The fix is withheld when no usable name can be derived
 
 The code fix MUST NOT be offered when the old name has no letter or digit, or when the name that the steps of SHARED-CASING-006 derive is the old name itself or is not a valid identifier because it starts with a digit. The diagnostic is still reported.
@@ -345,9 +490,15 @@ is reported, and no code fix is offered, because the derived name is `_1st` agai
 
 ### SHARED-CASING-009 — The fix is withheld when the new name would collide
 
-The code fix MUST NOT be offered when renaming to the derived name would collide with an existing name: when the renamer reports a conflict; for a symbol that is not declared directly in a namespace, when the rename adds a compile error inside the declarations that contain the renamed symbol; and for a symbol declared directly in a namespace, when a type or another member of that namespace in source already has the new name. A symbol declared directly in a namespace includes a type declared at file level, which belongs to the global namespace; a nested type is not one. A type MUST be treated as colliding with another type only when both have the same number of type parameters, and, when either of them is file-local, only when both are declared in the same file. The diagnostic is still reported.
+The code fix MUST NOT be offered when renaming to the derived name would collide with an existing name: when the renamer reports a conflict, or when the result of the rename has a compile error that the code did not have, as SHARED-FIX-003 states. A compile error counts wherever the rename puts it, not only inside the declarations that contain the renamed symbol:
 
-Why: A collision cannot be resolved without knowing which of the two names the author meant, so it is left to the author. Types with a different number of type parameters, and a file-local type and a type of another file, can share a name, so renaming to it is safe.
+- inside the renamed type itself, whose member, nested type, type parameter, or positional parameter now has the type's name, where that declaration is a compile error — also for a type declared directly in a namespace or at file level, and for a partial type whose colliding member is declared in another part;
+- in the namespace that declares the renamed type, when another type of that namespace in source already has the new name;
+- in every other type that declares a symbol of the rename cascade (SHARED-CASING-007), also where that type is declared in another document.
+
+A type with the new name in the same namespace makes the rename fail to compile only when both types have the same number of type parameters, and, when either of them is file-local, only when both are declared in the same file; otherwise the fix is offered. A declaration that has the type's name is not a compile error in every type: an enum member may have the name of its enum, and a method of an interface the name of its interface, so neither collides with it, and the fix is offered. The diagnostic is still reported.
+
+Why: A collision cannot be resolved without knowing which of the two names the author meant, so it is left to the author. The renamer renames every symbol of the rename cascade (SHARED-CASING-007), in whichever type and document it is declared, but a member declared in a referenced assembly keeps its name, so a compile error can appear in a type that does not contain the renamed declaration. Types with a different number of type parameters, and a file-local type and a type of another file, can share a name, so renaming to it is safe.
 
 Example — RH4106:
 
@@ -386,7 +537,81 @@ class Outer
 }
 ```
 
-is reported, and no code fix is offered, because renaming the class to `Order` would add a compile error inside `Outer`: a member cannot have the name of its enclosing type.
+is reported, and no code fix is offered, because renaming the class to `Order` would add a compile error: a member cannot have the name of its enclosing type.
+
+Example — RH4002 and RH4006, for types declared directly in a namespace:
+
+```csharp
+namespace N
+{
+    class {|RH4002:order|}
+    {
+        public int Order;
+    }
+
+    delegate void {|RH4006:handler|}<Handler>();
+}
+```
+
+is reported, and no code fix is offered for either type: `Order` would have a member named like the class, and `Handler` a type parameter named like the delegate. The same holds for a type declared at file level, in a file-scoped namespace, or as a `partial` type whose member `Order` is declared in another part.
+
+Example — RH4004, for an enum member:
+
+```csharp
+enum {|RH4004:color|}
+{
+    Color,
+}
+```
+
+```csharp
+enum Color
+{
+    Color,
+}
+```
+
+Example — RH4005, for a method of an interface declared directly in a namespace:
+
+```csharp
+namespace N
+{
+    interface {|RH4005:iOrder|}
+    {
+        void IOrder();
+    }
+}
+```
+
+```csharp
+namespace N
+{
+    interface IOrder
+    {
+        void IOrder();
+    }
+}
+```
+
+Example — RH4103, for a member of another type of the rename cascade, with a referenced assembly that declares `public abstract class MetaBase { public abstract void process(); }`:
+
+```csharp
+public class Middle : MetaBase
+{
+    public override void process()
+    {
+    }
+}
+
+public class Leaf : Middle
+{
+    public override void process()
+    {
+    }
+}
+```
+
+Where RH4103 reports `Leaf.process`, no code fix is offered: renaming it would rename `Middle.process` with it, and `Middle` would then fail to compile, because `MetaBase.process` keeps its name and `Middle.Process` overrides nothing. The same holds for a property or an event that overrides or implements a member declared in a referenced assembly through a type declared in source. When `MetaBase` is declared in source, the rename renames all three methods together, and the fix is offered.
 
 ### SHARED-CASING-010 — Fix All skips names that would collide with each other
 
