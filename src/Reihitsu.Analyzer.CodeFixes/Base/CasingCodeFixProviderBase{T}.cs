@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
 
@@ -220,7 +221,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
-    /// Finds candidates whose shared normalized target cannot coexist in the same declaration or binding domain
+    /// Finds candidates with one containing symbol and one normalized target whose renames cannot both be applied
     /// </summary>
     /// <param name="solution">Annotated solution</param>
     /// <param name="candidates">Aggregate rename candidates</param>
@@ -434,21 +435,91 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
-    /// Determines whether the old or the new name occurs as an identifier in code that a conditional directive excludes
+    /// Gets the symbols a rename of a declared symbol renames: the symbol itself and, for a member, every member it
+    /// overrides or implements and every member that overrides or implements one of them, transitively
     /// </summary>
     /// <param name="solution">Solution containing the symbol</param>
-    /// <param name="symbol">Renamed symbol</param>
+    /// <param name="symbol">Declared symbol</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The symbols, starting with the declared symbol, without duplicates</returns>
+    /// <remarks>
+    /// The renamer renames a member together with this override and implementation cascade, so every safety check of a
+    /// rename takes its region from these symbols rather than from the declared symbol alone. Members declared in a
+    /// referenced assembly are part of the cascade but are not renamed; the checks find no source declaration for them
+    /// </remarks>
+    private static async Task<ImmutableArray<ISymbol>> GetRenameCascadeAsync(Solution solution, ISymbol symbol, CancellationToken cancellationToken)
+    {
+        var cascade = ImmutableArray.CreateBuilder<ISymbol>();
+        var pending = new Queue<ISymbol>();
+
+        cascade.Add(symbol);
+        pending.Enqueue(symbol);
+
+        while (pending.Count > 0)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var current = pending.Dequeue();
+
+            if (current is not (IMethodSymbol or IPropertySymbol or IEventSymbol))
+            {
+                continue;
+            }
+
+            var related = new List<ISymbol>();
+            var overridden = current switch
+                             {
+                                 IMethodSymbol method => method.OverriddenMethod,
+                                 IPropertySymbol property => property.OverriddenProperty,
+                                 IEventSymbol eventSymbol => (ISymbol)eventSymbol.OverriddenEvent,
+                                 _ => null
+                             };
+
+            if (overridden != null)
+            {
+                related.Add(overridden);
+            }
+
+            related.AddRange(await SymbolFinder.FindImplementedInterfaceMembersAsync(current, solution, cancellationToken: cancellationToken).ConfigureAwait(false));
+            related.AddRange(await SymbolFinder.FindOverridesAsync(current, solution, cancellationToken: cancellationToken).ConfigureAwait(false));
+
+            if (current.ContainingType?.TypeKind == TypeKind.Interface)
+            {
+                related.AddRange(await SymbolFinder.FindImplementationsAsync(current, solution, cancellationToken: cancellationToken).ConfigureAwait(false));
+            }
+
+            foreach (var relatedSymbol in related.Select(static relatedSymbol => relatedSymbol.OriginalDefinition)
+                                                 .Where(relatedSymbol => cascade.Contains(relatedSymbol, SymbolEqualityComparer.Default) == false))
+            {
+                cascade.Add(relatedSymbol);
+                pending.Enqueue(relatedSymbol);
+            }
+        }
+
+        return cascade.ToImmutable();
+    }
+
+    /// <summary>
+    /// Determines whether the old or the new name occurs as an identifier in code that a conditional directive excludes
+    /// </summary>
+    /// <param name="solution">Solution containing the symbols</param>
+    /// <param name="cascade">Symbols the rename renames</param>
+    /// <param name="oldName">Current name</param>
     /// <param name="identifier">Proposed identifier</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns><see langword="true"/> when excluded code names the old or the new name; otherwise, <see langword="false"/></returns>
     /// <remarks>
     /// Excluded code is not bound, so the renamer cannot rename a reference in it, and an occurrence there cannot be
     /// told apart from an unrelated name. Every occurrence therefore withholds the rename, in every document whose code
-    /// can refer to the symbol
+    /// can refer to one of the symbols the rename renames
     /// </remarks>
-    private static async Task<bool> HasExcludedCodeOccurrenceAsync(Solution solution, ISymbol symbol, string identifier, CancellationToken cancellationToken)
+    private static async Task<bool> HasExcludedCodeOccurrenceAsync(Solution solution,
+                                                                   ImmutableArray<ISymbol> cascade,
+                                                                   string oldName,
+                                                                   string identifier,
+                                                                   CancellationToken cancellationToken)
     {
-        foreach (var document in GetReferringDocuments(solution, symbol))
+        foreach (var document in cascade.SelectMany(symbol => GetReferringDocuments(solution, symbol)).Distinct())
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -463,7 +534,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
                     .Where(static trivia => trivia.IsKind(SyntaxKind.DisabledTextTrivia))
                     .SelectMany(static trivia => SyntaxFactory.ParseTokens(trivia.ToString()))
                     .Any(token => token.IsKind(SyntaxKind.IdentifierToken)
-                                  && (string.Equals(token.ValueText, symbol.Name, StringComparison.Ordinal)
+                                  && (string.Equals(token.ValueText, oldName, StringComparison.Ordinal)
                                       || string.Equals(token.ValueText, identifier, StringComparison.Ordinal))))
             {
                 return true;
@@ -507,45 +578,43 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
-    /// Gets the compile errors of a project that a rename can change: the declaration errors of the whole compilation
-    /// and the method body errors of the documents the rename changes
+    /// Gets the names of the native functions that the methods of a rename cascade bind to through an import attribute
+    /// </summary>
+    /// <param name="cascade">Symbols the rename renames</param>
+    /// <returns>The entry point names in ordinal order</returns>
+    /// <remarks>
+    /// A rename changes no binding of a cascade member other than through its name, so the cascade binds to the same
+    /// native functions after the rename exactly when the two ordered lists are equal
+    /// </remarks>
+    private static ImmutableArray<string> GetNativeEntryPoints(ImmutableArray<ISymbol> cascade)
+    {
+        return cascade.Select(GetNativeEntryPoint)
+                      .Where(static entryPoint => entryPoint != null)
+                      .OrderBy(static entryPoint => entryPoint, StringComparer.Ordinal)
+                      .ToImmutableArray();
+    }
+
+    /// <summary>
+    /// Gets the compile errors of a project: the parse, declaration, and method body errors of every document
     /// </summary>
     /// <param name="project">Project</param>
-    /// <param name="changedDocumentIds">Documents the rename changes</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The errors, or a default array when the compilation is unavailable</returns>
-    private static async Task<ImmutableArray<Diagnostic>> GetCompileErrorsAsync(Project project,
-                                                                                ImmutableHashSet<DocumentId> changedDocumentIds,
-                                                                                CancellationToken cancellationToken)
+    /// <remarks>
+    /// A rename can put an error into a document it does not change, for example when the new name makes a query clause,
+    /// a deconstruction, <see langword="foreach"/>, or <see langword="await"/> bind ambiguously, so every document counts
+    /// </remarks>
+    private static async Task<ImmutableArray<Diagnostic>> GetCompileErrorsAsync(Project project, CancellationToken cancellationToken)
     {
         var compilation = project == null
                               ? null
                               : await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-        if (compilation == null)
-        {
-            return default;
-        }
-
-        var errors = ImmutableArray.CreateBuilder<Diagnostic>();
-
-        errors.AddRange(compilation.GetDeclarationDiagnostics(cancellationToken)
-                                   .Where(static diagnostic => diagnostic.Severity == DiagnosticSeverity.Error));
-
-        foreach (var document in project.Documents.Where(document => changedDocumentIds.Contains(document.Id)))
-        {
-            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            if (model == null)
-            {
-                return default;
-            }
-
-            errors.AddRange(model.GetMethodBodyDiagnostics(cancellationToken: cancellationToken)
-                                 .Where(static diagnostic => diagnostic.Severity == DiagnosticSeverity.Error));
-        }
-
-        return errors.ToImmutable();
+        return compilation == null
+                   ? default
+                   : compilation.GetDiagnostics(cancellationToken)
+                                .Where(static diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)
+                                .ToImmutableArray();
     }
 
     /// <summary>
@@ -554,26 +623,24 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <param name="originalSolution">Solution before the rename</param>
     /// <param name="renamedSolution">Solution after the rename</param>
     /// <param name="projectIds">Projects the rename affects</param>
-    /// <param name="changedDocumentIds">Documents the rename changes</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns><see langword="true"/> when the rename added a compile error; otherwise, <see langword="false"/></returns>
     /// <remarks>
     /// The renamer renames every source declaration of the symbol's rename cascade but no member declared in a
-    /// referenced assembly, so an added error can stand in any type, not only in the one declaring the renamed symbol.
-    /// Errors are compared by ID because the rename moves their locations
+    /// referenced assembly, so an added error can stand in any type and any document of an affected project, not only
+    /// in the one declaring the renamed symbol. Errors are compared by ID because the rename moves their locations
     /// </remarks>
     private static async Task<bool> HasAddedCompileErrorsAsync(Solution originalSolution,
                                                                Solution renamedSolution,
                                                                ImmutableArray<ProjectId> projectIds,
-                                                               ImmutableHashSet<DocumentId> changedDocumentIds,
                                                                CancellationToken cancellationToken)
     {
         foreach (var projectId in projectIds)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var originalErrors = await GetCompileErrorsAsync(originalSolution.GetProject(projectId), changedDocumentIds, cancellationToken).ConfigureAwait(false);
-            var renamedErrors = await GetCompileErrorsAsync(renamedSolution.GetProject(projectId), changedDocumentIds, cancellationToken).ConfigureAwait(false);
+            var originalErrors = await GetCompileErrorsAsync(originalSolution.GetProject(projectId), cancellationToken).ConfigureAwait(false);
+            var renamedErrors = await GetCompileErrorsAsync(renamedSolution.GetProject(projectId), cancellationToken).ConfigureAwait(false);
 
             if (originalErrors.IsDefault
                 || renamedErrors.IsDefault
@@ -724,7 +791,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
-    /// Determines whether a comprehensive rename produces Roslyn conflict annotations or added declaration errors
+    /// Determines whether a comprehensive rename is unsafe, as <see cref="RenameWithoutConflictAsync"/> decides it
     /// </summary>
     /// <param name="document">Document containing the declaration</param>
     /// <param name="node">Declaration node to rename</param>
@@ -761,19 +828,25 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <param name="identifier">Proposed replacement identifier</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The renamed solution when it is safe; otherwise, <see langword="null"/></returns>
+    /// <remarks>
+    /// The checks that depend on what the rename reaches take it from <see cref="GetRenameCascadeAsync"/>: the native
+    /// entry points of every cascade member and the excluded code of every document that can refer to one. The compile
+    /// error and positional property checks inspect every document of every project the rename changes or that depends
+    /// on one of them
+    /// </remarks>
     private static async Task<Solution> RenameWithoutConflictAsync(Solution solution,
                                                                    DocumentId documentId,
                                                                    SyntaxAnnotation annotation,
                                                                    string identifier,
                                                                    CancellationToken cancellationToken)
     {
-        var declaredSymbol = await PrepareRenameAsync(solution,
-                                                      documentId,
-                                                      annotation,
-                                                      identifier,
-                                                      cancellationToken).ConfigureAwait(false);
+        var prepared = await PrepareRenameAsync(solution,
+                                                documentId,
+                                                annotation,
+                                                identifier,
+                                                cancellationToken).ConfigureAwait(false);
 
-        if (declaredSymbol == null)
+        if (prepared == null)
         {
             return null;
         }
@@ -781,7 +854,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
         cancellationToken.ThrowIfCancellationRequested();
 
         var renamedSolution = await Renamer.RenameSymbolAsync(solution,
-                                                              declaredSymbol,
+                                                              prepared.Value.Symbol,
                                                               default,
                                                               identifier,
                                                               cancellationToken)
@@ -794,17 +867,22 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
 
         var renamedDeclaration = await ResolveRenameDeclarationAsync(renamedSolution, documentId, annotation, cancellationToken).ConfigureAwait(false);
 
-        if (renamedDeclaration == null
-            || string.Equals(GetNativeEntryPoint(declaredSymbol), GetNativeEntryPoint(renamedDeclaration.Value.Symbol), StringComparison.Ordinal) == false)
+        if (renamedDeclaration == null)
         {
             return null;
         }
 
-        var projectChanges = renamedSolution.GetChanges(solution).GetProjectChanges().ToImmutableArray();
-        var changedDocumentIds = projectChanges.SelectMany(static changes => changes.GetChangedDocuments()).ToImmutableHashSet();
+        var renamedCascade = await GetRenameCascadeAsync(renamedSolution, renamedDeclaration.Value.Symbol, cancellationToken).ConfigureAwait(false);
+
+        if (GetNativeEntryPoints(prepared.Value.Cascade).SequenceEqual(GetNativeEntryPoints(renamedCascade), StringComparer.Ordinal) == false)
+        {
+            return null;
+        }
+
+        var projectChanges = renamedSolution.GetChanges(solution).GetProjectChanges();
         var affectedProjectIds = GetDependentProjectIds(solution, projectChanges.Select(static changes => changes.ProjectId));
 
-        if (await HasAddedCompileErrorsAsync(solution, renamedSolution, affectedProjectIds, changedDocumentIds, cancellationToken).ConfigureAwait(false)
+        if (await HasAddedCompileErrorsAsync(solution, renamedSolution, affectedProjectIds, cancellationToken).ConfigureAwait(false)
             || await ChangesPositionalPropertiesAsync(solution, renamedSolution, affectedProjectIds, cancellationToken).ConfigureAwait(false))
         {
             return null;
@@ -814,19 +892,20 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
-    /// Resolves the declaration's symbol and rejects the renames that are unsafe before the renamer runs
+    /// Resolves the declaration's symbol and its rename cascade and rejects the renames that are unsafe before the
+    /// renamer runs
     /// </summary>
     /// <param name="solution">Annotated solution</param>
     /// <param name="documentId">Document containing the declaration</param>
     /// <param name="annotation">Declaration tracking annotation</param>
     /// <param name="identifier">Proposed identifier</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The symbol to rename, or <see langword="null"/> when the rename is unsafe</returns>
-    private static async Task<ISymbol> PrepareRenameAsync(Solution solution,
-                                                          DocumentId documentId,
-                                                          SyntaxAnnotation annotation,
-                                                          string identifier,
-                                                          CancellationToken cancellationToken)
+    /// <returns>The symbol to rename and its rename cascade, or <see langword="null"/> when the rename is unsafe</returns>
+    private static async Task<(ISymbol Symbol, ImmutableArray<ISymbol> Cascade)?> PrepareRenameAsync(Solution solution,
+                                                                                                     DocumentId documentId,
+                                                                                                     SyntaxAnnotation annotation,
+                                                                                                     string identifier,
+                                                                                                     CancellationToken cancellationToken)
     {
         var resolved = await ResolveRenameDeclarationAsync(solution, documentId, annotation, cancellationToken).ConfigureAwait(false);
 
@@ -837,13 +916,19 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
 
         var declaredSymbol = resolved.Value.Symbol;
 
-        if (HasNamespaceCollision(declaredSymbol, identifier, cancellationToken)
-            || await HasExcludedCodeOccurrenceAsync(solution, declaredSymbol, identifier, cancellationToken).ConfigureAwait(false))
+        if (HasNamespaceCollision(declaredSymbol, identifier, cancellationToken))
         {
             return null;
         }
 
-        return declaredSymbol;
+        var cascade = await GetRenameCascadeAsync(solution, declaredSymbol, cancellationToken).ConfigureAwait(false);
+
+        if (await HasExcludedCodeOccurrenceAsync(solution, cascade, declaredSymbol.Name, identifier, cancellationToken).ConfigureAwait(false))
+        {
+            return null;
+        }
+
+        return (declaredSymbol, cascade);
     }
 
     /// <summary>
@@ -1068,7 +1153,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
         /// <param name="originalSpan">Original diagnostic span</param>
         /// <param name="annotation">Tracking annotation</param>
         /// <param name="identifier">Proposed identifier</param>
-        /// <param name="containingSymbol">Declaration or binding domain owner</param>
+        /// <param name="containingSymbol">Symbol containing the declaration</param>
         public FixAllCandidate(DocumentId documentId,
                                TextSpan originalSpan,
                                SyntaxAnnotation annotation,
@@ -1103,7 +1188,8 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
         public string Identifier { get; }
 
         /// <summary>
-        /// Declaration or binding domain owner
+        /// Symbol containing the declaration; candidates with one target are checked against each other only when they
+        /// share it
         /// </summary>
         public ISymbol ContainingSymbol { get; }
     }
