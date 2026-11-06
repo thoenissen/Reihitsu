@@ -127,3 +127,57 @@ scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH3004UseLambdaS
 ```
 
 On 2c806fb3: 179 tests, 16 failed (RH3004 5, RH3005 1, RH3101 1, RH3105 1, RH3106 8). All 16 are the tests marked "fails" above, and every pre-existing test of these classes passes except the amended spec-example test.
+
+## Amendment — rows 21–24
+
+Commit: 38b5c74d. Verdict: tests written. Expected values come from the spec diff of d7b72d0b and fc43e244 (RH3106-003, RH3004-006 and its two new examples) and maintainer answer 7, never from the code. My prompt named the decided rows and the standing instruction and carried no intended fix or hoped-for verdict to set aside. "Fails" means the test fails on 38b5c74d for the reason the requirement states; I read every failure diff.
+
+### thoenissen/Reihitsu#1281 (RH3106, rows 21 and 23)
+
+| Test | Requirement / failure class | Helper | Expected now |
+|---|---|---|---|
+| `RH3106UnnecessaryDelegateParenthesesShouldBeRemoved.AnonymousMethodsWithADelegateTypedOtherBranchArmOrElementUnderVarAreReported` (spec example, verbatim) | RH3106-003 | Verify (analyzer) | fails: 0 of 3 reported |
+| `….AnonymousMethodInAConditionalWithADelegateTypedOtherBranchUnderVarIsReportedAndFixed` | RH3106-001, RH3106-003 | Verify (code fix) | fails: not reported |
+| `….AnonymousMethodInASwitchArmWithADelegateTypedOtherArmUnderVarIsReportedAndFixed` | RH3106-001, RH3106-003 | Verify (code fix) | fails: not reported |
+| `….AnonymousMethodInAnImplicitlyTypedArrayWithADelegateTypedOtherElementUnderVarIsReportedAndFixed` | RH3106-001, RH3106-003 | Verify (code fix) | fails: not reported |
+| `….AnonymousMethodWhoseOtherBranchArmOrElementIsNotOfADelegateTypeIsNotReported` | RH3106-003 | Verify (analyzer) | passes (holding: the other branch, arm, or element is `new object()`; FC-003 other side of "whose type is a delegate type") |
+
+The fixed outputs (`delegate { }` in each position) are the RH3106-001 fix; the verifier compiles them, so they are proven to compile. The holding members of the earlier round (`var a = delegate () { };`, `(…)` under `var`, `new[] { delegate () { } }`, lambda returns, `object g = b ? … : …`, object switch) are unchanged and still pass.
+
+### thoenissen/Reihitsu#1279 (RH3004, rows 22 and 24, answer 7)
+
+| Test | Requirement / failure class | Helper | Expected now |
+|---|---|---|---|
+| `RH3004UseLambdaSyntax.FixKeepsConditionalDirectivesInColumnZeroAndShiftsTheStatements` (first spec example, `DEBUG` defined) | RH3004-006 | Verify with `DefineDebug` | fails: `#if`/`#else`/`#endif` at column 28, statements at column 40 |
+| `….FixKeepsConditionalDirectivesInColumnZeroWhenTheFirstBranchIsDisabled` (same example, no symbol: the first statement is the `#else` one) | RH3004-006 | Verify | fails: same difference |
+| `….FixKeepsConditionalDirectivesInColumnZeroWithCarriageReturnLineFeed` | RH3004-006 | ApplyCodeFixAsync (`DEBUG`) | fails: same difference, CRLF |
+| `….FixMovesRegionDirectivesAndIndentedDirectivesWithTheStatements` (second spec example, `DEBUG` defined) | RH3004-006 | Verify with `DefineDebug` | fails: `#region`/`#endregion` at 28 and `#if`/statement at 40; expected 16 and 28 |
+| `….FixKeepsANullableDirectiveInColumnZero` | RH3004-006 | Verify | fails: `#nullable` lines at column 31, statements at 43; expected 0 and 31 |
+| `….FixMeasuresTheShiftOnTheFirstStatementAndNotOnACommentLineInFrontOfIt` (comment at column 4 in front of a statement at column 12) | RH3004-006 | Verify | fails: comment at 28, statement at 36; expected 20 and 28 |
+| `….FixMeasuresTheShiftOfABlockWithoutAStatementOnItsFirstLine` (block holding only a comment) | RH3004-006 | Verify | passes (the other side of "in a block without a statement") |
+
+Existing RH3004 tests: none holds a directive or a comment line in front of the first statement in another column, so none contradicts the amended RH3004-006; none was changed. The test class gained a private `DefineDebug` solution transform (the pattern of `RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests`).
+
+### Findings
+
+- RH3004-006 second example depends on `DEBUG`. Without the symbol, `Console.WriteLine(x);` is disabled text, the block has no statement, and the requirement as written measures on the block's first line, the `#region` line in column 0. That gives a shift of 28 columns, not the 16 the example shows. The spec does not say whether a statement in disabled text counts. I ran the example with `DEBUG` defined, where it is unambiguous, and wrote no test for the symbol-less reading. For the spec author.
+
+### Decided on recommendation
+
+- RH3004 `#nullable` test: answer 7 names conditional directives; the spec (row 24) extends column 0 to every directive the formatter keeps there. I tested one such directive, `#nullable`, as the representative of that list; `#pragma`, `#define`, and the others share the same condition in the requirement. No output question raised (standing instruction).
+- RH3004 comment-line test: the spec says a comment line in front of the first statement does not decide the shift and moves with the statements. I asserted that the comment keeps its offset (−8) to the statement. No output question raised.
+
+### Not covered, and why
+
+- RH3106 Fix All across the three new positions: they do not interact (each list is in a separate statement), and the RH3106 Fix All scenario already covers several diagnostics in one document.
+- RH3106 conditional under `var` with `null` or a lambda as the other branch: no natural type, CS0173; not an input.
+- RH3004 directives other than `#if`/`#else`/`#endif`, `#region`/`#endregion`, and `#nullable`: they reach the same condition of RH3004-006 (one rule: column-0 directive other than region); one representative tested. Whether the implementation shares one call site is unknown before the repair, so this is a judgment, not a static proof.
+- RH3004 CRLF: tested for the first example; the other directive tests share the line-moving path and differ only in which lines are column 0.
+
+### Commands
+
+```shell
+scripts/test.sh --configuration Debug --project analyzer --filter "FullyQualifiedName~RH3004UseLambdaSyntaxAnalyzerTests|FullyQualifiedName~RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzerTests"
+```
+
+Result on 38b5c74d with these tests: Failed 10, Passed 74, Total 84 — exactly the ten tests marked "fails" above.

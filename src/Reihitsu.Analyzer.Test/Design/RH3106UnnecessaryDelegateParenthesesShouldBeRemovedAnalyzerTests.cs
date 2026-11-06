@@ -954,6 +954,191 @@ public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzerTests : 
     }
 
     /// <summary>
+    /// Verifies the specification example of anonymous methods whose conditional, switch expression, or implicitly typed
+    /// array creation takes the delegate type of another branch, arm, or element under <see langword="var"/> is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodsWithADelegateTypedOtherBranchArmOrElementUnderVarAreReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M(bool b, int i, Action someAction)
+                                    {
+                                        var x = b ? delegate {|RH3106:()|} { } : someAction;
+                                        var y = i switch
+                                                {
+                                                    1 => delegate {|RH3106:()|} { },
+                                                    _ => someAction
+                                                };
+                                        var z = new[] { delegate {|RH3106:()|} { }, someAction };
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an empty parameter list of an anonymous method in a conditional expression under
+    /// <see langword="var"/> whose other branch is of a delegate type is reported and removed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-001")]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodInAConditionalWithADelegateTypedOtherBranchUnderVarIsReportedAndFixed()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M(bool b, Action someAction)
+                                    {
+                                        var x = b ? delegate {|RH3106:()|} { } : someAction;
+                                        x();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M(bool b, Action someAction)
+                                     {
+                                         var x = b ? delegate { } : someAction;
+                                         x();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies an empty parameter list of an anonymous method in an arm of a switch expression under
+    /// <see langword="var"/> whose other arm is of a delegate type is reported and removed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-001")]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodInASwitchArmWithADelegateTypedOtherArmUnderVarIsReportedAndFixed()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M(int i, Action someAction)
+                                    {
+                                        var y = i switch
+                                                {
+                                                    1 => delegate {|RH3106:()|} { },
+                                                    _ => someAction
+                                                };
+                                        y();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M(int i, Action someAction)
+                                     {
+                                         var y = i switch
+                                                 {
+                                                     1 => delegate { },
+                                                     _ => someAction
+                                                 };
+                                         y();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies an empty parameter list of an anonymous method in an implicitly typed array creation under
+    /// <see langword="var"/> whose other element is of a delegate type is reported and removed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-001")]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodInAnImplicitlyTypedArrayWithADelegateTypedOtherElementUnderVarIsReportedAndFixed()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M(Action someAction)
+                                    {
+                                        var z = new[] { delegate {|RH3106:()|} { }, someAction };
+                                        z[0]();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M(Action someAction)
+                                     {
+                                         var z = new[] { delegate { }, someAction };
+                                         z[0]();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies an empty parameter list of an anonymous method in a conditional expression, a switch expression, or an
+    /// implicitly typed array creation whose other branch, arm, or element is not of a delegate type is not reported,
+    /// because the anonymous method then takes its natural type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodWhoseOtherBranchArmOrElementIsNotOfADelegateTypeIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    object M(bool b, int i)
+                                    {
+                                        object x = b ? delegate () { } : new object();
+                                        var z = new[] { delegate () { }, new object() };
+
+                                        return i switch
+                                               {
+                                                   1 => delegate () { },
+                                                   _ => new object()
+                                               };
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
     /// Verifies an empty parameter list of an anonymous method that is the right operand of a binary operator with two
     /// user-defined operators is reported without a code fix, because without the list the operator would be ambiguous
     /// </summary>
