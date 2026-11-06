@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-10 |
-| Affected requirements | SHARED-FIX-003, SHARED-MODORDER-003, RH7004-004, RH7101-004, RH7109-005, RH7109-006, RH7306-003, RH7309-004, RH7501-004, RH7101-006, RH7303-005, RH7306-004 and RH7309-006 (added by this change), FMT-PIPE-031 (reasoning only) |
+| Affected requirements | SHARED-FIX-003, SHARED-MODORDER-003, SHARED-ORDER-007, RH7004-004, RH7103-007, RH7101-004, RH7109-005, RH7109-006, RH7306-003, RH7309-004, RH7501-004, RH7101-006, RH7303-005, RH7306-004 and RH7309-006 (added by this change), FMT-PIPE-031 (reasoning only) |
 
 ## What
 
@@ -22,8 +22,9 @@ The rule specs state what this means for each fix:
 |---|---|---|
 | RH7004 | A comment behind the using declaration stays behind the header of the `using` statement instead of moving behind the new block. A directive pair that the new block would split is a SHARED-FIX-003 case. | RH7004-004 |
 | RH7101 | Withheld for a declaration with a `///` or `/** */` documentation comment in its leading trivia in documentation mode `Parse` or `Diagnose`, although the formatter splits it. In mode `None`, and for such a comment in front of a later declarator, the fix still splits. | RH7101-004, RH7101-006 |
+| RH7103 | Withheld when the move crosses a static member with a runtime initializer that code excluded by an `#if`, `#elif`, or `#else` branch declares. Excluded code in front of the moved member moves with it and does not withhold the fix. | SHARED-ORDER-007, RH7103-007 |
 | RH7105, RH7106 | Withheld when a comment or a directive stands between the last modifier and the token after it. | SHARED-MODORDER-003 |
-| RH7109 | Withheld when the move reorders the instance fields of a struct without `LayoutKind.Auto` or `LayoutKind.Explicit`, or of a type with `[StructLayout(LayoutKind.Sequential)]`. | RH7109-005, RH7109-006 |
+| RH7109 | Withheld when the move reorders the instance fields of a struct without `LayoutKind.Auto` or `LayoutKind.Explicit`, or of a type with `[StructLayout(LayoutKind.Sequential)]`. Withheld, like RH7103, when the move crosses an instance member with a runtime initializer that excluded code declares. | SHARED-ORDER-007, RH7109-005, RH7109-006 |
 | RH7303 | Withheld for a reported directive whose partner lies between declarations. | RH7303-005 |
 | RH7306 | The partner directive is judged by its description, as the analyzer judges it. Withheld when the description of the reported directive, or of the partner it would edit, is the word `implementation` alone. | RH7306-003, RH7306-004 |
 | RH7309 | Withheld when the reorder would swap two runtime initializers of one context, swap two instance fields of a layout type, move a block away from a comment above its `#region` line (also across blank lines), or hand a documentation comment to another declaration in mode `Parse` or `Diagnose`. A comment above a block that keeps its place does not withhold it. | RH7309-004, RH7309-006 |
@@ -552,6 +553,76 @@ class C
 
 After, for both inputs: no code fix is offered. The same holds for a block whose closing brace shares the `break`'s line, for a `#region` or an `#if` branch between the token in front of the `break` and the closing brace, and for code of another build configuration behind the `break`.
 
+### 10. RH7103 and RH7109 — a move that crosses an initialized member of excluded code
+
+```csharp
+// input, without DEBUG defined
+public class C
+{
+    private int _a;
+#if DEBUG
+    private int _c = Log("c");
+#endif
+    private int _d;
+    private readonly int _b = Log("b");
+
+    private static int Log(string name) => 0;
+}
+```
+
+```csharp
+// before (RH7109): a build with DEBUG runs Log("b") before Log("c")
+public class C
+{
+    private readonly int _b = Log("b");
+    private int _a;
+#if DEBUG
+    private int _c = Log("c");
+#endif
+    private int _d;
+
+    private static int Log(string name)
+    {
+        return 0;
+    }
+}
+```
+
+```csharp
+// input, without DEBUG defined
+public class C
+{
+    private int _instance;
+#if DEBUG
+    private static int _c = Log("c");
+#endif
+    private int _other;
+    private static int _b = Log("b");
+
+    private static int Log(string name) => 0;
+}
+```
+
+```csharp
+// before (RH7103): a build with DEBUG runs Log("b") before Log("c")
+public class C
+{
+    private static int _b = Log("b");
+    private int _instance;
+#if DEBUG
+    private static int _c = Log("c");
+#endif
+    private int _other;
+
+    private static int Log(string name)
+    {
+        return 0;
+    }
+}
+```
+
+After, for both inputs: no code fix is offered. The fix stays offered when the excluded member has no initializer, and when the `#if` pair stands directly in front of the moved member, because the excluded code then moves with it and both builds keep the initializer order (SHARED-ORDER-007).
+
 ## Decisions
 
 ### One shared condition, with each rule's instances in its own spec
@@ -569,6 +640,10 @@ The RH7101 fix asks the formatter whether it splits a declaration (FMT-PIPE-031)
 ### Comment placement is decided only for the shapes it names
 
 The condition decides a comment at the end of a line of code and a comment that directly heads the next line. A comment that a blank line separates from the code below it, and a comment between two tokens of one line, are left to each rule. RH7309 decides its own case: a comment above a `#region` heads that block, also across blank lines.
+
+### Excluded code counts in the initializer guard
+
+A member that an `#if`, `#elif`, or `#else` branch excludes counts in the initializer guard of the RH7103 and RH7109 fixes (SHARED-ORDER-007), and in RH7309, which counts initializers the same way. A build that includes the member runs its initializer, so a move across it changes the order in that build. Case 10 was added to this change after the maintainer approved it. No new question was asked, because the *Build configurations* condition of SHARED-FIX-003, which the maintainer approved with this change, already demands the withheld fix: the move changes the program only in a build with the symbol defined. On `main` both fixes are offered for case 10.
 
 ### The maintainer's answers
 
