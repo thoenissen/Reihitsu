@@ -146,3 +146,16 @@ _None._
 
 - `sdd/specs/requirement-ids.txt`: RH3004-006 and RH3106-003 inserted in sorted order.
 - No code, tests, or fixtures touched.
+
+## Amendment — maintainer answer 4 (#1281)
+
+Commit: 49f260ca
+
+### Changed requirements
+
+- RH3106-003 — clarified (maintainer answer 4, A). It now also exempts an argument whose parameter type is not a delegate type, when no other overload is a candidate for the call and no type argument is inferred from the argument. Example: `Run(delegate () { })` with `Run(object o)` as the only `Run` is not reported. An argument whose binding is decided by competing overloads or type inference stays under RH3106-002. The internal choice recorded above under #1281, which kept such an argument under RH3106-002, is reversed by this answer.
+- RH3106-002 — its scope sentence now ends with "unless RH3106-003 applies".
+
+### Examples for the tests
+
+RH3106-003 (the `Run(object)` call is added to the not-reported block). RH3106-002 is unchanged: `Run(Action<int>)` + `Run(object)` stays reported with the fix withheld.
