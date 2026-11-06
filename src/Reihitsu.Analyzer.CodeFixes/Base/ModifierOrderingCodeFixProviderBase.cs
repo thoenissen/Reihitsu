@@ -90,7 +90,7 @@ public abstract class ModifierOrderingCodeFixProviderBase : CodeFixProvider
     /// be pulled onto the line of the modifiers
     /// </summary>
     /// <param name="modifiers">Modifiers</param>
-    /// <returns><see langword="true"/> when a comment or directive would be dropped; otherwise <see langword="false"/></returns>
+    /// <returns><see langword="true"/> when a comment, a directive, or disabled text would be dropped or relocated; otherwise <see langword="false"/></returns>
     private static bool ReorderingWouldDropCommentOrDirective(SyntaxTokenList modifiers)
     {
         for (var modifierIndex = 0; modifierIndex < modifiers.Count; modifierIndex++)

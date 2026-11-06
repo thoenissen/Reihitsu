@@ -63,11 +63,12 @@ public abstract class TypeMemberOrderingCodeFixProviderBase : CodeFixProvider
     /// governs; a directive pair contained completely in the moved or the crossed half travels intact and is
     /// allowed. Derived classes can add further restrictions
     /// </summary>
+    /// <param name="semanticModel">Semantic model of the document</param>
     /// <param name="typeDeclaration">Containing type declaration</param>
     /// <param name="memberDeclaration">Member declaration to move</param>
     /// <param name="targetMember">Target member</param>
     /// <returns><see langword="true"/> if the move is safe to offer</returns>
-    protected virtual bool IsMoveSafe(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberDeclaration, MemberDeclarationSyntax targetMember)
+    protected virtual bool IsMoveSafe(SemanticModel semanticModel, TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberDeclaration, MemberDeclarationSyntax targetMember)
     {
         return OrderingDeclarationUtilities.MoveRangeContainsDirectives(typeDeclaration, memberDeclaration, targetMember) == false;
     }
@@ -124,6 +125,7 @@ public abstract class TypeMemberOrderingCodeFixProviderBase : CodeFixProvider
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+        var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
 
         if (root != null)
         {
@@ -131,7 +133,7 @@ public abstract class TypeMemberOrderingCodeFixProviderBase : CodeFixProvider
             {
                 if (OrderingDeclarationUtilities.TryGetContainingTypeAndMember(root, diagnostic, out var typeDeclaration, out var memberDeclaration)
                     && TryGetTargetMember(typeDeclaration, memberDeclaration, out var targetMember)
-                    && IsMoveSafe(typeDeclaration, memberDeclaration, targetMember))
+                    && IsMoveSafe(semanticModel, typeDeclaration, memberDeclaration, targetMember))
                 {
                     context.RegisterCodeFix(CodeAction.Create(_title,
                                                               token => ApplyCodeFixAsync(context.Document, typeDeclaration, memberDeclaration, token),

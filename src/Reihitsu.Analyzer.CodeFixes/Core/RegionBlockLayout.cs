@@ -1,8 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
@@ -62,37 +59,15 @@ internal sealed class RegionBlockLayout
 
     /// <summary>
     /// Determines whether the reorder puts two members of the type into the other order where their order is
-    /// behavior: two members of one context — both static or both instance — that each have a runtime initializer,
-    /// or two instance fields of a type whose field order sets its layout. Members in code that an <c>#if</c> branch
-    /// excludes count as well, because another build configuration compiles them
+    /// behavior, as <see cref="OrderingDeclarationUtilities.ChangesMemberOrder(TypeDeclarationSyntax, bool, System.Func{int, int})"/>
+    /// decides it for the segments of this layout
     /// </summary>
     /// <param name="typeDeclaration">Type declaration whose blocks are reordered</param>
+    /// <param name="fieldOrderSetsLayout">Whether the order of the type's instance fields sets its layout</param>
     /// <returns><see langword="true"/> if the reorder changes initializer execution order or the layout</returns>
-    public bool ChangesMemberOrder(TypeDeclarationSyntax typeDeclaration)
+    public bool ChangesMemberOrder(TypeDeclarationSyntax typeDeclaration, bool fieldOrderSetsLayout)
     {
-        var setsLayout = OrderingDeclarationUtilities.FieldOrderSetsLayout(typeDeclaration);
-        var members = typeDeclaration.Members.Select(member => (Position: member.SpanStart, Member: member))
-                                             .Concat(GetMembersOfDisabledText(typeDeclaration))
-                                             .ToList();
-
-        bool HasStaticInitializer(MemberDeclarationSyntax member)
-        {
-            return OrderingDeclarationUtilities.HasInitializer(member) && OrderingDeclarationUtilities.IsStatic(member);
-        }
-
-        bool HasInstanceInitializer(MemberDeclarationSyntax member)
-        {
-            return OrderingDeclarationUtilities.HasInitializer(member) && OrderingDeclarationUtilities.IsStatic(member) == false;
-        }
-
-        bool IsLayoutField(MemberDeclarationSyntax member)
-        {
-            return setsLayout && OrderingDeclarationUtilities.IsLayoutField(member);
-        }
-
-        return ChangesOrder(members.Where(member => HasStaticInitializer(member.Member)).Select(member => member.Position))
-               || ChangesOrder(members.Where(member => HasInstanceInitializer(member.Member)).Select(member => member.Position))
-               || ChangesOrder(members.Where(member => IsLayoutField(member.Member)).Select(member => member.Position));
+        return OrderingDeclarationUtilities.ChangesMemberOrder(typeDeclaration, fieldOrderSetsLayout, position => GetNewRank(GetSegment(position)));
     }
 
     /// <summary>
@@ -127,59 +102,6 @@ internal sealed class RegionBlockLayout
         }
 
         return true;
-    }
-
-    /// <summary>
-    /// Gets the members declared in the disabled text of the type's body, outside every member, with the position
-    /// of that text
-    /// </summary>
-    /// <param name="typeDeclaration">Type declaration</param>
-    /// <returns>The members of the disabled text</returns>
-    private static IEnumerable<(int Position, MemberDeclarationSyntax Member)> GetMembersOfDisabledText(TypeDeclarationSyntax typeDeclaration)
-    {
-        var bodyStart = typeDeclaration.OpenBraceToken.Span.End;
-        var bodyEnd = typeDeclaration.CloseBraceToken.SpanStart;
-        var options = typeDeclaration.SyntaxTree.Options as CSharpParseOptions;
-
-        foreach (var trivia in typeDeclaration.DescendantTrivia())
-        {
-            if (trivia.IsKind(SyntaxKind.DisabledTextTrivia) == false
-                || trivia.SpanStart < bodyStart
-                || trivia.SpanStart >= bodyEnd
-                || typeDeclaration.Members.Any(member => member.Span.Contains(trivia.SpanStart)))
-            {
-                continue;
-            }
-
-            var parsedType = SyntaxFactory.ParseCompilationUnit($"class C\n{{\n{trivia.ToFullString()}\n}}", options: options)
-                                          .Members
-                                          .OfType<TypeDeclarationSyntax>()
-                                          .FirstOrDefault();
-
-            if (parsedType == null)
-            {
-                continue;
-            }
-
-            foreach (var member in parsedType.Members)
-            {
-                yield return (trivia.SpanStart, member);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Determines whether the reorder changes the relative order of the code at the given positions
-    /// </summary>
-    /// <param name="positions">Positions of the code</param>
-    /// <returns><see langword="true"/> if the order changes</returns>
-    private bool ChangesOrder(IEnumerable<int> positions)
-    {
-        var writtenOrder = positions.OrderBy(position => position).ToList();
-        var newOrder = writtenOrder.OrderBy(position => GetNewRank(GetSegment(position)))
-                                   .ThenBy(position => position);
-
-        return writtenOrder.SequenceEqual(newOrder) == false;
     }
 
     /// <summary>

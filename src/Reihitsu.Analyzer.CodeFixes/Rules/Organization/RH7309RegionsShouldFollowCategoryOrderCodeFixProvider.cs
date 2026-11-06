@@ -101,7 +101,7 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : CodeFixProv
 
         var layout = new RegionBlockLayout(blocks.Select(block => block.Span).ToList(), order);
 
-        return layout.ChangesMemberOrder(typeDeclaration) == false
+        return layout.ChangesMemberOrder(typeDeclaration, OrderingDeclarationUtilities.FieldOrderSetsLayout(typeSymbol)) == false
                && SeparatesCommentFromBlock(regions, order) == false
                && ChangesDocumentedDeclaration(typeDeclaration, layout) == false;
     }
@@ -153,17 +153,22 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : CodeFixProv
     /// <summary>
     /// Determines whether the reorder would change which declaration a documentation comment documents. A
     /// documentation comment in the leading trivia of a member that stands in another block, or between blocks,
-    /// documents that member only as long as the text between the two stays the same. In the documentation mode
-    /// <c>None</c>, the parser reads no documentation comments, so there are none to check
+    /// documents that member only as long as the text between the two stays the same. A documentation comment in the
+    /// leading trivia of the type's closing brace documents nothing, and keeps documenting nothing only as long as the
+    /// text between it and the closing brace stays the same; otherwise it would stand in front of the member that
+    /// follows it after the reorder. In the documentation mode <c>None</c>, the parser reads no documentation
+    /// comments, so there are none to check
     /// </summary>
     /// <param name="typeDeclaration">Type declaration whose regions should be reordered</param>
     /// <param name="layout">Layout of the region blocks before and after the reorder</param>
     /// <returns><see langword="true"/> if a documentation comment would document another declaration</returns>
     private static bool ChangesDocumentedDeclaration(TypeDeclarationSyntax typeDeclaration, RegionBlockLayout layout)
     {
-        return typeDeclaration.Members.Any(member => member.GetLeadingTrivia()
-                                                           .Any(trivia => SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia)
-                                                                          && layout.KeepsSequenceBetween(trivia.SpanStart, member.SpanStart) == false));
+        return typeDeclaration.Members
+                              .Select(member => (LeadingTrivia: member.GetLeadingTrivia(), Start: member.SpanStart))
+                              .Append((LeadingTrivia: typeDeclaration.CloseBraceToken.LeadingTrivia, Start: typeDeclaration.CloseBraceToken.SpanStart))
+                              .Any(owner => owner.LeadingTrivia.Any(trivia => SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia)
+                                                                              && layout.KeepsSequenceBetween(trivia.SpanStart, owner.Start) == false));
     }
 
     /// <summary>

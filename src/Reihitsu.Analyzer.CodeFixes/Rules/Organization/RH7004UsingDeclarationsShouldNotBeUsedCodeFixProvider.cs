@@ -59,10 +59,12 @@ public class RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider : CodeFixProv
                                            .WithLeadingTrivia(semicolonToken.LeadingTrivia);
         var statementTrailingTrivia = usingDeclaration.GetTrailingTrivia();
 
-        if (semicolonToken.TrailingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia))
+        if (semicolonToken.TrailingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia)
+            && semicolonToken.TrailingTrivia.Last().IsKind(SyntaxKind.EndOfLineTrivia))
         {
-            // A comment behind the declaration describes the resource, so it stays behind the header of the new
-            // statement, on the header's line, together with the line break that ends that line
+            // A comment behind the declaration at the end of its line describes the resource, so it stays behind the
+            // header of the new statement, on the header's line, together with the line break that ends that line. A
+            // comment that code follows on its line stays behind the new block, with the code it stands in front of
             closeParenToken = closeParenToken.WithTrailingTrivia(semicolonToken.TrailingTrivia);
             statementTrailingTrivia = SyntaxFactory.TriviaList(semicolonToken.TrailingTrivia.Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)).Take(1));
         }
@@ -110,8 +112,10 @@ public class RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider : CodeFixProv
     /// Determines whether the new block would separate a directive from the code it governs. The block opens behind
     /// the using declaration and closes in front of the trivia of the enclosing block's closing brace, so it must not
     /// put one brace into the code a directive pair governs and the other outside it (SHARED-FIX-003). A conditional
-    /// directive or disabled text in front of the enclosing block's closing brace withholds the fix as well: in
-    /// another build configuration, that code follows the declaration and would end up behind the new block
+    /// directive in front of the enclosing block's closing brace withholds the fix as well when its <c>#if</c> lies
+    /// behind the declaration: in another build configuration, the code of that group follows the declaration and
+    /// would end up behind the new block. A group whose <c>#if</c> lies in front of the declaration holds the
+    /// declaration in one of its branches, so no configuration compiles another of its branches together with it
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="parentBlock">Block that contains the using declaration</param>
@@ -120,13 +124,12 @@ public class RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider : CodeFixProv
     private static bool WouldSeparateDirective(SyntaxNode root, BlockSyntax parentBlock, LocalDeclarationStatementSyntax usingDeclaration)
     {
         var closeBraceToken = parentBlock.CloseBraceToken;
+        var declarationEnd = usingDeclaration.Span.End;
 
         return SyntaxTriviaUtilities.SplitsDirectivePair(root, usingDeclaration.FullSpan.End, closeBraceToken.FullSpan.Start)
-               || closeBraceToken.LeadingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.IfDirectiveTrivia)
-                                                              || trivia.IsKind(SyntaxKind.ElifDirectiveTrivia)
-                                                              || trivia.IsKind(SyntaxKind.ElseDirectiveTrivia)
-                                                              || trivia.IsKind(SyntaxKind.EndIfDirectiveTrivia)
-                                                              || trivia.IsKind(SyntaxKind.DisabledTextTrivia));
+               || closeBraceToken.LeadingTrivia.Any(trivia => trivia.GetStructure() is ConditionalDirectiveTriviaSyntax or ElseDirectiveTriviaSyntax or EndIfDirectiveTriviaSyntax
+                                                              && trivia.GetStructure() is DirectiveTriviaSyntax directive
+                                                              && directive.GetRelatedDirectives().Any(related => related.IsKind(SyntaxKind.IfDirectiveTrivia) && related.SpanStart > declarationEnd));
     }
 
     #endregion // Methods

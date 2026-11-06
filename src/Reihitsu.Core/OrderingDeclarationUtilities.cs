@@ -1,4 +1,8 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Runtime.InteropServices;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -266,7 +270,9 @@ public static class OrderingDeclarationUtilities
     /// field, event field, or property initializers. Initializers run in declaration order within their execution
     /// context (static initializers in the static constructor, instance initializers in the instance
     /// constructor), so reordering a member carrying an initializer past another member of the same
-    /// context that also carries an initializer can silently change observable values
+    /// context that also carries an initializer can silently change observable values. The order is decided as
+    /// <see cref="ChangesMemberOrder(TypeDeclarationSyntax, bool, MemberDeclarationSyntax, MemberDeclarationSyntax)"/>
+    /// decides it, without a layout
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
     /// <param name="memberToMove">Member to move</param>
@@ -274,44 +280,25 @@ public static class OrderingDeclarationUtilities
     /// <returns><see langword="true"/> if the move would change initializer execution order</returns>
     public static bool ChangesInitializerExecutionOrder(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberToMove, MemberDeclarationSyntax targetMember)
     {
-        var members = typeDeclaration.Members;
-        var memberToMoveIndex = members.IndexOf(memberToMove);
-        var targetMemberIndex = members.IndexOf(targetMember);
-
-        if (memberToMoveIndex < 0
-            || targetMemberIndex < 0
-            || memberToMoveIndex <= targetMemberIndex
-            || HasInitializer(memberToMove) == false)
-        {
-            return false;
-        }
-
-        var movedIsStatic = IsStatic(memberToMove);
-
-        for (var index = targetMemberIndex; index < memberToMoveIndex; index++)
-        {
-            var passedOverMember = members[index];
-
-            if (HasInitializer(passedOverMember)
-                && IsStatic(passedOverMember) == movedIsStatic)
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return ChangesMemberOrder(typeDeclaration, false, memberToMove, targetMember);
     }
 
     /// <summary>
-    /// Determines whether moving a member before another member would change the order of the instance fields of a
-    /// type whose field order sets its layout. The instance fields include the backing fields the compiler declares
-    /// for auto-properties, for properties that use the <c>field</c> keyword, and for instance field-like events
+    /// Determines whether moving a member before another member puts two members of the type into the other order
+    /// where their order is behavior, as
+    /// <see cref="ChangesMemberOrder(TypeDeclarationSyntax, bool, Func{int, int})"/> decides it. The move
+    /// keeps the text in front of the target member, the moved member with its leading trivia, the text from the
+    /// target member up to the moved member, and the text behind the moved member, each in itself, and puts the moved
+    /// member in front of the target member's leading trivia. Code that an <c>#if</c> branch excludes in the moved
+    /// member's leading trivia therefore moves with it, and such code from the target member up to the moved member
+    /// is crossed
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
+    /// <param name="fieldOrderSetsLayout">Whether the order of the type's instance fields sets its layout (<see cref="FieldOrderSetsLayout"/>)</param>
     /// <param name="memberToMove">Member to move</param>
     /// <param name="targetMember">Target member</param>
-    /// <returns><see langword="true"/> if the move would change the type's layout</returns>
-    public static bool ChangesLayoutOrder(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberToMove, MemberDeclarationSyntax targetMember)
+    /// <returns><see langword="true"/> if the move changes initializer execution order or the layout</returns>
+    public static bool ChangesMemberOrder(TypeDeclarationSyntax typeDeclaration, bool fieldOrderSetsLayout, MemberDeclarationSyntax memberToMove, MemberDeclarationSyntax targetMember)
     {
         var members = typeDeclaration.Members;
         var memberToMoveIndex = members.IndexOf(memberToMove);
@@ -319,61 +306,100 @@ public static class OrderingDeclarationUtilities
 
         if (memberToMoveIndex < 0
             || targetMemberIndex < 0
-            || memberToMoveIndex <= targetMemberIndex
-            || IsLayoutField(memberToMove) == false
-            || FieldOrderSetsLayout(typeDeclaration) == false)
+            || memberToMoveIndex <= targetMemberIndex)
         {
             return false;
         }
 
-        for (var index = targetMemberIndex; index < memberToMoveIndex; index++)
+        var targetStart = targetMember.FullSpan.Start;
+        var movedSpan = memberToMove.FullSpan;
+
+        int GetNewRank(int position)
         {
-            if (IsLayoutField(members[index]))
+            if (position < targetStart)
             {
-                return true;
+                return 0;
             }
+
+            if (movedSpan.Contains(position))
+            {
+                return 1;
+            }
+
+            return position < movedSpan.Start
+                       ? 2
+                       : 3;
         }
 
-        return false;
+        return ChangesMemberOrder(typeDeclaration, fieldOrderSetsLayout, GetNewRank);
+    }
+
+    /// <summary>
+    /// Determines whether a reorder of the type's body puts two members of the type into the other order where
+    /// their order is behavior: two members of one context — both static or both instance — that each have a runtime
+    /// initializer (SHARED-ORDER-007), or two instance fields of a type whose field order sets its layout. Members in
+    /// code that an <c>#if</c> branch excludes count as well, at the position of that code, because another build
+    /// configuration compiles them. The reorder is given as the rank, after the reorder, of the part of the body
+    /// that holds a position; code within one part keeps its order
+    /// </summary>
+    /// <param name="typeDeclaration">Type declaration whose body is reordered</param>
+    /// <param name="fieldOrderSetsLayout">Whether the order of the type's instance fields sets its layout (<see cref="FieldOrderSetsLayout"/>)</param>
+    /// <param name="getNewRank">Rank after the reorder of the part of the body that holds a position</param>
+    /// <returns><see langword="true"/> if the reorder changes initializer execution order or the layout</returns>
+    public static bool ChangesMemberOrder(TypeDeclarationSyntax typeDeclaration, bool fieldOrderSetsLayout, Func<int, int> getNewRank)
+    {
+        var members = typeDeclaration.Members
+                                     .Select(member => (Position: member.SpanStart, Member: member))
+                                     .Concat(GetMembersOfDisabledText(typeDeclaration))
+                                     .ToList();
+
+        bool ChangesOrder(Func<MemberDeclarationSyntax, bool> isOrdered)
+        {
+            var writtenOrder = members.Where(member => isOrdered(member.Member))
+                                      .Select(member => member.Position)
+                                      .OrderBy(position => position)
+                                      .ToList();
+            var newOrder = writtenOrder.OrderBy(getNewRank)
+                                       .ThenBy(position => position);
+
+            return writtenOrder.SequenceEqual(newOrder) == false;
+        }
+
+        return ChangesOrder(member => HasInitializer(member) && IsStatic(member))
+               || ChangesOrder(member => HasInitializer(member) && IsStatic(member) == false)
+               || (fieldOrderSetsLayout && ChangesOrder(IsLayoutField));
     }
 
     /// <summary>
     /// Determines whether the order of the type's instance fields sets its memory layout: a struct, which has
-    /// sequential layout unless it declares <c>LayoutKind.Auto</c> or <c>LayoutKind.Explicit</c>, and any other type
+    /// sequential layout unless it declares <c>LayoutKind.Auto</c> or <c>LayoutKind.Explicit</c>, and any other class
     /// declared with <c>[StructLayout(LayoutKind.Sequential)]</c>. Under explicit layout each field's
-    /// <c>[FieldOffset]</c> sets its offset. A layout argument that is not written as one of the
-    /// <c>LayoutKind</c> members counts as sequential layout. Only the attribute lists of the given declaration are
-    /// inspected
+    /// <c>[FieldOffset]</c> sets its offset. The attributes of every part of a partial type count, and a layout
+    /// argument whose value is not known counts as sequential layout
     /// </summary>
-    /// <param name="typeDeclaration">Type declaration</param>
+    /// <param name="typeSymbol">Type</param>
     /// <returns><see langword="true"/> if reordering the instance fields changes the layout</returns>
-    public static bool FieldOrderSetsLayout(TypeDeclarationSyntax typeDeclaration)
+    public static bool FieldOrderSetsLayout(INamedTypeSymbol typeSymbol)
     {
-        var isStruct = typeDeclaration is StructDeclarationSyntax
-                       || typeDeclaration is RecordDeclarationSyntax { ClassOrStructKeyword.RawKind: (int)SyntaxKind.StructKeyword };
+        var isStruct = typeSymbol.TypeKind == TypeKind.Struct;
 
-        if (isStruct == false && typeDeclaration is not ClassDeclarationSyntax and not RecordDeclarationSyntax)
+        if (isStruct == false && typeSymbol.TypeKind != TypeKind.Class)
         {
             return false;
         }
 
-        var layoutAttribute = typeDeclaration.AttributeLists
-                                             .SelectMany(attributeList => attributeList.Attributes)
-                                             .FirstOrDefault(IsStructLayoutAttribute);
+        var layoutAttribute = typeSymbol.GetAttributes().FirstOrDefault(IsStructLayoutAttribute);
 
         if (layoutAttribute == null)
         {
             return isStruct;
         }
 
-        var layoutKind = layoutAttribute.ArgumentList?.Arguments.FirstOrDefault(argument => argument.NameEquals == null && argument.NameColon == null)?.Expression switch
-                         {
-                             MemberAccessExpressionSyntax memberAccess => memberAccess.Name.Identifier.ValueText,
-                             IdentifierNameSyntax identifierName => identifierName.Identifier.ValueText,
-                             _ => null
-                         };
+        var layoutKind = layoutAttribute.ConstructorArguments.Length > 0 && layoutAttribute.ConstructorArguments[0].Value is { } value
+                             ? Convert.ToInt32(value, CultureInfo.InvariantCulture)
+                             : (int?)null;
 
-        return layoutKind is not ("Auto" or "Explicit");
+        return layoutKind is not ((int)LayoutKind.Auto or (int)LayoutKind.Explicit);
     }
 
     /// <summary>
@@ -418,8 +444,9 @@ public static class OrderingDeclarationUtilities
 
     /// <summary>
     /// Determines whether the property has a backing field the compiler declares: an auto-property, whose accessors
-    /// have no body, or a property that uses the <c>field</c> keyword. Abstract and extern properties have none, and
-    /// neither has the bodiless defining declaration of a partial property
+    /// have no body, or a property that uses the <c>field</c> keyword. The parser reads <c>field</c> as the keyword
+    /// only from C# 14 on; before, it is an identifier that names a member. Abstract and extern properties have none,
+    /// and neither has the bodiless defining declaration of a partial property
     /// </summary>
     /// <param name="propertyDeclaration">Property declaration</param>
     /// <returns><see langword="true"/> if the property has a backing field</returns>
@@ -437,30 +464,57 @@ public static class OrderingDeclarationUtilities
             return propertyDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword) == false;
         }
 
-        return propertyDeclaration.DescendantTokens()
-                                  .Any(token => token.IsKind(SyntaxKind.FieldKeyword)
-                                                || (token.IsKind(SyntaxKind.IdentifierToken)
-                                                    && token.ValueText == "field"
-                                                    && token.Parent is IdentifierNameSyntax));
+        return propertyDeclaration.DescendantTokens().Any(token => token.IsKind(SyntaxKind.FieldKeyword));
     }
 
     /// <summary>
-    /// Determines whether the attribute is <c>StructLayout</c>, written with or without its namespace or the
-    /// <c>Attribute</c> suffix
+    /// Determines whether the attribute is <see cref="StructLayoutAttribute"/>
     /// </summary>
     /// <param name="attribute">Attribute</param>
     /// <returns><see langword="true"/> if the attribute is <c>StructLayout</c></returns>
-    private static bool IsStructLayoutAttribute(AttributeSyntax attribute)
+    private static bool IsStructLayoutAttribute(AttributeData attribute)
     {
-        var name = attribute.Name switch
-                   {
-                       QualifiedNameSyntax qualifiedName => qualifiedName.Right.Identifier.ValueText,
-                       AliasQualifiedNameSyntax aliasQualifiedName => aliasQualifiedName.Name.Identifier.ValueText,
-                       SimpleNameSyntax simpleName => simpleName.Identifier.ValueText,
-                       _ => null
-                   };
+        return attribute.AttributeClass is { Name: nameof(StructLayoutAttribute) } attributeClass
+               && attributeClass.ContainingNamespace?.ToDisplayString() == typeof(StructLayoutAttribute).Namespace;
+    }
 
-        return name is "StructLayout" or "StructLayoutAttribute";
+    /// <summary>
+    /// Gets the members declared in code that an <c>#if</c> branch excludes in the type's body, outside every member,
+    /// with the position of that code
+    /// </summary>
+    /// <param name="typeDeclaration">Type declaration</param>
+    /// <returns>The members of the excluded code</returns>
+    private static IEnumerable<(int Position, MemberDeclarationSyntax Member)> GetMembersOfDisabledText(TypeDeclarationSyntax typeDeclaration)
+    {
+        var bodyStart = typeDeclaration.OpenBraceToken.Span.End;
+        var bodyEnd = typeDeclaration.CloseBraceToken.SpanStart;
+        var options = typeDeclaration.SyntaxTree.Options as CSharpParseOptions;
+
+        foreach (var trivia in typeDeclaration.DescendantTrivia())
+        {
+            if (trivia.IsKind(SyntaxKind.DisabledTextTrivia) == false
+                || trivia.SpanStart < bodyStart
+                || trivia.SpanStart >= bodyEnd
+                || typeDeclaration.Members.Any(member => member.Span.Contains(trivia.SpanStart)))
+            {
+                continue;
+            }
+
+            var parsedType = SyntaxFactory.ParseCompilationUnit($"class C\n{{\n{trivia.ToFullString()}\n}}", options: options)
+                                          .Members
+                                          .OfType<TypeDeclarationSyntax>()
+                                          .FirstOrDefault();
+
+            if (parsedType == null)
+            {
+                continue;
+            }
+
+            foreach (var member in parsedType.Members)
+            {
+                yield return (trivia.SpanStart, member);
+            }
+        }
     }
 
     #endregion // Methods

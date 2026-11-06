@@ -70,9 +70,9 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsCodeFixProvider
     }
 
     /// <inheritdoc/>
-    protected override bool IsMoveSafe(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberDeclaration, MemberDeclarationSyntax targetMember)
+    protected override bool IsMoveSafe(SemanticModel semanticModel, TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberDeclaration, MemberDeclarationSyntax targetMember)
     {
-        return base.IsMoveSafe(typeDeclaration, memberDeclaration, targetMember)
+        return base.IsMoveSafe(semanticModel, typeDeclaration, memberDeclaration, targetMember)
                && OrderingDeclarationUtilities.ChangesInitializerExecutionOrder(typeDeclaration, memberDeclaration, targetMember) == false;
     }
 

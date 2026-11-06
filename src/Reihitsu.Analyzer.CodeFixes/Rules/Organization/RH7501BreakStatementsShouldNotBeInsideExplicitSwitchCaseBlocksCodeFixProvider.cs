@@ -68,8 +68,8 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksCodeF
 
     /// <summary>
     /// Determines whether the <c>break</c> can move behind the block without rearranging a line or separating a
-    /// directive: the <c>break</c> is the first statement on its line, the block's closing brace is the first token on
-    /// its line, and no directive and no code that <c>#if</c> excludes lies between the token in front of the
+    /// directive: the <c>break</c> keyword is the first token on its line, so not even the block's opening brace
+    /// precedes it there, the block's closing brace is the first token on its line, and no directive and no code that <c>#if</c> excludes lies between the token in front of the
     /// <c>break</c> and the closing brace
     /// </summary>
     /// <param name="breakStatement">Break statement</param>
