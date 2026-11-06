@@ -171,3 +171,30 @@ Commit: 3a7eea52
 ### Examples for the tests
 
 RH3201-007: `return /**/a;` → `return a;`. This replaces the expectation of `FixOfCommentDirectlyInFrontOfAnIdentifierJoinsTheTokens`, which `04-test-implementer.md` names.
+
+## Amendment — row 11
+
+Commit: f0421490
+
+### Changed requirements
+
+_None._ No normative statement changed; only `Uses` rows and one reference sentence.
+
+- `Uses` rows now list the shared requirements the run's new text references: RH3001, RH3005, RH3101, RH3105, RH3201 gain SHARED-FIX-003; RH3004 and `shared/empty-parentheses.md` gain SHARED-FIX-003 and SHARED-FIX-007; RH3104 and RH3106 gain SHARED-DIAG-011 and SHARED-FIX-003; RH5417 gains SHARED-DIAG-011. The test also named RH3201, RH5417 and `shared/empty-parentheses.md`, which row 11 did not list; they were repaired the same way.
+- RH3106 and RH3107 keep SHARED-PARENS-003 in `Uses`: it applies to both rules by its own scope. Their introduction now says so ("A comment inside the list withholds the fix (SHARED-PARENS-003)."), next to the existing SHARED-PARENS-001/-002 reference.
+
+### Checks
+
+`scripts/test.sh --project architecture` filtered to `SpecStructureTests`, `SpecConsistencyTests`, `RequirementCoverageTests`: 51 passed, 0 failed.
+
+### Output questions
+
+_None._
+
+### Internal choices
+
+- RH3106/RH3107: reference SHARED-PARENS-003 in the introduction rather than drop it from `Uses`; dropping it would hide that the withheld fix of both rules is decided there.
+
+### Follow-up candidates
+
+_None._

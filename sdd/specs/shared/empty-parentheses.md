@@ -5,7 +5,7 @@
 | ID prefix | SHARED-PARENS |
 | Status | Active |
 | Code owners | `EmptyParenthesesAnalyzerBase<TNode>` |
-| Uses | — |
+| Uses | SHARED-FIX-003, SHARED-FIX-007 |
 
 This spec covers what the rules share that report an empty pair of parentheses the language lets the author leave out — RH3106 (the parameter list of an anonymous method) and RH3107 (the argument list of an attribute): where the diagnostic is and what the code fix produces. Each rule's spec states which list it reports.
 
