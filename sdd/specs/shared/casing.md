@@ -372,11 +372,11 @@ is reported, and no code fix is offered, because the derived name is `_1st` agai
 
 The code fix MUST NOT be offered when renaming to the derived name would collide with an existing name: when the renamer reports a conflict, or when the result of the rename has a compile error that the code did not have, as SHARED-FIX-003 states. A compile error counts wherever the rename puts it, not only inside the declarations that contain the renamed symbol:
 
-- inside the renamed type itself, whose member, nested type, type parameter, or positional parameter now has the type's name — also for a type declared directly in a namespace or at file level, and for a partial type whose colliding member is declared in another part;
+- inside the renamed type itself, whose member, nested type, type parameter, or positional parameter now has the type's name, where that declaration is a compile error — also for a type declared directly in a namespace or at file level, and for a partial type whose colliding member is declared in another part;
 - in the namespace that declares the renamed type, when another type of that namespace in source already has the new name;
 - in every other type whose member the rename renames with the renamed symbol, such as a member it overrides, a member that overrides it, an interface member it implements, or an implementation of it, also where that type is declared in another document.
 
-A type with the new name in the same namespace makes the rename fail to compile only when both types have the same number of type parameters, and, when either of them is file-local, only when both are declared in the same file; otherwise the fix is offered. An enum member may have the name of its enum, so it does not collide with it. The diagnostic is still reported.
+A type with the new name in the same namespace makes the rename fail to compile only when both types have the same number of type parameters, and, when either of them is file-local, only when both are declared in the same file; otherwise the fix is offered. A declaration that has the type's name is not a compile error in every type: an enum member may have the name of its enum, and a method of an interface the name of its interface, so neither collides with it, and the fix is offered. The diagnostic is still reported.
 
 Why: A collision cannot be resolved without knowing which of the two names the author meant, so it is left to the author. The renamer renames every declaration of the symbol's rename cascade, in whichever type and document it stands, but it cannot rename a member declared in a referenced assembly, so a compile error can appear in a type that does not contain the renamed declaration. Types with a different number of type parameters, and a file-local type and a type of another file, can share a name, so renaming to it is safe.
 
@@ -448,6 +448,28 @@ enum {|RH4004:color|}
 enum Color
 {
     Color,
+}
+```
+
+Example — RH4005, for a method of an interface declared directly in a namespace:
+
+```csharp
+namespace N
+{
+    interface {|RH4005:iOrder|}
+    {
+        void IOrder();
+    }
+}
+```
+
+```csharp
+namespace N
+{
+    interface IOrder
+    {
+        void IOrder();
+    }
 }
 ```
 
