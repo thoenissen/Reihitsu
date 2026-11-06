@@ -68,6 +68,7 @@ Standing instruction from the maintainer (after answer 7): ask no further questi
 | 21 | Repair 1 impl | `var x = b ? delegate () { } : someAction;` is not reported by the new `TakesNaturalType` though the target is a delegate type | Defect against RH3106-003 ("a delegate target, also through a conditional, MUST be reported"); repair in round 1: test, then implementer | Same requirement | RH3106-003 decides it | pending |
 | 22 | Repair 1 impl | RH3004 indentation delta taken from the block's first line, which can be a column-0 directive, shifting the statements one level too deep | Defect against SHARED-FIX-007 moved-code bullet (indentation follows the new nesting); spec author words RH3004-006 on the first statement's line, test, implementer | Same requirement | SHARED-FIX-007 decides it | pending |
 | 23 | Repair 1 spec | RH3106-003 widened to the switch arm and `new[] { … }` element whose other arm/element gives a delegate type (same defect as row 21) | Fix all three in this round | Same requirement, same mechanism | RH3106-003 decides it | d7b72d0b |
+| 24 | Repair 1 spec | Answer 7 extended (decided on recommendation): every directive the formatter keeps in column 0 (not only conditional ones; not `#region`/`#endregion`) stays in column 0; a directive not in column 0 moves with the statements | Accept | Same reason as answer 7 (FMT-INDENT-009) | Decided on recommendation per the maintainer's standing instruction | fc43e244 |
 
 Repair rounds used: 1 (started after audit 1).
 
