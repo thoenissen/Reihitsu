@@ -1513,6 +1513,106 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     }
 
     /// <summary>
+    /// Verifies the <c>#region</c> example without the symbol defined, so the block's only statement is disabled text:
+    /// the statement in disabled text still decides the number of columns, and the output is the same as with the
+    /// symbol defined
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixMovesRegionDirectivesAndIndentedDirectivesWithTheStatementsWhenTheStatementIsDisabled()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> b = {|RH3004:delegate|} (int x)
+                                        {
+                                #region Output
+                                            #if DEBUG
+                                            Console.WriteLine(x);
+                                            #endif
+                                #endregion
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<int> b = (int x) =>
+                                                         {
+                                                 #region Output
+                                                             #if DEBUG
+                                                             Console.WriteLine(x);
+                                                             #endif
+                                                 #endregion
+                                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a statement in an inactive <c>#if</c> branch in front of an active statement in another column
+    /// decides the number of columns: the disabled statement's line stands one level inside the braces, and the
+    /// active statement moves by the same number of columns
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixMeasuresTheShiftOnADisabledStatementInFrontOfTheFirstActiveStatement()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> b = {|RH3004:delegate|} (int x)
+                                        {
+                                #if DEBUG
+                                            Console.WriteLine(x);
+                                #endif
+                                        Console.WriteLine(-x);
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<int> b = (int x) =>
+                                                         {
+                                 #if DEBUG
+                                                             Console.WriteLine(x);
+                                 #endif
+                                                         Console.WriteLine(-x);
+                                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
     /// Verifies a <c>#nullable</c> directive line in column 0 inside the moved block stays in column 0, and the
     /// first statement's line decides the number of columns the other lines move
     /// </summary>

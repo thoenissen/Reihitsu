@@ -181,3 +181,29 @@ scripts/test.sh --configuration Debug --project analyzer --filter "FullyQualifie
 ```
 
 Result on 38b5c74d with these tests: Failed 10, Passed 74, Total 84 — exactly the ten tests marked "fails" above.
+
+## Amendment — row 25
+
+Commit: b7307e27. Verdict: tests written. Expected values come from row 25 of `00-lead.md` (the shift is measured on the first line that holds a statement, active or in disabled text) and the existing RH3004-006 region example; the spec author words RH3004-006 in parallel, and I did not read or touch `sdd/specs`. My prompt carried no intended fix or hoped-for verdict to set aside. Both tests fail on b7307e27 for the reason row 25 states; I read both failure diffs.
+
+### thoenissen/Reihitsu#1279 (RH3004, row 25)
+
+| Test | Requirement / failure class | Helper | Expected now |
+|---|---|---|---|
+| `RH3004UseLambdaSyntax.FixMovesRegionDirectivesAndIndentedDirectivesWithTheStatementsWhenTheStatementIsDisabled` (region example, no `DEBUG`: the only statement is disabled text) | RH3004-006 | Verify | fails: `#region`/`#endregion` at 28 and `#if`/statement at 40; expected 16 and 28, the same as the `DEBUG` variant |
+| `….FixMeasuresTheShiftOnADisabledStatementInFrontOfTheFirstActiveStatement` (no `DEBUG`; disabled `Console.WriteLine(x);` at column 12 in front of an active statement at column 8) | RH3004-006 | Verify | fails: `#if`/`#endif` at 28, disabled statement at 40, active at 36; expected 0, 28, and 24 (shift 16, measured on the disabled line; measured on the active statement it would be 20) |
+
+This closes the finding of the rows 21–24 amendment (the region example without `DEBUG`).
+
+### Not covered, and why
+
+- CRLF for the disabled-text measurement: the line-moving path is the one the CRLF test of the first example already covers; only the choice of measured line differs.
+- A disabled statement *behind* the first active statement: row 25 says "first line that holds a statement", so the earlier active line decides; that is the case every existing active-statement test already shows.
+
+### Commands
+
+```shell
+scripts/test.sh --configuration Debug --project analyzer --filter "FullyQualifiedName~RH3004UseLambdaSyntaxAnalyzerTests"
+```
+
+Result on b7307e27 with these tests: Failed 8, Passed 38, Total 46 — the six RH3004 tests marked "fails" in the rows 21–24 amendment and the two above.
