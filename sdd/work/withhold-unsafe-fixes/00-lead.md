@@ -35,6 +35,7 @@ Batch 1 (before the test implementer), all answered with the recommended option:
 2. RH3106, `var a = delegate () { };` and likewise `Delegate d = …` / `object o = …` (C# 10+): **A** — not reported (instead of reported with the fix withheld).
 3. RH3101 rule page example: **A** — make `Derived` `internal` in both blocks so the example compiles (in addition to dropping `virtual`).
 4. RH3106, an anonymous method with an empty parameter list as an argument whose parameter type is not a delegate type (e.g. the only overload takes `object`): **A** — not reported, like answer 2. Arguments where competing overloads or type inference decide the binding stay reported with the fix withheld (RH3106-002).
+5. RH3201, `return /**/a;` (whitespace in front of the empty comment, the comment directly in front of the next token): **A** — the fix writes `return a;`, keeping the separating whitespace (today `returna;`). Raised by 04-test-implementer (test `FixOfCommentDirectlyInFrontOfAnIdentifierJoinsTheTokens`).
 
 ## Decisions taken
 
