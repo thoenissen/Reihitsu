@@ -461,13 +461,13 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
     }
 
     /// <summary>
-    /// Verifies that an interface declared directly in a namespace keeps its diagnostic but gets no fix when its new name is the name of one of its methods
+    /// Verifies that an interface declared directly in a namespace is renamed when its new name is the name of one of its methods, because an interface may have a member of its own name
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-CASING-009")]
     [Requirement("SHARED-FIX-003")]
-    public async Task NoFixIsOfferedWhenANamespaceInterfaceWouldHaveAMethodOfItsName()
+    public async Task FixRenamesANamespaceInterfaceToTheNameOfOneOfItsMethods()
     {
         const string testCode = """
                                 namespace N
@@ -479,7 +479,17 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
                                 }
                                 """;
 
-        await Verify(testCode, testCode);
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     interface IOrder
+                                     {
+                                         void IOrder();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests
