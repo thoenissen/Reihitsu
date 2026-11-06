@@ -279,7 +279,7 @@ The code fix MUST rename the reported declaration's symbol with the Roslyn renam
 
 This requirement covers an old name that SHARED-CASING-006 covers, and a derived name that is written without the verbatim prefix `@` at the declaration and at every reference: a name that is not a reserved C# keyword, and not `await` inside an async member. Contextual keywords such as `value`, `var`, and `nameof` are covered and stay as they are. It further covers only a rename for which both of the following hold:
 
-- Neither the old name nor the new name occurs as an identifier in code that an `#if`, `#elif`, or `#else` branch excludes, in a document where the symbol can be referred to.
+- Neither the old name nor the new name occurs as an identifier in code that an `#if`, `#elif`, or `#else` branch excludes, in a document where the symbol, or a member of its rename cascade, can be referred to. The rename cascade is every member the rename renames with the symbol: a member it overrides, a member that overrides it, an interface member it implements, and an implementation of it, each with its own cascade in turn, also where that member is declared in another document or another project of the solution. A document where none of these members can be referred to is outside the region, even when its excluded code names the old or the new name.
 - For no record does the rename change which parameters of its primary constructor have a member of the same name, declared in the record or inherited from its base type. The compiler declares a property for a positional parameter only when no such member exists, so a rename that changes the match adds or removes a public member.
 
 A rename outside this coverage is withheld where SHARED-FIX-003 withholds it.
@@ -337,6 +337,66 @@ public class C
 ```
 
 is reported, and no code fix is offered: the rename would leave `Value` in the excluded branch, which does not compile in a build that defines `NEVER` (SHARED-FIX-003). The same holds when the excluded branch declares `_value`, the new name. When the excluded branch names neither `Value` nor `_value`, the fix is offered and renames the field and the active reference.
+
+Example — a name in excluded code reached through the rename cascade, for RH4103, in two documents:
+
+```csharp
+public class Base
+{
+    public virtual void {|RH4103:process|}()
+    {
+    }
+
+    public void Run()
+    {
+#if NEVER
+        process();
+#endif
+    }
+}
+```
+
+```csharp
+file class Leaf : Base
+{
+    public override void {|RH4103:process|}()
+    {
+    }
+}
+```
+
+Both diagnostics are reported, and no code fix is offered for either: renaming `Leaf.process` renames `Base.process` with it, and `Base.process` can be referred to in the first document, whose excluded branch names `process`. That `Leaf` is file-local and cannot be referred to in the first document does not matter. The same holds when the overriding type is a private nested type, for an implementation of an interface method, and when `Base` is declared in another project of the solution. When the excluded branch names neither `process` nor `Process`, the fix is offered and renames both methods.
+
+Example — excluded code of an unrelated type, for RH4106, in two documents:
+
+```csharp
+public class C
+{
+    private int {|RH4106:Value|};
+
+    public int Get()
+    {
+        return Value;
+    }
+}
+```
+
+```csharp
+public class D
+{
+#if NEVER
+    private int Value;
+    private int _value;
+
+    public int Other()
+    {
+        return Value + _value;
+    }
+#endif
+}
+```
+
+The fix is offered and renames `C.Value` and its reference to `_value`; the second document stays unchanged. The private field `C.Value` cannot be referred to in the second document, and it has no rename cascade, so the excluded branch there is outside the region.
 
 ### SHARED-CASING-008 — The fix is withheld when no usable name can be derived
 
