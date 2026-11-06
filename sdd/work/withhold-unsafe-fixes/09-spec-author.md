@@ -103,3 +103,73 @@ Commit: 1f4dfe6e. Verdict: spec written. A clarification in the bug-fix lane. No
   - `AnonymousMethodInAConditionalOrASwitchArmWithAnObjectTargetIsNotReported` matches the new second example verbatim.
   - No differences.
 - `scripts/test.sh --project architecture`: 115 passed.
+
+## Amendment — rows 21 and 22
+
+Commit: 22c659a0. Both are clarifications in the bug-fix lane: no change doc, no rule page. My prompt carried the lead's decided rows and no other intended fix or verdict.
+
+### Changed requirements
+
+- RH3004-006 — clarified (row 22). The fix is offered for a block that holds a directive: RH3004-004 withholds it only for a comment or directive *outside* the parameter list and the body, and RH3004-003 only keeps the block for one, so row 22 applies. The column shift of the moved statements is now measured on the line on which the block's first statement starts, from the first character of the moved code on it, not on the block's first line; a directive or comment line in front of the first statement does not decide it. A block without a statement measures on its first line. New example: an `#if DEBUG` / `#else` / `#endif` block whose first line is `#if` in column 0. Both statements land one level inside the braces (column 28), and the directive lines move by the same 16 columns (column 16), as the existing "every line moves by the same number of columns" already states.
+- RH3106-003 — clarified (row 21). The requirement now says plainly that a conditional with another branch, a switch expression with another arm, and an implicitly typed array creation with another element that is not an anonymous function and has a delegate type give the anonymous method that delegate type as its target. Its list is then reported, also under `var`. New example on the reported side:
+  - `var x = b ? delegate () { } : someAction;`
+  - `var y = i switch { 1 => delegate () { }, _ => someAction };`
+  - `var z = new[] { delegate () { }, someAction };`
+
+### Examples for the tests
+
+- RH3004-006: the `#if` block example (a test against row 22's defect).
+- RH3106-003: the three `var` lines. The switch arm and the array element follow from the same rule as the conditional. Reading `TakesNaturalType` at 22c659a0 suggests both are not reported either today, because the arm resolves to the switch expression under `var` and the element's parent is an implicit array initializer. So they are probably the same defect as row 21, and the repair should cover them in the same step.
+
+### Output questions
+
+**1 · RH3004 · Use lambda syntax — a column-0 directive inside the moved block.** RH3004-006 says every line of the moved block moves by the same number of columns. A conditional directive in column 0 therefore lands in the shifted column, and the formatter then moves it back to column 0 (FMT-INDENT-009). The example above is written to the requirement as it stands. Row 22 decides only the statements, not the directive lines. Answering B would change only the directive lines of the example and the test.
+
+Input:
+```csharp
+        Action<int> b = delegate (int x)
+        {
+#if DEBUG
+            Console.WriteLine(x);
+#else
+            Console.WriteLine(-x);
+#endif
+        };
+```
+
+Before (`main`): not run by me. The lead should fill it in from `main` (the layout path differs from this run's). At 22c659a0 the shift is measured on the `#if` line, so the statements land one level too deep, which is the row 22 defect.
+
+After, A (the requirement as written):
+```csharp
+        Action<int> b = (int x) =>
+                        {
+                #if DEBUG
+                            Console.WriteLine(x);
+                #else
+                            Console.WriteLine(-x);
+                #endif
+                        };
+```
+
+After, B (recommended):
+```csharp
+        Action<int> b = (int x) =>
+                        {
+#if DEBUG
+                            Console.WriteLine(x);
+#else
+                            Console.WriteLine(-x);
+#endif
+                        };
+```
+
+Why B: a conditional directive in column 0 belongs to no nesting depth. Keeping it where the author wrote it is the directive's own layout under SHARED-FIX-007, and the result needs no second formatting diff.
+
+### Internal choices
+
+- RH3106-003: I also wrote down the switch arm and the implicit array element, not only the conditional the row names. All three are the same rule. Alternative: the conditional alone, with the other two left as follow-ups.
+- RH3004-006: the shift is measured "from the first character of the moved code on that line", so a first statement that starts behind a comment or on the opening brace's line is still well defined. Alternative: measure from the statement's first token, which goes wrong behind a `/* c */` on the same line.
+
+### Follow-up candidates
+
+_None._
