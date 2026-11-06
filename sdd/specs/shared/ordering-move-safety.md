@@ -353,7 +353,10 @@ public class C
 #endif
     private readonly int {|RH7109:_b|} = Log("b");
 
-    private static int Log(string name) => 0;
+    private static int Log(string name)
+    {
+        return 0;
+    }
 }
 ```
 
@@ -367,7 +370,10 @@ public class C
     private int _a;
     private int _d;
 
-    private static int Log(string name) => 0;
+    private static int Log(string name)
+    {
+        return 0;
+    }
 }
 ```
 
