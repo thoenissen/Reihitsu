@@ -70,6 +70,7 @@ The process on `main` moved escalation answers from `squad/decisions/` into this
 | 7 | Audit 1 | Findings #5 and #6: comment positions in the RH7004 fix not pinned | Restore `main`'s output for a comment that does not end its line (#5); pin the full output for the two comment inputs (#6); no output question | #5: `main`'s output; #6: SHARED-FIX-003 condition 3 demands the kept comment, and its layout is the formatter's | Both outputs are `main`'s or demanded by an accepted requirement | (repair 1) |
 | 8 | Audit 1 | Auditor hint: `HasBackingField` counts an identifier named `field` as the keyword before C# 14 | Taken into the repair (same requirement as #2) | Same guard, over-withholding | Restores fixes no requirement withholds | (repair 1) |
 | 9 | Repair 1 tests | The new SHARED-ORDER-007 positive example keeps an expression-bodied `Log` unchanged, which no RH7103/RH7109 fix output meets because both format the whole type (FC-030, #969) | The spec author rewrites the example with a block-bodied member so a test can mirror it; the whole-type formatting stays with #969 | A spec example must be an output the code produces | The guard's verdict in the example is unchanged; only the incidental member shape changes | (repair 1) |
+| 10 | Repair 1 implementer | Candidate: `SplitsDirectivePair` pairs two `disable X` (or two `restore X`) directives | Dropped, not a follow-up: the implementer states that no caller input reaches it today (`AGENTS.md`, *Supported inputs*) | No caller reaches the case | Nothing changes | 0684485 |
 
 # Follow-up candidates
 
