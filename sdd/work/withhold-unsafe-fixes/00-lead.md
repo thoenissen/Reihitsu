@@ -29,7 +29,11 @@ Triage comments on the issues (written under the maintainer's account) narrow #1
 
 ## Maintainer answers
 
-None yet.
+Batch 1 (before the test implementer), all answered with the recommended option:
+
+1. RH3004, anonymous method whose block body is on one line: **A** — the fix lays out its result as the formatter does (the block on its own lines, aligned under the lambda), not on one line.
+2. RH3106, `var a = delegate () { };` and likewise `Delegate d = …` / `object o = …` (C# 10+): **A** — not reported (instead of reported with the fix withheld).
+3. RH3101 rule page example: **A** — make `Derived` `internal` in both blocks so the example compiles (in addition to dropping `virtual`).
 
 ## Decisions taken
 
