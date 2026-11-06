@@ -1,5 +1,5 @@
 Role: implementer
-Commit: see the commit that adds this file (on top of 1f4dfe6e)
+Commit: 1c476cb0
 Verdict: tests pass
 
 Repair round 1, for audit findings 1–4 (`08-auditor.md`), lead decisions 15–18 and maintainer answer 6 (`00-lead.md`), against the tests of `10-test-implementer.md` and the spec diff of 82129fca. My prompt named the decided rows and the condition of answer 6; it carried no intended fix, suspected cause, or hoped-for verdict beyond them, so I had nothing to set aside. No test file and no file under `sdd/specs` was changed.
