@@ -447,9 +447,11 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <see cref="SymbolFinder.FindReferencesAsync(ISymbol, Solution, CancellationToken)"/> reports are the symbols it
     /// cascades to, the same search the renamer uses to find what it renames. This covers, for example, overridden and
     /// overriding members, implemented interface members and their implementations, and the other part of a partial
-    /// method together with its type parameters and parameters. Every safety check of a rename takes its region from
-    /// these symbols rather than from the declared symbol alone. A symbol declared only in a referenced assembly is not
-    /// renamed, so it is not part of the cascade
+    /// method together with its parameters. The search can also reach a symbol the renamer leaves as it is, such as a
+    /// type parameter of the other part of a partial method; that only widens the region a check inspects, and
+    /// <see cref="GetOldNames"/> takes no old name from such a symbol. Every safety check of a rename takes its region
+    /// from these symbols rather than from the declared symbol alone. A symbol declared only in a referenced assembly
+    /// is not renamed, so it is not part of the cascade
     /// </remarks>
     private static async Task<ImmutableArray<ISymbol>> GetRenameCascadeAsync(Solution solution, ISymbol symbol, CancellationToken cancellationToken)
     {
@@ -463,22 +465,56 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
-    /// Determines whether the old or the new name occurs as an identifier in code that a conditional directive excludes
+    /// Gets the old names of a rename: the names that the symbols of the cascade carried before the rename and no
+    /// longer carry after it
+    /// </summary>
+    /// <param name="cascade">Rename cascade before the rename</param>
+    /// <param name="renamedCascade">Rename cascade of the renamed symbol after the rename</param>
+    /// <returns>The old names</returns>
+    /// <remarks>
+    /// Only symbols that source can refer to by their name are counted, so an accessor or a constructor adds no old
+    /// name. A symbol of the cascade spelled differently from the declared one, such as the parameter of the other part
+    /// of a partial method, adds its own spelling when the renamer renames it. The names are compared as counts rather
+    /// than by symbol, because the reference search the cascade is read from also reaches symbols the renamer leaves
+    /// as they are, such as a type parameter of the other part of a partial method: such a symbol keeps its name in
+    /// both cascades and adds no old name
+    /// </remarks>
+    private static ImmutableHashSet<string> GetOldNames(ImmutableArray<ISymbol> cascade, ImmutableArray<ISymbol> renamedCascade)
+    {
+        var remainingNames = renamedCascade.Where(static symbol => symbol.CanBeReferencedByName)
+                                           .Select(static symbol => symbol.Name)
+                                           .ToList();
+        var oldNames = ImmutableHashSet.CreateBuilder<string>(StringComparer.Ordinal);
+
+        foreach (var symbol in cascade.Where(static symbol => symbol.CanBeReferencedByName))
+        {
+            if (remainingNames.Remove(symbol.Name) == false)
+            {
+                oldNames.Add(symbol.Name);
+            }
+        }
+
+        return oldNames.ToImmutable();
+    }
+
+    /// <summary>
+    /// Determines whether an old name or the new name occurs as an identifier in code that a conditional directive
+    /// excludes
     /// </summary>
     /// <param name="solution">Solution containing the symbols</param>
-    /// <param name="cascade">Symbols the rename renames</param>
-    /// <param name="oldName">Current name</param>
+    /// <param name="cascade">Rename cascade before the rename</param>
+    /// <param name="oldNames">Old names of the cascade, as <see cref="GetOldNames"/> reads them</param>
     /// <param name="identifier">Proposed identifier</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns><see langword="true"/> when excluded code names the old or the new name; otherwise, <see langword="false"/></returns>
+    /// <returns><see langword="true"/> when excluded code names an old name or the new name; otherwise, <see langword="false"/></returns>
     /// <remarks>
     /// Excluded code is not bound, so the renamer cannot rename a reference in it, and an occurrence there cannot be
     /// told apart from an unrelated name. Every occurrence therefore withholds the rename, in every document whose code
-    /// can refer to one of the symbols the rename renames
+    /// can refer to one of the symbols of the cascade
     /// </remarks>
     private static async Task<bool> HasExcludedCodeOccurrenceAsync(Solution solution,
                                                                    ImmutableArray<ISymbol> cascade,
-                                                                   string oldName,
+                                                                   ImmutableHashSet<string> oldNames,
                                                                    string identifier,
                                                                    CancellationToken cancellationToken)
     {
@@ -497,7 +533,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
                     .Where(static trivia => trivia.IsKind(SyntaxKind.DisabledTextTrivia))
                     .SelectMany(static trivia => SyntaxFactory.ParseTokens(trivia.ToString()))
                     .Any(token => token.IsKind(SyntaxKind.IdentifierToken)
-                                  && (string.Equals(token.ValueText, oldName, StringComparison.Ordinal)
+                                  && (oldNames.Contains(token.ValueText)
                                       || string.Equals(token.ValueText, identifier, StringComparison.Ordinal))))
             {
                 return true;
@@ -793,7 +829,8 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <returns>The renamed solution when it is safe; otherwise, <see langword="null"/></returns>
     /// <remarks>
     /// The checks that depend on what the rename reaches take it from <see cref="GetRenameCascadeAsync"/>: the native
-    /// entry points of every cascade member and the excluded code of every document that can refer to one. The compile
+    /// entry points of every cascade member, and the excluded code of every document that can refer to one, searched
+    /// for the new name and for the old names that the cascade before and after the rename gives. The compile
     /// error and positional property checks inspect every document of every project the rename changes or that depends
     /// on one of them
     /// </remarks>
@@ -842,6 +879,15 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
             return null;
         }
 
+        if (await HasExcludedCodeOccurrenceAsync(solution,
+                                                 prepared.Value.Cascade,
+                                                 GetOldNames(prepared.Value.Cascade, renamedCascade),
+                                                 identifier,
+                                                 cancellationToken).ConfigureAwait(false))
+        {
+            return null;
+        }
+
         var projectChanges = renamedSolution.GetChanges(solution).GetProjectChanges();
         var affectedProjectIds = GetDependentProjectIds(solution, projectChanges.Select(static changes => changes.ProjectId));
 
@@ -885,11 +931,6 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
         }
 
         var cascade = await GetRenameCascadeAsync(solution, declaredSymbol, cancellationToken).ConfigureAwait(false);
-
-        if (await HasExcludedCodeOccurrenceAsync(solution, cascade, declaredSymbol.Name, identifier, cancellationToken).ConfigureAwait(false))
-        {
-            return null;
-        }
 
         return (declaredSymbol, cascade);
     }
