@@ -159,3 +159,15 @@ Commit: 49f260ca
 ### Examples for the tests
 
 RH3106-003 (the `Run(object)` call is added to the not-reported block). RH3106-002 is unchanged: `Run(Action<int>)` + `Run(object)` stays reported with the fix withheld.
+
+## Amendment — maintainer answer 5 (#1281)
+
+Commit: 3a7eea52
+
+### Changed requirements
+
+- RH3201-007 — A comment directly in front of a token keeps the whitespace before it — added (maintainer answer 5, A). The case: code precedes the comment on its line, spaces or tabs separate them, and the next token follows the comment directly. The fix removes the comment alone and keeps the whitespace: `return /**/a;` → `return a;` (today it writes `returna;`). RH3201-006 is unchanged and consistent with it: where no whitespace stands in front of the comment either (`return/**/a`), the fix stays withheld. The ID is in `requirement-ids.txt`.
+
+### Examples for the tests
+
+RH3201-007: `return /**/a;` → `return a;`. This replaces the expectation of `FixOfCommentDirectlyInFrontOfAnIdentifierJoinsTheTokens`, which `04-test-implementer.md` names.
