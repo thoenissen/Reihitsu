@@ -1157,6 +1157,110 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
                      });
     }
 
+    /// <summary>
+    /// Verifies Fix All decides each swap on the code the fixes in front of it produce: of two swaps that are each safe
+    /// alone, the one that would complete a generic reading stays reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3005-008")]
+    [Requirement("SHARED-FIX-002")]
+    public async Task FixAllLeavesTheComparisonThatWouldCompleteAGenericReadingReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    const int Max = 1;
+                                    int G;
+                                    int B;
+
+                                    void M(bool x, bool y)
+                                    {
+                                    }
+
+                                    void Run()
+                                    {
+                                        M(Max {|RH3005:>|} G, (7) {|RH3005:<|} B);
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     const int Max = 1;
+                                     int G;
+                                     int B;
+
+                                     void M(bool x, bool y)
+                                     {
+                                     }
+
+                                     void Run()
+                                     {
+                                         M(G < Max, (7) {|RH3005:<|} B);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld once the fixes in front of it have run stays and is marked
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies Fix All swaps every comparison when the code the swaps write together still reads as comparisons
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3005-008")]
+    [Requirement("SHARED-FIX-002")]
+    public async Task FixAllSwapsComparisonsThatTogetherStillReadAsComparisons()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    const int Max = 1;
+                                    int G;
+                                    int B;
+
+                                    void M(bool x, bool y)
+                                    {
+                                    }
+
+                                    void Run()
+                                    {
+                                        M(Max {|RH3005:>|} G, 7 {|RH3005:<|} B);
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     const int Max = 1;
+                                     int G;
+                                     int B;
+
+                                     void M(bool x, bool y)
+                                     {
+                                     }
+
+                                     void Run()
+                                     {
+                                         M(G < Max, B > 7);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region Methods

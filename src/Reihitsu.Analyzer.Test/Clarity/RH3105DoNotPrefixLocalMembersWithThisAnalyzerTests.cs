@@ -917,6 +917,114 @@ public class RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests : BatchCodeFixTe
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies Fix All decides each qualifier on the code the fixes in front of it produce: of four qualifiers that
+    /// are each safe to remove alone, the one whose removal would complete a generic reading stays reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3105-005")]
+    [Requirement("SHARED-FIX-002")]
+    public async Task FixAllLeavesTheQualifierThatWouldCompleteAGenericReadingReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int A;
+                                    int B;
+                                    int C2;
+                                    int D;
+
+                                    void M(bool x, bool y)
+                                    {
+                                    }
+
+                                    void Run()
+                                    {
+                                        M({|RH3105:this|}.A < {|RH3105:this|}.B, {|RH3105:this|}.C2 > ({|RH3105:this|}.D));
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int A;
+                                     int B;
+                                     int C2;
+                                     int D;
+
+                                     void M(bool x, bool y)
+                                     {
+                                     }
+
+                                     void Run()
+                                     {
+                                         M(A < B, {|RH3105:this|}.C2 > (D));
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld once the fixes in front of it have run stays and is marked
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies Fix All removes every qualifier when the code the fixes write together still reads as comparisons
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3105-005")]
+    [Requirement("SHARED-FIX-002")]
+    public async Task FixAllRemovesQualifiersThatTogetherStillReadAsComparisons()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int A;
+                                    int B;
+                                    int C2;
+                                    int D;
+
+                                    void M(bool x, bool y)
+                                    {
+                                    }
+
+                                    void Run()
+                                    {
+                                        M({|RH3105:this|}.A < {|RH3105:this|}.B, {|RH3105:this|}.C2 > {|RH3105:this|}.D);
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int A;
+                                     int B;
+                                     int C2;
+                                     int D;
+
+                                     void M(bool x, bool y)
+                                     {
+                                     }
+
+                                     void Run()
+                                     {
+                                         M(A < B, C2 > D);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

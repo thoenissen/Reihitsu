@@ -1046,6 +1046,268 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
         AssertFormattingChangesNothing(await ApplyCodeFixAsync(testCode));
     }
 
+    /// <summary>
+    /// Verifies the fix keeps the layout of the statements it moves into the lambda, also token spacing and blank
+    /// lines the formatter would change, and only shifts their indentation under the braces
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-003")]
+    [Requirement("RH3004-006")]
+    public async Task FixKeepsTheLayoutOfTheStatementsItMoves()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> b = {|RH3004:delegate|} (int x)
+                                        {
+                                            int y = x+1;
+                                            if(x>1) Console.WriteLine(y);
+
+
+                                            Console.WriteLine(x);
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<int> b = (int x) =>
+                                                         {
+                                                             int y = x+1;
+                                                             if(x>1) Console.WriteLine(y);
+
+
+                                                             Console.WriteLine(x);
+                                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix keeps the layout of the statements it moves in a document whose line breaks are CRLF, and
+    /// keeps those line breaks
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixKeepsTheLayoutOfTheStatementsItMovesWithCarriageReturnLineFeed()
+    {
+        var testCode = NormalizeToCarriageReturnLineFeed("""
+                                                         using System;
+
+                                                         class C
+                                                         {
+                                                             void M()
+                                                             {
+                                                                 Action<int> b = delegate (int x)
+                                                                 {
+                                                                     int y = x+1;
+                                                                     if(x>1) Console.WriteLine(y);
+
+
+                                                                     Console.WriteLine(x);
+                                                                 };
+                                                             }
+                                                         }
+                                                         """);
+
+        var expectedCode = NormalizeToCarriageReturnLineFeed("""
+                                                             using System;
+
+                                                             class C
+                                                             {
+                                                                 void M()
+                                                                 {
+                                                                     Action<int> b = (int x) =>
+                                                                                     {
+                                                                                         int y = x+1;
+                                                                                         if(x>1) Console.WriteLine(y);
+
+
+                                                                                         Console.WriteLine(x);
+                                                                                     };
+                                                                 }
+                                                             }
+                                                             """);
+
+        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+    }
+
+    /// <summary>
+    /// Verifies the fix moves several statements that stood on the block's one line together onto one line between
+    /// the braces
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixMovesTheStatementsOfAOneLineBlockOntoOneLine()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> c = {|RH3004:delegate|} (int x) { int y = x+1; Console.WriteLine(y); };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<int> c = (int x) =>
+                                                         {
+                                                             int y = x+1; Console.WriteLine(y);
+                                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix leaves statements that formatter phases would rewrite as written: an expression-bodied local
+    /// function, an embedded statement without braces, an unbraced switch section with several statements, an
+    /// anonymous object on one line, and several blank lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-003")]
+    [Requirement("RH3004-006")]
+    public async Task FixLeavesStatementsTheFormatterWouldRewriteAsWritten()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> b = {|RH3004:delegate|} (int x)
+                                        {
+                                            int L() => x+1;
+                                            if(x>1) Console.WriteLine(L());
+                                            switch (x)
+                                            {
+                                                case 1:
+                                                    Console.WriteLine(1);
+                                                    Console.WriteLine(2);
+                                                    break;
+                                            }
+                                            var q = new { A = 1, B = 2 };
+
+
+
+                                            Console.WriteLine(q);
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<int> b = (int x) =>
+                                                         {
+                                                             int L() => x+1;
+                                                             if(x>1) Console.WriteLine(L());
+                                                             switch (x)
+                                                             {
+                                                                 case 1:
+                                                                     Console.WriteLine(1);
+                                                                     Console.WriteLine(2);
+                                                                     break;
+                                                             }
+                                                             var q = new { A = 1, B = 2 };
+
+
+
+                                                             Console.WriteLine(q);
+                                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix moves every line of a multi-line documentation comment inside the block by the same number of
+    /// columns as the statements
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixMovesAMultiLineDocumentationCommentWithTheStatements()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<int> f = {|RH3004:delegate|} ()
+                                        {
+                                            /// <summary>
+                                            /// Text that continues
+                                            /// </summary>
+                                            int L() => 1;
+
+                                            return L();
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Func<int> f = () =>
+                                                       {
+                                                           /// <summary>
+                                                           /// Text that continues
+                                                           /// </summary>
+                                                           int L() => 1;
+
+                                                           return L();
+                                                       };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -1204,6 +1204,126 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
                      });
     }
 
+    /// <summary>
+    /// Verifies Fix All decides each qualifier on the code the fixes in front of it produce: of four <c>base</c>
+    /// qualifiers that are each safe to remove alone, the one whose removal would complete a generic reading stays reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3101-005")]
+    [Requirement("SHARED-FIX-002")]
+    public async Task FixAllLeavesTheQualifierThatWouldCompleteAGenericReadingReported()
+    {
+        const string testCode = """
+                                class P
+                                {
+                                    protected int A;
+                                    protected int B;
+                                    protected int C2;
+                                    protected int D;
+                                }
+
+                                class C : P
+                                {
+                                    void M(bool x, bool y)
+                                    {
+                                    }
+
+                                    void Run()
+                                    {
+                                        M({|RH3101:base|}.A < {|RH3101:base|}.B, {|RH3101:base|}.C2 > ({|RH3101:base|}.D));
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class P
+                                 {
+                                     protected int A;
+                                     protected int B;
+                                     protected int C2;
+                                     protected int D;
+                                 }
+
+                                 class C : P
+                                 {
+                                     void M(bool x, bool y)
+                                     {
+                                     }
+
+                                     void Run()
+                                     {
+                                         M(A < B, {|RH3101:base|}.C2 > (D));
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld once the fixes in front of it have run stays and is marked
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies Fix All removes every qualifier when the code the fixes write together still reads as comparisons
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3101-005")]
+    [Requirement("SHARED-FIX-002")]
+    public async Task FixAllRemovesQualifiersThatTogetherStillReadAsComparisons()
+    {
+        const string testCode = """
+                                class P
+                                {
+                                    protected int A;
+                                    protected int B;
+                                    protected int C2;
+                                    protected int D;
+                                }
+
+                                class C : P
+                                {
+                                    void M(bool x, bool y)
+                                    {
+                                    }
+
+                                    void Run()
+                                    {
+                                        M({|RH3101:base|}.A < {|RH3101:base|}.B, {|RH3101:base|}.C2 > {|RH3101:base|}.D);
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class P
+                                 {
+                                     protected int A;
+                                     protected int B;
+                                     protected int C2;
+                                     protected int D;
+                                 }
+
+                                 class C : P
+                                 {
+                                     void M(bool x, bool y)
+                                     {
+                                     }
+
+                                     void Run()
+                                     {
+                                         M(A < B, C2 > D);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
