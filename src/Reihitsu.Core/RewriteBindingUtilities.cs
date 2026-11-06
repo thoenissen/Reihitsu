@@ -21,12 +21,14 @@ public static class RewriteBindingUtilities
     #region Methods
 
     /// <summary>
-    /// Determines whether the code around an expression binds as before when the expression is replaced. The outermost
-    /// statement, initializer, expression body, or constructor initializer around the expression, below the member or
-    /// accessor it belongs to, is bound again with the replacement in place of the expression. The
-    /// code binds as before when the replacement converts to a type in its position, the replaced code has no
-    /// error the original code did not have, and every method, constructor, indexer, operator, and collection initializer
-    /// <c>Add</c> method that the expression and the nodes around it bind to, type arguments included, stays the same
+    /// Determines whether the code around an expression binds as before when the expression is replaced. The smallest
+    /// statement, initializer, expression body, or constructor initializer that can decide how the expression binds is
+    /// bound again with the replacement in place of the expression. The code binds as before when the replacement
+    /// converts to a type in its position, the path from the expression to that node has no error the original path did
+    /// not have, and every method, constructor, indexer, operator, and collection initializer <c>Add</c> method that the
+    /// expression and the nodes on that path bind to, type arguments included, stays the same. The path is the
+    /// expression and the nodes around it up to the bound node; a statement beside the path, such as a later statement of
+    /// a block or of an anonymous function's body, does not decide how the expression binds, so its errors do not count
     /// </summary>
     /// <param name="semanticModel">Semantic model of the expression's document</param>
     /// <param name="expression">Expression</param>
@@ -54,16 +56,16 @@ public static class RewriteBindingUtilities
             return false;
         }
 
-        if (replacedModel.GetConversion(replacedExpression, cancellationToken).Exists == false
-            || CountErrors(replacedModel.GetOperation(replacedRoot, cancellationToken)) > CountErrors(semanticModel.GetOperation(bindingRoot, cancellationToken)))
-        {
-            return false;
-        }
-
         // The replacement leaves the structure around it unchanged, so the nodes around the expression and around the
         // replacement correspond one to one
         var originalNodes = GetBoundNodes(expression, bindingRoot);
         var replacedNodes = GetBoundNodes(replacedExpression, replacedRoot);
+
+        if (replacedModel.GetConversion(replacedExpression, cancellationToken).Exists == false
+            || CountErrors(replacedModel.GetOperation(replacedRoot, cancellationToken), new HashSet<SyntaxNode>(replacedNodes)) > CountErrors(semanticModel.GetOperation(bindingRoot, cancellationToken), new HashSet<SyntaxNode>(originalNodes)))
+        {
+            return false;
+        }
 
         for (var index = 0; index < originalNodes.Count; index++)
         {
@@ -79,17 +81,20 @@ public static class RewriteBindingUtilities
     }
 
     /// <summary>
-    /// Gets the node that is bound again: the outermost statement other than a block, variable or property initializer,
-    /// expression body, constructor initializer, or primary constructor base type around the expression, below the
-    /// member or accessor the expression belongs to. A statement inside an anonymous function belongs to the code around
-    /// that function, whose types it can decide, so the search goes on past it, and so it does past a local function,
-    /// which is bound as the statement it is
+    /// Gets the node that is bound again: the smallest node that can decide how the expression binds. Only an anonymous
+    /// function around the expression takes its types from the code around it, so the code that decides reaches up to
+    /// the outermost anonymous function around the expression, below the member or accessor the expression belongs to.
+    /// The bound node is the innermost statement other than a block, variable or property initializer outside a
+    /// statement, expression body, constructor initializer, or primary constructor base type around that function, or
+    /// around the expression when no anonymous function surrounds it. A local variable's initializer is bound with its
+    /// declaration statement, which gives an implicitly typed local its type. A statement outside that node cannot change
+    /// how the expression binds, so binding it again would only cost time
     /// </summary>
     /// <param name="expression">Expression</param>
     /// <returns>The node, or <see langword="null"/> when there is none</returns>
     private static SyntaxNode GetBindingRoot(ExpressionSyntax expression)
     {
-        SyntaxNode bindingRoot = null;
+        SyntaxNode decidingNode = expression;
 
         foreach (var ancestor in expression.Ancestors())
         {
@@ -98,17 +103,30 @@ public static class RewriteBindingUtilities
                 break;
             }
 
+            if (ancestor is AnonymousFunctionExpressionSyntax)
+            {
+                decidingNode = ancestor;
+            }
+        }
+
+        foreach (var ancestor in decidingNode.Ancestors())
+        {
+            if (ancestor is MemberDeclarationSyntax or AccessorDeclarationSyntax)
+            {
+                break;
+            }
+
             if ((ancestor is StatementSyntax and not BlockSyntax)
-                || ancestor is EqualsValueClauseSyntax
+                || (ancestor is EqualsValueClauseSyntax && ancestor.Ancestors().OfType<StatementSyntax>().Any() == false)
                 || ancestor is ArrowExpressionClauseSyntax
                 || ancestor is ConstructorInitializerSyntax
                 || ancestor is PrimaryConstructorBaseTypeSyntax)
             {
-                bindingRoot = ancestor;
+                return ancestor;
             }
         }
 
-        return bindingRoot;
+        return null;
     }
 
     /// <summary>
@@ -137,22 +155,49 @@ public static class RewriteBindingUtilities
     }
 
     /// <summary>
-    /// Counts the errors the binder records in a bound operation tree: invalid operations, conversions that do not
-    /// exist, and operations of an error type
+    /// Counts the errors the binder records on the path from an expression to its bound node: invalid operations,
+    /// conversions that do not exist, and operations of an error type. A statement that is not on the path, and every
+    /// operation inside it, is left out
     /// </summary>
-    /// <param name="operation">Operation</param>
+    /// <param name="operation">Operation of the bound node</param>
+    /// <param name="path">The expression and the nodes around it up to the bound node</param>
     /// <returns>The number of errors</returns>
-    private static int CountErrors(IOperation operation)
+    private static int CountErrors(IOperation operation, HashSet<SyntaxNode> path)
     {
         if (operation == null)
         {
             return 0;
         }
 
-        return operation.DescendantsAndSelf()
-                        .Count(static descendant => descendant is IInvalidOperation
-                                                    || descendant is IConversionOperation { Conversion.Exists: false }
-                                                    || descendant.Type is IErrorTypeSymbol);
+        var errors = 0;
+        var pending = new Stack<IOperation>();
+
+        pending.Push(operation);
+
+        while (pending.Count > 0)
+        {
+            var current = pending.Pop();
+
+            if (current is IInvalidOperation
+                || current is IConversionOperation { Conversion.Exists: false }
+                || current.Type is IErrorTypeSymbol)
+            {
+                errors++;
+            }
+
+            foreach (var child in current.ChildOperations)
+            {
+                if (child.Syntax is StatementSyntax statement
+                    && path.Contains(statement) == false)
+                {
+                    continue;
+                }
+
+                pending.Push(child);
+            }
+        }
+
+        return errors;
     }
 
     /// <summary>
