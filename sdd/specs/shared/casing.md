@@ -277,11 +277,11 @@ public class C
 
 The code fix MUST rename the reported declaration's symbol with the Roslyn renamer, so that the declaration and every reference to it in the active code of the solution change together. It MUST NOT be offered when the declared symbol cannot be resolved.
 
-The symbols that one such rename renames are the reported symbol's *rename cascade*: the symbol itself and every symbol the renamer renames with it, in whichever document or project of the solution that symbol is declared. Which symbols these are is the renamer's own determination, not a list of relations; for example, a member the symbol overrides, a member that overrides it, an interface member it implements, an implementation of it, and the other part of a partial method together with its type parameter or parameter at the same position, each of these in turn with the symbols the renamer renames with it. A member declared in a referenced assembly is not renamed and is not part of the cascade. Every other statement of this spec about the rename cascade refers to this one.
+The symbols that one such rename renames are the reported symbol's *rename cascade*: the symbol itself and every symbol the renamer renames with it, in whichever document or project of the solution that symbol is declared. Which symbols these are is the renamer's own determination, not a list of relations; for example, a member the symbol overrides, a member that overrides it, an interface member it implements, an implementation of it, and the other part of a partial method or a partial indexer together with its parameter at the same position, however that part spells it, and the other part of a partial method together with its type parameter of the same name, each of these in turn with the symbols the renamer renames with it. A member declared in a referenced assembly is not renamed and is not part of the cascade. Every other statement of this spec about the rename cascade refers to this one.
 
 This requirement covers an old name that SHARED-CASING-006 covers, and a derived name that is written without the verbatim prefix `@` at the declaration and at every reference: a name that is not a reserved C# keyword, and not `await` inside an async member. Contextual keywords such as `value`, `var`, and `nameof` are covered and stay as they are. It further covers only a rename for which both of the following hold:
 
-- Neither the old name nor the new name occurs as an identifier in code that an `#if`, `#elif`, or `#else` branch excludes, in a document where a symbol of the rename cascade can be referred to. A document where no symbol of the cascade can be referred to is outside the region, even when its excluded code names the old or the new name.
+- Neither the old name of a symbol of the rename cascade nor the new name occurs as an identifier in code that an `#if`, `#elif`, or `#else` branch excludes, in a document where a symbol of the rename cascade can be referred to. The old names are those of every symbol of the cascade that source can refer to by its name, not only the reported symbol's: a symbol of the cascade that is spelled differently from the reported one, such as the parameter of the other part of a partial method, adds its own spelling. A symbol whose name source never writes, such as a property's accessor or a type's constructor, adds no old name, and neither does a symbol outside the cascade, such as a type parameter of the other part of a partial method that this part spells differently, which the renamer leaves as it is. A document where no symbol of the cascade can be referred to is outside the region, even when its excluded code names an old name or the new name.
 - For no record does the rename change which parameters of its primary constructor have a member of the same name, declared in the record or inherited from its base type. The compiler declares a property for a positional parameter only when no such member exists, so a rename that changes the match adds or removes a public member.
 
 A rename outside this coverage is withheld where SHARED-FIX-003 withholds it.
@@ -396,6 +396,36 @@ public partial class C
 ```
 
 Both diagnostics are reported, and no code fix is offered for either: renaming the type parameter `Key` of either part renames the type parameter of the other part with it, and the excluded branch of the second document names `Key`. That the type parameter of the first part cannot be referred to in the second document does not matter. The same holds in the other direction, when the excluded code that names `Key` stands in the first document, for example `#if NEVER` around `[System.Obsolete(nameof(Key))]` on the declaration without a body, and the second document has none. When no excluded branch names `Key` or `TKey`, the fix is offered and renames the type parameter and its references in both parts to `TKey`.
+
+Example — an old name of a differently spelled part in excluded code, for RH4105, in two documents:
+
+```csharp
+public partial class C
+{
+    public void Use()
+    {
+        Run(1);
+    }
+
+    partial void Run(int {|RH4105:Arg|});
+}
+```
+
+```csharp
+public partial class C
+{
+    partial void Run(int other)
+    {
+#if NEVER
+        other++;
+#endif
+    }
+}
+```
+
+is reported, and no code fix is offered: renaming `Arg` to `arg` renames the parameter `other` of the second part with it, and the excluded branch of the second document names `other`, which no longer exists after the rename. That `other` is not the reported name does not matter. The same holds in the other direction, when the second part spells the parameter `Other`, which is reported, and the first part carries `#if NEVER` around `[System.Obsolete(nameof(Arg))]` on its declaration: no code fix is offered for `Other`. It holds as well for the parameter of a partial indexer, `this[int Index]` in one part and `this[int position]` in the other, when an excluded branch of the second part names `position`. When no excluded branch names `Arg`, `other`, or `arg`, the fix is offered and renames the parameter in both parts and its references to `arg`.
+
+When the parts of a partial method spell a type parameter differently, `Run<Key>` in one part and `Run<TItem>` in the other, the renamer renames only the reported part, so `TItem` is not an old name: an excluded branch of the second part that names `TItem` does not withhold the fix on `Key`, and the fix renames `Key` to `TKey` in the first part only.
 
 Example — excluded code of an unrelated type, for RH4106, in two documents:
 
