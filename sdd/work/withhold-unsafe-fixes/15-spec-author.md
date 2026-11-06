@@ -172,3 +172,44 @@ Nothing to do: no audit-2 finding touches it.
 - Files: `sdd/specs/analyzer/RH3004.md`, `sdd/specs/analyzer/RH3106.md`, `sdd/specs/shared/code-fixes.md`, `sdd/specs/requirement-ids.txt`.
 - `scripts/test.sh --project architecture`: 114 passed and 1 failed. The failure is `EveryRequirementOfAnEnforcedSpecIsCovered`: "RH3004-007: no test covers it". This is expected for a new requirement, and the test implementer's `[Requirement("RH3004-007")]` test closes it. Every other spec test passes, including `Uses` and the ID registry.
 - No rule page changed (`documentation/rules/RH3004.md` and `RH3106.md`). The changes are a withheld fix, narrowed or widened reports in corner cases, and a layout corner case. The normal case is unchanged.
+
+## Amendment — row 31
+
+Commit: ebc7eb7d. Verdict: spec written. This is a clarification in the bug-fix lane: no change doc, no rule page. My prompt carried the lead's decision (row 31) and no other intended fix or verdict.
+
+### Changed requirements
+
+- RH3004-006 — clarified (row 31, the same class as finding 8).
+  - The case: the first statement starts on its own line, and the measured shift would put a moved line left of column 0. Then every moved line moves by the number of columns that puts the leftmost of them in the statement column, one level inside the braces, and the lines keep their indentation relative to each other.
+  - Every moved line counts for the leftmost line, including a comment or directive line in front of the first statement. Blank lines, directive lines that stay in column 0, and lines that keep their columns do not count.
+  - When no line would go left of column 0, the measured shift applies, even where it puts a line left of the braces.
+  - The requirement now says that no moved line is ever cut off at column 0.
+  - The shared-brace-line paragraph is unchanged. Together, the two paragraphs cover every shift that would cross column 0.
+  - The exception list in the shift sentence and the Why are extended.
+  - New examples (FC-002). Both are `Run(⏎            delegate ()⏎                {⏎                    Foo();⏎…` with the anchor and braces at column 12 and the statement column at 16. The source shift is −4.
+    - Comment `// note` in column 0: the comment lands at 16 and `Foo();` at 36.
+    - Comment in column 8: the measured shift applies, so `Foo();` lands at 16 and the comment at 4.
+
+### Examples for the tests
+
+- RH3004-006: the two new `Run(` examples, one test each.
+
+### Decided on recommendation
+
+- The lead decided row 31 itself; I only wrote it down. One visible consequence for the lead to weigh: the first example is a natural input. It has an old-style brace under `delegate` and a commented-out line in column 0, as an IDE comment toggle writes it. The rule moves `Foo();` to column 36, 20 columns right of the statement column, to keep its offset to the comment. The alternative, keeping a column-0 comment line in column 0 the way column-0 directives are kept, would put `Foo();` at 16. That alternative would be a different rule and is not what row 31 decides.
+
+### Output questions
+
+_None._ The standing instruction applies.
+
+### Internal choices
+
+_None._
+
+### Follow-up candidates
+
+_None._ The candidate in the #1279 section above is now handled by row 31.
+
+### Whole run
+
+- `scripts/test.sh --project architecture`: 114 passed, 1 failed. The failure is the same expected one: "RH3004-007: no test covers it".
