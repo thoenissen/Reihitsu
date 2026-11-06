@@ -5,7 +5,7 @@
 | ID prefix | SHARED-ORDER |
 | Status | Active |
 | Code owners | `OrderingMoveSafety`, `OrderingDeclarationUtilities`, `AccessorOrderingUtilities`, `TypeMemberOrderingCodeFixProviderBase` |
-| Uses | SHARED-TYPEREGION-006 |
+| Uses | SHARED-FIX-003, SHARED-TYPEREGION-006 |
 
 This spec covers how the code fixes of the ordering rules move one declaration in front of an earlier sibling, and when such a move is refused. It applies to the member reordering fixes (RH7102 constants before fields, RH7103 static before instance, RH7109 readonly before non-readonly) and to the accessor reordering fixes (RH7107 property accessors, RH7108 event accessors). It also states the region scope that every rule ordering the members of a type shares (SHARED-ORDER-004), RH7110 included, which offers no fix. Apart from that scope, which declaration a rule reports and where it should go is each rule's own spec; this spec owns the move and its guards.
 
@@ -306,7 +306,7 @@ public class TestClass
 
 ### SHARED-ORDER-007 — Initializer execution order is kept
 
-A member reordering fix that can move fields, event fields, or properties with a runtime initializer MUST NOT offer a move when the moved member has a runtime initializer and a crossed member of the same context — both static or both instance — also has one. A `const` field has no runtime initializer. RH7103 and RH7109 apply this guard.
+A member reordering fix that can move fields, event fields, or properties with a runtime initializer MUST NOT offer a move when the moved member has a runtime initializer and a crossed member of the same context — both static or both instance — also has one. A `const` field has no runtime initializer. A member that code excluded by an `#if`, `#elif`, or `#else` branch declares counts like any other member: it is crossed when it lies in the crossed span (SHARED-ORDER-003), because a build that includes it runs the two initializers in the other order (SHARED-FIX-003, *Build configurations*). Excluded code in the moved declaration's own leading trivia travels with it (SHARED-ORDER-002) and is not crossed. RH7103 and RH7109 apply this guard, and RH7309 counts initializers the same way.
 
 Why: Initializers run in declaration order within their context, the static ones in the static constructor and the instance ones in each instance constructor. Swapping two of them can change observable values silently. Static and instance initializers run at different times, so crossing a member of the other context is safe.
 
@@ -324,6 +324,52 @@ public class TestClass
 ```
 
 Both `_a` and `_b` are reported by RH7103. For `_b` alone, no code fix is offered, because it would cross `_a`. For `_a`, the fix is offered; once it is applied, `_b` no longer crosses an initialized static member and is fixed too.
+
+A member in excluded code that the move crosses refuses it like an active one. Without `DEBUG` defined,
+
+```csharp
+public class C
+{
+    private int _a;
+#if DEBUG
+    private int _c = Log("c");
+#endif
+    private int _d;
+    private readonly int {|RH7109:_b|} = Log("b");
+
+    private static int Log(string name) => 0;
+}
+```
+
+is reported by RH7109, and no code fix is offered: moving `_b` in front of `_a` would run `Log("b")` before `Log("c")` in a build with `DEBUG`. Excluded code in front of the moved member moves with it, so the order stays the same in every build, and the fix is offered:
+
+```csharp
+public class C
+{
+    private int _a;
+    private int _d;
+#if DEBUG
+    private int _c = Log("c");
+#endif
+    private readonly int {|RH7109:_b|} = Log("b");
+
+    private static int Log(string name) => 0;
+}
+```
+
+```csharp
+public class C
+{
+#if DEBUG
+    private int _c = Log("c");
+#endif
+    private readonly int _b = Log("b");
+    private int _a;
+    private int _d;
+
+    private static int Log(string name) => 0;
+}
+```
 
 Crossing an instance initializer is allowed:
 
