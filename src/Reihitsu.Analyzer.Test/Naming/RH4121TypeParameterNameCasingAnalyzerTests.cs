@@ -541,6 +541,30 @@ public class RH4121TypeParameterNameCasingAnalyzerTests : BatchCodeFixTestsBase<
         }
     }
 
+    /// <summary>
+    /// Verifies that a type parameter keeps its diagnostic but gets no fix when an excluded <c>#if</c> branch of its declaring type references it, because the rename would leave that reference behind
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenAnExcludedBranchReferencesTheTypeParameter()
+    {
+        const string testCode = """
+                                public class Cache<{|RH4121:Key|}>
+                                {
+                                #if NEVER
+                                    public Key Get()
+                                    {
+                                        return default;
+                                    }
+                                #endif
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

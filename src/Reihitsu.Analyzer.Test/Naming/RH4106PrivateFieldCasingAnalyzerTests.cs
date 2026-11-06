@@ -835,6 +835,104 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
         await Verify(testCode, testCode);
     }
 
+    /// <summary>
+    /// Verifies that a field keeps its diagnostic but gets no fix when an excluded <c>#if</c> branch of another part of its partial class, declared in another file, references it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenAnExcludedBranchOfAnotherPartReferencesTheField()
+    {
+        const string testCode = """
+                                public partial class C
+                                {
+                                    private int {|RH4106:Value|};
+
+                                    public int Get()
+                                    {
+                                        return Value;
+                                    }
+                                }
+                                """;
+
+        const string otherPartCode = """
+                                     public partial class C
+                                     {
+                                     #if NEVER
+                                         public int Other()
+                                         {
+                                             return Value;
+                                         }
+                                     #endif
+                                     }
+                                     """;
+
+        await Verify(testCode,
+                     testCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherPartCode));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", otherPartCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered when only an excluded <c>#if</c> branch of an unrelated type in another file names the field's old and new names, because the field cannot be referred to there, and leaves that file unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    public async Task FixIsOfferedWhenOnlyAnExcludedBranchOfAnUnrelatedTypeInAnotherFileNamesTheField()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int {|RH4106:Value|};
+
+                                    public int Get()
+                                    {
+                                        return Value;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     private int _value;
+
+                                     public int Get()
+                                     {
+                                         return _value;
+                                     }
+                                 }
+                                 """;
+
+        const string otherFileCode = """
+                                     public class D
+                                     {
+                                     #if NEVER
+                                         private int Value;
+                                         private int _value;
+
+                                         public int Other()
+                                         {
+                                             return Value + _value;
+                                         }
+                                     #endif
+                                     }
+                                     """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherFileCode));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", otherFileCode));
+                     });
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -42,6 +42,58 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
                                               }
                                               """;
 
+    /// <summary>
+    /// Source of a base type whose virtual method an excluded <c>#if</c> branch references
+    /// </summary>
+    private const string BaseWithExcludedReferenceSource = """
+                                                           public class Base
+                                                           {
+                                                               public virtual void {|RH4103:process|}()
+                                                               {
+                                                               }
+
+                                                               public void Run()
+                                                               {
+                                                           #if NEVER
+                                                                   process();
+                                                           #endif
+                                                               }
+                                                           }
+                                                           """;
+
+    /// <summary>
+    /// Source of a file-local type that overrides the virtual method of <see cref="BaseWithExcludedReferenceSource"/>
+    /// </summary>
+    private const string FileLocalLeafSource = """
+                                               file class Leaf : Base
+                                               {
+                                                   public override void {|RH4103:process|}()
+                                                   {
+                                                   }
+                                               }
+                                               """;
+
+    /// <summary>
+    /// Source of an extension method that a query expression would use as its <c>Select</c> clause after the rename
+    /// </summary>
+    private const string SelectExtensionSource = """
+                                                 using System;
+                                                 using System.Collections.Generic;
+
+                                                 namespace Ext;
+
+                                                 public static class MyLinq
+                                                 {
+                                                     public static IEnumerable<TResult> {|RH4103:select|}<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
+                                                     {
+                                                         foreach (var item in source)
+                                                         {
+                                                             yield return selector(item);
+                                                         }
+                                                     }
+                                                 }
+                                                 """;
+
     #endregion // Constants
 
     #region Tests
@@ -1060,6 +1112,868 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
         var reference = await CompiledAssemblyReference.CreateAsync("Meta", MetaAssemblySource);
 
         await Verify(testCode, testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that a static abstract interface method keeps its diagnostic but gets no fix when the rename would reach a <c>DllImport</c> method without entry point that implements it, because that method would then call another native function
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheRenameCascadesToADllImportImplementationWithoutEntryPoint()
+    {
+        const string testCode = """
+                                using System.Runtime.InteropServices;
+
+                                public interface INative
+                                {
+                                    static abstract int {|RH4103:getpid|}();
+                                }
+
+                                public class Native : INative
+                                {
+                                    [DllImport("libc")]
+                                    public static extern int {|RH4103:getpid|}();
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a static abstract interface method keeps its diagnostic but gets no fix when the rename would reach a <c>DllImport</c> method whose entry point is <c>nameof</c> of itself, because the entry point would change
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheRenameCascadesToADllImportImplementationWhoseEntryPointIsNameofTheMethod()
+    {
+        const string testCode = """
+                                using System.Runtime.InteropServices;
+
+                                public interface INative
+                                {
+                                    static abstract int {|RH4103:getpid|}();
+                                }
+
+                                public class Native : INative
+                                {
+                                    [DllImport("libc", EntryPoint = nameof(getpid))]
+                                    public static extern int {|RH4103:getpid|}();
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a static abstract interface method keeps its diagnostic but gets no fix when the rename would reach a <c>LibraryImport</c> method without entry point that implements it. No source generator runs in the test, so the missing implementation is reported before and after
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheRenameCascadesToALibraryImportImplementationWithoutEntryPoint()
+    {
+        const string testCode = """
+                                using System.Runtime.InteropServices;
+
+                                public interface INative
+                                {
+                                    static abstract int {|RH4103:getpid|}();
+                                }
+
+                                public partial class Native : INative
+                                {
+                                    [LibraryImport("libc")]
+                                    public static partial int {|CS8795:{|RH4103:getpid|}|}();
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a static virtual interface method keeps its diagnostic but gets no fix when the rename would reach a <c>DllImport</c> method without entry point that implements it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheRenameOfAStaticVirtualMethodCascadesToADllImportImplementation()
+    {
+        const string testCode = """
+                                using System.Runtime.InteropServices;
+
+                                public interface INative
+                                {
+                                    static virtual int {|RH4103:getpid|}()
+                                    {
+                                        return 0;
+                                    }
+                                }
+
+                                public class Native : INative
+                                {
+                                    [DllImport("libc")]
+                                    public static extern int {|RH4103:getpid|}();
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a static abstract interface method keeps its diagnostic but gets no fix when the rename would reach a <c>DllImport</c> method without entry point that implements it in another project
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheRenameCascadesToADllImportImplementationInADependentProject()
+    {
+        const string contractCode = """
+                                    public interface INative
+                                    {
+                                        static abstract int {|RH4103:getpid|}();
+                                    }
+                                    """;
+
+        const string testCode = """
+                                using System.Runtime.InteropServices;
+
+                                public class Native : INative
+                                {
+                                    [DllImport("libc")]
+                                    public static extern int {|RH4103:getpid|}();
+                                }
+                                """;
+
+        await Verify(testCode,
+                     testCode,
+                     test =>
+                     {
+                         test.TestState.AdditionalProjects["Contracts"].Sources.Add(("/Contracts/INative.cs", contractCode));
+                         test.TestState.AdditionalProjectReferences.Add("Contracts");
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a static abstract interface method is renamed together with a <c>DllImport</c> method that implements it with a literal entry point, because the native function it calls stays the same
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixRenamesAStaticAbstractMethodTogetherWithADllImportImplementationWithALiteralEntryPoint()
+    {
+        const string testCode = """
+                                using System.Runtime.InteropServices;
+
+                                public interface INative
+                                {
+                                    static abstract int {|RH4103:getpid|}();
+                                }
+
+                                public class Native : INative
+                                {
+                                    [DllImport("libc", EntryPoint = "getpid")]
+                                    public static extern int {|RH4103:getpid|}();
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Runtime.InteropServices;
+
+                                 public interface INative
+                                 {
+                                     static abstract int Getpid();
+                                 }
+
+                                 public class Native : INative
+                                 {
+                                     [DllImport("libc", EntryPoint = "getpid")]
+                                     public static extern int Getpid();
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that an override in a file-local type keeps its diagnostic but gets no fix when the rename would reach the overridden method, whose document references it in an excluded <c>#if</c> branch
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheRenameCascadesFromAFileLocalOverrideToAMethodReferencedInExcludedCode()
+    {
+        await Verify(BaseWithExcludedReferenceSource,
+                     BaseWithExcludedReferenceSource,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", FileLocalLeafSource));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", FileLocalLeafSource));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that an override in a file-local type keeps its diagnostic but gets no fix when the rename would reach the overridden method referenced in excluded code, also in documents with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheRenameCascadesFromAFileLocalOverrideToAMethodReferencedInExcludedCodeWithCarriageReturnLineFeed()
+    {
+        var baseCode = NormalizeToCarriageReturnLineFeed(BaseWithExcludedReferenceSource);
+        var leafCode = NormalizeToCarriageReturnLineFeed(FileLocalLeafSource);
+
+        await Verify(baseCode,
+                     baseCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", leafCode));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", leafCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that an override in a private nested type keeps its diagnostic but gets no fix when the rename would reach the overridden method, whose document references it in an excluded <c>#if</c> branch
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheRenameCascadesFromAPrivateNestedOverrideToAMethodReferencedInExcludedCode()
+    {
+        const string leafCode = """
+                                public class Outer
+                                {
+                                    private class Leaf : Base
+                                    {
+                                        public override void {|RH4103:process|}()
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(BaseWithExcludedReferenceSource,
+                     BaseWithExcludedReferenceSource,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", leafCode));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", leafCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a method of a private nested type keeps its diagnostic but gets no fix when the rename would reach the interface method it implements, which another document references in an excluded <c>#if</c> branch
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheRenameCascadesFromAPrivateNestedImplementationToAnInterfaceMethodReferencedInExcludedCode()
+    {
+        const string interfaceCode = """
+                                     public interface IRunner
+                                     {
+                                         void {|RH4103:process|}();
+                                     }
+
+                                     public static class Use
+                                     {
+                                         public static void Run(IRunner runner)
+                                         {
+                                     #if NEVER
+                                             runner.process();
+                                     #endif
+                                         }
+                                     }
+                                     """;
+
+        const string implementationCode = """
+                                          public class Outer
+                                          {
+                                              private class Impl : IRunner
+                                              {
+                                                  public void {|RH4103:process|}()
+                                                  {
+                                                  }
+                                              }
+                                          }
+                                          """;
+
+        await Verify(interfaceCode,
+                     interfaceCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", implementationCode));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", implementationCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that an override in a file-local type keeps its diagnostic but gets no fix when an excluded <c>#if</c> branch of the overridden method's document declares the new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheRenameCascadesFromAFileLocalOverrideToATypeWhoseExcludedCodeDeclaresTheNewName()
+    {
+        const string baseCode = """
+                                public class Base
+                                {
+                                    public virtual void {|RH4103:process|}()
+                                    {
+                                    }
+
+                                #if NEVER
+                                    public void Process()
+                                    {
+                                    }
+                                #endif
+                                }
+                                """;
+
+        await Verify(baseCode,
+                     baseCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", FileLocalLeafSource));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", FileLocalLeafSource));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that an override keeps its diagnostic but gets no fix when the rename would reach the overridden method of a referenced project, whose document references it in an excluded <c>#if</c> branch
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheRenameCascadesFromAnOverrideToAMethodOfAReferencedProjectReferencedInExcludedCode()
+    {
+        const string leafCode = """
+                                public class Leaf : Base
+                                {
+                                    public override void {|RH4103:process|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(leafCode,
+                     leafCode,
+                     test =>
+                     {
+                         test.TestState.AdditionalProjects["BaseProject"].Sources.Add(("/BaseProject/Base.cs", BaseWithExcludedReferenceSource));
+                         test.TestState.AdditionalProjectReferences.Add("BaseProject");
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that an override in a file-local type is renamed together with the overridden method when no excluded code names either name, so the fix stays offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    public async Task FixRenamesAFileLocalOverrideTogetherWithTheOverriddenMethodWhenNoExcludedCodeNamesIt()
+    {
+        const string baseCode = """
+                                public class Base
+                                {
+                                    public virtual void {|RH4103:process|}()
+                                    {
+                                    }
+
+                                    public void Run()
+                                    {
+                                #if NEVER
+                                        Stop();
+                                #else
+                                        process();
+                                #endif
+                                    }
+
+                                    public void Stop()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedBaseCode = """
+                                     public class Base
+                                     {
+                                         public virtual void Process()
+                                         {
+                                         }
+
+                                         public void Run()
+                                         {
+                                     #if NEVER
+                                             Stop();
+                                     #else
+                                             Process();
+                                     #endif
+                                         }
+
+                                         public void Stop()
+                                         {
+                                         }
+                                     }
+                                     """;
+
+        const string fixedLeafCode = """
+                                     file class Leaf : Base
+                                     {
+                                         public override void Process()
+                                         {
+                                         }
+                                     }
+                                     """;
+
+        await Verify(baseCode,
+                     fixedBaseCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", FileLocalLeafSource));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", fixedLeafCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that an override is renamed together with the overridden method of a referenced project when no excluded code names either name, so the fix stays offered across projects
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    public async Task FixRenamesAnOverrideTogetherWithTheOverriddenMethodOfAReferencedProject()
+    {
+        const string baseCode = """
+                                public class Base
+                                {
+                                    public virtual void {|RH4103:process|}()
+                                    {
+                                    }
+
+                                    public void Run()
+                                    {
+                                        process();
+                                    }
+                                }
+                                """;
+
+        const string fixedBaseCode = """
+                                     public class Base
+                                     {
+                                         public virtual void Process()
+                                         {
+                                         }
+
+                                         public void Run()
+                                         {
+                                             Process();
+                                         }
+                                     }
+                                     """;
+
+        const string leafCode = """
+                                public class Leaf : Base
+                                {
+                                    public override void {|RH4103:process|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedLeafCode = """
+                                     public class Leaf : Base
+                                     {
+                                         public override void Process()
+                                         {
+                                         }
+                                     }
+                                     """;
+
+        await Verify(leafCode,
+                     fixedLeafCode,
+                     test =>
+                     {
+                         test.TestState.AdditionalProjects["BaseProject"].Sources.Add(("/BaseProject/Base.cs", baseCode));
+                         test.TestState.AdditionalProjectReferences.Add("BaseProject");
+                         test.FixedState.AdditionalProjects["BaseProject"].Sources.Add(("/BaseProject/Base.cs", fixedBaseCode));
+                         test.FixedState.AdditionalProjectReferences.Add("BaseProject");
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a query method keeps its diagnostic but gets no fix when its new name would make a query expression of another, unchanged document ambiguous
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheNewNameMakesAQueryOfAnotherDocumentAmbiguous()
+    {
+        const string queryCode = """
+                                 using System.Collections.Generic;
+                                 using System.Linq;
+
+                                 using Ext;
+
+                                 public static class Use
+                                 {
+                                     public static IEnumerable<int> Run(List<int> values)
+                                     {
+                                         return from value in values select value * 2;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(SelectExtensionSource,
+                     SelectExtensionSource,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", queryCode));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", queryCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a query method keeps its diagnostic but gets no fix when its new name would make a query expression of the same document ambiguous
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheNewNameMakesAQueryOfTheSameDocumentAmbiguous()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                using Ext;
+
+                                namespace Ext
+                                {
+                                    public static class MyLinq
+                                    {
+                                        public static IEnumerable<TResult> {|RH4103:select|}<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
+                                        {
+                                            foreach (var item in source)
+                                            {
+                                                yield return selector(item);
+                                            }
+                                        }
+                                    }
+                                }
+
+                                public static class Use
+                                {
+                                    public static IEnumerable<int> Run(List<int> values)
+                                    {
+                                        return from value in values select value * 2;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a query method is renamed when a query expression of another document does not see it, so the new name makes nothing ambiguous and the fix stays offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixRenamesAQueryMethodThatNoQueryOfAnotherDocumentSees()
+    {
+        const string queryCode = """
+                                 using System.Collections.Generic;
+                                 using System.Linq;
+
+                                 public static class Use
+                                 {
+                                     public static IEnumerable<int> Run(List<int> values)
+                                     {
+                                         return from value in values select value * 2;
+                                     }
+                                 }
+                                 """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using System.Collections.Generic;
+
+                                 namespace Ext;
+
+                                 public static class MyLinq
+                                 {
+                                     public static IEnumerable<TResult> Select<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
+                                     {
+                                         foreach (var item in source)
+                                         {
+                                             yield return selector(item);
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(SelectExtensionSource,
+                     fixedCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", queryCode));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", queryCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a query method keeps its diagnostic but gets no fix when its new name would make a query expression of a dependent project ambiguous
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheNewNameMakesAQueryOfADependentProjectAmbiguous()
+    {
+        const string queryCode = """
+                                 using System.Collections.Generic;
+                                 using System.Linq;
+
+                                 using Ext;
+
+                                 public static class Use
+                                 {
+                                     public static IEnumerable<int> Run(List<int> values)
+                                     {
+                                         return from value in values select value * 2;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(SelectExtensionSource,
+                     SelectExtensionSource,
+                     test =>
+                     {
+                         test.TestState.AdditionalProjects["Consumer"].Sources.Add(("/Consumer/Use.cs", queryCode));
+                         test.TestState.AdditionalProjects["Consumer"].AdditionalProjectReferences.Add("TestProject");
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that an extension method keeps its diagnostic but gets no fix when its new name would make a deconstruction of another, unchanged document ambiguous
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheNewNameMakesADeconstructionOfAnotherDocumentAmbiguous()
+    {
+        const string extensionCode = """
+                                     namespace Shapes
+                                     {
+                                         public class Point
+                                         {
+                                             public int X { get; set; }
+
+                                             public int Y { get; set; }
+                                         }
+                                     }
+
+                                     namespace Ext
+                                     {
+                                         public static class PointExtensions
+                                         {
+                                             public static void {|RH4103:deconstruct|}(this Shapes.Point point, out int x, out int y)
+                                             {
+                                                 x = point.X;
+                                                 y = point.Y;
+                                             }
+                                         }
+                                     }
+
+                                     namespace Ext2
+                                     {
+                                         public static class PointExtensions
+                                         {
+                                             public static void Deconstruct(this Shapes.Point point, out int x, out int y)
+                                             {
+                                                 x = point.X;
+                                                 y = point.Y;
+                                             }
+                                         }
+                                     }
+                                     """;
+
+        const string useCode = """
+                               using Ext;
+                               using Ext2;
+
+                               using Shapes;
+
+                               public static class Use
+                               {
+                                   public static int Sum(Point point)
+                                   {
+                                       var (x, y) = point;
+
+                                       return x + y;
+                                   }
+                               }
+                               """;
+
+        await Verify(extensionCode,
+                     extensionCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", useCode));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", useCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that an extension method keeps its diagnostic but gets no fix when its new name would make a <c>foreach</c> of another, unchanged document ambiguous
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheNewNameMakesAForeachOfAnotherDocumentAmbiguous()
+    {
+        const string extensionCode = """
+                                     using System.Collections.Generic;
+
+                                     namespace Shapes
+                                     {
+                                         public class Bag
+                                         {
+                                         }
+                                     }
+
+                                     namespace Ext
+                                     {
+                                         public static class BagExtensions
+                                         {
+                                             public static IEnumerator<int> {|RH4103:getEnumerator|}(this Shapes.Bag bag)
+                                             {
+                                                 yield return 1;
+                                             }
+                                         }
+                                     }
+
+                                     namespace Ext2
+                                     {
+                                         public static class BagExtensions
+                                         {
+                                             public static IEnumerator<int> GetEnumerator(this Shapes.Bag bag)
+                                             {
+                                                 yield return 2;
+                                             }
+                                         }
+                                     }
+                                     """;
+
+        const string useCode = """
+                               using Ext;
+                               using Ext2;
+
+                               using Shapes;
+
+                               public static class Use
+                               {
+                                   public static int Sum(Bag bag)
+                                   {
+                                       var sum = 0;
+
+                                       foreach (var value in bag)
+                                       {
+                                           sum += value;
+                                       }
+
+                                       return sum;
+                                   }
+                               }
+                               """;
+
+        await Verify(extensionCode,
+                     extensionCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", useCode));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", useCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that an extension method keeps its diagnostic but gets no fix when its new name would make an <c>await</c> of another, unchanged document ambiguous
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheNewNameMakesAnAwaitOfAnotherDocumentAmbiguous()
+    {
+        const string extensionCode = """
+                                     using System.Runtime.CompilerServices;
+                                     using System.Threading.Tasks;
+
+                                     namespace Shapes
+                                     {
+                                         public class Job
+                                         {
+                                         }
+                                     }
+
+                                     namespace Ext
+                                     {
+                                         public static class JobExtensions
+                                         {
+                                             public static TaskAwaiter {|RH4103:getAwaiter|}(this Shapes.Job job)
+                                             {
+                                                 return Task.CompletedTask.GetAwaiter();
+                                             }
+                                         }
+                                     }
+
+                                     namespace Ext2
+                                     {
+                                         public static class JobExtensions
+                                         {
+                                             public static TaskAwaiter GetAwaiter(this Shapes.Job job)
+                                             {
+                                                 return Task.CompletedTask.GetAwaiter();
+                                             }
+                                         }
+                                     }
+                                     """;
+
+        const string useCode = """
+                               using System.Threading.Tasks;
+
+                               using Ext;
+                               using Ext2;
+
+                               using Shapes;
+
+                               public static class Use
+                               {
+                                   public static async Task Run(Job job)
+                                   {
+                                       await job;
+                                   }
+                               }
+                               """;
+
+        await Verify(extensionCode,
+                     extensionCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", useCode));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", useCode));
+                     });
     }
 
     #endregion // Tests

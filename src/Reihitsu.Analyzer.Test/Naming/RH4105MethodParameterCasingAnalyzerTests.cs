@@ -577,6 +577,32 @@ public class RH4105MethodParameterCasingAnalyzerTests : BatchCodeFixTestsBase<RH
         await Verify(testCode, testCode);
     }
 
+    /// <summary>
+    /// Verifies that a parameter keeps its diagnostic but gets no fix when an excluded <c>#if</c> branch of its method references it, because the rename would leave that reference behind
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenAnExcludedBranchReferencesTheParameter()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    public int M(int {|RH4105:Count|})
+                                    {
+                                #if NEVER
+                                        return Count + 1;
+                                #else
+                                        return Count;
+                                #endif
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
