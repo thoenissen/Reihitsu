@@ -1697,6 +1697,160 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
         await Verify(source, fixedSource);
     }
 
+    /// <summary>
+    /// Verifies that a <c>#pragma warning disable</c> that names a warning by its number pairs with a
+    /// <c>#pragma warning restore</c> that names it with its <c>CS</c> prefix, so no code fix is offered when the new
+    /// block would split them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoCodeFixWhenTheNewBlockWouldSplitAPragmaPairThatNamesTheWarningOnceByNumberAndOnceWithItsPrefix()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                              #pragma warning disable 219
+                                      s.Flush();
+                              #pragma warning restore CS0219
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#pragma warning restore</c> without a warning ends a <c>#pragma warning disable</c> of one warning,
+    /// so no code fix is offered when the new block would split them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoCodeFixWhenTheNewBlockWouldSplitADisableOfOneWarningFromARestoreOfEveryWarning()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                              #pragma warning disable CS0219
+                                      s.Flush();
+                              #pragma warning restore
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that two <c>#nullable</c> directives of the warnings setting pair, so no code fix is offered when the new
+    /// block would split them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoCodeFixWhenTheNewBlockWouldSplitANullablePairOfTheWarningsSetting()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                              #nullable disable warnings
+                                      s.Flush();
+                              #nullable restore warnings
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#nullable</c> directive of the warnings setting ends the warnings setting of a <c>#nullable</c>
+    /// directive without setting, so no code fix is offered when the new block would split them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoCodeFixWhenTheNewBlockWouldSplitANullableDirectiveOfBothSettingsFromOneOfTheWarningsSetting()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                              #nullable disable
+                                      s.Flush();
+                              #nullable restore warnings
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that <c>#nullable</c> directives of different settings do not pair: the directive of the annotations
+    /// setting moves into the block, the one of the warnings setting stays behind it, and the fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-004")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixIsOfferedForNullableDirectivesOfDifferentSettingsOnBothSidesOfTheNewBlock()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                              #nullable disable annotations
+                                      s.Flush();
+                              #nullable enable warnings
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           using (var s = new MemoryStream())
+                                           {
+                                   #nullable disable annotations
+                                               s.Flush();
+                                           }
+                                   #nullable enable warnings
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
     #endregion // Tests
 
     #region Methods

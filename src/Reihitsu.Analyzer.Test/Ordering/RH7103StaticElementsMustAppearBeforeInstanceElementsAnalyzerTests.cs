@@ -1744,6 +1744,95 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifying that an instance field of excluded code in front of the moved static field moves with it: without
+    /// <c>DEBUG</c> defined, the move would carry it in front of an instance field of a struct, whose layout a build with
+    /// <c>DEBUG</c> would then change, so no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7103-007")]
+    public async Task NoCodeFixWhenExcludedCodeInFrontOfTheMovedStaticFieldWouldReorderTheInstanceFieldsOfAStruct()
+    {
+        const string source = """
+                              public struct S
+                              {
+                                  private int _x;
+                              #if DEBUG
+                                  private int _y;
+                              #endif
+                                  private static int {|RH7103:_s|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying the other side of the condition: in a class, whose field order sets no layout, an instance field of
+    /// excluded code in front of the moved static field moves with it, and the fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task FixCarriesAnInstanceFieldOfExcludedCodeInFrontOfTheMovedStaticFieldOfAClass()
+    {
+        const string testCode = """
+                                public class S
+                                {
+                                    private int _x;
+                                #if DEBUG
+                                    private int _y;
+                                #endif
+                                    private static int {|RH7103:_s|};
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class S
+                                 {
+                                 #if DEBUG
+                                     private int _y;
+                                 #endif
+                                     private static int _s;
+                                     private int _x;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifying the counterpart of the shared specification example: without excluded code in front of it, the moved
+    /// static field crosses the instance field of a struct but reorders no instance field, and the fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7103-007")]
+    public async Task FixMovesAStaticFieldOfAStructAcrossAnInstanceField()
+    {
+        const string testCode = """
+                                public struct S
+                                {
+                                    private int _x;
+                                    private static int {|RH7103:_s|};
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public struct S
+                                 {
+                                     private static int _s;
+                                     private int _x;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region Methods
