@@ -310,3 +310,45 @@ scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH3001NotOperato
 scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzerTests|FullyQualifiedName~RH3103UseShorthandForNullableTypesAnalyzerTests|FullyQualifiedName~RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests|FullyQualifiedName~RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests"
 scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzerTests|FullyQualifiedName~RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzerTests|FullyQualifiedName~RH3201CommentsMustContainTextAnalyzerTests|FullyQualifiedName~RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests"
 ```
+
+## Amendment — RH3201-007
+
+Commit: 5ee90bf2 (spec); tests written on that head.
+Verdict: tests written
+
+My prompt named the change asked for (bring `FixOfCommentDirectlyInFrontOfAnIdentifierJoinsTheTokens` in line with RH3201-007); that is the work, not a hoped-for verdict, and expected values come from RH3201-007's example and qualifiers only. Maintainer answer 5 (A) settles *Whole run*, finding 1.
+
+### Tests
+
+All in `src/Reihitsu.Analyzer.Test/Clarity/RH3201CommentsMustContainTextAnalyzerTests.cs`.
+
+| Test | Requirement / failure class | Helper | Expected now |
+|---|---|---|---|
+| `FixOfCommentDirectlyInFrontOfAnIdentifierKeepsTheWhitespaceInFrontOfIt` (was `FixOfCommentDirectlyInFrontOfAnIdentifierJoinsTheTokens`, a characterization pinning `returna;`) | RH3201-007 | Verify (code fix) | fails: `returna;` instead of `return a;` |
+| `FixOfCommentDirectlyInFrontOfAnIdentifierKeepsTheTabInFrontOfIt` | RH3201-007 | Verify (code fix) | fails: `returna;` instead of `return<tab>a;` |
+| `FixOfCommentDirectlyInFrontOfAnOperatorKeepsTheWhitespaceInFrontOfIt` | RH3201-007 | Verify (code fix) | fails: `a ++b` instead of `a + +b` |
+| `FixOfCommentSpanningSeveralLinesDirectlyInFrontOfAnIdentifierKeepsTheWhitespaceInFrontOfIt` | RH3201-007 | Verify (code fix) | fails: `returna;` instead of `return a;` |
+| `FixOfCommentWithWhitespaceOnBothSidesRemovesTheWhitespaceInFrontOfIt` | RH3201-005, RH3201-007 | Verify (code fix) | passes |
+| `FixAllKeepsTheWhitespaceInFrontOfACommentDirectlyInFrontOfAToken` | RH3201-007 | Verify (code fix, single, iterative, Fix All) | fails: `returna;` and `a ++b` |
+
+Conditions of RH3201-007, both sides:
+
+- "separated by spaces or tabs": space (example) and tab tests; the other side, no whitespace in front, is RH3201-006 and stays covered by `CommentBetweenKeywordAndIdentifierIsReportedWithoutACodeFix` (withheld) and `CommentBetweenTokensThatDoNotMergeIsRemoved` (`a+/**/b` → `a+b`), both unchanged and not retagged.
+- "the next token follows the comment directly": the holding side above; the other side, whitespace behind the comment, is `FixOfCommentWithWhitespaceOnBothSidesRemovesTheWhitespaceInFrontOfIt` (`return /**/ a;` → `return a;`, RH3201-005's removal) and the existing `FixRemovesTheCommentLineOrTheWhitespaceInFrontOfTheComment`.
+- "code precedes the comment on its line": the holding side above; a comment at the start of a line directly followed by code is in neither RH3201-005 nor RH3201-007 (follow-up candidate already listed in `00-lead.md`), so no expected output exists and no test was written.
+
+### Not covered, and why
+
+- `return /**//**/a;` (whitespace in front of the first of two adjacent comments): whether "the next token follows the comment directly" holds for the first comment is not decided by the requirement; no expected output, no test. For the lead: RH3201-007 may need a sentence on adjacent comments, as RH3201-006 has.
+- CRLF: the fix keeps or removes only spaces and tabs within one line, and the multi-line comment test's removal is the comment's own text; no line ending is written or moved. FC-033 does not reach it.
+- FC-008: Fix All with several instances is covered by the Fix All test above.
+
+### Run state
+
+`RH3201CommentsMustContainTextAnalyzerTests` on this head: 11 failed, 28 passed. The 11 failures are the five "fails" rows above and the six RH3201-006 tests listed under #1281 as "fails"; each new failure was inspected and differs only in the joined tokens. `scripts/format.sh` changed nothing.
+
+### Commands
+
+```shell
+scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH3201CommentsMustContainTextAnalyzerTests"
+```
