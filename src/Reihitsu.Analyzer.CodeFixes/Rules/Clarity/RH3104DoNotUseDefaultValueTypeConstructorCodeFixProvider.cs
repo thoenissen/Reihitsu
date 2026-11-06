@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Clarity;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
 
@@ -82,7 +83,10 @@ public class RH3104DoNotUseDefaultValueTypeConstructorCodeFixProvider : CodeFixP
             {
                 var expressionSyntax = TryGetExpressionSyntax(root, diagnostic);
 
-                if (expressionSyntax != null)
+                // The replacement is written from the type alone, so a comment or a directive between the tokens of
+                // the creation would be deleted
+                if (expressionSyntax != null
+                    && SyntaxNodeUtilities.InteriorContainsCommentOrDirective(expressionSyntax) == false)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3104Title,
                                                               token => ApplyCodeFixAsync(context.Document, expressionSyntax, token),

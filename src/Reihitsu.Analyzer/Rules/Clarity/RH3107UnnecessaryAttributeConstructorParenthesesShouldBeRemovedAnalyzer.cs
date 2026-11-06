@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Threading;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -37,7 +39,7 @@ public class RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnal
     #region EmptyParenthesesAnalyzerBase
 
     /// <inheritdoc/>
-    protected override bool HasUnnecessaryParentheses(AttributeSyntax node)
+    protected override bool HasUnnecessaryParentheses(AttributeSyntax node, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
         return node.ArgumentList is { Arguments.Count: 0 };
     }

@@ -1,13 +1,13 @@
-﻿using System.Collections.Immutable;
-using System.Composition;
+﻿using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Clarity;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
@@ -17,75 +17,126 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH3106UnnecessaryDelegateParenthesesShouldBeRemovedCodeFixProvider))]
-public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedCodeFixProvider : CodeFixProvider
+public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedCodeFixProvider : EmptyParenthesesCodeFixProviderBase<AnonymousMethodExpressionSyntax>
 {
+    #region Constructor
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    public RH3106UnnecessaryDelegateParenthesesShouldBeRemovedCodeFixProvider()
+        : base(RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzer.DiagnosticId, CodeFixResources.RH3106Title)
+    {
+    }
+
+    #endregion // Constructor
+
     #region Methods
 
     /// <summary>
-    /// Applying the code fix
+    /// Determines whether the node binds a call whose target overload resolution or type inference chooses: an
+    /// invocation, an object creation, a constructor initializer, a primary constructor base type, or an element access
     /// </summary>
-    /// <param name="document">Document</param>
-    /// <param name="anonymousMethodExpression">Anonymous method expression</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The updated <see cref="Document"/> with the code fix applied</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, AnonymousMethodExpressionSyntax anonymousMethodExpression, CancellationToken cancellationToken)
+    /// <param name="node">Node</param>
+    /// <returns><see langword="true"/> if the node binds such a call</returns>
+    private static bool IsOverloadResolvedCall(SyntaxNode node)
     {
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        return node is InvocationExpressionSyntax
+                    or BaseObjectCreationExpressionSyntax
+                    or ConstructorInitializerSyntax
+                    or PrimaryConstructorBaseTypeSyntax
+                    or ElementAccessExpressionSyntax;
+    }
 
-        if (root == null
-            || anonymousMethodExpression.ParameterList == null)
-        {
-            return document;
-        }
-
-        if (anonymousMethodExpression.RemoveNode(anonymousMethodExpression.ParameterList, SyntaxRemoveOptions.KeepExteriorTrivia) is not AnonymousMethodExpressionSyntax updatedAnonymousMethodExpression)
-        {
-            return document;
-        }
-
-        var updatedRoot = root.ReplaceNode(anonymousMethodExpression, updatedAnonymousMethodExpression);
-
-        return document.WithSyntaxRoot(updatedRoot);
+    /// <summary>
+    /// Gets the display text of the symbol a node binds to
+    /// </summary>
+    /// <param name="semanticModel">Semantic model</param>
+    /// <param name="node">Node</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The display text, or <see langword="null"/> when the node binds to no symbol</returns>
+    private static string GetBoundSymbolText(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+    {
+        return semanticModel.GetSymbolInfo(node, cancellationToken).Symbol?.ToDisplayString();
     }
 
     #endregion // Methods
 
-    #region CodeFixProvider
+    #region EmptyParenthesesCodeFixProviderBase
 
     /// <inheritdoc/>
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzer.DiagnosticId];
+    private protected override bool KeepsSpaceInFrontOfFollowingToken => true;
 
     /// <inheritdoc/>
-    public sealed override FixAllProvider GetFixAllProvider()
+    private protected override SyntaxNode GetList(AnonymousMethodExpressionSyntax node)
     {
-        return WellKnownFixAllProviders.BatchFixer;
+        return node.ParameterList;
     }
 
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    private protected override AnonymousMethodExpressionSyntax RemoveList(AnonymousMethodExpressionSyntax node, SyntaxTriviaList separatingTrivia)
     {
-        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+        return node.WithParameterList(null)
+                   .WithDelegateKeyword(node.DelegateKeyword.WithTrailingTrivia(separatingTrivia));
+    }
 
-        if (root != null)
+    /// <inheritdoc/>
+    private protected override async Task<bool> KeepsMeaningAsync(Document document, SyntaxNode root, AnonymousMethodExpressionSyntax node, CancellationToken cancellationToken)
+    {
+        // Without a parameter list, an anonymous method converts to a delegate of any parameter list and has no natural
+        // type, so another overload can become applicable, the call can become ambiguous, or a type argument inferred
+        // from the anonymous method can no longer be inferred. The list stays where any call that takes the anonymous
+        // method as an argument binds differently without it, or where the anonymous method converts to another type
+        var enclosingNodes = node.Ancestors()
+                                 .TakeWhile(static ancestor => ancestor is not (StatementSyntax or MemberDeclarationSyntax))
+                                 .ToList();
+
+        if (enclosingNodes.Any(static ancestor => ancestor is ArgumentSyntax) == false)
         {
-            foreach (var diagnostic in context.Diagnostics)
-            {
-                var anonymousMethodExpression = root.FindToken(diagnostic.Location.SourceSpan.Start)
-                                                    .Parent
-                                                    ?.AncestorsAndSelf()
-                                                    .OfType<AnonymousMethodExpressionSyntax>()
-                                                    .FirstOrDefault();
+            return true;
+        }
 
-                if (anonymousMethodExpression != null)
-                {
-                    context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3106Title,
-                                                              token => ApplyCodeFixAsync(context.Document, anonymousMethodExpression, token),
-                                                              nameof(RH3106UnnecessaryDelegateParenthesesShouldBeRemovedCodeFixProvider)),
-                                            diagnostic);
-                }
+        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+        if (semanticModel == null)
+        {
+            return false;
+        }
+
+        var calls = enclosingNodes.Where(IsOverloadResolvedCall).ToList();
+        var trackedRoot = root.TrackNodes(calls.Append<SyntaxNode>(node));
+        var trackedNode = trackedRoot.GetCurrentNode(node);
+        var updatedRoot = trackedRoot.ReplaceNode(trackedNode, BuildNodeWithoutList(trackedNode));
+        var updatedSemanticModel = await document.WithSyntaxRoot(updatedRoot).GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var updatedTree = updatedSemanticModel?.SyntaxTree;
+
+        if (updatedTree == null)
+        {
+            return false;
+        }
+
+        var updatedTreeRoot = await updatedTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+
+        if (updatedTreeRoot.GetCurrentNode(node) is not { } updatedNode
+            || semanticModel.GetTypeInfo(node, cancellationToken).ConvertedType?.ToDisplayString() != updatedSemanticModel.GetTypeInfo(updatedNode, cancellationToken).ConvertedType?.ToDisplayString())
+        {
+            return false;
+        }
+
+        foreach (var call in calls)
+        {
+            var originalSymbolText = GetBoundSymbolText(semanticModel, call, cancellationToken);
+
+            if (originalSymbolText == null
+                || updatedTreeRoot.GetCurrentNode(call) is not { } updatedCall
+                || GetBoundSymbolText(updatedSemanticModel, updatedCall, cancellationToken) != originalSymbolText)
+            {
+                return false;
             }
         }
+
+        return true;
     }
 
-    #endregion // CodeFixProvider
+    #endregion // EmptyParenthesesCodeFixProviderBase
 }

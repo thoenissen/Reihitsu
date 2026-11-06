@@ -24,51 +24,38 @@ public class RH3005UseReadableConditionsCodeFixProvider : CodeFixProvider
     #region Methods
 
     /// <summary>
-    /// Get the replacement operator token kind
+    /// Get the kind of the mirrored comparison together with the kind of its operator token
     /// </summary>
     /// <param name="kind">Binary expression kind</param>
-    /// <returns>Operator token kind</returns>
-    private static SyntaxKind GetReplacementOperatorTokenKind(SyntaxKind kind)
+    /// <returns>Kind of the mirrored comparison and of its operator token</returns>
+    private static (SyntaxKind ExpressionKind, SyntaxKind OperatorTokenKind) GetMirroredKinds(SyntaxKind kind)
     {
         return kind switch
                {
-                   SyntaxKind.LessThanExpression => SyntaxKind.GreaterThanToken,
-                   SyntaxKind.GreaterThanExpression => SyntaxKind.LessThanToken,
-                   SyntaxKind.LessThanOrEqualExpression => SyntaxKind.GreaterThanEqualsToken,
-                   SyntaxKind.GreaterThanOrEqualExpression => SyntaxKind.LessThanEqualsToken,
-                   SyntaxKind.EqualsExpression => SyntaxKind.EqualsEqualsToken,
-                   SyntaxKind.NotEqualsExpression => SyntaxKind.ExclamationEqualsToken,
-                   _ => SyntaxKind.None
+                   SyntaxKind.LessThanExpression => (SyntaxKind.GreaterThanExpression, SyntaxKind.GreaterThanToken),
+                   SyntaxKind.GreaterThanExpression => (SyntaxKind.LessThanExpression, SyntaxKind.LessThanToken),
+                   SyntaxKind.LessThanOrEqualExpression => (SyntaxKind.GreaterThanOrEqualExpression, SyntaxKind.GreaterThanEqualsToken),
+                   SyntaxKind.GreaterThanOrEqualExpression => (SyntaxKind.LessThanOrEqualExpression, SyntaxKind.LessThanEqualsToken),
+                   SyntaxKind.EqualsExpression => (SyntaxKind.EqualsExpression, SyntaxKind.EqualsEqualsToken),
+                   SyntaxKind.NotEqualsExpression => (SyntaxKind.NotEqualsExpression, SyntaxKind.ExclamationEqualsToken),
+                   _ => (SyntaxKind.None, SyntaxKind.None)
                };
     }
 
     /// <summary>
-    /// Get the replacement operator text
-    /// </summary>
-    /// <param name="kind">Binary expression kind</param>
-    /// <returns>Operator text</returns>
-    private static string GetReplacementOperatorText(SyntaxKind kind)
-    {
-        return GetReplacementOperatorTokenKind(kind) switch
-               {
-                   SyntaxKind.GreaterThanToken => ">",
-                   SyntaxKind.LessThanToken => "<",
-                   SyntaxKind.GreaterThanEqualsToken => ">=",
-                   SyntaxKind.LessThanEqualsToken => "<=",
-                   SyntaxKind.EqualsEqualsToken => "==",
-                   SyntaxKind.ExclamationEqualsToken => "!=",
-                   _ => string.Empty
-               };
-    }
-
-    /// <summary>
-    /// Build the comparison expression with the operands swapped that the fix would produce
+    /// Build the comparison expression with the operands swapped that the fix would produce. It is built as nodes, with
+    /// each operand kept as one operand, so a swap whose text the parser would group differently is recognizable
     /// </summary>
     /// <param name="binaryExpression">Binary expression</param>
     /// <returns>The swapped comparison expression</returns>
     private static ExpressionSyntax BuildSwappedExpression(BinaryExpressionSyntax binaryExpression)
     {
-        return SyntaxFactory.ParseExpression($"{binaryExpression.Right.WithoutTrivia()} {GetReplacementOperatorText(binaryExpression.Kind())} {binaryExpression.Left.WithoutTrivia()}");
+        var (expressionKind, operatorTokenKind) = GetMirroredKinds(binaryExpression.Kind());
+
+        return SyntaxFactory.BinaryExpression(expressionKind,
+                                              binaryExpression.Right.WithoutTrivia().WithTrailingTrivia(SyntaxFactory.Space),
+                                              SyntaxFactory.Token(operatorTokenKind).WithTrailingTrivia(SyntaxFactory.Space),
+                                              binaryExpression.Left.WithoutTrivia());
     }
 
     /// <summary>
@@ -173,9 +160,12 @@ public class RH3005UseReadableConditionsCodeFixProvider : CodeFixProvider
             {
                 var binaryExpression = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.AncestorsAndSelf().OfType<BinaryExpressionSyntax>().FirstOrDefault();
 
+                // The swapped comparison must also parse as it is built: an operand that is itself a comparison can
+                // group differently on the other side, and a mirrored < or > can read as part of a type argument list
                 if (binaryExpression != null
                     && SyntaxNodeUtilities.InteriorContainsCommentOrDirective(binaryExpression) == false
-                    && IsSwapSemanticsPreserving(semanticModel, binaryExpression, context.CancellationToken))
+                    && IsSwapSemanticsPreserving(semanticModel, binaryExpression, context.CancellationToken)
+                    && RewriteParseUtilities.ParsesAsWritten(root, root.ReplaceNode(binaryExpression, BuildSwappedExpression(binaryExpression).WithTriviaFrom(binaryExpression)), context.CancellationToken))
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3005Title,
                                                               token => ApplyCodeFixAsync(context.Document, binaryExpression, token),
