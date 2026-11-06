@@ -36,6 +36,7 @@ Batch 1 (before the test implementer), all answered with the recommended option:
 3. RH3101 rule page example: **A** — make `Derived` `internal` in both blocks so the example compiles (in addition to dropping `virtual`).
 4. RH3106, an anonymous method with an empty parameter list as an argument whose parameter type is not a delegate type (e.g. the only overload takes `object`): **A** — not reported, like answer 2. Arguments where competing overloads or type inference decide the binding stay reported with the fix withheld (RH3106-002).
 5. RH3201, `return /**/a;` (whitespace in front of the empty comment, the comment directly in front of the next token): **A** — the fix writes `return a;`, keeping the separating whitespace (today `returna;`). Raised by 04-test-implementer (test `FixOfCommentDirectlyInFrontOfAnIdentifierJoinsTheTokens`).
+6. RH3004, a one-line block with several statements (`delegate (int x) { int y = x+1; Console.WriteLine(y); }`): the maintainer chose **A** (statements stay on one line between the braces laid out per answer 1) on the condition that A needs no special handling; otherwise **B** (statements formatted, one per line). Lead's assessment: A follows from the general moved-code path (braces laid out, inner text moved with an indentation shift) and B would need its own case. If the implementer finds A needs a dedicated code path for several statements in a one-line block, the answer is B: stop and report it in the handover.
 
 ## Decisions taken
 
