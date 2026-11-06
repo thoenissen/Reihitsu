@@ -435,68 +435,31 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
-    /// Gets the symbols a rename of a declared symbol renames: the symbol itself and, for a member, every member it
-    /// overrides or implements and every member that overrides or implements one of them, transitively
+    /// Gets the rename cascade of a declared symbol: the symbol itself and every symbol declared in source that a rename
+    /// of it renames with it, as Roslyn determines it
     /// </summary>
     /// <param name="solution">Solution containing the symbol</param>
     /// <param name="symbol">Declared symbol</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The symbols, starting with the declared symbol, without duplicates</returns>
     /// <remarks>
-    /// The renamer renames a member together with this override and implementation cascade, so every safety check of a
-    /// rename takes its region from these symbols rather than from the declared symbol alone. Members declared in a
-    /// referenced assembly are part of the cascade but are not renamed; the checks find no source declaration for them
+    /// The set is read from Roslyn's reference engine rather than modeled by relation kind: the definitions that
+    /// <see cref="SymbolFinder.FindReferencesAsync(ISymbol, Solution, CancellationToken)"/> reports are the symbols it
+    /// cascades to, the same search the renamer uses to find what it renames. This covers, for example, overridden and
+    /// overriding members, implemented interface members and their implementations, and the other part of a partial
+    /// method together with its type parameters and parameters. Every safety check of a rename takes its region from
+    /// these symbols rather than from the declared symbol alone. A symbol declared only in a referenced assembly is not
+    /// renamed, so it is not part of the cascade
     /// </remarks>
     private static async Task<ImmutableArray<ISymbol>> GetRenameCascadeAsync(Solution solution, ISymbol symbol, CancellationToken cancellationToken)
     {
-        var cascade = ImmutableArray.CreateBuilder<ISymbol>();
-        var pending = new Queue<ISymbol>();
+        var referencedSymbols = await SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
 
-        cascade.Add(symbol);
-        pending.Enqueue(symbol);
-
-        while (pending.Count > 0)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var current = pending.Dequeue();
-
-            if (current is not (IMethodSymbol or IPropertySymbol or IEventSymbol))
-            {
-                continue;
-            }
-
-            var related = new List<ISymbol>();
-            var overridden = current switch
-                             {
-                                 IMethodSymbol method => method.OverriddenMethod,
-                                 IPropertySymbol property => property.OverriddenProperty,
-                                 IEventSymbol eventSymbol => (ISymbol)eventSymbol.OverriddenEvent,
-                                 _ => null
-                             };
-
-            if (overridden != null)
-            {
-                related.Add(overridden);
-            }
-
-            related.AddRange(await SymbolFinder.FindImplementedInterfaceMembersAsync(current, solution, cancellationToken: cancellationToken).ConfigureAwait(false));
-            related.AddRange(await SymbolFinder.FindOverridesAsync(current, solution, cancellationToken: cancellationToken).ConfigureAwait(false));
-
-            if (current.ContainingType?.TypeKind == TypeKind.Interface)
-            {
-                related.AddRange(await SymbolFinder.FindImplementationsAsync(current, solution, cancellationToken: cancellationToken).ConfigureAwait(false));
-            }
-
-            foreach (var relatedSymbol in related.Select(static relatedSymbol => relatedSymbol.OriginalDefinition)
-                                                 .Where(relatedSymbol => cascade.Contains(relatedSymbol, SymbolEqualityComparer.Default) == false))
-            {
-                cascade.Add(relatedSymbol);
-                pending.Enqueue(relatedSymbol);
-            }
-        }
-
-        return cascade.ToImmutable();
+        return referencedSymbols.Select(static referencedSymbol => referencedSymbol.Definition)
+                                .Where(static definition => definition.Locations.Any(static location => location.IsInSource))
+                                .Prepend(symbol)
+                                .Distinct<ISymbol>(SymbolEqualityComparer.Default)
+                                .ToImmutableArray();
     }
 
     /// <summary>
