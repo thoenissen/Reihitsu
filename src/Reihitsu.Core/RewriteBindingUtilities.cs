@@ -84,11 +84,12 @@ public static class RewriteBindingUtilities
     /// Gets the node that is bound again: the smallest node that can decide how the expression binds. Only an anonymous
     /// function around the expression takes its types from the code around it, so the code that decides reaches up to
     /// the outermost anonymous function around the expression, below the member or accessor the expression belongs to.
-    /// The bound node is the innermost statement other than a block, variable or property initializer outside a
-    /// statement, expression body, constructor initializer, or primary constructor base type around that function, or
-    /// around the expression when no anonymous function surrounds it. A local variable's initializer is bound with its
-    /// declaration statement, which gives an implicitly typed local its type. A statement outside that node cannot change
-    /// how the expression binds, so binding it again would only cost time
+    /// The bound node is the innermost statement other than a block, variable or property initializer or expression body
+    /// outside a statement, constructor initializer, or primary constructor base type around that function, or around
+    /// the expression when no anonymous function surrounds it. A local variable's initializer is bound with its
+    /// declaration statement, which gives an implicitly typed local its type, and a local function's expression body with
+    /// the local function. A statement outside that node cannot change how the expression binds, so binding it again
+    /// would only cost time
     /// </summary>
     /// <param name="expression">Expression</param>
     /// <returns>The node, or <see langword="null"/> when there is none</returns>
@@ -117,8 +118,7 @@ public static class RewriteBindingUtilities
             }
 
             if ((ancestor is StatementSyntax and not BlockSyntax)
-                || (ancestor is EqualsValueClauseSyntax && ancestor.Ancestors().OfType<StatementSyntax>().Any() == false)
-                || ancestor is ArrowExpressionClauseSyntax
+                || (ancestor is (EqualsValueClauseSyntax or ArrowExpressionClauseSyntax) && ancestor.Ancestors().OfType<StatementSyntax>().Any() == false)
                 || ancestor is ConstructorInitializerSyntax
                 || ancestor is PrimaryConstructorBaseTypeSyntax)
             {
