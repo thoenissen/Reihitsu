@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
@@ -951,7 +952,14 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : BatchCodeF
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode);
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         // The diagnostics whose fix is withheld stay and are marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
     }
 
     /// <summary>

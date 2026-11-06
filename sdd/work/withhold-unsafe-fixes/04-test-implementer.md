@@ -352,3 +352,72 @@ Conditions of RH3201-007, both sides:
 ```shell
 scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH3201CommentsMustContainTextAnalyzerTests"
 ```
+
+## Amendment — rows 10 and 13
+
+Commit: f0421490 (head the tests were written on)
+Verdict: tests written
+
+My prompt named the two changes of `00-lead.md` rows 10 and 13; it carried no intended fix, suspected cause, or hoped-for verdict to set aside.
+
+### Row 10 — markup configuration of the nine `FixAll…Reported` tests
+
+Checked on f0421490 before changing anything: all nine failed with `Context: Diagnostics of fixed state — Mismatch between number of diagnostics returned, expected "0" actual "1"` (`"2"` for RH3201), as `05-implementer.md` states. Each test now passes the configuration the repository's existing tests use for a withheld diagnostic that stays marked in the fixed source (`RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests`, `RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests`):
+
+```csharp
+test.FixedState.MarkupHandling = MarkupMode.Allow;
+test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+```
+
+No source, fixed source, markup, or tag changed; `using Microsoft.CodeAnalysis.Testing;` was added where the file lacked it.
+
+| Test | Requirement / failure class | Helper | Expected now |
+|---|---|---|---|
+| `RH3001NotOperatorShouldNotBeUsedAnalyzerTests.FixAllLeavesANegationThatWouldReadAsAGenericNameReported` | unchanged | Verify (Fix All) | passes |
+| `RH3004UseLambdaSyntaxAnalyzerTests.FixAllLeavesABinaryOperandReported` | unchanged | Verify (Fix All) | passes |
+| `RH3005UseReadableConditionsAnalyzerTests.FixAllLeavesAComparisonThatWouldReadAsAGenericNameReported` | unchanged | Verify (Fix All) | passes |
+| `RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzerTests.FixAllLeavesAnAccessThatWouldReadAsACastReported` | unchanged | Verify (Fix All) | passes |
+| `RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests.FixAllLeavesACreationWithACommentInsideReported` | unchanged | Verify (Fix All) | passes |
+| `RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests.FixAllLeavesAnAccessThatWouldReadAsAGenericNameReported` | unchanged | Verify (Fix All) | passes |
+| `RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzerTests.FixAllLeavesAParameterListWithACommentInsideReported` | unchanged | Verify (Fix All) | passes |
+| `RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzerTests.FixAllLeavesAnArgumentListWithACommentInsideReported` | unchanged | Verify (Fix All) | passes |
+| `RH3201CommentsMustContainTextAnalyzerTests.FixAllLeavesAdjacentCommentsBetweenTwoTokensReported` | unchanged | Verify (Fix All) | passes |
+
+### Row 13 — `RewriteParseUtilities` unit tests
+
+New file `src/Reihitsu.Core.Test/RewriteParseUtilitiesTests.cs`. Each rewrite is built as syntax nodes the way the consumers build theirs: `RemovePrefix` replaces a `this.`/`base.` member access by its name with the access's trivia (RH3101, RH3105), a swap builds a new `BinaryExpression` (RH3005), `RemoveComments` drops a multi-line comment from a token's trailing trivia (RH3201). No requirement tag: the requirements are the fixes', and these tests check the shared helper only.
+
+| Test | Requirement / failure class | Helper | Expected now |
+|---|---|---|---|
+| `ParsesAsWrittenReturnsTrueForUnchangedRoot` | — | direct call | passes |
+| `ParsesAsWrittenReturnsTrueForRemovedPrefixThatKeepsItsReading` | FC-003 (holding side) | direct call | passes |
+| `ParsesAsWrittenReturnsFalseForRemovedPrefixThatReadsAsGenericName` (`F(a < this.b, c > (d))`) | FC-003 | direct call | passes |
+| `ParsesAsWrittenReturnsTrueForRemovedPrefixBetweenComparisonsThatStayComparisons` (`F(a < this.b, c > d)`) | FC-003 | direct call | passes |
+| `ParsesAsWrittenReturnsFalseForSwappedComparisonThatReadsAsGenericName` (`F(b > a, c > (d))` → `F(a < b, c > (d))`) | FC-003 | direct call | passes |
+| `ParsesAsWrittenReturnsFalseForRemovedPrefixThatReadsAsCast` (`(base.A)(x)`) | FC-003 | direct call | passes |
+| `ParsesAsWrittenReturnsTrueForRemovedPrefixInParenthesesFollowedByBinaryOperator` (`(base.A) + x`) | FC-003 | direct call | passes |
+| `ParsesAsWrittenReturnsFalseForRemovedCommentThatMergesKeywordAndIdentifier` (`return/**/a`) | FC-003 | direct call | passes |
+| `ParsesAsWrittenReturnsFalseForRemovedCommentThatMergesOperators` (`a+/**/+b`) | FC-003 | direct call | passes |
+| `ParsesAsWrittenReturnsTrueForRemovedCommentBetweenTokensThatDoNotMerge` (`a+/**/b`) | FC-003 | direct call | passes |
+| `ParsesAsWrittenReturnsTrueForRemovedCommentWithWhitespaceOnBothSides` (trivia not compared) | FC-003 | direct call | passes |
+| `ParsesAsWrittenReturnsTrueForRewriteOutsideConditionalDirectives` (the `#if` shape where `IsEquivalentTo` failed) | FC-005 | direct call | passes |
+| `ParsesAsWrittenReturnsTrueForRewriteInBranchActiveThroughPreprocessorSymbol` (`DEBUG` defined in the parse options) | FC-005 | direct call | passes |
+| `ParsesAsWrittenReturnsFalseForRewriteInConditionalBranchThatReadsAsGenericName` | FC-005 | direct call | passes |
+
+Observation on the way, no finding: a first draft put the prefix on the left operand (`F(this.a < b, c > (d))`) and expected `false`; the check returned `true`. The input itself already parses as the generic member access `this.a<b, c>(d)`, so the rewrite keeps its reading and `true` is right. The draft was corrected to the consumer's shape (`a < this.b`), and a temporary RH3105 analyzer test of the same input (it did not compile: CS0307) was removed again.
+
+### Not covered, and why
+
+- Language version: no consumer's rewrite parses differently by language version in a way the tests could reach without also changing the tokens; the preprocessor-symbol test shows the original parse options are the ones used.
+- CRLF: the check compares tokens and structure, not trivia; line endings never reach the comparison.
+
+### Run state
+
+`scripts/test.sh --project core`: Passed 621, Failed 0. The nine touched analyzer classes: Passed 287, Failed 0. `scripts/format.sh` changed nothing after the edits.
+
+### Commands
+
+```shell
+scripts/test.sh --project core --filter "FullyQualifiedName~RewriteParseUtilitiesTests"
+scripts/test.sh --project analyzer --filter "Name~FixAllLeavesANegationThatWouldReadAsAGenericNameReported|Name~FixAllLeavesABinaryOperandReported|Name~FixAllLeavesAComparisonThatWouldReadAsAGenericNameReported|Name~FixAllLeavesAnAccessThatWouldReadAsACastReported|Name~FixAllLeavesACreationWithACommentInsideReported|Name~FixAllLeavesAnAccessThatWouldReadAsAGenericNameReported|Name~FixAllLeavesAParameterListWithACommentInsideReported|Name~FixAllLeavesAnArgumentListWithACommentInsideReported|Name~FixAllLeavesAdjacentCommentsBetweenTwoTokensReported"
+```

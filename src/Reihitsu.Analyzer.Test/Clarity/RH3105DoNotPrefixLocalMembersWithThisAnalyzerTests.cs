@@ -798,7 +798,14 @@ public class RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests : BatchCodeFixTe
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode);
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         // The diagnostics whose fix is withheld stay and are marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
     }
 
     /// <summary>
