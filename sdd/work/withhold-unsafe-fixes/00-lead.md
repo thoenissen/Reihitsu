@@ -34,6 +34,7 @@ Batch 1 (before the test implementer), all answered with the recommended option:
 1. RH3004, anonymous method whose block body is on one line: **A** — the fix lays out its result as the formatter does (the block on its own lines, aligned under the lambda), not on one line.
 2. RH3106, `var a = delegate () { };` and likewise `Delegate d = …` / `object o = …` (C# 10+): **A** — not reported (instead of reported with the fix withheld).
 3. RH3101 rule page example: **A** — make `Derived` `internal` in both blocks so the example compiles (in addition to dropping `virtual`).
+4. RH3106, an anonymous method with an empty parameter list as an argument whose parameter type is not a delegate type (e.g. the only overload takes `object`): **A** — not reported, like answer 2. Arguments where competing overloads or type inference decide the binding stay reported with the fix withheld (RH3106-002).
 
 ## Decisions taken
 
@@ -47,6 +48,7 @@ Batch 1 (before the test implementer), all answered with the recommended option:
 | 6 | Skeptic | RH3004-005 withholds every binary operand, incl. `() => { } + g` (compiles with CS8848) | Accept | Triage comment on #1279 names cast and binary operands; one uniform condition | Withheld fix covered by the triage decision | f71365b7 |
 | 7 | Skeptic | RH3106/RH3107 fixes leave stray whitespace (`delegate  { }`, `[Obsolete /* x */ ]`), pinned by tests | Adjacent fix in this run | Same shared removal the run changes; small; SHARED-FIX-007 already demands the formatter's layout | Demanded by unchanged SHARED-FIX-007 | pending |
 | 8 | Skeptic | Issue #1257's `M(G < A, B > !x)` does not compile as input | Use the valid `switch` form as the reproduction | An input that does not compile is not a case | Internal (test input) | — |
+| 9 | Spec author amendment | RH3106: report of a delegate-target argument whose call would bind elsewhere, be ambiguous, or fail | Stays reported, fix withheld (RH3106-002) | The error comes from competing overloads / inference, not the position (SHARED-DIAG-011); matches #1281 and maintainer answers 2 and 4 | Covered by maintainer answer 4 | a68f412f |
 
 ## Follow-up candidates
 
