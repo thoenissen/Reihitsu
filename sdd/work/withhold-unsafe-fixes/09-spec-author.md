@@ -173,3 +173,37 @@ Why B: a conditional directive in column 0 belongs to no nesting depth. Keeping 
 ### Follow-up candidates
 
 _None._
+
+## Amendment — answer 7
+
+Commit: 41e37b15. This is a clarification in the bug-fix lane, so it needs no change doc and no rule page change. My prompt carried the maintainer's answer (B) and the standing instruction, and no other intended fix or verdict.
+
+### Changed requirements
+
+- RH3004-006 — clarified (answer 7).
+  - In the block the fix moves, a preprocessor directive line that starts in column 0 stays in column 0. `#region` and `#endregion` lines are the exception.
+  - Every other line moves by the number of columns measured on the first statement's line. Those other lines are the statements, comment lines, a directive line in another column, and a `#region`/`#endregion` line in column 0.
+  - The `#if` example now keeps `#if`, `#else`, and `#endif` in column 0, with the statements in column 28.
+  - A second example covers the other side of the qualifier (FC-002). In it, a column-0 `#region`/`#endregion` and an `#if`/`#endif` indented by 12 columns move with the statements by 16 columns, to columns 16 and 28.
+
+### Examples for the tests
+
+- RH3004-006: the conditional-directive example, which changes the expected output of the existing row 22 test.
+- RH3004-006: the new region and indented-directive example.
+
+### Decided on recommendation
+
+- RH3004-006: answer 7 names conditional directives. The requirement extends "stays in column 0" to every directive the formatter keeps in column 0 (FMT-INDENT-009): `#pragma`, `#nullable`, `#define`, `#undef`, `#line`, `#error`, and `#warning`. It excludes `#region`/`#endregion`, which the formatter indents. The reason is the one behind answer 7: such a directive belongs to no nesting depth, and keeping it avoids a second formatting diff. The alternative was conditional directives only, which would shift a column-0 `#pragma` that the formatter then moves back.
+- RH3004-006: a directive that does not start in column 0 moves with the statements. It is moved code (SHARED-FIX-007), and answer 7 only decides column 0. The alternative was to move it to column 0, which would be layout the moved-code bullet does not allow.
+
+### Output questions
+
+_None._ The standing instruction applies.
+
+### Internal choices
+
+_None._
+
+### Follow-up candidates
+
+_None._
