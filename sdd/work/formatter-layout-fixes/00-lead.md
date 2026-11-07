@@ -40,9 +40,12 @@ _None yet._
 
 ## Follow-up candidates
 
-_None yet._
+1. Anonymous-object member `new { X⏎= 1 }`: `= 1` lands at the statement column; recommended join (01-spec-author).
+2. Using alias `using Alias⏎    = System.String;`: `=` line moves to column 0; recommended join (01-spec-author).
+3. List pattern: a comment in front of a list pattern's `]` stays in the `]` column; recommended one level deeper (01-spec-author).
 
 ## Worklist / next step
 
-- Done: claim, draft PR, prepare.sh.
-- Next: spec author (01).
+- Done: claim, draft PR, prepare.sh; spec author 01 at b023a19 (clarifications for #1383, #1149, #1611; no output questions). Lane check after 01: confirmed.
+- Points for the skeptic: #1149 enum-member `=` treated as already required (RH5111-004, P5-2); #1611 leftward shift removes non-space leading whitespace (derived from RH5202-003, SHARED-FIX-007, FMT-RAW-001).
+- Next: skeptic (02).
