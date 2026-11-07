@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
-using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
@@ -17,14 +16,18 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 /// one constraint per line (FMT-BREAK-037)
 /// </summary>
 /// <remarks>
-/// The clause is laid out in two steps. First the wraps that structure nothing are joined: the gap between the type
-/// parameter and the colon, and every gap inside one constraint except the gaps inside a type argument list, which the
-/// angle-bracket collapse (FMT-BREAK-014) and the list element interior join (FMT-BREAK-015) own and which have already
-/// run. Then the clause is judged as these joins leave it: when its colon starts a line, a line break stands behind its
-/// colon, or its constraints span more than one line, the first constraint joins the colon's line, every comma at the start of a line joins the
-/// line of the constraint in front of it, and every later constraint starts its own line. No join crosses a comment, a
-/// directive, or disabled text (FMT-BREAK-001); the line break in such a gap stays, and the indentation phase aligns the
-/// line it starts (FMT-INDENT-032)
+/// Every decision is taken on line-start facts (SHARED-BLANK-008): a line break is an end-of-line trivia or the line
+/// break that ends a single-line comment, a <c>///</c> comment, or a directive
+/// (<see cref="SyntaxTriviaUtilities.AreSeparatedByEndOfLine"/>), and a line break inside the text of a multi-line comment
+/// separates no tokens. The clause is laid out in two steps. First the wraps that structure nothing are joined: the gap
+/// between the type parameter and the colon, and every gap inside one constraint except the gaps inside a type argument
+/// list, which the angle-bracket collapse (FMT-BREAK-014) and the list element interior join (FMT-BREAK-015) own and
+/// which have already run. Then the clause is judged as these joins leave it: when a line break separates its colon from
+/// its type parameter or from its first constraint, or separates two tokens of its constraints, the first constraint
+/// joins the colon's line, every comma at the start of a line joins the line of the constraint in front of it, and every
+/// later constraint is separated from the token in front of it by a line break. No join crosses a comment, a directive,
+/// or disabled text (FMT-BREAK-001); the line break in such a gap stays, and the indentation phase aligns the line it
+/// starts (FMT-INDENT-032)
 /// </remarks>
 internal sealed class GenericConstraintLineBreakRewriter : CSharpSyntaxRewriter
 {
@@ -106,8 +109,10 @@ internal sealed class GenericConstraintLineBreakRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Joins the wraps of a clause that structure nothing (FMT-BREAK-037): the colon onto the line of the type parameter,
-    /// and every line break inside one constraint outside its type argument lists. A gap that holds a comment, a
-    /// directive, or disabled text is not joined
+    /// and every line break inside one constraint outside its type argument lists. A gap that no line break separates is
+    /// left as it is, also where a multi-line comment puts its tokens on different lines of the text, and a gap that
+    /// holds a comment, a directive, or disabled text is not joined. The joins go through the shared batch join
+    /// (<see cref="LineBreakTriviaUtilities.JoinGaps"/>)
     /// </summary>
     /// <param name="clause">The constraint clause</param>
     /// <returns>The clause with the joins applied</returns>
@@ -138,36 +143,18 @@ internal sealed class GenericConstraintLineBreakRewriter : CSharpSyntaxRewriter
             }
         }
 
-        var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
-
-        foreach (var (previousToken, token) in gaps)
-        {
-            if (SyntaxTriviaUtilities.AreSeparatedByEndOfLine(previousToken, token) == false
-                || LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousToken, token))
-            {
-                continue;
-            }
-
-            var currentPrevious = replacements.TryGetValue(previousToken, out var replacedPrevious) ? replacedPrevious : previousToken;
-            var currentToken = replacements.TryGetValue(token, out var replacedToken) ? replacedToken : token;
-
-            replacements[previousToken] = currentPrevious.WithTrailingTrivia(LineBreakTriviaUtilities.CreateJoinedTrailingTrivia(currentPrevious, token));
-            replacements[token] = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(currentToken);
-        }
-
-        if (replacements.Count == 0)
-        {
-            return clause;
-        }
-
-        return clause.ReplaceTokens(replacements.Keys, (original, _) => replacements[original]);
+        return LineBreakTriviaUtilities.JoinGaps(clause,
+                                                 gaps.Where(gap => SyntaxTriviaUtilities.AreSeparatedByEndOfLine(gap.PreviousToken, gap.Token)
+                                                                   && LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(gap.PreviousToken, gap.Token) == false));
     }
 
     /// <summary>
-    /// Determines whether a clause is wrapped (FMT-BREAK-037): its colon starts a line, a line break stands behind its
-    /// colon, or its constraints, from the first token of the first constraint to the last token of the last one, span
-    /// more than one line. After the joins of <see cref="JoinUnstructuredWraps"/>, a colon still starts a line only where
-    /// a comment, a directive, or disabled text keeps it off the type parameter's line
+    /// Determines whether a clause is wrapped (FMT-BREAK-037): a line break separates its colon from its type parameter
+    /// or from its first constraint, or separates two tokens of its constraints, from the first token of the first
+    /// constraint to the last token of the last one. A line break inside the text of a multi-line comment separates no
+    /// tokens (<see cref="SyntaxTriviaUtilities.AreSeparatedByEndOfLine"/>). After the joins of
+    /// <see cref="JoinUnstructuredWraps"/>, a line break still separates the colon from the type parameter only where a
+    /// comment, a directive, or disabled text keeps it
     /// </summary>
     /// <param name="clause">The constraint clause, after the joins of <see cref="JoinUnstructuredWraps"/></param>
     /// <returns><see langword="true"/> if the clause is wrapped; otherwise, <see langword="false"/></returns>
@@ -175,8 +162,8 @@ internal sealed class GenericConstraintLineBreakRewriter : CSharpSyntaxRewriter
     {
         var firstToken = clause.Constraints[0].GetFirstToken();
 
-        if (TokenGapUtilities.HasLineBreakBetween(clause.Name.GetLastToken(), clause.ColonToken)
-            || TokenGapUtilities.HasLineBreakBetween(clause.ColonToken, firstToken))
+        if (SyntaxTriviaUtilities.AreSeparatedByEndOfLine(clause.Name.GetLastToken(), clause.ColonToken)
+            || SyntaxTriviaUtilities.AreSeparatedByEndOfLine(clause.ColonToken, firstToken))
         {
             return true;
         }
@@ -187,7 +174,7 @@ internal sealed class GenericConstraintLineBreakRewriter : CSharpSyntaxRewriter
         // between two of them
         foreach (var token in clause.DescendantTokens().Where(token => token.SpanStart > firstToken.SpanStart))
         {
-            if (TokenGapUtilities.HasLineBreakBetween(previousToken, token))
+            if (SyntaxTriviaUtilities.AreSeparatedByEndOfLine(previousToken, token))
             {
                 return true;
             }
@@ -199,8 +186,8 @@ internal sealed class GenericConstraintLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Joins the token behind a gap that holds a line break onto the line of the token in front of it through the shared
-    /// collapse (<see cref="LineBreakTriviaUtilities.CollapseTokenToSameLine"/>), which refuses a gap that holds a comment,
+    /// Joins the token behind a gap that a line break separates (<see cref="SyntaxTriviaUtilities.AreSeparatedByEndOfLine"/>)
+    /// onto the line of the token in front of it through the shared collapse (<see cref="LineBreakTriviaUtilities.CollapseTokenToSameLine"/>), which refuses a gap that holds a comment,
     /// a directive, or disabled text
     /// </summary>
     /// <param name="clause">The constraint clause containing both tokens</param>
@@ -209,16 +196,19 @@ internal sealed class GenericConstraintLineBreakRewriter : CSharpSyntaxRewriter
     /// <returns>The clause with the gap joined, or the clause unchanged</returns>
     private static TypeParameterConstraintClauseSyntax JoinGap(TypeParameterConstraintClauseSyntax clause, SyntaxToken previousToken, SyntaxToken token)
     {
-        return TokenGapUtilities.HasLineBreakBetween(previousToken, token)
+        return SyntaxTriviaUtilities.AreSeparatedByEndOfLine(previousToken, token)
                    ? LineBreakTriviaUtilities.CollapseTokenToSameLine(clause, token)
                    : clause;
     }
 
     /// <summary>
     /// Lays out a wrapped clause one constraint per line (FMT-BREAK-037): the first constraint joins the colon's line,
-    /// every comma joins the line of the constraint in front of it, and every later constraint that shares its line with
-    /// the constraint in front of it is moved onto a new line. A comma that a comment, a directive, or disabled text keeps
-    /// at the start of its line stays there, and the constraint behind it shares its line with no other constraint
+    /// every comma joins the line of the constraint in front of it, and every later constraint that no line break
+    /// separates from the comma in front of it gets a line break appended to the comma's trailing trivia, behind any
+    /// comment there, so a multi-line comment behind a comma stays behind it. A line break inside the text of a multi-line
+    /// comment separates no tokens (<see cref="SyntaxTriviaUtilities.AreSeparatedByEndOfLine"/>). A comma that a comment, a
+    /// directive, or disabled text keeps at the start of its line stays there, and the constraint behind it shares its
+    /// line with no other constraint
     /// </summary>
     /// <param name="clause">The wrapped constraint clause</param>
     /// <param name="endOfLine">The end-of-line sequence to insert</param>
@@ -238,8 +228,8 @@ internal sealed class GenericConstraintLineBreakRewriter : CSharpSyntaxRewriter
         {
             var separator = clause.Constraints.GetSeparator(separatorIndex);
 
-            if (TokenGapUtilities.HasLineBreakBetween(separator, clause.Constraints[separatorIndex + 1].GetFirstToken())
-                || TokenGapUtilities.HasLineBreakBetween(clause.Constraints[separatorIndex].GetLastToken(), separator))
+            if (SyntaxTriviaUtilities.AreSeparatedByEndOfLine(separator, clause.Constraints[separatorIndex + 1].GetFirstToken())
+                || SyntaxTriviaUtilities.AreSeparatedByEndOfLine(clause.Constraints[separatorIndex].GetLastToken(), separator))
             {
                 continue;
             }
