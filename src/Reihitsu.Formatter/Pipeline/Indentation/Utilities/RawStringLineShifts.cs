@@ -373,7 +373,7 @@ internal sealed class RawStringLineShifts
     /// </summary>
     /// <param name="trivia">The trivia</param>
     /// <param name="offset">The offset of the line's start in the trivia's text</param>
-    /// <param name="edit">The edit: the position the line starts at, the number of characters of indentation it replaces, and the number of spaces that replace them</param>
+    /// <param name="edit">The edit: the position the line starts at, the number of characters of indentation it has, and the column it has after the move</param>
     /// <returns>The trivia with the line moved</returns>
     private static SyntaxTrivia MoveLineInsideTrivia(SyntaxTrivia trivia, int offset, (int LineStart, int OldLength, int NewLength) edit)
     {

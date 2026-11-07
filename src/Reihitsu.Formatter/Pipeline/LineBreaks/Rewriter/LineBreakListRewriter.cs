@@ -532,7 +532,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     /// <param name="list">The separated syntax list to process</param>
     /// <param name="endOfLine">The end-of-line sequence to add after separators that need splitting</param>
     /// <param name="isWrappedAfterOpener">
-    /// Whether the caller already joined a wrap behind the list's opening delimiter, which
+    /// Whether the list was wrapped behind its opening delimiter as written, which
     /// signals the split like a wrapped element does
     /// </param>
     /// <returns>The node with updated separators</returns>

@@ -8,7 +8,7 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 /// <param name="Node">The literal expression or interpolated string expression</param>
 /// <param name="OpeningLine">The 0-based line on which the literal starts</param>
 /// <param name="ClosingLine">The 0-based line on which the literal's closing marker stands</param>
-/// <param name="ClosingColumn">The number of spaces in front of the closing marker</param>
+/// <param name="ClosingColumn">The width of the whitespace in front of the closing marker, each whitespace character counting as one column</param>
 /// <param name="QuoteOffset">The offset of the first opening quote from the literal's first character</param>
 internal readonly record struct RawStringLiteral(SyntaxNode Node, int OpeningLine, int ClosingLine, int ClosingColumn, int QuoteOffset)
 {
@@ -30,7 +30,7 @@ internal readonly record struct RawStringLiteral(SyntaxNode Node, int OpeningLin
     public int ClosingLine { get; } = ClosingLine;
 
     /// <summary>
-    /// The number of spaces in front of the closing marker
+    /// The width of the whitespace in front of the closing marker, each whitespace character counting as one column
     /// </summary>
     public int ClosingColumn { get; } = ClosingColumn;
 
