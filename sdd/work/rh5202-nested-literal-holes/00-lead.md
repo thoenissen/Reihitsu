@@ -51,5 +51,5 @@
 - Implementer (16, 52e13fe), cleaner (17, 381cbe7), spec checker (18, 772c0b4): no findings.
 - Audit 2 (19, fbe729e; audited 4a00ace): #1 closed, #2 superseded, arch closed; new #3 (high), #4 (low) → decisions 12, 13.
 - Repair round 3 (of 3, last): spec author done (20, 0dd23fe; new RH5202-006) → tests (21, 43881b1; 12 red) → implementer (22, cc662a9) → cleaner (23) → spec checker (24, fd644ed): no findings → auditor 3 (25, 447b753): #3, #4 closed; new #5 (medium, test), #6 (low, spec text) → decision 15.
-- Final narrowing round: spec author (#6) → test implementer (#5) → cleaner → spec checker → auditor (that round only) → validator → publish. (old tail: test implementer (#3 members + boundary, #4) → implementer → cleaner → spec checker → auditor (repair only) → validator.
+- Final narrowing round: spec author (26, 866aa44) → tests (27, 690768e; green, proven failable) → cleaner (28) → spec checker (29, b94c899): consistent → auditor (that round only) → validator → publish. (old tail: test implementer (#3 members + boundary, #4) → implementer → cleaner → spec checker → auditor (repair only) → validator.
 - (old next: auditor (repairs since 685ab42) → validator → publish.
