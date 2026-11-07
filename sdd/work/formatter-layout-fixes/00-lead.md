@@ -89,4 +89,6 @@ None in this run so far. The issues' comments carry triage decisions (summarized
 - Implementer 08 at 64b11e6 (production acc2f4c): decision 15 done; core/formatter/analyzer green.
 - Cleaner 09 at 63dc580: clean, Release build 0 warnings.
 - Spec checker 10 at 4619ccd: one change-doc finding (decision 18). Repair round 1 of 3.
-- Next: spec author (11) for decision 18; spec checker (12); then auditor (13).
+- Spec author 11 at faa36db (decision 18); spec checker 12 at a75e2a3: consistent.
+- Before auditor: main not ahead; build green.
+- Next: auditor (13).
