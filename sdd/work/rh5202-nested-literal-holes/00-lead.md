@@ -43,4 +43,5 @@
 - Repair round 1: tests (08, 2ec5c72), implementer (09, 06d1db8), tests amendment (10, 2f822ff; decision 9), cleaner (11, 371a1af), spec checker (12, 4cf325b): 2 findings.
 - Repair round 2 (of 3): spec author (13, c603e8a), decision 10 (reverses 7), spec amendment (14, 3c67247), decision 11.
 - Tests (15, 07eebea): 4 red.
-- Next: implementer (decision 10) → cleaner → spec checker → auditor (repairs since 685ab42) → validator → publish.
+- Implementer (16, 52e13fe), cleaner (17, 381cbe7), spec checker (18, 772c0b4): no findings.
+- Next: auditor (repairs since 685ab42) → validator → publish.
