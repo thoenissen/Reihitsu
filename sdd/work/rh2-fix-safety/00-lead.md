@@ -59,6 +59,7 @@ Maintainer: "keep it simple".
 | 26 | Auditor 17 | Finding 6: `VerifyFixKeepsACommentLineInFrontOfTheType` accepts the in-place layout, which SHARED-FIX-007 forbids for an offered fix | Repair: drop the in-place outcome | SHARED-FIX-007 already applies (decision 21) | Unchanged requirement decides | — |
 | 27 | Auditor 17 | Hint: RH2001 `// c⏎ static private int Value { get; }` now reported without a fix (`main` offered a fix that duplicated the comment) | Accept; fold into follow-up 4 | SHARED-FIX-003 forbids the duplicate; a withheld fix is a supported end state | Withholding replaces an output SHARED-FIX-003 forbids | — |
 | 28 | Spec author 18 | Q8 covers `static public /* note */ int` (comment behind `public` on its line) | Accept the literal reading; drop follow-up candidate 5 | The question asked about a comment behind a later `public` on its line; same answer | Covered by Q8 | 9c2c5dc |
+| 29 | Test implementer 19 | First-position `public` with trailing line break or comment: no requirement decides | Pin `main`'s unchanged output (untagged characterization tests) | Output unchanged from `main` | Not changed by the run | 881b226 |
 | 9 | Skeptic | Spec-author follow-up candidates 1 and 2 | Collapse into one spec-wording follow-up for SHARED-DIAG-004; candidate 2 folds into Q1's answer | SHARED-NESTED-002 already decides candidate 1 | Wording follow-up only | — |
 
 ## Follow-up candidates
@@ -111,6 +112,6 @@ Maintainer: "keep it simple".
 - Implementer 14 done (2f1fb5a, d09d88f): all tests pass (analyzer 7153, core 649, architecture 115).
 - Cleaner 15 clean (f4be099); spec checker 16 consistent (38ad14b).
 - Audit 17 of a79eb22: BLOCKED — finding 5 (architecture, decision 25) and 6 (repair, decision 26). Repair round 2 (of 3).
-- Q7, Q8 answered 7A, 8A. Spec author 18 done (9c2c5dc). Next: test implementer (19), implementer (20), cleaner, spec checker, auditor, validator.
+- Q7, Q8 answered 7A, 8A. Spec author 18 done (9c2c5dc). Test implementer 19 done (881b226, 39 reds). Next:, implementer (20), cleaner, spec checker, auditor, validator.
 - (old line) Next (was: test implementer 13) narrows tests to the answered outputs; implementer (14) repairs findings 1–4 with decisions 16–18.
 - Repair round 1 (of 3) worklist: test implementer (11) adds regressions for 1, 2a, 2b, 4a, 4b; implementer (12) repairs 1–4 with decisions 16–18; cleaner, spec checker, auditor (repair only), validator.
