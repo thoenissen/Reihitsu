@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -36,23 +37,9 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineCodeFixProvider : 
     /// <returns>The trivia that ends that line, or a trivia of kind <see cref="SyntaxKind.None"/> when no line break outside a comment stands in the gap</returns>
     private static SyntaxTrivia FindLineEndingTrivia(BreakStatementSyntax breakStatement, SyntaxToken nextToken)
     {
-        foreach (var trivia in breakStatement.SemicolonToken.TrailingTrivia)
-        {
-            if (SyntaxTriviaUtilities.EndsLine(trivia))
-            {
-                return trivia;
-            }
-        }
-
-        foreach (var trivia in nextToken.LeadingTrivia)
-        {
-            if (SyntaxTriviaUtilities.EndsLine(trivia))
-            {
-                return trivia;
-            }
-        }
-
-        return default;
+        return breakStatement.SemicolonToken.TrailingTrivia
+                             .Concat(nextToken.LeadingTrivia)
+                             .FirstOrDefault(SyntaxTriviaUtilities.EndsLine);
     }
 
     /// <summary>
