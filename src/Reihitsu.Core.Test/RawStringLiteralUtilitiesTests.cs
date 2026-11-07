@@ -22,12 +22,12 @@ public class RawStringLiteralUtilitiesTests
     [DataRow("    \"\"\"", 4)]
     [DataRow("\t\t\"\"\"", 2)]
     [DataRow(" \t \"\"\"", 3)]
-    [DataRow("    \"\"\"", 4)]
-    [DataRow("     \"\"\"", 5)]
-    [DataRow("\v\f x", 3)]
+    [DataRow("\u00A0   \"\"\"", 4)]
+    [DataRow("    \u00A0\"\"\"", 5)]
+    [DataRow("\v\f\u2003x", 3)]
     [DataRow("  x  ", 2)]
     [DataRow("    ", 4)]
-    [DataRow(" \t ", 3)]
+    [DataRow("\u00A0\t ", 3)]
     public void GetLeadingWhitespaceLengthCountsEveryLeadingWhitespaceCharacter(string lineText, int expectedLength)
     {
         Assert.AreEqual(expectedLength, RawStringLiteralUtilities.GetLeadingWhitespaceLength(lineText));
