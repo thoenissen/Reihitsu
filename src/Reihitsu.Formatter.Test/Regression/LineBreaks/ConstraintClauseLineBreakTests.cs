@@ -1481,5 +1481,115 @@ public class ConstraintClauseLineBreakTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that in a wrapped clause a multi-line comment between the type parameter and the colon does not put the colon
+    /// on a line of its own, and that the later constraint aligns under the first constraint on the comment's closing line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-037")]
+    [Requirement("FMT-INDENT-032")]
+    public void ColonBehindMultiLineCommentClosingLineInWrappedClauseAlignsUnderFirstConstraint()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M<T>()
+                                     where T /* a
+                                         b */ : class,
+                                         new()
+                                 {
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M<T>()
+                                        where T /* a
+                                            b */ : class,
+                                                   new()
+                                    {
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that in a wrapped clause a multi-line comment behind the colon does not put the first constraint on a line of
+    /// its own, and that the later constraint aligns under the first constraint on the comment's closing line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-037")]
+    [Requirement("FMT-INDENT-032")]
+    public void FirstConstraintBehindMultiLineCommentClosingLineInWrappedClauseAlignsLaterConstraints()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M<T>()
+                                     where T : /* a
+                                         b */ class,
+                                         new()
+                                 {
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M<T>()
+                                        where T : /* a
+                                            b */ class,
+                                                 new()
+                                    {
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that in a wrapped clause a comma behind a multi-line comment's closing line stays at the end of the line of the
+    /// constraint in front of it, and that the constraint behind the comma starts its own line, so the clause is not split partway
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-037")]
+    [Requirement("FMT-INDENT-032")]
+    public void CommaBehindMultiLineCommentClosingLineInWrappedClauseIsFollowedByLineBreak()
+    {
+        const string input = """
+                             using System;
+
+                             class C
+                             {
+                                 void M<T>()
+                                     where T : class /* a
+                                         b */, new(),
+                                         IDisposable
+                                 {
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System;
+
+                                class C
+                                {
+                                    void M<T>()
+                                        where T : class /* a
+                                            b */,
+                                                  new(),
+                                                  IDisposable
+                                    {
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
