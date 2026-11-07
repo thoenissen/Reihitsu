@@ -123,14 +123,14 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
 
     /// <summary>
     /// Writes the content of the anonymous method's block into the formatted lambda's block as moved code: the text from
-    /// its first to its last statement, with their comments, directives, disabled text, and the blank lines between them,
-    /// keeps its own layout. Every line either moves or stays (<see cref="IsMovingLine"/>), and every moving line moves by
-    /// the same column delta, measured on the block's first statement line, which always moves, so that this line stands
-    /// one level inside the braces the formatter laid out. When the first statement shares the opening brace's line, the
-    /// moving lines after it move by their own delta that puts the leftmost of them in the statement column, where one of
-    /// them starts left of the first statement. Otherwise, where the delta would put a moving line left of column 0, every
-    /// moving line moves by the delta that puts the leftmost of them in the statement column. Statements that shared the
-    /// block's line stay on one line. A comment behind the opening brace on its line stays behind the new opening brace
+    /// its first to its last statement, with their comments and the blank lines between them, keeps its own layout. Every
+    /// line either moves or stays (<see cref="IsMovingLine"/>), and every moving line moves by the same column delta,
+    /// measured on the block's first statement line, which always moves, so that this line stands one level inside the
+    /// braces the formatter laid out. When the first statement shares the opening brace's line, the moving lines after it
+    /// move by their own delta that puts the leftmost of them in the statement column, where one of them starts left of
+    /// the first statement. Otherwise, where the delta would put a moving line left of column 0, every moving line moves
+    /// by the delta that puts the leftmost of them in the statement column. Statements that shared the block's line stay
+    /// on one line. A comment behind the opening brace on its line stays behind the new opening brace
     /// </summary>
     /// <param name="originalDocument">Document before the fix</param>
     /// <param name="formattedDocument">Document with the formatted lambda</param>
@@ -247,10 +247,7 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
     /// <summary>
     /// Gets the position the column delta of the moved code is measured on: the first character of the block's first
     /// statement line, also where it starts a comment in front of the statement. That is the first line, in source order,
-    /// on which code starts, whether active code or disabled text of an inactive branch, so the result does not depend on
-    /// which preprocessor symbols are defined. Code starts on the line, and no string begun on an earlier line covers its
-    /// start, because such a string would start code on an earlier line, so the line always moves. A block in which no
-    /// line holds code is measured on its first moving line
+    /// on which code starts, so it always moves. A block in which no line holds code is measured on its first moving line
     /// </summary>
     /// <param name="elements">Elements of the block's lines</param>
     /// <param name="text">Text of the original document</param>
@@ -293,11 +290,9 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Gets the elements the outcome of the block's lines is decided on, in source order: every string as a whole, every
-    /// other token, every comment, and every directive, also in the disabled text of an inactive branch. A string literal
-    /// or interpolated string expression is one element from its first character through its closing quote and suffix,
-    /// holes and the strings nested in them included, never its tokens. In disabled text, the strings are those that
-    /// lexing the disabled text between its directives gives, each of which is one token
+    /// Gets the elements the outcome of the block's lines is decided on, in source order: every token and every comment.
+    /// The fix is offered only for a block without directives and disabled text, and without strings and delimited
+    /// comments that span lines, so every element but a documentation comment written with <c>///</c> lies on one line
     /// </summary>
     /// <param name="block">Block of the anonymous method</param>
     /// <returns>The elements, with their spans and kinds</returns>
@@ -307,24 +302,12 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
 
         foreach (var token in block.DescendantTokens())
         {
-            if (GetOutermostString(token, block) is not { } stringExpression)
+            AddTriviaElements(token.LeadingTrivia, elements);
+            AddTriviaElements(token.TrailingTrivia, elements);
+
+            if (token.Span.IsEmpty == false)
             {
-                AddLineElements(token, elements);
-
-                continue;
-            }
-
-            // The string is one element; the tokens, comments, and directives inside it are part of it
-            if (token == stringExpression.GetFirstToken())
-            {
-                AddTriviaElements(token.LeadingTrivia, elements);
-
-                elements.Add((stringExpression.Span, stringExpression.Kind()));
-            }
-
-            if (token == stringExpression.GetLastToken())
-            {
-                AddTriviaElements(token.TrailingTrivia, elements);
+                elements.Add((token.Span, token.Kind()));
             }
         }
 
@@ -334,59 +317,7 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Gets the outermost string a token of the block belongs to: a string literal or an interpolated string expression,
-    /// below the block, that contains the token
-    /// </summary>
-    /// <param name="token">Token</param>
-    /// <param name="block">Block of the anonymous method</param>
-    /// <returns>The string, or <see langword="null"/> when the token belongs to none</returns>
-    private static ExpressionSyntax GetOutermostString(SyntaxToken token, BlockSyntax block)
-    {
-        ExpressionSyntax outermostString = null;
-
-        for (var node = token.Parent; node != null && node != block; node = node.Parent)
-        {
-            if (IsString(node))
-            {
-                outermostString = (ExpressionSyntax)node;
-            }
-        }
-
-        return outermostString;
-    }
-
-    /// <summary>
-    /// Determines whether a node is a string: a string literal, also a UTF-8 or raw one, or an interpolated string
-    /// expression
-    /// </summary>
-    /// <param name="node">Node</param>
-    /// <returns><see langword="true"/> for a string</returns>
-    private static bool IsString(SyntaxNode node)
-    {
-        return node is InterpolatedStringExpressionSyntax
-               || node.IsKind(SyntaxKind.StringLiteralExpression)
-               || node.IsKind(SyntaxKind.Utf8StringLiteralExpression);
-    }
-
-    /// <summary>
-    /// Adds a token and the comments, directives, and disabled text around it to the elements of the block's lines
-    /// </summary>
-    /// <param name="token">Token</param>
-    /// <param name="elements">Elements</param>
-    private static void AddLineElements(SyntaxToken token, List<(TextSpan Span, SyntaxKind Kind)> elements)
-    {
-        AddTriviaElements(token.LeadingTrivia, elements);
-        AddTriviaElements(token.TrailingTrivia, elements);
-
-        if (token.Span.IsEmpty == false)
-        {
-            elements.Add((token.Span, token.Kind()));
-        }
-    }
-
-    /// <summary>
-    /// Adds the comments, directives, and disabled text of a trivia list to the elements of the block's lines. The
-    /// disabled text is lexed on its own, between its directives, into its tokens and comments
+    /// Adds the comments and skipped tokens of a trivia list to the elements of the block's lines
     /// </summary>
     /// <param name="triviaList">Trivia</param>
     /// <param name="elements">Elements</param>
@@ -394,16 +325,9 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
     {
         foreach (var trivia in triviaList)
         {
-            if (trivia.IsKind(SyntaxKind.DisabledTextTrivia))
-            {
-                foreach (var disabledToken in SyntaxFactory.ParseTokens(trivia.ToString(), initialTokenPosition: trivia.SpanStart))
-                {
-                    AddLineElements(disabledToken, elements);
-                }
-            }
-            else if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false
-                     && trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false
-                     && trivia.FullSpan.IsEmpty == false)
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false
+                && trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false
+                && trivia.FullSpan.IsEmpty == false)
             {
                 // The full span of a documentation comment starts at its first marker, which its span leaves out
                 elements.Add((trivia.FullSpan, trivia.Kind()));
@@ -412,8 +336,7 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Determines whether an element of the block's lines is code: a string, a token, also of disabled text, or skipped
-    /// tokens
+    /// Determines whether an element of the block's lines is code: a token or skipped tokens
     /// </summary>
     /// <param name="element">Element</param>
     /// <returns><see langword="true"/> for code</returns>
@@ -424,12 +347,9 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Determines whether a line of the moved code moves with the statements or stays in its columns, decided on its
-    /// source text alone. A line stays when its first character lies inside a string begun on an earlier line, a string
-    /// element of <see cref="GetLineElements"/>, whose value its whitespace is part of, whatever follows the string on the
-    /// line; when it is a directive line in column 0 other than <c>#region</c> and <c>#endregion</c>; when it holds no
-    /// code and its first comment starts in column 0; and when it holds no code and continues a comment whose first line
-    /// stays. Every other line moves, above all every line on which code starts
+    /// Determines whether a line of the moved code moves with the statements or stays in its columns. A line stays when
+    /// it holds no code and its first comment starts in column 0; a line of a documentation comment written with
+    /// <c>///</c> is decided on its own marker. Every other line moves, above all every line that holds code
     /// </summary>
     /// <param name="elements">Elements of the block's lines</param>
     /// <param name="text">Text of the original document</param>
@@ -456,7 +376,7 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
 
             if (IsCode(element))
             {
-                return element.Span.Start >= line.Start;
+                return true;
             }
 
             firstElement ??= element;
@@ -467,22 +387,10 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
             return true;
         }
 
-        if (SyntaxFacts.IsPreprocessorDirective(first.Kind))
-        {
-            return first.Span.Start != line.Start
-                   || first.Kind == SyntaxKind.RegionDirectiveTrivia
-                   || first.Kind == SyntaxKind.EndRegionDirectiveTrivia;
-        }
-
-        if (first.Kind == SyntaxKind.SingleLineDocumentationCommentTrivia)
-        {
-            // One documentation comment spans every one of its lines, each of which starts with its own marker
-            return SkipIndentation(text, line.Start, lineEnd) != line.Start;
-        }
-
         if (first.Span.Start < line.Start)
         {
-            return IsMovingLine(elements, text, text.Lines.GetLineFromPosition(first.Span.Start).LineNumber, contentEnd);
+            // Only a documentation comment written with /// spans lines here, each of which starts with its own marker
+            return SkipIndentation(text, line.Start, lineEnd) != line.Start;
         }
 
         return first.Span.Start != line.Start;
@@ -529,8 +437,7 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
         contentSearchStart = openBraceToken.Span.End;
 
         if (trailingTrivia.Count == 0
-            || trailingTrivia.Last().IsKind(SyntaxKind.EndOfLineTrivia) == false
-            || trailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) && trivia.ToFullString().Contains('\n')))
+            || trailingTrivia.Last().IsKind(SyntaxKind.EndOfLineTrivia) == false)
         {
             return string.Empty;
         }
@@ -547,119 +454,63 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Determines whether the block holds a multi-line raw string literal, also an interpolated or a UTF-8 one, in its
-    /// code or in the disabled text of an inactive branch, so that the fix does not depend on the defined preprocessor
-    /// symbols. Only a block the fix keeps as a block body is checked: its lines are moved by the fix, while an
-    /// expression body is laid out by the formatter, raw string literals included
+    /// Determines whether the anonymous method, from its first token through the block's closing brace, holds a
+    /// preprocessor directive or disabled text, on either path of the fix. The lambda is reassembled from the text of the
+    /// parameter list and of the body, so a directive structure inside the anonymous method cannot be kept; directives
+    /// wholly outside it are left alone
     /// </summary>
-    /// <param name="block">Block of the anonymous method</param>
-    /// <returns><see langword="true"/> if the block holds a multi-line raw string literal</returns>
-    private static bool ContainsMultiLineRawStringLiteral(BlockSyntax block)
+    /// <param name="anonymousMethodExpression">Anonymous method expression</param>
+    /// <returns><see langword="true"/> if the anonymous method holds a directive or disabled text</returns>
+    private static bool ContainsDirectiveOrDisabledText(AnonymousMethodExpressionSyntax anonymousMethodExpression)
     {
-        return block.DescendantTokens().Any(IsMultiLineRawStringLiteralToken)
-               || block.DescendantTrivia()
-                       .Where(static trivia => trivia.IsKind(SyntaxKind.DisabledTextTrivia))
-                       .Any(static trivia => SyntaxFactory.ParseTokens(trivia.ToFullString()).Any(IsMultiLineRawStringLiteralToken));
+        var span = anonymousMethodExpression.Span;
+
+        return anonymousMethodExpression.DescendantTrivia()
+                                        .Any(trivia => (trivia.IsDirective || trivia.IsKind(SyntaxKind.DisabledTextTrivia))
+                                                       && span.Contains(trivia.Span));
     }
 
     /// <summary>
-    /// Determines whether a string in the block holds a line that is a directive in some build, so that which lines
-    /// belong to the string depends on the preprocessor symbols and cannot be decided on the source text alone. A string
-    /// of active code does when a line after its first starts with <c>#</c> behind whitespace: under symbols that turn
-    /// off a branch the string lies in, also a branch opened before the anonymous method, that line is a directive. This
-    /// is decided on the line, not on the directives around it. Disabled text of an inactive branch is lexed between its
-    /// directives, and a string that runs to the end of it without being closed is left open. Only a block the fix keeps
-    /// as a block body is checked: an expression body holds no directive, and the fix moves none of its lines
+    /// Determines whether the block, from its opening through its closing brace, holds a string literal or interpolated
+    /// string of any kind, or a delimited comment, that starts on one line and ends on a later one. Only a block the fix
+    /// keeps as a block body is checked: the fix moves its lines, and a line inside such a string or comment can be code
+    /// or a directive in another build, while an expression body is laid out by the formatter
     /// </summary>
     /// <param name="block">Block of the anonymous method</param>
     /// <param name="text">Text of the document</param>
-    /// <returns><see langword="true"/> if a string of the block holds a directive line in some build</returns>
-    private static bool ContainsStringWithDirectiveLine(BlockSyntax block, SourceText text)
+    /// <returns><see langword="true"/> if the block holds a string or a delimited comment that spans lines</returns>
+    private static bool ContainsStringOrCommentSpanningLines(BlockSyntax block, SourceText text)
     {
-        return block.DescendantTrivia()
-                    .Where(static trivia => trivia.IsKind(SyntaxKind.DisabledTextTrivia))
-                    .Any(static trivia => SyntaxFactory.ParseTokens(trivia.ToFullString(), initialTokenPosition: trivia.FullSpan.Start)
-                                                       .Any(token => IsOpenStringToken(token, trivia.FullSpan.End)))
-               || block.DescendantNodes()
-                       .Where(IsString)
-                       .Any(stringExpression => stringExpression.Ancestors().TakeWhile(ancestor => ancestor != block).Any(IsString) == false
-                                                && ContainsLineStartingWithHash(text, stringExpression.Span));
+        return block.DescendantNodes()
+                    .Where(IsString)
+                    .Any(stringExpression => SpansLines(text, stringExpression.Span))
+               || block.DescendantTrivia()
+                       .Where(trivia => trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+                       .Any(trivia => block.Span.Contains(trivia.Span) && SpansLines(text, trivia.Span));
     }
 
     /// <summary>
-    /// Determines whether a conditional directive inside the block belongs to a chain that has a directive outside the
-    /// anonymous method, before it or after the block's closing brace. The lambda the fix writes then holds only part
-    /// of that chain, so neither its layout nor which of its lines are code can be decided on its text
+    /// Determines whether a node is a string: a string literal, also a UTF-8 or raw one, or an interpolated string
+    /// expression
     /// </summary>
-    /// <param name="anonymousMethodExpression">Anonymous method expression</param>
-    /// <returns><see langword="true"/> if such a chain crosses the anonymous method</returns>
-    private static bool ContainsCrossingDirectiveChain(AnonymousMethodExpressionSyntax anonymousMethodExpression)
+    /// <param name="node">Node</param>
+    /// <returns><see langword="true"/> for a string</returns>
+    private static bool IsString(SyntaxNode node)
     {
-        var block = anonymousMethodExpression.Block;
-        var span = anonymousMethodExpression.Span;
-
-        return block.DescendantTrivia()
-                    .Where(trivia => block.Span.Contains(trivia.Span))
-                    .Select(static trivia => trivia.GetStructure())
-                    .OfType<DirectiveTriviaSyntax>()
-                    .Where(static directive => directive is IfDirectiveTriviaSyntax or ElifDirectiveTriviaSyntax or ElseDirectiveTriviaSyntax or EndIfDirectiveTriviaSyntax)
-                    .Any(directive => directive.GetRelatedDirectives().Any(related => span.Contains(related.Span) == false));
+        return node is InterpolatedStringExpressionSyntax
+               || node.IsKind(SyntaxKind.StringLiteralExpression)
+               || node.IsKind(SyntaxKind.Utf8StringLiteralExpression);
     }
 
     /// <summary>
-    /// Determines whether a token lexed from disabled text is a string that the disabled text leaves open: it runs to the
-    /// end of the disabled text, where the lexer reports it as not closed
-    /// </summary>
-    /// <param name="token">Token</param>
-    /// <param name="disabledTextEnd">End of the disabled text</param>
-    /// <returns><see langword="true"/> for a string left open</returns>
-    private static bool IsOpenStringToken(SyntaxToken token, int disabledTextEnd)
-    {
-        return (token.IsKind(SyntaxKind.StringLiteralToken)
-                || token.IsKind(SyntaxKind.Utf8StringLiteralToken)
-                || token.IsKind(SyntaxKind.InterpolatedStringToken)
-                || token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken)
-                || token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken))
-               && token.FullSpan.End >= disabledTextEnd
-               && token.GetDiagnostics().Any(static diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
-    }
-
-    /// <summary>
-    /// Determines whether a line after the first line of a span starts inside the span with <c>#</c>, behind spaces and
-    /// tabs
+    /// Determines whether a span starts on one line and ends on a later one
     /// </summary>
     /// <param name="text">Text of the document</param>
     /// <param name="span">Span</param>
-    /// <returns><see langword="true"/> if such a line exists</returns>
-    private static bool ContainsLineStartingWithHash(SourceText text, TextSpan span)
+    /// <returns><see langword="true"/> if the span spans lines</returns>
+    private static bool SpansLines(SourceText text, TextSpan span)
     {
-        for (var lineNumber = text.Lines.GetLineFromPosition(span.Start).LineNumber + 1; lineNumber < text.Lines.Count && text.Lines[lineNumber].Start < span.End; lineNumber++)
-        {
-            var line = text.Lines[lineNumber];
-            var position = SkipIndentation(text, line.Start, line.End);
-
-            if (position < span.End
-                && position < line.End
-                && text[position] == '#')
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Determines whether the token is a multi-line raw string literal or the start of a multi-line interpolated raw
-    /// string literal
-    /// </summary>
-    /// <param name="token">Token</param>
-    /// <returns><see langword="true"/> for such a token</returns>
-    private static bool IsMultiLineRawStringLiteralToken(SyntaxToken token)
-    {
-        return token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken)
-               || token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken)
-               || token.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken);
+        return text.Lines.GetLineFromPosition(span.Start).LineNumber != text.Lines.GetLineFromPosition(span.End).LineNumber;
     }
 
     /// <summary>
@@ -814,10 +665,9 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
                 if (anonymousMethodExpression?.ParameterList != null
                     && ContainsDiscardedTrivia(anonymousMethodExpression) == false
                     && IsOperandOfCastOrBinaryOperator(anonymousMethodExpression) == false
-                    && ContainsCrossingDirectiveChain(anonymousMethodExpression) == false
+                    && ContainsDirectiveOrDisabledText(anonymousMethodExpression) == false
                     && (GetExpressionBody(anonymousMethodExpression) != null
-                        || (ContainsMultiLineRawStringLiteral(anonymousMethodExpression.Block) == false
-                            && ContainsStringWithDirectiveLine(anonymousMethodExpression.Block, text) == false)))
+                        || ContainsStringOrCommentSpanningLines(anonymousMethodExpression.Block, text) == false))
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3004Title,
                                                               token => ApplyCodeFixAsync(context.Document, anonymousMethodExpression, token),
