@@ -30,6 +30,7 @@ Batch 1 (before test implementer), all recommendations chosen:
 | 4 | Skeptic | Extension blocks: `where` not on its own line (FMT-BREAK-023 / RH5110 skip them) | Follow-up, not this run; FMT-BREAK-037/FMT-INDENT-032 still apply to extension-block clauses (amendment 5) | Placement of `where` itself is FMT-BREAK-023, outside #1631 | Not changed by this run | — |
 | 5 | Spec | RH5110-004 dropped after Q9; ledger line removed rather than retired | Accept | The ID was only ever issued on this branch; SHARED-FIX-003 alone governs | Q9 answered the visible output | 6ebc723 |
 | 6 | Spec | Accept change doc `sdd/changes/2026-11/constraint-clause-wrap.md` | Accepted | Skeptic ran; amendments and Q1–Q9 carried in | Its visible output changes were all asked | 6ebc723 |
+| 7 | Implementer | D2: `LocalFunctionInLambdaClauseAligns` expects lambda block at column 8; existing lambda layout (unchanged on main) gives 26 | Test expectation is wrong; test implementer fixes it to the existing layout | The lambda block's column is decided by unchanged requirements, not this run | Unchanged requirement decides it | — |
 | 1 | Claim | Branch name `claude/issue-1631-<slug>` per `lead.md` vs. the session's designated branch | Use `claude/dreamy-curie-x5c135` | The session environment permits pushing only to its designated branch | Branch names are internal | claim commit |
 
 ## Follow-up candidates
@@ -55,4 +56,6 @@ From `02-skeptic.md`:
 - RH5110-004 reading of Q8 is ambiguous (Q3A/Q4A/Q7A give safe fallback layouts for exactly those inputs, so the fix could be offered with them). Q9 answered A.
 - 04 spec author done (6ebc723): RH5110-004 dropped; RH5110-003 changed (fix offered, fallback layout).
 - 05 test implementer done (9a1da1d, 7c0d665): 46 formatter + 6 RH5110 tests; 43+6 fail on unchanged code as expected, 4 guard tests pass.
-- Next: implementer (06).
+- 06 implementer (da0e710): verdict test disputed; 43 new tests pass; D1 (no space after joined colon, 7 tests), D2 (decision 7), D3 (colon-only wrap) open.
+- Asked maintainer Q10 (D1: A spacing rule covers constraint colon everywhere / B join writes one space only) and Q11 (D3: A colon-only wrap also wraps the clause / B constraints stay on the colon's line). **Waiting on maintainer.**
+- Next after answers: spec author amends (Q10, Q11), test implementer fixes D2 (+D3 if B), implementer finishes.
