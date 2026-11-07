@@ -22,6 +22,8 @@ Maintainer: "keep it simple".
 - Q1 (partial member, single diagnostic location; RH2002, RH2004, RH8306, RH7401–RH7412): **A** — reported once, on the first part the rule would report on its own; generated parts skipped; the defining part before the implementing part; when no part qualifies by what it writes, the defining part.
 - Q2 (RH2001 mutable-struct boundary): **C** (not C′) — fix withheld for a property whose type is a struct not declared `readonly` (option C as asked: "every struct not declared readonly"; the earlier "settable" in this note was the lead's gloss, not the answer) (per the type symbol of the compilation's references); `Nullable<T>` of an enum or `readonly` struct counts as readonly. No special-type exemption: on netstandard2.0/.NET Framework targets `int`/`bool` properties lose the fix — accepted by the maintainer.
 - Q4 (RH2001 property typed by a type parameter not constrained to a reference type): **A** — reported, fix withheld (as specified in RH2001-008 and implemented).
+- Q5 (RH2005: `public` on its own line behind another modifier, indentation only): **A** — fix offered, the line keeps its place (`private static⏎        int Counter;`).
+- Q6 (RH2005: comment/directive/`#if` line in front of a non-first `public`; RH2001: such a line between type and name): **A** — reported, no fix offered.
 - Q3 (RH2005 references outside the type body that still compile — `nameof` in the type's own attribute, `cref` from another type): **B** — every reference outside the bodies of the type's declarations withholds the fix; spec text as written.
 
 ## Decisions taken
@@ -60,7 +62,7 @@ Maintainer: "keep it simple".
 ## Pending output questions (batch before auditor)
 
 - Q5: RH2005 `static⏎        public int Counter;` (indentation only) — A keep the line in place (`private static⏎        int Counter;`, rec.), B formatter layout (column 4).
-- Q6: comment/directive/`#if` line in the replaced gap (RH2005 in front of non-first `public`; RH2001 between type and name) — A withhold the fix (rec.), B carry in place. ASKED; waiting.
+- Q6: comment/directive/`#if` line in the replaced gap (RH2005 in front of non-first `public`; RH2001 between type and name) — A withhold the fix (rec.), B carry in place. ANSWERED 5A, 6A.
 
 - Q4: RH2001 property whose type is a type parameter not constrained to a reference type — ANSWERED A.
 
@@ -86,5 +88,6 @@ Maintainer: "keep it simple".
 - Spec checker 09 (d885383): one finding → Q4 asked.
 - Q4 answered A; nothing to change.
 - Audited SHA: 42db22c37641c0f41e0d6ac2617869e0b61c6541 — BLOCKED (10-auditor.md, bbc40f7): findings 1, 2a, 2b, 3, 4a, 4b.
-- Test implementer 11 done (2d72935): 22 failing; tests accept several outputs for findings 1/2b → Q5, Q6 asked; on answer, test implementer narrows to one accepted text.
+- Test implementer 11 done (2d72935): 22 failing; tests accept several outputs for findings 1/2b → Q5, Q6 answered 5A, 6A.
+- Next: spec author (12) records Q5/Q6 in RH2005-003 / RH2001-007; test implementer (13) narrows tests to the answered outputs; implementer (14) repairs findings 1–4 with decisions 16–18.
 - Repair round 1 (of 3) worklist: test implementer (11) adds regressions for 1, 2a, 2b, 4a, 4b; implementer (12) repairs 1–4 with decisions 16–18; cleaner, spec checker, auditor (repair only), validator.
