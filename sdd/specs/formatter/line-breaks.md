@@ -5,7 +5,7 @@
 | ID prefix | FMT-BREAK |
 | Status | Active |
 | Code owners | `LineBreakPhase`, `LineBreakBlockRewriter`, `LineBreakInitializerRewriter`, `LineBreakContainedBlockRewriter`, `LineBreakAssignmentRewriter`, `DeclarationSemicolonLineBreakRewriter`, `ListElementInteriorJoinRewriter`, `ListElementInteriorUtilities`, `LineBreakListRewriter`, `PropertyLayoutLineBreakRewriter`, `GenericConstraintLineBreakRewriter`, `DeclarationBraceLineBreakRewriter`, `MemberLineStartRewriter`, `AttributeTargetFormattingRewriter`, `AttributeTargetFormattingShared`, `BinaryOperatorLineBreakRewriter`, `ChainLineBreakRewriter`, `TernaryLineBreakRewriter`, `SwitchCaseWhenLineBreakRewriter`, `BracePlacer`, `TokenGapNormalizer`, `AccessorListLayout`, `LineBreakDetection`, `LineBreakTriviaUtilities` |
-| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-010, FMT-PIPE-021, FMT-PIPE-025, FMT-PIPE-026, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, SHARED-ATTR-014, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-STMT-001 |
+| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-INDENT-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-010, FMT-PIPE-021, FMT-PIPE-025, FMT-PIPE-026, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, SHARED-ATTR-014, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-STMT-001 |
 
 This spec covers `LineBreakPhase`, the phase of the pipeline that decides where lines break (its position in the phase order is FMT-PIPE-001): brace placement, one statement and one member per line, the layout of argument, parameter, attribute, and type-argument lists, initializers and patterns, assignments, operators, conditionals, chains, generic constraints, attribute lists, accessor lists, the lines that switch sections, their labels, and their first statements start, and `case … when` guards. The phase adds and removes line breaks and keeps the blank lines it finds (FMT-BREAK-030), and it changes tokens only where it shapes an accessor's attribute lists (FMT-BREAK-032). The columns the resulting lines start in are decided later by FMT-INDENT, and the spaces between tokens on a line by FMT-SPACE.
 
@@ -2083,6 +2083,185 @@ class C
         {
             Foo();
         }
+    }
+}
+```
+
+### FMT-BREAK-037 — The constraints of a clause are on one line or one constraint per line
+
+The constraints of a `where` clause MUST either all stay on the line of the clause's colon or each start a line that no other constraint of the clause shares. A clause is wrapped when a line break stands behind its colon, or when its constraints, from the first token of the first constraint to the last token of the last one, span more than one line — through a line break in front of or behind a comma between two constraints, or inside one constraint. A wrapped clause MUST become one constraint per line: its first constraint MUST move onto the line of the colon, every later constraint MUST start a line that no other constraint shares, and every comma between two constraints MUST stand at the end of the line of the constraint in front of it. A clause that is not wrapped MUST be left as it is. A join MUST NOT cross a comment, a directive, or disabled text (FMT-BREAK-001): where one stands in the gap, the line break stays, and a comma that a comment keeps off the previous line stays at the start of the line of the constraint behind it.
+
+This requirement decides the gap behind the colon, the gaps around the commas between constraints, and whether a line break inside a constraint wraps its clause; it leaves the gap between the type parameter and the colon, and the line breaks inside a constraint, to the requirements that own them.
+
+Why: A partly wrapped clause hides constraints at the end of a line, as a partly wrapped list hides elements (FMT-BREAK-012). With the first constraint on the colon's line and the commas at the end of the line, as in a parameter list (FMT-BREAK-011), the later constraints have a constraint to align under (FMT-INDENT-032). A constraint that spans lines breaks the clause's one-line shape as a multi-line element breaks a list's (FMT-BREAK-013). RH5110 reports only the position of the `where` keyword, so this layout is a formatter-only decision.
+
+Example — a clause wrapped between constraints, behind its colon, or in front of a comma becomes one constraint per line; a clause on one line stays:
+
+```csharp
+using System;
+
+class C
+{
+    void M<T>()
+        where T : class, IComparable<T>,
+            IEquatable<T>, new()
+    {
+    }
+
+    void N<T>()
+        where T :
+            IDisposable
+    {
+    }
+
+    void O<T>()
+        where T :
+            class,
+            new()
+    {
+    }
+
+    void P<T>()
+        where T : class
+            , new()
+    {
+    }
+
+    void Q<T>()
+        where T : class, new()
+    {
+    }
+}
+```
+
+```csharp
+using System;
+
+class C
+{
+    void M<T>()
+        where T : class,
+                  IComparable<T>,
+                  IEquatable<T>,
+                  new()
+    {
+    }
+
+    void N<T>()
+        where T : IDisposable
+    {
+    }
+
+    void O<T>()
+        where T : class,
+                  new()
+    {
+    }
+
+    void P<T>()
+        where T : class,
+                  new()
+    {
+    }
+
+    void Q<T>()
+        where T : class, new()
+    {
+    }
+}
+```
+
+Example — a constraint that a comment keeps over two lines wraps its clause, while a clause whose constraints stay on one line is not wrapped:
+
+```csharp
+using System.Collections.Generic;
+
+class C
+{
+    void M<T>()
+        where T : class, IDictionary<int, // c
+            string>, new()
+    {
+    }
+
+    void N<T>()
+        where T : class, IDictionary<int, string>, new()
+    {
+    }
+}
+```
+
+```csharp
+using System.Collections.Generic;
+
+class C
+{
+    void M<T>()
+        where T : class,
+                  IDictionary<int, // c
+                              string>,
+                  new()
+    {
+    }
+
+    void N<T>()
+        where T : class, IDictionary<int, string>, new()
+    {
+    }
+}
+```
+
+Example — comments block a join but not a split: a comment behind the colon keeps the first constraint on the next line, a comment in front of a comma keeps the comma at the start of the line, and a comment behind a comma stays behind it:
+
+```csharp
+using System;
+
+class C
+{
+    void M<T>()
+        where T : // c
+            class,
+            new()
+    {
+    }
+
+    void N<T>()
+        where T : class // c
+            , new()
+    {
+    }
+
+    void O<T>()
+        where T : class, /* c */ new(),
+            IDisposable
+    {
+    }
+}
+```
+
+```csharp
+using System;
+
+class C
+{
+    void M<T>()
+        where T : // c
+                  class,
+                  new()
+    {
+    }
+
+    void N<T>()
+        where T : class // c
+                  , new()
+    {
+    }
+
+    void O<T>()
+        where T : class, /* c */
+                  new(),
+                  IDisposable
+    {
     }
 }
 ```

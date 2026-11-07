@@ -5,7 +5,7 @@
 | ID prefix | FMT-INDENT |
 | Status | Active |
 | Code owners | `IndentationPhase`, `LayoutComputer`, `LayoutModel`, `TokenLayout`, `IndentationRewriter`, `ListElementAligner`, `SyntaxIndentationUtilities`, `ArgumentAlignmentContributor`, `AngleBracketListAlignmentContributor`, `AnonymousObjectContributor`, `BaseTypeListContributor`, `BinaryExpressionContributor`, `CaseWhenClauseContributor`, `CollectionExpressionContributor`, `CommentIndentationContributor`, `ConditionalExpressionContributor`, `ConstructorInitializerContributor`, `GenericConstraintContributor`, `LambdaAlignmentContributor`, `ListPatternContributor`, `MethodChainAlignmentContributor`, `ObjectInitializerContributor`, `ParenthesizedPatternContributor`, `PatternAnchor`, `RecursivePatternContributor`, `SwitchExpressionContributor` |
-| Uses | FMT-BREAK-002, FMT-BREAK-006, FMT-BREAK-014, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-015, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-007, FMT-DOC-003, FMT-DOC-012, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SWITCH-001 |
+| Uses | FMT-BREAK-002, FMT-BREAK-006, FMT-BREAK-014, FMT-BREAK-037, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-015, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-007, FMT-DOC-003, FMT-DOC-012, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SWITCH-001 |
 
 This spec covers the indentation phase: the column at which every line that starts with a token begins — block indentation by scope depth, the alignment of wrapped constructs to an anchor token, and the re-indentation of comments and directives that start a line. Line breaks are already decided when this phase runs (FMT-PIPE-001); it only changes the whitespace in front of the first token or trivia of a line. The same phase moves the lines of multi-line raw string literals as FMT-RAW specifies, so the column it gives a line is final (FMT-PIPE-015).
 
@@ -1864,3 +1864,77 @@ class C
 ```
 
 is left unchanged.
+
+### FMT-INDENT-032 — Wrapped constraints align to the first constraint
+
+When the constraints of a `where` clause span several lines, the formatter MUST indent every constraint and every comma between two constraints that starts a line to the column of the clause's first constraint, the constraint directly behind the colon. When the first constraint itself starts a line, because a comment behind the colon keeps FMT-BREAK-037 from joining it onto the colon's line, the formatter MUST indent the constraints and commas that start a line to the column behind the colon and one space — the column the first constraint has when it stands behind the colon. A line inside a constraint that starts at a token other than the constraint's first token is not placed by this requirement; this requirement specifies only the lines that start with a constraint or with a comma between two constraints.
+
+Why: Aligning with the first constraint shows that the constraints belong to one clause, as base types align to the first base type (FMT-INDENT-016); the block column of the declaration's scope would put them left of their own `where` keyword. Taking the first constraint's column also when a comment pushes it onto the next line keeps the column independent of that comment, as an argument list whose first argument a comment pushes down aligns to the column after its opening parenthesis (FMT-INDENT-012).
+
+Example — the constraints of a type's and a method's clauses that start a line align under the first constraint; a later `where` clause keeps the column of FMT-INDENT-017:
+
+```csharp
+class A<TKey, TValue>
+    where TKey : class,
+    new()
+    where TValue : struct
+{
+    void M<T>()
+        where T : class,
+        new()
+    {
+    }
+}
+```
+
+```csharp
+class A<TKey, TValue>
+    where TKey : class,
+                 new()
+    where TValue : struct
+{
+    void M<T>()
+        where T : class,
+                  new()
+    {
+    }
+}
+```
+
+Example — a constraint and a comma that a comment pushes onto the next line take the same column:
+
+```csharp
+class C
+{
+    void M<T>()
+        where T : // c
+        class,
+        new()
+    {
+    }
+
+    void N<T>()
+        where T : class // c
+    , new()
+    {
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M<T>()
+        where T : // c
+                  class,
+                  new()
+    {
+    }
+
+    void N<T>()
+        where T : class // c
+                  , new()
+    {
+    }
+}
+```
