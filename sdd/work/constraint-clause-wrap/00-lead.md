@@ -64,4 +64,5 @@ From `07-spec-author.md`:
 - 06 implementer (da0e710): verdict test disputed; 43 new tests pass; D1 (no space after joined colon, 7 tests), D2 (decision 7), D3 (colon-only wrap) open.
 - Q10 A, Q11 A answered.
 - 07 spec author done (922ed04): FMT-SPACE-009 covers constraint colon; FMT-BREAK-037 colon-held wrap; RH6021 non-goal reworded; change doc entries 14, 15. Rejected options recorded match those shown.
-- Next: test implementer (08) for D2 + Q10/Q11 tests → implementer (09).
+- 08 test implementer done (c062097): D2 fixed; D1/D3 confirmed; 17 new tests (15 failing as expected).
+- Next: fresh implementer (09) — previous implementer large (58 tool uses).
