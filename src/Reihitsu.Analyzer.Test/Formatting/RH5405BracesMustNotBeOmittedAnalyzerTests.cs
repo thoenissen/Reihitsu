@@ -963,6 +963,277 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies the spec example: a line comment behind the body stays behind the body, inside the block, and is not
+    /// repeated behind the closing brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    public async Task VerifyFixWritesTrailingCommentOfBodyOnce()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, int b)
+                                    {
+                                        if (a)
+                                            {|RH5405:M(a, b);|} // trail
+                                        b++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, int b)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a, b); // trail
+                                         }
+                                         b++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a line comment behind the body is written once, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    public async Task VerifyFixWritesTrailingCommentOfBodyOnceWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, int b)
+                                    {
+                                        if (a)
+                                            {|RH5405:M(a, b);|} // trail
+                                        b++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, int b)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a, b); // trail
+                                         }
+                                         b++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
+    /// <summary>
+    /// Verifies a line comment behind a body on the line of its if is written once, behind the body inside the block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    public async Task VerifyFixWritesTrailingCommentOfBodyOnLineOfIfOnce()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, int b)
+                                    {
+                                        if (a) {|RH5405:M(a, b);|} // trail
+                                        b++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, int b)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a, b); // trail
+                                         }
+                                         b++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a multi-line comment behind the body is written once, behind the body inside the block, with its text
+    /// unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    public async Task VerifyFixWritesMultiLineTrailingCommentOfBodyOnce()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, int b)
+                                    {
+                                        if (a)
+                                            {|RH5405:M(a, b);|} /* a
+                                            b */
+                                        b++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, int b)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a, b); /* a
+                                             b */
+                                         }
+                                         b++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a line comment behind the body of an if that is itself the body of another if is written once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    public async Task VerifyFixWritesTrailingCommentOfNestedIfBodyOnce()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, bool c, int b)
+                                    {
+                                        if (a)
+                                            if (c)
+                                                {|RH5405:M(a, c, b);|} // trail
+                                        b++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, bool c, int b)
+                                     {
+                                         if (a)
+                                             if (c)
+                                             {
+                                                 M(a, c, b); // trail
+                                             }
+                                         b++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a line comment behind the body of an if followed by else stays behind that body and is written once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    public async Task VerifyFixKeepsTrailingCommentOfIfBodyFollowedByElseOnce()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, int b)
+                                    {
+                                        if (a)
+                                            {|RH5405:M(a, b);|} // one
+                                        else
+                                        {
+                                            M(a, b);
+                                        }
+                                        b++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, int b)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a, b); // one
+                                         }
+                                         else
+                                         {
+                                             M(a, b);
+                                         }
+                                         b++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies fixing the bodies of an if and its else, each with a line comment behind it, writes each comment once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    public async Task VerifyFixAllWritesTrailingCommentsOfBothBranchesOnce()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, int b)
+                                    {
+                                        if (a)
+                                            {|RH5405:M(a, b);|} // one
+                                        else
+                                            {|RH5405:M(a, b);|} // two
+                                        b++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, int b)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a, b); // one
+                                         }
+                                         else
+                                         {
+                                             M(a, b); // two
+                                         }
+                                         b++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region Methods

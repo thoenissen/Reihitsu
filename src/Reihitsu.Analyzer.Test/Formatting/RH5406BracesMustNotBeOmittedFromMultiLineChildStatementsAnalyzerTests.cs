@@ -509,6 +509,82 @@ public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzerTes
         await Verify(testData, fixedData, Diagnostics(RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer.DiagnosticId, AnalyzerResources.RH5406MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies a line comment behind a body that spans several lines is written once, behind the body inside the block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    public async Task VerifyFixWritesTrailingCommentOfMultiLineBodyOnce()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, int b)
+                                    {
+                                        if (a)
+                                            {|RH5406:M(a,
+                                              b);|} // trail
+                                        b++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, int b)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a,
+                                               b); // trail
+                                         }
+                                         b++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a line comment behind a body that spans several lines is written once, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    public async Task VerifyFixWritesTrailingCommentOfMultiLineBodyOnceWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, int b)
+                                    {
+                                        if (a)
+                                            {|RH5406:M(a,
+                                              b);|} // trail
+                                        b++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, int b)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a,
+                                               b); // trail
+                                         }
+                                         b++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

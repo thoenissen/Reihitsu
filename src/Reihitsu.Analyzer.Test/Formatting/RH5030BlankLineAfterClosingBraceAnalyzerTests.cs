@@ -1038,6 +1038,352 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode), actual);
     }
 
+    /// <summary>
+    /// Verifies the spec example: when every line break between the closing brace and the next statement lies inside a
+    /// comment, the brace is reported and no fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5030-003")]
+    public async Task VerifyNoFixIsOfferedWhenCommentHoldsEveryLineBreak()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        if (a > 0)
+                                        {
+                                            a++;
+                                        {|RH5030:}|} /* a
+                                        b */ a++;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no fix is offered when a comment holds every line break between the closing brace and the next statement,
+    /// with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5030-003")]
+    public async Task VerifyNoFixIsOfferedWhenCommentHoldsEveryLineBreakWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        if (a > 0)
+                                        {
+                                            a++;
+                                        {|RH5030:}|} /* a
+                                        b */ a++;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(testCode));
+    }
+
+    /// <summary>
+    /// Verifies no fix is offered when a comment holds every line break between the closing brace and the next statement of
+    /// a switch section
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5030-003")]
+    public async Task VerifyNoFixIsOfferedWhenCommentHoldsEveryLineBreakInSwitchSection()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        switch (a)
+                                        {
+                                            case 1:
+                                                if (a > 0)
+                                                {
+                                                    a++;
+                                                {|RH5030:}|} /* a
+                                                b */ a++;
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no fix is offered when a delimited documentation-style comment holds every line break between the closing
+    /// brace and the next statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5030-003")]
+    public async Task VerifyNoFixIsOfferedWhenDelimitedDocumentationCommentHoldsEveryLineBreak()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        if (a > 0)
+                                        {
+                                            a++;
+                                        {|RH5030:}|} /** a
+                                        b */ a++;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no fix is offered when two comments hold every line break between the closing brace and the next statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5030-003")]
+    public async Task VerifyNoFixIsOfferedWhenTwoCommentsHoldEveryLineBreak()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        if (a > 0)
+                                        {
+                                            a++;
+                                        {|RH5030:}|} /* a
+                                        b */ /* c
+                                        d */ a++;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix is still offered and inserts the blank line directly above the next statement when a line break
+    /// outside any comment ends the line of a multi-line comment behind the brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5030-003")]
+    [Requirement("SHARED-AFTERBRACE-001")]
+    public async Task VerifyFixInsertsBlankLineWhenLineBreakOutsideCommentEndsMultiLineCommentLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        if (a > 0)
+                                        {
+                                            a++;
+                                        {|#0:}|} /* a
+                                        b */
+                                        a++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         if (a > 0)
+                                         {
+                                             a++;
+                                         } /* a
+                                         b */
+
+                                         a++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     },
+                     Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the fix is still offered when a line comment ends the line on which a multi-line comment behind the brace
+    /// ends
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5030-003")]
+    [Requirement("SHARED-AFTERBRACE-001")]
+    public async Task VerifyFixInsertsBlankLineWhenLineCommentEndsMultiLineCommentLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        if (a > 0)
+                                        {
+                                            a++;
+                                        {|#0:}|} /* x */ /* a
+                                        b */ // c
+                                        a++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         if (a > 0)
+                                         {
+                                             a++;
+                                         } /* x */ /* a
+                                         b */ // c
+
+                                         a++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     },
+                     Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies Fix All fixes a brace whose next statement starts on its own line and leaves a brace whose fix is withheld
+    /// reported, in one document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5030-003")]
+    [Requirement("SHARED-AFTERBRACE-001")]
+    public async Task VerifyFixAllLeavesWithheldBraceReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        if (a > 0)
+                                        {
+                                            a++;
+                                        {|RH5030:}|} /* a
+                                        b */
+                                        a++;
+                                        if (a > 0)
+                                        {
+                                            a++;
+                                        {|RH5030:}|}
+                                        a++;
+                                        if (a > 0)
+                                        {
+                                            a++;
+                                        {|RH5030:}|} /* a
+                                        b */ a++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         if (a > 0)
+                                         {
+                                             a++;
+                                         } /* a
+                                         b */
+
+                                         a++;
+                                         if (a > 0)
+                                         {
+                                             a++;
+                                         }
+
+                                         a++;
+                                         if (a > 0)
+                                         {
+                                             a++;
+                                         {|RH5030:}|} /* a
+                                         b */ a++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix is still offered when a directive follows a multi-line comment behind the brace, and inserts the
+    /// blank line behind the directive, directly above the next statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5030-003")]
+    [Requirement("SHARED-AFTERBRACE-001")]
+    public async Task VerifyFixInsertsBlankLineBehindDirectiveFollowingMultiLineComment()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        if (a > 0)
+                                        {
+                                            a++;
+                                        {|#0:}|} /* a
+                                        b */
+                                #pragma warning disable CS0168
+                                        a++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         if (a > 0)
+                                         {
+                                             a++;
+                                         } /* a
+                                         b */
+                                 #pragma warning disable CS0168
+
+                                         a++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
