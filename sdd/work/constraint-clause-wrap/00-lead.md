@@ -66,4 +66,5 @@ From `07-spec-author.md`:
 - 07 spec author done (922ed04): FMT-SPACE-009 covers constraint colon; FMT-BREAK-037 colon-held wrap; RH6021 non-goal reworded; change doc entries 14, 15. Rejected options recorded match those shown.
 - 08 test implementer done (c062097): D2 fixed; D1/D3 confirmed; 17 new tests (15 failing as expected).
 - 09 implementer done (cf7b1ff): all tests pass (Debug).
-- Next: cleaner (10) → spec checker (11) → auditor (12) → validator.
+- 10 cleaner done (06a17a3): clean, Release 0 warnings.
+- Next: spec checker (11) → auditor (12) → validator.
