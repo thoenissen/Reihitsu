@@ -28,11 +28,14 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
 
     /// <summary>
     /// Applies the code fix by shifting the lines of the raw string literal after its first line, so that its closing
-    /// marker starts in the column of its opening quotes. Every line the move writes shifts by the same number of
-    /// columns; which lines it writes is decided by <see cref="RawStringLineUtilities.MovesLine"/>, the decision the
-    /// formatter follows, so an empty line stays empty and a line that starts inside a nested literal other than a raw
-    /// string, or inside a nested comment, stays as written. A nested raw string literal is not aligned here: its lines
-    /// shift with the outer literal, and it keeps its own diagnostic
+    /// marker starts in the column of its opening quotes. The width of the whitespace in front of the closing marker is
+    /// measured by <see cref="RawStringLiteralUtilities.GetLeadingWhitespaceLength"/>, as the analyzer measures it, and
+    /// every shifted line shifts by the same number of columns: spaces are added in front of it, or up to that many
+    /// leading whitespace characters are removed. A line that starts inside a nested literal other than a raw string,
+    /// or inside a nested comment (<see cref="RawStringLineUtilities.StartsInsideNestedText"/>, the decision the
+    /// formatter follows), stays as written, and so does an empty line of literal text (<see cref="IsEmptyTextLine"/>);
+    /// an empty line of the code in an interpolation hole shifts. A nested raw string literal is not aligned here: its
+    /// lines shift with the outer literal, and it keeps its own diagnostic
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="node">The syntax node representing the raw string expression</param>
@@ -60,7 +63,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
         }
 
         var targetColumn = span.Start - openingLine.Start + quoteOffset;
-        var currentClosingColumn = GetLeadingWhitespaceCount(sourceText, closingLine);
+        var currentClosingColumn = RawStringLiteralUtilities.GetLeadingWhitespaceLength(sourceText.ToString(closingLine.Span));
         var delta = targetColumn - currentClosingColumn;
 
         if (delta == 0)
@@ -74,7 +77,8 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
         {
             var line = sourceText.Lines[lineNumber];
 
-            if (RawStringLineUtilities.MovesLine(root, line) == false)
+            if (RawStringLineUtilities.StartsInsideNestedText(root, line.Start)
+                || IsEmptyTextLine(root, line))
             {
                 continue;
             }
@@ -85,7 +89,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
             }
             else
             {
-                var charactersToRemove = Math.Min(-delta, GetLeadingWhitespaceCount(sourceText, line));
+                var charactersToRemove = Math.Min(-delta, RawStringLiteralUtilities.GetLeadingWhitespaceLength(sourceText.ToString(line.Span)));
 
                 if (charactersToRemove > 0)
                 {
@@ -103,24 +107,24 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
     }
 
     /// <summary>
-    /// Gets the number of leading whitespace characters in a line
+    /// Determines whether a line is an empty line of literal text: a line with no character between its line breaks
+    /// that lies within a token of the literal's text, not within the trivia of the code in an interpolation hole.
+    /// Such a line contributes an empty line to the value whatever the closing marker strips, so it stays empty
     /// </summary>
-    /// <param name="text">The text that holds the line</param>
-    /// <param name="line">The line to inspect</param>
-    /// <returns>The count of leading whitespace characters</returns>
-    private static int GetLeadingWhitespaceCount(SourceText text, TextLine line)
+    /// <param name="root">The syntax root</param>
+    /// <param name="line">The line, from the text of the root's tree</param>
+    /// <returns><see langword="true"/> if the line is an empty line of literal text</returns>
+    private static bool IsEmptyTextLine(SyntaxNode root, TextLine line)
     {
-        var count = 0;
-
-        // Both spaces and tabs are counted so that outdenting a tab-indented raw string actually removes the
-        // leading whitespace instead of silently doing nothing
-        while (line.Start + count < line.End
-               && (text[line.Start + count] == ' ' || text[line.Start + count] == '\t'))
+        if (line.Span.Length > 0)
         {
-            count++;
+            return false;
         }
 
-        return count;
+        var token = root.FindToken(line.Start);
+
+        return token.SpanStart <= line.Start
+               && line.Start < token.Span.End;
     }
 
     #endregion // Methods
