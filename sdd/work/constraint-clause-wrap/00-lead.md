@@ -49,6 +49,9 @@ From `02-skeptic.md`:
 7. A line inside a constraint that a comment keeps wrapped lands at the block column (`where T : System. // c⏎ IDisposable`); merge with 3 if S1 is answered A.
 (Candidate 1 joined the run as S2, decision 2.)
 
+From `07-spec-author.md`:
+8. New-rule candidate (P11): spacing of the constraint colon (`where T:class`), which the formatter rewrites after Q10 but no analyzer reports (RH6021 names only base-list and constructor-initializer colons).
+
 ## Open worklist / next step
 
 - 01 spec author done (44509cd): change doc `sdd/changes/2026-11/constraint-clause-wrap.md` (Draft), FMT-BREAK-037, FMT-INDENT-032; 5 output questions in its handover.
@@ -60,4 +63,5 @@ From `02-skeptic.md`:
 - 05 test implementer done (9a1da1d, 7c0d665): 46 formatter + 6 RH5110 tests; 43+6 fail on unchanged code as expected, 4 guard tests pass.
 - 06 implementer (da0e710): verdict test disputed; 43 new tests pass; D1 (no space after joined colon, 7 tests), D2 (decision 7), D3 (colon-only wrap) open.
 - Q10 A, Q11 A answered.
-- Next: fresh spec author (07) for Q10/Q11 → test implementer (08) for D2 + Q10/Q11 tests → implementer (09).
+- 07 spec author done (922ed04): FMT-SPACE-009 covers constraint colon; FMT-BREAK-037 colon-held wrap; RH6021 non-goal reworded; change doc entries 14, 15. Rejected options recorded match those shown.
+- Next: test implementer (08) for D2 + Q10/Q11 tests → implementer (09).
