@@ -31,10 +31,10 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
     /// marker starts in the column of its opening quotes. The width of the whitespace in front of the closing marker is
     /// measured by <see cref="RawStringLiteralUtilities.GetLeadingWhitespaceLength"/>, as the analyzer measures it, and
     /// every shifted line shifts by the same number of columns: spaces are added in front of it, or up to that many
-    /// leading whitespace characters are removed. A line that starts inside a nested literal other than a raw string,
-    /// or inside a nested comment (<see cref="RawStringLineUtilities.StartsInsideNestedText"/>, the decision the
-    /// formatter follows), stays as written, and so does an empty line of literal text (<see cref="IsEmptyTextLine"/>);
-    /// an empty line of the code in an interpolation hole shifts. A nested raw string literal is not aligned here: its
+    /// leading whitespace characters are removed. Which lines shift is the formatter's decision
+    /// (<see cref="RawStringLineUtilities.MovesLine"/>): an empty line stays empty, whether it is literal text, text of
+    /// a nested raw string, or code in an interpolation hole, and a line that starts inside a nested literal other than
+    /// a raw string, or inside a nested comment, stays as written. A nested raw string literal is not aligned here: its
     /// lines shift with the outer literal, and it keeps its own diagnostic
     /// </summary>
     /// <param name="document">Document</param>
@@ -77,8 +77,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
         {
             var line = sourceText.Lines[lineNumber];
 
-            if (RawStringLineUtilities.StartsInsideNestedText(root, line.Start)
-                || IsEmptyTextLine(root, line))
+            if (RawStringLineUtilities.MovesLine(root, line) == false)
             {
                 continue;
             }
@@ -104,27 +103,6 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
         }
 
         return document.WithText(sourceText.WithChanges(changes));
-    }
-
-    /// <summary>
-    /// Determines whether a line is an empty line of literal text: a line with no character between its line breaks
-    /// that lies within a token of the literal's text, not within the trivia of the code in an interpolation hole.
-    /// Such a line contributes an empty line to the value whatever the closing marker strips, so it stays empty
-    /// </summary>
-    /// <param name="root">The syntax root</param>
-    /// <param name="line">The line, from the text of the root's tree</param>
-    /// <returns><see langword="true"/> if the line is an empty line of literal text</returns>
-    private static bool IsEmptyTextLine(SyntaxNode root, TextLine line)
-    {
-        if (line.Span.Length > 0)
-        {
-            return false;
-        }
-
-        var token = root.FindToken(line.Start);
-
-        return token.SpanStart <= line.Start
-               && line.Start < token.Span.End;
     }
 
     #endregion // Methods

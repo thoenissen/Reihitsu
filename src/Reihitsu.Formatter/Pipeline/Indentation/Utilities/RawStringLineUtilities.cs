@@ -6,10 +6,10 @@ using Microsoft.CodeAnalysis.Text;
 namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 
 /// <summary>
-/// Decides which lines of a multi-line raw string literal the move of the literal's lines writes. Whether a line starts
-/// inside nested text (<see cref="StartsInsideNestedText"/>) is the one statement of that decision, which the
-/// indentation phase and the code fix that aligns a raw string literal both follow; <see cref="MovesLine"/> is the
-/// indentation phase's decision, which also leaves every empty line empty
+/// Decides which lines of a multi-line raw string literal the move of the literal's lines writes.
+/// <see cref="MovesLine"/> is the one statement of that decision, which the indentation phase and the code fix that
+/// aligns a raw string literal both follow: every empty line stays empty, and a line that starts inside nested text
+/// (<see cref="StartsInsideNestedText"/>) stays as written
 /// </summary>
 internal static class RawStringLineUtilities
 {
