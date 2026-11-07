@@ -1,6 +1,6 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,9 +9,11 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Core;
+using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 
@@ -25,7 +27,12 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
     #region Methods
 
     /// <summary>
-    /// Applies the code fix by realigning raw string content using text-level replacement
+    /// Applies the code fix by shifting the lines of the raw string literal after its first line, so that its closing
+    /// marker starts in the column of its opening quotes. Every line the move writes shifts by the same number of
+    /// columns; which lines it writes is decided by <see cref="RawStringLineUtilities.MovesLine"/>, the decision the
+    /// formatter follows, so an empty line stays empty and a line that starts inside a nested literal other than a raw
+    /// string, or inside a nested comment, stays as written. A nested raw string literal is not aligned here: its lines
+    /// shift with the outer literal, and it keeps its own diagnostic
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="node">The syntax node representing the raw string expression</param>
@@ -33,12 +40,17 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
     {
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var span = node.Span;
-        var expressionText = sourceText.ToString(span);
+        var openingLine = sourceText.Lines.GetLineFromPosition(span.Start);
+        var closingLine = sourceText.Lines.GetLineFromPosition(span.End);
 
-        var startLine = sourceText.Lines.GetLineFromPosition(span.Start);
-        var startColumn = span.Start - startLine.Start;
+        if (root == null
+            || openingLine.LineNumber == closingLine.LineNumber)
+        {
+            return document;
+        }
 
         var quoteOffset = 0;
 
@@ -47,94 +59,65 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
             quoteOffset = RawStringLiteralUtilities.GetQuoteOffset(interpolated.StringStartToken.Text);
         }
 
-        var targetColumn = startColumn + quoteOffset;
+        var targetColumn = span.Start - openingLine.Start + quoteOffset;
+        var currentClosingColumn = GetLeadingWhitespaceCount(sourceText, closingLine);
+        var delta = targetColumn - currentClosingColumn;
 
-        var newExpressionText = RealignContent(expressionText, targetColumn);
-
-        if (expressionText == newExpressionText)
+        if (delta == 0)
         {
             return document;
         }
 
-        var newSourceText = sourceText.Replace(span, newExpressionText);
+        var changes = new List<TextChange>();
 
-        return document.WithText(newSourceText);
-    }
-
-    /// <summary>
-    /// Realigns all content lines of a raw string expression to match the target column
-    /// </summary>
-    /// <param name="expressionText">The full text of the raw string expression</param>
-    /// <param name="targetColumn">The target column for the opening and closing quote markers</param>
-    /// <returns>The realigned expression text</returns>
-    private static string RealignContent(string expressionText, int targetColumn)
-    {
-        var lines = expressionText.Split(["\r\n", "\n"], StringSplitOptions.None);
-
-        if (lines.Length < 2)
+        for (var lineNumber = openingLine.LineNumber + 1; lineNumber <= closingLine.LineNumber; lineNumber++)
         {
-            return expressionText;
-        }
+            var line = sourceText.Lines[lineNumber];
 
-        var lastLine = lines[lines.Length - 1];
-        var currentClosingColumn = lastLine.Length - lastLine.TrimStart().Length;
-
-        if (currentClosingColumn == targetColumn)
-        {
-            return expressionText;
-        }
-
-        var delta = targetColumn - currentClosingColumn;
-        var lineEnding = expressionText.Contains("\r\n")
-                             ? "\r\n"
-                             : "\n";
-        var result = new StringBuilder();
-
-        result.Append(lines[0]);
-
-        for (var lineIndex = 1; lineIndex < lines.Length; lineIndex++)
-        {
-            result.Append(lineEnding);
-
-            var line = lines[lineIndex];
+            if (RawStringLineUtilities.MovesLine(root, line) == false)
+            {
+                continue;
+            }
 
             if (delta > 0)
             {
-                result.Append(new string(' ', delta));
-                result.Append(line);
+                changes.Add(new TextChange(new TextSpan(line.Start, 0), new string(' ', delta)));
             }
             else
             {
-                var charactersToRemove = Math.Min(-delta, GetLeadingWhitespaceCount(line));
+                var charactersToRemove = Math.Min(-delta, GetLeadingWhitespaceCount(sourceText, line));
 
-                result.Append(line.Substring(charactersToRemove));
+                if (charactersToRemove > 0)
+                {
+                    changes.Add(new TextChange(new TextSpan(line.Start, charactersToRemove), string.Empty));
+                }
             }
         }
 
-        return result.ToString();
+        if (changes.Count == 0)
+        {
+            return document;
+        }
+
+        return document.WithText(sourceText.WithChanges(changes));
     }
 
     /// <summary>
     /// Gets the number of leading whitespace characters in a line
     /// </summary>
+    /// <param name="text">The text that holds the line</param>
     /// <param name="line">The line to inspect</param>
     /// <returns>The count of leading whitespace characters</returns>
-    private static int GetLeadingWhitespaceCount(string line)
+    private static int GetLeadingWhitespaceCount(SourceText text, TextLine line)
     {
         var count = 0;
 
-        foreach (var character in line)
+        // Both spaces and tabs are counted so that outdenting a tab-indented raw string actually removes the
+        // leading whitespace instead of silently doing nothing
+        while (line.Start + count < line.End
+               && (text[line.Start + count] == ' ' || text[line.Start + count] == '\t'))
         {
-            // Both spaces and tabs are counted so that outdenting a tab-indented raw string actually removes the
-            // leading whitespace instead of silently doing nothing
-            if (character == ' ' || character == '\t')
-            {
-                count++;
-            }
-            else
-            {
-                break;
-            }
+            count++;
         }
 
         return count;

@@ -72,7 +72,7 @@ internal sealed class RawStringLineShifts
 
             for (var lineNumber = openingLine.LineNumber + 1; lineNumber <= closingLine.LineNumber; lineNumber++)
             {
-                if (StartsInsideNestedText(root, text.Lines[lineNumber].Start))
+                if (RawStringLineUtilities.StartsInsideNestedText(root, text.Lines[lineNumber].Start))
                 {
                     continue;
                 }
@@ -215,7 +215,8 @@ internal sealed class RawStringLineShifts
     /// on a content or closing line, or in its leading trivia, on a line of an interpolation hole. A content line that
     /// starts with a hole's opening brace has no text in front of the brace, and the parser reads indentation there as
     /// text of the literal: its edit belongs to the text token that ends at the line's start, or, when the start token
-    /// stands in front of the hole, it becomes a new text element of the literal
+    /// stands in front of the hole, it becomes a new text element of the literal. A line the move does not write, an empty
+    /// line or one that starts inside nested text, gets no edit (<see cref="RawStringLineUtilities.MovesLine"/>)
     /// </summary>
     /// <param name="root">The indented syntax root</param>
     /// <param name="node">The literal expression or interpolated string expression</param>
@@ -232,7 +233,7 @@ internal sealed class RawStringLineShifts
         {
             var line = text.Lines[lineNumber];
 
-            if (line.Span.Length == 0)
+            if (RawStringLineUtilities.MovesLine(root, line) == false)
             {
                 continue;
             }
@@ -485,66 +486,6 @@ internal sealed class RawStringLineShifts
         return node is InterpolatedStringExpressionSyntax interpolated
                    ? RawStringLiteralUtilities.GetQuoteOffset(interpolated.StringStartToken.Text)
                    : 0;
-    }
-
-    /// <summary>
-    /// Determines whether a line that starts at the given position starts inside the text of a literal other than a
-    /// raw string, or inside a <c>/* */</c> or <c>/** */</c> comment, that began on an earlier line. Moving the start
-    /// of such a line would change the literal's value or the comment's text. The following lines of a <c>///</c>
-    /// comment start with a marker that is laid out like the first one, so they move
-    /// </summary>
-    /// <param name="root">The syntax root</param>
-    /// <param name="lineStart">The position at which the line starts</param>
-    /// <returns><see langword="true"/> if the line starts inside such text</returns>
-    private static bool StartsInsideNestedText(SyntaxNode root, int lineStart)
-    {
-        var trivia = root.FindTrivia(lineStart);
-
-        if (trivia.Span.Start < lineStart
-            && trivia.Span.End > lineStart
-            && (trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
-                || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia)))
-        {
-            return true;
-        }
-
-        var token = root.FindToken(lineStart);
-
-        if (token.SpanStart > lineStart)
-        {
-            return false;
-        }
-
-        if (token.SpanStart < lineStart)
-        {
-            return IsNonRawStringText(token);
-        }
-
-        var previousToken = token.GetPreviousToken();
-
-        return token.LeadingTrivia.Count == 0
-               && previousToken.Span.End == lineStart
-               && IsNonRawStringText(previousToken);
-    }
-
-    /// <summary>
-    /// Determines whether the token holds the text of a string literal other than a raw string: a regular or verbatim
-    /// string, or the text of an interpolated string that is not raw
-    /// </summary>
-    /// <param name="token">The token to inspect</param>
-    /// <returns><see langword="true"/> if the token holds such text</returns>
-    private static bool IsNonRawStringText(SyntaxToken token)
-    {
-        if (token.IsKind(SyntaxKind.StringLiteralToken)
-            || token.IsKind(SyntaxKind.Utf8StringLiteralToken))
-        {
-            return true;
-        }
-
-        return token.IsKind(SyntaxKind.InterpolatedStringTextToken)
-               && token.Parent?.Parent is InterpolatedStringExpressionSyntax interpolated
-               && interpolated.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken) == false
-               && interpolated.StringStartToken.IsKind(SyntaxKind.InterpolatedSingleLineRawStringStartToken) == false;
     }
 
     /// <summary>
