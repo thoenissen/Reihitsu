@@ -82,21 +82,21 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
                                                     public class C
                                                     {
                                                         static
-                                                            public int {|RH2005:Counter|};
+                                                            public int {|#0:Counter|};
                                                     }
                                                     """;
 
     /// <summary>
-    /// <see cref="PublicOnItsOwnLineSource"/> with <see langword="private"/> where <c>static</c> stood and the line of
-    /// the removed <see langword="public"/> kept in place
+    /// Expected result of the fix applied to <see cref="PublicOnItsOwnLineSource"/>: <see langword="private"/> where
+    /// <c>static</c> stood, and the line of the removed <see langword="public"/> kept in place
     /// </summary>
-    private const string PublicOnItsOwnLineInPlaceSource = """
-                                                           public class C
-                                                           {
-                                                               private static
-                                                                   int Counter;
-                                                           }
-                                                           """;
+    private const string PublicOnItsOwnLineFixedSource = """
+                                                         public class C
+                                                         {
+                                                             private static
+                                                                 int Counter;
+                                                         }
+                                                         """;
 
     /// <summary>
     /// Source of a <c>static</c> field with a comment line between <c>static</c> and <see langword="public"/>
@@ -111,19 +111,6 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
                                                             """;
 
     /// <summary>
-    /// <see cref="CommentLineInFrontOfPublicSource"/> with <see langword="private"/> where <c>static</c> stood and the
-    /// comment line kept in front of the rest of the declaration
-    /// </summary>
-    private const string CommentLineInFrontOfPublicInPlaceSource = """
-                                                                   public class C
-                                                                   {
-                                                                       private static
-                                                                           // note
-                                                                           int Counter;
-                                                                   }
-                                                                   """;
-
-    /// <summary>
     /// Source of a <c>static</c> field with a directive line between <c>static</c> and <see langword="public"/>
     /// </summary>
     private const string DirectiveLineInFrontOfPublicSource = """
@@ -134,19 +121,6 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
                                                                       public int {|RH2005:Counter|};
                                                               }
                                                               """;
-
-    /// <summary>
-    /// <see cref="DirectiveLineInFrontOfPublicSource"/> with <see langword="private"/> where <c>static</c> stood and
-    /// the directive line kept in front of the rest of the declaration
-    /// </summary>
-    private const string DirectiveLineInFrontOfPublicInPlaceSource = """
-                                                                     public class C
-                                                                     {
-                                                                         private static
-                                                                     #pragma warning disable CS0649
-                                                                             int Counter;
-                                                                     }
-                                                                     """;
 
     #endregion // Constants
 
@@ -962,17 +936,18 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     }
 
     /// <summary>
-    /// Verifies that a <see langword="public"/> that is not the first modifier and starts its own line gets a fix that
-    /// writes <see langword="private"/> where <c>static</c> stood and keeps the rest of the declaration on the line of
-    /// the removed <see langword="public"/>, in its column or as the formatter lays it out, instead of moving it to
-    /// column zero
+    /// Verifies the specification example of a <see langword="public"/> that is not the first modifier and starts its
+    /// own line: <see langword="private"/> takes the place of <c>static</c>, and <see langword="int"/> takes the line
+    /// and the column of the removed <see langword="public"/>
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH2005-003")]
     public async Task VerifyFixKeepsTheLineOfAPublicThatStartsItsOwnLineBehindAnotherModifier()
     {
-        await VerifyCodeFixIsWithheldOrProducesOneOf(PublicOnItsOwnLineSource, false, PublicOnItsOwnLineInPlaceSource, Format(PublicOnItsOwnLineInPlaceSource));
+        await Verify(PublicOnItsOwnLineSource,
+                     PublicOnItsOwnLineFixedSource,
+                     Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
     }
 
     /// <summary>
@@ -984,78 +959,68 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixKeepsTheLineOfAPublicThatStartsItsOwnLineBehindAnotherModifierCarriageReturnLineFeed()
     {
-        var inPlace = NormalizeToCarriageReturnLineFeed(PublicOnItsOwnLineInPlaceSource);
-
-        await VerifyCodeFixIsWithheldOrProducesOneOf(NormalizeToCarriageReturnLineFeed(PublicOnItsOwnLineSource), false, inPlace, Format(inPlace));
+        await Verify(NormalizeToCarriageReturnLineFeed(PublicOnItsOwnLineSource),
+                     NormalizeToCarriageReturnLineFeed(PublicOnItsOwnLineFixedSource),
+                     Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
     }
 
     /// <summary>
-    /// Verifies that a comment line between <c>static</c> and a <see langword="public"/> that starts its own line is
-    /// neither dropped nor moved away from the code it stands with: the fix is withheld, or it keeps the comment line
-    /// in front of the rest of the declaration
+    /// Verifies the specification example of a comment line between <c>static</c> and a <see langword="public"/> that
+    /// starts its own line: the diagnostic is reported, and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH2005-003")]
-    [Requirement("SHARED-FIX-003")]
-    public async Task VerifyFixKeepsACommentLineInFrontOfAPublicBehindAnotherModifier()
+    [Requirement("RH2005-005")]
+    public async Task VerifyNoFixIsOfferedForACommentLineInFrontOfAPublicBehindAnotherModifier()
     {
-        await VerifyCodeFixIsWithheldOrProducesOneOf(CommentLineInFrontOfPublicSource, true, CommentLineInFrontOfPublicInPlaceSource, Format(CommentLineInFrontOfPublicInPlaceSource));
+        await VerifyNoCodeFixIsOffered(CommentLineInFrontOfPublicSource);
     }
 
     /// <summary>
-    /// Repeats <see cref="VerifyFixKeepsACommentLineInFrontOfAPublicBehindAnotherModifier"/> with the source normalized
-    /// to CRLF line endings
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH2005-003")]
-    [Requirement("SHARED-FIX-003")]
-    public async Task VerifyFixKeepsACommentLineInFrontOfAPublicBehindAnotherModifierCarriageReturnLineFeed()
-    {
-        var inPlace = NormalizeToCarriageReturnLineFeed(CommentLineInFrontOfPublicInPlaceSource);
-
-        await VerifyCodeFixIsWithheldOrProducesOneOf(NormalizeToCarriageReturnLineFeed(CommentLineInFrontOfPublicSource), true, inPlace, Format(inPlace));
-    }
-
-    /// <summary>
-    /// Verifies that a directive line between <c>static</c> and a <see langword="public"/> that starts its own line is
-    /// not dropped: the fix is withheld, or it keeps the directive line in front of the rest of the declaration
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH2005-003")]
-    [Requirement("SHARED-FIX-003")]
-    public async Task VerifyFixKeepsADirectiveLineInFrontOfAPublicBehindAnotherModifier()
-    {
-        await VerifyCodeFixIsWithheldOrProducesOneOf(DirectiveLineInFrontOfPublicSource, true, DirectiveLineInFrontOfPublicInPlaceSource, Format(DirectiveLineInFrontOfPublicInPlaceSource));
-    }
-
-    /// <summary>
-    /// Repeats <see cref="VerifyFixKeepsADirectiveLineInFrontOfAPublicBehindAnotherModifier"/> with the source
+    /// Repeats <see cref="VerifyNoFixIsOfferedForACommentLineInFrontOfAPublicBehindAnotherModifier"/> with the source
     /// normalized to CRLF line endings
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH2005-003")]
-    [Requirement("SHARED-FIX-003")]
-    public async Task VerifyFixKeepsADirectiveLineInFrontOfAPublicBehindAnotherModifierCarriageReturnLineFeed()
+    [Requirement("RH2005-005")]
+    public async Task VerifyNoFixIsOfferedForACommentLineInFrontOfAPublicBehindAnotherModifierCarriageReturnLineFeed()
     {
-        var inPlace = NormalizeToCarriageReturnLineFeed(DirectiveLineInFrontOfPublicInPlaceSource);
-
-        await VerifyCodeFixIsWithheldOrProducesOneOf(NormalizeToCarriageReturnLineFeed(DirectiveLineInFrontOfPublicSource), true, inPlace, Format(inPlace));
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(CommentLineInFrontOfPublicSource));
     }
 
     /// <summary>
-    /// Verifies that an <c>#if</c> block whose disabled text holds a modifier, between <c>static</c> and a
-    /// <see langword="public"/> that starts its own line, is not dropped: the fix is withheld, or it keeps the block in
-    /// front of the rest of the declaration
+    /// Verifies the specification example of a directive line between <c>static</c> and a <see langword="public"/>
+    /// that starts its own line: the diagnostic is reported, and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH2005-003")]
-    [Requirement("SHARED-FIX-003")]
-    public async Task VerifyFixKeepsAnExcludedModifierInFrontOfAPublicBehindAnotherModifier()
+    [Requirement("RH2005-005")]
+    public async Task VerifyNoFixIsOfferedForADirectiveLineInFrontOfAPublicBehindAnotherModifier()
+    {
+        await VerifyNoCodeFixIsOffered(DirectiveLineInFrontOfPublicSource);
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyNoFixIsOfferedForADirectiveLineInFrontOfAPublicBehindAnotherModifier"/> with the source
+    /// normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2005-005")]
+    public async Task VerifyNoFixIsOfferedForADirectiveLineInFrontOfAPublicBehindAnotherModifierCarriageReturnLineFeed()
+    {
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(DirectiveLineInFrontOfPublicSource));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of an <c>#if</c> block whose disabled text holds a modifier, between
+    /// <c>static</c> and a <see langword="public"/> that starts its own line: the diagnostic is reported, and no code
+    /// fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2005-005")]
+    public async Task VerifyNoFixIsOfferedForAnExcludedModifierInFrontOfAPublicBehindAnotherModifier()
     {
         const string testData = """
                                 public class C
@@ -1064,22 +1029,11 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
                                 #if NEVER
                                         readonly
                                 #endif
-                                        public int {|RH2005:Counter|};
+                                        public int {|RH2005:Total|};
                                 }
                                 """;
 
-        const string inPlace = """
-                               public class C
-                               {
-                                   private static
-                               #if NEVER
-                                       readonly
-                               #endif
-                                       int Counter;
-                               }
-                               """;
-
-        await VerifyCodeFixIsWithheldOrProducesOneOf(testData, true, inPlace, Format(inPlace));
+        await VerifyNoCodeFixIsOffered(testData);
     }
 
     #endregion // Tests
