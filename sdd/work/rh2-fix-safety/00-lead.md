@@ -51,6 +51,8 @@ Maintainer: "keep it simple".
 | 20 | Spec author 12 | Q6's RH2005 half as new RH2005-005 vs. paragraph in RH2005-003; RH2001 half extends RH2001-007 | Accept both | Each withheld case has its own heading; decision 7 keeps the RH2001 class in one place | Spec structure only | 5d0db01 |
 | 21 | Spec author 12 | RH2001 name on its own line below the type, no comment: layout | Assert the current output `private int⏎    _value;` only | The RH2001 fix formats its field; SHARED-FIX-007 (formatting the result changes nothing) decides it, unchanged | An unchanged requirement decides it; same output as before the run | — |
 | 22 | Test implementer 13 | Two RH2001 tests (comment line in front of the type; comment behind the type on its line) keep the multi-outcome helper | Keep as is; no spec decision added | Only SHARED-FIX-003 constrains them, and the tests assert exactly that; current output keeps the comment, as before the run | The run does not change these outputs | e70fd29 |
+| 23 | Implementer 14 | Stand-in rule for RH7409–RH7412: implementing part stands in only when the defining part is generated | Accept | Keeps `main`'s characterization of the only-some-parts case (#1334) and follows SHARED-DIAG-012's fallback order; one place to change | Only-some-parts outputs unchanged from `main` | 2f1fb5a |
+| 24 | Implementer 14 | Decision 16 scope: only RH2004 moved to a per-type symbol action; RH2002, RH8306, RH74 bases report from each part's node analysis with the part chosen from all parts | Accept | The chosen part is never generated (SHARED-DIAG-012 step 1) and every non-generated part of these kinds gets a node analysis; the one kind the driver skips (partial constructor defining part) is RH2004's, now per type. A per-type move of the RH74 bases needs `Compilation.GetSemanticModel` (RS1030) | Output is SHARED-DIAG-012 | 2f1fb5a |
 | 9 | Skeptic | Spec-author follow-up candidates 1 and 2 | Collapse into one spec-wording follow-up for SHARED-DIAG-004; candidate 2 folds into Q1's answer | SHARED-NESTED-002 already decides candidate 1 | Wording follow-up only | — |
 
 ## Follow-up candidates
@@ -61,6 +63,9 @@ Maintainer: "keep it simple".
 3. #1334 note: RH7405–RH7408 count a part in another file as reported; the only-some-parts case can then report nothing — 05-implementer.md.
 
 4. RH2001 fix on `static private int Value { get; }` writes five spaces between `private` and `static`, and a comment between the two modifiers moves across `private` (pre-existing, outside the issues) — 10-auditor.md.
+
+5. RH2005: `static public /* c */ int` — the removed `public`'s trailing comment moves in front of `static` (pre-existing, traced) — 14-implementer.md.
+6. `DocumentationAnalysisUtilities.OverridesOrImplementsMember` (RH8201 and other documentation rules) judges the implementing part of a partial interface-implementing member as implementing nothing (pre-existing, traced) — 14-implementer.md.
 
 ## Pending output questions (batch before auditor)
 
@@ -94,5 +99,7 @@ Maintainer: "keep it simple".
 - Test implementer 11 done (2d72935): 22 failing; tests accept several outputs for findings 1/2b → Q5, Q6 answered 5A, 6A.
 - Spec author 12 done (5d0db01): RH2005-003 clarified, RH2005-005 new, RH2001-007 widened.
 - Test implementer 13 done (e70fd29): 17 intended reds in RH2001/RH2005 plus 4a/4b reds.
-- Next (was: test implementer 13) narrows tests to the answered outputs; implementer (14) repairs findings 1–4 with decisions 16–18.
+- Implementer 14 done (2f1fb5a, d09d88f): all tests pass (analyzer 7153, core 649, architecture 115).
+- Next: cleaner (15), spec checker (16), auditor on repair only (17), validator (18).
+- (old line) Next (was: test implementer 13) narrows tests to the answered outputs; implementer (14) repairs findings 1–4 with decisions 16–18.
 - Repair round 1 (of 3) worklist: test implementer (11) adds regressions for 1, 2a, 2b, 4a, 4b; implementer (12) repairs 1–4 with decisions 16–18; cleaner, spec checker, auditor (repair only), validator.
