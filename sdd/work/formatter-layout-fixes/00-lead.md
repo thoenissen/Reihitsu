@@ -77,6 +77,7 @@ None in this run so far. The issues' comments carry triage decisions (summarized
 15. Gap behind a parameter default `=` decided by two components (`LineBreakAssignmentRewriter.NormalizeEqualsValuePlacement` and `ListElementInteriorJoinRewriter.IsOwnedGap`), pre-existing on main (13-auditor, decision 19).
 16. RH5111 reports `A // c⏎= 1`, which the formatter keeps: RH5111-005 conflicts with SHARED-DIAG-010 (13-auditor).
 17. A base list whose `:` starts its own line puts `:` at column 0; no requirement decides it (13-auditor).
+18. `scripts/verify-text-only.sh --strict-docs` treats XML docs on a public member of an internal type as public API documentation (`IsPubliclyVisible`, `scripts/proof/verify-text-only.cs`); false FAIL in this run (17-auditor).
 9. Line-break rewriters that already carry a private "line break unless one exists" check: migrate to the shared check (decision 4).
 
 ## Worklist / next step
@@ -98,4 +99,5 @@ None in this run so far. The issues' comments carry triage decisions (summarized
 - Before auditor: main not ahead; build green.
 - Auditor 13 at cc81583: pass, text cleanup. Audited SHA: eeba52a (base 6ecc978).
 - Spec author 14 at 2b31f0d (decision 19); cleaner 15 at 9029e16 (decision 20). verify-text-only --strict-docs: FAIL (public-member XML docs in `RawStringLiteral.cs`; tokens identical) → repair round 2 of 3, per lead.md section 7.
-- Next: spec checker (16) on 2b31f0d/9029e16; auditor (17) on the repair only; validator (18); publish.
+- Spec checker 16 at 6c0f8fb: consistent. Auditor 17 at f7882c1: pass (repair only). AUDITED SHA: 6c0f8fb.
+- Next: validator (18); lane check; issue manager (19); note; publish.
