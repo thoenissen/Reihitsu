@@ -67,6 +67,8 @@ None in this run so far. The issues' comments carry triage decisions (summarized
 10. Compound assignment inside one argument of a multi-argument list (`M(x⏎+= 1, y)`): whether the list returns to one line after the FMT-BREAK-016 join is undecided (04-test-implementer).
 11. Interface indexer `int this⏎[int a] { get; }`: whether its accessor list stays on one line after the join is undecided (04-test-implementer).
 12. Method and argument lists wrapped only after `(` are joined to one line, against FMT-BREAK-012 (decision 14; 06-implementer).
+13. Whether FMT-BREAK-012 should split a parameter list when a comment pins a leading comma (`this[int first, int second // keep⏎, int third]`, method form alike) (07-test-implementer).
+14. Raw-string line shift duplication — taken into the run as decision 15, not a follow-up.
 9. Line-break rewriters that already carry a private "line break unless one exists" check: migrate to the shared check (decision 4).
 
 ## Worklist / next step
@@ -80,4 +82,5 @@ None in this run so far. The issues' comments carry triage decisions (summarized
 - Change doc 8432ef4 accepted (both visible changes answered by Q1/Q2). Lane check: behavior-change confirmed.
 - Test implementer 04 at 6e34031: #1243, #1383, #1149, #1391, #1611 reproduced; #952 regression test passes.
 - Spec author 05 at d0e2102 (decision 10). Implementer 06 at f1bc9b0 (production 317a6a5): all handed-over tests pass except 3 disputed; 14 existing tests contradict changed specs; 1 analyzer failure (RH5601 tab test, in the 14).
-- Next: test implementer (07) for decisions 12, 13; then implementer (08) for decision 15; then cleaner.
+- Test implementer 07 at d5f7b7a: decisions 12, 13 done; formatter, analyzer, architecture projects all green at that head.
+- Next: implementer (08) for decision 15; then cleaner (09).
