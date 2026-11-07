@@ -563,52 +563,47 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Determines whether disabled text leaves a string open in the block, under the defined preprocessor symbols or
-    /// under others, so that the lines behind it cannot be decided on the source text alone. Disabled text of an inactive
-    /// branch is lexed between its directives, and a string that runs to the end of it without being closed is left
-    /// open. A string in active code whose branch other symbols disable is cut the same way at the first line inside it
-    /// that starts with <c>#</c>, which is then a directive. Only a block the fix keeps as a block body is checked: an
-    /// expression body holds no directive
+    /// Determines whether a string in the block holds a line that is a directive in some build, so that which lines
+    /// belong to the string depends on the preprocessor symbols and cannot be decided on the source text alone. A string
+    /// of active code does when a line after its first starts with <c>#</c> behind whitespace: under symbols that turn
+    /// off a branch the string lies in, also a branch opened before the anonymous method, that line is a directive. This
+    /// is decided on the line, not on the directives around it. Disabled text of an inactive branch is lexed between its
+    /// directives, and a string that runs to the end of it without being closed is left open. Only a block the fix keeps
+    /// as a block body is checked: an expression body holds no directive, and the fix moves none of its lines
     /// </summary>
     /// <param name="block">Block of the anonymous method</param>
     /// <param name="text">Text of the document</param>
-    /// <returns><see langword="true"/> if disabled text leaves a string open</returns>
-    private static bool LeavesStringOpen(BlockSyntax block, SourceText text)
+    /// <returns><see langword="true"/> if a string of the block holds a directive line in some build</returns>
+    private static bool ContainsStringWithDirectiveLine(BlockSyntax block, SourceText text)
     {
-        var branchStarts = new List<int>();
-        var depth = 0;
+        return block.DescendantTrivia()
+                    .Where(static trivia => trivia.IsKind(SyntaxKind.DisabledTextTrivia))
+                    .Any(static trivia => SyntaxFactory.ParseTokens(trivia.ToFullString(), initialTokenPosition: trivia.FullSpan.Start)
+                                                       .Any(token => IsOpenStringToken(token, trivia.FullSpan.End)))
+               || block.DescendantNodes()
+                       .Where(IsString)
+                       .Any(stringExpression => stringExpression.Ancestors().TakeWhile(ancestor => ancestor != block).Any(IsString) == false
+                                                && ContainsLineStartingWithHash(text, stringExpression.Span));
+    }
 
-        foreach (var trivia in block.DescendantTrivia())
-        {
-            if (trivia.IsKind(SyntaxKind.IfDirectiveTrivia)
-                || trivia.IsKind(SyntaxKind.ElifDirectiveTrivia)
-                || trivia.IsKind(SyntaxKind.ElseDirectiveTrivia)
-                || trivia.IsKind(SyntaxKind.EndIfDirectiveTrivia))
-            {
-                if (trivia.IsKind(SyntaxKind.IfDirectiveTrivia))
-                {
-                    depth++;
-                }
-                else if (trivia.IsKind(SyntaxKind.EndIfDirectiveTrivia) && depth > 0)
-                {
-                    depth--;
-                }
+    /// <summary>
+    /// Determines whether a conditional directive inside the block belongs to a chain that has a directive outside the
+    /// anonymous method, before it or after the block's closing brace. The lambda the fix writes then holds only part
+    /// of that chain, so neither its layout nor which of its lines are code can be decided on its text
+    /// </summary>
+    /// <param name="anonymousMethodExpression">Anonymous method expression</param>
+    /// <returns><see langword="true"/> if such a chain crosses the anonymous method</returns>
+    private static bool ContainsCrossingDirectiveChain(AnonymousMethodExpressionSyntax anonymousMethodExpression)
+    {
+        var block = anonymousMethodExpression.Block;
+        var span = anonymousMethodExpression.Span;
 
-                branchStarts.Add(depth > 0 ? trivia.Span.End : -trivia.Span.End);
-            }
-            else if (trivia.IsKind(SyntaxKind.DisabledTextTrivia)
-                     && SyntaxFactory.ParseTokens(trivia.ToFullString(), initialTokenPosition: trivia.FullSpan.Start)
-                                     .Any(token => IsOpenStringToken(token, trivia.FullSpan.End)))
-            {
-                return true;
-            }
-        }
-
-        return block.DescendantNodes()
-                    .Where(IsString)
-                    .Any(stringExpression => stringExpression.Ancestors().TakeWhile(ancestor => ancestor != block).Any(IsString) == false
-                                             && IsInBranch(branchStarts, stringExpression.SpanStart)
-                                             && ContainsLineStartingWithHash(text, stringExpression.Span));
+        return block.DescendantTrivia()
+                    .Where(trivia => block.Span.Contains(trivia.Span))
+                    .Select(static trivia => trivia.GetStructure())
+                    .OfType<DirectiveTriviaSyntax>()
+                    .Where(static directive => directive is IfDirectiveTriviaSyntax or ElifDirectiveTriviaSyntax or ElseDirectiveTriviaSyntax or EndIfDirectiveTriviaSyntax)
+                    .Any(directive => directive.GetRelatedDirectives().Any(related => span.Contains(related.Span) == false));
     }
 
     /// <summary>
@@ -627,29 +622,6 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
                 || token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken))
                && token.FullSpan.End >= disabledTextEnd
                && token.GetDiagnostics().Any(static diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
-    }
-
-    /// <summary>
-    /// Determines whether a position of the block lies inside a branch of a conditional directive of the block
-    /// </summary>
-    /// <param name="branchStarts">The ends of the block's conditional directives, in source order, positive where a branch follows the directive and negative where none does</param>
-    /// <param name="position">Position</param>
-    /// <returns><see langword="true"/> if the position lies inside a branch</returns>
-    private static bool IsInBranch(List<int> branchStarts, int position)
-    {
-        var inBranch = false;
-
-        foreach (var branchStart in branchStarts)
-        {
-            if (Math.Abs(branchStart) > position)
-            {
-                break;
-            }
-
-            inBranch = branchStart > 0;
-        }
-
-        return inBranch;
     }
 
     /// <summary>
@@ -842,9 +814,10 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
                 if (anonymousMethodExpression?.ParameterList != null
                     && ContainsDiscardedTrivia(anonymousMethodExpression) == false
                     && IsOperandOfCastOrBinaryOperator(anonymousMethodExpression) == false
+                    && ContainsCrossingDirectiveChain(anonymousMethodExpression) == false
                     && (GetExpressionBody(anonymousMethodExpression) != null
                         || (ContainsMultiLineRawStringLiteral(anonymousMethodExpression.Block) == false
-                            && LeavesStringOpen(anonymousMethodExpression.Block, text) == false)))
+                            && ContainsStringWithDirectiveLine(anonymousMethodExpression.Block, text) == false)))
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3004Title,
                                                               token => ApplyCodeFixAsync(context.Document, anonymousMethodExpression, token),
