@@ -24,6 +24,7 @@
 | 5 | Spec author | Change doc required? | No; RH5202-003 clarified, RH5202-004/005 added as clarification; lane stays bug fix (lane check confirmed) | SHARED-FIX-003/007 and FMT-RAW-009 already decided both outputs | Outputs decided by unchanged shared requirements and Q1/Q2 | 060e546 |
 | 6 | Audit 1 | Architecture finding: the width of the whitespace in front of the closing quotes is measured in three places (analyzer `TrimStart`, fix `GetLeadingWhitespaceCount`, formatter `GetLeadingSpaceCount`); the fix's copy drifted (finding #1) | Change the structure for the analyzer and its code fix: the fix takes the closing-line measurement from one statement shared with the analyzer (no private copy in the fix), which restores `main`'s convergence for every whitespace character. The formatter's measurement stays and becomes a follow-up candidate | A narrow fix would keep a second copy in the fix; the analyzer is the fix's counterpart, the formatter's divergence is pre-existing | Restores `main`'s output; nothing new visible | — |
 | 7 | Audit 1 | Finding #2: empty lines inside a hole no longer shift, against RH5202-003/005 as written | Repair the code to the spec as written: an empty line inside a hole (not inside nested text) shifts as on `main`; RH5202-005 stays limited to content lines; formatter output must not change | Brings the code back to an unchanged requirement and to `main`'s output, so no output question | Same output as `main`, demanded by RH5202-003 | — |
+| 8 | Repair 1 tests | NBSP-first closing line shifting left fails on `main` too (no progress); RH5202-003 demands the output | Adjacent fix: the implementer makes that test pass too | Same component and mechanism as decision 6, small, tested | Demanded by unchanged RH5202-003 | — |
 
 ## Follow-up candidates
 
@@ -36,4 +37,4 @@
 - Test implementer done (03-test-implementer.md, 5f2ff33): reproduced, 29 red.
 - Implementer done (04-implementer.md, da441e9 production): shared `RawStringLineUtilities.MovesLine`; tests green.
 - Cleaner clean (05, d328e75). Spec checker consistent, no findings (06, 744f053). Auditor (07, 3347630): findings #1, #2 + architecture finding.
-- Repair round 1 (of 3): test implementer (tests for findings #1 and #2) → implementer (decisions 6, 7) → cleaner → spec checker → auditor (repair only) → validator. (was: spec author (RH5202-003 clarification per answer, Uses FMT-RAW-009) → test implementer.
+- Repair round 1 (of 3): test implementer done (08, 2ec5c72; 12 red) → (tests for findings #1 and #2) → implementer (decisions 6, 7) → cleaner → spec checker → auditor (repair only) → validator. (was: spec author (RH5202-003 clarification per answer, Uses FMT-RAW-009) → test implementer.
