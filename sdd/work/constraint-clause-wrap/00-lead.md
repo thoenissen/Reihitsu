@@ -20,8 +20,13 @@
 
 ## Follow-up candidates
 
-(none yet)
+From `01-spec-author.md` (each reproduced via the CLI):
+1. `where T⏎ : class` — the `: class` line lands one level left of `where`.
+2. Base list wrapped behind its colon (`class B :⏎ IDisposable`) — base types land at column 0.
+3. Angle-bracket list whose first element a comment pushes onto the next line — `T>` lands at column 4; FMT-INDENT-015 does not cover it.
+4. `Foo(1⏎ , 2, 3)` is not split to one argument per line — looks like a bug against FMT-BREAK-012.
 
 ## Open worklist / next step
 
-- Next: spawn spec author (01).
+- 01 spec author done (44509cd): change doc `sdd/changes/2026-11/constraint-clause-wrap.md` (Draft), FMT-BREAK-037, FMT-INDENT-032; 5 output questions in its handover.
+- Next: skeptic (02), then the output-question batch to the maintainer before the test implementer.
