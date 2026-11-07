@@ -605,6 +605,35 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : B
         await Verify(testData, fixedData, Diagnostics(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5110MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the fix gives a tight constraint colon the formatter's spacing: one space on each side
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5110-003")]
+    public async Task VerifyFixSpacesTightConstraintColon()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void M<T>() {|#0:where|} T:class
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void M<T>()
+                                         where T : class
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5110MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -575,13 +575,13 @@ public class ConstraintClauseAlignmentTests : FormatterTestsBase
                                     void M()
                                     {
                                         System.Action a = () =>
-                                        {
-                                            void L<T>()
-                                                where T : class,
-                                                          new()
-                                            {
-                                            }
-                                        };
+                                                          {
+                                                              void L<T>()
+                                                                  where T : class,
+                                                                            new()
+                                                              {
+                                                              }
+                                                          };
                                     }
                                 }
                                 """;

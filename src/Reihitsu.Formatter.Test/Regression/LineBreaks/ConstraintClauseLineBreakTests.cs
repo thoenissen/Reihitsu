@@ -1105,5 +1105,226 @@ public class ConstraintClauseLineBreakTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies the spec example: a colon that a comment keeps on its own line wraps its clause, also when its constraints
+    /// are written on one line, while a clause whose colon is joined stays on one line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-037")]
+    public void ColonKeptOnItsOwnLineByCommentWrapsClauseWrittenOnOneLine()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M<T>()
+                                     where T // c
+                                         : class, new()
+                                 {
+                                 }
+
+                                 void N<T>()
+                                     where T
+                                         : class, new()
+                                 {
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M<T>()
+                                        where T // c
+                                            : class,
+                                              new()
+                                    {
+                                    }
+
+                                    void N<T>()
+                                        where T : class, new()
+                                    {
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a colon a comment keeps on its own line wraps a clause of three constraints written on one line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-037")]
+    public void ColonKeptOnItsOwnLineByCommentWrapsEveryConstraint()
+    {
+        const string input = """
+                             using System;
+
+                             class C
+                             {
+                                 void M<T>()
+                                     where T // c
+                                         : class, IDisposable, new()
+                                 {
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System;
+
+                                class C
+                                {
+                                    void M<T>()
+                                        where T // c
+                                            : class,
+                                              IDisposable,
+                                              new()
+                                    {
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a colon a directive keeps on its own line wraps its clause, also when its constraints are written on
+    /// one line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-037")]
+    public void ColonKeptOnItsOwnLineByDirectiveWrapsClause()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M<T>()
+                                     where T
+                             #if !X
+                             #endif
+                                         : class, new()
+                                 {
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M<T>()
+                                        where T
+                                #if !X
+                                #endif
+                                            : class,
+                                              new()
+                                    {
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a colon that disabled text keeps on its own line wraps its clause
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-037")]
+    public void ColonKeptOnItsOwnLineByDisabledTextWrapsClause()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M<T>()
+                                     where T
+                             #if X
+                                         , unused
+                             #endif
+                                         : class, new()
+                                 {
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M<T>()
+                                        where T
+                                #if X
+                                            , unused
+                                #endif
+                                            : class,
+                                              new()
+                                    {
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a colon a comment keeps on its own line leaves a single constraint behind it on the colon's line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-037")]
+    public void ColonKeptOnItsOwnLineByCommentKeepsSingleConstraintOnItsLine()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M<T>()
+                                     where T // c
+                                         : class
+                                 {
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M<T>()
+                                        where T // c
+                                            : class
+                                    {
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a tight colon a comment keeps on its own line gets its space, and the clause is wrapped and aligned
+    /// behind it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-037")]
+    [Requirement("FMT-SPACE-009")]
+    public void TightColonKeptOnItsOwnLineByCommentIsSpacedAndWrapsClause()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M<T>()
+                                     where T // c
+                                         :class, new()
+                                 {
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M<T>()
+                                        where T // c
+                                            : class,
+                                              new()
+                                    {
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
