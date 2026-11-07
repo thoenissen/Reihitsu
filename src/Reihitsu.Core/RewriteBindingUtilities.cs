@@ -27,8 +27,12 @@ public static class RewriteBindingUtilities
     /// converts to a type in its position, the path from the expression to that node has no error the original path did
     /// not have, and every method, constructor, indexer, operator, and collection initializer <c>Add</c> method that the
     /// expression and the nodes on that path bind to, type arguments included, stays the same. The path is the
-    /// expression and the nodes around it up to the bound node; a statement beside the path, such as a later statement of
-    /// a block or of an anonymous function's body, does not decide how the expression binds, so its errors do not count
+    /// expression and the nodes around it up to the bound node. Errors are counted only in the operations of the path's
+    /// nodes and of the expression's own content; every other operation under the bound node, whatever its syntax, such
+    /// as a later statement of a block or of an anonymous function's body, or the condition and incrementors of a
+    /// <see langword="for"/> statement whose initializer holds the expression, does not decide how the expression binds,
+    /// so its errors do not count. The candidates the code around the expression chooses are decided by the symbols the
+    /// path's nodes bind to
     /// </summary>
     /// <param name="semanticModel">Semantic model of the expression's document</param>
     /// <param name="expression">Expression</param>
@@ -62,7 +66,7 @@ public static class RewriteBindingUtilities
         var replacedNodes = GetBoundNodes(replacedExpression, replacedRoot);
 
         if (replacedModel.GetConversion(replacedExpression, cancellationToken).Exists == false
-            || CountErrors(replacedModel.GetOperation(replacedRoot, cancellationToken), new HashSet<SyntaxNode>(replacedNodes)) > CountErrors(semanticModel.GetOperation(bindingRoot, cancellationToken), new HashSet<SyntaxNode>(originalNodes)))
+            || CountErrors(replacedModel.GetOperation(replacedRoot, cancellationToken), new HashSet<SyntaxNode>(replacedNodes), replacedExpression) > CountErrors(semanticModel.GetOperation(bindingRoot, cancellationToken), new HashSet<SyntaxNode>(originalNodes), expression))
         {
             return false;
         }
@@ -155,14 +159,16 @@ public static class RewriteBindingUtilities
     }
 
     /// <summary>
-    /// Counts the errors the binder records on the path from an expression to its bound node: invalid operations,
-    /// conversions that do not exist, and operations of an error type. A statement that is not on the path, and every
-    /// operation inside it, is left out
+    /// Counts the errors the binder records on the path from an expression to its bound node and inside the expression:
+    /// invalid operations, conversions that do not exist, and operations of an error type. Only operations whose syntax
+    /// is one of the path's nodes or lies inside the expression are counted. Every other child operation, whatever its
+    /// syntax kind, and every operation under it, is left out
     /// </summary>
     /// <param name="operation">Operation of the bound node</param>
     /// <param name="path">The expression and the nodes around it up to the bound node</param>
+    /// <param name="expression">The expression, whose content is counted in full</param>
     /// <returns>The number of errors</returns>
-    private static int CountErrors(IOperation operation, HashSet<SyntaxNode> path)
+    private static int CountErrors(IOperation operation, HashSet<SyntaxNode> path, SyntaxNode expression)
     {
         if (operation == null)
         {
@@ -187,8 +193,8 @@ public static class RewriteBindingUtilities
 
             foreach (var child in current.ChildOperations)
             {
-                if (child.Syntax is StatementSyntax statement
-                    && path.Contains(statement) == false)
+                if (path.Contains(child.Syntax) == false
+                    && IsInside(child.Syntax, expression) == false)
                 {
                     continue;
                 }
@@ -198,6 +204,20 @@ public static class RewriteBindingUtilities
         }
 
         return errors;
+    }
+
+    /// <summary>
+    /// Determines whether a node lies inside an expression, the expression itself included
+    /// </summary>
+    /// <param name="node">Node</param>
+    /// <param name="expression">Expression</param>
+    /// <returns><see langword="true"/> if the node is the expression or one of its descendants</returns>
+    private static bool IsInside(SyntaxNode node, SyntaxNode expression)
+    {
+        return node != null
+               && node.SyntaxTree == expression.SyntaxTree
+               && expression.Span.Contains(node.Span)
+               && node.AncestorsAndSelf().Contains(expression);
     }
 
     /// <summary>
