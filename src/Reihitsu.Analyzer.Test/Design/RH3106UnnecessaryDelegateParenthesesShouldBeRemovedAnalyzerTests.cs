@@ -2643,6 +2643,318 @@ public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzerTests : 
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies an anonymous method in an implicitly typed array creation, with an element invoked through
+    /// <c>BeginInvoke</c>: the empty parameter list is reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodInAnImplicitlyTypedArrayWhoseElementIsInvokedThroughBeginInvokeIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        new[] { delegate {|RH3106:()|} { } }[0].BeginInvoke(null, null);
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method in an implicitly typed array creation, with an element that initializes a local of
+    /// type <c>Action</c>: the empty parameter list is reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodInAnImplicitlyTypedArrayWhoseElementInitializesADelegateTypedLocalIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action x = new[] { delegate {|RH3106:()|} { } }[0];
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method in an implicitly typed array creation, with an element that initializes a local of
+    /// type <c>Func&lt;int&gt;</c>: the empty parameter list is reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodInAnImplicitlyTypedArrayWhoseElementInitializesAFuncTypedLocalIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<int> g = new[] { delegate {|RH3106:()|} { return 1; } }[0];
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method in an implicitly typed array creation, with an element assigned to a local of type
+    /// <c>Action</c>: the empty parameter list is reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodInAnImplicitlyTypedArrayWhoseElementIsAssignedToADelegateTypedLocalIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action y;
+                                        y = new[] { delegate {|RH3106:()|} { } }[0];
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method in an implicitly typed array creation, with an element passed as the argument of
+    /// the only overload, which takes an <c>Action</c>: the empty parameter list is reported, and no code fix is
+    /// offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodInAnImplicitlyTypedArrayWhoseElementIsPassedAsADelegateArgumentIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static void Run(Action a)
+                                    {
+                                    }
+
+                                    void M()
+                                    {
+                                        Run(new[] { delegate {|RH3106:()|} { } }[0]);
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method in an implicitly typed array creation, with an array creation that initializes a
+    /// local of type <c>Action[]</c>: the empty parameter list is reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodInAnImplicitlyTypedArrayThatInitializesADelegateArrayLocalIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action[] arr = new[] { delegate {|RH3106:()|} { } };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method in an implicitly typed array creation, with an array creation that initializes a
+    /// local of type <c>IEnumerable&lt;Action&gt;</c>: the empty parameter list is reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodInAnImplicitlyTypedArrayThatInitializesADelegateCollectionLocalIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        IEnumerable<Action> e = new[] { delegate {|RH3106:()|} { } };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method in an implicitly typed array creation, with an element that is the receiver of
+    /// <c>DynamicInvoke()</c>: the anonymous method takes its natural type, and nothing is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodInAnImplicitlyTypedArrayWhoseElementIsInvokedThroughDynamicInvokeIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var v = new[] { delegate () { } }[0].DynamicInvoke();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method in an implicitly typed array creation, with an element that initializes a local of
+    /// type <c>object</c>: the anonymous method takes its natural type, and nothing is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodInAnImplicitlyTypedArrayWhoseElementInitializesAnObjectLocalIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        object o = new[] { delegate () { } }[0];
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method in an implicitly typed array creation, with an element that initializes a local of
+    /// type <c>System.Delegate</c>: the anonymous method takes its natural type, and nothing is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodInAnImplicitlyTypedArrayWhoseElementInitializesADelegateLocalIsNotReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Delegate d = new[] { delegate () { } }[0];
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of the deliberate gap: anonymous methods in implicitly typed array creations
+    /// whose element is invoked, or whose array or element is converted to a delegate type or a collection of
+    /// delegates, are reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodsInImplicitlyTypedArraysOfTheDeliberateGapAreReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    static void Run(Action a)
+                                    {
+                                    }
+
+                                    void M()
+                                    {
+                                        var r = new[] { delegate {|RH3106:()|} { return 1; } }[0]();
+                                        new[] { delegate {|RH3106:()|} { } }[0]();
+                                        new[] { delegate {|RH3106:()|} { } }[0].Invoke();
+                                        new[] { delegate {|RH3106:()|} { } }[0].BeginInvoke(null, null);
+                                        Action x = new[] { delegate {|RH3106:()|} { } }[0];
+                                        Func<int> g = new[] { delegate {|RH3106:()|} { return 1; } }[0];
+                                        Action y;
+                                        y = new[] { delegate {|RH3106:()|} { } }[0];
+                                        Run(new[] { delegate {|RH3106:()|} { } }[0]);
+                                        Action[] arr = new[] { delegate {|RH3106:()|} { } };
+                                        IEnumerable<Action> e = new[] { delegate {|RH3106:()|} { } };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of the shapes of the deliberate gap that are not reported: the length, an
+    /// element's <c>Method</c>, <c>DynamicInvoke()</c>, a type test, an <c>object</c> or <c>System.Delegate</c> local,
+    /// and an array with an element that is not a delegate
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodsInImplicitlyTypedArraysOfTheNotReportedShapesAreNotReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var n = new[] { delegate () { } }.Length;
+                                        var m = new[] { delegate () { } }[0].Method;
+                                        var t = new[] { delegate () { } }[0] is Action;
+                                        var v = new[] { delegate () { } }[0].DynamicInvoke();
+                                        object o = new[] { delegate () { } }[0];
+                                        Delegate d = new[] { delegate () { } }[0];
+                                        var z = new[] { delegate () { }, new object() };
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

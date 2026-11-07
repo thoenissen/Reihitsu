@@ -1265,6 +1265,7 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3004-006")]
+    [Requirement("RH3004-008")]
     public async Task FixMovesAMultiLineDocumentationCommentWithTheStatements()
     {
         const string testCode = """
@@ -1311,14 +1312,14 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     }
 
     /// <summary>
-    /// Verifies the specification example of conditional directive lines in column 0 inside the moved block: the
-    /// directive lines stay in column 0, and the line of the first statement, not the directive in front of it,
-    /// decides the number of columns the statements move
+    /// Verifies the specification example of a conditional chain wholly inside the block, with its directives in column
+    /// 0 and <c>DEBUG</c> defined: the anonymous method holds directives, the diagnostic is reported, and no code fix
+    /// is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    public async Task FixKeepsConditionalDirectivesInColumnZeroAndShiftsTheStatements()
+    [Requirement("RH3004-009")]
+    public async Task FixWithheldForConditionalDirectivesInColumnZeroInsideTheBlockWithDebug()
     {
         const string testCode = """
                                 using System;
@@ -1339,37 +1340,18 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 using System;
-
-                                 class C
-                                 {
-                                     void M()
-                                     {
-                                         Action<int> b = (int x) =>
-                                                         {
-                                 #if DEBUG
-                                                             Console.WriteLine(x);
-                                 #else
-                                                             Console.WriteLine(-x);
-                                 #endif
-                                                         };
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode, test => test.SolutionTransforms.Add(DefineDebug));
+        await VerifyNoCodeFixIsOffered(testCode, test => test.SolutionTransforms.Add(DefineDebug));
     }
 
     /// <summary>
-    /// Verifies the conditional directive example without the symbol defined, so the first statement of the block is
-    /// the one in the <c>#else</c> branch: the directive lines stay in column 0, and the statements move by the same
-    /// number of columns
+    /// Verifies the specification example of a conditional chain wholly inside the block, with its directives in column
+    /// 0 and no symbol defined: the anonymous method holds directives and disabled text, the diagnostic is reported,
+    /// and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    public async Task FixKeepsConditionalDirectivesInColumnZeroWhenTheFirstBranchIsDisabled()
+    [Requirement("RH3004-009")]
+    public async Task FixWithheldForConditionalDirectivesInColumnZeroInsideTheBlock()
     {
         const string testCode = """
                                 using System;
@@ -1390,35 +1372,17 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 using System;
-
-                                 class C
-                                 {
-                                     void M()
-                                     {
-                                         Action<int> b = (int x) =>
-                                                         {
-                                 #if DEBUG
-                                                             Console.WriteLine(x);
-                                 #else
-                                                             Console.WriteLine(-x);
-                                 #endif
-                                                         };
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Verifies the conditional directive example in a document whose line breaks are CRLF
+    /// Verifies the conditional chain inside the block in a document whose line breaks are CRLF, with <c>DEBUG</c>
+    /// defined: the diagnostic is reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    public async Task FixKeepsConditionalDirectivesInColumnZeroWithCarriageReturnLineFeed()
+    [Requirement("RH3004-009")]
+    public async Task FixWithheldForConditionalDirectivesInColumnZeroInsideTheBlockWithCarriageReturnLineFeed()
     {
         var testCode = NormalizeToCarriageReturnLineFeed("""
                                                          using System;
@@ -1427,7 +1391,7 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                                          {
                                                              void M()
                                                              {
-                                                                 Action<int> b = delegate (int x)
+                                                                 Action<int> b = {|RH3004:delegate|} (int x)
                                                                  {
                                                          #if DEBUG
                                                                      Console.WriteLine(x);
@@ -1439,37 +1403,17 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                                          }
                                                          """);
 
-        var expectedCode = NormalizeToCarriageReturnLineFeed("""
-                                                             using System;
-
-                                                             class C
-                                                             {
-                                                                 void M()
-                                                                 {
-                                                                     Action<int> b = (int x) =>
-                                                                                     {
-                                                             #if DEBUG
-                                                                                         Console.WriteLine(x);
-                                                             #else
-                                                                                         Console.WriteLine(-x);
-                                                             #endif
-                                                                                     };
-                                                                 }
-                                                             }
-                                                             """);
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode, "DEBUG"));
+        await VerifyNoCodeFixIsOffered(testCode, DocumentationMode.Parse, "DEBUG");
     }
 
     /// <summary>
-    /// Verifies the specification example of a <c>#region</c> and <c>#endregion</c> line in column 0 and an
-    /// indented conditional directive inside the moved block: all of them move by the same number of columns as the
-    /// statements
+    /// Verifies a <c>#region</c> in column 0 and an indented conditional chain inside the block, with <c>DEBUG</c>
+    /// defined: the diagnostic is reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    public async Task FixMovesRegionDirectivesAndIndentedDirectivesWithTheStatements()
+    [Requirement("RH3004-009")]
+    public async Task FixWithheldForRegionDirectivesAndIndentedDirectivesInsideTheBlockWithDebug()
     {
         const string testCode = """
                                 using System;
@@ -1490,37 +1434,17 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 using System;
-
-                                 class C
-                                 {
-                                     void M()
-                                     {
-                                         Action<int> b = (int x) =>
-                                                         {
-                                                 #region Output
-                                                             #if DEBUG
-                                                             Console.WriteLine(x);
-                                                             #endif
-                                                 #endregion
-                                                         };
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode, test => test.SolutionTransforms.Add(DefineDebug));
+        await VerifyNoCodeFixIsOffered(testCode, test => test.SolutionTransforms.Add(DefineDebug));
     }
 
     /// <summary>
-    /// Verifies the <c>#region</c> example without the symbol defined, so the block's only statement is disabled text:
-    /// the statement in disabled text still decides the number of columns, and the output is the same as with the
-    /// symbol defined
+    /// Verifies a <c>#region</c> in column 0 and an indented conditional chain inside the block whose only statement is
+    /// disabled text: the diagnostic is reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    public async Task FixMovesRegionDirectivesAndIndentedDirectivesWithTheStatementsWhenTheStatementIsDisabled()
+    [Requirement("RH3004-009")]
+    public async Task FixWithheldForRegionDirectivesAndIndentedDirectivesInsideTheBlock()
     {
         const string testCode = """
                                 using System;
@@ -1541,37 +1465,17 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 using System;
-
-                                 class C
-                                 {
-                                     void M()
-                                     {
-                                         Action<int> b = (int x) =>
-                                                         {
-                                                 #region Output
-                                                             #if DEBUG
-                                                             Console.WriteLine(x);
-                                                             #endif
-                                                 #endregion
-                                                         };
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Verifies a statement in an inactive <c>#if</c> branch in front of an active statement in another column
-    /// decides the number of columns: the disabled statement's line stands one level inside the braces, and the
-    /// active statement moves by the same number of columns
+    /// Verifies a block whose first statement is disabled text in front of an active statement in another column: the
+    /// diagnostic is reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    public async Task FixMeasuresTheShiftOnADisabledStatementInFrontOfTheFirstActiveStatement()
+    [Requirement("RH3004-009")]
+    public async Task FixWithheldForADisabledStatementInFrontOfTheFirstActiveStatement()
     {
         const string testCode = """
                                 using System;
@@ -1591,35 +1495,17 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 using System;
-
-                                 class C
-                                 {
-                                     void M()
-                                     {
-                                         Action<int> b = (int x) =>
-                                                         {
-                                 #if DEBUG
-                                                             Console.WriteLine(x);
-                                 #endif
-                                                         Console.WriteLine(-x);
-                                                         };
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Verifies a <c>#nullable</c> directive line in column 0 inside the moved block stays in column 0, and the
-    /// first statement's line decides the number of columns the other lines move
+    /// Verifies a <c>#nullable</c> directive in column 0 inside the block: the diagnostic is reported and no code fix
+    /// is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    public async Task FixKeepsANullableDirectiveInColumnZero()
+    [Requirement("RH3004-009")]
+    public async Task FixWithheldForANullableDirectiveInsideTheBlock()
     {
         const string testCode = """
                                 using System;
@@ -1639,25 +1525,7 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 using System;
-
-                                 class C
-                                 {
-                                     void M()
-                                     {
-                                         Action<string> b = (string x) =>
-                                                            {
-                                 #nullable enable
-                                                                string? y = x;
-                                 #nullable restore
-                                                                Console.WriteLine(y);
-                                                            };
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
@@ -1812,6 +1680,7 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3004-007")]
+    [Requirement("RH3004-008")]
     public async Task FixWithheldForABlockHoldingAMultiLineRawStringLiteral()
     {
         const string testCode = """"
@@ -1842,6 +1711,7 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3004-007")]
+    [Requirement("RH3004-008")]
     public async Task FixWithheldForABlockHoldingAMultiLineRawStringLiteralWithAWhitespaceOnlyLine()
     {
         var testCode = ExpandWhitespaceMarkers(""""
@@ -1873,6 +1743,7 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3004-007")]
+    [Requirement("RH3004-008")]
     public async Task FixWithheldForABlockHoldingAMultiLineInterpolatedRawStringLiteral()
     {
         const string testCode = """"
@@ -1901,6 +1772,7 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3004-007")]
+    [Requirement("RH3004-008")]
     public async Task FixWithheldForABlockHoldingAMultiLineUtf8RawStringLiteral()
     {
         const string testCode = """"
@@ -2011,14 +1883,13 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     }
 
     /// <summary>
-    /// Verifies a block that holds a verbatim string literal over several lines is fixed, and the literal's
-    /// continuation line keeps its columns, so the literal's value stays as written
+    /// Verifies a block holding a verbatim string over several lines: the diagnostic is reported and no code fix is
+    /// offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    [Requirement("RH3004-007")]
-    public async Task FixKeepsTheContinuationLineOfAMultiLineVerbatimStringInItsColumns()
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForABlockHoldingAMultiLineVerbatimString()
     {
         const string testCode = """
                                 using System;
@@ -2036,34 +1907,17 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 using System;
-
-                                 class C
-                                 {
-                                     void M()
-                                     {
-                                         Action<int> b = (int x) =>
-                                                         {
-                                                             Console.WriteLine(@"a
-                                 b");
-                                                         };
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Verifies a block that holds an interpolated verbatim string over several lines whose continuation line starts
-    /// with a hole in column 0 is fixed, and every line that starts inside the string keeps its columns, so the
-    /// string's value stays as written
+    /// Verifies a block holding an interpolated verbatim string whose continuation line starts with a hole: the
+    /// diagnostic is reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    public async Task FixKeepsAContinuationLineOfAnInterpolatedVerbatimStringThatStartsWithAHoleInItsColumns()
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForAnInterpolatedVerbatimStringWhoseContinuationLineStartsWithAHole()
     {
         const string testCode = """
                                 using System;
@@ -2083,36 +1937,17 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 using System;
-
-                                 class C
-                                 {
-                                     void M()
-                                     {
-                                         Action<string> b = (string name) =>
-                                                            {
-                                                                var s = $@"Hello
-                                 {name}
-                                 done";
-                                                                Console.WriteLine(s);
-                                                            };
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Verifies a block that holds an interpolated verbatim string over several lines whose continuation line starts
-    /// with a hole in column 0, in a document whose line breaks are CRLF: every line that starts inside the string
-    /// keeps its columns, and the line breaks stay CRLF
+    /// Verifies a block holding an interpolated verbatim string whose continuation line starts with a hole, in a
+    /// document whose line breaks are CRLF: the diagnostic is reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    public async Task FixKeepsAContinuationLineOfAnInterpolatedVerbatimStringThatStartsWithAHoleInItsColumnsWithCarriageReturnLineFeed()
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForAnInterpolatedVerbatimStringWhoseContinuationLineStartsWithAHoleWithCarriageReturnLineFeed()
     {
         var testCode = NormalizeToCarriageReturnLineFeed("""
                                                          using System;
@@ -2121,7 +1956,7 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                                          {
                                                              void M()
                                                              {
-                                                                 Action<string> b = delegate (string name)
+                                                                 Action<string> b = {|RH3004:delegate|} (string name)
                                                                  {
                                                                      var s = $@"Hello
                                                          {name}
@@ -2132,35 +1967,17 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                                          }
                                                          """);
 
-        var expectedCode = NormalizeToCarriageReturnLineFeed("""
-                                                             using System;
-
-                                                             class C
-                                                             {
-                                                                 void M()
-                                                                 {
-                                                                     Action<string> b = (string name) =>
-                                                                                        {
-                                                                                            var s = $@"Hello
-                                                             {name}
-                                                             done";
-                                                                                            Console.WriteLine(s);
-                                                                                        };
-                                                                 }
-                                                             }
-                                                             """);
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Verifies a block that holds an interpolated verbatim string whose closing quote starts a line in column 0 is
-    /// fixed, and the line of the closing quote keeps its columns, so the string's value stays as written
+    /// Verifies a block holding an interpolated verbatim string whose closing quote starts a line: the diagnostic is
+    /// reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    public async Task FixKeepsTheClosingQuoteLineOfAnInterpolatedVerbatimStringInItsColumns()
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForAnInterpolatedVerbatimStringWhoseClosingQuoteStartsALine()
     {
         const string testCode = """
                                 using System;
@@ -2179,35 +1996,17 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 using System;
-
-                                 class C
-                                 {
-                                     void M()
-                                     {
-                                         Action<string> b = (string name) =>
-                                                            {
-                                                                var s = $@"Hello {name}
-                                 ";
-                                                                Console.WriteLine(s);
-                                                            };
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Verifies a block whose first statement starts on the line of the opening brace and holds an interpolated
-    /// verbatim string whose continuation line starts with a hole in column 0: the continuation line keeps its
-    /// columns, also with the code behind the string on that line, so the string's value stays as written
+    /// Verifies a block whose first statement shares the line of the opening brace and holds an interpolated verbatim
+    /// string over several lines: the diagnostic is reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    public async Task FixKeepsAContinuationLineOfAnInterpolatedVerbatimStringAfterASharedOpeningBraceLineInItsColumns()
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForAnInterpolatedVerbatimStringBehindASharedOpeningBraceLine()
     {
         const string testCode = """
                                 using System;
@@ -2222,34 +2021,17 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 using System;
-
-                                 class C
-                                 {
-                                     void M()
-                                     {
-                                         Action<string> b = (string name) =>
-                                                            {
-                                                                var s = $@"Hello
-                                 {name}"; Console.WriteLine(s);
-                                                            };
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Verifies a block whose disabled text holds an interpolated verbatim string over several lines whose
-    /// continuation lines start in column 0 with a hole and with the closing quote: the lines that start inside the
-    /// string keep their columns, as in active code
+    /// Verifies a block holding disabled text with an interpolated verbatim string over several lines: the diagnostic
+    /// is reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    public async Task FixKeepsTheContinuationLinesOfAnInterpolatedVerbatimStringInDisabledTextInTheirColumns()
+    [Requirement("RH3004-009")]
+    public async Task FixWithheldForAnInterpolatedVerbatimStringInDisabledText()
     {
         const string testCode = """
                                 using System;
@@ -2271,37 +2053,17 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 using System;
-
-                                 class C
-                                 {
-                                     void M()
-                                     {
-                                         Action<string> b = (string name) =>
-                                                            {
-                                 #if NEVER
-                                                                var s = $@"Hello
-                                 {name}
-                                 ";
-                                 #endif
-                                                                Console.WriteLine(name);
-                                                            };
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Verifies a block that holds a verbatim string whose closing quote starts a line in column 0 is fixed, and the
-    /// line of the closing quote keeps its columns, so the string's value stays as written
+    /// Verifies a block holding a verbatim string whose closing quote starts a line: the diagnostic is reported and no
+    /// code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    public async Task FixKeepsTheClosingQuoteLineOfAVerbatimStringInItsColumns()
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForAVerbatimStringWhoseClosingQuoteStartsALine()
     {
         const string testCode = """
                                 using System;
@@ -2320,35 +2082,17 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 using System;
-
-                                 class C
-                                 {
-                                     void M()
-                                     {
-                                         Action<string> b = (string name) =>
-                                                            {
-                                                                var s = @"Hello
-                                 ";
-                                                                Console.WriteLine(s + name);
-                                                            };
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Verifies a block that holds an interpolated verbatim string whose continuation lines start in column 0 with
-    /// the string's text in front of a hole and in front of the closing quote is fixed, and those lines keep their
-    /// columns, so the string's value stays as written
+    /// Verifies a block holding an interpolated verbatim string whose continuation lines start with text: the
+    /// diagnostic is reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    public async Task FixKeepsContinuationLinesOfAnInterpolatedVerbatimStringThatStartWithTextInTheirColumns()
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForAnInterpolatedVerbatimStringWhoseContinuationLinesStartWithText()
     {
         const string testCode = """
                                 using System;
@@ -2368,25 +2112,7 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 using System;
-
-                                 class C
-                                 {
-                                     void M()
-                                     {
-                                         Action<string> b = (string name) =>
-                                                            {
-                                                                var s = $@"Hello
-                                 dear {name}
-                                 done";
-                                                                Console.WriteLine(s);
-                                                            };
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
@@ -2432,15 +2158,13 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     }
 
     /// <summary>
-    /// Verifies the specification example of strings over several lines in a block on lines of its own: the lines that
-    /// start inside a string begun on an earlier line keep their columns, also where they start with the
-    /// <c>{</c> of a hole, with the closing quote, or inside a hole that spans lines, and every other line moves by
-    /// the shift
+    /// Verifies the former specification example of interpolated verbatim strings whose lines start with a hole or a
+    /// closing quote: the diagnostic is reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    public async Task FixKeepsEveryLineThatStartsInsideAStringBegunOnAnEarlierLineInItsColumns()
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForInterpolatedVerbatimStringsWithHolesAndClosingQuotesThatStartLines()
     {
         const string testCode = """
                                 using System;
@@ -2462,36 +2186,17 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 using System;
-
-                                 class C
-                                 {
-                                     void M()
-                                     {
-                                         Action<string> b = (string name) =>
-                                                            {
-                                                                var s = $@"Hello
-                                 {name}
-                                 ";
-                                                                var t = $@"Hello {
-                                                 name} done";
-                                                                Console.WriteLine(s + t);
-                                                            };
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Verifies the specification example of a line inside a hole that spans lines: the line keeps its columns
+    /// Verifies a block holding an interpolated verbatim string with a hole that spans lines: the diagnostic is
+    /// reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    public async Task FixKeepsALineInsideAHoleThatSpansLinesInItsColumns()
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForAHoleThatSpansLines()
     {
         const string testCode = """
                                 using System;
@@ -2510,35 +2215,17 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 using System;
-
-                                 class C
-                                 {
-                                     void M()
-                                     {
-                                         Action<string> b = (string name) =>
-                                                            {
-                                                                var t = $@"Hello {
-                                                 name} done";
-                                                                Console.WriteLine(t);
-                                                            };
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Verifies the specification example of the other side: the line on which a verbatim string starts is not inside
-    /// the string and moves, also where the string is its first character, while the string's continuation line keeps
-    /// its columns
+    /// Verifies the former specification example of a verbatim string that starts a line and continues on the next: the
+    /// diagnostic is reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    public async Task FixMovesTheLineOnWhichAVerbatimStringStartsAndKeepsItsContinuationLine()
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForAVerbatimStringThatStartsALine()
     {
         const string testCode = """
                                 using System;
@@ -2557,35 +2244,17 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 using System;
-
-                                 class C
-                                 {
-                                     void M()
-                                     {
-                                         Action b = () =>
-                                                    {
-                                                        Console.WriteLine(
-                                                            @"a
-                                 b");
-                                                    };
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Verifies the specification example behind a shared opening brace line: the line that starts inside the string
-    /// keeps its columns and does not count for the leftmost line, and the next statement moves into the statement
-    /// column
+    /// Verifies the former specification example of a string over several lines behind a shared opening brace line: the
+    /// diagnostic is reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    public async Task FixKeepsALineInsideAStringAfterASharedOpeningBraceLineAndDoesNotCountItForTheLeftmostLine()
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForAStringThatSpansLinesBehindASharedOpeningBraceLine()
     {
         const string testCode = """
                                 using System;
@@ -2602,35 +2271,17 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 using System;
-
-                                 class C
-                                 {
-                                     void M()
-                                     {
-                                         Action<string> c = (string name) =>
-                                                            {
-                                                                var s = $@"Hello
-                                 {name}";
-                                                                Console.WriteLine(s);
-                                                            };
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Verifies the specification example of disabled text whose string closes before the directive that ends it:
-    /// without <c>DEBUG</c>, the line that starts inside the string keeps its columns, and the fix is offered
+    /// Verifies a block holding disabled text whose string over several lines closes before the directive that ends the
+    /// disabled text: the diagnostic is reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    [Requirement("RH3004-008")]
-    public async Task FixKeepsALineInsideAStringOfDisabledTextThatClosesBeforeTheEndingDirectiveInItsColumns()
+    [Requirement("RH3004-009")]
+    public async Task FixWithheldForAStringOfDisabledTextThatClosesBeforeTheEndingDirective()
     {
         const string testCode = """
                                 using System;
@@ -2651,37 +2302,19 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 using System;
-
-                                 class C
-                                 {
-                                     void M()
-                                     {
-                                         Action<string> b = (string name) =>
-                                                            {
-                                                                Console.WriteLine(name);
-                                 #if DEBUG
-                                                                Console.WriteLine($@"Hello
-                                 {name}");
-                                 #endif
-                                                            };
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Verifies the specification example of a string that closes before the directive ending its branch, with
-    /// <c>DEBUG</c> defined, in a document whose line breaks are CRLF: the line that starts inside the string keeps
-    /// its columns, as it does without <c>DEBUG</c>, and the line breaks stay CRLF
+    /// Verifies a block holding a conditional chain whose active branch, with <c>DEBUG</c> defined, holds an
+    /// interpolated verbatim string over several lines, in a document whose line breaks are CRLF: the diagnostic is
+    /// reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    public async Task FixKeepsALineInsideAStringOfAnActiveBranchInItsColumnsWithDebugAndCarriageReturnLineFeed()
+    [Requirement("RH3004-008")]
+    [Requirement("RH3004-009")]
+    public async Task FixWithheldForAMultiLineStringOfAnActiveBranchWithDebugAndCarriageReturnLineFeed()
     {
         var testCode = NormalizeToCarriageReturnLineFeed("""
                                                          using System;
@@ -2690,7 +2323,7 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                                          {
                                                              void M()
                                                              {
-                                                                 Action<string> b = delegate (string name)
+                                                                 Action<string> b = {|RH3004:delegate|} (string name)
                                                                  {
                                                                      Console.WriteLine(name);
                                                          #if DEBUG
@@ -2702,26 +2335,7 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                                          }
                                                          """);
 
-        var expectedCode = NormalizeToCarriageReturnLineFeed("""
-                                                             using System;
-
-                                                             class C
-                                                             {
-                                                                 void M()
-                                                                 {
-                                                                     Action<string> b = (string name) =>
-                                                                                        {
-                                                                                            Console.WriteLine(name);
-                                                             #if DEBUG
-                                                                                            Console.WriteLine($@"Hello
-                                                             {name}");
-                                                             #endif
-                                                                                        };
-                                                                 }
-                                                             }
-                                                             """);
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode, "DEBUG"));
+        await VerifyNoCodeFixIsOffered(testCode, DocumentationMode.Parse, "DEBUG");
     }
 
     /// <summary>
@@ -2730,7 +2344,7 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-008")]
+    [Requirement("RH3004-009")]
     public async Task FixWithheldForAStringThatDisabledTextLeavesOpen()
     {
         const string testCode = """
@@ -2764,6 +2378,7 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3004-008")]
+    [Requirement("RH3004-009")]
     public async Task FixWithheldForAStringThatDisabledTextLeavesOpenWithTheFirstBranchActive()
     {
         const string testCode = """
@@ -2908,15 +2523,13 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     }
 
     /// <summary>
-    /// Verifies the specification example of a verbatim string whose continuation line holds <c>#</c> behind other
-    /// text: no line of the string starts with <c>#</c>, the fix is offered, and the line that starts inside the string
-    /// keeps its columns
+    /// Verifies the specification example of a verbatim string over several lines whose second line holds <c>#</c>
+    /// behind other text: the diagnostic is reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
     [Requirement("RH3004-008")]
-    public async Task FixKeepsAStringWhoseLineHoldsHashBehindOtherTextInItsColumns()
+    public async Task FixWithheldForAStringWhoseLineHoldsHashBehindOtherText()
     {
         const string testCode = """
                                 using System;
@@ -2935,35 +2548,17 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 using System;
-
-                                 class C
-                                 {
-                                     void M()
-                                     {
-                                         Action b = () =>
-                                                    {
-                                                        Console.WriteLine(
-                                                            @"a
-                                 b #c");
-                                                    };
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Verifies the specification example of a verbatim string whose continuation line holds <c>#</c> behind other
-    /// text, in a document whose line breaks are CRLF: the fix is offered, the line that starts inside the string keeps
-    /// its columns, and the line breaks stay CRLF
+    /// Verifies a verbatim string over several lines whose second line holds <c>#</c> behind other text, in a document
+    /// whose line breaks are CRLF: the diagnostic is reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3004-008")]
-    public async Task FixKeepsAStringWhoseLineHoldsHashBehindOtherTextInItsColumnsWithCarriageReturnLineFeed()
+    public async Task FixWithheldForAStringWhoseLineHoldsHashBehindOtherTextWithCarriageReturnLineFeed()
     {
         var testCode = NormalizeToCarriageReturnLineFeed("""
                                                          using System;
@@ -2972,7 +2567,7 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                                          {
                                                              void M()
                                                              {
-                                                                 Action b = delegate ()
+                                                                 Action b = {|RH3004:delegate|} ()
                                                                  {
                                                                      Console.WriteLine(
                                                                          @"a
@@ -2982,24 +2577,7 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                                          }
                                                          """);
 
-        var expectedCode = NormalizeToCarriageReturnLineFeed("""
-                                                             using System;
-
-                                                             class C
-                                                             {
-                                                                 void M()
-                                                                 {
-                                                                     Action b = () =>
-                                                                                {
-                                                                                    Console.WriteLine(
-                                                                                        @"a
-                                                             b #c");
-                                                                                };
-                                                                 }
-                                                             }
-                                                             """);
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
@@ -3737,13 +3315,13 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     }
 
     /// <summary>
-    /// Verifies a conditional directive line in column 0 in a block whose shift moves its lines to the left stays in
-    /// column 0 and does not count for the leftmost line: the statement moves into the statement column
+    /// Verifies a conditional chain in column 0 inside a block whose lines the fix would move left, with <c>DEBUG</c>
+    /// defined: the diagnostic is reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    public async Task FixKeepsAColumnZeroDirectiveLineInColumnZeroWhenTheShiftMovesTheLinesLeft()
+    [Requirement("RH3004-009")]
+    public async Task FixWithheldForAColumnZeroConditionalChainInABlockWhoseLinesWouldMoveLeft()
     {
         const string testCode = """
                                 using System;
@@ -3771,44 +3349,17 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 using System;
-
-                                 class C
-                                 {
-                                     void Run(Action a)
-                                     {
-                                     }
-
-                                     void Foo()
-                                     {
-                                     }
-
-                                     void M()
-                                     {
-                                         Run(
-                                             () =>
-                                             {
-                                 #if DEBUG
-                                                 Foo();
-                                 #endif
-                                             });
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode, test => test.SolutionTransforms.Add(DefineDebug));
+        await VerifyNoCodeFixIsOffered(testCode, test => test.SolutionTransforms.Add(DefineDebug));
     }
 
     /// <summary>
-    /// Verifies a directive line in column 2 in front of the first statement counts for the leftmost line when the
-    /// shift would put it left of column 0: the lines move together until the directive stands in the statement column,
-    /// and the statement keeps its offset to it
+    /// Verifies <c>#region</c> and <c>#endregion</c> lines inside a block whose shift would cross column 0: the
+    /// diagnostic is reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    public async Task FixMovesADirectiveLineInAnotherColumnIntoTheStatementColumnWhenTheShiftWouldCrossColumnZero()
+    [Requirement("RH3004-009")]
+    public async Task FixWithheldForRegionDirectivesInABlockWhoseShiftWouldCrossColumnZero()
     {
         const string testCode = """
                                 using System;
@@ -3836,43 +3387,17 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 using System;
-
-                                 class C
-                                 {
-                                     void Run(Action a)
-                                     {
-                                     }
-
-                                     void Foo()
-                                     {
-                                     }
-
-                                     void M()
-                                     {
-                                         Run(
-                                             () =>
-                                             {
-                                                 #region Calls
-                                                                   Foo();
-                                                 #endregion
-                                             });
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Verifies the specification example of a statement in an #if branch in front of an active statement in another
-    /// column with the symbol defined: the output is the same as without the symbol
+    /// Verifies a block whose first statement stands in a conditional branch, active with <c>DEBUG</c> defined, in
+    /// front of a statement in another column: the diagnostic is reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    public async Task FixMeasuresTheShiftOnAnActiveStatementInFrontOfAStatementInAnotherColumn()
+    [Requirement("RH3004-009")]
+    public async Task FixWithheldForAConditionalStatementInFrontOfAStatementInAnotherColumnWithDebug()
     {
         const string testCode = """
                                 using System;
@@ -3892,35 +3417,17 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 using System;
-
-                                 class C
-                                 {
-                                     void M()
-                                     {
-                                         Action<int> b = (int x) =>
-                                                         {
-                                 #if DEBUG
-                                                             Console.WriteLine(x);
-                                 #endif
-                                                                 Console.WriteLine(-x);
-                                                         };
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode, test => test.SolutionTransforms.Add(DefineDebug));
+        await VerifyNoCodeFixIsOffered(testCode, test => test.SolutionTransforms.Add(DefineDebug));
     }
 
     /// <summary>
-    /// Verifies the specification example of a statement in an inactive #if branch in front of an active statement in
-    /// another column without the symbol defined: the disabled statement decides the shift
+    /// Verifies a block whose first statement is disabled text in front of a statement in another column: the
+    /// diagnostic is reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    public async Task FixMeasuresTheShiftOnADisabledStatementInFrontOfAStatementInAnotherColumn()
+    [Requirement("RH3004-009")]
+    public async Task FixWithheldForADisabledStatementInFrontOfAStatementInAnotherColumn()
     {
         const string testCode = """
                                 using System;
@@ -3940,25 +3447,7 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 using System;
-
-                                 class C
-                                 {
-                                     void M()
-                                     {
-                                         Action<int> b = (int x) =>
-                                                         {
-                                 #if DEBUG
-                                                             Console.WriteLine(x);
-                                 #endif
-                                                                 Console.WriteLine(-x);
-                                                         };
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
@@ -4051,13 +3540,13 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     }
 
     /// <summary>
-    /// Verifies a block comment over two lines that starts in column 0 behind the first statement: the comment holds no
-    /// code, so its first line stays in column 0 and its continuation line stays in its columns with it
+    /// Verifies a block holding a delimited comment over several lines that starts in column 0: the diagnostic is
+    /// reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    public async Task FixKeepsBothLinesOfABlockCommentThatStartsInColumnZeroInTheirColumns()
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForADelimitedCommentThatStartsInColumnZeroAndSpansLines()
     {
         const string testCode = """
                                 using System;
@@ -4076,34 +3565,17 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 using System;
-
-                                 class C
-                                 {
-                                     void M()
-                                     {
-                                         Action<int> b = (int x) =>
-                                                         {
-                                                             Console.WriteLine(x);
-                                 /* Console.WriteLine(x + 1);
-                                    Console.WriteLine(x + 2); */
-                                                         };
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Verifies a block comment over two lines that starts in column 12 behind the first statement: its first line
-    /// moves, so its continuation line moves with it by the same shift
+    /// Verifies a block holding a delimited comment over several lines that starts in another column: the diagnostic is
+    /// reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    public async Task FixMovesBothLinesOfABlockCommentThatStartsInAnotherColumnByTheShift()
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForADelimitedCommentThatStartsInAnotherColumnAndSpansLines()
     {
         const string testCode = """
                                 using System;
@@ -4122,34 +3594,17 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 using System;
-
-                                 class C
-                                 {
-                                     void M()
-                                     {
-                                         Action<int> b = (int x) =>
-                                                         {
-                                                             Console.WriteLine(x);
-                                                             /* Console.WriteLine(x + 3);
-                                                                Console.WriteLine(x + 4); */
-                                                         };
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Verifies the specification example of two block comments over two lines each, one starting in column 0 and one
-    /// in column 12: the first stays with both its lines, the second moves with both its lines by the shift
+    /// Verifies the former specification example of two delimited comments over several lines, one starting in column 0
+    /// and one in another column: the diagnostic is reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-006")]
-    public async Task FixKeepsOrMovesEveryLineOfABlockCommentWithTheLineOnWhichTheCommentStarts()
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForTwoDelimitedCommentsThatSpanLines()
     {
         const string testCode = """
                                 using System;
@@ -4170,6 +3625,245 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a delimited comment over several lines that, with <c>A</c> defined, holds
+    /// the <c>#else</c> of a chain standing wholly outside the anonymous method: the diagnostic is reported and no code
+    /// fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForAMultiLineCommentThatHidesTheElseOfAChainAroundTheAnonymousMethod()
+    {
+        const string testCode = """
+                                #define A
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                #if A
+                                        Action a = {|RH3004:delegate|} ()
+                                        {
+                                            /* x
+                                #else
+                                        Action a = () => { var s = @"
+                                            */ ";//".ToString();
+                                            Console.WriteLine(1); };
+                                #endif
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a delimited documentation comment over several lines that, with <c>A</c> defined, holds the
+    /// <c>#else</c> of a chain standing wholly outside the anonymous method: the diagnostic is reported and no code fix
+    /// is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForAMultiLineDocumentationCommentThatHidesTheElseOfAChainAroundTheAnonymousMethod()
+    {
+        const string testCode = """
+                                #define A
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                #if A
+                                        Action a = {|RH3004:delegate|} ()
+                                        {
+                                            /** x
+                                #else
+                                        Action a = () => { var s = @"
+                                            */ ";//".ToString();
+                                            Console.WriteLine(1); };
+                                #endif
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a delimited comment over several lines that, with <c>A</c> defined, holds the <c>#else</c> of a chain
+    /// inside the block: the diagnostic is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-008")]
+    [Requirement("RH3004-009")]
+    public async Task FixWithheldForAMultiLineCommentThatHidesTheElseOfAChainInsideTheBlock()
+    {
+        const string testCode = """
+                                #define A
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action a = {|RH3004:delegate|} ()
+                                        {
+                                #if A
+                                            /* x
+                                #else
+                                            var s = @"
+                                            */ ";//".ToString();
+                                #endif
+                                            Console.WriteLine(1);
+                                        };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a verbatim string over several lines whose <c>#else</c> line starts with a
+    /// form feed, which is a directive line without <c>A</c>: the diagnostic is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForAStringWhoseDirectiveLineStartsWithAFormFeed()
+    {
+        var testCode = """
+                       #define A
+                       using System;
+
+                       class C
+                       {
+                           void M()
+                           {
+                       #if A
+                               Action a = {|RH3004:delegate|} ()
+                               {
+                                   var s = @"x
+                       <form-feed>#else
+                               Action a = () => { var s = @"
+                                   ; // ";
+                                   Console.WriteLine(s); };
+                       #endif
+                           }
+                       }
+                       """.Replace("<form-feed>", "\f", System.StringComparison.Ordinal);
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of blocks holding a verbatim string, a delimited comment, an interpolated
+    /// verbatim string, and a raw string literal over several lines, with no directive in the document: each diagnostic
+    /// is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForStringsAndCommentsThatSpanLinesWithoutAnyDirective()
+    {
+        const string testCode = """"
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action b = {|RH3004:delegate|} ()
+                                        {
+                                            Console.WriteLine(
+                                                @"a
+                                b #c");
+                                            /* first
+                                               second */
+                                        };
+                                        Action<string> c = {|RH3004:delegate|} (string name)
+                                        {
+                                            var s = $@"Hello
+                                {name}";
+                                            Console.WriteLine(s);
+                                        };
+                                        Action<int> d = {|RH3004:delegate|} (int x)
+                                        {
+                                            Console.WriteLine("""
+                                                a
+                                                """);
+                                        };
+                                    }
+                                }
+                                """";
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a block holding a delimited comment over several lines in a document whose line breaks are CRLF: the
+    /// diagnostic is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForADelimitedCommentThatSpansLinesWithCarriageReturnLineFeed()
+    {
+        var testCode = NormalizeToCarriageReturnLineFeed("""
+                                                         using System;
+
+                                                         class C
+                                                         {
+                                                             void M()
+                                                             {
+                                                                 Action b = {|RH3004:delegate|} ()
+                                                                 {
+                                                                     Console.WriteLine(1);
+                                                                     /* first
+                                                                        second */
+                                                                 };
+                                                             }
+                                                         }
+                                                         """);
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a block whose strings and comments each stand on one line: the fix is
+    /// offered and moves the lines as the layout requirement states
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    [Requirement("RH3004-008")]
+    public async Task FixRewritesABlockWhoseStringsAndCommentsEachStandOnOneLine()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<string> b = {|RH3004:delegate|} (string name)
+                                        {
+                                            // Greets the user.
+                                            Console.WriteLine("Hello " + name); /* done */
+                                            Console.WriteLine($"{name}!");
+                                        };
+                                    }
+                                }
+                                """;
+
         const string fixedCode = """
                                  using System;
 
@@ -4177,14 +3871,397 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                  {
                                      void M()
                                      {
-                                         Action<int> b = (int x) =>
+                                         Action<string> b = (string name) =>
+                                                            {
+                                                                // Greets the user.
+                                                                Console.WriteLine("Hello " + name); /* done */
+                                                                Console.WriteLine($"{name}!");
+                                                            };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a block whose strings and comments each stand on one line in a document whose line breaks are CRLF: the
+    /// fix is offered and keeps the line breaks
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-008")]
+    public async Task FixRewritesABlockWhoseStringsAndCommentsEachStandOnOneLineWithCarriageReturnLineFeed()
+    {
+        var testCode = NormalizeToCarriageReturnLineFeed("""
+                                                         using System;
+
+                                                         class C
                                                          {
-                                                             Console.WriteLine(x);
-                                 /* Console.WriteLine(x + 1);
-                                    Console.WriteLine(x + 2); */
-                                                             /* Console.WriteLine(x + 3);
-                                                                Console.WriteLine(x + 4); */
-                                                         };
+                                                             void M()
+                                                             {
+                                                                 Action<string> b = delegate (string name)
+                                                                 {
+                                                                     // Greets the user.
+                                                                     Console.WriteLine("Hello " + name); /* done */
+                                                                     Console.WriteLine($"{name}!");
+                                                                 };
+                                                             }
+                                                         }
+                                                         """);
+
+        var expectedCode = NormalizeToCarriageReturnLineFeed("""
+                                                             using System;
+
+                                                             class C
+                                                             {
+                                                                 void M()
+                                                                 {
+                                                                     Action<string> b = (string name) =>
+                                                                                        {
+                                                                                            // Greets the user.
+                                                                                            Console.WriteLine("Hello " + name); /* done */
+                                                                                            Console.WriteLine($"{name}!");
+                                                                                        };
+                                                                 }
+                                                             }
+                                                             """);
+
+        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a chain that starts in the parameter list and ends in the block, with
+    /// <c>A</c> defined: the diagnostic is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-009")]
+    public async Task FixWithheldForAChainFromTheParameterListIntoTheBlock()
+    {
+        const string testCode = """
+                                #define A
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> a = {|RH3004:delegate|} (
+                                #if A
+                                            int x)
+                                        {
+                                            Console.WriteLine(x);
+                                #else
+                                            int x) { Console.WriteLine(-x);
+                                #endif
+                                        };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a chain that starts in the parameter list and ends in the block, with no symbol defined: the diagnostic
+    /// is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-009")]
+    public async Task FixWithheldForAChainFromTheParameterListIntoTheBlockWithoutTheSymbol()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> a = {|RH3004:delegate|} (
+                                #if A
+                                            int x)
+                                        {
+                                            Console.WriteLine(x);
+                                #else
+                                            int x) { Console.WriteLine(-x);
+                                #endif
+                                        };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a chain that starts in the parameter list and ends after the anonymous method, with <c>A</c> defined:
+    /// the diagnostic is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-009")]
+    public async Task FixWithheldForAChainFromTheParameterListPastTheAnonymousMethod()
+    {
+        const string testCode = """
+                                #define A
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> a = {|RH3004:delegate|} (
+                                #if A
+                                            int x)
+                                        {
+                                            Console.WriteLine(x);
+                                        };
+                                #else
+                                            int x) { Console.WriteLine(-x); };
+                                #endif
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a chain that starts in the parameter list and ends after an anonymous method whose block only returns a
+    /// value, with <c>A</c> defined: the diagnostic is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-009")]
+    public async Task FixWithheldForAChainFromTheParameterListPastTheAnonymousMethodOnTheExpressionBodyPath()
+    {
+        const string testCode = """
+                                #define A
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<int, int> a = {|RH3004:delegate|} (
+                                #if A
+                                            int x)
+                                        {
+                                            return x;
+                                        };
+                                #else
+                                            int x) { return -x; };
+                                #endif
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a chain wholly inside the parameter list of an anonymous method whose
+    /// block only returns a value: the diagnostic is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-009")]
+    public async Task FixWithheldForAChainInsideTheParameterListOnTheExpressionBodyPath()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<int, int> f = {|RH3004:delegate|} (
+                                #if A
+                                            int x
+                                #else
+                                            int x
+                                #endif
+                                            ) { return x + 1; };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a <c>#region</c> before <c>delegate</c> whose <c>#endregion</c> stands in the block: the diagnostic is
+    /// reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-009")]
+    public async Task FixWithheldForARegionBeforeTheAnonymousMethodThatEndsInsideItsBlock()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action a =
+                                #region R
+                                            {|RH3004:delegate|} ()
+                                            {
+                                                Console.WriteLine(1);
+                                #endregion
+                                                Console.WriteLine(2);
+                                            };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a chain and a <c>#region</c> that start before <c>delegate</c> and end in
+    /// the block, with <c>A</c> defined: each diagnostic is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-009")]
+    public async Task FixWithheldForAChainAndARegionThatCrossTheDelegateKeyword()
+    {
+        const string testCode = """
+                                #define A
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action a =
+                                #if A
+                                            {|RH3004:delegate|} ()
+                                            {
+                                                Console.WriteLine(1);
+                                #else
+                                            () =>
+                                            {
+                                                Console.WriteLine(2);
+                                #endif
+                                                Console.WriteLine(3);
+                                            };
+                                        Action b =
+                                #region Init
+                                            {|RH3004:delegate|} ()
+                                            {
+                                                Console.WriteLine(1);
+                                #endregion
+                                            };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a <c>#region</c> in the block whose <c>#endregion</c> stands after the anonymous method: the diagnostic
+    /// is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-009")]
+    public async Task FixWithheldForARegionInsideTheBlockThatEndsAfterTheAnonymousMethod()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action a = {|RH3004:delegate|} ()
+                                                   {
+                                                       Console.WriteLine(1);
+                                #region R
+                                                       Console.WriteLine(2);
+                                                   };
+                                #endregion
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of <c>#region</c> and <c>#pragma</c> directives inside the block: the
+    /// diagnostic is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-009")]
+    public async Task FixWithheldForRegionAndPragmaDirectivesInsideTheBlock()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> b = {|RH3004:delegate|} (int x)
+                                        {
+                                #region Output
+                                #pragma warning disable CS0168
+                                            Console.WriteLine(x);
+                                #pragma warning restore CS0168
+                                #endregion
+                                        };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method inside a region whose <c>#region</c> and <c>#endregion</c> stand wholly outside it:
+    /// the fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-009")]
+    public async Task FixRewritesAnAnonymousMethodInsideARegionThatLiesWhollyOutsideIt()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                #region Init
+                                        Action a = {|RH3004:delegate|} () { Console.WriteLine(1); };
+                                #endregion
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                 #region Init
+                                         Action a = () =>
+                                                    {
+                                                        Console.WriteLine(1);
+                                                    };
+                                 #endregion
                                      }
                                  }
                                  """;
