@@ -26,7 +26,39 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineCodeFixProvider : 
     #region Methods
 
     /// <summary>
-    /// Applies the code fix
+    /// Finds the trivia that ends the line on which the comments behind the <c>break</c> statement's semicolon end: the first
+    /// trivia in the gap up to the next token that ends its line (<see cref="SyntaxTriviaUtilities.EndsLine"/>). A line break
+    /// inside the text of a multi-line comment does not end that line, so a comment that spans the end of the <c>break</c>
+    /// line moves it down to the line on which the comment ends (RH5011-007)
+    /// </summary>
+    /// <param name="breakStatement">Break statement</param>
+    /// <param name="nextToken">The token behind the break statement</param>
+    /// <returns>The trivia that ends that line, or a trivia of kind <see cref="SyntaxKind.None"/> when no line break outside a comment stands in the gap</returns>
+    private static SyntaxTrivia FindLineEndingTrivia(BreakStatementSyntax breakStatement, SyntaxToken nextToken)
+    {
+        foreach (var trivia in breakStatement.SemicolonToken.TrailingTrivia)
+        {
+            if (SyntaxTriviaUtilities.EndsLine(trivia))
+            {
+                return trivia;
+            }
+        }
+
+        foreach (var trivia in nextToken.LeadingTrivia)
+        {
+            if (SyntaxTriviaUtilities.EndsLine(trivia))
+            {
+                return trivia;
+            }
+        }
+
+        return default;
+    }
+
+    /// <summary>
+    /// Applies the code fix. When a line break outside any comment follows the <c>break</c> statement, one empty line is
+    /// inserted directly below the line that break ends, with that line's line break (RH5011-004, RH5011-007); when the next
+    /// statement starts on the <c>break</c> line, it is moved onto a line of its own below an empty line
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="breakStatement">Break statement to update</param>
@@ -44,33 +76,42 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineCodeFixProvider : 
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var breakLine = sourceText.Lines.GetLineFromPosition(breakStatement.SpanStart);
         var nextToken = breakStatement.SemicolonToken.GetNextToken(includeZeroWidth: true, includeSkipped: true);
+        var lineEndingTrivia = FindLineEndingTrivia(breakStatement, nextToken);
 
-        if (nextToken.IsKind(SyntaxKind.None) == false
-            && sourceText.Lines.GetLineFromPosition(nextToken.SpanStart).LineNumber == breakLine.LineNumber)
+        if (lineEndingTrivia.IsKind(SyntaxKind.None) == false)
         {
-            var nextStatement = nextToken.Parent?.FirstAncestorOrSelf<StatementSyntax>();
+            var insertPosition = lineEndingTrivia.FullSpan.End;
+            var endedLine = sourceText.Lines.GetLineFromPosition(insertPosition - 1);
+            var lineBreak = sourceText.ToString(TextSpan.FromBounds(endedLine.End, endedLine.EndIncludingLineBreak));
 
-            if (nextStatement == null)
-            {
-                return document;
-            }
-
-            var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
-            var indentation = FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, breakLine));
-            var gap = TextSpan.FromBounds(breakStatement.SemicolonToken.Span.End, nextToken.SpanStart);
-
-            return document.WithText(sourceText.Replace(gap, $"{endOfLine}{endOfLine}{indentation}"));
+            return document.WithText(sourceText.Replace(new TextSpan(insertPosition, 0), lineBreak));
         }
 
-        var lineBreak = breakLine.EndIncludingLineBreak > breakLine.End
-                            ? sourceText.ToString(TextSpan.FromBounds(breakLine.End, breakLine.EndIncludingLineBreak))
-                            : ReihitsuFormatterHelpers.DetectEndOfLine(root);
+        if (nextToken.IsKind(SyntaxKind.None)
+            || sourceText.Lines.GetLineFromPosition(nextToken.SpanStart).LineNumber != breakLine.LineNumber)
+        {
+            return document;
+        }
 
-        return document.WithText(sourceText.Replace(new TextSpan(breakLine.EndIncludingLineBreak, 0), lineBreak));
+        var nextStatement = nextToken.Parent?.FirstAncestorOrSelf<StatementSyntax>();
+
+        if (nextStatement == null)
+        {
+            return document;
+        }
+
+        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
+        var indentation = FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, breakLine));
+        var gap = TextSpan.FromBounds(breakStatement.SemicolonToken.Span.End, nextToken.SpanStart);
+
+        return document.WithText(sourceText.Replace(gap, $"{endOfLine}{endOfLine}{indentation}"));
     }
 
     /// <summary>
-    /// Determines whether the gap after a same-line break statement contains only formatting trivia
+    /// Determines whether the code fix can be offered. It is offered when a line break outside any comment follows the
+    /// <c>break</c> statement, and when the next statement starts on the <c>break</c> line behind nothing but whitespace.
+    /// When every line break in front of the next token lies inside a comment, that token starts behind the comment on its
+    /// last line, and the fix is withheld (RH5011-007)
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="breakStatement">Break statement</param>
@@ -79,7 +120,8 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineCodeFixProvider : 
     {
         var nextToken = breakStatement.SemicolonToken.GetNextToken(includeZeroWidth: true, includeSkipped: true);
 
-        if (nextToken.IsKind(SyntaxKind.None))
+        if (nextToken.IsKind(SyntaxKind.None)
+            || FindLineEndingTrivia(breakStatement, nextToken).IsKind(SyntaxKind.None) == false)
         {
             return true;
         }
@@ -88,7 +130,7 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineCodeFixProvider : 
 
         if (lineSpan.StartLinePosition.Line != lineSpan.EndLinePosition.Line)
         {
-            return true;
+            return false;
         }
 
         var gap = TextSpan.FromBounds(breakStatement.SemicolonToken.Span.End, nextToken.SpanStart);

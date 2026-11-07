@@ -203,7 +203,8 @@ public static class ReihitsuFormatter
                                             rootChainBoundary: FluentChainBoundary.From(targetNode),
                                             rootConstruct: ReihitsuFormatterHelpers.CaptureRootConstruct(targetNode),
                                             formatsRegionDirectives: false);
-        var formattedTarget = FormattingPipeline.Execute(ReihitsuFormatterHelpers.Detach(targetNode, cancellationToken), context, cancellationToken);
+        var lastTokenAnnotation = new SyntaxAnnotation();
+        var formattedTarget = FormattingPipeline.Execute(DetachWithAnnotatedLastToken(targetNode, targetNode == root ? null : lastTokenAnnotation, cancellationToken), context, cancellationToken);
 
         if (keepsLeadingTrivia)
         {
@@ -216,9 +217,7 @@ public static class ReihitsuFormatter
             return document.WithSyntaxRoot(formattedTarget);
         }
 
-        var originalLastToken = targetNode.GetLastToken();
-        var formattedLastToken = formattedTarget.GetLastToken();
-        formattedTarget = formattedTarget.ReplaceToken(formattedLastToken, formattedLastToken.WithTrailingTrivia(originalLastToken.TrailingTrivia));
+        formattedTarget = WriteBackTrailingTrivia(formattedTarget, targetNode.GetLastToken(), lastTokenAnnotation);
 
         var trimmedTrailingTrivia = EndOfLineWhitespace.StripBeforeFollowingLineBreak(precedingToken.TrailingTrivia, formattedTarget.GetFirstToken().LeadingTrivia);
 
@@ -382,6 +381,103 @@ public static class ReihitsuFormatter
     public static bool SplitsFieldDeclaration(FieldDeclarationSyntax fieldDeclaration)
     {
         return FieldDeclarationSplitTransform.Splits(fieldDeclaration);
+    }
+
+    /// <summary>
+    /// Detaches a node-level formatting target from its document as the root of a tree of its own, and marks its last token
+    /// so that <see cref="WriteBackTrailingTrivia"/> can find that token where the phases leave it
+    /// </summary>
+    /// <param name="targetNode">The target node</param>
+    /// <param name="lastTokenAnnotation">The annotation for the target's last token, or <see langword="null"/> to mark nothing</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The detached target</returns>
+    private static SyntaxNode DetachWithAnnotatedLastToken(SyntaxNode targetNode, SyntaxAnnotation lastTokenAnnotation, CancellationToken cancellationToken)
+    {
+        var detachedTarget = ReihitsuFormatterHelpers.Detach(targetNode, cancellationToken);
+
+        if (lastTokenAnnotation == null)
+        {
+            return detachedTarget;
+        }
+
+        var lastToken = detachedTarget.GetLastToken();
+        var annotatedTarget = detachedTarget.ReplaceToken(lastToken, lastToken.WithAdditionalAnnotations(lastTokenAnnotation));
+
+        return detachedTarget.SyntaxTree.WithRootAndOptions(annotatedTarget, detachedTarget.SyntaxTree.Options).GetRoot(cancellationToken);
+    }
+
+    /// <summary>
+    /// Writes the target's trailing trivia back behind the formatted target's last token, which lost it when the target was
+    /// formatted as a root of its own (FMT-PIPE-010). The trivia is the author's text behind the target, so each comment in it
+    /// is written once: when the phases leave the target's original last token inside the result, behind which they inserted
+    /// tokens such as the closing brace of a block wrapped around a body (FMT-STRUCT-001), the comments that token still
+    /// carries stay where they are, and only the rest of the trivia, the line break that keeps the code behind the target on
+    /// its line among it, is written behind the result's last token. The mark on the original last token is removed
+    /// </summary>
+    /// <param name="formattedTarget">The formatted target</param>
+    /// <param name="originalLastToken">The target's last token as it stands in the document</param>
+    /// <param name="lastTokenAnnotation">The annotation that marks the original last token in <paramref name="formattedTarget"/></param>
+    /// <returns>The formatted target with the trailing trivia written back</returns>
+    private static SyntaxNode WriteBackTrailingTrivia(SyntaxNode formattedTarget, SyntaxToken originalLastToken, SyntaxAnnotation lastTokenAnnotation)
+    {
+        var formattedLastToken = formattedTarget.GetLastToken();
+        var markedTokens = formattedTarget.GetAnnotatedTokens(lastTokenAnnotation).ToList();
+        var trailingTrivia = originalLastToken.TrailingTrivia;
+
+        if (formattedLastToken.HasAnnotation(lastTokenAnnotation) == false)
+        {
+            var keptCommentCount = markedTokens.Sum(static token => token.TrailingTrivia.Count(SyntaxTriviaUtilities.IsCommentTrivia));
+
+            trailingTrivia = RemoveLeadingComments(trailingTrivia, keptCommentCount);
+        }
+
+        return formattedTarget.ReplaceTokens(markedTokens.Append(formattedLastToken).Distinct(),
+                                             (original, rewritten) =>
+                                             {
+                                                 var unmarkedToken = rewritten.WithoutAnnotations(lastTokenAnnotation);
+
+                                                 return original == formattedLastToken
+                                                            ? unmarkedToken.WithTrailingTrivia(trailingTrivia)
+                                                            : unmarkedToken;
+                                             });
+    }
+
+    /// <summary>
+    /// Removes the first comments of a trivia list, each together with the whitespace in front of it
+    /// </summary>
+    /// <param name="trivia">The trivia list</param>
+    /// <param name="commentCount">The number of comments to remove</param>
+    /// <returns>The trivia list without those comments</returns>
+    private static SyntaxTriviaList RemoveLeadingComments(SyntaxTriviaList trivia, int commentCount)
+    {
+        if (commentCount == 0)
+        {
+            return trivia;
+        }
+
+        var remainingTrivia = new List<SyntaxTrivia>(trivia.Count);
+        var removedCount = 0;
+
+        foreach (var item in trivia)
+        {
+            if (removedCount < commentCount
+                && SyntaxTriviaUtilities.IsCommentTrivia(item))
+            {
+                while (remainingTrivia.Count > 0
+                       && remainingTrivia[remainingTrivia.Count - 1].IsKind(SyntaxKind.WhitespaceTrivia))
+                {
+                    remainingTrivia.RemoveAt(remainingTrivia.Count - 1);
+                }
+
+                removedCount++;
+
+                continue;
+            }
+
+            remainingTrivia.Add(item);
+        }
+
+        return SyntaxFactory.TriviaList(remainingTrivia);
     }
 
     /// <summary>

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Layout;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 
@@ -56,6 +57,30 @@ public class RH5030BlankLineAfterClosingBraceCodeFixProvider : CodeFixProvider
         return document.WithSyntaxRoot(BlankLineCodeFixUtilities.InsertBlankLineBefore(root, nextToken));
     }
 
+    /// <summary>
+    /// Determines whether the code fix can be offered. The blank line goes at the start of the next statement's leading
+    /// trivia (SHARED-AFTERBRACE-001), which separates the statements only when a line break outside any comment already ends
+    /// the line in front of the statement. When every line break between the closing brace and the next statement lies
+    /// inside a comment, the statement starts behind the comment on its last line, and the fix is withheld (RH5030-003)
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="diagnosticSpan">Diagnostic span</param>
+    /// <returns><see langword="true"/> if the code fix can be offered</returns>
+    private static bool CanRegisterCodeFix(SyntaxNode root, TextSpan diagnosticSpan)
+    {
+        var closeBraceToken = root.FindToken(diagnosticSpan.Start);
+
+        if (closeBraceToken.IsKind(SyntaxKind.CloseBraceToken) == false)
+        {
+            return false;
+        }
+
+        var nextToken = closeBraceToken.GetNextToken();
+
+        return nextToken.IsKind(SyntaxKind.None) == false
+               && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(closeBraceToken, nextToken);
+    }
+
     #endregion // Methods
 
     #region CodeFixProvider
@@ -70,17 +95,27 @@ public class RH5030BlankLineAfterClosingBraceCodeFixProvider : CodeFixProvider
     }
 
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
+        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+
+        if (root == null)
+        {
+            return;
+        }
+
         foreach (var diagnostic in context.Diagnostics)
         {
+            if (CanRegisterCodeFix(root, diagnostic.Location.SourceSpan) == false)
+            {
+                continue;
+            }
+
             context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5030Title,
                                                       token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
                                                       nameof(RH5030BlankLineAfterClosingBraceCodeFixProvider)),
                                     diagnostic);
         }
-
-        return Task.CompletedTask;
     }
 
     #endregion // CodeFixProvider

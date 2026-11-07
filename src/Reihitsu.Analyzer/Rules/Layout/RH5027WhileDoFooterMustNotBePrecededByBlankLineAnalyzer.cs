@@ -40,7 +40,32 @@ public class RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzer : Diagnosti
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree
+    /// Determines whether the <c>while</c> keyword's line is the footer's line in the sense of RH5027-001: nothing but
+    /// whitespace, or whitespace and the closing brace of the statement's block body, stands in front of the keyword on its
+    /// line. Anything else in front of it — code, a comment, or the end of a literal or a comment that started on an earlier
+    /// line — makes the line above part of that code or text rather than the footer's gap
+    /// </summary>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="doStatement">The <c>do</c> statement</param>
+    /// <param name="whileLine">The line that holds the <c>while</c> keyword</param>
+    /// <returns><see langword="true"/> if the line starts with the footer</returns>
+    private static bool StartsWithFooter(SourceText sourceText, DoStatementSyntax doStatement, TextLine whileLine)
+    {
+        var whileStart = doStatement.WhileKeyword.SpanStart;
+
+        if (FormattingTextAnalysisUtilities.IsWhitespaceOnly(sourceText, TextSpan.FromBounds(whileLine.Start, whileStart)))
+        {
+            return true;
+        }
+
+        return doStatement.Statement is BlockSyntax block
+               && block.CloseBraceToken.SpanStart >= whileLine.Start
+               && FormattingTextAnalysisUtilities.IsWhitespaceOnly(sourceText, TextSpan.FromBounds(whileLine.Start, block.CloseBraceToken.SpanStart))
+               && FormattingTextAnalysisUtilities.IsWhitespaceOnly(sourceText, TextSpan.FromBounds(block.CloseBraceToken.Span.End, whileStart));
+    }
+
+    /// <summary>
+    /// Analyzes a <c>do</c> statement and reports the blank line directly above its footer's line
     /// </summary>
     /// <param name="context">Context</param>
     private void OnDoStatement(SyntaxNodeAnalysisContext context)
@@ -51,9 +76,11 @@ public class RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzer : Diagnosti
         }
 
         var sourceText = context.Node.SyntaxTree.GetText(context.CancellationToken);
-        var whileLineIndex = sourceText.Lines.GetLineFromPosition(doStatement.WhileKeyword.SpanStart).LineNumber;
+        var whileLine = sourceText.Lines.GetLineFromPosition(doStatement.WhileKeyword.SpanStart);
+        var whileLineIndex = whileLine.LineNumber;
 
         if (whileLineIndex == 0
+            || StartsWithFooter(sourceText, doStatement, whileLine) == false
             || FormattingTextAnalysisUtilities.IsBlankLine(sourceText, whileLineIndex - 1) == false)
         {
             return;
