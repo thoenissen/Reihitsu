@@ -841,7 +841,7 @@ class C<T, U>
 
 ### FMT-BREAK-015 — Wraps inside a list element are joined
 
-A line inside an element of an argument, parameter, attribute argument, tuple, or type-argument list that starts at a token other than the element's first token MUST be joined onto the previous line. A gap whose layout another requirement owns MUST NOT be joined by this rule: list boundaries, the opening parenthesis of a parameter list other than a lambda's, operator wraps of binary, conditional, member-access, postfix, `is`-pattern, and assignment expressions (FMT-BREAK-016 to FMT-BREAK-020), multi-line literals, attribute placement, and every line inside a nested braced, bracketed, or query construct. The `=` of a parameter's default value is not such an operator wrap: the gaps in front of it and behind it are wraps inside the element, and this rule joins them, in a bracketed parameter list as in a parenthesized one (FMT-BREAK-016 defers to it there).
+A line inside an element of an argument, parameter, attribute argument, tuple, or type-argument list that starts at a token other than the element's first token MUST be joined onto the previous line. A gap whose layout another requirement owns MUST NOT be joined by this rule: list boundaries, the opening parenthesis of a parameter list other than a lambda's, operator wraps of binary, conditional, member-access, postfix, `is`-pattern, and assignment expressions (FMT-BREAK-016 to FMT-BREAK-020), multi-line literals, attribute placement, and every line inside a nested braced, bracketed, or query construct. The `=` of a parameter's default value is not such an operator wrap: the gap in front of it is a wrap inside the element, and this rule joins it, in a bracketed parameter list as in a parenthesized one (FMT-BREAK-016 defers to it there). The gap behind it is not this rule's: FMT-BREAK-016 places the value, as for every equals-value clause.
 
 Why: A wrap such as `out⏎var value` or `message:⏎"x"` splits one element over two lines without structuring anything. Joining runs before the list layout, so a list that was multi-line only because of such a wrap is laid out as the one-line list it becomes. No analyzer rule reports these wraps; the join is a formatter-only decision.
 
@@ -879,7 +879,7 @@ class C
 
 ### FMT-BREAK-016 — Assignments keep target, operator, and value together
 
-The operator of an assignment MUST stay on the line of its target, and the value MUST start on the line of the operator. This holds for every assignment operator — `=` and every compound assignment operator, such as `+=`, `-=`, `|=`, `<<=`, and `??=` — and for the `=` of a variable declarator, a property initializer, an enum member's value, and a parameter's default value (FMT-PIPE-014). A value that spans several lines starts on the operator line and keeps its own layout; a collection initializer or collection expression assigned to a target keeps its opening delimiter on the operator line. Inside a parameter list, this requirement does not decide the gaps around a parameter's default `=`: FMT-BREAK-015 owns them and joins them as wraps inside a list element, which gives the layout stated here.
+The operator of an assignment MUST stay on the line of its target, and the value MUST start on the line of the operator. This holds for every assignment operator — `=` and every compound assignment operator, such as `+=`, `-=`, `|=`, `<<=`, and `??=` — and for the `=` of a variable declarator, a property initializer, an enum member's value, and a parameter's default value (FMT-PIPE-014). A value that spans several lines starts on the operator line and keeps its own layout; a collection initializer or collection expression assigned to a target keeps its opening delimiter on the operator line. Inside a parameter list, this requirement does not decide the gap in front of a parameter's default `=`: FMT-BREAK-015 owns it and joins it as a wrap inside a list element, which gives the layout stated here. The value behind the `=` is placed by this requirement, for a parameter's default as for every equals-value clause, so a multi-line literal default starts on the `=` line (`string s = """`) although FMT-BREAK-015 does not join a multi-line literal.
 
 A binary operator is not an assignment operator: `a⏎+ b` is laid out by FMT-BREAK-017, while `a⏎+= b` is joined by this requirement.
 
@@ -920,7 +920,7 @@ class C
 }
 ```
 
-Example — a compound assignment, an enum member's value, and a parameter's default value are laid out as an assignment with `=` is, while a wrapped binary operator keeps its wrap; the parameter list, wrapped only inside its elements, becomes the one-line list it is once they are joined (FMT-BREAK-015):
+Example — a compound assignment, an enum member's value, and a parameter's default value are laid out as an assignment with `=` is, while a wrapped binary operator keeps its wrap; the parameter list, wrapped only inside its elements, becomes the one-line list it is once they are joined (FMT-BREAK-015 in front of each `=`, this requirement behind it):
 
 ```csharp
 enum E
