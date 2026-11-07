@@ -48,6 +48,10 @@ None in this run so far. The issues' comments carry triage decisions (summarized
 | 9 | Spec author 03 | Q2 extends FMT-RAW into its tab non-goal: change doc or not | Write a change doc recording Q2 (and Q1 for context) and widen the run's lane to behavior change, all six issues | `sdd/README.md` states that extending behavior into a non-goal is a behavior change and needs a change doc; the rulebook is not overridden by the lead | The visible output was decided by the maintainer (Q2 A); the change doc only records it | — |
 | 10 | Test implementer 04 | FMT-INDENT-013 enum example and change-doc after block keep `A,`, but FMT-STRUCT-019 (unchanged) removes the trailing comma | Spec author corrects both texts to the whole-document output (no trailing comma) | The unchanged FMT-STRUCT-019 decides it; Q1 was about the column only | Comma removal is demanded by an unchanged requirement; the answered column is kept | — |
 | 11 | Test implementer 04 | #952 did not reproduce | Keep `Closes #952`, no escalation 4 | Decision 7: the issue's triage comment states only a regression test is missing and the issue closes once it lands; the test is in 04 | Nothing visible changes | 6e34031 |
+| 12 | Implementer 06 | Disputed #1243 tests (`LoneCoalesceOperatorIsJoinedWithoutBlankLine`, `LoneOperatorBelowCommentLineIsJoinedWithoutBlankLine`, `LoneConditionalColonBelowCommentLineIsJoinedWithoutBlankLine`) | Tests are wrong; test implementer aligns them with `indentation.md:905` (`??` column) and FMT-BLANK-011 (blank line above an own-line comment) | Unchanged requirements decide the asserted output | Outputs demanded by unchanged requirements | — |
+| 13 | Implementer 06 | 14 existing tests assert outputs the changed specs decide otherwise | Test implementer updates them to the specs | Indexer, comment-before-`]`, enum member: FMT-PIPE-014 required them before the run (02-skeptic); tab: Q2 | Covered by FMT-PIPE-014 and maintainer answer Q2 | — |
+| 14 | Implementer 06 | Method/argument list wrapped only after `(` joins to one line on main, against FMT-BREAK-012; the indexer now follows FMT-BREAK-012 | Keep the indexer as specified; method side becomes a follow-up | Pre-existing defect; fixing it changes output for every method and call, beyond the run's issues | Indexer output demanded by the clarified FMT-BREAK-011/-012 under FMT-PIPE-014 | 317a6a5 |
+| 15 | Implementer 06 | Arch. finding: raw-string line shift implemented in the RH5202 fix and in `RawStringLineShifts.ReplaceIndentation`, the latter now restating the fix's rule | Change the structure in this run: one shared shift helper in `Reihitsu.Core` (next to `GetLeadingWhitespaceLength`) used by both | The run's change made the formatter a second statement of the fix's shift rule; both components are the run's and counterparts | RH5202 fix output is unchanged; the formatter output is FMT-RAW-001/-002 and Q2 | — |
 | 2 | Lane | Lane for #1149 and #1383, whose bodies say behavior change | Bug fix, all six | The later triage comments on both issues classify them as bugs against FMT-PIPE-014 with spec clarifications; the issues are `agent-filed` | Lane is internal; the outputs are demanded by FMT-PIPE-014 (to be confirmed by the skeptic) | — |
 
 ## Follow-up candidates
@@ -62,6 +66,7 @@ None in this run so far. The issues' comments carry triage decisions (summarized
 8. Query clauses at statement column outside an argument-like list (02-skeptic).
 10. Compound assignment inside one argument of a multi-argument list (`M(x⏎+= 1, y)`): whether the list returns to one line after the FMT-BREAK-016 join is undecided (04-test-implementer).
 11. Interface indexer `int this⏎[int a] { get; }`: whether its accessor list stays on one line after the join is undecided (04-test-implementer).
+12. Method and argument lists wrapped only after `(` are joined to one line, against FMT-BREAK-012 (decision 14; 06-implementer).
 9. Line-break rewriters that already carry a private "line break unless one exists" check: migrate to the shared check (decision 4).
 
 ## Worklist / next step
@@ -74,4 +79,5 @@ None in this run so far. The issues' comments carry triage decisions (summarized
 - Lane widened to behavior change (decision 9); spec author 03 continued for the change doc.
 - Change doc 8432ef4 accepted (both visible changes answered by Q1/Q2). Lane check: behavior-change confirmed.
 - Test implementer 04 at 6e34031: #1243, #1383, #1149, #1391, #1611 reproduced; #952 regression test passes.
-- Next: spec author (05) for decision 10; then implementer (06).
+- Spec author 05 at d0e2102 (decision 10). Implementer 06 at f1bc9b0 (production 317a6a5): all handed-over tests pass except 3 disputed; 14 existing tests contradict changed specs; 1 analyzer failure (RH5601 tab test, in the 14).
+- Next: test implementer (07) for decisions 12, 13; then implementer (08) for decision 15; then cleaner.
