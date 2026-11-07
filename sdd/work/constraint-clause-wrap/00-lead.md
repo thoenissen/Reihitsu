@@ -55,6 +55,7 @@ From `02-skeptic.md`:
 
 From `07-spec-author.md`:
 9. `where⏎T : …` puts `T` at the block column; same on `main`, no requirement owns the gap (12-auditor hint).
+10. `ChainLineBreakRewriter.CloseGap`/`GetPendingToken` holds a third copy of the batch join loop (pre-existing on `main`); move it onto `LineBreakTriviaUtilities.JoinGaps` (15-implementer). Internal refactor.
 8. New-rule candidate (P11): spacing of the constraint colon (`where T:class`), which the formatter rewrites after Q10 but no analyzer reports (RH6021 names only base-list and constructor-initializer colons).
 
 ## Open worklist / next step
@@ -77,4 +78,6 @@ From `07-spec-author.md`:
 - 12 auditor (67bcb95) on 0260784: findings #1 high (multi-line block comment counted as line break), #2 low (copied join loop). Repair round 1 of 3.
 - 13 spec author done (97d59bf): FMT-BREAK-037 line-start wording; examples M,N,O,P (unchanged) and S (wrapped); entry 16.
 - 14 test implementer done (7b1c727): 6 tests, 5 failing as expected.
+- 15 implementer done (a5e23a1): #1 and #2 repaired; all tests pass.
+- Next: cleaner (16) → spec checker (17) → auditor on repair only (18, audited base 0260784) → validator.
 - Worklist round 1: spec author (13, done) — FMT-BREAK-037 wording to line-start facts per decision 8, outputs of (a)–(d), tuple-in-type-argument wording hint; test implementer (14) — one test per case (a)–(e); implementer (15) — #1 + #2 + correct `IsWrapped`/class remarks; then cleaner, spec checker, auditor (repair only), validator.
