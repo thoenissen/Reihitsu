@@ -457,17 +457,14 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
     /// Determines whether the anonymous method, from its first token through the block's closing brace, holds a
     /// preprocessor directive or disabled text, on either path of the fix. The lambda is reassembled from the text of the
     /// parameter list and of the body, so a directive structure inside the anonymous method cannot be kept; directives
-    /// wholly outside it are left alone
+    /// wholly outside it are left alone. Disabled text needs no check of its own: it ends at a directive, and that
+    /// directive lies inside the anonymous method too, because a token of the anonymous method follows the disabled text
     /// </summary>
     /// <param name="anonymousMethodExpression">Anonymous method expression</param>
     /// <returns><see langword="true"/> if the anonymous method holds a directive or disabled text</returns>
     private static bool ContainsDirectiveOrDisabledText(AnonymousMethodExpressionSyntax anonymousMethodExpression)
     {
-        var span = anonymousMethodExpression.Span;
-
-        return anonymousMethodExpression.DescendantTrivia()
-                                        .Any(trivia => (trivia.IsDirective || trivia.IsKind(SyntaxKind.DisabledTextTrivia))
-                                                       && span.Contains(trivia.Span));
+        return SyntaxTriviaUtilities.ContainsDirectives(anonymousMethodExpression, anonymousMethodExpression.Span);
     }
 
     /// <summary>
