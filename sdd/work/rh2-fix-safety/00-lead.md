@@ -68,4 +68,5 @@ Maintainer: "keep it simple".
 - Implementer 05 done (bd592fd, 03cdad7): 3 disputed tests (harness setting).
 - Test implementer 06 done (38ab0b9).
 - Spec author 07 done (3178c94).
-- Next: cleaner (08), then spec checker (09).
+- Cleaner 08 clean (481ca6d).
+- Next: spec checker (09).
