@@ -5,7 +5,7 @@
 | ID prefix | FMT-RAW |
 | Status | Active |
 | Code owners | `RawStringLineShifts`, `RawStringLiteral`, `RawStringLiteralUtilities` |
-| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-CLEAN-009, FMT-INDENT-002, FMT-INDENT-004, FMT-INDENT-006, FMT-INDENT-007, FMT-INDENT-011, FMT-INDENT-012, FMT-INDENT-029, FMT-INDENT-030, FMT-INDENT-031, FMT-TAB-001 |
+| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-CLEAN-009, FMT-INDENT-002, FMT-INDENT-004, FMT-INDENT-006, FMT-INDENT-007, FMT-INDENT-011, FMT-INDENT-012, FMT-INDENT-029, FMT-INDENT-030, FMT-INDENT-031, FMT-TAB-001, FMT-TAB-003 |
 
 This spec covers how the indentation phase moves the lines of a multi-line raw string literal: once the phase has placed the line of the opening quotes, it moves the literal's content lines, the lines of its interpolation holes, and its closing marker so the closing marker starts in the column of the opening quotes. The move belongs to the indentation phase (FMT-PIPE-001), so every alignment of that phase is measured after it (FMT-INDENT-030). The literal's value never changes.
 
@@ -21,7 +21,9 @@ This spec covers how the indentation phase moves the lines of a multi-line raw s
 
 For every multi-line raw string literal — plain, UTF-8 (`u8`), or interpolated — the formatter MUST move the closing marker so it starts in the column of the first `"` of the opening marker, and MUST move every content line by the same number of columns.
 
-Why: The column of the closing marker defines how much indentation the compiler strips from every content line. Lining it up under the opening quotes makes the literal read as one block attached to the code that owns it, wherever indentation moved that code.
+The column the closing marker starts in before the move is the width of the whitespace in front of it on its line, and every whitespace character in front of it counts as one column, whatever it is: a space, a no-break space (U+00A0), an em space (U+2003), a vertical tab, or a form feed. A tab in a literal is kept (FMT-TAB-003), and a literal whose indentation holds one is outside this spec (Non-goals). The width is the one the RH5202 analyzer and its code fix measure, so a literal the formatter has aligned is one they find aligned.
+
+Why: The column of the closing marker defines how much indentation the compiler strips from every content line. Lining it up under the opening quotes makes the literal read as one block attached to the code that owns it, wherever indentation moved that code. The compiler strips every whitespace character in front of the closing marker, not only spaces, and each of them takes a column; a move measured from the spaces alone would leave the marker as many columns behind the opening quotes as other whitespace characters stand in front of it.
 
 Example:
 
@@ -51,7 +53,7 @@ class C
 
 ### FMT-RAW-002 — Relative indentation inside the literal is kept
 
-The formatter MUST shift all content lines of a literal by one uniform amount — to the right or to the left — so the indentation of each content line relative to the closing marker stays as written. Lines that are empty MUST stay empty.
+The formatter MUST shift all content lines of a literal by one uniform amount — to the right or to the left — so the indentation of each content line relative to the closing marker stays as written. Lines that are empty MUST stay empty. A shift to the right adds spaces in front of a line; a shift to the left removes that many whitespace characters from the start of a line, whatever they are, and all of them from a line that has fewer. The whitespace characters a shift does not remove stay as written, so a no-break space in front of the closing marker stays a no-break space.
 
 Why: The relative indentation is the literal's value (FMT-PIPE-002). A uniform shift together with the closing marker changes only where the block sits in the file, not one character of the string it produces.
 
@@ -105,6 +107,38 @@ class C
         var a = """
                     Hello
                 """;
+    }
+}
+```
+
+Example — `·` stands for one no-break space (U+00A0). The closing marker of the first literal stands in column 4 of its line, behind four no-break spaces, and moves 12 columns to the right; the closing marker of the second stands in column 20 and moves 4 columns to the left. The no-break spaces the shift does not remove stay:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = """
+····x
+····""";
+        var b = """
+····················y
+····················""";
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = """
+            ····x
+            ····""";
+        var b = """
+················y
+················""";
     }
 }
 ```
