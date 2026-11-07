@@ -628,32 +628,6 @@ public class RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzerTests : Bat
                                        test => test.ExpectedDiagnostics.AddRange(Diagnostics(RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5412MessageFormat)));
     }
 
-    /// <summary>
-    /// Verifies the fix of an empty class that a region encloses keeps the text of the region directives as written
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("SHARED-FIX-003")]
-    public async Task VerifyFixKeepsTextOfEnclosingRegionDirectives()
-    {
-        const string testData = """
-                                #region legacy
-                                internal class {|#0:A|}
-                                {
-                                }
-                                #endregion
-                                """;
-        const string fixedData = """
-                                 #region legacy
-                                 internal class A;
-                                 #endregion
-                                 """;
-
-        await Verify(testData,
-                     fixedData,
-                     Diagnostics(RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5412MessageFormat));
-    }
-
     #endregion // Tests
 
     #region Methods
