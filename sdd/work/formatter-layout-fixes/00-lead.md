@@ -29,7 +29,10 @@ None in this run so far. The issues' comments carry triage decisions (summarized
 
 ## Maintainer answers
 
-_None yet._
+| # | Kind | Question | Answer |
+|---|---|---|---|
+| Q1 | Output question (#1391) | Continuation line inside the only type of a base list (`class B : System. // c⏎IDisposable`, also `enum E : System. // c⏎Int32`) | A — aligned under the first token of the type (column of `System`), like a two-type list's continuation; not left at column 0 |
+| Q2 | Output question (#1611) | Raw string whose closing line is indented with tabs | A — each tab counts as one column, as RH5202 counts it (`12 spaces + 4 tabs` for the example), matching the RH5202 fix's output; tab-width alignment stays with #1432 |
 
 ## Decisions taken
 
@@ -61,5 +64,5 @@ _None yet._
 - Done: claim, draft PR, prepare.sh; spec author 01 at b023a19 (clarifications for #1383, #1149, #1611; no output questions). Lane check after 01: confirmed.
 - Points for the skeptic: #1149 enum-member `=` treated as already required (RH5111-004, P5-2); #1611 leftward shift removes non-space leading whitespace (derived from RH5202-003, SHARED-FIX-007, FMT-RAW-001).
 - Skeptic 02 at 57ac318: all premises hold; #952 regression test only; #1391 omitted type argument and lone-CR parts already fixed (regression tests only).
-- Output questions asked (batch 1): Q1 #1391 single-type base list continuation; Q2 #1611 tab-indented raw string closing line. WAITING for the maintainer.
-- Next after answers: spec author (03) for decision 5, the answers, and the 01 comma note; then test implementer.
+- Output questions batch 1 answered: Q1 A, Q2 A.
+- Next: spec author (03) for decision 5 and the answers Q1/Q2; then test implementer (04).
