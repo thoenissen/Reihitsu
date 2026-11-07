@@ -60,6 +60,7 @@ Maintainer: "keep it simple".
 | 27 | Auditor 17 | Hint: RH2001 `// c⏎ static private int Value { get; }` now reported without a fix (`main` offered a fix that duplicated the comment) | Accept; fold into follow-up 4 | SHARED-FIX-003 forbids the duplicate; a withheld fix is a supported end state | Withholding replaces an output SHARED-FIX-003 forbids | — |
 | 28 | Spec author 18 | Q8 covers `static public /* note */ int` (comment behind `public` on its line) | Accept the literal reading; drop follow-up candidate 5 | The question asked about a comment behind a later `public` on its line; same answer | Covered by Q8 | 9c2c5dc |
 | 29 | Test implementer 19 | First-position `public` with trailing line break or comment: no requirement decides | Pin `main`'s unchanged output (untagged characterization tests) | Output unchanged from `main` | Not changed by the run | 881b226 |
+| 30 | Auditor 23 | Finding 8: `SyntaxTokenList` overloads of `AddAccessibilityModifier(s)` have no production caller; default-token branch, unreachable `tokens.Count == 0`, public doc `cref` to a private method | Remove the overloads and the branch; Core test moves to the member overload | No caller reaches them (AGENTS.md, Supported inputs); a second placement rule is a second statement of the decision | No caller, no output | — |
 | 9 | Skeptic | Spec-author follow-up candidates 1 and 2 | Collapse into one spec-wording follow-up for SHARED-DIAG-004; candidate 2 folds into Q1's answer | SHARED-NESTED-002 already decides candidate 1 | Wording follow-up only | — |
 
 ## Follow-up candidates
@@ -75,6 +76,8 @@ Maintainer: "keep it simple".
 6. `DocumentationAnalysisUtilities.OverridesOrImplementsMember` (RH8201 and other documentation rules) judges the implementing part of a partial interface-implementing member as implementing nothing (pre-existing, traced) — 14-implementer.md.
 
 ## Pending output questions (batch before auditor)
+
+- Q9 (audit finding 7): RH2005, non-first `public` that neither starts nor ends its line, gaps not single spaces — A `public` goes with the gap behind it, the gap in front stays (rec.), B HEAD (gap behind replaces gap in front), C `main` (gap goes to the inserted `private`). ASKED.
 
 - Q7: RH2005 `static public⏎        int Counter;` (later `public` ends its line) — A `private static⏎        int Counter;` (rec.), B join. ANSWERED A.
 - Q8: RH2005 comment/directive/`#if` behind a later `public` (same line or next lines) — A withhold, extending RH2005-005 (rec.), B carry. ANSWERED A.
@@ -112,6 +115,6 @@ Maintainer: "keep it simple".
 - Implementer 14 done (2f1fb5a, d09d88f): all tests pass (analyzer 7153, core 649, architecture 115).
 - Cleaner 15 clean (f4be099); spec checker 16 consistent (38ad14b).
 - Audit 17 of a79eb22: BLOCKED — finding 5 (architecture, decision 25) and 6 (repair, decision 26). Repair round 2 (of 3).
-- Q7, Q8 answered 7A, 8A. Spec author 18 done (9c2c5dc). Test implementer 19 done (881b226, 39 reds). Implementer 20 done (048e957; analyzer 7202, core 649, architecture 115). Cleaner 21 clean (e4dcd16); spec checker 22 consistent (6cd0c63). Next: auditor (23), validator (24).
+- Q7, Q8 answered 7A, 8A. Spec author 18 done (9c2c5dc). Test implementer 19 done (881b226, 39 reds). Implementer 20 done (048e957; analyzer 7202, core 649, architecture 115). Cleaner 21 clean (e4dcd16); spec checker 22 consistent (6cd0c63). Auditor 23 (1c0aca6) of 7714c11: findings 7 (output question Q9) and 8 (decision 30). Repair round 3 (last) after Q9: test implementer (24), implementer (25), cleaner, spec checker, auditor, validator.
 - (old line) Next (was: test implementer 13) narrows tests to the answered outputs; implementer (14) repairs findings 1–4 with decisions 16–18.
 - Repair round 1 (of 3) worklist: test implementer (11) adds regressions for 1, 2a, 2b, 4a, 4b; implementer (12) repairs 1–4 with decisions 16–18; cleaner, spec checker, auditor (repair only), validator.
