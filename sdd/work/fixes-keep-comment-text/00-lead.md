@@ -32,6 +32,7 @@
 | 8 | Skeptic | SHARED-BRACE-002: full alignment to SHARED-FIX-007 or narrow | Narrow: revert SHARED-BRACE-002 to main's text plus a sentence that a comment is written once; the alignment and #1209 Q2–Q4 belong to #1140/#1144 → follow-up candidate. Spec author's Q2–Q6 are not asked | Maintainer already routed Q2–Q4 to #1140/#1144 (1.2.1); keeps today's outputs | Dropping the rewrite changes no output | pending |
 | 9 | Skeptic | Architecture finding: two owners (ControlFlowBraceTransform and the node-level entry point FormatNodeInDocumentAsync) place the body's trailing trivia | Change the structure in this run: the duplication is removed so that exactly one of the existing owners writes that trivia; no third owner (no compensation in the code-fix base). Spec author clarifies FMT-PIPE-010 if the owner is the entry point | A narrow fix in the code fix would add a third owner (README, Architecture findings) | Comment written once is the maintainer's decision in #1261 | pending |
 | 10 | Skeptic | `else if` duplication test | No dedicated test that would assert today's wrong brace column; the shared mechanism covers it via the other three positions | Avoid locking a wrong output (#1209 Q4 goes to #1144) | No output asserted | — |
+| 11 | Implementer | Two Fix All tests (RH5011 `VerifyFixAllHandlesSpanningCommentNextToPlainBreakAndWithheldBreak`, RH5030 `VerifyFixAllLeavesWithheldBraceReported`) fail on harness setup: fixed-state markup ignored | Test is wrong in harness configuration only; test implementer sets FixedState/BatchFixedState MarkupHandling = Allow, assertions unchanged | Repository precedent (RH8309, RH8204, RH8107) | Asserted outputs unchanged | pending |
 
 ## Follow-up candidates
 
@@ -44,4 +45,4 @@
 
 - Done: spec author (01, 461faa4). Open output questions from it: Q1 RH5023 blank lines inside an interpolation hole; Q2-Q6 statement-brace outputs (Q2 is the issue's own decision).
 - Done: skeptic (02, 1a16550).
-- Maintainer answered Q1: B. Done: spec-author amendment (03, 5c70c13); test implementer (04, 55c161f: #1075 and #1261 reproduced). Next: implementer.
+- Maintainer answered Q1: B. Done: spec-author amendment (03, 5c70c13); test implementer (04, 55c161f: #1075 and #1261 reproduced). implementer (05, 8756175: all pass except two disputed tests, decision 11). Next: test implementer correction, then cleaner.
