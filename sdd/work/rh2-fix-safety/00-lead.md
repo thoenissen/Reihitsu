@@ -35,7 +35,7 @@ Maintainer: "keep it simple".
 | 6 | Skeptic | RH2005-004 wording | "any field the declaration declares" | Fix changes every declarator at once; only one safe reading | Wording only | — |
 | 7 | Skeptic | RH2001-007 scope | Widen to comments or directives between the name and the end of the declaration, except inside the initializer | SHARED-FIX-003 already withholds these; one place states the class | Both readings withhold the fix | — |
 | 8 | Skeptic | #1287 goal "RH2004-002 and its tests are updated" | Replace by RH2004-001 coverage and the characterization test near `RH2004AccessModifierMustBeDeclaredAnalyzerTests.cs:881` | RH2004-002 covers partial types/methods, which stay unreported | Goal wording only | — |
-| 10 | Spec author 03 | RH2001: get-only property of a non-readonly struct, and a type parameter not constrained to a reference type | Withhold the fix for both | Literal reading of answer 2C ("every struct not declared readonly"; a type parameter may be such a struct); matches the spec author's recommendation and the maintainer's "keep it simple" | Covered by the maintainer's answer to Q2 | — |
+| 10 | Spec author 03 | RH2001: get-only property of a non-readonly struct, and a type parameter not constrained to a reference type | Withhold the fix for both | Literal reading of answer 2C ("every struct not declared readonly"; a type parameter may be such a struct); matches the spec author's recommendation and the maintainer's "keep it simple" | Covered by the maintainer's answer to Q2 | 9494bcd |
 | 9 | Skeptic | Spec-author follow-up candidates 1 and 2 | Collapse into one spec-wording follow-up for SHARED-DIAG-004; candidate 2 folds into Q1's answer | SHARED-NESTED-002 already decides candidate 1 | Wording follow-up only | — |
 
 ## Follow-up candidates
@@ -55,4 +55,5 @@ Maintainer: "keep it simple".
 - Last step: spec author 01 (fd5393f).
 - Last step: skeptic 02 (7e38ec4). Output questions Q1–Q3 asked.
 - Spec author 03 done (bbfd717). Continued once for decision 10.
+- Spec author decision 10 applied (9494bcd).
 - Next: test implementer (04).
