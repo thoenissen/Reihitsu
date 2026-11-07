@@ -5,7 +5,8 @@
 - Branch: `claude/tender-shannon-bcg2tr` (session-designated branch, used instead of `claude/issue-1458-...`)
 - PR: thoenissen/Reihitsu#1610 (draft claim)
 - Lane: bug fix — the issue reports an observed-versus-expected difference in the RH5202 code fix against SHARED-FIX-003 / FMT-RAW-009.
-- Roles: skeptic (premise + reachability) → test implementer (reproduction) → implementer → cleaner → spec checker → auditor → validator. Spec author only for a clarification.
+- Roles: skeptic (premise + reachability) → test implementer (reproduction) → implementer → cleaner (11, 371a1af) → spec checker (12, 4cf325b): 2 findings.
+- Repair round 2 (of 3): spec author (12 finding 1: RH5202-005 states empty literal-text lines incl. nested raw string stay empty, empty hole-code lines shift) → test implementer (12 finding 2: retag) → cleaner → spec checker → auditor (repairs only) → validator. (was: → spec checker → auditor → validator. Spec author only for a clarification.
 - Maintainer clarification: the maintainer suspects the issue may already be fixed on `main` (later raw-string work landed, e.g. #1469, #1457, #1565).
 
 ## Maintainer answers
