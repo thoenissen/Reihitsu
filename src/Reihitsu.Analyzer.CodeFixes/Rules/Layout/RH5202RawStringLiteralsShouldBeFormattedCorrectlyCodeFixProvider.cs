@@ -138,8 +138,9 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
     /// <summary>
     /// Applies the code fix by shifting the lines of the raw string literal after its first line, so that its closing
     /// marker starts in the column of its opening quotes. Every shifted line shifts by the same number of columns
-    /// (<see cref="GetShift"/>): spaces are added in front of it, or up to that many leading whitespace characters are
-    /// removed. Which lines shift is the formatter's decision (<see cref="RawStringLineUtilities.MovesLine"/>): an
+    /// (<see cref="GetShift"/>), by the shift rule the formatter also applies
+    /// (<see cref="RawStringLiteralUtilities.GetLineShiftEdit"/>): spaces are added in front of it, or up to that many
+    /// leading whitespace characters are removed. Which lines shift is the formatter's decision (<see cref="RawStringLineUtilities.MovesLine"/>): an
     /// empty line stays empty, whether it is literal text, text of a nested raw string, or code in an interpolation
     /// hole, and a line that starts inside a nested literal other than a raw string, or inside a nested comment, stays
     /// as written. A nested raw string literal is not aligned here: its lines shift with the outer literal, and it
@@ -175,18 +176,13 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
                 continue;
             }
 
-            if (delta > 0)
-            {
-                changes.Add(new TextChange(new TextSpan(line.Start, 0), new string(' ', delta)));
-            }
-            else
-            {
-                var charactersToRemove = Math.Min(-delta, RawStringLiteralUtilities.GetLeadingWhitespaceLength(sourceText.ToString(line.Span)));
+            var leadingWhitespaceLength = RawStringLiteralUtilities.GetLeadingWhitespaceLength(sourceText.ToString(line.Span));
+            var (removedLength, insertedSpaces) = RawStringLiteralUtilities.GetLineShiftEdit(leadingWhitespaceLength, delta);
 
-                if (charactersToRemove > 0)
-                {
-                    changes.Add(new TextChange(new TextSpan(line.Start, charactersToRemove), string.Empty));
-                }
+            if (removedLength > 0
+                || insertedSpaces > 0)
+            {
+                changes.Add(new TextChange(new TextSpan(line.Start, removedLength), new string(' ', insertedSpaces)));
             }
         }
 

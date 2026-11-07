@@ -393,10 +393,11 @@ internal sealed class RawStringLineShifts
     }
 
     /// <summary>
-    /// Moves a line inside a text from the column its indentation gives it to the column an edit gives it (FMT-RAW-002): a
+    /// Moves a line inside a text from the column its indentation gives it to the column an edit gives it (FMT-RAW-002),
+    /// by the shift rule the RH5202 code fix also applies (<see cref="RawStringLiteralUtilities.GetLineShiftEdit"/>): a
     /// move to the right adds spaces in front of the line, and a move to the left removes that many characters from the
-    /// start of its indentation, whatever whitespace they are. The whitespace characters the move does not remove stay as
-    /// written. The column after the move is never below 0, so a move to the left removes at most the whole indentation
+    /// start of its indentation, whatever whitespace they are, at most the whole indentation. The whitespace characters
+    /// the move does not remove stay as written
     /// </summary>
     /// <param name="text">The text</param>
     /// <param name="offset">The offset of the line's start in the text</param>
@@ -404,11 +405,10 @@ internal sealed class RawStringLineShifts
     /// <returns>The text with the line moved</returns>
     private static string ReplaceIndentation(string text, int offset, (int LineStart, int OldLength, int NewLength) edit)
     {
-        var shift = edit.NewLength - edit.OldLength;
+        var (removedLength, insertedSpaces) = RawStringLiteralUtilities.GetLineShiftEdit(edit.OldLength, edit.NewLength - edit.OldLength);
 
-        return shift >= 0
-                   ? text.Insert(offset, new string(' ', shift))
-                   : text.Remove(offset, Math.Min(-shift, edit.OldLength));
+        return text.Remove(offset, removedLength)
+                   .Insert(offset, new string(' ', insertedSpaces));
     }
 
     /// <summary>
