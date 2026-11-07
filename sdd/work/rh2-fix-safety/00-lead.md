@@ -17,7 +17,11 @@ Bug-fix lane: spec author (clarifications only: the maintainer-decided requireme
 
 ## Maintainer answers
 
-(none yet)
+Maintainer: "keep it simple".
+
+- Q1 (partial member, single diagnostic location; RH2002, RH2004, RH8306, RH7401–RH7412): **A** — reported once, on the first part the rule would report on its own; generated parts skipped; the defining part before the implementing part; when no part qualifies by what it writes, the defining part.
+- Q2 (RH2001 mutable-struct boundary): **C** (not C′) — fix withheld for a settable property whose type is a struct not declared `readonly` (per the type symbol of the compilation's references); `Nullable<T>` of an enum or `readonly` struct counts as readonly. No special-type exemption: on netstandard2.0/.NET Framework targets `int`/`bool` properties lose the fix — accepted by the maintainer.
+- Q3 (RH2005 references outside the type body that still compile — `nameof` in the type's own attribute, `cref` from another type): **B** — every reference outside the bodies of the type's declarations withholds the fix; spec text as written.
 
 ## Decisions taken
 
@@ -42,11 +46,11 @@ Bug-fix lane: spec author (clarifications only: the maintainer-decided requireme
 - Q1 (blocks #1287 rest): location of the single diagnostic of a partial member (RH2002, RH2004, RH8306, RH7401) — A first reporting part in document order (rec.), B first part, C implementing part.
 - Q2: RH2001 mutable-struct boundary — re-asked with target-framework consequence; options A, B, C, C′ (rec. C′).
 - Q3: RH2005 references outside the type body that compile after the fix (nameof in own attribute, cref) — A offer fix (rec.), B withhold.
-- ASKED in chat; waiting.
+- ANSWERED: 1A, 2C, 3B (see Maintainer answers).
 
 ## State
 
 - Audited SHA: —
 - Last step: spec author 01 (fd5393f).
 - Last step: skeptic 02 (7e38ec4). Output questions Q1–Q3 asked.
-- Next: on answers → spec author (amend per answers + decisions 4–8), then test implementer.
+- Answers received. Next: fresh spec author (03) amends per answers + decisions 4–8, then test implementer.
