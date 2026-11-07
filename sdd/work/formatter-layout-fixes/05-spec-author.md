@@ -18,3 +18,4 @@ _None._
 
 ## Follow-up candidates
 _None._
+- Follow-up (lead): the change doc's before block (line 82) now also shows `A` without the comma, `main`'s real output under FMT-STRUCT-019; `Int32` stays at column 0 there.

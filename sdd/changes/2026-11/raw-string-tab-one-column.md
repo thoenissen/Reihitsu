@@ -79,7 +79,7 @@ IDisposable
 enum E : System. // c
 Int32
 {
-    A,
+    A
 }
 ```
 
