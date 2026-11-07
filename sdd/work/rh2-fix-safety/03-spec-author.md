@@ -190,3 +190,15 @@ _None._
 - `sdd/specs/README.md`: no change, because no code owners changed.
 - Rule pages: none changed. The report changes only in corner cases: a partial member reported once, and fixes withheld.
 - `scripts/test.sh --project architecture --filter "FullyQualifiedName~Spec|FullyQualifiedName~RequirementCoverage"`: 50 passed, 1 failed (the coverage of the five untested IDs listed above).
+
+## Addendum — lead decision 10 (RH2001 boundary)
+
+The lead decided the open RH2001 question as A, and corrected answer 2C in `00-lead.md`: it has no "settable" restriction.
+
+- **RH2001-008:** retitled "The fix is withheld for a property of a struct type not declared `readonly`" and changed. The fix is now withheld for a property whose type is a struct not declared `readonly`, or a type parameter not constrained to a reference type. This holds with or without a `set` accessor. The Why now covers the constructor case of a get-only property and the type-parameter case. Two new examples:
+  - a get-only `Counter Current { get; }` changed in a constructor: no fix;
+  - `class C<T, TRef> where TRef : class`: `T Item` gets no fix, and `TRef Reference` becomes `_reference`.
+- **RH2001-004:** its coverage now names "a type parameter constrained to a reference type" next to reference types.
+- **Examples for the tests:** the two new RH2001-008 examples. They compile in a scratch net10.0 project.
+- **Spec tests:** `SpecConsistencyTests` and `SpecStructureTests` pass. `RequirementCoverageTests` fails on the same five untested IDs as before.
+- **Output questions:** _None_ remain.
