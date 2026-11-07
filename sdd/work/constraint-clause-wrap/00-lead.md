@@ -37,6 +37,7 @@ Batch 1 (before test implementer), all recommendations chosen:
 | 9 | Audit 1 | #2: batch join loop in `JoinUnstructuredWraps` copies `ListElementInteriorJoinRewriter.JoinInteriorWraps` | Repair in this run: extract into a shared helper used by both | PR-introduced copy, small, same component; leaving it adds a second copy (README *Architecture findings*) | Internal refactor, no output change | — |
 | 10 | Repair 1 | Change-doc entry 16 (wrapped clause, multi-line comment behind a comma: line break goes behind the comment) — ask? | Not asked | Q1A (one constraint per line) decides it; the comment stays in place; matches the parameter-list counterpart | Covered by Q1 answer | 97d59bf |
 | 11 | Repair 1 | Case (e) `IEquatable</* a⏎ b */T>`: wrapped (13-spec-author handover) or unchanged (FMT-BREAK-037 text)? | Unchanged; test 14 stands, spec text unchanged | Decision 8: no token of the clause starts a line; Q5 covered a constraint whose inner token starts a line (`// c⏎ string>`) | Decision 8/Q1 decide it; `main` leaves it unchanged | 7b1c727 |
+| 12 | Repair 2 | Add the auditor's optional wrapped-O example to FMT-BREAK-037? | No | The spec text already requires the output; a test pins it | Output already required by FMT-BREAK-037/FMT-INDENT-032 | — |
 | 1 | Claim | Branch name `claude/issue-1631-<slug>` per `lead.md` vs. the session's designated branch | Use `claude/dreamy-curie-x5c135` | The session environment permits pushing only to its designated branch | Branch names are internal | claim commit |
 
 ## Follow-up candidates
@@ -82,5 +83,6 @@ From `07-spec-author.md`:
 - 15 implementer done (a5e23a1): #1 and #2 repaired; all tests pass.
 - 16 cleaner clean (eb509fe); 17 spec checker consistent (1a75651).
 - 18 auditor (c61ceee) on ba4e49b: #1, #2 closed; new #3 medium (wrapped variants of O, M, N untested). Repair round 2 of 3.
-- Worklist round 2: test implementer (19) — tests for wrapped O (`class /* a⏎ b */, new(),⏎ IDisposable`), wrapped M, wrapped N; cleaner (20) — also wrap the ~180-char summary line in `GenericConstraintLineBreakRewriter.JoinGap`; spec checker (21); auditor on repair (22); validator.
+- 19 test implementer done (5c5e476): 3 tests pass; wrapped-O mutation check fails only that test.
+- Worklist round 2: test implementer (19, done) — tests for wrapped O (`class /* a⏎ b */, new(),⏎ IDisposable`), wrapped M, wrapped N; cleaner (20) — also wrap the ~180-char summary line in `GenericConstraintLineBreakRewriter.JoinGap`; spec checker (21); auditor on repair (22); validator.
 - Worklist round 1: spec author (13, done) — FMT-BREAK-037 wording to line-start facts per decision 8, outputs of (a)–(d), tuple-in-type-argument wording hint; test implementer (14) — one test per case (a)–(e); implementer (15) — #1 + #2 + correct `IsWrapped`/class remarks; then cleaner, spec checker, auditor (repair only), validator.
