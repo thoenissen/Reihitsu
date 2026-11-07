@@ -122,7 +122,7 @@ RH5028 reports the whole run, and RH5023 reports its second and third line. The 
 
 ### SHARED-FIX-002 — Fix All corrects everything in one application
 
-A code fix that offers Fix All MUST correct, in one Fix All application to a document, a project, or a solution, every reported diagnostic whose fix is offered on the code the application starts from, and the result MUST equal the result of applying those single fixes one after another. A diagnostic whose fix a guard withholds on that code, and releases only after another fix has run, is not covered: it may still be reported after the application, and its fix is offered on the result once the guard releases it.
+A code fix that offers Fix All MUST correct, in one Fix All application to a document, a project, or a solution, every reported diagnostic whose fix is offered on the code the application starts from, and the result MUST equal the result of applying those single fixes one after another. A diagnostic whose fix a guard withholds on that code, and releases only after another fix has run, is not covered: it may still be reported after the application, and its fix is offered on the result once the guard releases it. Nor is a diagnostic whose fix is offered on that code but would be withheld by its guard once the fixes of the diagnostics in front of it in the document have run: the application decides each guard on the code those fixes produce, as applying the single fixes one after another in document order does, and leaves that diagnostic reported. A diagnostic inside the code that the fix of another diagnostic rewrites or moves, such as an anonymous method in the block of another one, is covered like any other: once that fix has run, the application corrects it where that fix left it, in the same application, as applying the single fixes one after another does. Only a guard that withholds its fix on the code the earlier fixes produce leaves it reported.
 
 Why: The user applies Fix All expecting one step that leaves nothing behind. Requiring the same result as the single fixes makes the outcome independent of the order in which the diagnostics are fixed. A fix that its guard withholds is not offered on the starting code, so it is not among the fixes the user asked to apply; running fixes until every guard releases would apply a fix nobody was offered.
 
@@ -147,6 +147,48 @@ public class C
 ```
 
 Example — a fix that a guard releases only after another fix has run, for RH7103: the example "another run-time change" under SHARED-FIX-003. On its first block, only `_a` has a fix; the guard of SHARED-FIX-003 withholds the fix for `_b`, because moving `_b` in front of `_a` would change its initial value. One Fix All application gives its second block, which is the result of the one single fix offered. In that result, `_b` is still reported and is offered its fix.
+
+Example — nested diagnostics, for RH3004: the fix of the outer anonymous method moves the inner one with its block, and the same Fix All application then rewrites the inner one where it now stands:
+
+```csharp
+using System;
+
+class C
+{
+    void M()
+    {
+        Action<int> a = {|RH3004:delegate|} (int x)
+        {
+            Action<int> b = {|RH3004:delegate|} (int y)
+            {
+                Console.WriteLine(y);
+            };
+            b(x);
+        };
+    }
+}
+```
+
+```csharp
+using System;
+
+class C
+{
+    void M()
+    {
+        Action<int> a = (int x) =>
+                        {
+                            Action<int> b = (int y) =>
+                                            {
+                                                Console.WriteLine(y);
+                                            };
+                            b(x);
+                        };
+    }
+}
+```
+
+Example — a fix that a guard withholds only after another fix has run: the RH3105 Fix All example of a fix that would parse as a generic name. Each of the four qualifiers can be removed alone; once `this.A` and `this.B` are removed, removing the qualifier of `this.C2` would write the call of a generic method, so that diagnostic stays reported.
 
 ### SHARED-FIX-003 — A fix that could break the code is withheld
 

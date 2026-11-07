@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Threading;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -44,8 +46,10 @@ public abstract class EmptyParenthesesAnalyzerBase<TNode> : DiagnosticAnalyzerBa
     /// Determine whether the specified node contains unnecessary empty parentheses
     /// </summary>
     /// <param name="node">Node</param>
+    /// <param name="semanticModel">Semantic model</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     /// <returns><see langword="true"/> if the node violates the rule</returns>
-    protected abstract bool HasUnnecessaryParentheses(TNode node);
+    protected abstract bool HasUnnecessaryParentheses(TNode node, SemanticModel semanticModel, CancellationToken cancellationToken);
 
     /// <summary>
     /// Get the diagnostic location
@@ -65,7 +69,7 @@ public abstract class EmptyParenthesesAnalyzerBase<TNode> : DiagnosticAnalyzerBa
             return;
         }
 
-        if (HasUnnecessaryParentheses(node) == false)
+        if (HasUnnecessaryParentheses(node, context.SemanticModel, context.CancellationToken) == false)
         {
             return;
         }

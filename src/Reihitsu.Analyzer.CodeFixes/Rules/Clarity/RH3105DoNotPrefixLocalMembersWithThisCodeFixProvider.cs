@@ -7,8 +7,11 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Clarity;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
 
@@ -50,9 +53,14 @@ public class RH3105DoNotPrefixLocalMembersWithThisCodeFixProvider : CodeFixProvi
     public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH3105DoNotPrefixLocalMembersWithThisAnalyzer.DiagnosticId];
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// The fixes of a document are applied in document order, each decided on the code the fixes in front of it
+    /// produced, so that two fixes that are safe alone cannot together write the code the guard withholds
+    /// (SHARED-FIX-002)
+    /// </remarks>
     public sealed override FixAllProvider GetFixAllProvider()
     {
-        return WellKnownFixAllProviders.BatchFixer;
+        return DocumentOrderFixAllProvider.Create(new RH3105DoNotPrefixLocalMembersWithThisAnalyzer());
     }
 
     /// <inheritdoc/>
@@ -66,7 +74,11 @@ public class RH3105DoNotPrefixLocalMembersWithThisCodeFixProvider : CodeFixProvi
             {
                 var memberAccessExpression = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.AncestorsAndSelf().OfType<MemberAccessExpressionSyntax>().FirstOrDefault(node => node.Expression is ThisExpressionSyntax);
 
-                if (memberAccessExpression != null)
+                // A comment or a directive around the removed dot would be deleted, and the member name alone can
+                // read as part of a generic name or as the type of a cast
+                if (memberAccessExpression != null
+                    && SyntaxNodeUtilities.SpanContainsCommentOrDirective(memberAccessExpression, TextSpan.FromBounds(memberAccessExpression.Expression.Span.End, memberAccessExpression.Name.SpanStart)) == false
+                    && RewriteParseUtilities.ParsesAsWritten(root, root.ReplaceNode(memberAccessExpression, memberAccessExpression.Name.WithTriviaFrom(memberAccessExpression)), context.CancellationToken))
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3105Title,
                                                               token => ApplyCodeFixAsync(context.Document, memberAccessExpression, token),
