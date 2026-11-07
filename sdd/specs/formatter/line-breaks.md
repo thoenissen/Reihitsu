@@ -2093,11 +2093,11 @@ This requirement applies to every `where` clause, whichever declaration owns it 
 
 The phase MUST first join the line breaks inside a clause that structure nothing: the colon MUST join the line of the clause's type parameter, and every line break inside one constraint — in a qualified or alias-qualified name, a type argument list (FMT-BREAK-014), `new()`, `class?`, or `allows ref struct` — MUST be joined.
 
-The clause MUST then be judged as these joins leave it. It is wrapped when a line break stands behind its colon, or when its constraints, from the first token of the first constraint to the last token of the last one, span more than one line — through a line break in front of or behind a comma between two constraints, or a line break inside one constraint that the joins leave. A wrapped clause MUST become one constraint per line: its first constraint MUST move onto the line of the colon, every later constraint MUST start a line that no other constraint of the clause shares, and every comma between two constraints MUST stand at the end of the line of the constraint in front of it. In a clause that is not wrapped, this requirement changes nothing beyond the joins of the first step.
+The clause MUST then be judged as these joins leave it. It is wrapped when a line break stands behind its colon, when its colon starts a line because a comment, a directive, or disabled text keeps it off the type parameter's line, or when its constraints, from the first token of the first constraint to the last token of the last one, span more than one line — through a line break in front of or behind a comma between two constraints, or a line break inside one constraint that the joins leave. A wrapped clause MUST become one constraint per line: its first constraint MUST move onto the line of the colon, every later constraint MUST start a line that no other constraint of the clause shares, and every comma between two constraints MUST stand at the end of the line of the constraint in front of it. In a clause that is not wrapped, this requirement changes nothing beyond the joins of the first step.
 
-A join MUST NOT cross a comment, a directive, or disabled text (FMT-BREAK-001). Where one stands in a gap, the line break stays: a colon kept off the type parameter's line starts its own line, a first constraint kept off the colon's line starts its own line, a comma kept off the previous line stays at the start of the line of the constraint behind it, and a line break inside a constraint that one keeps wraps the clause. The phase keeps the blank lines of every gap it does not join (FMT-BREAK-030).
+A join MUST NOT cross a comment, a directive, or disabled text (FMT-BREAK-001). Where one stands in a gap, the line break stays: a colon kept off the type parameter's line starts its own line and wraps the clause, a first constraint kept off the colon's line starts its own line, a comma kept off the previous line stays at the start of the line of the constraint behind it, and a line break inside a constraint that one keeps wraps the clause. The phase keeps the blank lines of every gap it does not join (FMT-BREAK-030).
 
-Why: A partly wrapped clause hides constraints at the end of a line, as a partly wrapped list hides elements (FMT-BREAK-012). With the first constraint on the colon's line and the commas at the end of the line, as in a parameter list (FMT-BREAK-011), the later constraints have a constraint to align under (FMT-INDENT-032). A wrap between the type parameter and the colon, or inside one constraint, splits one part of the clause over two lines without structuring anything, as FMT-BREAK-015 reasons for wraps inside a list element, and the clause is judged after those joins as a list is. A constraint that a comment or a directive keeps over several lines breaks the clause's one-line shape as a multi-line element breaks a list's (FMT-BREAK-013). RH5110 reports only the position of the `where` keyword, so this layout is a formatter-only decision.
+Why: A partly wrapped clause hides constraints at the end of a line, as a partly wrapped list hides elements (FMT-BREAK-012). With the first constraint on the colon's line and the commas at the end of the line, as in a parameter list (FMT-BREAK-011), the later constraints have a constraint to align under (FMT-INDENT-032). A wrap between the type parameter and the colon, or inside one constraint, splits one part of the clause over two lines without structuring anything, as FMT-BREAK-015 reasons for wraps inside a list element, and the clause is judged after those joins as a list is. A constraint that a comment or a directive keeps over several lines breaks the clause's one-line shape as a multi-line element breaks a list's (FMT-BREAK-013). A colon that one keeps on its own line already takes the clause off the line of its `where` keyword, so its constraints follow the one-per-line layout of every other wrapped clause instead of a shape of their own. RH5110 reports only the position of the `where` keyword, so this layout is a formatter-only decision.
 
 Example — a clause wrapped between constraints, behind its colon, or in front of a comma becomes one constraint per line; a clause on one line stays:
 
@@ -2249,6 +2249,42 @@ class C
                   IDictionary<int, // c
                               string>,
                   new()
+    {
+    }
+}
+```
+
+Example — a colon that a comment keeps on its own line wraps its clause, also when its constraints are written on one line; a clause whose colon is joined is judged as usual:
+
+```csharp
+class C
+{
+    void M<T>()
+        where T // c
+            : class, new()
+    {
+    }
+
+    void N<T>()
+        where T
+            : class, new()
+    {
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M<T>()
+        where T // c
+            : class,
+              new()
+    {
+    }
+
+    void N<T>()
+        where T : class, new()
     {
     }
 }
