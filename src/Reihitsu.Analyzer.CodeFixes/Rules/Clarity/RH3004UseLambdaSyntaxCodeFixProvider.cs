@@ -468,22 +468,66 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Determines whether the block, from its opening through its closing brace, holds a string literal or interpolated
-    /// string of any kind, or a delimited comment, that starts on one line and ends on a later one. Only a block the fix
-    /// keeps as a block body is checked: the fix moves its lines, and a line inside such a string or comment can be code
-    /// or a directive in another build, while an expression body is laid out by the formatter
+    /// Determines whether the anonymous method, from its first token through the block's closing brace, its parameter
+    /// list included, holds a string literal or interpolated string of any kind, or a delimited comment, that starts on
+    /// one line and ends on a later one and withholds the fix. On both paths, such a string or comment withholds the fix
+    /// when a later line of it starts with <c>#</c> behind lexer whitespace: that line can be a directive in another
+    /// build, where every edit the fix makes behind it can change a string's value. Where the fix keeps the block as a
+    /// block body, every such string or comment withholds the fix, because the fix moves the block's lines and no reading
+    /// of the text alone tells which of them are safe to move in every build
     /// </summary>
-    /// <param name="block">Block of the anonymous method</param>
+    /// <param name="anonymousMethodExpression">Anonymous method expression</param>
     /// <param name="text">Text of the document</param>
-    /// <returns><see langword="true"/> if the block holds a string or a delimited comment that spans lines</returns>
-    private static bool ContainsStringOrCommentSpanningLines(BlockSyntax block, SourceText text)
+    /// <param name="keepsBlockBody">Whether the fix keeps the block as the lambda's block body</param>
+    /// <returns><see langword="true"/> if a string or a delimited comment that spans lines withholds the fix</returns>
+    private static bool ContainsStringOrCommentSpanningLines(AnonymousMethodExpressionSyntax anonymousMethodExpression, SourceText text, bool keepsBlockBody)
     {
-        return block.DescendantNodes()
-                    .Where(IsString)
-                    .Any(stringExpression => SpansLines(text, stringExpression.Span))
-               || block.DescendantTrivia()
-                       .Where(trivia => trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
-                       .Any(trivia => block.Span.Contains(trivia.Span) && SpansLines(text, trivia.Span));
+        var span = anonymousMethodExpression.Span;
+        var syntaxTree = anonymousMethodExpression.SyntaxTree;
+
+        return anonymousMethodExpression.DescendantNodes()
+                                        .Where(IsString)
+                                        .Select(stringExpression => stringExpression.Span)
+                                        .Concat(anonymousMethodExpression.DescendantTrivia()
+                                                                         .Where(trivia => (trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+                                                                                          && span.Contains(trivia.Span))
+                                                                         .Select(trivia => trivia.Span))
+                                        .Any(carrierSpan => SyntaxNodeUtilities.IsSingleLineSpan(syntaxTree, carrierSpan) == false
+                                                            && (keepsBlockBody || ContainsLineStartingWithHash(text, carrierSpan)));
+    }
+
+    /// <summary>
+    /// Determines whether a later line of a span that starts on one line and ends on a later one has <c>#</c> as its first
+    /// character inside the span that is not whitespace as the C# lexer counts it
+    /// </summary>
+    /// <param name="text">Text of the document</param>
+    /// <param name="span">Span that starts on one line and ends on a later one</param>
+    /// <returns><see langword="true"/> if a later line of the span starts with <c>#</c></returns>
+    private static bool ContainsLineStartingWithHash(SourceText text, TextSpan span)
+    {
+        var firstLineNumber = text.Lines.GetLineFromPosition(span.Start).LineNumber;
+        var lastLineNumber = text.Lines.GetLineFromPosition(span.End).LineNumber;
+
+        for (var lineNumber = firstLineNumber + 1; lineNumber <= lastLineNumber; lineNumber++)
+        {
+            var line = text.Lines[lineNumber];
+            var position = line.Start;
+
+            while (position < line.End
+                   && SyntaxFacts.IsWhitespace(text[position]))
+            {
+                position++;
+            }
+
+            if (position < span.End
+                && position < line.End
+                && text[position] == '#')
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -497,17 +541,6 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
         return node is InterpolatedStringExpressionSyntax
                || node.IsKind(SyntaxKind.StringLiteralExpression)
                || node.IsKind(SyntaxKind.Utf8StringLiteralExpression);
-    }
-
-    /// <summary>
-    /// Determines whether a span starts on one line and ends on a later one
-    /// </summary>
-    /// <param name="text">Text of the document</param>
-    /// <param name="span">Span</param>
-    /// <returns><see langword="true"/> if the span spans lines</returns>
-    private static bool SpansLines(SourceText text, TextSpan span)
-    {
-        return text.Lines.GetLineFromPosition(span.Start).LineNumber != text.Lines.GetLineFromPosition(span.End).LineNumber;
     }
 
     /// <summary>
@@ -663,8 +696,7 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
                     && ContainsDiscardedTrivia(anonymousMethodExpression) == false
                     && IsOperandOfCastOrBinaryOperator(anonymousMethodExpression) == false
                     && ContainsDirectiveOrDisabledText(anonymousMethodExpression) == false
-                    && (GetExpressionBody(anonymousMethodExpression) != null
-                        || ContainsStringOrCommentSpanningLines(anonymousMethodExpression.Block, text) == false))
+                    && ContainsStringOrCommentSpanningLines(anonymousMethodExpression, text, GetExpressionBody(anonymousMethodExpression) == null) == false)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3004Title,
                                                               token => ApplyCodeFixAsync(context.Document, anonymousMethodExpression, token),
