@@ -470,7 +470,7 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
     /// <summary>
     /// Determines whether the anonymous method, from its first token through the block's closing brace, its parameter
     /// list included, holds a string literal or interpolated string of any kind, or a delimited comment, that starts on
-    /// one line and ends on a later one and withholds the fix. On both paths, such a string or comment withholds the fix
+    /// one line and ends on a later one and so withholds the fix. On both paths, such a string or comment withholds the fix
     /// when a later line of it starts with <c>#</c> behind lexer whitespace: that line can be a directive in another
     /// build, where every edit the fix makes behind it can change a string's value. Where the fix keeps the block as a
     /// block body, every such string or comment withholds the fix, because the fix moves the block's lines and no reading
@@ -479,8 +479,8 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
     /// <param name="anonymousMethodExpression">Anonymous method expression</param>
     /// <param name="text">Text of the document</param>
     /// <param name="keepsBlockBody">Whether the fix keeps the block as the lambda's block body</param>
-    /// <returns><see langword="true"/> if a string or a delimited comment that spans lines withholds the fix</returns>
-    private static bool ContainsStringOrCommentSpanningLines(AnonymousMethodExpressionSyntax anonymousMethodExpression, SourceText text, bool keepsBlockBody)
+    /// <returns><see langword="true"/> if a string or a delimited comment that spans lines withholds the fix, <see langword="false"/> otherwise</returns>
+    private static bool WithholdsFixForSpanningStringOrComment(AnonymousMethodExpressionSyntax anonymousMethodExpression, SourceText text, bool keepsBlockBody)
     {
         var span = anonymousMethodExpression.Span;
         var syntaxTree = anonymousMethodExpression.SyntaxTree;
@@ -696,7 +696,7 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
                     && ContainsDiscardedTrivia(anonymousMethodExpression) == false
                     && IsOperandOfCastOrBinaryOperator(anonymousMethodExpression) == false
                     && ContainsDirectiveOrDisabledText(anonymousMethodExpression) == false
-                    && ContainsStringOrCommentSpanningLines(anonymousMethodExpression, text, GetExpressionBody(anonymousMethodExpression) == null) == false)
+                    && WithholdsFixForSpanningStringOrComment(anonymousMethodExpression, text, GetExpressionBody(anonymousMethodExpression) == null) == false)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3004Title,
                                                               token => ApplyCodeFixAsync(context.Document, anonymousMethodExpression, token),
