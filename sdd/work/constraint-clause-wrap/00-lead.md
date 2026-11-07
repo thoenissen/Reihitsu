@@ -79,5 +79,6 @@ From `07-spec-author.md`:
 - 13 spec author done (97d59bf): FMT-BREAK-037 line-start wording; examples M,N,O,P (unchanged) and S (wrapped); entry 16.
 - 14 test implementer done (7b1c727): 6 tests, 5 failing as expected.
 - 15 implementer done (a5e23a1): #1 and #2 repaired; all tests pass.
-- Next: cleaner (16) → spec checker (17) → auditor on repair only (18, audited base 0260784) → validator.
+- 16 cleaner clean (eb509fe); 17 spec checker consistent (1a75651).
+- Next: auditor on repair only (18; previous audit at 0260784) → validator.
 - Worklist round 1: spec author (13, done) — FMT-BREAK-037 wording to line-start facts per decision 8, outputs of (a)–(d), tuple-in-type-argument wording hint; test implementer (14) — one test per case (a)–(e); implementer (15) — #1 + #2 + correct `IsWrapped`/class remarks; then cleaner, spec checker, auditor (repair only), validator.
