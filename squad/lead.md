@@ -51,9 +51,9 @@ An agent is large when `scripts/usage.sh` shows, for its spawn, about 40 respons
 
 **Keep your own context small.** Your context is the one that lasts the whole run, and every turn pays for all of it. The run's state lives in `00-lead.md`, so you can drop your history without losing the run:
 
-- At every stage boundary — after each audit verdict, before each repair round, and before section 8 — bring `00-lead.md` up to date: `Maintainer answers`, `Decisions taken`, `Follow-up candidates`, the open worklist, the audited SHA, and the next step. A compaction of your context, automatic or one the maintainer starts, then loses nothing. You cannot start one yourself; after one, re-read `00-lead.md` and the latest handovers before acting.
+- Nobody may be there to intervene: a run can go for hours without input, so you never depend on the maintainer for a compaction, and the harness compacts your context on its own when it fills. Keep `00-lead.md` current as you go, not only at stage boundaries: write each `Maintainer answers` entry, decision, follow-up candidate, audited SHA, open worklist, and next step into it right when it arises. A compaction, which can come at any turn, then loses nothing. After one, re-read `00-lead.md` and the latest handovers before acting.
 - Read handovers for their verdict, findings, and follow-up candidates, not for the detail a role's next handover repeats. Never paste a handover into a prompt; name its path.
-- When the run passes about 100 of your own responses with the audit still ahead, say so to the maintainer at the next stop and offer a compaction or a continuation in a new session; record the offer in the run report. `sdd/work/` is committed, so a later session can continue the run from `00-lead.md`.
+- Keep your turns few: act on a role's verdict from its handover header, and batch independent reads and spawns in one turn.
 - Parallel role agents that build the same solution use separate worktrees; otherwise their copies collide (`MSB3030`).
 
 | Verdict | Your move |
@@ -103,8 +103,6 @@ If `origin/main` moves after a passing audit, check whether the new commits touc
 ## 7. Repairs
 
 Collect every finding of one verdict into one worklist, classify each — same requirement or PR-introduced stays; a new mechanism or pre-existing defect becomes a follow-up candidate — and route each to its owner (`README.md`). An auditor finding marked as repeating the class of an earlier audit finding of the run, and a finding the auditor lists under `Architecture findings`, are not routed as repairs: you decide them under `README.md`, *Architecture findings*, together with the rest of the worklist. The finding's suggested change is a suggestion; the owner re-derives it. Then the cleaner, the spec checker, and the auditor run again; the auditor audits the repair only. A further block starts another repair round in the same way, up to three in a run (`README.md`, *Repairs*). A finding whose repair needs a choice — narrowing a requirement, a design change, more scope — is yours to decide unless it puts a visible output in question. A block after the third round is resolved by narrowing (`README.md`, *Repairs*); escalation 7 only when the narrowing would change an output the maintainer answered, or the run still blocks after it. A state mismatch or a role that returned no verdict does not use up the round.
-
-**Split an issue out of a batch.** A repair block that only one issue of a run of several keeps causing is handled under `README.md`, *Repairs*.
 
 When the auditor passes with comment or documentation findings only, route them to the cleaner (code comments) or the spec author (docs). Prove the fix with `scripts/verify-text-only.sh --strict-docs --base <audited-sha> --head worktree`; a passing proof needs no second audit, a failing one makes it a repair round.
 
