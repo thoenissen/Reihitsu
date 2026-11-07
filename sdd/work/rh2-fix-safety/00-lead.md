@@ -59,6 +59,9 @@ Maintainer: "keep it simple".
 
 ## Pending output questions (batch before auditor)
 
+- Q5: RH2005 `static⏎        public int Counter;` (indentation only) — A keep the line in place (`private static⏎        int Counter;`, rec.), B formatter layout (column 4).
+- Q6: comment/directive/`#if` line in the replaced gap (RH2005 in front of non-first `public`; RH2001 between type and name) — A withhold the fix (rec.), B carry in place. ASKED; waiting.
+
 - Q4: RH2001 property whose type is a type parameter not constrained to a reference type — ANSWERED A.
 
 ## Earlier output questions (batch before test implementer)
@@ -83,4 +86,5 @@ Maintainer: "keep it simple".
 - Spec checker 09 (d885383): one finding → Q4 asked.
 - Q4 answered A; nothing to change.
 - Audited SHA: 42db22c37641c0f41e0d6ac2617869e0b61c6541 — BLOCKED (10-auditor.md, bbc40f7): findings 1, 2a, 2b, 3, 4a, 4b.
+- Test implementer 11 done (2d72935): 22 failing; tests accept several outputs for findings 1/2b → Q5, Q6 asked; on answer, test implementer narrows to one accepted text.
 - Repair round 1 (of 3) worklist: test implementer (11) adds regressions for 1, 2a, 2b, 4a, 4b; implementer (12) repairs 1–4 with decisions 16–18; cleaner, spec checker, auditor (repair only), validator.
