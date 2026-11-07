@@ -112,6 +112,6 @@ Maintainer: "keep it simple".
 - Implementer 14 done (2f1fb5a, d09d88f): all tests pass (analyzer 7153, core 649, architecture 115).
 - Cleaner 15 clean (f4be099); spec checker 16 consistent (38ad14b).
 - Audit 17 of a79eb22: BLOCKED — finding 5 (architecture, decision 25) and 6 (repair, decision 26). Repair round 2 (of 3).
-- Q7, Q8 answered 7A, 8A. Spec author 18 done (9c2c5dc). Test implementer 19 done (881b226, 39 reds). Implementer 20 done (048e957; analyzer 7202, core 649, architecture 115). Next: cleaner (21), spec checker (22), auditor (23), validator (24).
+- Q7, Q8 answered 7A, 8A. Spec author 18 done (9c2c5dc). Test implementer 19 done (881b226, 39 reds). Implementer 20 done (048e957; analyzer 7202, core 649, architecture 115). Cleaner 21 clean (e4dcd16); spec checker 22 consistent (6cd0c63). Next: auditor (23), validator (24).
 - (old line) Next (was: test implementer 13) narrows tests to the answered outputs; implementer (14) repairs findings 1–4 with decisions 16–18.
 - Repair round 1 (of 3) worklist: test implementer (11) adds regressions for 1, 2a, 2b, 4a, 4b; implementer (12) repairs 1–4 with decisions 16–18; cleaner, spec checker, auditor (repair only), validator.
