@@ -37,9 +37,9 @@
 
 ## Worklist / next step
 
-- Skeptic done (01-skeptic.md, e6b9fbb): reproduced on main for the code fix only; formatter correct; caller reaches it.
-- Spec author done (02-spec-author.md, 060e546).
-- Test implementer done (03-test-implementer.md, 5f2ff33): reproduced, 29 red.
-- Implementer done (04-implementer.md, da441e9 production): shared `RawStringLineUtilities.MovesLine`; tests green.
-- Cleaner clean (05, d328e75). Spec checker consistent, no findings (06, 744f053). Auditor (07, 3347630): findings #1, #2 + architecture finding.
-- Repair round 1 (of 3): test implementer done (08, 2ec5c72; 12 red) → implementer done (09, 06d1db8) → test implementer amendment (10, 2f822ff) → cleaner → (tests for findings #1 and #2) → implementer (decisions 6, 7) → cleaner → spec checker → auditor (repair only) → validator. (was: spec author (RH5202-003 clarification per answer, Uses FMT-RAW-009) → test implementer.
+- Skeptic (01, e6b9fbb): reproduced on main for the code fix only; caller reaches it.
+- Spec author (02, 060e546). Test implementer (03, 5f2ff33): 29 red. Implementer (04, da441e9). Cleaner (05). Spec checker (06): no findings.
+- Audit 1 (07, 3347630; audited head 685ab42, base b4343557): findings #1, #2 + architecture finding → decisions 6–8.
+- Repair round 1: tests (08, 2ec5c72), implementer (09, 06d1db8), tests amendment (10, 2f822ff; decision 9), cleaner (11, 371a1af), spec checker (12, 4cf325b): 2 findings.
+- Repair round 2 (of 3): spec author (13, c603e8a), decision 10 (reverses 7), spec amendment (14, 3c67247), decision 11.
+- Next: test implementer (12 finding 2 + 14 tag list + decision 10 expected outputs) → implementer (decision 10) → cleaner → spec checker → auditor (repairs since 685ab42) → validator → publish.
