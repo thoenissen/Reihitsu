@@ -28,6 +28,8 @@ Batch 1 (before test implementer), all recommendations chosen:
 | 2 | Skeptic | Does the `where T⏎ : …` gap (01 follow-up 1, skeptic S2) join the run? | Yes, as output question S2 (options A/B only) | The clause's constraints would still sit left of `where` after the change — the issue's own symptom; same component | Its output is asked as S2 | — |
 | 3 | Skeptic | Skeptic's spec amendments 1–5 (directives/disabled text named, "left as it is" vs. FMT-BREAK-014 join, judged before/after joins per S1, change-doc multi-line claim, extension blocks covered) | Accept all; route to spec author with the maintainer's answers | Wording precision; no output beyond the asked questions | Each is decided by an asked question or changes no output | — |
 | 4 | Skeptic | Extension blocks: `where` not on its own line (FMT-BREAK-023 / RH5110 skip them) | Follow-up, not this run; FMT-BREAK-037/FMT-INDENT-032 still apply to extension-block clauses (amendment 5) | Placement of `where` itself is FMT-BREAK-023, outside #1631 | Not changed by this run | — |
+| 5 | Spec | RH5110-004 dropped after Q9; ledger line removed rather than retired | Accept | The ID was only ever issued on this branch; SHARED-FIX-003 alone governs | Q9 answered the visible output | 6ebc723 |
+| 6 | Spec | Accept change doc `sdd/changes/2026-11/constraint-clause-wrap.md` | Accepted | Skeptic ran; amendments and Q1–Q9 carried in | Its visible output changes were all asked | 6ebc723 |
 | 1 | Claim | Branch name `claude/issue-1631-<slug>` per `lead.md` vs. the session's designated branch | Use `claude/dreamy-curie-x5c135` | The session environment permits pushing only to its designated branch | Branch names are internal | claim commit |
 
 ## Follow-up candidates
@@ -51,4 +53,5 @@ From `02-skeptic.md`:
 - Batch 1 answered (all A).
 - 03 spec author done (c716d42): change doc Accepted; FMT-BREAK-037, FMT-INDENT-032 rewritten; RH5110-004 added (fix withheld when a comment/directive stands in a gap FMT-BREAK-037 joins).
 - RH5110-004 reading of Q8 is ambiguous (Q3A/Q4A/Q7A give safe fallback layouts for exactly those inputs, so the fix could be offered with them). Q9 answered A.
-- Next: spec author (04) narrows RH5110-004 per Q9; then test implementer.
+- 04 spec author done (6ebc723): RH5110-004 dropped; RH5110-003 changed (fix offered, fallback layout).
+- Next: test implementer (05).
