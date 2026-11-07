@@ -56,6 +56,7 @@ From `02-skeptic.md`:
 From `07-spec-author.md`:
 9. `where⏎T : …` puts `T` at the block column; same on `main`, no requirement owns the gap (12-auditor hint).
 10. `ChainLineBreakRewriter.CloseGap`/`GetPendingToken` holds a third copy of the batch join loop (pre-existing on `main`); move it onto `LineBreakTriviaUtilities.JoinGaps` (15-implementer). Internal refactor.
+11. `TokenGapUtilities.HasLineBreakBetween` summary claims to be "the one statement" of a gap's line break and that the line-break phase never breaks behind `*/`; false on `main` already (switch sections, parameter lists) and now for constraint clauses (18-auditor hint). Doc-comment fix.
 8. New-rule candidate (P11): spacing of the constraint colon (`where T:class`), which the formatter rewrites after Q10 but no analyzer reports (RH6021 names only base-list and constructor-initializer colons).
 
 ## Open worklist / next step
@@ -80,5 +81,6 @@ From `07-spec-author.md`:
 - 14 test implementer done (7b1c727): 6 tests, 5 failing as expected.
 - 15 implementer done (a5e23a1): #1 and #2 repaired; all tests pass.
 - 16 cleaner clean (eb509fe); 17 spec checker consistent (1a75651).
-- Next: auditor on repair only (18; previous audit at 0260784) → validator.
+- 18 auditor (c61ceee) on ba4e49b: #1, #2 closed; new #3 medium (wrapped variants of O, M, N untested). Repair round 2 of 3.
+- Worklist round 2: test implementer (19) — tests for wrapped O (`class /* a⏎ b */, new(),⏎ IDisposable`), wrapped M, wrapped N; cleaner (20) — also wrap the ~180-char summary line in `GenericConstraintLineBreakRewriter.JoinGap`; spec checker (21); auditor on repair (22); validator.
 - Worklist round 1: spec author (13, done) — FMT-BREAK-037 wording to line-start facts per decision 8, outputs of (a)–(d), tuple-in-type-argument wording hint; test implementer (14) — one test per case (a)–(e); implementer (15) — #1 + #2 + correct `IsWrapped`/class remarks; then cleaner, spec checker, auditor (repair only), validator.
