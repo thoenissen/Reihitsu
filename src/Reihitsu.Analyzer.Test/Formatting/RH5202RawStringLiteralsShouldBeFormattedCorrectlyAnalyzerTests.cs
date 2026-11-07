@@ -3429,6 +3429,114 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
         await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the fix is offered when it shifts the lines to the left by more columns than the closing whitespace of an interpolated raw string literal nested in one of its holes is wide, and a line of the nested literal that starts with more whitespace than its closing line starts in one of the nested literal's own holes rather than in its text, and that the nested literal is still reported after the outer literal's fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-004")]
+    [Requirement("RH5202-006")]
+    public async Task VerifyFixShiftsLeftWhenWiderLineOfInterpolatedRawStringNestedInHoleStartsInItsOwnHole()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M(int n)
+                                    {
+                                        var a = {|#0:$"""
+                                                         Hello {{|#1:$"""
+                                    {n
+                                              + 1}
+                                    """|}}
+                                                         """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M(int n)
+                                      {
+                                          var a = $"""
+                                                   Hello {{|#0:$"""
+                                  {n
+                                        + 1}
+                                  """|}}
+                                                   """;
+                                      }
+                                  }
+                                  """";
+
+        var source = testData;
+        var result = resultData;
+
+        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+
+        TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+        TestFileMarkupParser.GetSpans(result, out var plainResult, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+
+        var fixedSource = await ApplyCodeFixAsync(plainSource);
+
+        Assert.AreEqual(plainResult, fixedSource);
+
+        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered when it shifts the lines to the left by more columns than the closing whitespace of an interpolated raw string literal nested in one of its holes is wide, and a line of the nested literal that starts with more whitespace than its closing line starts in one of the nested literal's own holes rather than in its text, and that the nested literal is still reported after the outer literal's fix, under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-004")]
+    [Requirement("RH5202-006")]
+    public async Task VerifyFixShiftsLeftWhenWiderLineOfInterpolatedRawStringNestedInHoleStartsInItsOwnHoleWithCrLf()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M(int n)
+                                    {
+                                        var a = {|#0:$"""
+                                                         Hello {{|#1:$"""
+                                    {n
+                                              + 1}
+                                    """|}}
+                                                         """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M(int n)
+                                      {
+                                          var a = $"""
+                                                   Hello {{|#0:$"""
+                                  {n
+                                        + 1}
+                                  """|}}
+                                                   """;
+                                      }
+                                  }
+                                  """";
+
+        var source = NormalizeToCarriageReturnLineFeed(testData);
+        var result = NormalizeToCarriageReturnLineFeed(resultData);
+
+        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+
+        TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+        TestFileMarkupParser.GetSpans(result, out var plainResult, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+
+        var fixedSource = await ApplyCodeFixAsync(plainSource);
+
+        Assert.AreEqual(plainResult, fixedSource);
+
+        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
     #endregion // Tests
 
     #region Methods
