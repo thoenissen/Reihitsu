@@ -16,7 +16,7 @@
 
 ## Maintainer answers
 
-(none yet)
+- Output question 1 (RH5023, blank lines inside an interpolation hole's expression): **B** — not reported in this run, as today; the case becomes a follow-up issue carrying the question. RH5023-002 stays unchanged.
 
 ## Decisions taken
 
@@ -38,10 +38,10 @@
 - RH3208 fix on `int L() => 1; /* a⏎b */ L();` leaves `L();` at column 0 with trailing whitespace (02-skeptic). RH5030's change must not alter RH3208.
 - Extend #1140: RH5412 and RH5417 fixes insert blank lines around region lines (02-skeptic).
 - Extend #1140/#1144: align SHARED-BRACE-002 to SHARED-FIX-007 (#1209 Q2–Q4), dropped from this run by decision 8 (01-spec-author, 02-skeptic).
-- RH5023 hole case, if the maintainer answers B (output question 1).
+- RH5023 hole case: blank lines inside an interpolation hole's expression are not reported (SHARED-DIAG-003 vs RH5023-002); shared helper `GetStringLineIndices` also used by RH5204 (#951), RH5602, RH6004, RH8301–RH8303. Carry output question 1 (maintainer answered B: defer). Source: #1075 comment, 01-spec-author, 02-skeptic.
 
 ## Worklist / next step
 
 - Done: spec author (01, 461faa4). Open output questions from it: Q1 RH5023 blank lines inside an interpolation hole; Q2-Q6 statement-brace outputs (Q2 is the issue's own decision).
 - Done: skeptic (02, 1a16550).
-- Waiting: maintainer answer to output question 1 (RH5023 hole). Then: spec author amendment (decisions 4, 5, 6, 8, 9, Q1 answer) → test implementer.
+- Maintainer answered Q1: B. Next: spec author amendment (decisions 4, 5, 6, 8, 9, Q1 answer) → test implementer.
