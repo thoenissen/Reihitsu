@@ -55,3 +55,27 @@ scripts/test.sh --configuration Debug --project core --filter "FullyQualifiedNam
 ```
 
 Result on 9c326aa4: analyzer 7 failed / 146 passed; core 2 failed / 26 passed — exactly the tests marked "fails" above.
+
+## Amendment — spec aedc8b5f (`27-spec-author.md`)
+
+The coordinator asked me to cover the spec author's row 41 and row 40 examples. Expected values are copied verbatim from the spec examples in aedc8b5f. Results below are from the working tree on e8f8475c (aedc8b5f plus my first commit). No production code was touched.
+
+| Test | Requirement / failure class | Helper | Expected now |
+|---|---|---|---|
+| `RH3004UseLambdaSyntax.FixKeepsEveryLineThatStartsInsideAStringBegunOnAnEarlierLineInItsColumns` (spec example verbatim: `s` and `t`) | RH3004-006 | Verify | fails: `{name}` and `";` at 19, `name} done";` at 35; expected 0, 0, 16 |
+| `….FixKeepsALineInsideAHoleThatSpansLinesInItsColumns` (the `t` string alone) | RH3004-006 | Verify | fails: `name} done";` at 35; expected 16 |
+| `….FixMovesTheLineOnWhichAVerbatimStringStartsAndKeepsItsContinuationLine` (other side: `@"a` moves to 27, `b");` stays) | RH3004-006 | Verify | passes |
+| `….FixKeepsALineInsideAStringAfterASharedOpeningBraceLineAndDoesNotCountItForTheLeftmostLine` (spec example verbatim) | RH3004-006 | Verify | fails: `{name}";` at 31 and `Console.WriteLine(s);` at 43; expected 0 and 31 |
+| `….FixKeepsALineInsideAStringOfDisabledTextThatClosesBeforeTheEndingDirectiveInItsColumns` (spec `DEBUG` example, `DEBUG` undefined; other side of RH3004-008) | RH3004-006, RH3004-008 | Verify | passes |
+| `….FixKeepsALineInsideAStringOfAnActiveBranchInItsColumnsWithDebugAndCarriageReturnLineFeed` (same example, `DEBUG` defined, CRLF) | RH3004-006 | ApplyCodeFixAsync (CRLF, `DEBUG`) | fails: `{name}");` at 19; expected 0 |
+| `….FixWithheldForAStringThatDisabledTextLeavesOpen` (spec `#if A` / `#elif B` example, no symbols) | RH3004-008 | VerifyNoCodeFixIsOffered | fails: one code fix offered |
+| `….FixWithheldForAStringThatDisabledTextLeavesOpenWithTheFirstBranchActive` (same, `A` defined: the string is active and spans `#elif B`) | RH3004-008 | VerifyNoCodeFixIsOffered (symbol `A`) | fails: one code fix offered |
+| `RH3106UnnecessaryDelegateParenthesesShouldBeRemoved.AnonymousMethodsUnderVarInForInitializersOfTheSpecificationExampleAreNotReported` (spec example verbatim; one-line `{ }` bodies; the three shapes in one method) | RH3106-003 | Verify (analyzer) | fails: reported |
+
+RH3106-003's new example uses the same three inputs as my first-round tests. The only differences are the one-line `{ }` bodies and having all three in one method, so I added it as one more test verbatim and kept the per-shape tests.
+
+The spec's own-line example already contains the audit's (a) and (b) inputs; my first-round tests for them stay. My first-round shared-brace test (`{name}"; Console.WriteLine(s);` on one line) and the spec's shared-brace example (`Console.WriteLine(s);` on its own line) are different inputs, so both stay.
+
+`EveryRequirementOfAnEnforcedSpecIsCovered` now passes: `scripts/test.sh --configuration Debug --project architecture` gives 115 passed.
+
+Result: the analyzer filter above gives 14 failed and 148 passed. Seven of the failures are from the first round and seven are new in this amendment, all for the reasons above. The core filter is unchanged.

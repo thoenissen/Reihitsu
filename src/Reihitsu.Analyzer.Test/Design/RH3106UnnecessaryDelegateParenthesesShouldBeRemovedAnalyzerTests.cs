@@ -2469,6 +2469,36 @@ public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzerTests : 
     }
 
     /// <summary>
+    /// Verifies the specification example of anonymous methods under <c>var</c> in the initializers of
+    /// <see langword="for"/> statements, directly in a method body, in a lambda body, and in an implicitly typed array:
+    /// none is reported, although the condition and the incrementor of each statement use the local
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodsUnderVarInForInitializersOfTheSpecificationExampleAreNotReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        for (var a = delegate () { }; a != null; a()) { }
+                                        Action f = () =>
+                                        {
+                                            for (var b = delegate () { }; b != null; b()) { }
+                                        };
+                                        for (var arr = new[] { delegate () { } }; arr.Length > 0; arr[0]()) { }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
     /// Verifies an anonymous method under <c>var</c> in the initializer of a <see langword="for"/> statement is not
     /// reported where only the body of the statement uses the local
     /// </summary>

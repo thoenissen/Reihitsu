@@ -2432,6 +2432,364 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     }
 
     /// <summary>
+    /// Verifies the specification example of strings over several lines in a block on lines of its own: the lines that
+    /// start inside a string begun on an earlier line keep their columns, also where they start with the
+    /// <c>{</c> of a hole, with the closing quote, or inside a hole that spans lines, and every other line moves by
+    /// the shift
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixKeepsEveryLineThatStartsInsideAStringBegunOnAnEarlierLineInItsColumns()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<string> b = {|RH3004:delegate|} (string name)
+                                        {
+                                            var s = $@"Hello
+                                {name}
+                                ";
+                                            var t = $@"Hello {
+                                                name} done";
+                                            Console.WriteLine(s + t);
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<string> b = (string name) =>
+                                                            {
+                                                                var s = $@"Hello
+                                 {name}
+                                 ";
+                                                                var t = $@"Hello {
+                                                 name} done";
+                                                                Console.WriteLine(s + t);
+                                                            };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a line inside a hole that spans lines: the line keeps its columns
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixKeepsALineInsideAHoleThatSpansLinesInItsColumns()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<string> b = {|RH3004:delegate|} (string name)
+                                        {
+                                            var t = $@"Hello {
+                                                name} done";
+                                            Console.WriteLine(t);
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<string> b = (string name) =>
+                                                            {
+                                                                var t = $@"Hello {
+                                                 name} done";
+                                                                Console.WriteLine(t);
+                                                            };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of the other side: the line on which a verbatim string starts is not inside
+    /// the string and moves, also where the string is its first character, while the string's continuation line keeps
+    /// its columns
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixMovesTheLineOnWhichAVerbatimStringStartsAndKeepsItsContinuationLine()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action b = {|RH3004:delegate|} ()
+                                        {
+                                            Console.WriteLine(
+                                                @"a
+                                b");
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action b = () =>
+                                                    {
+                                                        Console.WriteLine(
+                                                            @"a
+                                 b");
+                                                    };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example behind a shared opening brace line: the line that starts inside the string
+    /// keeps its columns and does not count for the leftmost line, and the next statement moves into the statement
+    /// column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixKeepsALineInsideAStringAfterASharedOpeningBraceLineAndDoesNotCountItForTheLeftmostLine()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<string> c = {|RH3004:delegate|} (string name) { var s = $@"Hello
+                                {name}";
+                                            Console.WriteLine(s);
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<string> c = (string name) =>
+                                                            {
+                                                                var s = $@"Hello
+                                 {name}";
+                                                                Console.WriteLine(s);
+                                                            };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of disabled text whose string closes before the directive that ends it:
+    /// without <c>DEBUG</c>, the line that starts inside the string keeps its columns, and the fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    [Requirement("RH3004-008")]
+    public async Task FixKeepsALineInsideAStringOfDisabledTextThatClosesBeforeTheEndingDirectiveInItsColumns()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<string> b = {|RH3004:delegate|} (string name)
+                                        {
+                                            Console.WriteLine(name);
+                                #if DEBUG
+                                            Console.WriteLine($@"Hello
+                                {name}");
+                                #endif
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<string> b = (string name) =>
+                                                            {
+                                                                Console.WriteLine(name);
+                                 #if DEBUG
+                                                                Console.WriteLine($@"Hello
+                                 {name}");
+                                 #endif
+                                                            };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a string that closes before the directive ending its branch, with
+    /// <c>DEBUG</c> defined, in a document whose line breaks are CRLF: the line that starts inside the string keeps
+    /// its columns, as it does without <c>DEBUG</c>, and the line breaks stay CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixKeepsALineInsideAStringOfAnActiveBranchInItsColumnsWithDebugAndCarriageReturnLineFeed()
+    {
+        var testCode = NormalizeToCarriageReturnLineFeed("""
+                                                         using System;
+
+                                                         class C
+                                                         {
+                                                             void M()
+                                                             {
+                                                                 Action<string> b = delegate (string name)
+                                                                 {
+                                                                     Console.WriteLine(name);
+                                                         #if DEBUG
+                                                                     Console.WriteLine($@"Hello
+                                                         {name}");
+                                                         #endif
+                                                                 };
+                                                             }
+                                                         }
+                                                         """);
+
+        var expectedCode = NormalizeToCarriageReturnLineFeed("""
+                                                             using System;
+
+                                                             class C
+                                                             {
+                                                                 void M()
+                                                                 {
+                                                                     Action<string> b = (string name) =>
+                                                                                        {
+                                                                                            Console.WriteLine(name);
+                                                             #if DEBUG
+                                                                                            Console.WriteLine($@"Hello
+                                                             {name}");
+                                                             #endif
+                                                                                        };
+                                                                 }
+                                                             }
+                                                             """);
+
+        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode, "DEBUG"));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a verbatim string that starts in disabled text and is not closed before
+    /// the directive that ends that disabled text: the diagnostic is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForAStringThatDisabledTextLeavesOpen()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<string> b = {|RH3004:delegate|} (string name)
+                                        {
+                                            Console.WriteLine(name);
+                                #if A
+                                            Console.WriteLine(@"Hello
+                                #elif B
+                                            world");
+                                #endif
+                                        };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a verbatim string that the disabled text of the <c>#elif</c> branch would
+    /// leave open, with <c>A</c> defined so the string is active code and spans the directive: the diagnostic is
+    /// reported and no code fix is offered, as without the symbol
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForAStringThatDisabledTextLeavesOpenWithTheFirstBranchActive()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<string> b = {|RH3004:delegate|} (string name)
+                                        {
+                                            Console.WriteLine(name);
+                                #if A
+                                            Console.WriteLine(@"Hello
+                                #elif B
+                                            world");
+                                #endif
+                                        };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode, DocumentationMode.Parse, "A");
+    }
+
+    /// <summary>
     /// Verifies the specification example of a first statement on the line of the opening brace and later lines that
     /// start left of it: the later lines move together until the leftmost of them stands in the statement column, and
     /// keep their indentation relative to each other
