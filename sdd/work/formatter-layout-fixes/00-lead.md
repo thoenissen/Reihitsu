@@ -97,4 +97,5 @@ None in this run so far. The issues' comments carry triage decisions (summarized
 - Spec author 11 at faa36db (decision 18); spec checker 12 at a75e2a3: consistent.
 - Before auditor: main not ahead; build green.
 - Auditor 13 at cc81583: pass, text cleanup. Audited SHA: eeba52a (base 6ecc978).
-- Next: spec author (14) finding 1; cleaner (15) findings 2, 3; verify-text-only --strict-docs --base eeba52a; validator (16); publish.
+- Spec author 14 at 2b31f0d (decision 19); cleaner 15 at 9029e16 (decision 20). verify-text-only --strict-docs: FAIL (public-member XML docs in `RawStringLiteral.cs`; tokens identical) → repair round 2 of 3, per lead.md section 7.
+- Next: spec checker (16) on 2b31f0d/9029e16; auditor (17) on the repair only; validator (18); publish.
