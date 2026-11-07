@@ -327,6 +327,49 @@ public class RH7403OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzerTests :
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies the specification example of a <see langword="partial"/> event both of whose parts lie outside
+    /// a matching region: it is reported once, on its defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7403-001")]
+    [Requirement("SHARED-DIAG-004")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialEventIsReportedOnceOnItsDefiningPart()
+    {
+        const string testData = """
+                                using System;
+
+                                abstract class B
+                                {
+                                    public abstract event Action E;
+                                }
+
+                                partial class C : B
+                                {
+                                    #region Events
+
+                                    public override partial event Action {|#0:E|};
+
+                                    public override partial event Action E
+                                    {
+                                        add
+                                        {
+                                        }
+
+                                        remove
+                                        {
+                                        }
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7403OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzer.DiagnosticId, CreateMessage("B")));
+    }
+
     #endregion // Tests
 
     #region Methods

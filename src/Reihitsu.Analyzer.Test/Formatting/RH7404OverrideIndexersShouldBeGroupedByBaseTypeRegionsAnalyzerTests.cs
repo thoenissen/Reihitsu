@@ -321,6 +321,38 @@ public class RH7404OverrideIndexersShouldBeGroupedByBaseTypeRegionsAnalyzerTests
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies the specification example of a <see langword="partial"/> indexer both of whose parts lie
+    /// outside a matching region: it is reported once, on its defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7404-001")]
+    [Requirement("SHARED-DIAG-004")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialIndexerIsReportedOnceOnItsDefiningPart()
+    {
+        const string testData = """
+                                abstract class B
+                                {
+                                    public abstract int this[int index] { get; }
+                                }
+
+                                partial class C : B
+                                {
+                                    #region Indexers
+
+                                    public override partial int {|#0:this|}[int index] { get; }
+
+                                    public override partial int this[int index] => index;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7404OverrideIndexersShouldBeGroupedByBaseTypeRegionsAnalyzer.DiagnosticId, CreateMessage("B")));
+    }
+
     #endregion // Tests
 
     #region Methods

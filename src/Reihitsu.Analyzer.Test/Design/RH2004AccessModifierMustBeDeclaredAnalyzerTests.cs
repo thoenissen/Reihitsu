@@ -15,6 +15,83 @@ namespace Reihitsu.Analyzer.Test.Design;
 [TestClass]
 public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTestsBase<RH2004AccessModifierMustBeDeclaredAnalyzer, RH2004AccessModifierMustBeDeclaredCodeFixProvider>
 {
+    #region Constants
+
+    /// <summary>
+    /// Source of a method without a modifier behind an attribute list on its own line
+    /// </summary>
+    private const string AttributedMethodSource = """
+                                                  using System;
+
+                                                  public class C
+                                                  {
+                                                      [Obsolete]
+                                                      void {|#0:M|}()
+                                                      {
+                                                      }
+                                                  }
+                                                  """;
+
+    /// <summary>
+    /// Expected result of the fix applied to <see cref="AttributedMethodSource"/>
+    /// </summary>
+    private const string AttributedMethodFixedSource = """
+                                                       using System;
+
+                                                       public class C
+                                                       {
+                                                           [Obsolete]
+                                                           private void M()
+                                                           {
+                                                           }
+                                                       }
+                                                       """;
+
+    /// <summary>
+    /// Source of a type behind an attribute list on its own line, and of a member with a comment line and a directive
+    /// line between its attribute list and the declaration
+    /// </summary>
+    private const string AttributedTypeAndMemberSource = """
+                                                         using System;
+
+                                                         namespace N
+                                                         {
+                                                             [Serializable]
+                                                             class {|#0:D|}
+                                                             {
+                                                                 [Obsolete]
+                                                                 // note
+                                                         #pragma warning disable CS0612
+                                                                 static void {|#1:Run|}()
+                                                                 {
+                                                                 }
+                                                             }
+                                                         }
+                                                         """;
+
+    /// <summary>
+    /// Expected result of the fix applied to <see cref="AttributedTypeAndMemberSource"/>
+    /// </summary>
+    private const string AttributedTypeAndMemberFixedSource = """
+                                                              using System;
+
+                                                              namespace N
+                                                              {
+                                                                  [Serializable]
+                                                                  internal class D
+                                                                  {
+                                                                      [Obsolete]
+                                                                      // note
+                                                              #pragma warning disable CS0612
+                                                                      private static void Run()
+                                                                      {
+                                                                      }
+                                                                  }
+                                                              }
+                                                              """;
+
+    #endregion // Constants
+
     #region Tests
 
     /// <summary>
@@ -833,150 +910,6 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
     }
 
     /// <summary>
-    /// Characterizes explicit interface implementations of an operator and a conversion operator: both are reported, and
-    /// the fix adds <see langword="private"/>, which does not compile. This test pins today's behavior without stating
-    /// it as intended
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyExplicitInterfaceOperatorImplementationsAreReportedAndGetPrivate()
-    {
-        const string testData = """
-                                interface {|#0:IAdd|}<T>
-                                    where T : IAdd<T>
-                                {
-                                    static abstract T operator +(T a, T b);
-
-                                    static abstract explicit operator int(T value);
-                                }
-
-                                public struct N : IAdd<N>
-                                {
-                                    static N IAdd<N>.operator {|#1:+|}(N a, N b) => a;
-
-                                    static explicit IAdd<N>.{|#2:operator|} int(N value) => 0;
-                                }
-                                """;
-
-        await Verify(testData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 3));
-
-        var fixedSource = await ApplyCodeFixAsync("""
-                                                  public interface IAdd<T>
-                                                      where T : IAdd<T>
-                                                  {
-                                                      static abstract T operator +(T a, T b);
-                                                  }
-
-                                                  public struct N : IAdd<N>
-                                                  {
-                                                      static N IAdd<N>.operator +(N a, N b) => a;
-                                                  }
-                                                  """);
-
-        Assert.Contains("private static N IAdd<N>.operator +(N a, N b) => a;", fixedSource);
-    }
-
-    /// <summary>
-    /// Characterizes partial properties, indexers, events, and constructors: every part of a partial property, indexer,
-    /// and event is reported, and of a partial constructor only the implementing part. This test pins today's behavior;
-    /// the decided behavior is stated by SHARED-DIAG-004, which judges a partial member by its symbol and reports it at
-    /// most once, and its change belongs to an existing follow-up
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyPartialMemberPartsAreReported()
-    {
-        const string testData = """
-                                using System;
-
-                                public partial class P
-                                {
-                                    partial int {|#0:Prop|} { get; set; }
-
-                                    partial int {|#1:Prop|} { get => 1; set { } }
-
-                                    partial int {|#2:this|}[int index] { get; }
-
-                                    partial int {|#3:this|}[int index] => index;
-
-                                    partial event Action {|#4:Changed|};
-
-                                    partial event Action {|#5:Changed|}
-                                    {
-                                        add
-                                        {
-                                        }
-
-                                        remove
-                                        {
-                                        }
-                                    }
-
-                                    partial P(int x);
-
-                                    partial {|#6:P|}(int x)
-                                    {
-                                    }
-                                }
-                                """;
-
-        await Verify(testData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 7));
-    }
-
-    /// <summary>
-    /// Characterizes one application of the fix on a partial property: it adds <see langword="private"/> to one part
-    /// only, whichever part's diagnostic it is applied to. This test pins today's behavior; the decided behavior is
-    /// stated by SHARED-DIAG-004, which withholds a fix that would have to change more than one part, and its change
-    /// belongs to an existing follow-up
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyOneFixApplicationChangesOnePartOfPartialProperty()
-    {
-        const string testData = """
-                                public partial class P
-                                {
-                                    partial int Prop { get; set; }
-
-                                    partial int Prop { get => 1; set { } }
-                                }
-                                """;
-
-        var fixedSource = await ApplyCodeFixAsync(testData);
-
-        var fixedDefinition = fixedSource.Contains("private partial int Prop { get; set; }");
-        var fixedImplementation = fixedSource.Contains("private partial int Prop { get => 1; set { } }");
-
-        Assert.AreNotEqual(fixedDefinition, fixedImplementation, "Exactly one part of the partial property is expected to receive the modifier.");
-    }
-
-    /// <summary>
-    /// Characterizes the fix on a member whose attribute list is on its own line and which carries no modifier: the
-    /// added modifier starts the line and the indentation stays behind it. The case belongs to an existing follow-up,
-    /// so this test pins today's behavior without stating it as intended
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyFixOnAttributedMemberPlacesModifierBeforeIndentation()
-    {
-        const string testData = """
-                                using System;
-
-                                public class C
-                                {
-                                    [Obsolete]
-                                    void M()
-                                    {
-                                    }
-                                }
-                                """;
-
-        var fixedSource = await ApplyCodeFixAsync(testData);
-
-        Assert.Contains("    [Obsolete]\nprivate     void M()", fixedSource.ReplaceLineEndings("\n"));
-    }
-
-    /// <summary>
     /// Repeats <see cref="VerifyFixAddsDefaultAccessibilityOfEachContext"/> with the source normalized to CRLF line
     /// endings
     /// </summary>
@@ -1028,6 +961,577 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
         await Verify(NormalizeToCarriageReturnLineFeed(testData),
                      NormalizeToCarriageReturnLineFeed(resultData),
                      Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 4));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of explicit interface implementations of an operator and a conversion
+    /// operator: neither is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2004-003")]
+    public async Task VerifyExplicitInterfaceOperatorAndConversionImplementationsAreNotReported()
+    {
+        const string testData = """
+                                public interface IAdd<T>
+                                    where T : IAdd<T>
+                                {
+                                    static abstract T operator +(T a, T b);
+
+                                    static abstract explicit operator int(T value);
+                                }
+
+                                public struct N : IAdd<N>
+                                {
+                                    static N IAdd<N>.operator +(N a, N b) => a;
+
+                                    static explicit IAdd<N>.operator int(N value) => 0;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that explicit interface implementations of a unary operator and a checked operator, with block bodies,
+    /// are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2004-003")]
+    public async Task VerifyExplicitInterfaceUnaryAndCheckedOperatorImplementationsAreNotReported()
+    {
+        const string testData = """
+                                public interface INegate<T>
+                                    where T : INegate<T>
+                                {
+                                    static abstract T operator -(T value);
+
+                                    static abstract T operator +(T a, T b);
+
+                                    static abstract T operator checked +(T a, T b);
+                                }
+
+                                public struct N : INegate<N>
+                                {
+                                    static N INegate<N>.operator -(N value)
+                                    {
+                                        return value;
+                                    }
+
+                                    static N INegate<N>.operator +(N a, N b)
+                                    {
+                                        return a;
+                                    }
+
+                                    static N INegate<N>.operator checked +(N a, N b)
+                                    {
+                                        return a;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an explicit interface implementation of an implicit conversion operator with a block body is not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2004-003")]
+    public async Task VerifyExplicitInterfaceImplicitConversionImplementationIsNotReported()
+    {
+        const string testData = """
+                                public interface IConvert<T>
+                                    where T : IConvert<T>
+                                {
+                                    static abstract implicit operator long(T value);
+                                }
+
+                                public struct N : IConvert<N>
+                                {
+                                    static implicit IConvert<N>.operator long(N value)
+                                    {
+                                        return 0;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a partial property whose implementing part stands first: it is reported
+    /// once, on its defining part, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2004-001")]
+    [Requirement("SHARED-DIAG-004")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialPropertyIsReportedOnceOnItsDefiningPartWithoutFix()
+    {
+        const string testData = """
+                                public partial class P
+                                {
+                                    partial int Prop { get => 1; set { } }
+
+                                    partial int {|RH2004:Prop|} { get; set; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a partial indexer: it is reported once, on its defining part, and no code
+    /// fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2004-001")]
+    [Requirement("SHARED-DIAG-004")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialIndexerIsReportedOnceOnItsDefiningPartWithoutFix()
+    {
+        const string testData = """
+                                public partial class P
+                                {
+                                    partial int {|RH2004:this|}[int index] { get; }
+
+                                    partial int this[int index] { get => index; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a partial event: it is reported once, on its defining part, and no code
+    /// fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2004-001")]
+    [Requirement("SHARED-DIAG-004")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialEventIsReportedOnceOnItsDefiningPartWithoutFix()
+    {
+        const string testData = """
+                                using System;
+
+                                public partial class P
+                                {
+                                    partial event Action {|RH2004:Changed|};
+
+                                    partial event Action Changed { add { } remove { } }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a partial constructor: it is reported once, on its defining part, and no
+    /// code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2004-001")]
+    [Requirement("SHARED-DIAG-004")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialConstructorIsReportedOnceOnItsDefiningPartWithoutFix()
+    {
+        const string testData = """
+                                public partial class P
+                                {
+                                    partial {|RH2004:P|}(int x);
+
+                                    partial P(int x)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a partial property whose two parts lie in two documents is reported once, on its defining part,
+    /// when the document of the defining part comes first
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialPropertyInTwoDocumentsIsReportedOnTheDefiningPartInTheFirstDocument()
+    {
+        const string definingPart = """
+                                    public partial class P
+                                    {
+                                        partial int {|RH2004:Prop|} { get; set; }
+                                    }
+                                    """;
+
+        const string implementingPart = """
+                                        public partial class P
+                                        {
+                                            partial int Prop { get => 1; set { } }
+                                        }
+                                        """;
+
+        await Verify(definingPart, test => test.TestState.Sources.Add(("/0/Test1.cs", implementingPart)));
+    }
+
+    /// <summary>
+    /// Verifies that a partial property whose two parts lie in two documents is reported once, on its defining part,
+    /// when the document of the implementing part comes first
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialPropertyInTwoDocumentsIsReportedOnTheDefiningPartInTheSecondDocument()
+    {
+        const string implementingPart = """
+                                        public partial class P
+                                        {
+                                            partial int Prop { get => 1; set { } }
+                                        }
+                                        """;
+
+        const string definingPart = """
+                                    public partial class P
+                                    {
+                                        partial int {|RH2004:Prop|} { get; set; }
+                                    }
+                                    """;
+
+        await Verify(implementingPart, test => test.TestState.Sources.Add(("/0/Test1.cs", definingPart)));
+    }
+
+    /// <summary>
+    /// Verifies that a partial property whose defining part lies in generated code is reported once, on its
+    /// implementing part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialPropertyWithGeneratedDefiningPartIsReportedOnTheImplementingPart()
+    {
+        const string implementingPart = """
+                                        public partial class P
+                                        {
+                                            partial int {|RH2004:Prop|} { get => 1; set { } }
+                                        }
+                                        """;
+
+        const string definingPart = """
+                                    public partial class P
+                                    {
+                                        partial int Prop { get; set; }
+                                    }
+                                    """;
+
+        await Verify(implementingPart, test => test.TestState.Sources.Add(("/0/P.g.cs", definingPart)));
+    }
+
+    /// <summary>
+    /// Verifies that a partial property whose implementing part lies in generated code is reported once, on its
+    /// defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialPropertyWithGeneratedImplementingPartIsReportedOnTheDefiningPart()
+    {
+        const string definingPart = """
+                                    public partial class P
+                                    {
+                                        partial int {|RH2004:Prop|} { get; set; }
+                                    }
+                                    """;
+
+        const string implementingPart = """
+                                        public partial class P
+                                        {
+                                            partial int Prop { get => 1; set { } }
+                                        }
+                                        """;
+
+        await Verify(definingPart, test => test.TestState.Sources.Add(("/0/P.g.cs", implementingPart)));
+    }
+
+    /// <summary>
+    /// Verifies that a partial property both of whose parts lie in generated code is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialPropertyWithBothPartsGeneratedIsNotReported()
+    {
+        const string definingPart = """
+                                    public partial class P
+                                    {
+                                        partial int Prop { get; set; }
+                                    }
+                                    """;
+
+        const string implementingPart = """
+                                        public partial class P
+                                        {
+                                            partial int Prop { get => 1; set { } }
+                                        }
+                                        """;
+
+        await Verify(string.Empty,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Defining.g.cs", definingPart));
+                         test.TestState.Sources.Add(("/0/Implementing.g.cs", implementingPart));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies the specification example of an attribute list on its own line in front of a method without a
+    /// modifier: the added modifier stands on the method's line and in its column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2004-006")]
+    public async Task VerifyFixPutsModifierOnTheMembersLineBehindAnAttributeListOnItsOwnLine()
+    {
+        await Verify(AttributedMethodSource,
+                     AttributedMethodFixedSource,
+                     Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat));
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyFixPutsModifierOnTheMembersLineBehindAnAttributeListOnItsOwnLine"/> with the source
+    /// normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2004-006")]
+    public async Task VerifyFixPutsModifierOnTheMembersLineBehindAnAttributeListOnItsOwnLineCarriageReturnLineFeed()
+    {
+        await Verify(NormalizeToCarriageReturnLineFeed(AttributedMethodSource),
+                     NormalizeToCarriageReturnLineFeed(AttributedMethodFixedSource),
+                     Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a type behind an attribute list on its own line, and of a member whose
+    /// first token is another modifier, with a comment line and a directive line between its attribute list and the
+    /// declaration: the lines stay in front of the declarations, and the added modifiers stand on the declarations'
+    /// lines and in their columns
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2004-006")]
+    public async Task VerifyFixKeepsCommentAndDirectiveLinesInFrontOfTheDeclaration()
+    {
+        await Verify(AttributedTypeAndMemberSource,
+                     AttributedTypeAndMemberFixedSource,
+                     Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyFixKeepsCommentAndDirectiveLinesInFrontOfTheDeclaration"/> with the source normalized
+    /// to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2004-006")]
+    public async Task VerifyFixKeepsCommentAndDirectiveLinesInFrontOfTheDeclarationCarriageReturnLineFeed()
+    {
+        await Verify(NormalizeToCarriageReturnLineFeed(AttributedTypeAndMemberSource),
+                     NormalizeToCarriageReturnLineFeed(AttributedTypeAndMemberFixedSource),
+                     Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that a comment line alone between the attribute list and a method without a modifier stays in front of
+    /// the method, and the added modifier stands on the method's line and in its column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2004-006")]
+    public async Task VerifyFixKeepsCommentLineInFrontOfTheMember()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C
+                                {
+                                    [Obsolete]
+                                    // note
+                                    void {|#0:M|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  public class C
+                                  {
+                                      [Obsolete]
+                                      // note
+                                      private void M()
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a directive line alone between the attribute list and a method without a modifier stays in front
+    /// of the method, and the added modifier stands on the method's line and in its column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2004-006")]
+    public async Task VerifyFixKeepsDirectiveLineInFrontOfTheMember()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C
+                                {
+                                    [Obsolete]
+                                #pragma warning disable CS0612
+                                    void {|#0:M|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  public class C
+                                  {
+                                      [Obsolete]
+                                  #pragma warning disable CS0612
+                                      private void M()
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the added modifier of a member whose first token is another modifier, behind an attribute list on
+    /// its own line, stands on the member's line and in its column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2004-006")]
+    public async Task VerifyFixPutsModifierInFrontOfStaticBehindAnAttributeListOnItsOwnLine()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C
+                                {
+                                    [Obsolete]
+                                    static void {|#0:N|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  public class C
+                                  {
+                                      [Obsolete]
+                                      private static void N()
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the added modifier of a field and a property behind attribute lists on their own lines stands on
+    /// the declarations' lines and in their columns
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2004-006")]
+    public async Task VerifyFixPutsModifierOnTheLinesOfAttributedFieldAndProperty()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C
+                                {
+                                    [NonSerialized]
+                                    int {|#0:_value|};
+
+                                    [Obsolete]
+                                    int {|#1:Value|} { get; set; }
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  public class C
+                                  {
+                                      [NonSerialized]
+                                      private int _value;
+
+                                      [Obsolete]
+                                      private int Value { get; set; }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that an attribute list on the member's own line keeps the added modifier behind it on that line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2004-006")]
+    public async Task VerifyFixPutsModifierBehindAnAttributeListOnTheMembersLine()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C
+                                {
+                                    [Obsolete] void {|#0:M|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  public class C
+                                  {
+                                      [Obsolete] private void M()
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat));
     }
 
     #endregion // Tests

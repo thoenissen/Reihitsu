@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -843,6 +843,40 @@ public class RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzerTest
                                     public void {|#0:M|}()
                                     {
                                     }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("I")));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a <see langword="partial"/> method both of whose parts lie outside
+    /// a matching region: it is reported once, on its defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7409-001")]
+    [Requirement("SHARED-DIAG-004")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialMethodIsReportedOnceOnItsDefiningPart()
+    {
+        const string testData = """
+                                interface I
+                                {
+                                    void M();
+                                }
+
+                                partial class C : I
+                                {
+                                    #region Methods
+
+                                    public partial void {|#0:M|}();
+
+                                    public partial void M()
+                                    {
+                                    }
+
+                                    #endregion
                                 }
                                 """;
 

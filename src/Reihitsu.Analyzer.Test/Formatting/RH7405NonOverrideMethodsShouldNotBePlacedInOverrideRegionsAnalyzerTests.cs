@@ -412,6 +412,84 @@ public class RH7405NonOverrideMethodsShouldNotBePlacedInOverrideRegionsAnalyzerT
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies the specification example of a <see langword="partial"/> method that overrides nothing and both
+    /// of whose parts lie in an override region: it is reported once, on its defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7405-001")]
+    [Requirement("SHARED-DIAG-004")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialMethodIsReportedOnceOnItsDefiningPart()
+    {
+        const string testData = """
+                                class B
+                                {
+                                    public virtual void Run()
+                                    {
+                                    }
+                                }
+
+                                partial class C : B
+                                {
+                                    #region B
+
+                                    public override void Run()
+                                    {
+                                    }
+
+                                    public partial void {|#0:N|}();
+
+                                    public partial void N()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7405NonOverrideMethodsShouldNotBePlacedInOverrideRegionsAnalyzer.DiagnosticId, CreateMessage("B")));
+    }
+
+    /// <summary>
+    /// Verifies that a <see langword="partial"/> method that overrides nothing, whose implementing part stands
+    /// first and whose parts both lie in an override region, is reported once, on its defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialNonOverrideMethodWithImplementingPartFirstIsReportedOnceOnItsDefiningPart()
+    {
+        const string testData = """
+                                class B
+                                {
+                                    public virtual void Run()
+                                    {
+                                    }
+                                }
+
+                                partial class C : B
+                                {
+                                    #region B
+
+                                    public override void Run()
+                                    {
+                                    }
+
+                                    public partial void N()
+                                    {
+                                    }
+
+                                    public partial void {|#0:N|}();
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7405NonOverrideMethodsShouldNotBePlacedInOverrideRegionsAnalyzer.DiagnosticId, CreateMessage("B")));
+    }
+
     #endregion // Tests
 
     #region Methods

@@ -282,14 +282,14 @@ public class RH2101NestedClassesShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
-    /// Characterizes a nested static partial class whose second part omits the static modifier: the class is static,
-    /// but only the part without the modifier is reported. This test pins today's behavior; the decided behavior is
-    /// stated by SHARED-DIAG-004, which judges a partial type by the modifiers of all its parts together, and its change
-    /// belongs to an existing follow-up
+    /// Verifies the specification example of a nested partial class whose second part does not repeat <see
+    /// langword="static"/>: the class is static, and none of its parts is reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyPartWithoutStaticOfNestedStaticPartialClassIsReported()
+    [Requirement("RH2101-002")]
+    [Requirement("SHARED-DIAG-004")]
+    public async Task VerifyNestedPartialClassWithStaticOnTheFirstPartIsNotReported()
     {
         const string source = """
                               class Outer
@@ -298,13 +298,99 @@ public class RH2101NestedClassesShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase
                                   {
                                   }
 
-                                  partial class {|#0:Helpers|}
+                                  partial class Helpers
                                   {
                                   }
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH2101NestedClassesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2101MessageFormat));
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies that a nested partial class whose first part does not carry <see langword="static"/> and whose second
+    /// part does is static, and none of its parts is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2101-002")]
+    [Requirement("SHARED-DIAG-004")]
+    public async Task VerifyNestedPartialClassWithStaticOnTheSecondPartIsNotReported()
+    {
+        const string source = """
+                              class Outer
+                              {
+                                  partial class Helpers
+                                  {
+                                  }
+
+                                  static partial class Helpers
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies that a nested partial class whose parts lie in two parts of a partial outer class, of which only one
+    /// carries <see langword="static"/>, is static and not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2101-002")]
+    [Requirement("SHARED-DIAG-004")]
+    public async Task VerifyNestedPartialClassInTwoPartsOfTheOuterClassWithStaticOnOnePartIsNotReported()
+    {
+        const string source = """
+                              partial class Outer
+                              {
+                                  static partial class Helpers
+                                  {
+                                  }
+                              }
+
+                              partial class Outer
+                              {
+                                  partial class Helpers
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies that a nested partial class whose parts lie in two documents, of which only the other document's part
+    /// carries <see langword="static"/>, is static and not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2101-002")]
+    [Requirement("SHARED-DIAG-004")]
+    public async Task VerifyNestedPartialClassWithStaticOnAPartInAnotherDocumentIsNotReported()
+    {
+        const string source = """
+                              partial class Outer
+                              {
+                                  partial class Helpers
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string otherDocument = """
+                                     partial class Outer
+                                     {
+                                         static partial class Helpers
+                                         {
+                                         }
+                                     }
+                                     """;
+
+        await Verify(source, test => test.TestState.Sources.Add(("/0/Test1.cs", otherDocument)));
     }
 
     #endregion // Tests

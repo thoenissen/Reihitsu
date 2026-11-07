@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -525,6 +525,38 @@ public class RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzerT
                                     public partial int P { get => 0; }
 
                                     public partial int Q { get; }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("I")));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a <see langword="partial"/> property both of whose parts lie
+    /// outside a matching region: it is reported once, on its defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7410-001")]
+    [Requirement("SHARED-DIAG-004")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialPropertyIsReportedOnceOnItsDefiningPart()
+    {
+        const string testData = """
+                                interface I
+                                {
+                                    int P { get; }
+                                }
+
+                                partial class C : I
+                                {
+                                    #region Properties
+
+                                    public partial int {|#0:P|} { get; }
+
+                                    public partial int P => 1;
 
                                     #endregion
                                 }

@@ -257,6 +257,40 @@ public class RH7408NonOverrideIndexersShouldNotBePlacedInOverrideRegionsAnalyzer
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies the specification example of a <see langword="partial"/> indexer that overrides nothing and
+    /// both of whose parts lie in an override region: it is reported once, on its defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7408-001")]
+    [Requirement("SHARED-DIAG-004")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialIndexerIsReportedOnceOnItsDefiningPart()
+    {
+        const string testData = """
+                                class B
+                                {
+                                    public virtual int this[int index] => index;
+                                }
+
+                                partial class C : B
+                                {
+                                    #region B
+
+                                    public override int this[int index] => index;
+
+                                    public partial int {|#0:this|}[string key] { get; }
+
+                                    public partial int this[string key] => 0;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7408NonOverrideIndexersShouldNotBePlacedInOverrideRegionsAnalyzer.DiagnosticId, CreateMessage("B")));
+    }
+
     #endregion // Tests
 
     #region Methods

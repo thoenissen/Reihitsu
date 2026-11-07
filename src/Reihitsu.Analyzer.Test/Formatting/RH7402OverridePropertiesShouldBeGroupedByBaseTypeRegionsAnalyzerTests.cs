@@ -240,6 +240,38 @@ public class RH7402OverridePropertiesShouldBeGroupedByBaseTypeRegionsAnalyzerTes
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies the specification example of a <see langword="partial"/> property both of whose parts lie
+    /// outside a matching region: it is reported once, on its defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7402-001")]
+    [Requirement("SHARED-DIAG-004")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialPropertyIsReportedOnceOnItsDefiningPart()
+    {
+        const string testData = """
+                                abstract class B
+                                {
+                                    public abstract int P { get; }
+                                }
+
+                                partial class C : B
+                                {
+                                    #region Properties
+
+                                    public override partial int {|#0:P|} { get; }
+
+                                    public override partial int P => 1;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7402OverridePropertiesShouldBeGroupedByBaseTypeRegionsAnalyzer.DiagnosticId, CreateMessage("B")));
+    }
+
     #endregion // Tests
 
     #region Methods
