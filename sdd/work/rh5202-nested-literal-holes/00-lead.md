@@ -42,4 +42,5 @@
 - Audit 1 (07, 3347630; audited head 685ab42, base b4343557): findings #1, #2 + architecture finding → decisions 6–8.
 - Repair round 1: tests (08, 2ec5c72), implementer (09, 06d1db8), tests amendment (10, 2f822ff; decision 9), cleaner (11, 371a1af), spec checker (12, 4cf325b): 2 findings.
 - Repair round 2 (of 3): spec author (13, c603e8a), decision 10 (reverses 7), spec amendment (14, 3c67247), decision 11.
-- Next: test implementer (12 finding 2 + 14 tag list + decision 10 expected outputs) → implementer (decision 10) → cleaner → spec checker → auditor (repairs since 685ab42) → validator → publish.
+- Tests (15, 07eebea): 4 red.
+- Next: implementer (decision 10) → cleaner → spec checker → auditor (repairs since 685ab42) → validator → publish.
