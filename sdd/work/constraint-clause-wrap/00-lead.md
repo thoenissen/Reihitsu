@@ -48,4 +48,6 @@ From `02-skeptic.md`:
 - 01 spec author done (44509cd): change doc `sdd/changes/2026-11/constraint-clause-wrap.md` (Draft), FMT-BREAK-037, FMT-INDENT-032; 5 output questions in its handover.
 - 02 skeptic done (38c6f09): premise confirmed; verdict output question; S1, S2 added.
 - Batch 1 answered (all A).
-- Next: fresh spec author (03) amends change doc Decisions + specs for answers and decision 3; then test implementer.
+- 03 spec author done (c716d42): change doc Accepted; FMT-BREAK-037, FMT-INDENT-032 rewritten; RH5110-004 added (fix withheld when a comment/directive stands in a gap FMT-BREAK-037 joins).
+- RH5110-004 reading of Q8 is ambiguous (Q3A/Q4A/Q7A give safe fallback layouts for exactly those inputs, so the fix could be offered with them). Asked maintainer Q9 (A: offer fix with fallback layout; B: withhold). **Waiting on maintainer.**
+- Next after Q9: if A, spec author narrows RH5110-004; then test implementer.
