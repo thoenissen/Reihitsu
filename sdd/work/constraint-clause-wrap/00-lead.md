@@ -19,6 +19,8 @@ Batch 1 (before test implementer), all recommendations chosen:
 - Q6 → A (skeptic S1): wraps inside a constraint that no comment/directive holds are joined first; the clause is judged after the join.
 - Q7 → A (skeptic S2): `where T⏎ : …` — the colon joins the type parameter's line; where a comment blocks the join, the colon keeps its own line one level deeper than `where` and the constraints align under the first.
 - Q9 → A: when a comment/directive blocks a FMT-BREAK-037 join, RH5110's fix is still offered and yields the formatter's fallback layout (Q3A/Q4A/Q7A); Q8 covers only inputs where a comment, directive, or disabled text would actually have to move.
+- Q10 → A: the constraint colon always gets one space on each side, like a base-list colon (FMT-SPACE-009 widens); also one-line `where T:class` → `where T : class`.
+- Q11 → A: a colon a comment/directive keeps on its own line wraps the clause — constraints one per line, aligned under the first (`: class,` / `  new()`).
 - Q8 → A: RH5110's fix is withheld for inputs where the layout could only be reached by moving a comment, directive, or literal.
 
 ## Decisions taken
@@ -57,5 +59,5 @@ From `02-skeptic.md`:
 - 04 spec author done (6ebc723): RH5110-004 dropped; RH5110-003 changed (fix offered, fallback layout).
 - 05 test implementer done (9a1da1d, 7c0d665): 46 formatter + 6 RH5110 tests; 43+6 fail on unchanged code as expected, 4 guard tests pass.
 - 06 implementer (da0e710): verdict test disputed; 43 new tests pass; D1 (no space after joined colon, 7 tests), D2 (decision 7), D3 (colon-only wrap) open.
-- Asked maintainer Q10 (D1: A spacing rule covers constraint colon everywhere / B join writes one space only) and Q11 (D3: A colon-only wrap also wraps the clause / B constraints stay on the colon's line). **Waiting on maintainer.**
-- Next after answers: spec author amends (Q10, Q11), test implementer fixes D2 (+D3 if B), implementer finishes.
+- Q10 A, Q11 A answered.
+- Next: fresh spec author (07) for Q10/Q11 → test implementer (08) for D2 + Q10/Q11 tests → implementer (09).
