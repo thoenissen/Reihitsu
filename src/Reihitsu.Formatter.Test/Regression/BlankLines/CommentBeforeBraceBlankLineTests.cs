@@ -965,7 +965,7 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
                                          ? int.Parse(placeholder[3..], CultureInfo.InvariantCulture)
                                          : 0;
 
-                result.Add(indentation + new string(' ', firstLineShift) + commentLines[0]);
+                result.Add($"{indentation}{new string(' ', firstLineShift)}{commentLines[0]}");
                 result.AddRange(commentLines.Skip(1).Select(commentLine => indentation + commentLine));
             }
             else

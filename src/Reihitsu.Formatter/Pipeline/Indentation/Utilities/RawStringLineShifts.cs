@@ -102,19 +102,6 @@ internal sealed class RawStringLineShifts
     #region Methods
 
     /// <summary>
-    /// Gets the width of the whitespace at the start of a line of a raw string literal: every whitespace character counts
-    /// as one column, a tab and a no-break space included (FMT-RAW-001). The measure is the one the RH5202 analyzer and its
-    /// code fix use (<see cref="RawStringLiteralUtilities.GetLeadingWhitespaceLength"/>), so a literal this phase aligns is
-    /// one they find aligned
-    /// </summary>
-    /// <param name="line">The line to examine</param>
-    /// <returns>The number of leading whitespace characters</returns>
-    private static int GetLeadingWhitespaceLength(TextLine line)
-    {
-        return RawStringLiteralUtilities.GetLeadingWhitespaceLength(line.ToString());
-    }
-
-    /// <summary>
     /// Moves the lines of every multi-line raw string literal of an indented tree after its opening line to the column
     /// <paramref name="getColumnAfterMove"/> gives each line. Only literals that are not nested in an interpolation
     /// hole of another multi-line interpolated raw string are walked; a nested literal's lines are lines of the outermost
@@ -248,6 +235,19 @@ internal sealed class RawStringLineShifts
 
             tokenEdits.Add((line.Start, indentation, newSpaces));
         }
+    }
+
+    /// <summary>
+    /// Gets the width of the whitespace at the start of a line of a raw string literal: every whitespace character counts
+    /// as one column, a tab and a no-break space included (FMT-RAW-001). The measure is the one the RH5202 analyzer and its
+    /// code fix use (<see cref="RawStringLiteralUtilities.GetLeadingWhitespaceLength"/>), so a literal this phase aligns is
+    /// one they find aligned
+    /// </summary>
+    /// <param name="line">The line to examine</param>
+    /// <returns>The number of leading whitespace characters</returns>
+    private static int GetLeadingWhitespaceLength(TextLine line)
+    {
+        return RawStringLiteralUtilities.GetLeadingWhitespaceLength(line.ToString());
     }
 
     /// <summary>
