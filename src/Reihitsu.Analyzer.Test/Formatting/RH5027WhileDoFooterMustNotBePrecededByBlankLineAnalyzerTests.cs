@@ -221,6 +221,212 @@ public class RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzerTests : Batc
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode), actual);
     }
 
+    /// <summary>
+    /// Verifies the blank line above a do statement is not reported when code stands in front of the while keyword on its line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5027-001")]
+    public async Task VerifyBlankLineAboveFooterLineStartingWithCodeIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+
+                                        do a++; while (a < 3);
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the blank line above a do statement is not reported when code stands in front of the while keyword on its
+    /// line, in a document with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5027-001")]
+    public async Task VerifyBlankLineAboveFooterLineStartingWithCodeIsNotReportedWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+
+                                        do a++; while (a < 3);
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode));
+    }
+
+    /// <summary>
+    /// Verifies the empty line inside a verbatim string that ends in front of the while keyword is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5027-001")]
+    public async Task VerifyEmptyLineInsideVerbatimStringEndingInFrontOfFooterIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        string s;
+                                        do s = @"x
+
+                                ".Trim(); while (s.Length > 3);
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the empty line inside a raw interpolated string that ends in front of the while keyword is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5027-001")]
+    public async Task VerifyEmptyLineInsideRawInterpolatedStringEndingInFrontOfFooterIsNotReported()
+    {
+        const string testCode = """"
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        string s;
+                                        do s = $"""
+                                            x{a}
+
+                                            """; while (s.Length > 3);
+                                    }
+                                }
+                                """";
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the empty line inside a multi-line comment that ends in front of the while keyword is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5027-001")]
+    public async Task VerifyEmptyLineInsideMultiLineCommentEndingInFrontOfFooterIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        do a++; /* x
+
+                                        */ while (a < 4);
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the blank line above a footer line that starts with a comment in front of the while keyword is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5027-001")]
+    public async Task VerifyBlankLineAboveCommentInFrontOfFooterIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        do
+                                            a++;
+
+                                        /* c */ while (a < 5);
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the blank line above a footer line on which a comment stands between the closing brace and the while
+    /// keyword is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5027-001")]
+    public async Task VerifyBlankLineAboveClosingBraceAndCommentInFrontOfFooterIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        do
+                                        {
+                                            a++;
+
+                                        } /* c */ while (a < 6);
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the blank line above a footer that begins its line below an embedded statement body is still reported and
+    /// deleted
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5027-001")]
+    [Requirement("RH5027-004")]
+    public async Task VerifyBlankLineAboveFooterBelowEmbeddedStatementIsReportedAndFixed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        do
+                                            a++;
+                                {|#0:
+                                |}        while (a < 5);
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         do
+                                             a++;
+                                         while (a < 5);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5027MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

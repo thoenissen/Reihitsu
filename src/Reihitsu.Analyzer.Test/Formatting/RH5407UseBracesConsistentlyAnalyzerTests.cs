@@ -403,6 +403,94 @@ public class RH5407UseBracesConsistentlyAnalyzerTests : BatchCodeFixTestsBase<RH
         await Verify(testData, fixedData, Diagnostics(RH5407UseBracesConsistentlyAnalyzer.DiagnosticId, AnalyzerResources.RH5407MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies a line comment behind an else body whose if body is braced is written once, behind the body inside the block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    public async Task VerifyFixWritesTrailingCommentOfElseBodyOnce()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, int b)
+                                    {
+                                        if (a)
+                                        {
+                                            M(a, b);
+                                        }
+                                        else
+                                            {|RH5407:M(a, b);|} // trail
+                                        b++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, int b)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a, b);
+                                         }
+                                         else
+                                         {
+                                             M(a, b); // trail
+                                         }
+                                         b++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a line comment behind an else body whose if body is braced is written once, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    public async Task VerifyFixWritesTrailingCommentOfElseBodyOnceWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, int b)
+                                    {
+                                        if (a)
+                                        {
+                                            M(a, b);
+                                        }
+                                        else
+                                            {|RH5407:M(a, b);|} // trail
+                                        b++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, int b)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a, b);
+                                         }
+                                         else
+                                         {
+                                             M(a, b); // trail
+                                         }
+                                         b++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

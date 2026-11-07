@@ -5,7 +5,7 @@
 | ID prefix | SHARED-BRACE |
 | Status | Active |
 | Code owners | `StatementBracesCodeFixProviderBase` |
-| Uses | FMT-STRUCT-001 |
+| Uses | FMT-STRUCT-001, SHARED-FIX-003 |
 
 This spec covers what the rules that report an `if` or `else` body without braces share: which bodies they check, and what their code fix produces. Each rule that uses this spec states which of those bodies it reports.
 
@@ -43,9 +43,9 @@ class C
 
 ### SHARED-BRACE-002 — The fix wraps the body in braces
 
-A code fix that uses this requirement MUST wrap the reported body in a block by laying out the `if` statement that owns it as the formatter does (FMT-STRUCT-001). When that `if` statement starts its line, the braces start their own lines at the column of the `if`, and the body is indented one level inside them.
+A code fix that uses this requirement MUST wrap the reported body in a block by laying out the `if` statement that owns it as the formatter does (FMT-STRUCT-001). When that `if` statement starts its line, the braces start their own lines at the column of the `if`, and the body is indented one level inside them. A comment behind the body on its last line stays there, inside the block, and is written once: the fix MUST NOT repeat it behind the closing brace (SHARED-FIX-003).
 
-Why: The formatter owns the braced layout of a control-flow statement; delegating to it applies that layout instead of a second one, and works the same whether the body was on the line of the `if` or below it.
+Why: The formatter owns the braced layout of a control-flow statement; delegating to it applies that layout instead of a second one, and works the same whether the body was on the line of the `if` or below it. Formatting the document keeps a comment behind the body with the statement it describes; a second copy behind the closing brace would change the text the author wrote.
 
 Example — RH5405:
 
@@ -68,6 +68,34 @@ class C
         {
             M(a, b);
         }
+    }
+}
+```
+
+Example — RH5405, a comment behind the body:
+
+```csharp
+class C
+{
+    void M(bool a, int b)
+    {
+        if (a)
+            {|RH5405:M(a, b);|} // trail
+        b++;
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(bool a, int b)
+    {
+        if (a)
+        {
+            M(a, b); // trail
+        }
+        b++;
     }
 }
 ```

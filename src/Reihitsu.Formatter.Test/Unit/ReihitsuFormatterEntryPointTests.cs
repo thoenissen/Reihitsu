@@ -427,6 +427,115 @@ public class ReihitsuFormatterEntryPointTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies the spec example: when the target's body is wrapped in a block, a comment in the target's trailing trivia
+    /// stays behind the body's last token and is not written again behind the closing brace, and the code behind the
+    /// target keeps its line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-010")]
+    public async Task FormatNodeInDocumentAsyncWritesTrailingCommentOfWrappedBodyOnce()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(bool a, int b)
+                                 {
+                                     if (a)
+                                         M(a, b); // trail
+                                     b++;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(bool a, int b)
+                                    {
+                                        if (a)
+                                        {
+                                            M(a, b); // trail
+                                        }
+                                        b++;
+                                    }
+                                }
+                                """;
+
+        foreach (var endOfLine in _lineEndings)
+        {
+            using (var workspace = new AdhocWorkspace())
+            {
+                var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+                var document = project.AddDocument("Test.cs", SourceText.From(NormalizeLineEndings(input, endOfLine)));
+                var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
+                var target = root?.DescendantNodes().OfType<IfStatementSyntax>().Single();
+
+                Assert.IsNotNull(target);
+
+                var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, TestContext.CancellationToken);
+                var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
+
+                Assert.AreEqual(NormalizeLineEndings(expected, endOfLine), resultText, $"Under {DescribeLineEnding(endOfLine)} line endings.");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Verifies a trailing comment of the target that formatting leaves behind the target's own last token is still written
+    /// once, behind that token
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-010")]
+    public async Task FormatNodeInDocumentAsyncWritesTrailingCommentOfBracedTargetOnce()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(bool a, int b)
+                                 {
+                                     if (a)
+                                     {
+                                         M(a,b);
+                                     } // trail
+                                     b++;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(bool a, int b)
+                                    {
+                                        if (a)
+                                        {
+                                            M(a, b);
+                                        } // trail
+                                        b++;
+                                    }
+                                }
+                                """;
+
+        foreach (var endOfLine in _lineEndings)
+        {
+            using (var workspace = new AdhocWorkspace())
+            {
+                var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+                var document = project.AddDocument("Test.cs", SourceText.From(NormalizeLineEndings(input, endOfLine)));
+                var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
+                var target = root?.DescendantNodes().OfType<IfStatementSyntax>().Single();
+
+                Assert.IsNotNull(target);
+
+                var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, TestContext.CancellationToken);
+                var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
+
+                Assert.AreEqual(NormalizeLineEndings(expected, endOfLine), resultText, $"Under {DescribeLineEnding(endOfLine)} line endings.");
+            }
+        }
+    }
+
+    /// <summary>
     /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> formats a node of a tree that contains a syntax error elsewhere
     /// </summary>
     [TestMethod]
