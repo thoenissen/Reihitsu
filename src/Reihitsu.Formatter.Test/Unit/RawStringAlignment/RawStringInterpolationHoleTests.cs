@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
 
@@ -1725,6 +1725,97 @@ public class RawStringInterpolationHoleTests : FormatterTestsBase
                                 b" + string.Concat("a",
                                                    "b")}
                                                  """;
+                                    }
+                                }
+                                """";
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Characterizes whole-document formatting of a misaligned interpolated raw string whose hole holds an empty line outside any nested text: the empty line is removed and the other hole lines move with the literal
+    /// </summary>
+    [TestMethod]
+    public void EmptyLineInsideHoleOfMisalignedLiteralIsRemoved()
+    {
+        const string input = """"
+                             class C
+                             {
+                                 void M(string name)
+                                 {
+                                     var a = $"""
+                                 Hello {name
+
+                                 }
+                                 """;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    void M(string name)
+                                    {
+                                        var a = $"""
+                                                 Hello {name
+                                                 }
+                                                 """;
+                                    }
+                                }
+                                """";
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Characterizes whole-document formatting of a misaligned interpolated raw string whose hole holds a lambda block with an empty line between its statements: the empty line stays empty, and the lambda block is aligned as the hole's alignment places it
+    /// </summary>
+    [TestMethod]
+    public void EmptyLineBetweenStatementsOfLambdaInsideHoleOfMisalignedLiteralStaysEmpty()
+    {
+        const string input = """"
+                             using System;
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var a = $"""
+                                 Hello {Run(() =>
+                                 {
+                                     var b = 1;
+
+                                     return b;
+                                 })}
+                                 """;
+                                 }
+
+                                 int Run(Func<int> f)
+                                 {
+                                     return f();
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = $"""
+                                                 Hello {Run(() =>
+                                                            {
+                                                                var b = 1;
+
+                                                                return b;
+                                                            })}
+                                                 """;
+                                    }
+
+                                    int Run(Func<int> f)
+                                    {
+                                        return f();
                                     }
                                 }
                                 """";

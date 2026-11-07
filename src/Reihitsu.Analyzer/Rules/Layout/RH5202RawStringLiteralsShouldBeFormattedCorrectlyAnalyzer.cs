@@ -101,7 +101,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer : Diagnos
         var closingLine = lastNewlineIndex >= 0
                               ? endText.Substring(lastNewlineIndex + 1)
                               : endText;
-        var closingQuoteColumn = closingLine.Length - closingLine.TrimStart().Length;
+        var closingQuoteColumn = RawStringLiteralUtilities.GetLeadingWhitespaceLength(closingLine);
 
         if (openingQuoteColumn != closingQuoteColumn)
         {
@@ -130,7 +130,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer : Diagnos
 
         var lines = tokenText.Split(["\r\n", "\n"], StringSplitOptions.None);
         var lastLine = lines[lines.Length - 1];
-        var closingQuoteColumn = lastLine.Length - lastLine.TrimStart().Length;
+        var closingQuoteColumn = RawStringLiteralUtilities.GetLeadingWhitespaceLength(lastLine);
 
         if (openingQuoteColumn != closingQuoteColumn)
         {
