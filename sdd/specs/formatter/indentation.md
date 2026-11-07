@@ -622,6 +622,76 @@ class C
 }
 ```
 
+A base list counts as a list from FMT-INDENT-016 for this requirement whatever the number of its types: a line inside the only type of a base list — of a class, struct, record, or interface, and the underlying type of an enum — aligns with that type's first token exactly as a line inside a type of a base list with two or more types does. FMT-INDENT-016's own condition, two or more types, applies only to the later base types it aligns.
+
+Example — a base list with one type and an enum's underlying type:
+
+```csharp
+class B : System. // c
+    IDisposable
+{
+    public void Dispose()
+    {
+    }
+}
+
+enum E : System. // c
+    Int32
+{
+    A,
+}
+```
+
+```csharp
+class B : System. // c
+          IDisposable
+{
+    public void Dispose()
+    {
+    }
+}
+
+enum E : System. // c
+         Int32
+{
+    A,
+}
+```
+
+and a line inside a later type of a base list with two types aligns the same way, with that type's first token:
+
+```csharp
+class C : System.IDisposable,
+          System. // c
+    ICloneable
+{
+    public void Dispose()
+    {
+    }
+
+    public object Clone()
+    {
+        return null;
+    }
+}
+```
+
+```csharp
+class C : System.IDisposable,
+          System. // c
+          ICloneable
+{
+    public void Dispose()
+    {
+    }
+
+    public object Clone()
+    {
+        return null;
+    }
+}
+```
+
 ### FMT-INDENT-014 — A wrapped dictionary key is indented as a block
 
 When the bracketed key of an indexer initializer inside an object initializer (`[key] = value`) spans several lines, the formatter MUST indent its arguments and separators that start a line one level deeper than the opening bracket and MUST align a closing bracket that starts a line with the opening bracket.

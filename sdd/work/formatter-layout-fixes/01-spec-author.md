@@ -45,7 +45,7 @@ Today's output: `enum E { A⏎    = 1, }` keeps the break. The value placement (
 - RH5111-001 — An `=` below its target is reported — clarified: enum members are named, and the target of an enum member ends with its name. The analyzer already reports this shape (`OnEnumMemberDeclaration` → `CheckAssignment`, which checks both rules); the spec just never said so. RH5111-002 is reworded to match ("an enum member with a value included"). The rule page is unchanged because the user-visible reporting has not changed.
 
 ### Examples for the tests
-FMT-BREAK-016 (the enum `A⏎= 1` line of the second example), RH5111-001 (the new enum member in the example). For the issue's "fix clears the diagnostic in one application", the RH5111-004 test input `enum E { A⏎    = 1, }` should get a fixed output of `A = 1` (FMT-STRUCT-019 removes the trailing comma).
+FMT-BREAK-016 (the enum `A⏎= 1` line of the second example), RH5111-001 (the new enum member in the example). For the issue's "fix clears the diagnostic in one application", the RH5111-004 test input `enum E { A⏎    = 1, }` should get a fixed output of `A = 1,`: the fix formats only the enum member, and the trailing comma stays (corrected in `03-spec-author.md`; only whole-document formatting drops the comma, FMT-STRUCT-019).
 
 ### Output questions
 _None._

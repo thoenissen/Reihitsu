@@ -13,7 +13,7 @@ This spec covers how the indentation phase moves the lines of a multi-line raw s
 
 - The position of the opening quotes — they move with the statement, decided by FMT-BREAK, FMT-SPACE, and FMT-INDENT.
 - Single-line raw strings, regular strings, and verbatim (`@"…"`) strings, whose line starts are part of the value.
-- Raw strings whose indentation uses tab characters. Their alignment is a planned extension, tracked in thoenissen/Reihitsu#1432.
+- Tab-width alignment of raw strings whose indentation uses tab characters: counting a tab in front of a line as more than one column, or replacing it with spaces. It is a planned extension, tracked in thoenissen/Reihitsu#1432. Until then a tab counts as one column like any other whitespace character (FMT-RAW-001) and stays as written (FMT-RAW-002).
 
 ## Requirements
 
@@ -21,7 +21,7 @@ This spec covers how the indentation phase moves the lines of a multi-line raw s
 
 For every multi-line raw string literal — plain, UTF-8 (`u8`), or interpolated — the formatter MUST move the closing marker so it starts in the column of the first `"` of the opening marker, and MUST move every content line by the same number of columns.
 
-The column the closing marker starts in before the move is the width of the whitespace in front of it on its line, and every whitespace character in front of it counts as one column, whatever it is: a space, a no-break space (U+00A0), an em space (U+2003), a vertical tab, or a form feed. A tab in a literal is kept (FMT-TAB-003), and a literal whose indentation holds one is outside this spec (Non-goals). The width is the one the RH5202 analyzer and its code fix measure, so a literal the formatter has aligned is one they find aligned.
+The column the closing marker starts in before the move is the width of the whitespace in front of it on its line, and every whitespace character in front of it counts as one column, whatever it is: a space, a tab, a no-break space (U+00A0), an em space (U+2003), a vertical tab, or a form feed. A tab is no exception: it counts as one column like any other whitespace character, not as the width of a tab stop, and it is kept (FMT-TAB-003; FMT-RAW-002). Counting a tab as more than one column is outside this spec (Non-goals). The width is the one the RH5202 analyzer and its code fix measure, so a literal the formatter has aligned is one they find aligned.
 
 Why: The column of the closing marker defines how much indentation the compiler strips from every content line. Lining it up under the opening quotes makes the literal read as one block attached to the code that owns it, wherever indentation moved that code. The compiler strips every whitespace character in front of the closing marker, not only spaces, and each of them takes a column; a move measured from the spaces alone would leave the marker as many columns behind the opening quotes as other whitespace characters stand in front of it.
 
@@ -47,6 +47,32 @@ class C
         var a = """
                 Hello
                 """;
+    }
+}
+```
+
+Example — `→` stands for one tab. The closing marker stands behind four tabs, so it is in column 4 of its line, and the literal moves 12 columns to the right: 12 spaces are added in front of each line, and the four tabs stay behind them. Counting each tab as one column is what RH5202 and its fix count, so the result is the RH5202 fix's output and RH5202 does not report it:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = """
+→→→→x
+→→→→""";
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = """
+            →→→→x
+            →→→→""";
     }
 }
 ```
