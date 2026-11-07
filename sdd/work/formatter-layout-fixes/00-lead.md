@@ -55,6 +55,8 @@ None in this run so far. The issues' comments carry triage decisions (summarized
 | 16 | Implementer 08 | Hole lines in `RawStringLineShifts.ApplyEdits` rewritten as spaces, outside the shared shift helper | Leave as is | They set the indentation of code in an interpolation hole, not literal text; after preparation the trivia holds only spaces, so no second statement of the literal shift rule exists | No output changes | acc2f4c |
 | 17 | Implementer 08 | Direct Core test for `GetLineShiftEdit` | Not added | Both callers' tests cover every branch the helper has; no spec requirement names the helper | Internal | — |
 | 18 | Spec checker 10 | Change doc implies main already counted non-tab whitespace; FMT-RAW-002 missing from Affected requirements | Change doc states that counting non-tab whitespace (U+00A0 etc.) and removing it on a leftward shift is the #1611 bug fix against RH5202-003 and SHARED-FIX-007, that the tab is the only extension into the non-goal, and lists FMT-RAW-002; repair round 1 | 02-skeptic confirmed RH5202-003 already demanded it; Q2 covers only the tab | Non-tab output is demanded by unchanged RH5202-003/SHARED-FIX-007 | — |
+| 19 | Auditor 13 | Finding 1: FMT-BREAK-015/-016 say 015 owns both gaps around a parameter default `=`, but FMT-BREAK-016's rewriter joins the gap behind it (also on main) | Text repair: FMT-BREAK-016 defers only the gap in front of the default `=` to FMT-BREAK-015; the two-component ownership of the gap behind it, pre-existing on main, becomes a follow-up | No output changes; the structure predates the run and the narrow text repair adds no copy | Output unchanged against 6ecc978 | — |
+| 20 | Auditor 13 | Findings 2, 3: stale XML docs (`RawStringLiteral.cs`, `RawStringLineShifts.cs` `MoveLineInsideTrivia`, `LineBreakListRewriter.EnsureSeparatorsHaveEndOfLine`) | Cleaner fixes the comments; prove with verify-text-only against the audited SHA | Comment-only; no second audit needed when proven | Comments only | — |
 | 2 | Lane | Lane for #1149 and #1383, whose bodies say behavior change | Bug fix, all six | The later triage comments on both issues classify them as bugs against FMT-PIPE-014 with spec clarifications; the issues are `agent-filed` | Lane is internal; the outputs are demanded by FMT-PIPE-014 (to be confirmed by the skeptic) | — |
 
 ## Follow-up candidates
@@ -72,6 +74,9 @@ None in this run so far. The issues' comments carry triage decisions (summarized
 12. Method and argument lists wrapped only after `(` are joined to one line, against FMT-BREAK-012 (decision 14; 06-implementer).
 13. Whether FMT-BREAK-012 should split a parameter list when a comment pins a leading comma (`this[int first, int second // keep⏎, int third]`, method form alike) (07-test-implementer).
 14. Raw-string line shift duplication — taken into the run as decision 15, not a follow-up.
+15. Gap behind a parameter default `=` decided by two components (`LineBreakAssignmentRewriter.NormalizeEqualsValuePlacement` and `ListElementInteriorJoinRewriter.IsOwnedGap`), pre-existing on main (13-auditor, decision 19).
+16. RH5111 reports `A // c⏎= 1`, which the formatter keeps: RH5111-005 conflicts with SHARED-DIAG-010 (13-auditor).
+17. A base list whose `:` starts its own line puts `:` at column 0; no requirement decides it (13-auditor).
 9. Line-break rewriters that already carry a private "line break unless one exists" check: migrate to the shared check (decision 4).
 
 ## Worklist / next step
@@ -91,4 +96,5 @@ None in this run so far. The issues' comments carry triage decisions (summarized
 - Spec checker 10 at 4619ccd: one change-doc finding (decision 18). Repair round 1 of 3.
 - Spec author 11 at faa36db (decision 18); spec checker 12 at a75e2a3: consistent.
 - Before auditor: main not ahead; build green.
-- Next: auditor (13).
+- Auditor 13 at cc81583: pass, text cleanup. Audited SHA: eeba52a (base 6ecc978).
+- Next: spec author (14) finding 1; cleaner (15) findings 2, 3; verify-text-only --strict-docs --base eeba52a; validator (16); publish.
