@@ -58,10 +58,8 @@ public static class DeclarationModifierUtilities
     /// <param name="accessibilityModifier">Accessibility modifier</param>
     /// <returns>Updated declaration</returns>
     /// <remarks>
-    /// The leading trivia is captured from the declaration's first token, detached while the modifier is
-    /// inserted, and reattached to the new first token afterwards. This prevents the inserted modifier from
-    /// being placed in front of leading trivia such as a doc comment, which would otherwise detach the XML
-    /// documentation from the symbol (CS1587)
+    /// The modifier is written where the first token behind the declaration's attribute lists stood, behind
+    /// that token's leading trivia; see <see cref="AddAccessibilityModifiers(MemberDeclarationSyntax, IReadOnlyList{SyntaxKind})"/>
     /// </remarks>
     public static MemberDeclarationSyntax AddAccessibilityModifier(MemberDeclarationSyntax memberDeclaration, SyntaxKind accessibilityModifier)
     {
@@ -99,19 +97,24 @@ public static class DeclarationModifierUtilities
     /// <param name="accessibilityModifiers">Accessibility modifiers in declaration order</param>
     /// <returns>Updated declaration</returns>
     /// <remarks>
-    /// The leading trivia is captured from the declaration's first token, detached while the modifiers are
-    /// inserted, and reattached to the new first token afterwards. This prevents the inserted modifiers from
-    /// being placed in front of leading trivia such as a doc comment, which would otherwise detach the XML
-    /// documentation from the symbol (CS1587)
+    /// The modifiers are written where the first token behind the declaration's attribute lists stood: that
+    /// token's leading trivia is captured, detached while the modifiers are inserted, and reattached to the new
+    /// first token behind the attribute lists afterwards. Without attribute lists, that trivia is the
+    /// declaration's leading trivia, so a doc comment stays in front of the inserted modifiers instead of being
+    /// detached from the symbol (CS1587). With attribute lists on their own line, the indentation and every
+    /// comment and directive line in front of the declaration stay in front of the inserted modifiers, which
+    /// therefore stand on the declaration's line and in its column
     /// </remarks>
     public static MemberDeclarationSyntax AddAccessibilityModifiers(MemberDeclarationSyntax memberDeclaration, IReadOnlyList<SyntaxKind> accessibilityModifiers)
     {
-        var leadingTrivia = memberDeclaration.GetLeadingTrivia();
-        var declarationWithoutLeadingTrivia = memberDeclaration.WithLeadingTrivia(SyntaxFactory.TriviaList());
+        var firstToken = GetFirstTokenBehindAttributeLists(memberDeclaration);
+        var leadingTrivia = firstToken.LeadingTrivia;
+        var declarationWithoutLeadingTrivia = memberDeclaration.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(SyntaxFactory.TriviaList()));
         var updatedModifiers = AddAccessibilityModifiers(declarationWithoutLeadingTrivia.Modifiers, accessibilityModifiers);
+        var updatedDeclaration = declarationWithoutLeadingTrivia.WithModifiers(updatedModifiers);
+        var updatedFirstToken = GetFirstTokenBehindAttributeLists(updatedDeclaration);
 
-        return declarationWithoutLeadingTrivia.WithModifiers(updatedModifiers)
-                                              .WithLeadingTrivia(leadingTrivia);
+        return updatedDeclaration.ReplaceToken(updatedFirstToken, updatedFirstToken.WithLeadingTrivia(leadingTrivia));
     }
 
     /// <summary>
@@ -171,6 +174,24 @@ public static class DeclarationModifierUtilities
     public static MemberDeclarationSyntax WithModifiers(MemberDeclarationSyntax memberDeclaration, SyntaxTokenList modifiers)
     {
         return memberDeclaration.WithModifiers(modifiers);
+    }
+
+    /// <summary>
+    /// Gets the first token of the declaration behind its attribute lists: its first modifier, or, without
+    /// modifiers, the token that starts the rest of the declaration (such as its type or its keyword)
+    /// </summary>
+    /// <param name="memberDeclaration">Declaration</param>
+    /// <returns>The first token behind the attribute lists</returns>
+    private static SyntaxToken GetFirstTokenBehindAttributeLists(MemberDeclarationSyntax memberDeclaration)
+    {
+        if (memberDeclaration.Modifiers.Count > 0)
+        {
+            return memberDeclaration.Modifiers[0];
+        }
+
+        return memberDeclaration.AttributeLists.Count > 0
+                   ? memberDeclaration.AttributeLists[memberDeclaration.AttributeLists.Count - 1].GetLastToken().GetNextToken()
+                   : memberDeclaration.GetFirstToken();
     }
 
     /// <summary>

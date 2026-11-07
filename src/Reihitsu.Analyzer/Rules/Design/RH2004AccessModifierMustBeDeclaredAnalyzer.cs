@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Core;
 
@@ -66,8 +67,26 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzer : DiagnosticAnalyzerBase
                    PropertyDeclarationSyntax { ExplicitInterfaceSpecifier: not null } => true,
                    IndexerDeclarationSyntax { ExplicitInterfaceSpecifier: not null } => true,
                    EventDeclarationSyntax { ExplicitInterfaceSpecifier: not null } => true,
+                   OperatorDeclarationSyntax { ExplicitInterfaceSpecifier: not null } => true,
+                   ConversionOperatorDeclarationSyntax { ExplicitInterfaceSpecifier: not null } => true,
                    _ => false
                };
+    }
+
+    /// <summary>
+    /// Gets the part of a partial property, indexer, event, or constructor that carries the member's one diagnostic
+    /// (SHARED-DIAG-004, SHARED-DIAG-012). A part qualifies when it states no accessibility
+    /// </summary>
+    /// <param name="context">Context</param>
+    /// <param name="memberDeclaration">Declaration</param>
+    /// <returns>The part, or <see langword="null"/> when the analysis of this part reports nothing</returns>
+    private static MemberDeclarationSyntax GetReportedPart(SyntaxNodeAnalysisContext context, MemberDeclarationSyntax memberDeclaration)
+    {
+        return PartialMemberUtilities.GetReportedPart(memberDeclaration,
+                                                      PartialMemberUtilities.GetDeclaredSymbol(memberDeclaration, context.SemanticModel, context.CancellationToken),
+                                                      static part => DeclarationModifierUtilities.HasAccessibilityModifier(part.Modifiers) == false,
+                                                      context.SemanticModel.Compilation,
+                                                      context.CancellationToken);
     }
 
     /// <summary>
@@ -117,7 +136,16 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzer : DiagnosticAnalyzerBase
             return;
         }
 
-        context.ReportDiagnostic(CreateDiagnostic(GetDiagnosticLocation(memberDeclaration)));
+        var reportedDeclaration = modifiers.Any(SyntaxKind.PartialKeyword)
+                                      ? GetReportedPart(context, memberDeclaration)
+                                      : memberDeclaration;
+
+        if (reportedDeclaration == null)
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(CreateDiagnostic(GetDiagnosticLocation(reportedDeclaration)));
     }
 
     #endregion // Methods

@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Core;
+
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
 /// <summary>
@@ -347,94 +349,6 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
-    /// Gets the symbol whose declarations bound the code that can refer to a renamed symbol
-    /// </summary>
-    /// <param name="symbol">Renamed symbol</param>
-    /// <returns>
-    /// The bounding symbol, or <see langword="null"/> when code of the declaring project and of every project that
-    /// depends on it can refer to the symbol
-    /// </returns>
-    private static ISymbol GetReferenceScope(ISymbol symbol)
-    {
-        if (symbol is ITypeParameterSymbol)
-        {
-            return symbol.ContainingSymbol;
-        }
-
-        // A parameter can be named by a named argument wherever its method can be called, so its scope is the method's
-        var current = symbol is IParameterSymbol
-                          ? symbol.ContainingSymbol
-                          : symbol;
-
-        while (current != null
-               && current is not INamespaceSymbol)
-        {
-            switch (current)
-            {
-                case ILocalSymbol or IRangeVariableSymbol or ILabelSymbol:
-                case IMethodSymbol { MethodKind: MethodKind.LocalFunction or MethodKind.AnonymousFunction }:
-                case INamedTypeSymbol { IsFileLocal: true }:
-                    {
-                        return current;
-                    }
-
-                case { DeclaredAccessibility: Accessibility.Private }:
-                    {
-                        return current.ContainingType ?? current;
-                    }
-            }
-
-            current = current.ContainingSymbol;
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Gets every document in which code can refer to a renamed symbol
-    /// </summary>
-    /// <param name="solution">Solution containing the symbol</param>
-    /// <param name="symbol">Renamed symbol</param>
-    /// <returns>The documents, in solution order</returns>
-    private static ImmutableArray<Document> GetReferringDocuments(Solution solution, ISymbol symbol)
-    {
-        var scope = GetReferenceScope(symbol);
-
-        if (scope != null)
-        {
-            return scope.DeclaringSyntaxReferences
-                        .Select(reference => solution.GetDocument(reference.SyntaxTree))
-                        .Where(static document => document != null)
-                        .Distinct()
-                        .ToImmutableArray();
-        }
-
-        var declaringProject = symbol.DeclaringSyntaxReferences
-                                     .Select(reference => solution.GetDocument(reference.SyntaxTree)?.Project)
-                                     .FirstOrDefault(static project => project != null);
-
-        return declaringProject == null
-                   ? []
-                   : GetDependentProjectIds(solution, [declaringProject.Id]).SelectMany(projectId => solution.GetProject(projectId)?.Documents ?? [])
-                                                                            .ToImmutableArray();
-    }
-
-    /// <summary>
-    /// Gets the specified projects and every project that depends on one of them
-    /// </summary>
-    /// <param name="solution">Solution containing the projects</param>
-    /// <param name="projectIds">Projects whose dependents are added</param>
-    /// <returns>The projects, without duplicates</returns>
-    private static ImmutableArray<ProjectId> GetDependentProjectIds(Solution solution, IEnumerable<ProjectId> projectIds)
-    {
-        var dependencyGraph = solution.GetProjectDependencyGraph();
-
-        return projectIds.SelectMany(projectId => dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectId).Prepend(projectId))
-                         .Distinct()
-                         .ToImmutableArray();
-    }
-
-    /// <summary>
     /// Gets the rename cascade of a declared symbol: the symbol itself and at least every symbol declared in source that a
     /// rename of it renames with it, as Roslyn determines it
     /// </summary>
@@ -497,52 +411,6 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
         }
 
         return oldNames.ToImmutable();
-    }
-
-    /// <summary>
-    /// Determines whether an old name or the new name occurs as an identifier in code that a conditional directive
-    /// excludes
-    /// </summary>
-    /// <param name="solution">Solution containing the symbols</param>
-    /// <param name="cascade">Rename cascade before the rename</param>
-    /// <param name="oldNames">Old names of the cascade, as <see cref="GetOldNames"/> reads them</param>
-    /// <param name="identifier">Proposed identifier</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns><see langword="true"/> when excluded code names an old name or the new name; otherwise, <see langword="false"/></returns>
-    /// <remarks>
-    /// Excluded code is not bound, so the renamer cannot rename a reference in it, and an occurrence there cannot be
-    /// told apart from an unrelated name. Every occurrence therefore withholds the rename, in every document whose code
-    /// can refer to one of the symbols of the cascade
-    /// </remarks>
-    private static async Task<bool> HasExcludedCodeOccurrenceAsync(Solution solution,
-                                                                   ImmutableArray<ISymbol> cascade,
-                                                                   ImmutableHashSet<string> oldNames,
-                                                                   string identifier,
-                                                                   CancellationToken cancellationToken)
-    {
-        foreach (var document in cascade.SelectMany(symbol => GetReferringDocuments(solution, symbol)).Distinct())
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            if (root?.ContainsDirectives != true)
-            {
-                continue;
-            }
-
-            if (root.DescendantTrivia(descendIntoTrivia: true)
-                    .Where(static trivia => trivia.IsKind(SyntaxKind.DisabledTextTrivia))
-                    .SelectMany(static trivia => SyntaxFactory.ParseTokens(trivia.ToString()))
-                    .Any(token => token.IsKind(SyntaxKind.IdentifierToken)
-                                  && (oldNames.Contains(token.ValueText)
-                                      || string.Equals(token.ValueText, identifier, StringComparison.Ordinal))))
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /// <summary>
@@ -881,17 +749,15 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
             return null;
         }
 
-        if (await HasExcludedCodeOccurrenceAsync(solution,
-                                                 prepared.Value.Cascade,
-                                                 GetOldNames(prepared.Value.Cascade, renamedCascade),
-                                                 identifier,
-                                                 cancellationToken).ConfigureAwait(false))
+        var renamedNames = GetOldNames(prepared.Value.Cascade, renamedCascade).Add(identifier);
+
+        if (await ExcludedCodeUtilities.HasExcludedCodeOccurrenceAsync(solution, prepared.Value.Cascade, renamedNames, cancellationToken).ConfigureAwait(false))
         {
             return null;
         }
 
         var projectChanges = renamedSolution.GetChanges(solution).GetProjectChanges();
-        var affectedProjectIds = GetDependentProjectIds(solution, projectChanges.Select(static changes => changes.ProjectId));
+        var affectedProjectIds = ExcludedCodeUtilities.GetDependentProjectIds(solution, projectChanges.Select(static changes => changes.ProjectId));
 
         if (await HasAddedCompileErrorsAsync(solution, renamedSolution, affectedProjectIds, cancellationToken).ConfigureAwait(false)
             || await ChangesPositionalPropertiesAsync(solution, renamedSolution, affectedProjectIds, cancellationToken).ConfigureAwait(false))
