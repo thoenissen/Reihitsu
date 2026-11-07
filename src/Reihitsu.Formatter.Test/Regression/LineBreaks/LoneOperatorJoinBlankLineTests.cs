@@ -87,14 +87,16 @@ public class LoneOperatorJoinBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a lone null-coalescing operator is joined with its right operand without a blank line
+    /// Verifies that a lone null-coalescing operator is joined with its right operand without a blank line and stands one
+    /// level deeper than its left operand
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-030")]
+    [Requirement("FMT-INDENT-018")]
     public void LoneCoalesceOperatorIsJoinedWithoutBlankLine()
     {
         var input = InMethod("        var p = s\n                ??\n                \"x\";");
-        var expected = InMethod("        var p = s\n                ?? \"x\";\n");
+        var expected = InMethod("        var p = s\n                    ?? \"x\";\n");
 
         AssertRuleResult(input, expected);
     }
@@ -126,15 +128,16 @@ public class LoneOperatorJoinBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a lone operator below a comment line between the operands is joined without a blank line above the
-    /// comment
+    /// Verifies that a lone operator below a comment line between the operands is joined with its operand, and that the
+    /// comment on its own line gets exactly the one blank line above it that the blank-line rules require
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-030")]
-    public void LoneOperatorBelowCommentLineIsJoinedWithoutBlankLine()
+    [Requirement("FMT-BLANK-011")]
+    public void LoneOperatorBelowCommentLineIsJoinedAndCommentGetsOneBlankLine()
     {
         var input = InMethod("        var p = a\n                // between\n                &&\n                b;");
-        var expected = InMethod("        var p = a\n                // between\n                && b;\n");
+        var expected = InMethod("        var p = a\n\n                // between\n                && b;\n");
 
         AssertRuleResult(input, expected);
     }
@@ -197,15 +200,17 @@ public class LoneOperatorJoinBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a lone conditional <c>:</c> below a comment line is joined without a blank line above the comment
+    /// Verifies that a lone conditional <c>:</c> below a comment line is joined with the false branch, and that the comment
+    /// on its own line gets exactly the one blank line above it that the blank-line rules require
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-030")]
     [Requirement("FMT-BREAK-018")]
-    public void LoneConditionalColonBelowCommentLineIsJoinedWithoutBlankLine()
+    [Requirement("FMT-BLANK-011")]
+    public void LoneConditionalColonBelowCommentLineIsJoinedAndCommentGetsOneBlankLine()
     {
         var input = InMethod("        var p = a\n                ? 1\n                // c\n                :\n                2;");
-        var expected = InMethod("        var p = a\n                    ? 1\n                    // c\n                    : 2;\n");
+        var expected = InMethod("        var p = a\n                    ? 1\n\n                    // c\n                    : 2;\n");
 
         AssertRuleResult(input, expected);
     }

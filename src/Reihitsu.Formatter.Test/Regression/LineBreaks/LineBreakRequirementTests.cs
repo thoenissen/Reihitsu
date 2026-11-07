@@ -469,12 +469,12 @@ public class LineBreakRequirementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Characterizes the current layout of wrapped enum member values: a wrap before <c>=</c> is
-    /// kept, a wrap after <c>=</c> is joined. A decided change will keep the operator and the
-    /// value on the member's line, so this test carries no requirement until it is implemented
+    /// Verifies that a wrap before and a wrap after the <c>=</c> of an enum member's value are both
+    /// joined, so the operator and the value stay on the member's line
     /// </summary>
     [TestMethod]
-    public void EnumMemberWrapBeforeEqualsIsKeptAndWrapAfterEqualsIsJoined()
+    [Requirement("FMT-BREAK-016")]
+    public void EnumMemberWrapBeforeEqualsAndWrapAfterEqualsAreJoined()
     {
         // Arrange
         const string input = """
@@ -490,8 +490,7 @@ public class LineBreakRequirementTests : FormatterTestsBase
         const string expected = """
                                 enum E
                                 {
-                                    A
-                                    = 1,
+                                    A = 1,
                                     B = 2,
                                     C = 3
                                 }
