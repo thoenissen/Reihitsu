@@ -56,4 +56,5 @@ Maintainer: "keep it simple".
 - Last step: skeptic 02 (7e38ec4). Output questions Q1–Q3 asked.
 - Spec author 03 done (bbfd717). Continued once for decision 10.
 - Spec author decision 10 applied (9494bcd).
-- Next: test implementer (04).
+- Test implementer 04 done (c55c7d0): all four reproduce; 82 failing tests to make pass.
+- Next: implementer (05).
