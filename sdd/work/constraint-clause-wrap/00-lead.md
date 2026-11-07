@@ -54,4 +54,5 @@ From `02-skeptic.md`:
 - 03 spec author done (c716d42): change doc Accepted; FMT-BREAK-037, FMT-INDENT-032 rewritten; RH5110-004 added (fix withheld when a comment/directive stands in a gap FMT-BREAK-037 joins).
 - RH5110-004 reading of Q8 is ambiguous (Q3A/Q4A/Q7A give safe fallback layouts for exactly those inputs, so the fix could be offered with them). Q9 answered A.
 - 04 spec author done (6ebc723): RH5110-004 dropped; RH5110-003 changed (fix offered, fallback layout).
-- Next: test implementer (05).
+- 05 test implementer done (9a1da1d, 7c0d665): 46 formatter + 6 RH5110 tests; 43+6 fail on unchanged code as expected, 4 guard tests pass.
+- Next: implementer (06).
