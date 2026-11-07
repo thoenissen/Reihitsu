@@ -54,3 +54,11 @@ Nothing to do. Row 42 (finding 16) is comment-only and the test implementer's.
 - Files: `sdd/specs/analyzer/RH3004.md`, `sdd/specs/analyzer/RH3106.md`, `sdd/specs/requirement-ids.txt`.
 - `scripts/test.sh --project architecture`: 114 passed, 1 failed — the coverage test for the new RH3004-008, as expected before its test exists.
 - No rule page changed (`documentation/rules/RH3004.md`, `documentation/rules/RH3106.md`).
+
+## Amendment — row 43
+
+RH3004-008's requirement sentence named only disabled text, while its example with `A` defined (no disabled text in that build) also withholds the fix. The sentence now states the active-branch case: the fix is also withheld when a string of active code in an active `#if`, `#elif`, or `#else` branch inside the block would, under symbols that turn that branch off, be disabled text that leaves the string open (such as a verbatim string holding a line that would then be a directive), because the result must not depend on which symbols are defined. This matches the implementer's reading (`29-implementer.md`, line 46). Title, Why, and examples are unchanged; clarified, no new ID.
+
+- File: `sdd/specs/analyzer/RH3004.md`.
+- `scripts/test.sh --project architecture`: 115 passed.
+- No rule page changed.
