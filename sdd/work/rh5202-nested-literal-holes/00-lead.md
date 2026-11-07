@@ -31,6 +31,7 @@
 | 11 | Repair 2 spec | Output question from 14-spec-author: a whitespace-only line of hole code (fix shifts it on `main` and head; the formatter removes it) | Not asked in this run: the case is outside the run's issue and the run leaves `main`'s behavior unchanged (RH5202-003 shifts it); filed as a follow-up candidate carrying the output question | Lead playbook: an open question about a case outside the run's issues becomes a follow-up | Output equals `main` | 3c67247 |
 | 12 | Audit 2 | Finding #3: leftward shift changes the value of a raw string nested in a hole whose lines carry less leading whitespace than the shift (pre-existing; breaks RH5202-004 and SHARED-FIX-003) | Repair in this run: the fix is withheld for every input where shifting would change a nested literal's value (maintainer answer Q2 = A); RH5202-004 states the withholding; tests for the failing members and the boundary | A safety rail in an output the run changes cannot ship; Q2 = A already decides withholding | Covered by maintainer answer Q2 | — |
 | 13 | Audit 2 | Finding #4: invisible U+00A0 / U+2003 in Core test data rows | Repair: write them as escapes | PR-introduced, readability | Test-only | — |
+| 14 | Repair 3 impl | Scope: `IsMultiLineRawStringLiteral` moved unchanged from `RawStringLineShifts` to `RawStringLineUtilities` so the fix can reuse it | Accept | Avoids a private copy in the fix (FC-015) while respecting FMT-PIPE-009; same component pair the run already changes | Pure move, formatter output unchanged | cc662a9 |
 
 ## Follow-up candidates
 
@@ -48,5 +49,5 @@
 - Tests (15, 07eebea): 4 red.
 - Implementer (16, 52e13fe), cleaner (17, 381cbe7), spec checker (18, 772c0b4): no findings.
 - Audit 2 (19, fbe729e; audited 4a00ace): #1 closed, #2 superseded, arch closed; new #3 (high), #4 (low) → decisions 12, 13.
-- Repair round 3 (of 3, last): spec author done (20, 0dd23fe; new RH5202-006) → tests (21, 43881b1; 12 red) → test implementer (#3 members + boundary, #4) → implementer → cleaner → spec checker → auditor (repair only) → validator.
+- Repair round 3 (of 3, last): spec author done (20, 0dd23fe; new RH5202-006) → tests (21, 43881b1; 12 red) → implementer (22, cc662a9) → test implementer (#3 members + boundary, #4) → implementer → cleaner → spec checker → auditor (repair only) → validator.
 - (old next: auditor (repairs since 685ab42) → validator → publish.
