@@ -567,8 +567,9 @@ public class RewriteBindingUtilitiesTests
 
     /// <summary>
     /// Verifies that the probe binds as before under an implicitly typed local inside an <see langword="if"/> block
-    /// whose later statement calls the local: the error the probe's natural type causes in that sibling statement does
-    /// not count, because the sibling statement is not on the path from the expression to its binding root
+    /// whose later statement calls the local: the error the probe's natural type would cause in that sibling statement
+    /// does not count, because the local's declaration statement is the binding root, so the sibling statement lies
+    /// outside the bound node and is not bound at all
     /// </summary>
     [TestMethod]
     public void BindsAsBeforeReturnsTrueForProbeWhoseNaturalTypeBreaksSiblingStatementInBlock()
@@ -621,7 +622,8 @@ public class RewriteBindingUtilitiesTests
     /// <summary>
     /// Verifies that the probe binds as before where it decides the inferred return type of a lambda under an
     /// implicitly typed local inside an <see langword="if"/> block, and a later statement calls the lambda's result:
-    /// the lambda's declaration is on the path and binds without error, the sibling statement is not on the path
+    /// the lambda's declaration statement is the binding root and binds without error, and the sibling statement lies
+    /// outside the bound node, so it is not bound at all
     /// </summary>
     [TestMethod]
     public void BindsAsBeforeReturnsTrueForProbeReturnedByLambdaWhoseResultBreaksSiblingStatement()
@@ -661,6 +663,79 @@ public class RewriteBindingUtilitiesTests
                                                           {
                                                               var g = () => delegate () { };
                                                               g()();
+                                                          }
+                                                      }
+                                                  }
+                                                  """);
+
+        Assert.IsFalse(RewriteBindingUtilities.BindsAsBefore(semanticModel, expression, RemoveList(expression), out _, CancellationToken.None));
+    }
+
+    /// <summary>
+    /// Verifies that the probe binds as before under an implicitly typed local in the initializer of a
+    /// <see langword="for"/> statement whose incrementor calls the local: the <see langword="for"/> statement is the
+    /// binding root, and the error the probe's natural type causes in the incrementor does not count, because the
+    /// incrementor is neither on the path from the expression to the binding root nor inside the expression
+    /// </summary>
+    [TestMethod]
+    public void BindsAsBeforeReturnsTrueForProbeWhoseNaturalTypeBreaksForIncrementor()
+    {
+        var (semanticModel, expression) = Compile("""
+                                                  class C
+                                                  {
+                                                      void M()
+                                                      {
+                                                          for (var a = delegate () { }; a != null; a())
+                                                          {
+                                                          }
+                                                      }
+                                                  }
+                                                  """);
+
+        Assert.IsTrue(RewriteBindingUtilities.BindsAsBefore(semanticModel, expression, Probe(expression), out var convertedType, CancellationToken.None));
+        Assert.AreEqual("System.Action<int>", convertedType?.ToDisplayString());
+    }
+
+    /// <summary>
+    /// Verifies that the probe binds as before under an implicitly typed local in the initializer of a
+    /// <see langword="for"/> statement whose condition calls the local: the error the probe's natural type causes in
+    /// the condition does not count, because the condition is neither on the path from the expression to the binding
+    /// root nor inside the expression
+    /// </summary>
+    [TestMethod]
+    public void BindsAsBeforeReturnsTrueForProbeWhoseNaturalTypeBreaksForCondition()
+    {
+        var (semanticModel, expression) = Compile("""
+                                                  class C
+                                                  {
+                                                      void M()
+                                                      {
+                                                          for (var f = delegate () { return false; }; f();)
+                                                          {
+                                                          }
+                                                      }
+                                                  }
+                                                  """);
+
+        Assert.IsTrue(RewriteBindingUtilities.BindsAsBefore(semanticModel, expression, Probe(expression), out var convertedType, CancellationToken.None));
+        Assert.AreEqual("System.Func<int, bool>", convertedType?.ToDisplayString());
+    }
+
+    /// <summary>
+    /// Verifies that removing the parameter list still does not bind as before where it leaves the inferred return
+    /// type of a lambda in the initializer of a <see langword="for"/> statement without a type, also beside an
+    /// incrementor that calls the lambda's result: the error stays on the path from the expression to its binding root
+    /// </summary>
+    [TestMethod]
+    public void BindsAsBeforeReturnsFalseForRemovedListThatLeavesLambdaReturnTypeUninferredInForInitializer()
+    {
+        var (semanticModel, expression) = Compile("""
+                                                  class C
+                                                  {
+                                                      void M(bool b)
+                                                      {
+                                                          for (var g = () => delegate () { }; b; g()())
+                                                          {
                                                           }
                                                       }
                                                   }

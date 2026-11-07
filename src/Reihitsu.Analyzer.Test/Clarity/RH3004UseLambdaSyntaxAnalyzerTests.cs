@@ -2056,6 +2056,382 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     }
 
     /// <summary>
+    /// Verifies a block that holds an interpolated verbatim string over several lines whose continuation line starts
+    /// with a hole in column 0 is fixed, and every line that starts inside the string keeps its columns, so the
+    /// string's value stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixKeepsAContinuationLineOfAnInterpolatedVerbatimStringThatStartsWithAHoleInItsColumns()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<string> b = {|RH3004:delegate|} (string name)
+                                        {
+                                            var s = $@"Hello
+                                {name}
+                                done";
+                                            Console.WriteLine(s);
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<string> b = (string name) =>
+                                                            {
+                                                                var s = $@"Hello
+                                 {name}
+                                 done";
+                                                                Console.WriteLine(s);
+                                                            };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a block that holds an interpolated verbatim string over several lines whose continuation line starts
+    /// with a hole in column 0, in a document whose line breaks are CRLF: every line that starts inside the string
+    /// keeps its columns, and the line breaks stay CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixKeepsAContinuationLineOfAnInterpolatedVerbatimStringThatStartsWithAHoleInItsColumnsWithCarriageReturnLineFeed()
+    {
+        var testCode = NormalizeToCarriageReturnLineFeed("""
+                                                         using System;
+
+                                                         class C
+                                                         {
+                                                             void M()
+                                                             {
+                                                                 Action<string> b = delegate (string name)
+                                                                 {
+                                                                     var s = $@"Hello
+                                                         {name}
+                                                         done";
+                                                                     Console.WriteLine(s);
+                                                                 };
+                                                             }
+                                                         }
+                                                         """);
+
+        var expectedCode = NormalizeToCarriageReturnLineFeed("""
+                                                             using System;
+
+                                                             class C
+                                                             {
+                                                                 void M()
+                                                                 {
+                                                                     Action<string> b = (string name) =>
+                                                                                        {
+                                                                                            var s = $@"Hello
+                                                             {name}
+                                                             done";
+                                                                                            Console.WriteLine(s);
+                                                                                        };
+                                                                 }
+                                                             }
+                                                             """);
+
+        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+    }
+
+    /// <summary>
+    /// Verifies a block that holds an interpolated verbatim string whose closing quote starts a line in column 0 is
+    /// fixed, and the line of the closing quote keeps its columns, so the string's value stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixKeepsTheClosingQuoteLineOfAnInterpolatedVerbatimStringInItsColumns()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<string> b = {|RH3004:delegate|} (string name)
+                                        {
+                                            var s = $@"Hello {name}
+                                ";
+                                            Console.WriteLine(s);
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<string> b = (string name) =>
+                                                            {
+                                                                var s = $@"Hello {name}
+                                 ";
+                                                                Console.WriteLine(s);
+                                                            };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a block whose first statement starts on the line of the opening brace and holds an interpolated
+    /// verbatim string whose continuation line starts with a hole in column 0: the continuation line keeps its
+    /// columns, also with the code behind the string on that line, so the string's value stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixKeepsAContinuationLineOfAnInterpolatedVerbatimStringAfterASharedOpeningBraceLineInItsColumns()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<string> b = {|RH3004:delegate|} (string name) { var s = $@"Hello
+                                {name}"; Console.WriteLine(s); };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<string> b = (string name) =>
+                                                            {
+                                                                var s = $@"Hello
+                                 {name}"; Console.WriteLine(s);
+                                                            };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a block whose disabled text holds an interpolated verbatim string over several lines whose
+    /// continuation lines start in column 0 with a hole and with the closing quote: the lines that start inside the
+    /// string keep their columns, as in active code
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixKeepsTheContinuationLinesOfAnInterpolatedVerbatimStringInDisabledTextInTheirColumns()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<string> b = {|RH3004:delegate|} (string name)
+                                        {
+                                #if NEVER
+                                            var s = $@"Hello
+                                {name}
+                                ";
+                                #endif
+                                            Console.WriteLine(name);
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<string> b = (string name) =>
+                                                            {
+                                 #if NEVER
+                                                                var s = $@"Hello
+                                 {name}
+                                 ";
+                                 #endif
+                                                                Console.WriteLine(name);
+                                                            };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a block that holds a verbatim string whose closing quote starts a line in column 0 is fixed, and the
+    /// line of the closing quote keeps its columns, so the string's value stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixKeepsTheClosingQuoteLineOfAVerbatimStringInItsColumns()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<string> b = {|RH3004:delegate|} (string name)
+                                        {
+                                            var s = @"Hello
+                                ";
+                                            Console.WriteLine(s + name);
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<string> b = (string name) =>
+                                                            {
+                                                                var s = @"Hello
+                                 ";
+                                                                Console.WriteLine(s + name);
+                                                            };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a block that holds an interpolated verbatim string whose continuation lines start in column 0 with
+    /// the string's text in front of a hole and in front of the closing quote is fixed, and those lines keep their
+    /// columns, so the string's value stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixKeepsContinuationLinesOfAnInterpolatedVerbatimStringThatStartWithTextInTheirColumns()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<string> b = {|RH3004:delegate|} (string name)
+                                        {
+                                            var s = $@"Hello
+                                dear {name}
+                                done";
+                                            Console.WriteLine(s);
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<string> b = (string name) =>
+                                                            {
+                                                                var s = $@"Hello
+                                 dear {name}
+                                 done";
+                                                                Console.WriteLine(s);
+                                                            };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a block that only returns an interpolated verbatim string whose continuation line starts with a hole
+    /// in column 0 is rewritten as an expression body, and the continuation line keeps its columns, so the string's
+    /// value stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-003")]
+    public async Task FixRewritesASingleReturnOfAnInterpolatedVerbatimStringAsAnExpressionBodyAndKeepsItsValue()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<string, string> b = {|RH3004:delegate|} (string name)
+                                        {
+                                            return $@"Hello
+                                {name}";
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Func<string, string> b = (string name) => $@"Hello
+                                 {name}";
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
     /// Verifies the specification example of a first statement on the line of the opening brace and later lines that
     /// start left of it: the later lines move together until the leftmost of them stands in the statement column, and
     /// keep their indentation relative to each other

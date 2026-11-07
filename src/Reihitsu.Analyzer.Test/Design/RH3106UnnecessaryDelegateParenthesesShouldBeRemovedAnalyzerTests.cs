@@ -2389,6 +2389,110 @@ public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzerTests : 
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies an anonymous method under <c>var</c> in the initializer of a <see langword="for"/> statement is not
+    /// reported, also where the condition and the incrementor of the statement use the local
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodUnderVarInAForInitializerWithAUseInTheConditionAndIncrementorIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        for (var a = delegate () { }; a != null; a())
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method under <c>var</c> in the initializer of a <see langword="for"/> statement in the
+    /// block body of a lambda is not reported, also where the condition and the incrementor of the statement use the
+    /// local
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodUnderVarInAForInitializerInALambdaBodyWithAUseInTheConditionAndIncrementorIsNotReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action x = () =>
+                                                   {
+                                                       for (var a = delegate () { }; a != null; a())
+                                                       {
+                                                       }
+                                                   };
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method in an implicitly typed array under <c>var</c> in the initializer of a
+    /// <see langword="for"/> statement is not reported, also where the condition and the incrementor of the statement
+    /// use the array
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodInAnImplicitlyTypedArrayInAForInitializerWithAUseInTheConditionAndIncrementorIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        for (var arr = new[] { delegate () { } }; arr.Length > 0; arr[0]())
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method under <c>var</c> in the initializer of a <see langword="for"/> statement is not
+    /// reported where only the body of the statement uses the local
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3106-003")]
+    public async Task AnonymousMethodUnderVarInAForInitializerWithAUseOnlyInTheBodyIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool b)
+                                    {
+                                        for (var a = delegate () { }; b;)
+                                        {
+                                            a();
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
