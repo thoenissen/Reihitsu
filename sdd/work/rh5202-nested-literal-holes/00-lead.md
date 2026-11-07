@@ -10,7 +10,8 @@
 
 ## Maintainer answers
 
-- Q1 (RH5202, verbatim string / comment spanning lines in a hole: A = formatter's output, B = withhold): asked, awaiting answer.
+- Q1 (RH5202, a verbatim string or `/* */` comment spanning lines inside a hole): **A** — the fix writes the formatter's FMT-RAW-009 output; lines that start inside the nested literal's or comment's text stay as written; the diagnostic is cleared.
+- Q2 (may the RH5202 fix withhold itself for an input where a rewrite would be unsafe?): **A** — yes; the fix is withheld and the diagnostic stays without a fix.
 
 ## Decisions taken
 
@@ -28,4 +29,4 @@ None yet.
 ## Worklist / next step
 
 - Skeptic done (01-skeptic.md, e6b9fbb): reproduced on main for the code fix only; formatter correct; caller reaches it.
-- Waiting: maintainer answer to Q1. Then: spec author (RH5202-003 clarification per answer, Uses FMT-RAW-009) → test implementer.
+- Q1/Q2 answered. Next: spec author (RH5202-003 clarification per answer, Uses FMT-RAW-009) → test implementer.
