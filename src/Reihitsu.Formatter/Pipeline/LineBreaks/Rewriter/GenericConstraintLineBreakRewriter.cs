@@ -20,8 +20,8 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 /// The clause is laid out in two steps. First the wraps that structure nothing are joined: the gap between the type
 /// parameter and the colon, and every gap inside one constraint except the gaps inside a type argument list, which the
 /// angle-bracket collapse (FMT-BREAK-014) and the list element interior join (FMT-BREAK-015) own and which have already
-/// run. Then the clause is judged as these joins leave it: when a line break stands behind its colon or its constraints
-/// span more than one line, the first constraint joins the colon's line, every comma at the start of a line joins the
+/// run. Then the clause is judged as these joins leave it: when its colon starts a line, a line break stands behind its
+/// colon, or its constraints span more than one line, the first constraint joins the colon's line, every comma at the start of a line joins the
 /// line of the constraint in front of it, and every later constraint starts its own line. No join crosses a comment, a
 /// directive, or disabled text (FMT-BREAK-001); the line break in such a gap stays, and the indentation phase aligns the
 /// line it starts (FMT-INDENT-032)
@@ -164,8 +164,10 @@ internal sealed class GenericConstraintLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether a clause is wrapped (FMT-BREAK-037): a line break stands behind its colon, or its constraints,
-    /// from the first token of the first constraint to the last token of the last one, span more than one line
+    /// Determines whether a clause is wrapped (FMT-BREAK-037): its colon starts a line, a line break stands behind its
+    /// colon, or its constraints, from the first token of the first constraint to the last token of the last one, span
+    /// more than one line. After the joins of <see cref="JoinUnstructuredWraps"/>, a colon still starts a line only where
+    /// a comment, a directive, or disabled text keeps it off the type parameter's line
     /// </summary>
     /// <param name="clause">The constraint clause, after the joins of <see cref="JoinUnstructuredWraps"/></param>
     /// <returns><see langword="true"/> if the clause is wrapped; otherwise, <see langword="false"/></returns>
@@ -173,7 +175,8 @@ internal sealed class GenericConstraintLineBreakRewriter : CSharpSyntaxRewriter
     {
         var firstToken = clause.Constraints[0].GetFirstToken();
 
-        if (TokenGapUtilities.HasLineBreakBetween(clause.ColonToken, firstToken))
+        if (TokenGapUtilities.HasLineBreakBetween(clause.Name.GetLastToken(), clause.ColonToken)
+            || TokenGapUtilities.HasLineBreakBetween(clause.ColonToken, firstToken))
         {
             return true;
         }
