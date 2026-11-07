@@ -654,7 +654,7 @@ class B : System. // c
 enum E : System. // c
          Int32
 {
-    A,
+    A
 }
 ```
 
