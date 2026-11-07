@@ -23,6 +23,8 @@ Maintainer: "keep it simple".
 - Q2 (RH2001 mutable-struct boundary): **C** (not C′) — fix withheld for a property whose type is a struct not declared `readonly` (option C as asked: "every struct not declared readonly"; the earlier "settable" in this note was the lead's gloss, not the answer) (per the type symbol of the compilation's references); `Nullable<T>` of an enum or `readonly` struct counts as readonly. No special-type exemption: on netstandard2.0/.NET Framework targets `int`/`bool` properties lose the fix — accepted by the maintainer.
 - Q4 (RH2001 property typed by a type parameter not constrained to a reference type): **A** — reported, fix withheld (as specified in RH2001-008 and implemented).
 - Q5 (RH2005: `public` on its own line behind another modifier, indentation only): **A** — fix offered, the line keeps its place (`private static⏎        int Counter;`).
+- Q7 (RH2005: a later `public` ends its line, `static public⏎        int Counter;`): **A** — fix offered, each line stays: `private static⏎        int Counter;`.
+- Q8 (RH2005: comment, directive or `#if` behind a later `public`, on its line or on lines below it): **A** — reported, no fix offered (extends RH2005-005).
 - Q6 (RH2005: comment/directive/`#if` line in front of a non-first `public`; RH2001: such a line between type and name): **A** — reported, no fix offered.
 - Q3 (RH2005 references outside the type body that still compile — `nameof` in the type's own attribute, `cref` from another type): **B** — every reference outside the bodies of the type's declarations withholds the fix; spec text as written.
 
@@ -72,8 +74,8 @@ Maintainer: "keep it simple".
 
 ## Pending output questions (batch before auditor)
 
-- Q7: RH2005 `static public⏎        int Counter;` (later `public` ends its line) — A `private static⏎        int Counter;` (rec.), B formatter layout. ASKED.
-- Q8: RH2005 comment/directive/`#if` behind a later `public` (same line or next lines) — A withhold, extending RH2005-005 (rec.), B carry. ASKED.
+- Q7: RH2005 `static public⏎        int Counter;` (later `public` ends its line) — A `private static⏎        int Counter;` (rec.), B join. ANSWERED A.
+- Q8: RH2005 comment/directive/`#if` behind a later `public` (same line or next lines) — A withhold, extending RH2005-005 (rec.), B carry. ANSWERED A.
 
 - Q5: RH2005 `static⏎        public int Counter;` (indentation only) — A keep the line in place (`private static⏎        int Counter;`, rec.), B formatter layout (column 4).
 - Q6: comment/directive/`#if` line in the replaced gap (RH2005 in front of non-first `public`; RH2001 between type and name) — A withhold the fix (rec.), B carry in place. ANSWERED 5A, 6A.
@@ -108,6 +110,6 @@ Maintainer: "keep it simple".
 - Implementer 14 done (2f1fb5a, d09d88f): all tests pass (analyzer 7153, core 649, architecture 115).
 - Cleaner 15 clean (f4be099); spec checker 16 consistent (38ad14b).
 - Audit 17 of a79eb22: BLOCKED — finding 5 (architecture, decision 25) and 6 (repair, decision 26). Repair round 2 (of 3).
-- Q7, Q8 asked; waiting. Then: spec author (18), test implementer (19), implementer (20), cleaner, spec checker, auditor, validator.
+- Q7, Q8 answered 7A, 8A. Next: spec author (18), test implementer (19), implementer (20), cleaner, spec checker, auditor, validator.
 - (old line) Next (was: test implementer 13) narrows tests to the answered outputs; implementer (14) repairs findings 1–4 with decisions 16–18.
 - Repair round 1 (of 3) worklist: test implementer (11) adds regressions for 1, 2a, 2b, 4a, 4b; implementer (12) repairs 1–4 with decisions 16–18; cleaner, spec checker, auditor (repair only), validator.
