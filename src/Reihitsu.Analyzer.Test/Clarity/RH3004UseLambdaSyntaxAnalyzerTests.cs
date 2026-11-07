@@ -3740,7 +3740,7 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     [Requirement("RH3004-008")]
     public async Task FixWithheldForAStringWhoseDirectiveLineStartsWithAFormFeed()
     {
-        var testCode = """
+        var template = """
                        #define A
                        using System;
 
@@ -3759,7 +3759,9 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                        #endif
                            }
                        }
-                       """.Replace("<form-feed>", "\f", System.StringComparison.Ordinal);
+                       """;
+
+        var testCode = template.Replace("<form-feed>", "\f", System.StringComparison.Ordinal);
 
         await VerifyNoCodeFixIsOffered(testCode);
     }
