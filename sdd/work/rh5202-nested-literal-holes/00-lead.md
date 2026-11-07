@@ -38,4 +38,4 @@
 - Test implementer done (03-test-implementer.md, 5f2ff33): reproduced, 29 red.
 - Implementer done (04-implementer.md, da441e9 production): shared `RawStringLineUtilities.MovesLine`; tests green.
 - Cleaner clean (05, d328e75). Spec checker consistent, no findings (06, 744f053). Auditor (07, 3347630): findings #1, #2 + architecture finding.
-- Repair round 1 (of 3): test implementer done (08, 2ec5c72; 12 red) → implementer done (09, 06d1db8) → test implementer amendment (decision 9) → (tests for findings #1 and #2) → implementer (decisions 6, 7) → cleaner → spec checker → auditor (repair only) → validator. (was: spec author (RH5202-003 clarification per answer, Uses FMT-RAW-009) → test implementer.
+- Repair round 1 (of 3): test implementer done (08, 2ec5c72; 12 red) → implementer done (09, 06d1db8) → test implementer amendment (10, 2f822ff) → cleaner → (tests for findings #1 and #2) → implementer (decisions 6, 7) → cleaner → spec checker → auditor (repair only) → validator. (was: spec author (RH5202-003 clarification per answer, Uses FMT-RAW-009) → test implementer.
