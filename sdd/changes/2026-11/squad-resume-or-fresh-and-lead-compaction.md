@@ -9,11 +9,11 @@
 
 ## What
 
-The rule that every follow-up goes to a fresh agent is replaced by a decision table in the lead's playbook: the lead continues an agent for the maintainer's answer, for evidence for its own open question, or for a small correction while the agent is still small, and spawns a fresh agent for a large agent, another mechanism or area, or a repair round. Several findings for one role go to one agent. The skeptic, the spec checker, and the auditor stay fresh. A size threshold from `scripts/usage.sh` (responses and average context) tells when an agent is large.
+The rule that every follow-up goes to a fresh agent is replaced by a decision table in the lead's playbook: the lead continues an agent for the maintainer's answer, for evidence for its own open question, or for a small correction while the agent is still small, and spawns a fresh agent for a large agent, another mechanism or area, or a repair round. Several findings for one role go to one agent. The skeptic, the spec checker, and the auditor stay fresh. A size threshold from `scripts/usage.sh` (responses and cache read per response) tells when an agent is large.
 
-The lead keeps its own context small: `00-lead.md` is brought up to date at every stage boundary, `CLAUDE.md` carries compact instructions that say what a compaction keeps, and the lead offers a compaction or a new session when its own responses pass about 100 before the audit.
+The lead keeps its own context small: `00-lead.md` is brought up to date at every stage boundary, `CLAUDE.md` carries compact instructions, a hint to the summarizer, that say what a compaction keeps, and the lead offers a compaction or a new session when its own responses pass about 100 before the audit.
 
-Smaller changes from the same evaluation of the run notes: an issue that alone keeps blocking a batch can leave it; an output question that would make a fix move code also asks whether the fix may be withheld; the skeptic checks entry points for predicted phase decisions and no longer derives compiler results without compiling; parallel builds use separate worktrees; `squad/notes/` is text for the lane check instead of tooling.
+Smaller changes from the same evaluation of the run notes: an issue whose findings alone keep recurring can be narrowed out of a batch, counted as the final repair round; an output question that would make a fix move code also asks whether the fix may be withheld; the skeptic checks entry points for predicted phase decisions and no longer derives compiler results without compiling; parallel builds use separate worktrees; `squad/notes/` is text for the lane check instead of tooling.
 
 ## Why
 
@@ -29,7 +29,7 @@ None — no output an end user sees changes.
 
 ### Thresholds are guidance, not a gate
 
-About 40 responses or about 150 thousand tokens of average context are starting points taken from the runs' usage tables. The lead may depart from them and records why under *Decisions taken*, so the notes can show whether the numbers fit.
+About 40 responses or about 100 thousand cache-read tokens per response are starting points taken from the runs' usage tables. The lead may depart from them and records why under *Decisions taken*, so the notes can show whether the numbers fit.
 
 ### The lead cannot compact itself
 
