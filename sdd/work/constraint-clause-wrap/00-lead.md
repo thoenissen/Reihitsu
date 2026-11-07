@@ -84,5 +84,7 @@ From `07-spec-author.md`:
 - 16 cleaner clean (eb509fe); 17 spec checker consistent (1a75651).
 - 18 auditor (c61ceee) on ba4e49b: #1, #2 closed; new #3 medium (wrapped variants of O, M, N untested). Repair round 2 of 3.
 - 19 test implementer done (5c5e476): 3 tests pass; wrapped-O mutation check fails only that test.
+- 20 cleaner clean (ef04f39, text-only proof pass); 21 spec checker consistent (69fc642).
+- Next: auditor on repair round 2 (22; previous audit at ba4e49b) → validator.
 - Worklist round 2: test implementer (19, done) — tests for wrapped O (`class /* a⏎ b */, new(),⏎ IDisposable`), wrapped M, wrapped N; cleaner (20) — also wrap the ~180-char summary line in `GenericConstraintLineBreakRewriter.JoinGap`; spec checker (21); auditor on repair (22); validator.
 - Worklist round 1: spec author (13, done) — FMT-BREAK-037 wording to line-start facts per decision 8, outputs of (a)–(d), tuple-in-type-argument wording hint; test implementer (14) — one test per case (a)–(e); implementer (15) — #1 + #2 + correct `IsWrapped`/class remarks; then cleaner, spec checker, auditor (repair only), validator.
