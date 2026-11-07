@@ -25,12 +25,23 @@
 | 1 | Claim | Branch name | Use the session's designated branch `claude/admiring-shannon-9h4j37` instead of `claude/issues-1075-1261-<slug>` | The session's environment forbids pushing to any other branch | Branch names are internal | claim commit |
 | 2 | Spec author | RH5011 and RH5030 fix for a comment containing a line break: correct it or withhold it | Withhold it (RH5011-007, RH5030-003) | The maintainer's decision in #1075 allows either; withholding needs no new behavior | Both outcomes were already chosen by the maintainer in #1075 | 461faa4 |
 | 3 | Spec author | Change doc | None | Every change writes down what unchanged requirements (SHARED-FIX-003/006/007, SHARED-DIAG-003) already decide; triage on #1261 says no change doc | — | 461faa4 |
+| 4 | Skeptic | RH5011: withhold for every comment with a line break, or insert below the comment | Insert the blank line below the comment's last line when the next code starts on its own line; withhold only when code follows on the comment's last line; cover switch labels too. Overrides decision 2 for RH5011; RH5030 stays withheld (RH5030-003) | AGENTS.md: a guard that refuses safe inputs is worth narrowing; RH5030 already handles that shape | The maintainer chose "insert after the comment's end, or withhold" in #1075 | pending |
+| 5 | Skeptic | RH5027 extra inputs `/* c */ while` alone on its line and `} /* c */ while` | Take in: the unchanged RH5027-001 already decides them; same rule, same gap | Within #1075's instance | Unchanged requirement demands it | pending |
+| 6 | Skeptic | RH5025-006 word "regular" | Drop it; a regular `$"` string cannot hold a line break | No real input | Spec wording | pending |
+| 7 | Skeptic | #1261 region-text instances | Not reproduced on main (FMT-PIPE-028, PR 1578). Keep a characterization test only if one is cheap; the blank lines around region lines belong to #1140 → follow-up candidate | Already fixed | No output changes | — |
+| 8 | Skeptic | SHARED-BRACE-002: full alignment to SHARED-FIX-007 or narrow | Narrow: revert SHARED-BRACE-002 to main's text plus a sentence that a comment is written once; the alignment and #1209 Q2–Q4 belong to #1140/#1144 → follow-up candidate. Spec author's Q2–Q6 are not asked | Maintainer already routed Q2–Q4 to #1140/#1144 (1.2.1); keeps today's outputs | Dropping the rewrite changes no output | pending |
+| 9 | Skeptic | Architecture finding: two owners (ControlFlowBraceTransform and the node-level entry point FormatNodeInDocumentAsync) place the body's trailing trivia | Change the structure in this run: the duplication is removed so that exactly one of the existing owners writes that trivia; no third owner (no compensation in the code-fix base). Spec author clarifies FMT-PIPE-010 if the owner is the entry point | A narrow fix in the code fix would add a third owner (README, Architecture findings) | Comment written once is the maintainer's decision in #1261 | pending |
+| 10 | Skeptic | `else if` duplication test | No dedicated test that would assert today's wrong brace column; the shared mechanism covers it via the other three positions | Avoid locking a wrong output (#1209 Q4 goes to #1144) | No output asserted | — |
 
 ## Follow-up candidates
 
-(none yet)
+- RH3208 fix on `int L() => 1; /* a⏎b */ L();` leaves `L();` at column 0 with trailing whitespace (02-skeptic). RH5030's change must not alter RH3208.
+- Extend #1140: RH5412 and RH5417 fixes insert blank lines around region lines (02-skeptic).
+- Extend #1140/#1144: align SHARED-BRACE-002 to SHARED-FIX-007 (#1209 Q2–Q4), dropped from this run by decision 8 (01-spec-author, 02-skeptic).
+- RH5023 hole case, if the maintainer answers B (output question 1).
 
 ## Worklist / next step
 
 - Done: spec author (01, 461faa4). Open output questions from it: Q1 RH5023 blank lines inside an interpolation hole; Q2-Q6 statement-brace outputs (Q2 is the issue's own decision).
-- Next: skeptic running; then batch output questions before the test implementer.
+- Done: skeptic (02, 1a16550).
+- Waiting: maintainer answer to output question 1 (RH5023 hole). Then: spec author amendment (decisions 4, 5, 6, 8, 9, Q1 answer) → test implementer.
