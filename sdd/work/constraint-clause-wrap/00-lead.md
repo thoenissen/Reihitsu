@@ -18,6 +18,7 @@ Batch 1 (before test implementer), all recommendations chosen:
 - Q5 → A: a constraint a comment keeps over two lines wraps the whole clause (one per line); its inner line aligns inside the constraint.
 - Q6 → A (skeptic S1): wraps inside a constraint that no comment/directive holds are joined first; the clause is judged after the join.
 - Q7 → A (skeptic S2): `where T⏎ : …` — the colon joins the type parameter's line; where a comment blocks the join, the colon keeps its own line one level deeper than `where` and the constraints align under the first.
+- Q9 → A: when a comment/directive blocks a FMT-BREAK-037 join, RH5110's fix is still offered and yields the formatter's fallback layout (Q3A/Q4A/Q7A); Q8 covers only inputs where a comment, directive, or disabled text would actually have to move.
 - Q8 → A: RH5110's fix is withheld for inputs where the layout could only be reached by moving a comment, directive, or literal.
 
 ## Decisions taken
@@ -49,5 +50,5 @@ From `02-skeptic.md`:
 - 02 skeptic done (38c6f09): premise confirmed; verdict output question; S1, S2 added.
 - Batch 1 answered (all A).
 - 03 spec author done (c716d42): change doc Accepted; FMT-BREAK-037, FMT-INDENT-032 rewritten; RH5110-004 added (fix withheld when a comment/directive stands in a gap FMT-BREAK-037 joins).
-- RH5110-004 reading of Q8 is ambiguous (Q3A/Q4A/Q7A give safe fallback layouts for exactly those inputs, so the fix could be offered with them). Asked maintainer Q9 (A: offer fix with fallback layout; B: withhold). **Waiting on maintainer.**
-- Next after Q9: if A, spec author narrows RH5110-004; then test implementer.
+- RH5110-004 reading of Q8 is ambiguous (Q3A/Q4A/Q7A give safe fallback layouts for exactly those inputs, so the fix could be offered with them). Q9 answered A.
+- Next: spec author (04) narrows RH5110-004 per Q9; then test implementer.
