@@ -15,5 +15,5 @@ _None._ The format script's Debug build prints an S1125 warning in `src/Reihitsu
 
 ## Checks
 - `scripts/build.sh`: `0 Warning(s) 0 Error(s)`
-- formatter (ConstraintClause*, ListElementInterior*): see lead run output below
+- formatter (ConstraintClause*, ListElementInterior*): `Passed! Failed: 0, Passed: 127, Total: 127`
 - text-only proof: not applicable (no comment fixes).
