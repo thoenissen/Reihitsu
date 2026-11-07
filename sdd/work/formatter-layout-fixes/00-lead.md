@@ -86,4 +86,5 @@ None in this run so far. The issues' comments carry triage decisions (summarized
 - Spec author 05 at d0e2102 (decision 10). Implementer 06 at f1bc9b0 (production 317a6a5): all handed-over tests pass except 3 disputed; 14 existing tests contradict changed specs; 1 analyzer failure (RH5601 tab test, in the 14).
 - Test implementer 07 at d5f7b7a: decisions 12, 13 done; formatter, analyzer, architecture projects all green at that head.
 - Implementer 08 at 64b11e6 (production acc2f4c): decision 15 done; core/formatter/analyzer green.
-- Next: cleaner (09), then spec checker (10).
+- Cleaner 09 at 63dc580: clean, Release build 0 warnings.
+- Next: spec checker (10), then auditor (11).
