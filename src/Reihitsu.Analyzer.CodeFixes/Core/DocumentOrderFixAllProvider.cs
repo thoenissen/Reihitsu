@@ -130,27 +130,27 @@ internal sealed class DocumentOrderFixAllProvider
     /// <returns>The fixed document, or <see langword="null"/> when no fix is offered</returns>
     private static async Task<Document> GetFixedDocumentAsync(FixAllContext context, Document document, Diagnostic diagnostic)
     {
-        CodeAction codeAction = null;
+        var registeredActions = new List<CodeAction>();
         var fixContext = new CodeFixContext(document,
                                             diagnostic,
                                             (action, _) =>
                                             {
-                                                if (codeAction == null
+                                                if (registeredActions.Count == 0
                                                     && (context.CodeActionEquivalenceKey == null || action.EquivalenceKey == context.CodeActionEquivalenceKey))
                                                 {
-                                                    codeAction = action;
+                                                    registeredActions.Add(action);
                                                 }
                                             },
                                             context.CancellationToken);
 
         await context.CodeFixProvider.RegisterCodeFixesAsync(fixContext).ConfigureAwait(false);
 
-        if (codeAction == null)
+        if (registeredActions.Count == 0)
         {
             return null;
         }
 
-        var operations = await codeAction.GetOperationsAsync(context.CancellationToken).ConfigureAwait(false);
+        var operations = await registeredActions[0].GetOperationsAsync(context.CancellationToken).ConfigureAwait(false);
 
         return operations.OfType<ApplyChangesOperation>().FirstOrDefault()?.ChangedSolution.GetDocument(document.Id);
     }

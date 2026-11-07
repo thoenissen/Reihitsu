@@ -119,6 +119,41 @@ public abstract class EmptyParenthesesCodeFixProviderBase<TNode> : CodeFixProvid
     }
 
     /// <summary>
+    /// Appends one trivia to the separating trivia: whitespace within a line becomes one space, whitespace that starts a
+    /// line stays as written, and no whitespace stays in front of a line break
+    /// </summary>
+    /// <param name="separatingTrivia">Separating trivia built so far</param>
+    /// <param name="trivia">Trivia to append</param>
+    private static void AppendSeparatingTrivia(List<SyntaxTrivia> separatingTrivia, SyntaxTrivia trivia)
+    {
+        var previousTrivia = separatingTrivia.Count > 0
+                                 ? separatingTrivia[separatingTrivia.Count - 1]
+                                 : default;
+
+        if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+        {
+            if (previousTrivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                separatingTrivia.Add(trivia);
+            }
+            else if (previousTrivia.IsKind(SyntaxKind.WhitespaceTrivia) == false)
+            {
+                separatingTrivia.Add(SyntaxFactory.Space);
+            }
+
+            return;
+        }
+
+        if (trivia.IsKind(SyntaxKind.EndOfLineTrivia)
+            && previousTrivia.IsKind(SyntaxKind.WhitespaceTrivia))
+        {
+            separatingTrivia.RemoveAt(separatingTrivia.Count - 1);
+        }
+
+        separatingTrivia.Add(trivia);
+    }
+
+    /// <summary>
     /// Builds the trivia that separates the code in front of the removed list from the token behind it: each run of
     /// whitespace within a line becomes one space, whitespace that starts a line stays as written, no whitespace stays
     /// in front of a line break, and the whitespace at the end follows <see cref="KeepsSpaceInFrontOfFollowingToken"/>
@@ -131,31 +166,7 @@ public abstract class EmptyParenthesesCodeFixProviderBase<TNode> : CodeFixProvid
 
         foreach (var trivia in triviaList)
         {
-            var previousTrivia = separatingTrivia.Count > 0
-                                     ? separatingTrivia[separatingTrivia.Count - 1]
-                                     : default;
-
-            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
-            {
-                if (previousTrivia.IsKind(SyntaxKind.EndOfLineTrivia))
-                {
-                    separatingTrivia.Add(trivia);
-                }
-                else if (previousTrivia.IsKind(SyntaxKind.WhitespaceTrivia) == false)
-                {
-                    separatingTrivia.Add(SyntaxFactory.Space);
-                }
-
-                continue;
-            }
-
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia)
-                && previousTrivia.IsKind(SyntaxKind.WhitespaceTrivia))
-            {
-                separatingTrivia.RemoveAt(separatingTrivia.Count - 1);
-            }
-
-            separatingTrivia.Add(trivia);
+            AppendSeparatingTrivia(separatingTrivia, trivia);
         }
 
         var lastTrivia = separatingTrivia.Count > 0

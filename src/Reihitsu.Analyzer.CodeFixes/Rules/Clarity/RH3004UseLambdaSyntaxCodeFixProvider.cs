@@ -176,34 +176,12 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
         var columnDelta = contentIndentation.Length - measuredColumn;
         var laterLineNumber = startsOnOpenBraceLine ? firstLine.LineNumber + 1 : firstLine.LineNumber;
         var laterColumns = GetMovingLineColumns(elements, originalText, laterLineNumber, contentEnd);
-        var laterColumnDelta = columnDelta;
-
-        if (startsOnOpenBraceLine
-            && originalText.Lines.GetLineFromPosition(measuredPosition).LineNumber == firstLine.LineNumber)
-        {
-            // The first statement shares the opening brace's line: the lines after it keep their offset to it only when
-            // none of them starts left of it, otherwise the leftmost of them moves into the statement column
-            if (laterColumns.Count > 0
-                && laterColumns.Min() < measuredColumn)
-            {
-                laterColumnDelta = contentIndentation.Length - laterColumns.Min();
-            }
-        }
-        else
-        {
-            // Every moving line moves by one number of columns; where the measured one would put a moving line left of
-            // column 0, the leftmost moving line moves into the statement column instead
-            var movedColumns = startsOnOpenBraceLine
-                                   ? laterColumns.Append(GetColumn(originalText, contentStart)).ToList()
-                                   : laterColumns;
-
-            if (movedColumns.Count > 0
-                && movedColumns.Min() + columnDelta < 0)
-            {
-                columnDelta = contentIndentation.Length - movedColumns.Min();
-                laterColumnDelta = columnDelta;
-            }
-        }
+        var sharesOpenBraceLine = startsOnOpenBraceLine
+                                  && originalText.Lines.GetLineFromPosition(measuredPosition).LineNumber == firstLine.LineNumber;
+        var movedColumns = startsOnOpenBraceLine && sharesOpenBraceLine == false
+                               ? laterColumns.Append(GetColumn(originalText, contentStart)).ToList()
+                               : laterColumns;
+        var laterColumnDelta = GetColumnDeltas(sharesOpenBraceLine, movedColumns, measuredColumn, contentIndentation.Length, ref columnDelta);
 
         var content = new StringBuilder();
 
@@ -216,7 +194,29 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
                    .Append(originalText.ToString(TextSpan.FromBounds(contentStart, Math.Min(firstLine.EndIncludingLineBreak, contentEnd))));
         }
 
-        for (var lineIndex = laterLineNumber; lineIndex < originalText.Lines.Count && originalText.Lines[lineIndex].Start < contentEnd; lineIndex++)
+        AppendLaterLines(content, originalText, elements, laterLineNumber, contentEnd, laterColumnDelta);
+
+        content.Append(endOfLine)
+               .Append(closeBraceIndentation);
+
+        var change = new TextChange(TextSpan.FromBounds(formattedBlock.OpenBraceToken.Span.End, formattedBlock.CloseBraceToken.SpanStart), content.ToString());
+
+        return formattedDocument.WithText(formattedText.WithChanges(change));
+    }
+
+    /// <summary>
+    /// Appends the lines of the moved code after the first statement line: a moving line keeps its text and shifts its
+    /// indentation by the column delta, a line that stays is copied as written
+    /// </summary>
+    /// <param name="content">Content built so far</param>
+    /// <param name="originalText">Text of the original document</param>
+    /// <param name="elements">Elements of the block's lines</param>
+    /// <param name="firstLineNumber">Number of the first line to append</param>
+    /// <param name="contentEnd">End of the moved code</param>
+    /// <param name="columnDelta">Delta of the moving lines</param>
+    private static void AppendLaterLines(StringBuilder content, SourceText originalText, List<(TextSpan Span, SyntaxKind Kind)> elements, int firstLineNumber, int contentEnd, int columnDelta)
+    {
+        for (var lineIndex = firstLineNumber; lineIndex < originalText.Lines.Count && originalText.Lines[lineIndex].Start < contentEnd; lineIndex++)
         {
             var line = originalText.Lines[lineIndex];
             var lineEnd = Math.Min(line.EndIncludingLineBreak, contentEnd);
@@ -227,7 +227,7 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
             {
                 if (textStart < Math.Min(line.End, contentEnd))
                 {
-                    content.Append(ShiftIndentation(originalText.ToString(TextSpan.FromBounds(line.Start, textStart)), laterColumnDelta));
+                    content.Append(ShiftIndentation(originalText.ToString(TextSpan.FromBounds(line.Start, textStart)), columnDelta));
                 }
 
                 copyStart = textStart;
@@ -235,13 +235,38 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
 
             content.Append(originalText.ToString(TextSpan.FromBounds(copyStart, lineEnd)));
         }
+    }
 
-        content.Append(endOfLine)
-               .Append(closeBraceIndentation);
+    /// <summary>
+    /// Gets the column delta of the moving lines after the first statement line and, where the measured delta would put
+    /// a moving line left of column 0, corrects the delta of the first statement line. When the first statement shares
+    /// the opening brace's line, the lines after it keep their offset to it only when none of them starts left of it,
+    /// otherwise the leftmost of them moves into the statement column. Otherwise every moving line moves by one number of
+    /// columns, and where the measured one would put a moving line left of column 0, the leftmost moving line moves into
+    /// the statement column instead
+    /// </summary>
+    /// <param name="sharesOpenBraceLine">Whether the first statement shares the opening brace's line</param>
+    /// <param name="movedColumns">Columns of the moving lines the delta applies to</param>
+    /// <param name="measuredColumn">Column the delta is measured on</param>
+    /// <param name="statementColumn">Column of the statements in the formatted block</param>
+    /// <param name="columnDelta">Delta of the first statement line; corrected when it would put a moving line left of column 0</param>
+    /// <returns>The delta of the moving lines after the first statement line</returns>
+    private static int GetColumnDeltas(bool sharesOpenBraceLine, List<int> movedColumns, int measuredColumn, int statementColumn, ref int columnDelta)
+    {
+        if (sharesOpenBraceLine)
+        {
+            return movedColumns.Count > 0 && movedColumns.Min() < measuredColumn
+                       ? statementColumn - movedColumns.Min()
+                       : columnDelta;
+        }
 
-        var change = new TextChange(TextSpan.FromBounds(formattedBlock.OpenBraceToken.Span.End, formattedBlock.CloseBraceToken.SpanStart), content.ToString());
+        if (movedColumns.Count > 0
+            && movedColumns.Min() + columnDelta < 0)
+        {
+            columnDelta = statementColumn - movedColumns.Min();
+        }
 
-        return formattedDocument.WithText(formattedText.WithChanges(change));
+        return columnDelta;
     }
 
     /// <summary>
@@ -268,7 +293,7 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
             var lineStart = Math.Max(line.Start, contentStart);
             var lineEnd = Math.Min(line.End, contentEnd);
 
-            if (elements.Any(element => IsCode(element) && element.Span.Start >= lineStart && element.Span.Start < lineEnd))
+            if (elements.Exists(element => IsCode(element) && element.Span.Start >= lineStart && element.Span.Start < lineEnd))
             {
                 return SkipIndentation(text, lineStart, line.End);
             }

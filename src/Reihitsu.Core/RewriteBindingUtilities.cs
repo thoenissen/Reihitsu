@@ -66,7 +66,7 @@ public static class RewriteBindingUtilities
         var replacedNodes = GetBoundNodes(replacedExpression, replacedRoot);
 
         if (replacedModel.GetConversion(replacedExpression, cancellationToken).Exists == false
-            || CountErrors(replacedModel.GetOperation(replacedRoot, cancellationToken), new HashSet<SyntaxNode>(replacedNodes), replacedExpression) > CountErrors(semanticModel.GetOperation(bindingRoot, cancellationToken), new HashSet<SyntaxNode>(originalNodes), expression))
+            || CountErrors(replacedModel.GetOperation(replacedRoot, cancellationToken), [.. replacedNodes], replacedExpression) > CountErrors(semanticModel.GetOperation(bindingRoot, cancellationToken), [.. originalNodes], expression))
         {
             return false;
         }
@@ -99,6 +99,32 @@ public static class RewriteBindingUtilities
     /// <returns>The node, or <see langword="null"/> when there is none</returns>
     private static SyntaxNode GetBindingRoot(ExpressionSyntax expression)
     {
+        var decidingNode = GetDecidingNode(expression);
+
+        foreach (var ancestor in decidingNode.Ancestors())
+        {
+            if (ancestor is MemberDeclarationSyntax or AccessorDeclarationSyntax)
+            {
+                break;
+            }
+
+            if (IsBindingRootCandidate(ancestor))
+            {
+                return ancestor;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Gets the outermost anonymous function around the expression below the member or accessor it belongs to, or the
+    /// expression itself when no anonymous function surrounds it
+    /// </summary>
+    /// <param name="expression">Expression</param>
+    /// <returns>The node whose ancestors are searched for the bound node</returns>
+    private static SyntaxNode GetDecidingNode(ExpressionSyntax expression)
+    {
         SyntaxNode decidingNode = expression;
 
         foreach (var ancestor in expression.Ancestors())
@@ -114,23 +140,22 @@ public static class RewriteBindingUtilities
             }
         }
 
-        foreach (var ancestor in decidingNode.Ancestors())
-        {
-            if (ancestor is MemberDeclarationSyntax or AccessorDeclarationSyntax)
-            {
-                break;
-            }
+        return decidingNode;
+    }
 
-            if ((ancestor is StatementSyntax and not BlockSyntax)
-                || (ancestor is (EqualsValueClauseSyntax or ArrowExpressionClauseSyntax) && ancestor.Ancestors().OfType<StatementSyntax>().Any() == false)
-                || ancestor is ConstructorInitializerSyntax
-                || ancestor is PrimaryConstructorBaseTypeSyntax)
-            {
-                return ancestor;
-            }
-        }
-
-        return null;
+    /// <summary>
+    /// Determines whether a node can be the node that is bound again: a statement other than a block, a variable or
+    /// property initializer or expression body outside a statement, a constructor initializer, or a primary constructor
+    /// base type
+    /// </summary>
+    /// <param name="ancestor">Node around the deciding node</param>
+    /// <returns><see langword="true"/> if the node can be the bound node</returns>
+    private static bool IsBindingRootCandidate(SyntaxNode ancestor)
+    {
+        return (ancestor is StatementSyntax and not BlockSyntax)
+               || (ancestor is (EqualsValueClauseSyntax or ArrowExpressionClauseSyntax) && ancestor.Ancestors().OfType<StatementSyntax>().Any() == false)
+               || ancestor is ConstructorInitializerSyntax
+               || ancestor is PrimaryConstructorBaseTypeSyntax;
     }
 
     /// <summary>
