@@ -36,6 +36,7 @@ Batch 1 (before test implementer), all recommendations chosen:
 | 8 | Audit 1 | #1: is a clause wrapped by a line break inside a multi-line block comment (cases a–d)? | Decide on line-start facts (a colon/constraint starts a line, or constraints stand on different lines), as FMT-BREAK-012's parameter-list layout and `GenericConstraintContributor` do; case (b) `where T : /* a⏎ b */ class, new()` stays on one line | Q1's answer is all-or-none over constraints on different lines; all constraints of (b) share a line, so Q1 decides it; matches the counterparts | Q1 answer covers it; `main` leaves (a)–(c) unchanged too | — |
 | 9 | Audit 1 | #2: batch join loop in `JoinUnstructuredWraps` copies `ListElementInteriorJoinRewriter.JoinInteriorWraps` | Repair in this run: extract into a shared helper used by both | PR-introduced copy, small, same component; leaving it adds a second copy (README *Architecture findings*) | Internal refactor, no output change | — |
 | 10 | Repair 1 | Change-doc entry 16 (wrapped clause, multi-line comment behind a comma: line break goes behind the comment) — ask? | Not asked | Q1A (one constraint per line) decides it; the comment stays in place; matches the parameter-list counterpart | Covered by Q1 answer | 97d59bf |
+| 11 | Repair 1 | Case (e) `IEquatable</* a⏎ b */T>`: wrapped (13-spec-author handover) or unchanged (FMT-BREAK-037 text)? | Unchanged; test 14 stands, spec text unchanged | Decision 8: no token of the clause starts a line; Q5 covered a constraint whose inner token starts a line (`// c⏎ string>`) | Decision 8/Q1 decide it; `main` leaves it unchanged | 7b1c727 |
 | 1 | Claim | Branch name `claude/issue-1631-<slug>` per `lead.md` vs. the session's designated branch | Use `claude/dreamy-curie-x5c135` | The session environment permits pushing only to its designated branch | Branch names are internal | claim commit |
 
 ## Follow-up candidates
@@ -75,4 +76,5 @@ From `07-spec-author.md`:
 - Before auditor: main e3924e2 already merged; no open output questions; Release build green on 74b6a19.
 - 12 auditor (67bcb95) on 0260784: findings #1 high (multi-line block comment counted as line break), #2 low (copied join loop). Repair round 1 of 3.
 - 13 spec author done (97d59bf): FMT-BREAK-037 line-start wording; examples M,N,O,P (unchanged) and S (wrapped); entry 16.
+- 14 test implementer done (7b1c727): 6 tests, 5 failing as expected.
 - Worklist round 1: spec author (13, done) — FMT-BREAK-037 wording to line-start facts per decision 8, outputs of (a)–(d), tuple-in-type-argument wording hint; test implementer (14) — one test per case (a)–(e); implementer (15) — #1 + #2 + correct `IsWrapped`/class remarks; then cleaner, spec checker, auditor (repair only), validator.
