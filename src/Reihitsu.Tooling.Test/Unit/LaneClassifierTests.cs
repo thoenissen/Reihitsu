@@ -21,6 +21,7 @@ public sealed class LaneClassifierTests
     [DataRow("sdd/changes/2026-10/introduce-sdd.md", PathCategory.ChangeDoc)]
     [DataRow("sdd/specs/formatter/pipeline.md", PathCategory.Text)]
     [DataRow("sdd/work/run/01-spec-author.md", PathCategory.Text)]
+    [DataRow("squad/notes/sample.md", PathCategory.Text)]
     [DataRow("documentation/rules/RH3202.md", PathCategory.Text)]
     [DataRow("README.MD", PathCategory.Text)]
     [DataRow(".github/ISSUE_TEMPLATE/formatter_bug_report.yml", PathCategory.Text)]

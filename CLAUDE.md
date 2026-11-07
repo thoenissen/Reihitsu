@@ -22,6 +22,10 @@ The lead manages the pull request; the `issue-manager` agent manages issues, so 
 
 When the lead watches the published pull request's CI, it subscribes to the PR's activity instead of polling, and handles each CI event as `squad/lead.md` describes.
 
+## Compact instructions
+
+When the conversation is compacted, keep: the squad run's slug, lane, issue numbers, branch, and PR number; the audited SHA; the path `sdd/work/<slug>/00-lead.md` with the rule that it holds the maintainer's answers, the decisions taken, the follow-up candidates, and the open worklist; and the last step finished and the next one. Drop handover contents, tool output, and role transcripts: all of it is in files. After a compaction, re-read `00-lead.md` and the latest handovers before acting.
+
 ## Custom slash commands
 
 | Command | Purpose |
