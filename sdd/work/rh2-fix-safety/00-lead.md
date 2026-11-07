@@ -25,6 +25,7 @@ Maintainer: "keep it simple".
 - Q5 (RH2005: `public` on its own line behind another modifier, indentation only): **A** — fix offered, the line keeps its place (`private static⏎        int Counter;`).
 - Q7 (RH2005: a later `public` ends its line, `static public⏎        int Counter;`): **A** — fix offered, each line stays: `private static⏎        int Counter;`.
 - Q8 (RH2005: comment, directive or `#if` behind a later `public`, on its line or on lines below it): **A** — reported, no fix offered (extends RH2005-005).
+- Q9 (RH2005: non-first `public` that neither starts nor ends its line, gaps not single spaces): **A** — `public` is removed with the gap behind it; the gap in front stays as written (`static public(int A, int B) X;` → `private static (int A, int B) X;`; `static    public int X;` → `private static    int X;`; `static public    int X;` → `private static int X;`).
 - Q6 (RH2005: comment/directive/`#if` line in front of a non-first `public`; RH2001: such a line between type and name): **A** — reported, no fix offered.
 - Q3 (RH2005 references outside the type body that still compile — `nameof` in the type's own attribute, `cref` from another type): **B** — every reference outside the bodies of the type's declarations withholds the fix; spec text as written.
 
@@ -77,7 +78,7 @@ Maintainer: "keep it simple".
 
 ## Pending output questions (batch before auditor)
 
-- Q9 (audit finding 7): RH2005, non-first `public` that neither starts nor ends its line, gaps not single spaces — A `public` goes with the gap behind it, the gap in front stays (rec.), B HEAD (gap behind replaces gap in front), C `main` (gap goes to the inserted `private`). ASKED.
+- Q9 (audit finding 7): RH2005, non-first `public` that neither starts nor ends its line, gaps not single spaces — A `public` goes with the gap behind it, the gap in front stays (rec.), B HEAD (gap behind replaces gap in front), C `main`. ANSWERED A.
 
 - Q7: RH2005 `static public⏎        int Counter;` (later `public` ends its line) — A `private static⏎        int Counter;` (rec.), B join. ANSWERED A.
 - Q8: RH2005 comment/directive/`#if` behind a later `public` (same line or next lines) — A withhold, extending RH2005-005 (rec.), B carry. ANSWERED A.
@@ -115,6 +116,6 @@ Maintainer: "keep it simple".
 - Implementer 14 done (2f1fb5a, d09d88f): all tests pass (analyzer 7153, core 649, architecture 115).
 - Cleaner 15 clean (f4be099); spec checker 16 consistent (38ad14b).
 - Audit 17 of a79eb22: BLOCKED — finding 5 (architecture, decision 25) and 6 (repair, decision 26). Repair round 2 (of 3).
-- Q7, Q8 answered 7A, 8A. Spec author 18 done (9c2c5dc). Test implementer 19 done (881b226, 39 reds). Implementer 20 done (048e957; analyzer 7202, core 649, architecture 115). Cleaner 21 clean (e4dcd16); spec checker 22 consistent (6cd0c63). Auditor 23 (1c0aca6) of 7714c11: findings 7 (output question Q9) and 8 (decision 30). Repair round 3 (last) after Q9: test implementer (24), implementer (25), cleaner, spec checker, auditor, validator.
+- Q7, Q8 answered 7A, 8A. Spec author 18 done (9c2c5dc). Test implementer 19 done (881b226, 39 reds). Implementer 20 done (048e957; analyzer 7202, core 649, architecture 115). Cleaner 21 clean (e4dcd16); spec checker 22 consistent (6cd0c63). Auditor 23 (1c0aca6) of 7714c11: findings 7 (output question Q9) and 8 (decision 30). Q9 answered A. Repair round 3 (last): spec author (24), test implementer (25), implementer (26), cleaner, spec checker, auditor, validator.
 - (old line) Next (was: test implementer 13) narrows tests to the answered outputs; implementer (14) repairs findings 1–4 with decisions 16–18.
 - Repair round 1 (of 3) worklist: test implementer (11) adds regressions for 1, 2a, 2b, 4a, 4b; implementer (12) repairs 1–4 with decisions 16–18; cleaner, spec checker, auditor (repair only), validator.
