@@ -275,6 +275,83 @@ public class RH7406NonOverridePropertiesShouldNotBePlacedInOverrideRegionsAnalyz
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies the specification example of a <see langword="partial"/> property that overrides nothing and
+    /// both of whose parts lie in an override region: it is reported once, on its defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7406-001")]
+    [Requirement("SHARED-DIAG-004")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialPropertyIsReportedOnceOnItsDefiningPart()
+    {
+        const string testData = """
+                                class B
+                                {
+                                    public virtual int Size => 0;
+                                }
+
+                                partial class C : B
+                                {
+                                    #region B
+
+                                    public override int Size => 1;
+
+                                    public partial int {|#0:P|} { get; }
+
+                                    public partial int P => 1;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7406NonOverridePropertiesShouldNotBePlacedInOverrideRegionsAnalyzer.DiagnosticId, CreateMessage("B")));
+    }
+
+    /// <summary>
+    /// Verifies that a <see langword="partial"/> non-override property whose defining part lies in generated code, with
+    /// both parts in an override region, is reported once, on its implementing part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialNonOverridePropertyWithGeneratedDefiningPartIsReportedOnItsImplementingPart()
+    {
+        const string userPart = """
+                                class B
+                                {
+                                    public virtual int Size => 0;
+                                }
+
+                                partial class C : B
+                                {
+                                    #region B
+
+                                    public override int Size => 1;
+
+                                    public partial int {|#0:P|} => 1;
+
+                                    #endregion
+                                }
+                                """;
+
+        const string generatedPart = """
+                                     partial class C
+                                     {
+                                         #region B
+
+                                         public partial int P { get; }
+
+                                         #endregion
+                                     }
+                                     """;
+
+        await Verify(userPart,
+                     test => test.TestState.Sources.Add(("/0/C.g.cs", generatedPart)),
+                     Diagnostics(RH7406NonOverridePropertiesShouldNotBePlacedInOverrideRegionsAnalyzer.DiagnosticId, CreateMessage("B")));
+    }
+
     #endregion // Tests
 
     #region Methods

@@ -1,3 +1,5 @@
+using System.Threading;
+
 using Microsoft.CodeAnalysis;
 
 namespace Reihitsu.Analyzer.Core;
@@ -10,13 +12,19 @@ internal static class InterfaceImplementationUtilities
     #region Methods
 
     /// <summary>
-    /// Gets the interface region name for the given member
+    /// Gets the interface region name for the given member. The compiler binds the implemented interface member to the
+    /// defining part of a partial member, so an implementing part names the interface only when it stands for the member
+    /// because its defining part is in generated code (<see cref="PartialMemberUtilities.GetStandInSymbol"/>)
     /// </summary>
-    /// <param name="memberSymbol">Member symbol</param>
+    /// <param name="memberSymbol">Member symbol, or the symbol of a part of a partial member</param>
+    /// <param name="compilation">Compilation containing the member</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Name of the implemented interface, or an empty string when the member is an override or does not implement an interface member</returns>
-    internal static string GetInterfaceRegionName(ISymbol memberSymbol)
+    internal static string GetInterfaceRegionName(ISymbol memberSymbol, Compilation compilation, CancellationToken cancellationToken)
     {
-        return memberSymbol.IsOverride ? string.Empty : GetImplementedInterfaceName(memberSymbol);
+        var member = PartialMemberUtilities.GetStandInSymbol(memberSymbol, compilation, cancellationToken);
+
+        return member.IsOverride ? string.Empty : GetImplementedInterfaceName(member);
     }
 
     /// <summary>

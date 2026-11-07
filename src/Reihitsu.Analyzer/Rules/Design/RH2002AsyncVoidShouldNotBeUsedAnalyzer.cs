@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 
 namespace Reihitsu.Analyzer.Rules.Design;
@@ -53,10 +54,45 @@ public class RH2002AsyncVoidShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase
             return;
         }
 
-        if (symbol.IsAsync
-            && symbol.ReturnsVoid)
+        if (symbol.IsAsync == false
+            || symbol.ReturnsVoid == false)
         {
-            context.ReportDiagnostic(CreateDiagnostic(symbol.Locations));
+            return;
+        }
+
+        if (PartialMemberUtilities.TryGetParts(symbol, context.CancellationToken, out _, out _))
+        {
+            ReportPartialMethod(context, symbol);
+
+            return;
+        }
+
+        context.ReportDiagnostic(CreateDiagnostic(symbol.Locations));
+    }
+
+    /// <summary>
+    /// Reports a partial method once, on the part SHARED-DIAG-012 selects: the part that writes <see langword="async"/>,
+    /// which only the implementing part can do. Both parts are analyzed, so each reports only when it is the selected part
+    /// </summary>
+    /// <param name="context">Context</param>
+    /// <param name="symbol">Symbol of the analyzed part</param>
+    private void ReportPartialMethod(SymbolAnalysisContext context, IMethodSymbol symbol)
+    {
+        if (symbol.DeclaringSyntaxReferences.Length != 1
+            || symbol.DeclaringSyntaxReferences[0].GetSyntax(context.CancellationToken) is not MethodDeclarationSyntax declaration)
+        {
+            return;
+        }
+
+        var reportedPart = PartialMemberUtilities.GetReportedPart(declaration,
+                                                                  symbol,
+                                                                  static part => part.Modifiers.Any(SyntaxKind.AsyncKeyword),
+                                                                  context.Compilation,
+                                                                  context.CancellationToken);
+
+        if (reportedPart is MethodDeclarationSyntax reportedMethod)
+        {
+            context.ReportDiagnostic(CreateDiagnostic(reportedMethod.Identifier.GetLocation()));
         }
     }
 

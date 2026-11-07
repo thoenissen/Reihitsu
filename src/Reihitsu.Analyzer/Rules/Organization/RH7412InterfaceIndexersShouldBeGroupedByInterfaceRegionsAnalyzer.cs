@@ -43,7 +43,7 @@ public class RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzer : 
     {
         expectedRegionName = memberDeclaration is IndexerDeclarationSyntax indexerDeclaration
                              && semanticModel.GetDeclaredSymbol(indexerDeclaration, cancellationToken) is IPropertySymbol propertySymbol
-                                 ? InterfaceImplementationUtilities.GetInterfaceRegionName(propertySymbol)
+                                 ? InterfaceImplementationUtilities.GetInterfaceRegionName(propertySymbol, semanticModel.Compilation, cancellationToken)
                                  : string.Empty;
 
         return string.IsNullOrEmpty(expectedRegionName) == false;

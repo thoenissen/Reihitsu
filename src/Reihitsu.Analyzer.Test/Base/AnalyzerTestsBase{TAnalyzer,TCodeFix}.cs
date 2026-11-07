@@ -178,6 +178,20 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
     /// <returns>The source text after applying the first offered code action</returns>
     protected static async Task<string> ApplyCodeFixAsync(string source, params string[] preprocessorSymbols)
     {
+        return await TryApplyCodeFixAsync(source, preprocessorSymbols).ConfigureAwait(false)
+                   ?? throw new InvalidOperationException("No code fix action was registered for the diagnostic.");
+    }
+
+    /// <summary>
+    /// Runs the analyzer over the provided source, applies the first code action offered for the first fixable
+    /// diagnostic and returns the resulting raw source text, or <see langword="null"/> when the code fix registers no
+    /// action for that diagnostic
+    /// </summary>
+    /// <param name="source">Source text</param>
+    /// <param name="preprocessorSymbols">Preprocessor symbols to define for parsing</param>
+    /// <returns>The source text after applying the first offered code action, or <see langword="null"/> when none is offered</returns>
+    protected static async Task<string> TryApplyCodeFixAsync(string source, params string[] preprocessorSymbols)
+    {
         using (var workspace = new AdhocWorkspace())
         {
             var (document, documentId) = CreateTestDocument(workspace, source, DocumentationMode.Parse, preprocessorSymbols);
@@ -199,7 +213,7 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
 
             if (actions.Count == 0)
             {
-                throw new InvalidOperationException("No code fix action was registered for the diagnostic.");
+                return null;
             }
 
             var operations = await actions[0].GetOperationsAsync(CancellationToken.None).ConfigureAwait(false);
@@ -210,6 +224,38 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
 
             return text.ToString();
         }
+    }
+
+    /// <summary>
+    /// Verifies that the analyzer reports exactly the diagnostics marked in the source, and that the code fix for the
+    /// first diagnostic is either withheld, where <paramref name="mayBeWithheld"/> allows it, or produces exactly one
+    /// of the accepted texts, line endings included, on which the analyzer reports nothing and which compiles. Used
+    /// where the requirements forbid what a fix must not do to an input (such as dropping a comment) but leave open
+    /// whether the fix is withheld or which of the accepted layouts it writes
+    /// </summary>
+    /// <param name="source">Source text with markup for every expected diagnostic</param>
+    /// <param name="mayBeWithheld">Whether registering no code action is an accepted outcome</param>
+    /// <param name="acceptedFixedSources">The accepted results of the fix, without markup</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    protected static async Task VerifyCodeFixIsWithheldOrProducesOneOf(string source, bool mayBeWithheld, params string[] acceptedFixedSources)
+    {
+        await Verify(source);
+
+        TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+
+        var fixedSource = await TryApplyCodeFixAsync(plainSource).ConfigureAwait(false);
+
+        if (fixedSource == null)
+        {
+            Assert.IsTrue(mayBeWithheld, "A code fix must be offered for this input.");
+
+            return;
+        }
+
+        Assert.IsTrue(acceptedFixedSources.Contains(fixedSource, StringComparer.Ordinal),
+                      $"The code fix produced a result that is not accepted:{Environment.NewLine}{fixedSource}{Environment.NewLine}Accepted results:{Environment.NewLine}{string.Join($"{Environment.NewLine}----{Environment.NewLine}", acceptedFixedSources)}");
+
+        await Verify(fixedSource);
     }
 
     /// <summary>

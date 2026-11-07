@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -488,6 +488,120 @@ public class RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzerTes
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a <see langword="partial"/> indexer both of whose parts lie
+    /// outside a matching region: it is reported once, on its defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7412-001")]
+    [Requirement("SHARED-DIAG-004")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialIndexerIsReportedOnceOnItsDefiningPart()
+    {
+        const string testData = """
+                                interface I
+                                {
+                                    int this[int index] { get; }
+                                }
+
+                                partial class C : I
+                                {
+                                    #region Indexers
+
+                                    public partial int {|#0:this|}[int index] { get; }
+
+                                    public partial int this[int index] => index;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("I")));
+    }
+
+    /// <summary>
+    /// Verifies that a <see langword="partial"/> indexer implementing an interface member, whose defining part lies in
+    /// generated code, with both parts outside a matching region, is reported once, on its implementing part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialIndexerWithGeneratedDefiningPartIsReportedOnItsImplementingPart()
+    {
+        const string userPart = """
+                                interface I
+                                {
+                                    int this[int index] { get; }
+                                }
+
+                                partial class C : I
+                                {
+                                    #region Indexers
+
+                                    public partial int {|#0:this|}[int index] => index;
+
+                                    #endregion
+                                }
+                                """;
+
+        const string generatedPart = """
+                                     partial class C
+                                     {
+                                         #region Indexers
+
+                                         public partial int this[int index] { get; }
+
+                                         #endregion
+                                     }
+                                     """;
+
+        await Verify(userPart,
+                     test => test.TestState.Sources.Add(("/0/C.g.cs", generatedPart)),
+                     Diagnostics(RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("I")));
+    }
+
+    /// <summary>
+    /// Verifies that a <see langword="partial"/> indexer implementing an interface member, whose implementing part lies
+    /// in generated code, with both parts outside a matching region, is reported once, on its defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialIndexerWithGeneratedImplementingPartIsReportedOnItsDefiningPart()
+    {
+        const string userPart = """
+                                interface I
+                                {
+                                    int this[int index] { get; }
+                                }
+
+                                partial class C : I
+                                {
+                                    #region Indexers
+
+                                    public partial int {|#0:this|}[int index] { get; }
+
+                                    #endregion
+                                }
+                                """;
+
+        const string generatedPart = """
+                                     partial class C
+                                     {
+                                         #region Indexers
+
+                                         public partial int this[int index] => index;
+
+                                         #endregion
+                                     }
+                                     """;
+
+        await Verify(userPart,
+                     test => test.TestState.Sources.Add(("/0/C.g.cs", generatedPart)),
+                     Diagnostics(RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("I")));
     }
 
     #endregion // Tests

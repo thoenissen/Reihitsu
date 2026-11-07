@@ -112,7 +112,10 @@ public class RH2004AccessModifierMustBeDeclaredCodeFixProvider : CodeFixProvider
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                if (TryGetMemberDeclaration(root, diagnostic, out var memberDeclaration))
+                // A partial member is judged as one declaration, and adding the modifier to one part would leave the
+                // parts disagreeing, so no fix is offered for it (SHARED-DIAG-004)
+                if (TryGetMemberDeclaration(root, diagnostic, out var memberDeclaration)
+                    && memberDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword) == false)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH2004Title,
                                                               token => ApplyCodeFixAsync(context.Document, memberDeclaration, token),
