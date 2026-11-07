@@ -32,6 +32,7 @@
 | 12 | Audit 2 | Finding #3: leftward shift changes the value of a raw string nested in a hole whose lines carry less leading whitespace than the shift (pre-existing; breaks RH5202-004 and SHARED-FIX-003) | Repair in this run: the fix is withheld for every input where shifting would change a nested literal's value (maintainer answer Q2 = A); RH5202-004 states the withholding; tests for the failing members and the boundary | A safety rail in an output the run changes cannot ship; Q2 = A already decides withholding | Covered by maintainer answer Q2 | — |
 | 13 | Audit 2 | Finding #4: invisible U+00A0 / U+2003 in Core test data rows | Repair: write them as escapes | PR-introduced, readability | Test-only | — |
 | 14 | Repair 3 impl | Scope: `IsMultiLineRawStringLiteral` moved unchanged from `RawStringLineShifts` to `RawStringLineUtilities` so the fix can reuse it | Accept | Avoids a private copy in the fix (FC-015) while respecting FMT-PIPE-009; same component pair the run already changes | Pure move, formatter output unchanged | cc662a9 |
+| 15 | Audit 3 | Findings #5 (missing offered-side test for `StartsInOwnHole`) and #6 (RH5202-006 *Why* sentence too general) after the third repair round | Resolve as the run's final narrowing round with the least change that keeps the run's gains: no production change; the test implementer adds the deciding offered-side test (LF + CRLF) with `main`'s output, the spec author narrows the *Why* sentence; the auditor audits that round only. If the test is red, the guard's own-hole refinement is narrowed back and the run escalates if output is then in question | Neither finding repeats an earlier class; withdrawing the guard refinement instead would withhold safe inputs that `main` fixes correctly, which is a worse result than adding the missing test | Expected output equals `main`'s; #6 is spec text only | — |
 
 ## Follow-up candidates
 
@@ -49,5 +50,6 @@
 - Tests (15, 07eebea): 4 red.
 - Implementer (16, 52e13fe), cleaner (17, 381cbe7), spec checker (18, 772c0b4): no findings.
 - Audit 2 (19, fbe729e; audited 4a00ace): #1 closed, #2 superseded, arch closed; new #3 (high), #4 (low) → decisions 12, 13.
-- Repair round 3 (of 3, last): spec author done (20, 0dd23fe; new RH5202-006) → tests (21, 43881b1; 12 red) → implementer (22, cc662a9) → cleaner (23) → spec checker (24, fd644ed): no findings → auditor 3 → test implementer (#3 members + boundary, #4) → implementer → cleaner → spec checker → auditor (repair only) → validator.
+- Repair round 3 (of 3, last): spec author done (20, 0dd23fe; new RH5202-006) → tests (21, 43881b1; 12 red) → implementer (22, cc662a9) → cleaner (23) → spec checker (24, fd644ed): no findings → auditor 3 (25, 447b753): #3, #4 closed; new #5 (medium, test), #6 (low, spec text) → decision 15.
+- Final narrowing round: spec author (#6) → test implementer (#5) → cleaner → spec checker → auditor (that round only) → validator → publish. (old tail: test implementer (#3 members + boundary, #4) → implementer → cleaner → spec checker → auditor (repair only) → validator.
 - (old next: auditor (repairs since 685ab42) → validator → publish.
