@@ -187,7 +187,8 @@ internal sealed class GenericConstraintLineBreakRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Joins the token behind a gap that a line break separates (<see cref="SyntaxTriviaUtilities.AreSeparatedByEndOfLine"/>)
-    /// onto the line of the token in front of it through the shared collapse (<see cref="LineBreakTriviaUtilities.CollapseTokenToSameLine"/>), which refuses a gap that holds a comment,
+    /// onto the line of the token in front of it through the shared collapse
+    /// (<see cref="LineBreakTriviaUtilities.CollapseTokenToSameLine"/>), which refuses a gap that holds a comment,
     /// a directive, or disabled text
     /// </summary>
     /// <param name="clause">The constraint clause containing both tokens</param>
