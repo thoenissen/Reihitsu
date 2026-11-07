@@ -32,4 +32,5 @@ None yet.
 - Skeptic done (01-skeptic.md, e6b9fbb): reproduced on main for the code fix only; formatter correct; caller reaches it.
 - Spec author done (02-spec-author.md, 060e546).
 - Test implementer done (03-test-implementer.md, 5f2ff33): reproduced, 29 red.
-- Implementer done (04-implementer.md, da441e9 production): shared `RawStringLineUtilities.MovesLine`; tests green. Next: cleaner → spec checker → auditor. (was: spec author (RH5202-003 clarification per answer, Uses FMT-RAW-009) → test implementer.
+- Implementer done (04-implementer.md, da441e9 production): shared `RawStringLineUtilities.MovesLine`; tests green.
+- Cleaner clean (05, d328e75). Spec checker consistent, no findings (06, 744f053). Next: auditor. (was: spec author (RH5202-003 clarification per answer, Uses FMT-RAW-009) → test implementer.
