@@ -1627,6 +1627,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5202-003")]
     [Requirement("RH5202-005")]
     public async Task VerifyFixShiftsWhitespaceOnlyContentLine()
     {
@@ -2183,13 +2184,13 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
     }
 
     /// <summary>
-    /// Verifies that the fix shifts an empty line inside an interpolation hole, outside any nested text, like every other line of the hole, because only an empty content line stays empty
+    /// Verifies that the fix leaves an empty line of hole code, outside every literal's text, empty when it shifts the hole's other lines to the right
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5202-003")]
     [Requirement("RH5202-005")]
-    public async Task VerifyFixShiftsEmptyLineInsideHole()
+    public async Task VerifyFixLeavesEmptyLineInsideHoleEmptyWhenShiftingRight()
     {
         const string testData = """"
                                 class C
@@ -2212,24 +2213,24 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                       {
                                           var a = $"""
                                                    Hello {name
-                                  ·············
+
                                                    }
                                                    """;
                                       }
                                   }
                                   """";
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
     }
 
     /// <summary>
-    /// Verifies that the fix shifts an empty line inside an interpolation hole, outside any nested text, like every other line of the hole, because only an empty content line stays empty, under CRLF line endings
+    /// Verifies that the fix leaves an empty line of hole code, outside every literal's text, empty when it shifts the hole's other lines to the right, under CRLF line endings
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5202-003")]
     [Requirement("RH5202-005")]
-    public async Task VerifyFixShiftsEmptyLineInsideHoleWithCrLf()
+    public async Task VerifyFixLeavesEmptyLineInsideHoleEmptyWhenShiftingRightWithCrLf()
     {
         const string testData = """"
                                 class C
@@ -2252,14 +2253,14 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                       {
                                           var a = $"""
                                                    Hello {name
-                                  ·············
+
                                                    }
                                                    """;
                                       }
                                   }
                                   """";
 
-        await Verify(NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(testData)), NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(resultData)), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
     }
 
     /// <summary>
@@ -2300,6 +2301,90 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   """";
 
         await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix leaves an empty line of code in a multi-line hole of a regular interpolated string nested in a hole empty when it shifts the other lines to the right
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    [Requirement("RH5202-005")]
+    public async Task VerifyFixLeavesEmptyLineInsideHoleOfNestedInterpolatedStringEmptyWhenShiftingRight()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M(string name)
+                                    {
+                                        var a = {|#0:$"""
+                                    Hello {$"x{
+                                    name
+
+                                    }"}
+                                    """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M(string name)
+                                      {
+                                          var a = $"""
+                                                   Hello {$"x{
+                                                   name
+
+                                                   }"}
+                                                   """;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix leaves an empty line of code in a multi-line hole of a regular interpolated string nested in a hole empty when it shifts the other lines to the right, under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    [Requirement("RH5202-005")]
+    public async Task VerifyFixLeavesEmptyLineInsideHoleOfNestedInterpolatedStringEmptyWhenShiftingRightWithCrLf()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M(string name)
+                                    {
+                                        var a = {|#0:$"""
+                                    Hello {$"x{
+                                    name
+
+                                    }"}
+                                    """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M(string name)
+                                      {
+                                          var a = $"""
+                                                   Hello {$"x{
+                                                   name
+
+                                                   }"}
+                                                   """;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
     }
 
     /// <summary>
@@ -2347,6 +2432,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5202-004")]
+    [Requirement("RH5202-005")]
     [Requirement("SHARED-FIX-007")]
     public async Task VerifyFixLeavesEmptyContentLineOfRawStringNestedInHoleEmptyWhenShiftingRight()
     {
@@ -2403,6 +2489,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5202-004")]
+    [Requirement("RH5202-005")]
     [Requirement("SHARED-FIX-007")]
     public async Task VerifyFixLeavesEmptyContentLineOfRawStringNestedInHoleEmptyWhenShiftingRightWithCrLf()
     {
@@ -2459,6 +2546,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5202-004")]
+    [Requirement("RH5202-005")]
     [Requirement("SHARED-FIX-007")]
     public async Task VerifyFixLeavesEmptyContentLineOfRawStringNestedInHoleEmptyWhenShiftingLeft()
     {
@@ -2515,6 +2603,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5202-004")]
+    [Requirement("RH5202-005")]
     [Requirement("SHARED-FIX-007")]
     public async Task VerifyFixLeavesEmptyContentLineOfRawStringNestedInHoleEmptyWhenShiftingLeftWithCrLf()
     {
