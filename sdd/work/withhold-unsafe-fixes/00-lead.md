@@ -99,13 +99,13 @@ Standing instruction from the maintainer (after answer 7): ask no further questi
 | 52 | Audit 7 | Finding 24: private `SpansLines` duplicates `SyntaxNodeUtilities.IsSingleLineSpan` | Use the Core helper and delete the copy | One owner per decision | Internal | pending |
 | 53 | Audit 8 | Finding 25: `ContainsStringOrCommentSpanningLines` no longer says what it decides | Rename to what it decides (cleaner; no behavior change), audited as a rename only | Naming | Internal | pending |
 | 54 | Audit 8 | Hint 1: the expression-body output for a parameter-list comment that spans lines without a `#` line has no spec example and no test | Follow-up: specify and test that layout; no comment text is lost today | No value change or break; outside the issues' reported cases | Undecided layout of a rare corner left as today, recorded as a follow-up per the standing instruction | — |
+| 55 | Publish | Follow-up "widen RH3106-001" | Dropped: RH3106-001 was widened in this run (03-spec-author) | Already done | — | — |
 
 Repair rounds used: 3 (round 1 after audit 1; round 2 after audit 2; round 3 after audit 3 — the last; architecture changes of rows 26–28, 36 and 39 do not count as rounds). A block after round 3 is resolved by narrowing. Audit 4's findings 14 and 15 repeat earlier classes and are handled as architecture changes (rows 40–41), not as a fourth round; finding 16 is a comment fix carried with them. If the next audit still blocks, the failing part is narrowed back to main's behavior or withheld. Audit 5 blocked (findings 17–19): resolved by narrowing (rows 44–45), run as one final round. Audit 6 still blocked (findings 20–22): per the standing instruction, narrowed again by class (rows 46–48) instead of escalating.
 
 ## Follow-up candidates
 
 - Consolidate the RH3002 analyzer's private "rewrite still parses the same" helpers onto the shared check this run introduces (Decision 3; 02-skeptic).
-- RH3106-001 states the report only for variable initializers but the analyzer reports every empty parameter list; widen after Q2 (01-spec-author, 02-skeptic).
 - The four `-004` conditions (RH3001, RH3005, RH3101, RH3105) leave unspecified the safe inputs today's fixes rewrite (01-spec-author).
 - RH3201-005 does not cover a comment at the start of a line followed by code, or code on both sides where tokens would not merge (01-spec-author, 02-skeptic).
 - RH3201-007 does not decide `return /**//**/a;` (whitespace in front of the first of two adjacent empty comments) and has no test for it (04-test-implementer, amendment).
