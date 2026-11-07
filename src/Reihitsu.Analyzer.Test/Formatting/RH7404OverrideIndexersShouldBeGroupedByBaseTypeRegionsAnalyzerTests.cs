@@ -353,6 +353,47 @@ public class RH7404OverrideIndexersShouldBeGroupedByBaseTypeRegionsAnalyzerTests
         await Verify(testData, Diagnostics(RH7404OverrideIndexersShouldBeGroupedByBaseTypeRegionsAnalyzer.DiagnosticId, CreateMessage("B")));
     }
 
+    /// <summary>
+    /// Verifies that a <see langword="partial"/> override indexer whose defining part lies in generated code, with
+    /// both parts outside a matching region, is reported once, on its implementing part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialOverrideIndexerWithGeneratedDefiningPartIsReportedOnItsImplementingPart()
+    {
+        const string userPart = """
+                                abstract class B
+                                {
+                                    public abstract int this[int index] { get; }
+                                }
+
+                                partial class C : B
+                                {
+                                    #region Other
+
+                                    public override partial int {|#0:this|}[int index] => index;
+
+                                    #endregion
+                                }
+                                """;
+
+        const string generatedPart = """
+                                     partial class C
+                                     {
+                                         #region Indexers
+
+                                         public override partial int this[int index] { get; }
+
+                                         #endregion
+                                     }
+                                     """;
+
+        await Verify(userPart,
+                     test => test.TestState.Sources.Add(("/0/C.g.cs", generatedPart)),
+                     Diagnostics(RH7404OverrideIndexersShouldBeGroupedByBaseTypeRegionsAnalyzer.DiagnosticId, CreateMessage("B")));
+    }
+
     #endregion // Tests
 
     #region Methods

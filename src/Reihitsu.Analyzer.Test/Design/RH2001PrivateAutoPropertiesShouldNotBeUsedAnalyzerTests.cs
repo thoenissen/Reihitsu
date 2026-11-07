@@ -52,6 +52,80 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
                                                            }
                                                            """;
 
+    /// <summary>
+    /// Source of a property whose initializer is followed by a comment line in front of the semicolon
+    /// </summary>
+    private const string CommentLineInFrontOfTheSemicolonSource = """
+                                                                  class C
+                                                                  {
+                                                                      private int {|RH2001:Value|} { get; set; } = 5
+                                                                          // note
+                                                                          ;
+                                                                  }
+                                                                  """;
+
+    /// <summary>
+    /// Source of a property whose initializer is followed by a directive line in front of the semicolon
+    /// </summary>
+    private const string DirectiveLineInFrontOfTheSemicolonSource = """
+                                                                    class C
+                                                                    {
+                                                                        private int {|RH2001:Value|} { get; set; } = 5
+                                                                    #pragma warning disable CS0414
+                                                                            ;
+                                                                    }
+                                                                    """;
+
+    /// <summary>
+    /// Source of a property with a comment line between its type and its name
+    /// </summary>
+    private const string CommentLineInFrontOfTheNameSource = """
+                                                             class C
+                                                             {
+                                                                 private int
+                                                                     // note
+                                                                     {|RH2001:Value|} { get; set; }
+                                                             }
+                                                             """;
+
+    /// <summary>
+    /// <see cref="CommentLineInFrontOfTheNameSource"/> replaced by the field with the comment line kept in front of
+    /// its name
+    /// </summary>
+    private const string CommentLineInFrontOfTheNameInPlaceSource = """
+                                                                    class C
+                                                                    {
+                                                                        private int
+                                                                            // note
+                                                                            _value;
+                                                                    }
+                                                                    """;
+
+    /// <summary>
+    /// Source of a property with a directive line between its type and its name
+    /// </summary>
+    private const string DirectiveLineInFrontOfTheNameSource = """
+                                                               class C
+                                                               {
+                                                                   private int
+                                                               #pragma warning disable CS0169
+                                                                       {|RH2001:Value|} { get; set; }
+                                                               }
+                                                               """;
+
+    /// <summary>
+    /// <see cref="DirectiveLineInFrontOfTheNameSource"/> replaced by the field with the directive line kept in front of
+    /// its name
+    /// </summary>
+    private const string DirectiveLineInFrontOfTheNameInPlaceSource = """
+                                                                      class C
+                                                                      {
+                                                                          private int
+                                                                      #pragma warning disable CS0169
+                                                                              _value;
+                                                                      }
+                                                                      """;
+
     #endregion // Constants
 
     #region Tests
@@ -1594,6 +1668,277 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
                          test.FixedState.MarkupHandling = MarkupMode.Allow;
                          test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
                      });
+    }
+
+    /// <summary>
+    /// Verifies that a comment line between the initializer and the semicolon withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForACommentLineInFrontOfTheSemicolon()
+    {
+        await VerifyNoCodeFixIsOffered(CommentLineInFrontOfTheSemicolonSource);
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyNoFixIsOfferedForACommentLineInFrontOfTheSemicolon"/> with the source normalized to CRLF
+    /// line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForACommentLineInFrontOfTheSemicolonCarriageReturnLineFeed()
+    {
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(CommentLineInFrontOfTheSemicolonSource));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#pragma</c> directive line between the initializer and the semicolon withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForADirectiveLineInFrontOfTheSemicolon()
+    {
+        await VerifyNoCodeFixIsOffered(DirectiveLineInFrontOfTheSemicolonSource);
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyNoFixIsOfferedForADirectiveLineInFrontOfTheSemicolon"/> with the source normalized to
+    /// CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForADirectiveLineInFrontOfTheSemicolonCarriageReturnLineFeed()
+    {
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(DirectiveLineInFrontOfTheSemicolonSource));
+    }
+
+    /// <summary>
+    /// Verifies that an empty <c>#if</c> block between the initializer and the semicolon withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForAConditionalBlockInFrontOfTheSemicolon()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int {|RH2001:Value|} { get; set; } = 5
+                                #if DEBUG
+                                #endif
+                                        ;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the other side of <see cref="VerifyNoFixIsOfferedForACommentLineInFrontOfTheSemicolon"/>: a semicolon
+    /// on its own line without a comment or directive in front of it keeps the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyFixIsOfferedForASemicolonOnItsOwnLineWithoutCommentOrDirective()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int {|RH2001:Value|} { get; set; } = 5
+                                        ;
+                                }
+                                """;
+
+        const string oneLine = """
+                               class C
+                               {
+                                   private int _value = 5;
+                               }
+                               """;
+
+        const string inPlace = """
+                               class C
+                               {
+                                   private int _value = 5
+                                       ;
+                               }
+                               """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(testData, false, oneLine, inPlace, Format(inPlace));
+    }
+
+    /// <summary>
+    /// Verifies that a comment line between the type and the name is neither dropped nor moved away from the code it
+    /// stands with: the fix is withheld, or the comment line stays in front of the field's name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyFixKeepsACommentLineInFrontOfTheName()
+    {
+        await VerifyCodeFixIsWithheldOrProducesOneOf(CommentLineInFrontOfTheNameSource, true, CommentLineInFrontOfTheNameInPlaceSource, Format(CommentLineInFrontOfTheNameInPlaceSource));
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyFixKeepsACommentLineInFrontOfTheName"/> with the source normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyFixKeepsACommentLineInFrontOfTheNameCarriageReturnLineFeed()
+    {
+        var inPlace = NormalizeToCarriageReturnLineFeed(CommentLineInFrontOfTheNameInPlaceSource);
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(NormalizeToCarriageReturnLineFeed(CommentLineInFrontOfTheNameSource), true, inPlace, Format(inPlace));
+    }
+
+    /// <summary>
+    /// Verifies that a directive line between the type and the name is not dropped: the fix is withheld, or the
+    /// directive line stays in front of the field's name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyFixKeepsADirectiveLineInFrontOfTheName()
+    {
+        await VerifyCodeFixIsWithheldOrProducesOneOf(DirectiveLineInFrontOfTheNameSource, true, DirectiveLineInFrontOfTheNameInPlaceSource, Format(DirectiveLineInFrontOfTheNameInPlaceSource));
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyFixKeepsADirectiveLineInFrontOfTheName"/> with the source normalized to CRLF line
+    /// endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyFixKeepsADirectiveLineInFrontOfTheNameCarriageReturnLineFeed()
+    {
+        var inPlace = NormalizeToCarriageReturnLineFeed(DirectiveLineInFrontOfTheNameInPlaceSource);
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(NormalizeToCarriageReturnLineFeed(DirectiveLineInFrontOfTheNameSource), true, inPlace, Format(inPlace));
+    }
+
+    /// <summary>
+    /// Verifies that an <c>#if</c> block with disabled text between the type and the name is not dropped: the fix is
+    /// withheld, or the block stays in front of the field's name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyFixKeepsAConditionalBlockInFrontOfTheName()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int
+                                #if NEVER
+                                        unused
+                                #endif
+                                        {|RH2001:Value|} { get; set; }
+                                }
+                                """;
+
+        const string inPlace = """
+                               class C
+                               {
+                                   private int
+                               #if NEVER
+                                       unused
+                               #endif
+                                       _value;
+                               }
+                               """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(testData, true, inPlace, Format(inPlace));
+    }
+
+    /// <summary>
+    /// Verifies the other side of <see cref="VerifyFixKeepsACommentLineInFrontOfTheName"/>: a name on its own line
+    /// without a comment or directive in front of it keeps the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-004")]
+    public async Task VerifyFixIsOfferedForANameOnItsOwnLineWithoutCommentOrDirective()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int
+                                        {|RH2001:Value|} { get; set; }
+                                }
+                                """;
+
+        const string inPlace = """
+                               class C
+                               {
+                                   private int
+                                       _value;
+                               }
+                               """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(testData, false, inPlace, Format(inPlace));
+    }
+
+    /// <summary>
+    /// Verifies that a comment line between the modifier and the type is neither dropped nor moved away from the code
+    /// it stands with: the fix is withheld, or the comment line stays in front of the field's type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyFixKeepsACommentLineInFrontOfTheType()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private
+                                        // note
+                                        int {|RH2001:Value|} { get; set; }
+                                }
+                                """;
+
+        const string inPlace = """
+                               class C
+                               {
+                                   private
+                                       // note
+                                       int _value;
+                               }
+                               """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(testData, true, inPlace, Format(inPlace));
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind the type on the property's line is not dropped: the fix is withheld, or the
+    /// comment stays between the field's type and its name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyFixKeepsACommentBehindTheTypeOnTheSameLine()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int /* note */ {|RH2001:Value|} { get; set; }
+                                }
+                                """;
+
+        const string inPlace = """
+                               class C
+                               {
+                                   private int /* note */ _value;
+                               }
+                               """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(testData, true, inPlace, Format(inPlace));
     }
 
     #endregion // Tests

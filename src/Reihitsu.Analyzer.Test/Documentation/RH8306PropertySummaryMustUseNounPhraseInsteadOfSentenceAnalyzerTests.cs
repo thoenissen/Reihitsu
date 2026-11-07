@@ -739,5 +739,35 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzerTest
                      Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a partial property whose implementing part lies in generated code, with a summary that reads as a
+    /// sentence on both parts, is reported once, on the summary of the defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialPropertyWithGeneratedImplementingPartIsReportedOnTheDefiningPart()
+    {
+        const string definingPart = """
+                                    public partial class C
+                                    {
+                                        /// {|#0:<summary>Gets the value.</summary>|}
+                                        public partial int P { get; }
+                                    }
+                                    """;
+
+        const string implementingPart = """
+                                        public partial class C
+                                        {
+                                            /// <summary>Gets the value.</summary>
+                                            public partial int P => 0;
+                                        }
+                                        """;
+
+        await Verify(definingPart,
+                     test => test.TestState.Sources.Add(("/0/C.g.cs", implementingPart)),
+                     Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+    }
+
     #endregion // Tests
 }

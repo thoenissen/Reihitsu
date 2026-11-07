@@ -75,6 +75,79 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
                                                                              }
                                                                              """;
 
+    /// <summary>
+    /// Source of a <c>static</c> field whose <see langword="public"/> modifier starts its own line behind <c>static</c>
+    /// </summary>
+    private const string PublicOnItsOwnLineSource = """
+                                                    public class C
+                                                    {
+                                                        static
+                                                            public int {|RH2005:Counter|};
+                                                    }
+                                                    """;
+
+    /// <summary>
+    /// <see cref="PublicOnItsOwnLineSource"/> with <see langword="private"/> where <c>static</c> stood and the line of
+    /// the removed <see langword="public"/> kept in place
+    /// </summary>
+    private const string PublicOnItsOwnLineInPlaceSource = """
+                                                           public class C
+                                                           {
+                                                               private static
+                                                                   int Counter;
+                                                           }
+                                                           """;
+
+    /// <summary>
+    /// Source of a <c>static</c> field with a comment line between <c>static</c> and <see langword="public"/>
+    /// </summary>
+    private const string CommentLineInFrontOfPublicSource = """
+                                                            public class C
+                                                            {
+                                                                static
+                                                                    // note
+                                                                    public int {|RH2005:Counter|};
+                                                            }
+                                                            """;
+
+    /// <summary>
+    /// <see cref="CommentLineInFrontOfPublicSource"/> with <see langword="private"/> where <c>static</c> stood and the
+    /// comment line kept in front of the rest of the declaration
+    /// </summary>
+    private const string CommentLineInFrontOfPublicInPlaceSource = """
+                                                                   public class C
+                                                                   {
+                                                                       private static
+                                                                           // note
+                                                                           int Counter;
+                                                                   }
+                                                                   """;
+
+    /// <summary>
+    /// Source of a <c>static</c> field with a directive line between <c>static</c> and <see langword="public"/>
+    /// </summary>
+    private const string DirectiveLineInFrontOfPublicSource = """
+                                                              public class C
+                                                              {
+                                                                  static
+                                                              #pragma warning disable CS0649
+                                                                      public int {|RH2005:Counter|};
+                                                              }
+                                                              """;
+
+    /// <summary>
+    /// <see cref="DirectiveLineInFrontOfPublicSource"/> with <see langword="private"/> where <c>static</c> stood and
+    /// the directive line kept in front of the rest of the declaration
+    /// </summary>
+    private const string DirectiveLineInFrontOfPublicInPlaceSource = """
+                                                                     public class C
+                                                                     {
+                                                                         private static
+                                                                     #pragma warning disable CS0649
+                                                                             int Counter;
+                                                                     }
+                                                                     """;
+
     #endregion // Constants
 
     #region Tests
@@ -886,6 +959,127 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
                          test.TestState.AdditionalProjects["Consumer"].Sources.Add(("/Consumer/User.cs", user));
                          test.TestState.AdditionalProjects["Consumer"].AdditionalProjectReferences.Add("TestProject");
                      });
+    }
+
+    /// <summary>
+    /// Verifies that a <see langword="public"/> that is not the first modifier and starts its own line gets a fix that
+    /// writes <see langword="private"/> where <c>static</c> stood and keeps the rest of the declaration on the line of
+    /// the removed <see langword="public"/>, in its column or as the formatter lays it out, instead of moving it to
+    /// column zero
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2005-003")]
+    public async Task VerifyFixKeepsTheLineOfAPublicThatStartsItsOwnLineBehindAnotherModifier()
+    {
+        await VerifyCodeFixIsWithheldOrProducesOneOf(PublicOnItsOwnLineSource, false, PublicOnItsOwnLineInPlaceSource, Format(PublicOnItsOwnLineInPlaceSource));
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyFixKeepsTheLineOfAPublicThatStartsItsOwnLineBehindAnotherModifier"/> with the source
+    /// normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2005-003")]
+    public async Task VerifyFixKeepsTheLineOfAPublicThatStartsItsOwnLineBehindAnotherModifierCarriageReturnLineFeed()
+    {
+        var inPlace = NormalizeToCarriageReturnLineFeed(PublicOnItsOwnLineInPlaceSource);
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(NormalizeToCarriageReturnLineFeed(PublicOnItsOwnLineSource), false, inPlace, Format(inPlace));
+    }
+
+    /// <summary>
+    /// Verifies that a comment line between <c>static</c> and a <see langword="public"/> that starts its own line is
+    /// neither dropped nor moved away from the code it stands with: the fix is withheld, or it keeps the comment line
+    /// in front of the rest of the declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2005-003")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyFixKeepsACommentLineInFrontOfAPublicBehindAnotherModifier()
+    {
+        await VerifyCodeFixIsWithheldOrProducesOneOf(CommentLineInFrontOfPublicSource, true, CommentLineInFrontOfPublicInPlaceSource, Format(CommentLineInFrontOfPublicInPlaceSource));
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyFixKeepsACommentLineInFrontOfAPublicBehindAnotherModifier"/> with the source normalized
+    /// to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2005-003")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyFixKeepsACommentLineInFrontOfAPublicBehindAnotherModifierCarriageReturnLineFeed()
+    {
+        var inPlace = NormalizeToCarriageReturnLineFeed(CommentLineInFrontOfPublicInPlaceSource);
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(NormalizeToCarriageReturnLineFeed(CommentLineInFrontOfPublicSource), true, inPlace, Format(inPlace));
+    }
+
+    /// <summary>
+    /// Verifies that a directive line between <c>static</c> and a <see langword="public"/> that starts its own line is
+    /// not dropped: the fix is withheld, or it keeps the directive line in front of the rest of the declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2005-003")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyFixKeepsADirectiveLineInFrontOfAPublicBehindAnotherModifier()
+    {
+        await VerifyCodeFixIsWithheldOrProducesOneOf(DirectiveLineInFrontOfPublicSource, true, DirectiveLineInFrontOfPublicInPlaceSource, Format(DirectiveLineInFrontOfPublicInPlaceSource));
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyFixKeepsADirectiveLineInFrontOfAPublicBehindAnotherModifier"/> with the source
+    /// normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2005-003")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyFixKeepsADirectiveLineInFrontOfAPublicBehindAnotherModifierCarriageReturnLineFeed()
+    {
+        var inPlace = NormalizeToCarriageReturnLineFeed(DirectiveLineInFrontOfPublicInPlaceSource);
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(NormalizeToCarriageReturnLineFeed(DirectiveLineInFrontOfPublicSource), true, inPlace, Format(inPlace));
+    }
+
+    /// <summary>
+    /// Verifies that an <c>#if</c> block whose disabled text holds a modifier, between <c>static</c> and a
+    /// <see langword="public"/> that starts its own line, is not dropped: the fix is withheld, or it keeps the block in
+    /// front of the rest of the declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2005-003")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyFixKeepsAnExcludedModifierInFrontOfAPublicBehindAnotherModifier()
+    {
+        const string testData = """
+                                public class C
+                                {
+                                    static
+                                #if NEVER
+                                        readonly
+                                #endif
+                                        public int {|RH2005:Counter|};
+                                }
+                                """;
+
+        const string inPlace = """
+                               public class C
+                               {
+                                   private static
+                               #if NEVER
+                                       readonly
+                               #endif
+                                       int Counter;
+                               }
+                               """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(testData, true, inPlace, Format(inPlace));
     }
 
     #endregion // Tests

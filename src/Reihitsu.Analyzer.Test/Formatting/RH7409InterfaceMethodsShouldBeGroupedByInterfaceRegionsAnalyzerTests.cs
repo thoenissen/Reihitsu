@@ -883,6 +883,92 @@ public class RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzerTest
         await Verify(testData, Diagnostics(RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("I")));
     }
 
+    /// <summary>
+    /// Verifies that a <see langword="partial"/> method implementing an interface member, whose defining part lies in
+    /// generated code, with both parts outside a matching region, is reported once, on its implementing part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialMethodWithGeneratedDefiningPartIsReportedOnItsImplementingPart()
+    {
+        const string userPart = """
+                                interface I
+                                {
+                                    void M();
+                                }
+
+                                partial class C : I
+                                {
+                                    #region Methods
+
+                                    public partial void {|#0:M|}()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        const string generatedPart = """
+                                     partial class C
+                                     {
+                                         #region Methods
+
+                                         public partial void M();
+
+                                         #endregion
+                                     }
+                                     """;
+
+        await Verify(userPart,
+                     test => test.TestState.Sources.Add(("/0/C.g.cs", generatedPart)),
+                     Diagnostics(RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("I")));
+    }
+
+    /// <summary>
+    /// Verifies that a <see langword="partial"/> method implementing an interface member, whose implementing part lies
+    /// in generated code, with both parts outside a matching region, is reported once, on its defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialMethodWithGeneratedImplementingPartIsReportedOnItsDefiningPart()
+    {
+        const string userPart = """
+                                interface I
+                                {
+                                    void M();
+                                }
+
+                                partial class C : I
+                                {
+                                    #region Methods
+
+                                    public partial void {|#0:M|}();
+
+                                    #endregion
+                                }
+                                """;
+
+        const string generatedPart = """
+                                     partial class C
+                                     {
+                                         #region Methods
+
+                                         public partial void M()
+                                         {
+                                         }
+
+                                         #endregion
+                                     }
+                                     """;
+
+        await Verify(userPart,
+                     test => test.TestState.Sources.Add(("/0/C.g.cs", generatedPart)),
+                     Diagnostics(RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("I")));
+    }
+
     #endregion // Tests
 
     #region Methods

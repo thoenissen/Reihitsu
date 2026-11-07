@@ -370,6 +370,60 @@ public class RH7403OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzerTests :
         await Verify(testData, Diagnostics(RH7403OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzer.DiagnosticId, CreateMessage("B")));
     }
 
+    /// <summary>
+    /// Verifies that a <see langword="partial"/> override event whose defining part lies in generated code, with
+    /// both parts outside a matching region, is reported once, on its implementing part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialOverrideEventWithGeneratedDefiningPartIsReportedOnItsImplementingPart()
+    {
+        const string userPart = """
+                                using System;
+
+                                abstract class B
+                                {
+                                    public abstract event Action E;
+                                }
+
+                                partial class C : B
+                                {
+                                    #region Other
+
+                                    public override partial event Action {|#0:E|}
+                                    {
+                                        add
+                                        {
+                                        }
+
+                                        remove
+                                        {
+                                        }
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        const string generatedPart = """
+                                     using System;
+
+                                     partial class C
+                                     {
+                                         #region Events
+
+                                         public override partial event Action E;
+
+                                         #endregion
+                                     }
+                                     """;
+
+        await Verify(userPart,
+                     test => test.TestState.Sources.Add(("/0/C.g.cs", generatedPart)),
+                     Diagnostics(RH7403OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzer.DiagnosticId, CreateMessage("B")));
+    }
+
     #endregion // Tests
 
     #region Methods

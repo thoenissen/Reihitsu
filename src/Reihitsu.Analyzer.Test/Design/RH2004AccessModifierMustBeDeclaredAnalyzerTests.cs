@@ -1534,6 +1534,263 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
         await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a partial constructor whose implementing part lies in generated code is reported once, on its
+    /// defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialConstructorWithGeneratedImplementingPartIsReportedOnTheDefiningPart()
+    {
+        const string userPart = """
+                                public partial class P
+                                {
+                                    partial {|RH2004:P|}(int x);
+                                }
+                                """;
+
+        const string generatedPart = """
+                                     public partial class P
+                                     {
+                                         partial P(int x)
+                                         {
+                                         }
+                                     }
+                                     """;
+
+        await Verify(userPart, test => test.TestState.Sources.Add(("/0/P.g.cs", generatedPart)));
+    }
+
+    /// <summary>
+    /// Verifies that a partial constructor whose defining part lies in generated code is reported once, on its
+    /// implementing part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialConstructorWithGeneratedDefiningPartIsReportedOnTheImplementingPart()
+    {
+        const string userPart = """
+                                public partial class P
+                                {
+                                    partial {|RH2004:P|}(int x)
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string generatedPart = """
+                                     public partial class P
+                                     {
+                                         partial P(int x);
+                                     }
+                                     """;
+
+        await Verify(userPart, test => test.TestState.Sources.Add(("/0/P.g.cs", generatedPart)));
+    }
+
+    /// <summary>
+    /// Verifies that a partial indexer whose implementing part lies in generated code is reported once, on its defining
+    /// part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialIndexerWithGeneratedImplementingPartIsReportedOnTheDefiningPart()
+    {
+        const string userPart = """
+                                public partial class P
+                                {
+                                    partial int {|RH2004:this|}[int index] { get; }
+                                }
+                                """;
+
+        const string generatedPart = """
+                                     public partial class P
+                                     {
+                                         partial int this[int index] { get => index; }
+                                     }
+                                     """;
+
+        await Verify(userPart, test => test.TestState.Sources.Add(("/0/P.g.cs", generatedPart)));
+    }
+
+    /// <summary>
+    /// Verifies that a partial indexer whose defining part lies in generated code is reported once, on its implementing
+    /// part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialIndexerWithGeneratedDefiningPartIsReportedOnTheImplementingPart()
+    {
+        const string userPart = """
+                                public partial class P
+                                {
+                                    partial int {|RH2004:this|}[int index] { get => index; }
+                                }
+                                """;
+
+        const string generatedPart = """
+                                     public partial class P
+                                     {
+                                         partial int this[int index] { get; }
+                                     }
+                                     """;
+
+        await Verify(userPart, test => test.TestState.Sources.Add(("/0/P.g.cs", generatedPart)));
+    }
+
+    /// <summary>
+    /// Verifies that a partial event whose implementing part lies in generated code is reported once, on its defining
+    /// part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialEventWithGeneratedImplementingPartIsReportedOnTheDefiningPart()
+    {
+        const string userPart = """
+                                using System;
+
+                                public partial class P
+                                {
+                                    partial event Action {|RH2004:Changed|};
+                                }
+                                """;
+
+        const string generatedPart = """
+                                     using System;
+
+                                     public partial class P
+                                     {
+                                         partial event Action Changed { add { } remove { } }
+                                     }
+                                     """;
+
+        await Verify(userPart, test => test.TestState.Sources.Add(("/0/P.g.cs", generatedPart)));
+    }
+
+    /// <summary>
+    /// Verifies that a partial event whose defining part lies in generated code is reported once, on its implementing
+    /// part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialEventWithGeneratedDefiningPartIsReportedOnTheImplementingPart()
+    {
+        const string userPart = """
+                                using System;
+
+                                public partial class P
+                                {
+                                    partial event Action {|RH2004:Changed|} { add { } remove { } }
+                                }
+                                """;
+
+        const string generatedPart = """
+                                     using System;
+
+                                     public partial class P
+                                     {
+                                         partial event Action Changed;
+                                     }
+                                     """;
+
+        await Verify(userPart, test => test.TestState.Sources.Add(("/0/P.g.cs", generatedPart)));
+    }
+
+    /// <summary>
+    /// Verifies that a partial constructor whose two parts lie in two documents is reported once, on its defining
+    /// part, when the document of the defining part comes first
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialConstructorInTwoDocumentsIsReportedOnTheDefiningPartInTheFirstDocument()
+    {
+        const string definingPart = """
+                                    public partial class P
+                                    {
+                                        partial {|RH2004:P|}(int x);
+                                    }
+                                    """;
+
+        const string implementingPart = """
+                                        public partial class P
+                                        {
+                                            partial P(int x)
+                                            {
+                                            }
+                                        }
+                                        """;
+
+        await Verify(definingPart, test => test.TestState.Sources.Add(("/0/Test1.cs", implementingPart)));
+    }
+
+    /// <summary>
+    /// Verifies that a partial constructor whose two parts lie in two documents is reported once, on its defining
+    /// part, when the document of the implementing part comes first
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialConstructorInTwoDocumentsIsReportedOnTheDefiningPartInTheSecondDocument()
+    {
+        const string implementingPart = """
+                                        public partial class P
+                                        {
+                                            partial P(int x)
+                                            {
+                                            }
+                                        }
+                                        """;
+
+        const string definingPart = """
+                                    public partial class P
+                                    {
+                                        partial {|RH2004:P|}(int x);
+                                    }
+                                    """;
+
+        await Verify(implementingPart, test => test.TestState.Sources.Add(("/0/Test1.cs", definingPart)));
+    }
+
+    /// <summary>
+    /// Verifies that a partial constructor both of whose parts lie in generated code is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialConstructorWithBothPartsGeneratedIsNotReported()
+    {
+        const string definingPart = """
+                                    public partial class P
+                                    {
+                                        partial P(int x);
+                                    }
+                                    """;
+
+        const string implementingPart = """
+                                        public partial class P
+                                        {
+                                            partial P(int x)
+                                            {
+                                            }
+                                        }
+                                        """;
+
+        await Verify(string.Empty,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Defining.g.cs", definingPart));
+                         test.TestState.Sources.Add(("/0/Implementing.g.cs", implementingPart));
+                     });
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
