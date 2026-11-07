@@ -88,6 +88,7 @@ From `07-spec-author.md`:
 - 19 test implementer done (5c5e476): 3 tests pass; wrapped-O mutation check fails only that test.
 - 20 cleaner clean (ef04f39, text-only proof pass); 21 spec checker consistent (69fc642).
 - 22 auditor (45c73c4): PASS, no findings. **Audited SHA: 25b7dc3** (tree; 45c73c4 adds only the handover).
-- Next: validator (23) → lane check → issue manager → note + delete sdd/work → trigger commit → PR.
+- 23 validator (1a59976): PASS on 95dd98b; all projects green.
+- Next: lane check → issue manager → note + delete sdd/work → trigger commit → PR.
 - Worklist round 2: test implementer (19, done) — tests for wrapped O (`class /* a⏎ b */, new(),⏎ IDisposable`), wrapped M, wrapped N; cleaner (20) — also wrap the ~180-char summary line in `GenericConstraintLineBreakRewriter.JoinGap`; spec checker (21); auditor on repair (22); validator.
 - Worklist round 1: spec author (13, done) — FMT-BREAK-037 wording to line-start facts per decision 8, outputs of (a)–(d), tuple-in-type-argument wording hint; test implementer (14) — one test per case (a)–(e); implementer (15) — #1 + #2 + correct `IsWrapped`/class remarks; then cleaner, spec checker, auditor (repair only), validator.
