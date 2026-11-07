@@ -45,4 +45,4 @@
 
 - Done: spec author (01, 461faa4). Open output questions from it: Q1 RH5023 blank lines inside an interpolation hole; Q2-Q6 statement-brace outputs (Q2 is the issue's own decision).
 - Done: skeptic (02, 1a16550).
-- Maintainer answered Q1: B. Done: spec-author amendment (03, 5c70c13); test implementer (04, 55c161f: #1075 and #1261 reproduced). implementer (05, 8756175: all pass except two disputed tests, decision 11). Test implementer correction done (6d98535). Next: cleaner (Release warnings S3267 in RH5011 code fix).
+- Maintainer answered Q1: B. Done: spec-author amendment (03, 5c70c13); test implementer (04, 55c161f: #1075 and #1261 reproduced). implementer (05, 8756175: all pass except two disputed tests, decision 11). Test implementer correction done (6d98535). Cleaner done (06, 3173d9f). Next: spec checker.
