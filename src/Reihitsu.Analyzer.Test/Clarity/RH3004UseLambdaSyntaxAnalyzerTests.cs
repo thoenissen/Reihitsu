@@ -2581,15 +2581,14 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     }
 
     /// <summary>
-    /// Verifies a block that only returns a verbatim string holding a line that starts with <c>#</c> is still rewritten
-    /// as an expression body, because the line-start check withholds the fix only where the block stays a block body,
-    /// and the line keeps its columns
+    /// Verifies the specification example of a block that only returns a verbatim string over several lines whose
+    /// later line starts with <c>#</c>, with no directive in the document: the fix would write an expression body,
+    /// but the diagnostic is reported and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3004-003")]
     [Requirement("RH3004-008")]
-    public async Task FixRewritesASingleReturnOfAStringThatHoldsALineStartingWithHashAsAnExpressionBody()
+    public async Task FixWithheldForASingleReturnOfAStringThatHoldsALineStartingWithHash()
     {
         const string testCode = """
                                 using System;
@@ -2607,6 +2606,125 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                 }
                                 """;
 
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a block that only returns a verbatim string over several lines whose later line starts with
+    /// <c>#</c>, in a document whose line breaks are CRLF: the diagnostic is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForASingleReturnOfAStringThatHoldsALineStartingWithHashWithCarriageReturnLineFeed()
+    {
+        var testCode = NormalizeToCarriageReturnLineFeed("""
+                                                         using System;
+
+                                                         class C
+                                                         {
+                                                             void M()
+                                                             {
+                                                                 Func<string> b = {|RH3004:delegate|} ()
+                                                                 {
+                                                                     return @"a
+                                                         #b";
+                                                                 };
+                                                             }
+                                                         }
+                                                         """);
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a block that only returns a verbatim string over several lines whose later line starts with a
+    /// form feed in front of <c>#</c>: the form feed is whitespace to the lexer, so the line is a <c>#</c> line, and
+    /// the diagnostic is reported with no code fix offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForASingleReturnOfAStringWhoseHashLineStartsWithAFormFeed()
+    {
+        var template = """
+                       using System;
+
+                       class C
+                       {
+                           void M()
+                           {
+                               Func<string> b = {|RH3004:delegate|} ()
+                               {
+                                   return @"a
+                       <form-feed>#b";
+                               };
+                           }
+                       }
+                       """;
+
+        var testCode = template.Replace("<form-feed>", "\f", System.StringComparison.Ordinal);
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a block that only returns a verbatim string over several lines whose later line starts with spaces
+    /// and a tab in front of <c>#</c>: the line is a <c>#</c> line, and the diagnostic is reported with no code fix
+    /// offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForASingleReturnOfAStringWhoseHashLineStartsWithSpacesAndATab()
+    {
+        var template = """
+                       using System;
+
+                       class C
+                       {
+                           void M()
+                           {
+                               Func<string> b = {|RH3004:delegate|} ()
+                               {
+                                   return @"a
+                         <tab>#b";
+                               };
+                           }
+                       }
+                       """;
+
+        var testCode = template.Replace("<tab>", "\t", System.StringComparison.Ordinal);
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a block that only returns a verbatim string over several lines without a
+    /// <c>#</c> line: the fix writes an expression body, and the later line keeps its columns
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-003")]
+    [Requirement("RH3004-008")]
+    public async Task FixRewritesASingleReturnOfAMultiLineVerbatimStringWithoutAHashLineAsAnExpressionBody()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<string> b = {|RH3004:delegate|} ()
+                                        {
+                                            return @"a
+                                b";
+                                        };
+                                    }
+                                }
+                                """;
+
         const string fixedCode = """
                                  using System;
 
@@ -2615,7 +2733,92 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                      void M()
                                      {
                                          Func<string> b = () => @"a
-                                 #b";
+                                 b";
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a block that only returns a verbatim string over several lines without a <c>#</c> line, in a
+    /// document whose line breaks are CRLF: the fix writes an expression body, and the later line keeps its columns
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-003")]
+    [Requirement("RH3004-008")]
+    public async Task FixRewritesASingleReturnOfAMultiLineVerbatimStringWithoutAHashLineAsAnExpressionBodyWithCarriageReturnLineFeed()
+    {
+        var testCode = NormalizeToCarriageReturnLineFeed("""
+                                                         using System;
+
+                                                         class C
+                                                         {
+                                                             void M()
+                                                             {
+                                                                 Func<string> b = {|RH3004:delegate|} ()
+                                                                 {
+                                                                     return @"a
+                                                         b";
+                                                                 };
+                                                             }
+                                                         }
+                                                         """);
+
+        var fixedCode = NormalizeToCarriageReturnLineFeed("""
+                                                          using System;
+
+                                                          class C
+                                                          {
+                                                              void M()
+                                                              {
+                                                                  Func<string> b = () => @"a
+                                                          b";
+                                                              }
+                                                          }
+                                                          """);
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a block that only returns a verbatim string over several lines whose later line holds <c>#</c> only
+    /// behind other text: that line is no <c>#</c> line, so the fix writes an expression body, and the later line
+    /// keeps its columns
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-003")]
+    [Requirement("RH3004-008")]
+    public async Task FixRewritesASingleReturnOfAStringWhoseLineHoldsHashBehindOtherTextAsAnExpressionBody()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<string> b = {|RH3004:delegate|} ()
+                                        {
+                                            return @"a
+                                b #c";
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Func<string> b = () => @"a
+                                 b #c";
                                      }
                                  }
                                  """;
@@ -3806,6 +4009,221 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                     }
                                 }
                                 """";
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a block that returns a verbatim string whose <c>#else</c> line ends the
+    /// chain's first branch, with <c>A</c> defined: the fix would write an expression body and delete text that is
+    /// the inside of a string without <c>A</c>, so the diagnostic is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForAReturnedStringThatHidesTheElseOfAChainAroundTheAnonymousMethod()
+    {
+        const string testCode = """
+                                #define A
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                #if A
+                                        Func<string> f = {|RH3004:delegate|} () { return @"
+                                #else
+                                        Func<string> f = () =>
+                                "; }; //";
+                                #endif
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a delimited comment in the parameter list whose <c>#else</c> line ends
+    /// the chain's first branch, on the block-body path, with <c>A</c> defined: the diagnostic is reported and no
+    /// code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForAParameterListCommentThatHidesTheElseOfAChainOnTheBlockBodyPath()
+    {
+        const string testCode = """
+                                #define A
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                #if A
+                                        Action<int> a = {|RH3004:delegate|} (int x /*
+                                #else
+                                        var s = @"
+                                        */)
+                                        {
+                                            Console.WriteLine(x);
+                                        }; //";
+                                #endif
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a delimited comment in the parameter list whose <c>#else</c> line ends
+    /// the chain's first branch, on the expression-body path, with <c>A</c> defined: the diagnostic is reported and
+    /// no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForAParameterListCommentThatHidesTheElseOfAChainOnTheExpressionBodyPath()
+    {
+        const string testCode = """
+                                #define A
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                #if A
+                                        Func<int, int> a = {|RH3004:delegate|} (int x /*
+                                #else
+                                        var s = @"
+                                        */) { return x; }; //";
+                                #endif
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a block that only returns a raw string literal over several lines
+    /// whose later line starts with <c>#</c> behind spaces, with no directive in the document: the fix would write an
+    /// expression body, but the diagnostic is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-007")]
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForASingleReturnOfAMultiLineRawStringLiteralThatHoldsALineStartingWithHash()
+    {
+        const string testCode = """"
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<string> c = {|RH3004:delegate|} ()
+                                        {
+                                            return """
+                                                a
+                                                #b
+                                                """;
+                                        };
+                                    }
+                                }
+                                """";
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a delimited comment over several lines without a <c>#</c> line in the
+    /// parameter list, on the block-body path, with no directive in the document: the diagnostic is reported and no
+    /// code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForADelimitedCommentInTheParameterListThatSpansLinesOnTheBlockBodyPath()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> e = {|RH3004:delegate|} (int x /* first
+                                                                                     second */)
+                                        {
+                                            Console.WriteLine(x);
+                                        };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a delimited comment over several lines without a <c>#</c> line in the parameter list, on the
+    /// block-body path, in a document whose line breaks are CRLF: the diagnostic is reported and no code fix is
+    /// offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForADelimitedCommentInTheParameterListThatSpansLinesOnTheBlockBodyPathWithCarriageReturnLineFeed()
+    {
+        var testCode = NormalizeToCarriageReturnLineFeed("""
+                                                         using System;
+
+                                                         class C
+                                                         {
+                                                             void M()
+                                                             {
+                                                                 Action<int> e = {|RH3004:delegate|} (int x /* first
+                                                                                                              second */)
+                                                                 {
+                                                                     Console.WriteLine(x);
+                                                                 };
+                                                             }
+                                                         }
+                                                         """);
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a delimited comment over several lines in the parameter list whose later line starts with <c>#</c>,
+    /// on the expression-body path, with no directive in the document: the diagnostic is reported and no code fix
+    /// is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForAParameterListCommentWithAHashLineOnTheExpressionBodyPath()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<int, int> a = {|RH3004:delegate|} (int x /* first
+                                #second */)
+                                        {
+                                            return x;
+                                        };
+                                    }
+                                }
+                                """;
 
         await VerifyNoCodeFixIsOffered(testCode);
     }
