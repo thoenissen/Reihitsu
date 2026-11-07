@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -663,6 +663,157 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzerTests
                                 """;
 
         await Verify(testData, Diagnostics(RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("IA")));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a <see langword="partial"/> event both of whose parts lie outside
+    /// a matching region: it is reported once, on its defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7411-001")]
+    [Requirement("SHARED-DIAG-004")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialEventIsReportedOnceOnItsDefiningPart()
+    {
+        const string testData = """
+                                using System;
+
+                                interface I
+                                {
+                                    event Action E;
+                                }
+
+                                partial class C : I
+                                {
+                                    #region Events
+
+                                    public partial event Action {|#0:E|};
+
+                                    public partial event Action E
+                                    {
+                                        add
+                                        {
+                                        }
+
+                                        remove
+                                        {
+                                        }
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("I")));
+    }
+
+    /// <summary>
+    /// Verifies that a <see langword="partial"/> event implementing an interface member, whose defining part lies in
+    /// generated code, with both parts outside a matching region, is reported once, on its implementing part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialEventWithGeneratedDefiningPartIsReportedOnItsImplementingPart()
+    {
+        const string userPart = """
+                                using System;
+
+                                interface I
+                                {
+                                    event Action E;
+                                }
+
+                                partial class C : I
+                                {
+                                    #region Events
+
+                                    public partial event Action {|#0:E|}
+                                    {
+                                        add
+                                        {
+                                        }
+
+                                        remove
+                                        {
+                                        }
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        const string generatedPart = """
+                                     using System;
+
+                                     partial class C
+                                     {
+                                         #region Events
+
+                                         public partial event Action E;
+
+                                         #endregion
+                                     }
+                                     """;
+
+        await Verify(userPart,
+                     test => test.TestState.Sources.Add(("/0/C.g.cs", generatedPart)),
+                     Diagnostics(RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("I")));
+    }
+
+    /// <summary>
+    /// Verifies that a <see langword="partial"/> event implementing an interface member, whose implementing part lies
+    /// in generated code, with both parts outside a matching region, is reported once, on its defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialEventWithGeneratedImplementingPartIsReportedOnItsDefiningPart()
+    {
+        const string userPart = """
+                                using System;
+
+                                interface I
+                                {
+                                    event Action E;
+                                }
+
+                                partial class C : I
+                                {
+                                    #region Events
+
+                                    public partial event Action {|#0:E|};
+
+                                    #endregion
+                                }
+                                """;
+
+        const string generatedPart = """
+                                     using System;
+
+                                     partial class C
+                                     {
+                                         #region Events
+
+                                         public partial event Action E
+                                         {
+                                             add
+                                             {
+                                             }
+
+                                             remove
+                                             {
+                                             }
+                                         }
+
+                                         #endregion
+                                     }
+                                     """;
+
+        await Verify(userPart,
+                     test => test.TestState.Sources.Add(("/0/C.g.cs", generatedPart)),
+                     Diagnostics(RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("I")));
     }
 
     #endregion // Tests

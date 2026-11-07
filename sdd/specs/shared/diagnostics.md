@@ -4,7 +4,7 @@
 |---|---|
 | ID prefix | SHARED-DIAG |
 | Status | Active |
-| Code owners | `DiagnosticAnalyzerBase` |
+| Code owners | `DiagnosticAnalyzerBase`, `PartialMemberUtilities` |
 | Uses | FMT-DOC-012, SHARED-FIX-003, SHARED-FIX-005, SHARED-JOIN-001, SHARED-TRAIL-002 |
 
 This spec covers what holds for every analyzer rule, so a rule spec states only what the rule itself reports. It applies to every rule without being listed under `Uses`.
@@ -630,3 +630,55 @@ class C
 ```
 
 is reported, and no code fix is offered: `x is (true == false)` is valid at that position, so the construct is reported although the fix does not write it. Likewise, the RH4106 example under SHARED-FIX-003 is reported: `_value` is a valid name at that position, and only the field that already has the name makes the renamed code fail to compile.
+
+### SHARED-DIAG-012 — Where the one diagnostic of a partial member stands
+
+A rule that reports a partial member — a method, property, indexer, event, or constructor declared in a defining part and an implementing part — at most once, under the first paragraph of SHARED-DIAG-004 or because its own spec says so, MUST place that one diagnostic on one part, at the position where the rule places it on a declaration in one part, and MUST choose the part in this order:
+
+1. A part in generated code (SHARED-DIAG-001) is never chosen. When every part is in generated code, nothing is reported.
+2. Of the other parts, a part that the rule would report if it judged that part alone, by what that part writes, such as its modifiers, its documentation comment, or the region it lies in; the defining part before the implementing part.
+3. When no part qualifies under 2, the defining part, or the implementing part when the defining part is in generated code.
+
+The defining part is the part without an implementation: the method or constructor without a body, the property or indexer whose accessors have no bodies, the event without `add` and `remove` accessors. The order of the parts in a file, and the files that hold them, do not change the choice.
+
+Why: The diagnostic stands where the code the rule complains about is written, such as the `async` that only the implementing part of a method can carry, so the user lands on what has to change. A generated part is rewritten by its generator and cannot carry a diagnostic. When the parts write nothing that tells them apart, as when neither states an accessibility, the defining part is the member's declaration: it states the signature that the implementing part repeats. An order that depends on files or on the position of the parts would move the diagnostic when a part moves, while the member stays the same.
+
+Example — RH2002 places the diagnostic on the implementing part, the only part that writes `async`:
+
+```csharp
+using System.Threading.Tasks;
+
+partial class P
+{
+    partial void Q();
+
+    async partial void {|RH2002:Q|}()
+    {
+        await Task.Delay(1);
+    }
+}
+```
+
+Example — RH2004 judges whether an accessibility is stated, and neither part states one, so the defining part carries the diagnostic, although the implementing part stands first:
+
+```csharp
+public partial class P
+{
+    partial int Prop { get => 1; set { } }
+
+    partial int {|RH2004:Prop|} { get; set; }
+}
+```
+
+Example — RH8306 judges the summary each part writes; only the implementing part's summary reads as a sentence, so it carries the diagnostic:
+
+```csharp
+public partial class C
+{
+    /// <summary>Value</summary>
+    public partial int P { get; }
+
+    /// {|RH8306:<summary>Gets the value.</summary>|}
+    public partial int P => 0;
+}
+```

@@ -352,6 +352,107 @@ public class RH7407NonOverrideEventsShouldNotBePlacedInOverrideRegionsAnalyzerTe
         await Verify(testData, Diagnostics(RH7407NonOverrideEventsShouldNotBePlacedInOverrideRegionsAnalyzer.DiagnosticId, CreateMessage("B")));
     }
 
+    /// <summary>
+    /// Verifies the specification example of a <see langword="partial"/> event that overrides nothing and both
+    /// of whose parts lie in an override region: it is reported once, on its defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7407-001")]
+    [Requirement("SHARED-DIAG-004")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialEventIsReportedOnceOnItsDefiningPart()
+    {
+        const string testData = """
+                                using System;
+
+                                class B
+                                {
+                                    public virtual event Action Changed;
+                                }
+
+                                partial class C : B
+                                {
+                                    #region B
+
+                                    public override event Action Changed;
+
+                                    public partial event Action {|#0:E|};
+
+                                    public partial event Action E
+                                    {
+                                        add
+                                        {
+                                        }
+
+                                        remove
+                                        {
+                                        }
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7407NonOverrideEventsShouldNotBePlacedInOverrideRegionsAnalyzer.DiagnosticId, CreateMessage("B")));
+    }
+
+    /// <summary>
+    /// Verifies that a <see langword="partial"/> non-override event whose defining part lies in generated code, with
+    /// both parts in an override region, is reported once, on its implementing part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialNonOverrideEventWithGeneratedDefiningPartIsReportedOnItsImplementingPart()
+    {
+        const string userPart = """
+                                using System;
+
+                                class B
+                                {
+                                    public virtual event Action Changed;
+                                }
+
+                                partial class C : B
+                                {
+                                    #region B
+
+                                    public override event Action Changed;
+
+                                    public partial event Action {|#0:E|}
+                                    {
+                                        add
+                                        {
+                                        }
+
+                                        remove
+                                        {
+                                        }
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        const string generatedPart = """
+                                     using System;
+
+                                     partial class C
+                                     {
+                                         #region B
+
+                                         public partial event Action E;
+
+                                         #endregion
+                                     }
+                                     """;
+
+        await Verify(userPart,
+                     test => test.TestState.Sources.Add(("/0/C.g.cs", generatedPart)),
+                     Diagnostics(RH7407NonOverrideEventsShouldNotBePlacedInOverrideRegionsAnalyzer.DiagnosticId, CreateMessage("B")));
+    }
+
     #endregion // Tests
 
     #region Methods

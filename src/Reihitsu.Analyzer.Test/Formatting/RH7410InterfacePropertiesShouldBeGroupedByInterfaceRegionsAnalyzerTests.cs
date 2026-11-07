@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -531,6 +531,120 @@ public class RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzerT
                                 """;
 
         await Verify(testData, Diagnostics(RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("I")));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a <see langword="partial"/> property both of whose parts lie
+    /// outside a matching region: it is reported once, on its defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7410-001")]
+    [Requirement("SHARED-DIAG-004")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialPropertyIsReportedOnceOnItsDefiningPart()
+    {
+        const string testData = """
+                                interface I
+                                {
+                                    int P { get; }
+                                }
+
+                                partial class C : I
+                                {
+                                    #region Properties
+
+                                    public partial int {|#0:P|} { get; }
+
+                                    public partial int P => 1;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("I")));
+    }
+
+    /// <summary>
+    /// Verifies that a <see langword="partial"/> property implementing an interface member, whose defining part lies in
+    /// generated code, with both parts outside a matching region, is reported once, on its implementing part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialPropertyWithGeneratedDefiningPartIsReportedOnItsImplementingPart()
+    {
+        const string userPart = """
+                                interface I
+                                {
+                                    int P { get; }
+                                }
+
+                                partial class C : I
+                                {
+                                    #region Properties
+
+                                    public partial int {|#0:P|} => 1;
+
+                                    #endregion
+                                }
+                                """;
+
+        const string generatedPart = """
+                                     partial class C
+                                     {
+                                         #region Properties
+
+                                         public partial int P { get; }
+
+                                         #endregion
+                                     }
+                                     """;
+
+        await Verify(userPart,
+                     test => test.TestState.Sources.Add(("/0/C.g.cs", generatedPart)),
+                     Diagnostics(RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("I")));
+    }
+
+    /// <summary>
+    /// Verifies that a <see langword="partial"/> property implementing an interface member, whose implementing part lies
+    /// in generated code, with both parts outside a matching region, is reported once, on its defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialPropertyWithGeneratedImplementingPartIsReportedOnItsDefiningPart()
+    {
+        const string userPart = """
+                                interface I
+                                {
+                                    int P { get; }
+                                }
+
+                                partial class C : I
+                                {
+                                    #region Properties
+
+                                    public partial int {|#0:P|} { get; }
+
+                                    #endregion
+                                }
+                                """;
+
+        const string generatedPart = """
+                                     partial class C
+                                     {
+                                         #region Properties
+
+                                         public partial int P => 1;
+
+                                         #endregion
+                                     }
+                                     """;
+
+        await Verify(userPart,
+                     test => test.TestState.Sources.Add(("/0/C.g.cs", generatedPart)),
+                     Diagnostics(RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("I")));
     }
 
     #endregion // Tests

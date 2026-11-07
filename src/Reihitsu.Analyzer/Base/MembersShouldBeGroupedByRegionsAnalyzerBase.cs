@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 
 using Microsoft.CodeAnalysis;
@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Core;
 
@@ -78,6 +79,18 @@ public abstract class MembersShouldBeGroupedByRegionsAnalyzerBase : DiagnosticAn
         {
             if (TryGetExpectedRegionName(memberDeclaration, context.SemanticModel, context.CancellationToken, out var expectedRegionName) == false
                 || HasMatchingRegion(memberDeclaration, expectedRegionName, regions))
+            {
+                continue;
+            }
+
+            // A partial member is one member and is reported once, on the first part outside a matching region (SHARED-DIAG-012)
+            if (memberDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword)
+                && PartialMemberUtilities.GetReportedPart(memberDeclaration,
+                                                          PartialMemberUtilities.GetDeclaredSymbol(memberDeclaration, context.SemanticModel, context.CancellationToken),
+                                                          part => part.Parent is not TypeDeclarationSyntax partTypeDeclaration
+                                                                  || HasMatchingRegion(part, expectedRegionName, RegionDirectiveUtilities.GetTopLevelRegions(partTypeDeclaration)) == false,
+                                                          context.SemanticModel.Compilation,
+                                                          context.CancellationToken) != memberDeclaration)
             {
                 continue;
             }

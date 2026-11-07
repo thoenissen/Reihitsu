@@ -43,7 +43,7 @@ public class RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzer : M
     {
         expectedRegionName = memberDeclaration is MethodDeclarationSyntax methodDeclaration
                              && semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken) is IMethodSymbol methodSymbol
-                                 ? InterfaceImplementationUtilities.GetInterfaceRegionName(methodSymbol)
+                                 ? InterfaceImplementationUtilities.GetInterfaceRegionName(methodSymbol, semanticModel.Compilation, cancellationToken)
                                  : string.Empty;
 
         return string.IsNullOrEmpty(expectedRegionName) == false;

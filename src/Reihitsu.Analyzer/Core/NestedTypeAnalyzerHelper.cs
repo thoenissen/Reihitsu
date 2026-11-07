@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Threading;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -37,13 +39,19 @@ internal static class NestedTypeAnalyzerHelper
     }
 
     /// <summary>
-    /// Determines whether a type declaration has a static modifier
+    /// Determines whether a type declaration declares a static type. A partial type is static when any of its parts
+    /// carries the <see langword="static"/> modifier, as the compiler builds it (SHARED-DIAG-004), so the type's symbol
+    /// decides; without a symbol, the declaration's own modifiers decide
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
-    /// <returns>True when static modifier is present</returns>
-    internal static bool IsStaticType(BaseTypeDeclarationSyntax typeDeclaration)
+    /// <param name="semanticModel">Semantic model of the declaration's tree</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>True when the declared type is static</returns>
+    internal static bool IsStaticType(BaseTypeDeclarationSyntax typeDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
-        return typeDeclaration.Modifiers.Any(static modifier => modifier.IsKind(SyntaxKind.StaticKeyword));
+        return semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) is { } typeSymbol
+                   ? typeSymbol.IsStatic
+                   : typeDeclaration.Modifiers.Any(static modifier => modifier.IsKind(SyntaxKind.StaticKeyword));
     }
 
     #endregion // Methods

@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -589,6 +589,184 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzerTest
                          """;
 
         await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a partial property both of whose parts carry a summary that reads as a
+    /// sentence: it is reported once, on the summary of the defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8306-001")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialPropertyWithTwoSentenceSummariesIsReportedOnceOnTheDefiningPart()
+    {
+        const string testData = """
+                                public partial class C
+                                {
+                                    /// {|#0:<summary>Gets the value.</summary>|}
+                                    public partial int P { get; }
+
+                                    /// <summary>Gets the value.</summary>
+                                    public partial int P => 0;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a partial property both of whose parts carry a summary that reads as a sentence, with the
+    /// implementing part first, is reported once, on the summary of the defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8306-001")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialPropertyWithImplementingPartFirstIsReportedOnceOnTheDefiningPart()
+    {
+        const string testData = """
+                                public partial class C
+                                {
+                                    /// <summary>Gets the value.</summary>
+                                    public partial int P => 0;
+
+                                    /// {|#0:<summary>Gets the value.</summary>|}
+                                    public partial int P { get; }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a partial property whose implementing part alone carries a summary that
+    /// reads as a sentence: it is reported once, on that summary
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8306-001")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialPropertyWithSentenceSummaryOnTheImplementingPartIsReportedThere()
+    {
+        const string testData = """
+                                public partial class C
+                                {
+                                    /// <summary>Value</summary>
+                                    public partial int P { get; }
+
+                                    /// {|#0:<summary>Gets the value.</summary>|}
+                                    public partial int P => 0;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a partial property whose defining part alone carries a summary that reads as a sentence is
+    /// reported once, on that summary
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8306-001")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialPropertyWithSentenceSummaryOnTheDefiningPartIsReportedThere()
+    {
+        const string testData = """
+                                public partial class C
+                                {
+                                    /// {|#0:<summary>Gets the value.</summary>|}
+                                    public partial int P { get; }
+
+                                    /// <summary>Value</summary>
+                                    public partial int P => 0;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a partial property whose two summaries both read as noun phrases is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8306-001")]
+    public async Task VerifyPartialPropertyWithNounPhraseSummariesIsNotReported()
+    {
+        const string testData = """
+                                public partial class C
+                                {
+                                    /// <summary>Value</summary>
+                                    public partial int P { get; }
+
+                                    /// <summary>Value</summary>
+                                    public partial int P => 0;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a partial property whose defining part lies in generated code, with a summary that reads as a
+    /// sentence on both parts, is reported once, on the summary of the implementing part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialPropertyWithGeneratedDefiningPartIsReportedOnTheImplementingPart()
+    {
+        const string implementingPart = """
+                                        public partial class C
+                                        {
+                                            /// {|#0:<summary>Gets the value.</summary>|}
+                                            public partial int P => 0;
+                                        }
+                                        """;
+
+        const string definingPart = """
+                                    public partial class C
+                                    {
+                                        /// <summary>Gets the value.</summary>
+                                        public partial int P { get; }
+                                    }
+                                    """;
+
+        await Verify(implementingPart,
+                     test => test.TestState.Sources.Add(("/0/C.g.cs", definingPart)),
+                     Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a partial property whose implementing part lies in generated code, with a summary that reads as a
+    /// sentence on both parts, is reported once, on the summary of the defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialPropertyWithGeneratedImplementingPartIsReportedOnTheDefiningPart()
+    {
+        const string definingPart = """
+                                    public partial class C
+                                    {
+                                        /// {|#0:<summary>Gets the value.</summary>|}
+                                        public partial int P { get; }
+                                    }
+                                    """;
+
+        const string implementingPart = """
+                                        public partial class C
+                                        {
+                                            /// <summary>Gets the value.</summary>
+                                            public partial int P => 0;
+                                        }
+                                        """;
+
+        await Verify(definingPart,
+                     test => test.TestState.Sources.Add(("/0/C.g.cs", implementingPart)),
+                     Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
     }
 
     #endregion // Tests

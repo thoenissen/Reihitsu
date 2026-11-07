@@ -240,6 +240,79 @@ public class RH7402OverridePropertiesShouldBeGroupedByBaseTypeRegionsAnalyzerTes
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies the specification example of a <see langword="partial"/> property both of whose parts lie
+    /// outside a matching region: it is reported once, on its defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7402-001")]
+    [Requirement("SHARED-DIAG-004")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialPropertyIsReportedOnceOnItsDefiningPart()
+    {
+        const string testData = """
+                                abstract class B
+                                {
+                                    public abstract int P { get; }
+                                }
+
+                                partial class C : B
+                                {
+                                    #region Properties
+
+                                    public override partial int {|#0:P|} { get; }
+
+                                    public override partial int P => 1;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7402OverridePropertiesShouldBeGroupedByBaseTypeRegionsAnalyzer.DiagnosticId, CreateMessage("B")));
+    }
+
+    /// <summary>
+    /// Verifies that a <see langword="partial"/> override property whose defining part lies in generated code, with
+    /// both parts outside a matching region, is reported once, on its implementing part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialOverridePropertyWithGeneratedDefiningPartIsReportedOnItsImplementingPart()
+    {
+        const string userPart = """
+                                abstract class B
+                                {
+                                    public abstract int P { get; }
+                                }
+
+                                partial class C : B
+                                {
+                                    #region Other
+
+                                    public override partial int {|#0:P|} => 1;
+
+                                    #endregion
+                                }
+                                """;
+
+        const string generatedPart = """
+                                     partial class C
+                                     {
+                                         #region Properties
+
+                                         public override partial int P { get; }
+
+                                         #endregion
+                                     }
+                                     """;
+
+        await Verify(userPart,
+                     test => test.TestState.Sources.Add(("/0/C.g.cs", generatedPart)),
+                     Diagnostics(RH7402OverridePropertiesShouldBeGroupedByBaseTypeRegionsAnalyzer.DiagnosticId, CreateMessage("B")));
+    }
+
     #endregion // Tests
 
     #region Methods

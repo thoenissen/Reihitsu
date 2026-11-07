@@ -1,8 +1,13 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Globalization;
+
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 
 namespace Reihitsu.Analyzer.Rules.Organization;
@@ -37,6 +42,27 @@ public class RH7002FileMayOnlyContainASingleTopLevelTypeAnalyzer : DiagnosticAna
     #region Methods
 
     /// <summary>
+    /// Gets a key that identifies the type a top-level declaration declares: its namespace, name, and number of type
+    /// parameters, each name compared by its value (SHARED-DIAG-002), so that two parts of one partial type get the
+    /// same key (RH7002-004)
+    /// </summary>
+    /// <param name="typeDeclaration">Top-level type declaration</param>
+    /// <returns>The key</returns>
+    private static string GetTypeKey(BaseTypeDeclarationSyntax typeDeclaration)
+    {
+        var namespaceNames = typeDeclaration.Ancestors()
+                                            .OfType<BaseNamespaceDeclarationSyntax>()
+                                            .Reverse()
+                                            .SelectMany(static namespaceDeclaration => NamespaceCasingHelper.GetLocations(namespaceDeclaration.Name))
+                                            .Select(static part => part.Name);
+        var arity = typeDeclaration is TypeDeclarationSyntax { TypeParameterList: not null } genericDeclaration
+                        ? genericDeclaration.TypeParameterList.Parameters.Count
+                        : 0;
+
+        return $"{string.Join(".", namespaceNames.Append(typeDeclaration.Identifier.ValueText))}`{arity.ToString(CultureInfo.InvariantCulture)}";
+    }
+
+    /// <summary>
     /// Analyzing all syntax trees
     /// </summary>
     /// <param name="context">Context</param>
@@ -56,9 +82,21 @@ public class RH7002FileMayOnlyContainASingleTopLevelTypeAnalyzer : DiagnosticAna
             return;
         }
 
+        var declaredTypes = new HashSet<string>(StringComparer.Ordinal)
+                            {
+                                GetTypeKey(topLevelTypeDeclarations[0])
+                            };
+
         foreach (var topLevelTypeDeclaration in topLevelTypeDeclarations.Skip(1))
         {
-            context.ReportDiagnostic(CreateDiagnostic(topLevelTypeDeclaration.Identifier.GetLocation()));
+            var isFirstDeclarationOfType = declaredTypes.Add(GetTypeKey(topLevelTypeDeclaration));
+
+            // A further part of a partial type declared earlier in the file is the same type (RH7002-004)
+            if (isFirstDeclarationOfType
+                || topLevelTypeDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword) == false)
+            {
+                context.ReportDiagnostic(CreateDiagnostic(topLevelTypeDeclaration.Identifier.GetLocation()));
+            }
         }
     }
 

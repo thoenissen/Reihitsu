@@ -222,5 +222,171 @@ public class RH7002FileMayOnlyContainASingleTopLevelTypeAnalyzerTests : Analyzer
         await Verify(source);
     }
 
+    /// <summary>
+    /// Verifies the specification example of two parts of one partial type in one file: neither is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7002-004")]
+    public async Task FurtherPartOfAPartialTypeIsNotReported()
+    {
+        const string source = """
+                              partial class C
+                              {
+                              }
+
+                              partial class C
+                              {
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of the same name in another namespace and the same name with a type
+    /// parameter: they are other types, so their first parts are reported, and the further part of <c>C&lt;T&gt;</c>
+    /// is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7002-004")]
+    [Requirement("RH7002-001")]
+    public async Task PartialTypesOfOtherNamespaceOrArityAreReportedOnTheirFirstPart()
+    {
+        const string source = """
+                              namespace N1
+                              {
+                                  partial class C
+                                  {
+                                  }
+                              }
+
+                              namespace N2
+                              {
+                                  partial class {|RH7002:C|}
+                                  {
+                                  }
+
+                                  partial class {|RH7002:C|}<T>
+                                  {
+                                  }
+
+                                  partial class C<T>
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies that a <see langword="partial"/> declaration of a new type that follows another type is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7002-001")]
+    public async Task PartialDeclarationOfANewTypeAfterAnotherTypeIsReported()
+    {
+        const string source = """
+                              class A
+                              {
+                              }
+
+                              partial class {|RH7002:B|}
+                              {
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies that a further part of a partial type that follows another type is not reported, while that other
+    /// type is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7002-004")]
+    [Requirement("RH7002-001")]
+    public async Task FurtherPartAfterAnotherTypeIsNotReported()
+    {
+        const string source = """
+                              partial class C
+                              {
+                              }
+
+                              class {|RH7002:D|}
+                              {
+                              }
+
+                              partial class C
+                              {
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies that parts of one partial type in nested namespace declarations and in a qualified namespace
+    /// declaration of the same name are parts of one type: the further part is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7002-004")]
+    public async Task FurtherPartInNestedAndQualifiedNamespaceOfTheSameNameIsNotReported()
+    {
+        const string source = """
+                              namespace A
+                              {
+                                  namespace B
+                                  {
+                                      partial class C
+                                      {
+                                      }
+                                  }
+                              }
+
+                              namespace A.B
+                              {
+                                  partial class C
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies that parts of one partial type in two separate declarations of the same namespace are parts of one
+    /// type: the further part is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7002-004")]
+    public async Task FurtherPartInAnotherDeclarationOfTheSameNamespaceIsNotReported()
+    {
+        const string source = """
+                              namespace N
+                              {
+                                  partial class C
+                                  {
+                                  }
+                              }
+
+                              namespace N
+                              {
+                                  partial class C
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
     #endregion // Tests
 }

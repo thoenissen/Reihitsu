@@ -60,8 +60,10 @@ public class DeclarationModifierUtilitiesTests
                                                                                             }
                                                                                             """);
 
-        var updatedModifiers = DeclarationModifierUtilities.AddAccessibilityModifier(fieldDeclaration.Modifiers, SyntaxKind.PublicKeyword);
+        var updatedDeclaration = (FieldDeclarationSyntax)DeclarationModifierUtilities.AddAccessibilityModifier(fieldDeclaration, SyntaxKind.PublicKeyword);
+        var updatedModifiers = updatedDeclaration.Modifiers;
 
+        Assert.AreEqual(2, updatedModifiers.Count);
         Assert.AreEqual(SyntaxKind.PublicKeyword, updatedModifiers[0].Kind());
         Assert.AreEqual(" ", updatedModifiers[0].TrailingTrivia.ToFullString());
         Assert.AreEqual(SyntaxKind.StaticKeyword, updatedModifiers[1].Kind());

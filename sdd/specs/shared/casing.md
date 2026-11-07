@@ -4,7 +4,7 @@
 |---|---|
 | ID prefix | SHARED-CASING |
 | Status | Active |
-| Code owners | `CasingAnalyzerBase`, `CasingCodeFixProviderBase<T>`, `NamingAccessibilityClassifier`, `NamespaceCasingHelper`, `CasingUtilities` |
+| Code owners | `CasingAnalyzerBase`, `CasingCodeFixProviderBase<T>`, `ExcludedCodeUtilities`, `NamingAccessibilityClassifier`, `NamespaceCasingHelper`, `CasingUtilities` |
 | Uses | SHARED-FIX-002, SHARED-FIX-003 |
 
 This spec covers the rules that require one kind of name to be written in a naming style. It defines the styles, the accessibility groups of fields and properties, how a namespace name is checked, and the code fix that renames a reported name. Each rule that uses this spec states which declarations it checks, which style it requires, where its diagnostic is located, and any exceptions of its own.
