@@ -21,6 +21,7 @@ Maintainer: "keep it simple".
 
 - Q1 (partial member, single diagnostic location; RH2002, RH2004, RH8306, RH7401–RH7412): **A** — reported once, on the first part the rule would report on its own; generated parts skipped; the defining part before the implementing part; when no part qualifies by what it writes, the defining part.
 - Q2 (RH2001 mutable-struct boundary): **C** (not C′) — fix withheld for a property whose type is a struct not declared `readonly` (option C as asked: "every struct not declared readonly"; the earlier "settable" in this note was the lead's gloss, not the answer) (per the type symbol of the compilation's references); `Nullable<T>` of an enum or `readonly` struct counts as readonly. No special-type exemption: on netstandard2.0/.NET Framework targets `int`/`bool` properties lose the fix — accepted by the maintainer.
+- Q4 (RH2001 property typed by a type parameter not constrained to a reference type): **A** — reported, fix withheld (as specified in RH2001-008 and implemented).
 - Q3 (RH2005 references outside the type body that still compile — `nameof` in the type's own attribute, `cref` from another type): **B** — every reference outside the bodies of the type's declarations withholds the fix; spec text as written.
 
 ## Decisions taken
@@ -52,7 +53,7 @@ Maintainer: "keep it simple".
 
 ## Pending output questions (batch before auditor)
 
-- Q4: RH2001 property whose type is a type parameter not constrained to a reference type — A withhold fix (spec/code as now, rec.), B offer fix as on main. ASKED; waiting.
+- Q4: RH2001 property whose type is a type parameter not constrained to a reference type — ANSWERED A.
 
 ## Earlier output questions (batch before test implementer)
 
@@ -74,4 +75,5 @@ Maintainer: "keep it simple".
 - Spec author 07 done (3178c94).
 - Cleaner 08 clean (481ca6d).
 - Spec checker 09 (d885383): one finding → Q4 asked.
-- Next: on Q4 answer (B → spec author + test implementer + implementer repair), then auditor.
+- Q4 answered A; nothing to change.
+- Next: build, auditor (10).
