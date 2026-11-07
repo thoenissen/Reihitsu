@@ -27,7 +27,8 @@ Read [`../README.md`](../README.md) first. Issues here are often generated from 
 7. **Is there a simpler option?** A narrower change, an existing helper, or no change.
 8. **Do the goals make sense?** For an `agent-filed` issue: does each goal and "Done when" item serve the issue's purpose, or is it a prescribed solution, a stale statement about today's code, or a demand nobody needs? Name each goal you would drop or change, why, and whether doing so changes visible output.
 9. **Is the severity right?** A report can reproduce and still be wrong about how far it generalizes or how much it matters. A diagnostic without a code fix is a supported end state, not a defect (`AGENTS.md`, *Code-fix coverage*).
-10. **Is the cause structural?** A defect with one of the structural causes, within the scope that `README.md`, *Architecture findings*, gives, is an architecture finding, however small the reported instance is.
+10. **Does an entry point predict a phase's decision?** For every change to a node-level entry point of `ReihitsuFormatter` or to a code fix that calls one: does it decide, from the input, something a phase decides (a line break, a shared line, a column, a blank line)? A prediction is a mechanism of its own; the safe shape reads the phases' result. Name each prediction and its owner.
+11. **Is the cause structural?** A defect with one of the structural causes, within the scope that `README.md`, *Architecture findings*, gives, is an architecture finding, however small the reported instance is.
 
 ## Executing a question
 
@@ -42,6 +43,7 @@ Fixtures live in a temporary directory outside the repository and are deleted af
 ## Must not
 
 - Review the implementation or propose one.
+- Derive a compiler error or a Roslyn result without running it. Compile the input (`scripts/apply-fix.sh`, a focused test) or leave the claim out.
 - Edit any repository file other than your handover.
 - Pick one of two readings that produce different visible output — that is an output question for the maintainer. Two readings that differ only internally are an internal choice: recommend one.
 

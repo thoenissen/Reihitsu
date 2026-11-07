@@ -34,7 +34,27 @@ Run `scripts/lane-check.sh <lane> --head worktree` after each writing role. A mi
 
 ## 4. Run the roles
 
-Spawn each role of the lane in order, one fresh agent per role — for several issues, each role of the run, one agent per role for the whole run, never one per issue. The prompt names every issue number, the slug, the handovers to read, and the role file; it never carries your own idea of the fix. Continue an agent only while its own reasoning is the input: the maintainer's answer it waits on, or evidence for a question it raised and has not yet answered. Every other follow-up — a repair round, an amendment, a status or wording change, a small correction — goes to a fresh agent of the same role, prompted like the first with the handovers to read (the role's own earlier handover among them), the commit, and the change asked for. Continuity lives in the handovers, not in an agent's context. Restart a role that errors or returns no handover at most once; then report what blocked it. If roles cannot be spawned at all, stop and report — never perform a role yourself.
+Spawn each role of the lane in order — for several issues, each role of the run, one agent per role for the whole run, never one per issue. The prompt names every issue number, the slug, the handovers to read, and the role file; it never carries your own idea of the fix. Continuity lives in the handovers, not in an agent's context, so every follow-up can go to a fresh agent. Whether to continue the agent instead is your call, by the table below. Restart a role that errors or returns no handover at most once; then report what blocked it. If roles cannot be spawned at all, stop and report — never perform a role yourself.
+
+**Continue or spawn fresh.** A fresh agent pays to read the role file, the handovers, the specs, and the code again; a continued agent pays for its whole context on every turn, and that context only grows. Decide per follow-up:
+
+| Follow-up | Move |
+|---|---|
+| The maintainer's answer, or evidence for a question the agent raised and has not yet answered (not for the skeptic, spec checker, or auditor, see the last rows) | Continue |
+| A small correction, amendment, or wording or status change in the area the agent just worked on, the agent is still small, and it has not been continued for a correction in this stage | Continue, once per agent and stage |
+| The agent is large, or the follow-up is another mechanism, another area, or a repair round | Fresh |
+| Several findings or corrections for one role | One agent for the whole worklist, never one spawn per finding |
+| Skeptic, spec checker, auditor | Always fresh, also when they ask for evidence: they hand the question back in their handover, and a fresh agent answers it. Their value is an unanchored read |
+| Cleaner, validator | Fresh: they carry no reasoning worth keeping |
+
+An agent is large when `scripts/usage.sh` shows, for its spawn, about 40 responses or more, or a cache read of about 100 thousand tokens per response or more (the lifetime average; the current context is roughly twice that). Handovers do not report usage, so you read it from the script; use `--json` and filter it, so its output stays short. These numbers are starting points taken from past runs, not a gate. A continued agent that returns at or above them is retired: its next follow-up goes to a fresh agent. Two follow-ups for one role that are ready at the same time are sent as one. The prompt of a fresh follow-up names the handovers to read (the role's own earlier handover among them), the commit, and the change asked for. Record a departure from this table under *Decisions taken*.
+
+**Keep your own context small.** Your context is the one that lasts the whole run, and every turn pays for all of it. The run's state lives in `00-lead.md`, so you can drop your history without losing the run:
+
+- Nobody may be there to intervene: a run can go for hours without input, so you never depend on the maintainer for a compaction, and the harness compacts your context on its own when it fills. Keep `00-lead.md` current as you go, not only at stage boundaries: write each `Maintainer answers` entry, decision, follow-up candidate, audited SHA, open worklist, and next step into it right when it arises. A compaction, which can come at any turn, then loses nothing. After one, re-read `00-lead.md` and the latest handovers before acting.
+- Read handovers for their verdict, findings, and follow-up candidates, not for the detail a role's next handover repeats. Never paste a handover into a prompt; name its path.
+- Keep your turns few: act on a role's verdict from its handover header, and batch independent reads and spawns in one turn.
+- Parallel role agents that build the same solution use separate worktrees; otherwise their copies collide (`MSB3030`).
 
 | Verdict | Your move |
 |---|---|
@@ -67,7 +87,9 @@ Ask output questions in batches (`README.md`, *What reaches the maintainer*), in
 - **Before the test implementer starts**: every visible output change of the change doc, and every output question the spec author and the skeptic raised. When nothing is open, there is no stop.
 - **Before the auditor** (section 6): the questions found since.
 
-Record each answer under `Maintainer answers` in `00-lead.md`, and carry it out before the next role starts: a visible output change the maintainer chose goes into the change doc's `Decisions` section and the spec, routed to the spec author by continuing its agent; a bug fix or a clarification within the run's issues is routed to its owner like a repair; a case outside the run's issues becomes a follow-up.
+When an output question's option makes a code fix lay out, move, or rewrite code (comments, directives, literals, build configurations), ask in the same message whether the fix may be withheld for inputs where that is unsafe (`AGENTS.md`, *Code-fix coverage*). Settling it before the first audit is cheaper than after the sixth.
+
+Record each answer under `Maintainer answers` in `00-lead.md`, and carry it out before the next role starts: a visible output change the maintainer chose goes into the change doc's `Decisions` section and the spec, routed to the spec author (continue its agent or spawn a fresh one, section 4); a bug fix or a clarification within the run's issues is routed to its owner like a repair; a case outside the run's issues becomes a follow-up.
 
 ## 6. Before the auditor
 

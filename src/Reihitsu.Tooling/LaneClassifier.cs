@@ -12,7 +12,7 @@ public static class LaneClassifier
     /// <summary>
     /// Path prefixes whose files are text, checked after the change-doc prefix
     /// </summary>
-    private static readonly string[] _textPrefixes = ["sdd/", "documentation/", ".github/ISSUE_TEMPLATE/"];
+    private static readonly string[] _textPrefixes = ["sdd/", "squad/notes/", "documentation/", ".github/ISSUE_TEMPLATE/"];
 
     /// <summary>
     /// Path prefixes whose files are tooling, checked after the text prefixes
