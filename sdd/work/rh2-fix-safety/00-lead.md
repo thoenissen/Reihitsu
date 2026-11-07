@@ -48,6 +48,8 @@ Maintainer: "keep it simple".
 | 17 | Auditor 10 | Architecture finding: RH2001 guard keeps its own list of positions whose trivia the field builder loses (cause of audit finding 2) | Change the structure in this run: the withhold decision follows from what the rewrite actually keeps, so no second list of positions exists; use the shared trivia predicates (audit finding 3) | Adding positions to the list repeats the copy; component is changed by the run | Withholding per RH2001-007 / SHARED-FIX-003 | — |
 | 18 | Auditor 10 | Audit finding 1 (comment/directive line dropped when `public` is not first and on its own line; pre-existing) | Repair in this run | Same defect class as #967 in the same helper; SHARED-FIX-003, RH2005-003 decide the output | Unchanged requirements decide it | — |
 | 19 | Auditor 10 | Hints: RH2005 `#if` judged by start only; `[GeneratedCode]`-only parts; IDE open-document display of cross-document RH2004 diagnostic | Dropped, not filed | Unverified; no reproduction | — | — |
+| 20 | Spec author 12 | Q6's RH2005 half as new RH2005-005 vs. paragraph in RH2005-003; RH2001 half extends RH2001-007 | Accept both | Each withheld case has its own heading; decision 7 keeps the RH2001 class in one place | Spec structure only | 5d0db01 |
+| 21 | Spec author 12 | RH2001 name on its own line below the type, no comment: layout | Assert the current output `private int⏎    _value;` only | The RH2001 fix formats its field; SHARED-FIX-007 (formatting the result changes nothing) decides it, unchanged | An unchanged requirement decides it; same output as before the run | — |
 | 9 | Skeptic | Spec-author follow-up candidates 1 and 2 | Collapse into one spec-wording follow-up for SHARED-DIAG-004; candidate 2 folds into Q1's answer | SHARED-NESTED-002 already decides candidate 1 | Wording follow-up only | — |
 
 ## Follow-up candidates
@@ -89,5 +91,6 @@ Maintainer: "keep it simple".
 - Q4 answered A; nothing to change.
 - Audited SHA: 42db22c37641c0f41e0d6ac2617869e0b61c6541 — BLOCKED (10-auditor.md, bbc40f7): findings 1, 2a, 2b, 3, 4a, 4b.
 - Test implementer 11 done (2d72935): 22 failing; tests accept several outputs for findings 1/2b → Q5, Q6 answered 5A, 6A.
-- Next: spec author (12) records Q5/Q6 in RH2005-003 / RH2001-007; test implementer (13) narrows tests to the answered outputs; implementer (14) repairs findings 1–4 with decisions 16–18.
+- Spec author 12 done (5d0db01): RH2005-003 clarified, RH2005-005 new, RH2001-007 widened.
+- Next: test implementer (13) narrows tests to the answered outputs; implementer (14) repairs findings 1–4 with decisions 16–18.
 - Repair round 1 (of 3) worklist: test implementer (11) adds regressions for 1, 2a, 2b, 4a, 4b; implementer (12) repairs 1–4 with decisions 16–18; cleaner, spec checker, auditor (repair only), validator.
