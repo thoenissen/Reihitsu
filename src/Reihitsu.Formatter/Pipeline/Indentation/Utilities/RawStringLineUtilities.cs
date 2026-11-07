@@ -6,14 +6,30 @@ using Microsoft.CodeAnalysis.Text;
 namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 
 /// <summary>
-/// Decides which lines of a multi-line raw string literal the move of the literal's lines writes.
-/// <see cref="MovesLine"/> is the one statement of that decision, which the indentation phase and the code fix that
-/// aligns a raw string literal both follow: every empty line stays empty, and a line that starts inside nested text
-/// (<see cref="StartsInsideNestedText"/>) stays as written
+/// Decides which nodes are multi-line raw string literals (<see cref="IsMultiLineRawStringLiteral"/>) and which of their
+/// lines the move of the literal's lines writes. <see cref="MovesLine"/> is the one statement of that decision, which
+/// the indentation phase and the code fix that aligns a raw string literal both follow: every empty line stays empty,
+/// and a line that starts inside nested text (<see cref="StartsInsideNestedText"/>) stays as written
 /// </summary>
 internal static class RawStringLineUtilities
 {
     #region Methods
+
+    /// <summary>
+    /// Determines whether the node is a multi-line raw string literal: plain, UTF-8, or interpolated
+    /// </summary>
+    /// <param name="node">The node to inspect</param>
+    /// <returns><see langword="true"/> if the node is a multi-line raw string literal</returns>
+    public static bool IsMultiLineRawStringLiteral(SyntaxNode node)
+    {
+        return node switch
+               {
+                   LiteralExpressionSyntax literal => literal.Token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken)
+                                                      || literal.Token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken),
+                   InterpolatedStringExpressionSyntax interpolated => interpolated.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken),
+                   _ => false
+               };
+    }
 
     /// <summary>
     /// Determines whether moving the lines of a multi-line raw string literal writes the given line, a line after the

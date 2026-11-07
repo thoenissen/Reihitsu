@@ -49,7 +49,7 @@ internal sealed class RawStringLineShifts
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (IsMultiLineRawStringLiteral(node) == false)
+            if (RawStringLineUtilities.IsMultiLineRawStringLiteral(node) == false)
             {
                 continue;
             }
@@ -102,22 +102,6 @@ internal sealed class RawStringLineShifts
     #region Methods
 
     /// <summary>
-    /// Determines whether the node is a multi-line raw string literal: plain, UTF-8, or interpolated
-    /// </summary>
-    /// <param name="node">The node to inspect</param>
-    /// <returns><see langword="true"/> if the node is a multi-line raw string literal</returns>
-    public static bool IsMultiLineRawStringLiteral(SyntaxNode node)
-    {
-        return node switch
-               {
-                   LiteralExpressionSyntax literal => literal.Token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken)
-                                                      || literal.Token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken),
-                   InterpolatedStringExpressionSyntax interpolated => interpolated.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken),
-                   _ => false
-               };
-    }
-
-    /// <summary>
     /// Counts the number of leading space characters of a line
     /// </summary>
     /// <param name="text">The text of the syntax tree</param>
@@ -161,7 +145,7 @@ internal sealed class RawStringLineShifts
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (IsMultiLineRawStringLiteral(node) == false
+            if (RawStringLineUtilities.IsMultiLineRawStringLiteral(node) == false
                 || IsNestedInRawStringHole(node))
             {
                 continue;
@@ -472,7 +456,7 @@ internal sealed class RawStringLineShifts
     private static bool IsNestedInRawStringHole(SyntaxNode node)
     {
         return node.Ancestors()
-                   .Any(IsMultiLineRawStringLiteral);
+                   .Any(RawStringLineUtilities.IsMultiLineRawStringLiteral);
     }
 
     /// <summary>
