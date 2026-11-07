@@ -126,3 +126,9 @@ scripts/test.sh --project architecture
 ```
 
 On 6870a6e plus these tests: analyzer 38 failed / 183 passed in that filter (all 38 are the new failing tests above); formatter 1 failed / 31 passed; architecture 115 passed (`RequirementCoverageTests` now finds RH5011-007, RH5025-006, RH5030-003).
+
+## Correction (decision 11)
+
+`RH5011…Tests.VerifyFixAllHandlesSpanningCommentNextToPlainBreakAndWithheldBreak` and `RH5030…Tests.VerifyFixAllLeavesWithheldBraceReported` now set `FixedState.MarkupHandling` and `BatchFixedState.MarkupHandling` to `MarkupMode.Allow`, so the withheld diagnostic marked in the fixed source is expected (precedent: RH8309, RH8204, RH8107). Inputs and expected texts are unchanged. Both pass on 185694a.
+
+Build note for the lead: `scripts/test.sh --project analyzer` does not build on 185694a. The analyzer error S3267 is raised twice in `src/Reihitsu.Analyzer.CodeFixes/Rules/Layout/RH5011BreakStatementsShouldBeFollowedByABlankLineCodeFixProvider.cs`, at lines 39 and 47. I ran the two tests with `dotnet test … -p:TreatWarningsAsErrors=false` and changed no production code.
