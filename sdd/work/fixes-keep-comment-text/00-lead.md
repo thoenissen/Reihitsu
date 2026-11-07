@@ -23,6 +23,8 @@
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Branch name | Use the session's designated branch `claude/admiring-shannon-9h4j37` instead of `claude/issues-1075-1261-<slug>` | The session's environment forbids pushing to any other branch | Branch names are internal | claim commit |
+| 2 | Spec author | RH5011 and RH5030 fix for a comment containing a line break: correct it or withhold it | Withhold it (RH5011-007, RH5030-003) | The maintainer's decision in #1075 allows either; withholding needs no new behavior | Both outcomes were already chosen by the maintainer in #1075 | 461faa4 |
+| 3 | Spec author | Change doc | None | Every change writes down what unchanged requirements (SHARED-FIX-003/006/007, SHARED-DIAG-003) already decide; triage on #1261 says no change doc | — | 461faa4 |
 
 ## Follow-up candidates
 
@@ -30,4 +32,5 @@
 
 ## Worklist / next step
 
-- Next: spawn spec author.
+- Done: spec author (01, 461faa4). Open output questions from it: Q1 RH5023 blank lines inside an interpolation hole; Q2-Q6 statement-brace outputs (Q2 is the issue's own decision).
+- Next: skeptic running; then batch output questions before the test implementer.
