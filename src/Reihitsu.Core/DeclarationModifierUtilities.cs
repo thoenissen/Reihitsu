@@ -87,27 +87,6 @@ public static class DeclarationModifierUtilities
     }
 
     /// <summary>
-    /// Replaces the accessibility modifiers with the specified modifier
-    /// </summary>
-    /// <param name="modifiers">Modifiers</param>
-    /// <param name="accessibilityModifier">Accessibility modifier</param>
-    /// <returns>Updated modifiers</returns>
-    /// <remarks>
-    /// This overload operates on the modifier list in isolation and does not relocate any leading trivia that
-    /// is attached to a declaration's first token. Callers that add a modifier to a declaration should use
-    /// <see cref="AddAccessibilityModifier(MemberDeclarationSyntax, SyntaxKind)"/> so leading trivia (for
-    /// example doc comments and indentation) is moved onto the inserted modifier. The file-scoped
-    /// <see langword="file"/> modifier is never replaced by this method: unlike the four accessibility
-    /// keywords, <see langword="file"/> cannot be combined with another accessibility modifier, so silently
-    /// replacing it would widen a file-local type's visibility instead of leaving the (already invalid)
-    /// combination for the caller to detect
-    /// </remarks>
-    public static SyntaxTokenList AddAccessibilityModifier(SyntaxTokenList modifiers, SyntaxKind accessibilityModifier)
-    {
-        return AddAccessibilityModifiers(modifiers, [accessibilityModifier]);
-    }
-
-    /// <summary>
     /// Adds (or replaces) the accessibility modifiers on the specified declaration while keeping the
     /// declaration's leading trivia (such as XML documentation and indentation) attached to it. Passing more
     /// than one modifier expresses a compound accessibility such as <see langword="protected"/>
@@ -123,9 +102,9 @@ public static class DeclarationModifierUtilities
     /// declaration's leading trivia, so a doc comment stays in front of the inserted modifiers instead of being
     /// detached from the symbol (CS1587). With attribute lists on their own line, the indentation and every
     /// comment and directive line in front of the declaration stay in front of the inserted modifiers, which
-    /// therefore stand on the declaration's line and in its column. Where the trivia of every removed accessibility
-    /// modifier goes, first or not, is decided by <see cref="ReplaceAccessibilityModifiers"/>, which also sees the
-    /// token behind the modifier list
+    /// therefore stand on the declaration's line and in its column. An existing accessibility modifier is replaced, first
+    /// or not; one private method decides where the trivia of every removed accessibility modifier goes, and it also sees
+    /// the token behind the modifier list. The file-scoped <see langword="file"/> modifier is never replaced
     /// </remarks>
     public static MemberDeclarationSyntax AddAccessibilityModifiers(MemberDeclarationSyntax memberDeclaration, IReadOnlyList<SyntaxKind> accessibilityModifiers)
     {
@@ -133,42 +112,18 @@ public static class DeclarationModifierUtilities
         var leadingTrivia = firstToken.LeadingTrivia;
         var declarationWithoutLeadingTrivia = memberDeclaration.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(SyntaxFactory.TriviaList()));
         var modifiers = declarationWithoutLeadingTrivia.Modifiers;
-        var followingToken = modifiers.Count > 0 ? modifiers[modifiers.Count - 1].GetNextToken() : default;
+        var originalFollowingToken = modifiers.Count > 0
+                                         ? modifiers[modifiers.Count - 1].GetNextToken()
+                                         : GetFirstTokenBehindAttributeLists(declarationWithoutLeadingTrivia);
+        var followingToken = originalFollowingToken;
         var updatedModifiers = ReplaceAccessibilityModifiers(modifiers, accessibilityModifiers, ref followingToken);
 
-        if (modifiers.Count > 0)
-        {
-            declarationWithoutLeadingTrivia = declarationWithoutLeadingTrivia.ReplaceToken(modifiers[modifiers.Count - 1].GetNextToken(), followingToken);
-        }
+        declarationWithoutLeadingTrivia = declarationWithoutLeadingTrivia.ReplaceToken(originalFollowingToken, followingToken);
 
         var updatedDeclaration = declarationWithoutLeadingTrivia.WithModifiers(updatedModifiers);
         var updatedFirstToken = GetFirstTokenBehindAttributeLists(updatedDeclaration);
 
         return updatedDeclaration.ReplaceToken(updatedFirstToken, updatedFirstToken.WithLeadingTrivia(leadingTrivia));
-    }
-
-    /// <summary>
-    /// Replaces the accessibility modifiers with the specified sequence of modifiers. Passing more than one
-    /// modifier expresses a compound accessibility such as <see langword="protected"/> <see langword="internal"/>
-    /// or <see langword="private"/> <see langword="protected"/>
-    /// </summary>
-    /// <param name="modifiers">Modifiers</param>
-    /// <param name="accessibilityModifiers">Accessibility modifiers in declaration order</param>
-    /// <returns>Updated modifiers</returns>
-    /// <remarks>
-    /// This overload operates on the modifier list in isolation and does not relocate any leading trivia that is
-    /// attached to a declaration's first token. Callers that add modifiers to a declaration should use
-    /// <see cref="AddAccessibilityModifiers(MemberDeclarationSyntax, IReadOnlyList{SyntaxKind})"/> so leading
-    /// trivia (for example doc comments and indentation) is moved onto the inserted modifiers. Where the
-    /// trivia of the removed accessibility modifiers goes is decided by <see cref="ReplaceAccessibilityModifiers"/>; this overload does not see the token behind the list, so trivia that
-    /// would go to that token stays at the end of the list. The file-scoped <see langword="file"/> modifier is never
-    /// replaced by this method; see <see cref="AddAccessibilityModifier(SyntaxTokenList, SyntaxKind)"/>
-    /// </remarks>
-    public static SyntaxTokenList AddAccessibilityModifiers(SyntaxTokenList modifiers, IReadOnlyList<SyntaxKind> accessibilityModifiers)
-    {
-        var followingToken = default(SyntaxToken);
-
-        return ReplaceAccessibilityModifiers(modifiers, accessibilityModifiers, ref followingToken);
     }
 
     /// <summary>
@@ -199,8 +154,7 @@ public static class DeclarationModifierUtilities
     /// <param name="modifiers">Modifiers</param>
     /// <param name="accessibilityModifiers">Accessibility modifiers in declaration order</param>
     /// <param name="followingToken">
-    /// The token behind the modifier list, updated when trivia of a removed modifier goes to it; <see langword="default"/>
-    /// when the list is handled in isolation
+    /// The token behind the modifier list, updated when trivia of a removed modifier goes to it
     /// </param>
     /// <returns>Updated modifiers</returns>
     /// <remarks>
@@ -218,9 +172,15 @@ public static class DeclarationModifierUtilities
     /// </item>
     /// <item>
     /// <description>
-    /// Otherwise the gap behind it stays: the token in front of it ends with the modifier's trailing
-    /// trivia instead of the whitespace at its own end, so a line break that ended the modifier ends that token's line,
-    /// and the following token keeps its line and column
+    /// When the modifier ends its line, the gap behind it stays: the token in front of it ends with the modifier's
+    /// trailing trivia instead of the whitespace at its own end, so the line break that ended the modifier ends that
+    /// token's line, and the following token keeps its line and column
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <description>
+    /// When the modifier neither starts nor ends its line, the gap in front of it stays as written: the modifier is
+    /// removed together with the whitespace behind it, and the following token stands directly behind that gap
     /// </description>
     /// </item>
     /// </list>
@@ -255,13 +215,13 @@ public static class DeclarationModifierUtilities
                 tokens.Add(carriedLeadingTrivia == null ? modifier : modifier.WithLeadingTrivia(carriedLeadingTrivia.Value));
                 carriedLeadingTrivia = null;
             }
-            else if (tokens.Count == 0
-                     || ContainsEndOfLine(modifier.LeadingTrivia)
+            else if (ContainsEndOfLine(modifier.LeadingTrivia)
                      || (carriedLeadingTrivia == null && ContainsEndOfLine(tokens[tokens.Count - 1].TrailingTrivia)))
             {
                 carriedLeadingTrivia = modifier.LeadingTrivia;
             }
-            else if (carriedLeadingTrivia == null)
+            else if (carriedLeadingTrivia == null
+                     && ContainsEndOfLine(modifier.TrailingTrivia))
             {
                 var previousToken = tokens[tokens.Count - 1];
 
@@ -271,14 +231,7 @@ public static class DeclarationModifierUtilities
 
         if (carriedLeadingTrivia != null)
         {
-            if (followingToken.RawKind != 0)
-            {
-                followingToken = followingToken.WithLeadingTrivia(carriedLeadingTrivia.Value);
-            }
-            else if (tokens.Count > 0)
-            {
-                tokens[tokens.Count - 1] = tokens[tokens.Count - 1].WithTrailingTrivia(tokens[tokens.Count - 1].TrailingTrivia.AddRange(carriedLeadingTrivia.Value));
-            }
+            followingToken = followingToken.WithLeadingTrivia(carriedLeadingTrivia.Value);
         }
 
         return SyntaxFactory.TokenList(tokens);
@@ -332,8 +285,10 @@ public static class DeclarationModifierUtilities
 
     /// <summary>
     /// Checks whether the given modifier kind is one of the four accessibility keywords that
-    /// <see cref="AddAccessibilityModifier(SyntaxTokenList, SyntaxKind)"/> may replace. The file-scoped
-    /// <see langword="file"/> modifier is intentionally excluded; see that method's remarks
+    /// <see cref="AddAccessibilityModifiers(MemberDeclarationSyntax, IReadOnlyList{SyntaxKind})"/> may replace. The
+    /// file-scoped <see langword="file"/> modifier is intentionally excluded: unlike the four accessibility keywords, it
+    /// cannot be combined with another accessibility modifier, so silently replacing it would widen a file-local type's
+    /// visibility instead of leaving the (already invalid) combination for the caller to detect
     /// </summary>
     /// <param name="syntaxKind">Syntax kind</param>
     /// <returns><see langword="true"/> if the kind is a replaceable accessibility modifier</returns>
