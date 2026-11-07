@@ -368,6 +368,114 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
                                                           """;
 
     /// <summary>
+    /// Source of <see cref="VerifyFixRemovesAOneLinePublicWithTupleBehindPublic"/>
+    /// </summary>
+    private const string OneLinePublicWithTupleBehindPublicSource = """
+                                                                    public class C
+                                                                    {
+                                                                        static public(int A, int B) {|#0:First|};
+                                                                    }
+                                                                    """;
+
+    /// <summary>
+    /// Expected result of the fix applied to <see cref="OneLinePublicWithTupleBehindPublicSource"/>
+    /// </summary>
+    private const string OneLinePublicWithTupleBehindPublicFixedSource = """
+                                                                         public class C
+                                                                         {
+                                                                             private static (int A, int B) First;
+                                                                         }
+                                                                         """;
+
+    /// <summary>
+    /// Source of <see cref="VerifyFixRemovesAOneLinePublicWithVerbatimTypeBehindPublic"/>
+    /// </summary>
+    private const string OneLinePublicWithVerbatimTypeBehindPublicSource = """
+                                                                           public class C
+                                                                           {
+                                                                               static public@int {|#0:Second|};
+                                                                           }
+
+                                                                           public class @int
+                                                                           {
+                                                                           }
+                                                                           """;
+
+    /// <summary>
+    /// Expected result of the fix applied to <see cref="OneLinePublicWithVerbatimTypeBehindPublicSource"/>
+    /// </summary>
+    private const string OneLinePublicWithVerbatimTypeBehindPublicFixedSource = """
+                                                                                public class C
+                                                                                {
+                                                                                    private static @int Second;
+                                                                                }
+
+                                                                                public class @int
+                                                                                {
+                                                                                }
+                                                                                """;
+
+    /// <summary>
+    /// Source of <see cref="VerifyFixRemovesAOneLinePublicWithWideGapInFrontOfPublic"/>
+    /// </summary>
+    private const string OneLinePublicWithWideGapInFrontOfPublicSource = """
+                                                                         public class C
+                                                                         {
+                                                                             static    public int {|#0:Third|};
+                                                                         }
+                                                                         """;
+
+    /// <summary>
+    /// Expected result of the fix applied to <see cref="OneLinePublicWithWideGapInFrontOfPublicSource"/>
+    /// </summary>
+    private const string OneLinePublicWithWideGapInFrontOfPublicFixedSource = """
+                                                                              public class C
+                                                                              {
+                                                                                  private static    int Third;
+                                                                              }
+                                                                              """;
+
+    /// <summary>
+    /// Source of <see cref="VerifyFixRemovesAOneLinePublicWithWideGapBehindPublic"/>
+    /// </summary>
+    private const string OneLinePublicWithWideGapBehindPublicSource = """
+                                                                      public class C
+                                                                      {
+                                                                          static public    int {|#0:Fourth|};
+                                                                      }
+                                                                      """;
+
+    /// <summary>
+    /// Expected result of the fix applied to <see cref="OneLinePublicWithWideGapBehindPublicSource"/>
+    /// </summary>
+    private const string OneLinePublicWithWideGapBehindPublicFixedSource = """
+                                                                           public class C
+                                                                           {
+                                                                               private static int Fourth;
+                                                                           }
+                                                                           """;
+
+    /// <summary>
+    /// Source of <see cref="VerifyFixRemovesAOneLinePublicWithWideGapBehindPublicInFrontOfModifier"/>
+    /// </summary>
+    private const string OneLinePublicWithWideGapBehindPublicInFrontOfModifierSource = """
+                                                                                       public class C
+                                                                                       {
+                                                                                           static public  volatile int {|#0:Fifth|};
+                                                                                       }
+                                                                                       """;
+
+    /// <summary>
+    /// Expected result of the fix applied to <see cref="OneLinePublicWithWideGapBehindPublicInFrontOfModifierSource"/>
+    /// </summary>
+    private const string OneLinePublicWithWideGapBehindPublicInFrontOfModifierFixedSource = """
+                                                                                            public class C
+                                                                                            {
+                                                                                                private static volatile int Fifth;
+                                                                                            }
+                                                                                            """;
+
+    /// <summary>
     /// Source of <see cref="VerifyFixKeepsTheLineBreakBehindAFirstPublicThatEndsItsLine"/>
     /// </summary>
     private const string FirstPublicEndingItsLineSource = """
@@ -1694,6 +1802,116 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     public async Task VerifyFixReplacesAPublicBehindTwoModifiersOnOneLineCarriageReturnLineFeed()
     {
         await Verify(NormalizeToCarriageReturnLineFeed(LastPublicOnOneLineSource), NormalizeToCarriageReturnLineFeed(LastPublicOnOneLineFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a <see langword="public"/> with no whitespace behind it, directly in front of a tuple type, is removed and the single space in front of it stays
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2005-003")]
+    public async Task VerifyFixRemovesAOneLinePublicWithTupleBehindPublic()
+    {
+        await Verify(OneLinePublicWithTupleBehindPublicSource, OneLinePublicWithTupleBehindPublicFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyFixRemovesAOneLinePublicWithTupleBehindPublic"/> with the source normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2005-003")]
+    public async Task VerifyFixRemovesAOneLinePublicWithTupleBehindPublicCarriageReturnLineFeed()
+    {
+        await Verify(NormalizeToCarriageReturnLineFeed(OneLinePublicWithTupleBehindPublicSource), NormalizeToCarriageReturnLineFeed(OneLinePublicWithTupleBehindPublicFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a <see langword="public"/> with no whitespace behind it, directly in front of a verbatim type name, is removed and the single space in front of it stays
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2005-003")]
+    public async Task VerifyFixRemovesAOneLinePublicWithVerbatimTypeBehindPublic()
+    {
+        await Verify(OneLinePublicWithVerbatimTypeBehindPublicSource, OneLinePublicWithVerbatimTypeBehindPublicFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyFixRemovesAOneLinePublicWithVerbatimTypeBehindPublic"/> with the source normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2005-003")]
+    public async Task VerifyFixRemovesAOneLinePublicWithVerbatimTypeBehindPublicCarriageReturnLineFeed()
+    {
+        await Verify(NormalizeToCarriageReturnLineFeed(OneLinePublicWithVerbatimTypeBehindPublicSource), NormalizeToCarriageReturnLineFeed(OneLinePublicWithVerbatimTypeBehindPublicFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a <see langword="public"/> behind a gap wider than one space is removed with the space behind it, and the wide gap in front of it stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2005-003")]
+    public async Task VerifyFixRemovesAOneLinePublicWithWideGapInFrontOfPublic()
+    {
+        await Verify(OneLinePublicWithWideGapInFrontOfPublicSource, OneLinePublicWithWideGapInFrontOfPublicFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyFixRemovesAOneLinePublicWithWideGapInFrontOfPublic"/> with the source normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2005-003")]
+    public async Task VerifyFixRemovesAOneLinePublicWithWideGapInFrontOfPublicCarriageReturnLineFeed()
+    {
+        await Verify(NormalizeToCarriageReturnLineFeed(OneLinePublicWithWideGapInFrontOfPublicSource), NormalizeToCarriageReturnLineFeed(OneLinePublicWithWideGapInFrontOfPublicFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a <see langword="public"/> in front of a gap wider than one space is removed together with that gap, and the single space in front of it stays
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2005-003")]
+    public async Task VerifyFixRemovesAOneLinePublicWithWideGapBehindPublic()
+    {
+        await Verify(OneLinePublicWithWideGapBehindPublicSource, OneLinePublicWithWideGapBehindPublicFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyFixRemovesAOneLinePublicWithWideGapBehindPublic"/> with the source normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2005-003")]
+    public async Task VerifyFixRemovesAOneLinePublicWithWideGapBehindPublicCarriageReturnLineFeed()
+    {
+        await Verify(NormalizeToCarriageReturnLineFeed(OneLinePublicWithWideGapBehindPublicSource), NormalizeToCarriageReturnLineFeed(OneLinePublicWithWideGapBehindPublicFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a <see langword="public"/> in front of another modifier and a gap wider than one space is removed together with that gap, and the single space in front of it stays
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2005-003")]
+    public async Task VerifyFixRemovesAOneLinePublicWithWideGapBehindPublicInFrontOfModifier()
+    {
+        await Verify(OneLinePublicWithWideGapBehindPublicInFrontOfModifierSource, OneLinePublicWithWideGapBehindPublicInFrontOfModifierFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyFixRemovesAOneLinePublicWithWideGapBehindPublicInFrontOfModifier"/> with the source normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2005-003")]
+    public async Task VerifyFixRemovesAOneLinePublicWithWideGapBehindPublicInFrontOfModifierCarriageReturnLineFeed()
+    {
+        await Verify(NormalizeToCarriageReturnLineFeed(OneLinePublicWithWideGapBehindPublicInFrontOfModifierSource), NormalizeToCarriageReturnLineFeed(OneLinePublicWithWideGapBehindPublicInFrontOfModifierFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
     }
 
     /// <summary>
