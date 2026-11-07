@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -25,15 +26,50 @@ public static class SyntaxTriviaUtilities
     #region Methods
 
     /// <summary>
-    /// Determines whether adjacent tokens are separated by an end-of-line trivia
+    /// Determines whether a line break separates two adjacent tokens, so that the right token stands on a later line than
+    /// the left one (SHARED-BLANK-008). The line break is an end-of-line trivia, or the line break that ends a single-line
+    /// documentation comment, a directive, or disabled text, which those trivia carry inside their own text; a line break
+    /// inside the text of a multi-line comment does not separate the tokens (SHARED-BLANK-002)
     /// </summary>
     /// <param name="left">Token on the left side of the gap</param>
     /// <param name="right">Token on the right side of the gap</param>
-    /// <returns><see langword="true"/> if the tokens are separated by an end-of-line trivia; otherwise, <see langword="false"/></returns>
+    /// <returns><see langword="true"/> if a line break separates the tokens; otherwise, <see langword="false"/></returns>
     public static bool AreSeparatedByEndOfLine(SyntaxToken left, SyntaxToken right)
     {
-        return left.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-               || right.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+        return left.TrailingTrivia.Any(EndsLine)
+               || right.LeadingTrivia.Any(EndsLine);
+    }
+
+    /// <summary>
+    /// Determines whether a trivia ends its line: an end-of-line trivia, or a trivia that carries the line break ending its
+    /// line inside its own text (<see cref="EndsWithLineBreak"/>)
+    /// </summary>
+    /// <param name="trivia">The trivia to check</param>
+    /// <returns><see langword="true"/> if the trivia ends its line; otherwise, <see langword="false"/></returns>
+    public static bool EndsLine(SyntaxTrivia trivia)
+    {
+        return trivia.IsKind(SyntaxKind.EndOfLineTrivia)
+               || EndsWithLineBreak(trivia);
+    }
+
+    /// <summary>
+    /// Determines whether a trivia carries the line break that ends its line inside its own text. Roslyn files that line
+    /// break into the structure of a single-line documentation comment (<c>///</c>) and of a directive, and into the text of
+    /// disabled code, rather than into a separate <see cref="SyntaxKind.EndOfLineTrivia"/>. Every other trivia leaves its
+    /// line break as a sibling trivia, and a multi-line comment ends at its closing delimiter, so a line break inside its
+    /// text never ends its line. A directive or comment at the end of a file without a final line break ends no line
+    /// </summary>
+    /// <param name="trivia">The trivia to check</param>
+    /// <returns><see langword="true"/> if the trivia's own text ends with a line terminator; otherwise, <see langword="false"/></returns>
+    public static bool EndsWithLineBreak(SyntaxTrivia trivia)
+    {
+        if (IsDirectiveOrDisabledTextTrivia(trivia) == false
+            && trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) == false)
+        {
+            return false;
+        }
+
+        return LineEndingUtilities.EndsWithLineTerminator(trivia.ToFullString());
     }
 
     /// <summary>
@@ -229,7 +265,7 @@ public static class SyntaxTriviaUtilities
                 return false;
             }
 
-            return CommentEndsOwnLine(trivia) ? lineBreaksSeen == 0 : lineBreaksSeen == 1;
+            return EndsWithLineBreak(trivia) ? lineBreaksSeen == 0 : lineBreaksSeen == 1;
         }
 
         return false;
@@ -459,6 +495,170 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
+    /// Determines whether inserting a pair of braces at the two positions would split a directive pair across a
+    /// brace: one brace lands inside the code between a directive and its partner and the other outside it. A
+    /// conditional directive pairs with the next directive of its <c>#if</c> group and a region directive with its
+    /// partner. A <c>#pragma warning</c> directive pairs, for each warning it names, with the next
+    /// <c>#pragma warning</c> directive that names that warning or names none; a directive that names none stands for
+    /// every warning. A <c>#nullable</c> directive pairs in the same way for the warnings and the annotations setting,
+    /// and a <c>#line</c> or <c>#pragma checksum</c> directive with the next directive of its kind. A directive without
+    /// a partner ends no effect in front of the end of the file, so it splits nothing. A pair of braces wholly inside
+    /// or wholly outside the code between two partners does not split them. A brace inserted at the position of a
+    /// directive lands in front of it
+    /// </summary>
+    /// <param name="root">Syntax root of the document</param>
+    /// <param name="openBracePosition">Position the opening brace is inserted at</param>
+    /// <param name="closeBracePosition">Position the closing brace is inserted at</param>
+    /// <returns><see langword="true"/> if the braces would split a directive pair</returns>
+    public static bool SplitsDirectivePair(SyntaxNode root, int openBracePosition, int closeBracePosition)
+    {
+        var conditionalGroups = new Stack<int>();
+        var regionStarts = new Stack<int>();
+        var lastDirectiveOfSetting = new Dictionary<(SyntaxKind Kind, string Setting), int>();
+        var lastDirectiveOfAllSettings = new Dictionary<SyntaxKind, int>();
+
+        bool SplitsSpan(int start, int end)
+        {
+            var openInside = start < openBracePosition && openBracePosition <= end;
+            var closeInside = start < closeBracePosition && closeBracePosition <= end;
+
+            return openInside != closeInside;
+        }
+
+        bool SplitsSettingPair(SyntaxKind kind, IReadOnlyList<string> settings, int position)
+        {
+            var splits = false;
+
+            if (settings.Count == 0)
+            {
+                foreach (var entry in lastDirectiveOfSetting.Where(entry => entry.Key.Kind == kind).ToList())
+                {
+                    splits |= SplitsSpan(entry.Value, position);
+                    lastDirectiveOfSetting.Remove(entry.Key);
+                }
+
+                if (lastDirectiveOfAllSettings.TryGetValue(kind, out var previousPosition))
+                {
+                    splits |= SplitsSpan(previousPosition, position);
+                }
+
+                lastDirectiveOfAllSettings[kind] = position;
+
+                return splits;
+            }
+
+            foreach (var setting in settings)
+            {
+                var hasPrevious = lastDirectiveOfSetting.TryGetValue((kind, setting), out var previousPosition);
+
+                if (lastDirectiveOfAllSettings.TryGetValue(kind, out var allSettingsPosition)
+                    && (hasPrevious == false || allSettingsPosition > previousPosition))
+                {
+                    previousPosition = allSettingsPosition;
+                    hasPrevious = true;
+                }
+
+                splits |= hasPrevious && SplitsSpan(previousPosition, position);
+                lastDirectiveOfSetting[(kind, setting)] = position;
+            }
+
+            return splits;
+        }
+
+        foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true).Where(trivia => trivia.IsDirective))
+        {
+            var position = trivia.SpanStart;
+
+            switch (trivia.GetStructure())
+            {
+                case IfDirectiveTriviaSyntax:
+                    {
+                        conditionalGroups.Push(position);
+                    }
+                    break;
+
+                case ElifDirectiveTriviaSyntax:
+                case ElseDirectiveTriviaSyntax:
+                case EndIfDirectiveTriviaSyntax:
+                    {
+                        if (conditionalGroups.Count > 0)
+                        {
+                            if (SplitsSpan(conditionalGroups.Pop(), position))
+                            {
+                                return true;
+                            }
+
+                            if (trivia.IsKind(SyntaxKind.EndIfDirectiveTrivia) == false)
+                            {
+                                conditionalGroups.Push(position);
+                            }
+                        }
+                    }
+                    break;
+
+                case RegionDirectiveTriviaSyntax:
+                    {
+                        regionStarts.Push(position);
+                    }
+                    break;
+
+                case EndRegionDirectiveTriviaSyntax:
+                    {
+                        if (regionStarts.Count > 0
+                            && SplitsSpan(regionStarts.Pop(), position))
+                        {
+                            return true;
+                        }
+                    }
+                    break;
+
+                case PragmaWarningDirectiveTriviaSyntax pragmaWarningDirective:
+                    {
+                        if (SplitsSettingPair(SyntaxKind.PragmaWarningDirectiveTrivia, pragmaWarningDirective.ErrorCodes.Select(GetWarningCode).ToList(), position))
+                        {
+                            return true;
+                        }
+                    }
+                    break;
+
+                case NullableDirectiveTriviaSyntax nullableDirective:
+                    {
+                        IReadOnlyList<string> settings = nullableDirective.TargetToken.IsKind(SyntaxKind.None)
+                                                             ? []
+                                                             : [nullableDirective.TargetToken.ValueText];
+
+                        if (SplitsSettingPair(SyntaxKind.NullableDirectiveTrivia, settings, position))
+                        {
+                            return true;
+                        }
+                    }
+                    break;
+
+                case PragmaChecksumDirectiveTriviaSyntax:
+                    {
+                        if (SplitsSettingPair(SyntaxKind.PragmaChecksumDirectiveTrivia, [], position))
+                        {
+                            return true;
+                        }
+                    }
+                    break;
+
+                case LineDirectiveTriviaSyntax:
+                case LineSpanDirectiveTriviaSyntax:
+                    {
+                        if (SplitsSettingPair(SyntaxKind.LineDirectiveTrivia, [], position))
+                        {
+                            return true;
+                        }
+                    }
+                    break;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Sets the trailing whitespace of a token to the specified number of spaces while preserving non-whitespace trivia
     /// </summary>
     /// <param name="token">Token whose trailing whitespace to normalize</param>
@@ -624,28 +824,6 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
-    /// Determines whether a comment trivia's own text ends its line. Only a single-line documentation comment
-    /// (<c>///</c>) can do this — its structured trivia swallows the line terminator that follows it, so no
-    /// separate <see cref="SyntaxKind.EndOfLineTrivia"/> appears after it in the trivia list. An ordinary
-    /// comment or a multi-line (documentation) comment always leaves its trailing line break as a sibling
-    /// trivia instead, and an unterminated documentation comment at the end of a file leaves no line break at
-    /// all
-    /// </summary>
-    /// <param name="trivia">The comment trivia to inspect</param>
-    /// <returns><see langword="true"/> if the trivia's own text ends with a line break; otherwise, <see langword="false"/></returns>
-    private static bool CommentEndsOwnLine(SyntaxTrivia trivia)
-    {
-        if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) == false)
-        {
-            return false;
-        }
-
-        var text = trivia.ToFullString();
-
-        return text.Length > 0 && DocumentationCommentUtilities.IsLineTerminator(text[text.Length - 1]);
-    }
-
-    /// <summary>
     /// Determines whether the trivia is one of the conditional-compilation directives
     /// </summary>
     /// <param name="trivia">The trivia to check</param>
@@ -775,6 +953,18 @@ public static class SyntaxTriviaUtilities
         }
 
         return normalized;
+    }
+
+    /// <summary>
+    /// Gets the warning a <c>#pragma warning</c> directive names, so that <c>CS0219</c> and <c>219</c> name the same one
+    /// </summary>
+    /// <param name="errorCode">Error code as written in the directive</param>
+    /// <returns>The warning</returns>
+    private static string GetWarningCode(ExpressionSyntax errorCode)
+    {
+        return errorCode is LiteralExpressionSyntax { Token.Value: int number }
+                   ? "CS" + number.ToString("D4", CultureInfo.InvariantCulture)
+                   : errorCode.ToString().Trim();
     }
 
     #endregion // Methods

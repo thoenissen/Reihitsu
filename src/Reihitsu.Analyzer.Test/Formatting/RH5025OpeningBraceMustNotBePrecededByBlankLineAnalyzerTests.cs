@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -304,6 +305,354 @@ public class RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzerTests : Batch
                                 """;
 
         await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the blank lines above block statements that follow a statement ending with a closing brace and a statement
+    /// that does not are not reported, while the blank line above a block statement that is the first statement of a
+    /// switch section is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5025-005")]
+    public async Task VerifyBlankLineAboveBlockStatementThatFollowsStatementIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        if (a > 0)
+                                        {
+                                        }
+
+                                        {
+                                        }
+                                        a++;
+
+                                        {
+                                        }
+                                        switch (a)
+                                        {
+                                            case 1:
+                                {|RH5025:
+                                |}                {
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the blank line above a block statement that directly follows a statement ending with a closing brace is not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5025-005")]
+    public async Task VerifyBlankLineAboveBlockStatementAfterClosingBraceIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a)
+                                    {
+                                        if (a)
+                                        {
+                                        }
+
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the blank line above a block statement that directly follows a statement not ending with a closing brace is
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5025-005")]
+    public async Task VerifyBlankLineAboveBlockStatementAfterOtherStatementIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the blank line between a directive and a block statement that follows a statement is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5025-005")]
+    public async Task VerifyBlankLineBetweenDirectiveAndBlockStatementThatFollowsStatementIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+                                #pragma warning disable CS0168
+
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the blank line above a block statement that follows another statement of a switch section is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5025-005")]
+    public async Task VerifyBlankLineAboveBlockStatementThatFollowsStatementInSwitchSectionIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        switch (a)
+                                        {
+                                            case 1:
+                                                a++;
+
+                                                {
+                                                }
+
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the blank line above a block statement that is the first statement of a block is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5025-005")]
+    public async Task VerifyBlankLineAboveFirstBlockStatementOfBlockIsReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                {|RH5025:
+                                |}        {
+                                            a++;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the blank line above the block of a labeled statement is reported, because that block is not in the
+    /// statement list of a block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5025-005")]
+    public async Task VerifyBlankLineAboveBlockOfLabeledStatementIsReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+                                    L:
+                                {|RH5025:
+                                |}        {
+                                            a++;
+                                        }
+
+                                        goto L;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the empty line above the opening brace of an interpolation hole in a raw interpolated string is not reported,
+    /// because it is part of the literal's text
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5025-006")]
+    public async Task VerifyEmptyLineAboveHoleBraceInRawInterpolatedStringIsNotReported()
+    {
+        const string testCode = """"
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        var s = $"""
+                                            a
+
+                                            {x}
+                                            """;
+                                    }
+                                }
+                                """";
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the empty line above the opening brace of an interpolation hole in a raw interpolated string is not reported
+    /// in a document with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5025-006")]
+    public async Task VerifyEmptyLineAboveHoleBraceInRawInterpolatedStringIsNotReportedWithCarriageReturnLineFeed()
+    {
+        const string testCode = """"
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        var s = $"""
+                                            a
+
+                                            {x}
+                                            """;
+                                    }
+                                }
+                                """";
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode));
+    }
+
+    /// <summary>
+    /// Verifies the empty line above the opening braces of an interpolation hole in a raw interpolated string with several
+    /// dollar signs is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5025-006")]
+    public async Task VerifyEmptyLineAboveHoleBraceInMultipleDollarRawInterpolatedStringIsNotReported()
+    {
+        const string testCode = """"
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        var u = $$"""
+                                            a
+
+                                            {{x}}
+                                            """;
+                                    }
+                                }
+                                """";
+
+        // The markup parser reads "$$" as a position marker, so the source is taken as written
+        await Verify(testCode, test => test.TestState.MarkupHandling = MarkupMode.None);
+    }
+
+    /// <summary>
+    /// Verifies the empty line above the opening brace of an interpolation hole in a verbatim interpolated string is not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5025-006")]
+    public async Task VerifyEmptyLineAboveHoleBraceInVerbatimInterpolatedStringIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        var t = $@"a
+
+                                {x}";
+                                        var u = @$"a
+
+                                {x}";
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a blank line above the opening brace of a lambda body inside an interpolation hole is still reported and
+    /// fixed, because the hole's expression is code
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5025-006")]
+    public async Task VerifyBlankLineAboveLambdaBraceInsideInterpolationHoleIsReportedAndFixed()
+    {
+        const string testCode = """"
+                                using System;
+
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        var s = $"""
+                                            a{((Func<int>)(() =>
+                                {|#0:
+                                |}            { return x; }))()}
+                                            """;
+                                    }
+                                }
+                                """";
+        const string fixedCode = """"
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M(int x)
+                                     {
+                                         var s = $"""
+                                             a{((Func<int>)(() =>
+                                             { return x; }))()}
+                                             """;
+                                     }
+                                 }
+                                 """";
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5025MessageFormat));
     }
 
     #endregion // Tests

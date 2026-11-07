@@ -4,20 +4,21 @@
 |---|---|
 | ID prefix | FMT-STRUCT |
 | Status | Active |
-| Code owners | `StructuralTransformPhase`, `ConfigurableStructuralTransforms`, `ControlFlowBraceTransform`, `ExpressionBodiedMethodTransform`, `ExpressionBodiedConstructorTransform`, `ExpressionBodiedOperatorTransform`, `ExpressionBodiedConversionTransform`, `ExpressionBodiedFinalizerTransform`, `ExpressionBodiedLocalFunctionTransform`, `ExpressionBodiedTransformUtilities`, `ExpressionBodyToBlockConverter`, `AccessorExpressionBodyTransform`, `GetOnlyMemberExpressionBodyTransform`, `EmptyTypeDeclarationSemicolonTransform`, `EnumTrailingCommaRemovalTransform`, `InitializerTrailingCommaRemovalTransform`, `TrailingCommaRemovalUtilities`, `FieldDeclarationSplitTransform` |
-| Uses | FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013 |
+| Code owners | `StructuralTransformPhase`, `ConfigurableStructuralTransforms`, `ControlFlowBraceTransform`, `ExpressionBodiedMethodTransform`, `ExpressionBodiedConstructorTransform`, `ExpressionBodiedOperatorTransform`, `ExpressionBodiedConversionTransform`, `ExpressionBodiedFinalizerTransform`, `ExpressionBodiedLocalFunctionTransform`, `ExpressionBodiedTransformUtilities`, `ExpressionBodyToBlockConverter`, `AccessorExpressionBodyTransform`, `GetOnlyMemberExpressionBodyTransform`, `EmptyTypeDeclarationSemicolonTransform`, `EnumTrailingCommaRemovalTransform`, `InitializerTrailingCommaRemovalTransform`, `TrailingCommaRemovalUtilities`, `FieldDeclarationSplitTransform`, `AttributeListSplitTransform`, `AttributeListMergeTransform`, `AttributeListShapeUtilities` |
+| Uses | FMT-BREAK-013, FMT-BREAK-014, FMT-BREAK-027, FMT-BREAK-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021, FMT-PIPE-029, FMT-SPACE-003, FMT-SPACE-004, FMT-SPACE-008, FMT-SPACE-012, FMT-SPACE-017, SHARED-ATTR-013, SHARED-COMMENT-012 |
 
-This spec covers the first phase of the pipeline, which rewrites syntax shape before any layout is decided: braces for `if`/`else` bodies, block bodies for expression-bodied functions, expression bodies for simple accessors and get-only members, semicolon declarations for empty types, removal of trailing commas, and one field per declaration. Every rewrite produces equivalent code (FMT-PIPE-003) and is refused for a construct whose comments, directives, or disabled text it could not carry over (FMT-PIPE-002).
+This spec covers the phase that rewrites syntax shape before any layout is decided, right after the tabs in whitespace are replaced (FMT-PIPE-001): braces for `if`/`else` bodies, block bodies for expression-bodied functions, expression bodies for simple accessors and get-only members, semicolon declarations for empty types, removal of trailing commas, one field per declaration, one attribute per list on declarations (FMT-STRUCT-028), and the merge of attribute lists that name one target (FMT-STRUCT-029). Every rewrite produces equivalent code (FMT-PIPE-003) and is refused for a construct whose comments, directives, or disabled text it could not carry over (FMT-PIPE-002). The RH7101 code fix splits a field by formatting it with its type as context (FMT-PIPE-029), so the field split, laid out by the phases after this one, is also that fix's output.
 
 ## Non-goals
 
-- Line breaks, spacing, and indentation of the rewritten code. The phase only builds the new shape; later phases lay it out (FMT-PIPE-001).
+- Line breaks, spacing, and indentation of the rewritten code, apart from the separators and the field split's layout that FMT-STRUCT-026 names. The phase only builds the new shape; later phases lay it out (FMT-PIPE-001).
 - Braces for `while`, `for`, `foreach`, `using`, `lock`, `fixed`, and `do` bodies. The phase braces `if` and `else` bodies only; other unbraced bodies are left as they are.
 - Braces for switch sections — FMT-SWITCH owns them.
 - Expression-bodied properties, indexers, accessors, and lambdas. They are never turned into block bodies.
 - Trailing commas in object initializers, anonymous object creations, collection expressions, switch expressions, and list patterns.
 - Splitting event field declarations or local variable declarations with several declarators.
 - Which language version applies — FMT-PIPE-008 decides it; this spec only names the version each transform needs.
+- Where an attribute list stands — FMT-BREAK owns the placement of every attribute list, and the shape of the attribute lists of accessors, which follows the layout of their accessor list.
 
 ## Requirements
 
@@ -134,11 +135,11 @@ is left unchanged.
 
 The formatter MUST convert an expression-bodied method or local function to a block body with a single statement:
 
-- an expression statement when the return type is `void`, or when the function is `async` and returns the non-generic `Task` or `ValueTask`;
+- an expression statement when the return type is `void`, or when the function is `async` and returns the non-generic `Task` or `ValueTask`, with or without a nullable annotation (`Task?`);
 - a `throw` statement when the expression is a throw expression;
-- a `return` statement otherwise, including `async` functions that return `Task<T>` or `ValueTask<T>` and non-`async` functions that return `Task`.
+- a `return` statement otherwise, including `async` functions that return `Task<T>` or `ValueTask<T>`, with or without a nullable annotation, and non-`async` functions that return `Task`.
 
-This applies under every language version.
+An `async` function whose return type is neither `void` nor written as `Task`, `ValueTask`, `Task<…>`, or `ValueTask<…>` keeps its expression body instead (FMT-STRUCT-025). This applies under every language version.
 
 Why: The house style uses expression bodies only for properties, indexers, and accessors; the analyzer rules RH3202 and RH3208 report expression-bodied methods and local functions. The statement form follows what the expression means in the function: an `async Task` body awaits and returns nothing, while a non-`async` `Task` method returns the task it computes. `return throw …;` does not compile, so a throw expression always becomes a `throw` statement.
 
@@ -256,7 +257,9 @@ class C
 
 When the formatter converts an expression body under FMT-STRUCT-004 or FMT-STRUCT-005, an expression written on the line after the arrow MUST join the created `return` keyword, a comment between the expression and the semicolon MUST stay in front of the statement's semicolon, and a comment or directive in the trivia of the removed arrow or semicolon MUST be carried into the block rather than dropped. The layout of the comments the converted body carries is kept as FMT-PIPE-013 states.
 
-Why: The arrow and the semicolon disappear, so whatever trivia they carried needs a new owner. The line break after the arrow is layout only and has no meaning inside a `return` statement; a comment does, and FMT-PIPE-002 forbids losing it.
+Unless a comment stands directly at the arrow, a comment that stands on a line of its own — nothing but whitespace in front of it on its line, and a line break behind it — between the token in front of the arrow and the arrow, or between the arrow and the expression, MUST be carried into the block as a comment on a line of its own in front of the created statement, in the order the comments were written. An expression behind such a comment MUST still join the created `return` keyword, so that the statement stays on one line as it would without the comment. A comment that starts the line after the arrow and is followed on that line by the expression MUST stay directly in front of the expression, which joins the created `return` keyword together with it (`return /* c */ 42;`). A comment stands directly at the arrow when it follows the arrow on the arrow's line, before the next token (`=> // b`, `=> /* c */ 42`), or precedes the arrow on a line on which no token stands in front of the arrow, behind the last line break in front of it (a line `/* c */ => 42;`). A comment behind the token in front of the arrow on the same line (`int M() /* c */ =>`) belongs to that token, does not stand at the arrow, and MUST NOT stop the move. When a comment stands directly at the arrow, the conversion MUST NOT move the comments on lines of their own in front of the created statement, and all comments of the member MUST keep the order in which they were written. A comment further along the arrow's line, behind the expression or behind the semicolon (`=> 42 /* t */;`, `=> 42; // t`), does not stand at the arrow and MUST NOT stop the move: the own-line comments still lead the created statement. This paragraph specifies the placement only for the comments it names; it leaves a documentation comment (`///`), the placement of a comment directly at the arrow and of the other comments of such a member, and a comment in front of an expression that becomes an expression statement or a `throw` statement, unspecified.
+
+Why: The arrow and the semicolon disappear, so whatever trivia they carried needs a new owner. The line break after the arrow is layout only and has no meaning inside a `return` statement; a comment does, and FMT-PIPE-002 forbids losing it. A comment written on its own line next to the arrow introduces the body; in front of the created statement it keeps introducing it, while a place between the signature and the brace, or on a line of its own between `return` and its value, would put it next to other code (FMT-STRUCT-024). A comment written in front of the expression on the expression's line belongs to the expression and moves with it. Where a comment stands directly at the arrow, it lands on or in front of the new opening brace, so moving the own-line comments into the block would put them behind it, in reverse of the order the author wrote them; they stay where they are, and where that comment belongs is a separate decision. A comment behind the expression or the semicolon ends up behind the created statement, so moving the own-line comments keeps the source order.
 
 Example:
 
@@ -281,6 +284,56 @@ class C
     int Other()
     {
         return Compute(1, 2);
+    }
+}
+```
+
+Comments on lines of their own around the arrow lead the created statement; a comment in front of the expression on its line stays in front of it:
+
+```csharp
+class C
+{
+    int Other()
+    // before arrow
+    => 1;
+
+    int Get() =>
+        // after arrow
+        42;
+
+    void Run() =>
+        // run
+        Foo();
+
+    int Value() =>
+        /* c */ 42;
+}
+```
+
+```csharp
+class C
+{
+    int Other()
+    {
+        // before arrow
+        return 1;
+    }
+
+    int Get()
+    {
+        // after arrow
+        return 42;
+    }
+
+    void Run()
+    {
+        // run
+        Foo();
+    }
+
+    int Value()
+    {
+        return /* c */ 42;
     }
 }
 ```
@@ -1028,3 +1081,511 @@ class C
 ```
 
 is left unchanged.
+
+### FMT-STRUCT-025 — An `async` function of an unknown task type keeps its expression body
+
+The formatter MUST keep the expression body of an `async` method or local function whose return type is neither `void` nor written as `Task`, `ValueTask`, `Task<…>`, or `ValueTask<…>`, either as a simple name or as the last part of a qualified name, with or without a nullable annotation (`Task?`, `Task<int>?`). This covers an alias of a task type and a custom task-like type alike. An `async` function whose return type is written in one of these forms MUST be converted as FMT-STRUCT-004 states.
+
+Why: Under `async`, the statement form depends on whether the task type carries a result, which a nullable annotation does not change: an expression statement for a task without one, a `return` statement for a task with one, and the wrong choice does not compile (CS1997 for a `return` with a value in an `async` function whose task has no result). The formatter sees only syntax, so behind an alias or a custom task-like type it cannot tell which form compiles, and a rewrite it cannot prove equivalent is not applied (FMT-PIPE-003, FMT-STRUCT-024).
+
+Example:
+
+```csharp
+using T = System.Threading.Tasks.Task;
+using V = System.Threading.Tasks.ValueTask<int>;
+
+class C
+{
+    async T RunAsync() => await T.Delay(1);
+
+    async V GetAsync() => await Compute();
+
+    async MyTask StartAsync() => await Prepare();
+}
+```
+
+is left unchanged. A task type written by its qualified name is converted:
+
+```csharp
+class C
+{
+    async System.Threading.Tasks.Task RunAsync() => await Prepare();
+
+    async System.Threading.Tasks.Task<int> GetAsync() => await Compute();
+}
+```
+
+```csharp
+class C
+{
+    async System.Threading.Tasks.Task RunAsync()
+    {
+        await Prepare();
+    }
+
+    async System.Threading.Tasks.Task<int> GetAsync()
+    {
+        return await Compute();
+    }
+}
+```
+
+A nullable annotation does not hide the task type:
+
+```csharp
+using System.Threading.Tasks;
+
+class C
+{
+    async Task? RunAsync() => await Task.Delay(1);
+
+    async Task<int>? GetAsync() => await Task.FromResult(1);
+}
+```
+
+```csharp
+using System.Threading.Tasks;
+
+class C
+{
+    async Task? RunAsync()
+    {
+        await Task.Delay(1);
+    }
+
+    async Task<int>? GetAsync()
+    {
+        return await Task.FromResult(1);
+    }
+}
+```
+
+### FMT-STRUCT-026 — The phase writes only the separators its text needs
+
+A structural transform MUST NOT write whitespace, a line break, or indentation next to a token it creates, nor into the trivia it carries over, except a separator without which its output would not parse back to its tree (FMT-PIPE-021). These separators are decided:
+
+- one space between a token the transform creates and the token after it when the two would otherwise read as one token, such as `return` before `42`, before `a`, or before an identifier that starts with a Unicode escape (`\u0061`); no space where they read as two tokens without it, such as `{` before `return`, `)` before `{`, `return` before `(`, before a string, before a verbatim identifier or string (`@a`, `@"s"`), or before a comment;
+- a line break between a single-line comment and a token the transform creates behind it, such as `// trailing` before an inserted `}`;
+- a line break between a token the transform creates and a comment behind it that leads the next token, such as an inserted `{` before the comment `// leading` above the braced statement, or an inserted `}` before a comment `// about Bar` that leads the next statement;
+- a line break between a token the transform creates and a preprocessor directive behind it, such as an inserted `}` before `#if`.
+
+No other line break follows a token the transform creates: none behind an inserted `{` that the braced statement follows without a leading comment, and none behind an inserted `}` that `else`, a statement without a leading comment, or the enclosing block's `}` follows. The enclosing block's `}` is the `}` that follows in the transform's output, also when the transform inserted it itself, as around a nested unbraced `if`; the comment or directive behind the outer `}` decides the line break behind the outer `}` only.
+
+The accessor and get-only-member transforms (FMT-STRUCT-009, FMT-STRUCT-014) write no whitespace next to the `=>` they create, as for every token they create; the spacing phase puts one space on each side of it (FMT-SPACE-017), so the final output reads `get => _value;` and `int P => _value;`.
+
+A token a structural transform creates MUST carry no elastic trivia — the zero-width markers Roslyn gives a token built without explicit trivia. This holds for every created token, also for the `(` and `)` the accessor transform writes around a `throw` operand (FMT-STRUCT-011). Its trivia is exactly what this requirement allows: the separators above and the trivia it carries over. This requirement does not decide whether the phases after this one write elastic trivia.
+
+The trivia a transform carries over keeps what the author wrote:
+
+- The whitespace in front of and between the comments the transform carries over — the comments that lead or trail a braced statement, and a comment that FMT-STRUCT-006 moves behind `return` or in front of the converted statement — stays as the author wrote it; the transform writes none there and drops none.
+- The trailing trivia of a braced statement stays on the statement, its line break included, so a line break ends the statement's line in front of the inserted `}` exactly when the author wrote one.
+- The trailing trivia of the `;` that a converted expression body ends with moves to the created `}`, its line break included.
+
+The transform MAY drop the line breaks in front of the first comment that leads a braced statement, and the whitespace and line breaks of a token it removes when no carried comment stands next to them, such as the line break behind a removed `=>` or the whitespace in front of an expression that has no comment in front of it.
+
+The field split (FMT-STRUCT-021) writes the separators above and, beyond them, only the layout FMT-STRUCT-022 decides and no later phase decides again: exactly one space in front of each comment that trailed a separating comma, whatever the author wrote there; a line break behind the last of those comments when one of them spans lines — a delimited comment (`/* */`) whose closing `*/` stands on a later line than its opening — so the next field starts its own line; and a line break behind each comment it moves onto its own line in front of a later field. Comments that each start and end on one line write no such line break: `private int _x, /* a */ _y;` gives `private int _x; /* a */private int _y;` in the phase's output, while `private int _x, /* a` followed by a line `b */ _y;` gives `private int _x; /* a`, the line `b */` as the author wrote it, a line break, and `private int _y;`. It MUST NOT write indentation in front of a field it creates or of a comment it moves, and MUST NOT write a line break in front of a field it creates other than these separators: the indentation phase indents those lines (FMT-INDENT), and the line-break phase puts each field on a line of its own (FMT-BREAK). For example, `private int _x, _y;` becomes `private int _x;private int _y;` in the phase's output, `private int _x,// h` followed by a line `_y;` becomes `private int _x; // h`, a line break, and `private int _y;`, and `private int _x,` followed by a line `/* v */ _y;` becomes `private int _x;`, a line break, `/* v */`, a line break, and `private int _y;`, none of them indented.
+
+Why: The phases after this one, the trace, and the documentation phase read the text of this phase's tree, so the text has to be that tree (FMT-PIPE-021). Every other piece of layout is decided again by the phase that owns it — line breaks by FMT-BREAK, spaces by FMT-SPACE, columns by FMT-INDENT — so a transform that writes it makes one decision in two places (FMT-PIPE-001), and the two can disagree. A wrap is not a decision about the comments it carries (FMT-PIPE-013): the gaps the author left around them are what the phases see in code that needs no wrap, and the spacing phase keeps a gap in front of a comment as it finds it. An elastic marker is whitespace to the spacing phase but no character of the text, so a tree that carries one is spaced differently from its own text wherever no spacing rule decides the gap: the spacing phase collapses the marker as whitespace and keeps a space the text does not hold, the difference FMT-PIPE-021 rules out between a phase's tree and its text. The field split's one space in front of a comment that trailed a comma, and its line break behind a comment it moves in front of a later field, are where FMT-STRUCT-022 puts those comments, and no later phase puts them there: the spacing phase keeps the gap in front of a comment as it finds it, and the line-break phase leaves a comment on the line of the member behind it. A field behind the closing `*/` of a comment that spans lines does not start its line (SHARED-COMMENT-012); the split writes the line break in front of it itself, as document-level formatting has always placed that field, rather than depend on how the line-break phase treats a gap whose only line break stands inside a comment. Its indentation, and its line break in front of a field behind a single-line comment or behind no comment, are decided again by the indentation and line-break phases, in every entry point, also for the RH7101 fix (FMT-PIPE-029).
+
+Example — the transform's output for the class of FMT-PIPE-021's first example holds `int Get(){return 42;}` followed by the line break the author wrote behind `;`, the author's line break between `// trailing` and the inserted `}` behind it, and no line break behind either inserted `}` of `M`. The final output is unchanged by this requirement:
+
+```csharp
+class C
+{
+    int Get()
+    {
+        return 42;
+    }
+
+    void M(bool a)
+    {
+        if (a)
+        {
+            Foo(); // trailing
+        }
+        else
+        {
+            Bar();
+        }
+    }
+}
+```
+
+Example — in
+
+```csharp
+class C
+{
+    void M(bool a)
+    {
+        if (a)
+            // leading
+            Foo();
+        if (a)
+            /* x */ /* y */ Foo();
+        if (a)
+            Foo();
+#if DEBUG
+        Bar();
+#endif
+        if (a)
+            Foo();
+        // about Bar
+        Bar();
+    }
+}
+```
+
+the transform's output has a line break behind the first inserted `{`, in front of `// leading`, and keeps the line break the author wrote behind that comment; it has a line break behind the second inserted `{`, in front of `/* x */`, and keeps `/* x */ /* y */ Foo();` on one line with the spaces the author wrote; it has no line break behind the third inserted `{`, and a line break between the third inserted `}` and `#if DEBUG`; and it has a line break between the fourth inserted `}` and `// about Bar`, so the comment keeps leading `Bar();`. The final output keeps the comments where the author put them (FMT-PIPE-013):
+
+```csharp
+class C
+{
+    void M(bool a)
+    {
+        if (a)
+        {
+            // leading
+            Foo();
+        }
+
+        if (a)
+        {
+            /* x */ /* y */ Foo();
+        }
+
+        if (a)
+        {
+            Foo();
+        }
+#if DEBUG
+        Bar();
+#endif
+
+        if (a)
+        {
+            Foo();
+        }
+
+        // about Bar
+        Bar();
+    }
+}
+```
+
+Example — the gaps in front of carried trailing comments stay as written:
+
+```csharp
+class C
+{
+    void M(bool a)
+    {
+        if (a)
+            Foo();    // x
+        if (a)
+            Foo();// y
+        if (a)
+            Foo(); /* a */ // b
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(bool a)
+    {
+        if (a)
+        {
+            Foo();    // x
+        }
+
+        if (a)
+        {
+            Foo();// y
+        }
+
+        if (a)
+        {
+            Foo(); /* a */ // b
+        }
+    }
+}
+```
+
+Example — a comment that FMT-STRUCT-006 moves behind `return` keeps the whitespace in front of it: in `int Get() =>`, followed by a line holding `/* c */ 42;` indented by eight spaces, the transform's output holds `return` followed by the eight spaces and `/* c */ 42;`, which the spacing phase turns into `return /* c */ 42;`; when that line is not indented, the output holds `return/* c */ 42;`, and the final output keeps `return/* c */` as written.
+
+Example — nested unbraced `if` statements:
+
+```csharp
+class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+            if (b)
+                Foo();
+        // about Bar
+        Bar();
+    }
+}
+```
+
+The transform's output has no line break between the inner inserted `}` and the outer inserted `}` behind it, and a line break between the outer inserted `}` and `// about Bar`. The same holds when `#if DEBUG` follows instead of the comment, and when the inner `if` has an unbraced `else` body.
+
+Example — a created `return` and the expression behind it: `int A() => a;` gives `return a;` in the transform's output, `int B() => \u0061;` gives `return \u0061;`, `int C() => @a;` gives `return@a;`, `int D() => @"s";` gives `return@"s";`, and `int E() => (a);` gives `return(a);`. The final output of each has one space behind `return` (FMT-SPACE-012).
+
+Example — a comment directly at the arrow (FMT-STRUCT-006) keeps the other comments of the member where they are, and a comment that leads the expression keeps leading it: for `int Get() => // c` followed by a line `/* d */ 42;`, for `int Get() => // c` followed by a line `// d` and a line `42;`, and for `int Get()` followed by a line `/* c */ =>` and a line `/* d */ 42;`, the transform's output has a line break between the created `return` and `/* d */` or `// d`. This example decides the transform's output only; FMT-STRUCT-006 leaves the final place of these comments unspecified.
+
+Example — a comment that spans lines behind a separating comma ends the line of the field that comma now ends, and the next field starts its own line; the comment's later lines keep the text the author wrote, also when a one-line comment follows on its last line:
+
+```csharp
+class C
+{
+    private int _x, /* a
+       b */ _y;
+    private int _p, /* a */ /* b
+       c */ _q, /* d
+       e */ /* f */ _r;
+}
+```
+
+```csharp
+class C
+{
+    private int _x; /* a
+       b */
+    private int _y;
+    private int _p; /* a */ /* b
+       c */
+    private int _q; /* d
+       e */ /* f */
+    private int _r;
+}
+```
+
+### FMT-STRUCT-027 — A removed comma's comment on a line of its own stays there
+
+When the formatter removes a trailing comma under FMT-STRUCT-019 or FMT-STRUCT-020, a comment of that comma that stands on a line below the line the last element ends on — because the comma stood on a later line, or the comment led the comma on a line of its own — MUST stay on a line of its own and lead the closing brace. A comment of the comma on the line the last element ends on stays behind the last element, as FMT-STRUCT-019 states.
+
+Why: A line break already ends the last element's line, so a comment behind it starts a new line, and in the text that line belongs to the closing brace (FMT-PIPE-021). Joining it to the last element's line would move a comment between lines, and behind a `//` comment it is not possible at all. The closing brace's leading comment is then laid out like any other comment in front of a closing brace, in one pass, which is what a second pass gives today.
+
+Example:
+
+```csharp
+enum E { A,
+B // about B
+    , // comma
+}
+
+class C
+{
+    int[] _a = new[] { 1,
+2 /* two */
+// before comma
+, };
+}
+```
+
+```csharp
+enum E
+{
+    A,
+    B // about B
+
+    // comma
+}
+
+class C
+{
+    int[] _a = new[] { 1,
+                   2 /* two */
+
+                   // before comma
+               };
+}
+```
+
+### FMT-STRUCT-028 — A declaration's attribute list holds one attribute
+
+The formatter MUST split an attribute list that holds several attributes into one list per attribute, in the order the attributes were written, when the list belongs to the compilation unit (`assembly:`, `module:`), a type, a delegate, a member, an enum member, or a local function. Each created list MUST keep the original list's target specifier; the first created list MUST keep the original list's leading trivia, and the last one its trailing trivia.
+
+Between its brackets, a created list MUST hold none of the whitespace and line breaks that separated two attributes of the original list: everything between the end of one attribute and the start of the next — the comma, and the whitespace, line breaks, and blank lines in front of it and behind it — is dropped with the comma. `[A,⏎ B]`, `[A⏎ , B]`, and `[A,⏎⏎ B]` all become `[A][B]` in this phase's output, and `[A]⏎[B]` in one pass of the formatter. The first created list MUST also hold nothing between its `[` and its attribute: whitespace and line breaks behind the original list's `[` are dropped, so `[⏎ A, B]` becomes `[A][B]` as well. Whitespace and line breaks in front of the original list's `]`, as in `[A, B⏎]`, are outside this requirement.
+
+The formatter MUST NOT split such a list when a comment or a preprocessor directive lies between its brackets (`[A /* c */, B]`), or when its specifier names no target the compiler knows (`[unknown: A, B]`). A list without a comment or directive between its brackets is split also when a comment stands in front of it or behind it, and a list with a known specifier that is not the default target of its declaration (`[method: A, B]`, `[return: A, B]`) is split like one without a specifier. A list whose specifier names the parameter or type-parameter target (`param:`, `typevar:`) is the exception: it keeps the parameter shape on every owner and MUST NOT be split (FMT-STRUCT-029, FMT-BREAK-032).
+
+The split writes nothing between the lists it creates (FMT-STRUCT-026); each of them starts its own line by FMT-BREAK-027. The attribute lists of a parameter or type parameter are never split (FMT-STRUCT-029), and the attribute lists of an accessor are shaped by FMT-BREAK-032. This requirement specifies the outcome only for the owners it names and leaves the attribute lists of a lambda unspecified.
+
+Why: On a declaration every attribute gets a line of its own, so a change to one attribute changes exactly one line; the attribute list-shape rules report a list with several attributes (SHARED-ATTR-013). How many attributes a list holds depends on no layout, so it is decided with the other shape rewrites, before any layout (FMT-PIPE-001), and the line-break phase only places the lists. A comment between the brackets belongs to no single attribute, so no created list could take it without moving it next to other code (FMT-STRUCT-024). A list whose specifier names no known target applies to nothing the formatter can lay out, so it is left as written. A line break or whitespace between two attributes only separated them; once each attribute has brackets of its own, it has nothing left to separate, and kept inside a created list it would leave a line break inside the brackets, or whitespace behind `[` that the spacing phase does not reach because the attribute holds it, so a second pass would change the output (FMT-PIPE-004, FMT-SPACE-004); a line break behind `[` separates nothing either and would stay inside the first created list. A `param:` or `typevar:` list names a target whose lists stand on its owner's line in one list, wherever that list is written (FMT-STRUCT-029).
+
+Example:
+
+```csharp
+[assembly: A, B]
+
+class C
+{
+    [method: A, B] [C] void M() { }
+
+    [A, B] int P { get; set; }
+}
+```
+
+```csharp
+[assembly: A]
+[assembly: B]
+
+class C
+{
+    [method: A]
+    [method: B]
+    [C]
+    void M()
+    {
+    }
+
+    [A]
+    [B]
+    int P { get; set; }
+}
+```
+
+The lists `[A /* c */, B]` and `[unknown: A, B]` on a method stay one list each.
+
+Example — the line breaks between two attributes are dropped with the comma, and those behind the original `[` with it:
+
+```csharp
+class C
+{
+    [A,
+     B] void M() { }
+
+    [A
+     , B] void N() { }
+
+    [A,
+
+     B] void O() { }
+
+    [
+        A, B] void P() { }
+}
+```
+
+```csharp
+class C
+{
+    [A]
+    [B]
+    void M()
+    {
+    }
+
+    [A]
+    [B]
+    void N()
+    {
+    }
+
+    [A]
+    [B]
+    void O()
+    {
+    }
+
+    [A]
+    [B]
+    void P()
+    {
+    }
+}
+```
+
+### FMT-STRUCT-029 — The lists of one target on a parameter are merged
+
+The formatter MUST merge the attribute lists of a parameter or type parameter that name the same target into the first of them. The first list MUST keep its place, its specifier, and its leading trivia, and MUST hold the attributes of every merged list in the order they were written; the other lists of the target are removed. Lists of another target between them do not keep them apart, and the lists of each target of one parameter are merged on their own. A list without a specifier names the parameter or type parameter itself, `param:` names the parameter, `typevar:` the type parameter, and any other known specifier the target it names, such as `property:` on a record parameter. A `type:` list and a list whose specifier names no target the compiler knows name no target and MUST NOT be merged.
+
+A list whose specifier is `param:` or `typevar:` keeps this shape on every owner, not only on a parameter or type parameter: on the compilation unit, a type, a delegate, a member, an enum member, or a local function, the formatter MUST merge its `param:` lists into the first of them and its `typevar:` lists into the first of them, as stated above and under the same conditions, and MUST NOT split them. The other lists of such an owner are not merged; they are split by FMT-STRUCT-028. The lists of an accessor are shaped by FMT-BREAK-032, which applies the same rule to an accessor's `param:` and `typevar:` lists. As in FMT-STRUCT-028, the attribute lists of a lambda are left unspecified.
+
+The formatter MUST NOT merge the lists of a target when a comment or a preprocessor directive lies between the opening bracket of the first of them and the end of the trivia behind the last of them, leads the token behind one of them, or when a directive leads the first of them. A comment in front of the first list does not block the merge. A list of a parameter or type parameter, and a `param:` or `typevar:` list on any owner, MUST NOT be split.
+
+The merge writes no whitespace (FMT-STRUCT-026): the space behind the merged list and behind each of its commas is the spacing phase's (FMT-SPACE-003, FMT-SPACE-008), and the merged list stays on the parameter's line by FMT-BREAK-027.
+
+The merge MUST keep a line break the author wrote in the stretch it rewrites, which runs from the `[` of the first list of the target to the token behind the last of them. A line break directly behind that `[` stays where it is. When none stands there and a line break lies anywhere else in the stretch — between two attributes of the first list or in front of its `]`, behind the first list, inside, behind, or in front of a removed list, or behind the last list — the merge's output MUST hold one line break between the merged list and the token behind the last list. Any other line break in the stretch MAY be dropped, blank lines included. When no line break lies in the stretch, the merge's output holds none there. A line break in front of the first list, or behind the token behind the last list, is not in the stretch and stays where the author wrote it. On an owner other than a parameter or type parameter, where the merged list ends up is not specified (FMT-BREAK-027). The line-break phase then still finds the parameter or type parameter written over several lines and lays out its list as for any element written so (FMT-BREAK-013, FMT-BREAK-014), and joins the attribute lists onto the parameter's line (FMT-BREAK-027).
+
+Why: A parameter's attributes stay on its line, so that a parameter list keeps one parameter per line; there a second list of the same target only repeats the brackets. The compiler applies every list of one target alike, so merging them changes nothing, while merging lists of different targets would move an attribute to another target, and the compiler ignores a `type:` list on a parameter, so merging it would start applying its attributes. A `param:` or `typevar:` list names that target wherever it is written, so it keeps that target's shape on any owner; one predicate of the list, not the kind of its owner, decides whether it is merged, and the RH55xx list-shape rules decide by the same target. A comment or directive in the stretch the merge rewrites would be dropped or moved next to other code (FMT-STRUCT-024). A line break in the lists is a wrap the author wrote inside a list element; the line-break phase reads it to decide whether the parameter list is wrapped, so a merge that dropped it would lay out `([A]⏎ [B] int x, int y)` or `([A,⏎ C] [B] int x, int y)` differently from `([A]⏎ int x, int y)`, whose list has nothing to merge.
+
+Example:
+
+```csharp
+record R([A] [property: B] [C] [property: D] int Id);
+
+class C<[A] [B] T>
+{
+    void M([A] [B] int a, [A] /* c */ [B] int b, [param: A] [B] int c, [type: A] [B] int d) { }
+}
+```
+
+```csharp
+record R([A, C] [property: B, D] int Id);
+
+class C<[A, B] T>
+{
+    void M([A, B] int a, [A] /* c */ [B] int b, [param: A, B] int c, [type: A] [B] int d)
+    {
+    }
+}
+```
+
+Example — a line break in the stretch the merge rewrites still wraps the parameter list; without one, the list stays on one line:
+
+```csharp
+class C
+{
+    void P([A]
+           [B] int x, int y) { }
+
+    void Q([A] [B]
+           int x, int y) { }
+
+    void R([A] [B] int x, int y) { }
+
+    void S([A,
+            C] [B] int x, int y) { }
+}
+```
+
+```csharp
+class C
+{
+    void P([A, B] int x,
+           int y)
+    {
+    }
+
+    void Q([A, B] int x,
+           int y)
+    {
+    }
+
+    void R([A, B] int x, int y)
+    {
+    }
+
+    void S([A, C, B] int x,
+           int y)
+    {
+    }
+}
+```
+
+Example — `param:` and `typevar:` lists on another owner are merged and not split; the other lists are split (the input compiles with warning CS0657):
+
+```csharp
+class C
+{
+    [param: A] [param: B] [typevar: C, D] [E, F] void M() { }
+}
+```
+
+The method keeps one `[param: A, B]` list and one `[typevar: C, D]` list, and `[E, F]` becomes `[E]` and `[F]`.

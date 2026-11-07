@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Design;
@@ -18,6 +19,134 @@ namespace Reihitsu.Analyzer.Test.Design;
 [TestClass]
 public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer, RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider>
 {
+    #region Constants
+
+    /// <summary>
+    /// Source of a property whose multi-line accessor list holds a comment line
+    /// </summary>
+    private const string MultiLineAccessorListWithCommentSource = """
+                                                                  class C
+                                                                  {
+                                                                      private int {|RH2001:Value|}
+                                                                      {
+                                                                          // the getter
+                                                                          get;
+                                                                          set;
+                                                                      }
+                                                                  }
+                                                                  """;
+
+    /// <summary>
+    /// Source of a property whose accessor list holds a conditional directive around an accessor
+    /// </summary>
+    private const string AccessorListWithDirectiveSource = """
+                                                           class C
+                                                           {
+                                                               private int {|RH2001:Value|}
+                                                               {
+                                                                   get;
+                                                           #if DEBUG
+                                                                   set;
+                                                           #endif
+                                                               }
+                                                           }
+                                                           """;
+
+    /// <summary>
+    /// Source of a property whose initializer is followed by a comment line in front of the semicolon
+    /// </summary>
+    private const string CommentLineInFrontOfTheSemicolonSource = """
+                                                                  class C
+                                                                  {
+                                                                      private int {|RH2001:Value|} { get; set; } = 5
+                                                                          // note
+                                                                          ;
+                                                                  }
+                                                                  """;
+
+    /// <summary>
+    /// Source of a property whose initializer is followed by a directive line in front of the semicolon
+    /// </summary>
+    private const string DirectiveLineInFrontOfTheSemicolonSource = """
+                                                                    class C
+                                                                    {
+                                                                        private int {|RH2001:Value|} { get; set; } = 5
+                                                                    #pragma warning disable CS0414
+                                                                            ;
+                                                                    }
+                                                                    """;
+
+    /// <summary>
+    /// Source of a property with a comment line between its type and its name
+    /// </summary>
+    private const string CommentLineInFrontOfTheNameSource = """
+                                                             class C
+                                                             {
+                                                                 private int
+                                                                     // note
+                                                                     {|RH2001:Value|} { get; set; }
+                                                             }
+                                                             """;
+
+    /// <summary>
+    /// Source of a property with a directive line between its type and its name
+    /// </summary>
+    private const string DirectiveLineInFrontOfTheNameSource = """
+                                                               class C
+                                                               {
+                                                                   private int
+                                                               #pragma warning disable CS0169
+                                                                       {|RH2001:Value|} { get; set; }
+                                                               }
+                                                               """;
+
+    /// <summary>
+    /// Source of a property whose semicolon stands on a line below its initializer, with no comment or directive in
+    /// front of it
+    /// </summary>
+    private const string SemicolonOnItsOwnLineSource = """
+                                                       class C
+                                                       {
+                                                           private int {|RH2001:Value|} { get; set; } = 5
+                                                               ;
+                                                       }
+                                                       """;
+
+    /// <summary>
+    /// Expected result of the fix applied to <see cref="SemicolonOnItsOwnLineSource"/>
+    /// </summary>
+    private const string SemicolonOnItsOwnLineFixedSource = """
+                                                            class C
+                                                            {
+                                                                private int _value = 5;
+                                                            }
+                                                            """;
+
+    /// <summary>
+    /// Source of a property whose name stands on a line below its type, with no comment or directive in front of it
+    /// </summary>
+    private const string NameOnItsOwnLineSource = """
+                                                  class C
+                                                  {
+                                                      private int
+                                                          {|RH2001:Value|} { get; set; }
+                                                  }
+                                                  """;
+
+    /// <summary>
+    /// Expected result of the fix applied to <see cref="NameOnItsOwnLineSource"/>: the field laid out as the formatter
+    /// lays it out
+    /// </summary>
+    private const string NameOnItsOwnLineFixedSource = """
+                                                       class C
+                                                       {
+                                                           private int
+                                                           _value;
+                                                       }
+                                                       """;
+
+    #endregion // Constants
+
     #region Tests
 
     /// <summary>
@@ -685,158 +814,6 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
     }
 
     /// <summary>
-    /// Characterizes the fix on a property with comments inside its declaration: the comments inside are dropped and
-    /// only the trailing comment is kept. This test pins today's behavior without stating it as intended
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyFixDropsCommentsInsidePropertyDeclaration()
-    {
-        const string testData = """
-                                public class C
-                                {
-                                    private int {|#0:Value|} /* name */ { get; /* inner */ set; } // trailing
-
-                                    public int Get() => Value;
-                                }
-                                """;
-
-        const string resultData = """
-                                  public class C
-                                  {
-                                      private int _value; // trailing
-
-                                      public int Get() => _value;
-                                  }
-                                  """;
-
-        await Verify(testData, resultData, Diagnostics(RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2001MessageFormat));
-    }
-
-    /// <summary>
-    /// Characterizes the fix on a property that code excluded by <c>#if</c> refers to: the fix is offered and the
-    /// excluded reference keeps the property name. This test pins today's behavior without stating it as intended
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyFixLeavesReferenceInExcludedCodeUnchanged()
-    {
-        const string testData = """
-                                public class C
-                                {
-                                    private int {|#0:Value|} { get; set; }
-
-                                    public int Get()
-                                    {
-                                #if NEVER
-                                        return Value;
-                                #else
-                                        return 0;
-                                #endif
-                                    }
-                                }
-                                """;
-
-        const string resultData = """
-                                  public class C
-                                  {
-                                      private int _value;
-
-                                      public int Get()
-                                      {
-                                  #if NEVER
-                                          return Value;
-                                  #else
-                                          return 0;
-                                  #endif
-                                      }
-                                  }
-                                  """;
-
-        await Verify(testData, resultData, Diagnostics(RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2001MessageFormat));
-    }
-
-    /// <summary>
-    /// Characterizes the fix on a property of a mutable struct type: the property becomes a field, so a mutating call
-    /// that changed a copy now changes the field. This test pins today's behavior without stating it as intended
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyFixReplacesPropertyOfMutableStructType()
-    {
-        const string testData = """
-                                public struct Counter
-                                {
-                                    public int Count;
-
-                                    public void Increment() => Count++;
-                                }
-
-                                public class C
-                                {
-                                    private Counter {|#0:Current|} { get; set; }
-
-                                    public int Run()
-                                    {
-                                        Current.Increment();
-
-                                        return Current.Count;
-                                    }
-                                }
-                                """;
-
-        const string resultData = """
-                                  public struct Counter
-                                  {
-                                      public int Count;
-
-                                      public void Increment() => Count++;
-                                  }
-
-                                  public class C
-                                  {
-                                      private Counter _current;
-
-                                      public int Run()
-                                      {
-                                          _current.Increment();
-
-                                          return _current.Count;
-                                      }
-                                  }
-                                  """;
-
-        await Verify(testData, resultData, Diagnostics(RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2001MessageFormat));
-    }
-
-    /// <summary>
-    /// Characterizes the fix on a get-only property that already carries <see langword="readonly"/>: the field gets
-    /// <see langword="readonly"/> twice. This test pins today's behavior without stating it as intended
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyFixOnReadonlyPropertyWritesReadonlyTwice()
-    {
-        const string testData = """
-                                public struct S
-                                {
-                                    private readonly int Value { get; }
-
-                                    public S(int value)
-                                    {
-                                        Value = value;
-                                    }
-
-                                    public int Get() => Value;
-                                }
-                                """;
-
-        var fixedSource = await ApplyCodeFixAsync(testData);
-
-        Assert.Contains("private readonly readonly int _value;", fixedSource);
-    }
-
-    /// <summary>
     /// Characterizes the field name derived from a property name that starts with a run of uppercase letters followed
     /// by lowercase ones: <c>HTTPClient</c> becomes <c>_hTTPClient</c>. The case belongs to an existing follow-up, so
     /// this test pins today's behavior without stating it as intended
@@ -916,6 +893,1050 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
         await Verify(NormalizeToCarriageReturnLineFeed(testData),
                      NormalizeToCarriageReturnLineFeed(resultData),
                      Diagnostics(RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2001MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a <see langword="readonly"/> property of a struct: the field carries <see
+    /// langword="readonly"/> once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-004")]
+    public async Task VerifyFixKeepsOneReadonlyModifierOfAReadonlyStructProperty()
+    {
+        const string testData = """
+                                struct S
+                                {
+                                    private readonly int {|#0:Value|} { get; }
+
+                                    public S(int value)
+                                    {
+                                        Value = value;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  struct S
+                                  {
+                                      private readonly int _value;
+
+                                      public S(int value)
+                                      {
+                                          _value = value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2001MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a nullable value type whose underlying type is declared <see
+    /// langword="readonly"/> in the referenced framework: the fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-004")]
+    public async Task VerifyFixReplacesNullableIntProperty()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int? {|#0:Cache|} { get; set; }
+
+                                    int Read() => Cache.HasValue ? Cache.Value : 0;
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      private int? _cache;
+
+                                      int Read() => _cache.HasValue ? _cache.Value : 0;
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2001MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that properties of an enum, of a struct declared <see langword="readonly"/>, and of nullable forms of
+    /// both are replaced by fields
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-004")]
+    public async Task VerifyFixReplacesPropertiesOfEnumAndReadonlyStructTypes()
+    {
+        const string testData = """
+                                enum Color
+                                {
+                                    Red,
+                                }
+
+                                readonly struct Size
+                                {
+                                    public readonly int Width;
+                                }
+
+                                class C
+                                {
+                                    private Color {|#0:Tint|} { get; set; }
+
+                                    private Size {|#1:Extent|} { get; set; }
+
+                                    private Color? {|#2:LastTint|} { get; set; }
+
+                                    private Size? {|#3:LastExtent|} { get; set; }
+
+                                    int Read() => (int)Tint + Extent.Width + (LastTint.HasValue ? 1 : 0) + (LastExtent.HasValue ? 1 : 0);
+                                }
+                                """;
+
+        const string resultData = """
+                                  enum Color
+                                  {
+                                      Red,
+                                  }
+
+                                  readonly struct Size
+                                  {
+                                      public readonly int Width;
+                                  }
+
+                                  class C
+                                  {
+                                      private Color _tint;
+
+                                      private Size _extent;
+
+                                      private Color? _lastTint;
+
+                                      private Size? _lastExtent;
+
+                                      int Read() => (int)_tint + _extent.Width + (_lastTint.HasValue ? 1 : 0) + (_lastExtent.HasValue ? 1 : 0);
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2001MessageFormat, 4));
+    }
+
+    /// <summary>
+    /// Verifies that a property typed by a type parameter constrained to a class type is replaced by a field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-004")]
+    public async Task VerifyFixReplacesPropertyOfTypeParameterConstrainedToAClassType()
+    {
+        const string testData = """
+                                class Base
+                                {
+                                }
+
+                                class C<TBase>
+                                    where TBase : Base
+                                {
+                                    private TBase {|#0:Item|} { get; set; }
+
+                                    TBase Read() => Item;
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Base
+                                  {
+                                  }
+
+                                  class C<TBase>
+                                      where TBase : Base
+                                  {
+                                      private TBase _item;
+
+                                      TBase Read() => _item;
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2001MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of code that <c>#if</c> excludes and that names the property: the diagnostic
+    /// is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyNoFixIsOfferedWhenExcludedCodeNamesTheProperty()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Read()
+                                    {
+                                #if NEVER
+                                        return Value;
+                                #else
+                                        return 0;
+                                #endif
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of code that <c>#if</c> excludes and that declares the new name: the
+    /// diagnostic is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyNoFixIsOfferedWhenExcludedCodeDeclaresTheNewName()
+    {
+        const string testData = """
+                                class C
+                                {
+                                #if NEVER
+                                    private int _value;
+                                #endif
+
+                                    private int {|RH2001:Value|} { get; set; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that code in an excluded <c>#elif</c> branch that names the property withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyNoFixIsOfferedWhenAnExcludedElifBranchNamesTheProperty()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Read()
+                                    {
+                                #if NEVER
+                                        return 1;
+                                #elif ALSO_NEVER
+                                        return Value;
+                                #endif
+                                        return 0;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that code in an excluded <c>#else</c> branch that names the property withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyNoFixIsOfferedWhenAnExcludedElseBranchNamesTheProperty()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Read()
+                                    {
+                                #if !NEVER
+                                        return 0;
+                                #else
+                                        return Value;
+                                #endif
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that code in an <c>#if false</c> block that names the property withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyNoFixIsOfferedWhenAnIfFalseBlockNamesTheProperty()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Read()
+                                    {
+                                #if false
+                                        return Value;
+                                #endif
+                                        return 0;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a reference to the property in an active <c>#if</c> branch keeps the fix, which renames it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    public async Task VerifyFixRenamesReferenceInActiveConditionalBranch()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int {|#0:Value|} { get; set; }
+
+                                    int Read()
+                                    {
+                                #if !NEVER
+                                        return Value;
+                                #endif
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      private int _value;
+
+                                      int Read()
+                                      {
+                                  #if !NEVER
+                                          return _value;
+                                  #endif
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2001MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of comments behind the name and inside the accessor list: the diagnostic is
+    /// reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForCommentsBehindTheNameAndInsideTheAccessorList()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int {|RH2001:Value|} /* name */ { get; /* inner */ set; } // trailing
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind the name alone withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForACommentBehindTheName()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int {|RH2001:Value|} /* name */ { get; set; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment inside a one-line accessor list alone withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForACommentInsideAOneLineAccessorList()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int {|RH2001:Value|} { get; /* inner */ set; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a comment between the accessor list and the initializer: the diagnostic
+    /// is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForACommentBetweenTheAccessorListAndTheInitializer()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int {|RH2001:Value|} { get; set; } /* init */ = 5;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a comment line in a multi-line accessor list: the diagnostic is reported
+    /// and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForACommentLineInAMultiLineAccessorList()
+    {
+        await VerifyNoCodeFixIsOffered(MultiLineAccessorListWithCommentSource);
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyNoFixIsOfferedForACommentLineInAMultiLineAccessorList"/> with the source normalized to
+    /// CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForACommentLineInAMultiLineAccessorListCarriageReturnLineFeed()
+    {
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(MultiLineAccessorListWithCommentSource));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a directive inside the accessor list: the diagnostic is reported and no
+    /// code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForADirectiveInsideTheAccessorList()
+    {
+        await VerifyNoCodeFixIsOffered(AccessorListWithDirectiveSource);
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyNoFixIsOfferedForADirectiveInsideTheAccessorList"/> with the source normalized to CRLF
+    /// line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForADirectiveInsideTheAccessorListCarriageReturnLineFeed()
+    {
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(AccessorListWithDirectiveSource));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#pragma</c> directive line between the name and the accessor list withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForADirectiveBetweenTheNameAndTheAccessorList()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int {|RH2001:Value|}
+                                #pragma warning disable CS0414
+                                    {
+                                        get;
+                                        set;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment line in front of the property's first token and a comment behind its last token keep
+    /// the fix, and both comments stay
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    [Requirement("RH2001-004")]
+    public async Task VerifyFixKeepsCommentsInFrontOfTheFirstTokenAndBehindTheLastToken()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    // counter
+                                    private int {|#0:Count|} { get; set; } // trailing
+
+                                    int Read() => Count;
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      // counter
+                                      private int _count; // trailing
+
+                                      int Read() => _count;
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2001MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a call that changes the value of a settable property of a struct not
+    /// declared <see langword="readonly"/>: the diagnostic is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-008")]
+    public async Task VerifyNoFixIsOfferedForAMutableStructPropertyChangedByACall()
+    {
+        const string testData = """
+                                struct Counter
+                                {
+                                    private int _count;
+
+                                    public void Increment()
+                                    {
+                                        _count++;
+                                    }
+                                }
+
+                                class C
+                                {
+                                    private Counter {|RH2001:Current|} { get; set; }
+
+                                    void M()
+                                    {
+                                        Current.Increment();
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of properties of a struct not declared <see langword="readonly"/> and of its
+    /// nullable form that no use changes: both are reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-008")]
+    public async Task VerifyNoFixIsOfferedForMutableStructPropertiesThatNoUseChanges()
+    {
+        const string testData = """
+                                struct Point
+                                {
+                                    public int X;
+                                }
+
+                                class C
+                                {
+                                    private Point {|RH2001:Origin|} { get; set; }
+
+                                    private Point? {|RH2001:Last|} { get; set; }
+
+                                    int Read() => Origin.X;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a project that targets .NET Standard 2.0, whose <see langword="int"/> is
+    /// not declared <see langword="readonly"/>: properties of <see langword="int"/> and <c>int?</c> are reported and no
+    /// code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-008")]
+    public async Task VerifyNoFixIsOfferedForIntPropertiesWhenTargetingNetStandard20()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int {|RH2001:Count|} { get; set; }
+
+                                    private int? {|RH2001:Cache|} { get; set; }
+
+                                    void M() => Count++;
+                                }
+                                """;
+
+        await Verify(testData, testData, test => test.ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard20);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a get-only property of a struct not declared <see langword="readonly"/>
+    /// whose value a constructor changes through a call: the diagnostic is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-008")]
+    public async Task VerifyNoFixIsOfferedForAGetOnlyMutableStructPropertyChangedInAConstructor()
+    {
+        const string testData = """
+                                struct Counter
+                                {
+                                    private int _count;
+
+                                    public void Increment()
+                                    {
+                                        _count++;
+                                    }
+                                }
+
+                                class C
+                                {
+                                    private Counter {|RH2001:Current|} { get; }
+
+                                    C()
+                                    {
+                                        Current.Increment();
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a get-only property of a struct not declared <see langword="readonly"/> that no use changes is
+    /// reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-008")]
+    public async Task VerifyNoFixIsOfferedForAGetOnlyMutableStructPropertyThatNoUseChanges()
+    {
+        const string testData = """
+                                struct Point
+                                {
+                                    public int X;
+                                }
+
+                                class C
+                                {
+                                    private Point {|RH2001:Origin|} { get; }
+
+                                    int Read() => Origin.X;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of properties typed by type parameters: only the one constrained to a
+    /// reference type gets the fix, also under Fix All, and the other stays reported without a fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-008")]
+    [Requirement("RH2001-004")]
+    public async Task VerifyFixIsOfferedOnlyForTheTypeParameterConstrainedToAReferenceType()
+    {
+        const string testData = """
+                                class C<T, TRef>
+                                    where TRef : class
+                                {
+                                    private T {|RH2001:Item|} { get; set; }
+
+                                    private TRef {|RH2001:Reference|} { get; set; }
+
+                                    TRef Read() => Item == null ? Reference : null;
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C<T, TRef>
+                                      where TRef : class
+                                  {
+                                      private T {|RH2001:Item|} { get; set; }
+
+                                      private TRef _reference;
+
+                                      TRef Read() => Item == null ? _reference : null;
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a property typed by a type parameter constrained to a value type is reported and no code fix is
+    /// offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-008")]
+    public async Task VerifyNoFixIsOfferedForATypeParameterConstrainedToAValueType()
+    {
+        const string testData = """
+                                class C<T>
+                                    where T : struct
+                                {
+                                    private T {|RH2001:Item|} { get; set; }
+
+                                    T Read() => Item;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All replaces the properties that get the fix and leaves the property of a struct not declared
+    /// <see langword="readonly"/> and the property with a comment inside it reported without a fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    [Requirement("RH2001-008")]
+    [Requirement("SHARED-FIX-002")]
+    public async Task VerifyFixAllSkipsThePropertiesWhoseFixIsWithheld()
+    {
+        const string testData = """
+                                struct Point
+                                {
+                                    public int X;
+                                }
+
+                                class C
+                                {
+                                    private int {|RH2001:First|} { get; set; }
+
+                                    private Point {|RH2001:Origin|} { get; set; }
+
+                                    private int {|RH2001:Commented|} /* name */ { get; set; }
+
+                                    private string {|RH2001:Second|} { get; set; }
+
+                                    int Read() => First + Origin.X + Commented + Second.Length;
+                                }
+                                """;
+
+        const string resultData = """
+                                  struct Point
+                                  {
+                                      public int X;
+                                  }
+
+                                  class C
+                                  {
+                                      private int _first;
+
+                                      private Point {|RH2001:Origin|} { get; set; }
+
+                                      private int {|RH2001:Commented|} /* name */ { get; set; }
+
+                                      private string _second;
+
+                                      int Read() => _first + Origin.X + Commented + _second.Length;
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a comment line between the initializer and the semicolon withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForACommentLineInFrontOfTheSemicolon()
+    {
+        await VerifyNoCodeFixIsOffered(CommentLineInFrontOfTheSemicolonSource);
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyNoFixIsOfferedForACommentLineInFrontOfTheSemicolon"/> with the source normalized to CRLF
+    /// line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForACommentLineInFrontOfTheSemicolonCarriageReturnLineFeed()
+    {
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(CommentLineInFrontOfTheSemicolonSource));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#pragma</c> directive line between the initializer and the semicolon withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForADirectiveLineInFrontOfTheSemicolon()
+    {
+        await VerifyNoCodeFixIsOffered(DirectiveLineInFrontOfTheSemicolonSource);
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyNoFixIsOfferedForADirectiveLineInFrontOfTheSemicolon"/> with the source normalized to
+    /// CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForADirectiveLineInFrontOfTheSemicolonCarriageReturnLineFeed()
+    {
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(DirectiveLineInFrontOfTheSemicolonSource));
+    }
+
+    /// <summary>
+    /// Verifies that an empty <c>#if</c> block between the initializer and the semicolon withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForAConditionalBlockInFrontOfTheSemicolon()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int {|RH2001:Value|} { get; set; } = 5
+                                #if DEBUG
+                                #endif
+                                        ;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of the other side of
+    /// <see cref="VerifyNoFixIsOfferedForACommentLineInFrontOfTheSemicolon"/>: a semicolon on its own line without a
+    /// comment or directive in front of it keeps the fix, and the field ends on the initializer's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyFixIsOfferedForASemicolonOnItsOwnLineWithoutCommentOrDirective()
+    {
+        await Verify(SemicolonOnItsOwnLineSource, SemicolonOnItsOwnLineFixedSource);
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyFixIsOfferedForASemicolonOnItsOwnLineWithoutCommentOrDirective"/> with the source
+    /// normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyFixIsOfferedForASemicolonOnItsOwnLineWithoutCommentOrDirectiveCarriageReturnLineFeed()
+    {
+        await Verify(NormalizeToCarriageReturnLineFeed(SemicolonOnItsOwnLineSource), NormalizeToCarriageReturnLineFeed(SemicolonOnItsOwnLineFixedSource));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a comment line between the type and the name: the diagnostic is
+    /// reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForACommentLineInFrontOfTheName()
+    {
+        await VerifyNoCodeFixIsOffered(CommentLineInFrontOfTheNameSource);
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyNoFixIsOfferedForACommentLineInFrontOfTheName"/> with the source normalized to CRLF
+    /// line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForACommentLineInFrontOfTheNameCarriageReturnLineFeed()
+    {
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(CommentLineInFrontOfTheNameSource));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a directive line between the type and the name: the diagnostic is
+    /// reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForADirectiveLineInFrontOfTheName()
+    {
+        await VerifyNoCodeFixIsOffered(DirectiveLineInFrontOfTheNameSource);
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyNoFixIsOfferedForADirectiveLineInFrontOfTheName"/> with the source normalized to CRLF
+    /// line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForADirectiveLineInFrontOfTheNameCarriageReturnLineFeed()
+    {
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(DirectiveLineInFrontOfTheNameSource));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of an <c>#if</c> block with disabled text between the type and the name:
+    /// the diagnostic is reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForAConditionalBlockInFrontOfTheName()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int
+                                #if NEVER
+                                        unused
+                                #endif
+                                        {|RH2001:Third|} { get; set; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the other side of <see cref="VerifyNoFixIsOfferedForACommentLineInFrontOfTheName"/>: a name on its own
+    /// line without a comment or directive in front of it keeps the fix, and the fix lays out the field as the
+    /// formatter does
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-004")]
+    [Requirement("RH2001-007")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixIsOfferedForANameOnItsOwnLineWithoutCommentOrDirective()
+    {
+        await Verify(NameOnItsOwnLineSource, NameOnItsOwnLineFixedSource);
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyFixIsOfferedForANameOnItsOwnLineWithoutCommentOrDirective"/> with the source
+    /// normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-004")]
+    [Requirement("RH2001-007")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixIsOfferedForANameOnItsOwnLineWithoutCommentOrDirectiveCarriageReturnLineFeed()
+    {
+        await Verify(NormalizeToCarriageReturnLineFeed(NameOnItsOwnLineSource), NormalizeToCarriageReturnLineFeed(NameOnItsOwnLineFixedSource));
+    }
+
+    /// <summary>
+    /// Verifies that a comment line between the modifier and the type is neither dropped nor moved away from the code
+    /// it stands with: the fix is withheld, or the comment line stays in front of the field's type and the field is
+    /// laid out as the formatter lays it out
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixKeepsACommentLineInFrontOfTheType()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private
+                                        // note
+                                        int {|RH2001:Value|} { get; set; }
+                                }
+                                """;
+
+        const string inPlace = """
+                               class C
+                               {
+                                   private
+                                       // note
+                                       int _value;
+                               }
+                               """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(testData, true, Format(inPlace));
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind the type on the property's line is not dropped: the fix is withheld, or the
+    /// comment stays between the field's type and its name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyFixKeepsACommentBehindTheTypeOnTheSameLine()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int /* note */ {|RH2001:Value|} { get; set; }
+                                }
+                                """;
+
+        const string inPlace = """
+                               class C
+                               {
+                                   private int /* note */ _value;
+                               }
+                               """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(testData, true, inPlace, Format(inPlace));
     }
 
     #endregion // Tests

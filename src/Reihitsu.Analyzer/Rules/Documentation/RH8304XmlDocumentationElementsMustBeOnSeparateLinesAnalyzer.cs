@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
@@ -86,6 +87,14 @@ public class RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer : Diagn
         }
 
         var sourceText = context.Node.SyntaxTree.GetText(context.CancellationToken);
+
+        // The formatter keeps a comment stranded behind code, or one with an element without an end tag of its own, in
+        // the shape the author gave it, so none of its elements is asked to move onto a line of its own
+        if (DocumentationCommentUtilities.IsLeftAsWritten(documentationComment.ParentTrivia, sourceText))
+        {
+            return;
+        }
+
         XmlNodeSyntax previousElement = null;
 
         foreach (var node in documentationComment.Content)

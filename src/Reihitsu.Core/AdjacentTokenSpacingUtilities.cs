@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -16,7 +16,9 @@ public static class AdjacentTokenSpacingUtilities
 
     /// <summary>
     /// Determines whether the leading and trailing sides of <paramref name="token"/> are spaced, treating a
-    /// line break on either side as satisfying the requirement. Use this for rules that require a token to be
+    /// line break on either side as satisfying the requirement. A line break is the shared fact of
+    /// <see cref="SyntaxTriviaUtilities.AreSeparatedByEndOfLine"/>, so the line break that ends a <c>///</c> comment counts
+    /// (SHARED-BLANK-008). Use this for rules that require a token to be
     /// spaced (for example a base-list or constructor-initializer colon), where a side that starts a
     /// continuation line is left to indentation handling and must never be reported or rewritten
     /// </summary>
@@ -28,10 +30,8 @@ public static class AdjacentTokenSpacingUtilities
         var previousToken = token.GetPreviousToken();
         var nextToken = token.GetNextToken();
 
-        var hasLeadingLineBreak = previousToken.TrailingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-                                  || token.LeadingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
-        var hasTrailingLineBreak = token.TrailingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-                                   || nextToken.LeadingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+        var hasLeadingLineBreak = SyntaxTriviaUtilities.AreSeparatedByEndOfLine(previousToken, token);
+        var hasTrailingLineBreak = SyntaxTriviaUtilities.AreSeparatedByEndOfLine(token, nextToken);
 
         var hasLeadingSpace = hasLeadingLineBreak || (token.SpanStart > 0 && sourceText[token.SpanStart - 1] == ' ');
         var hasTrailingSpace = hasTrailingLineBreak || (token.Span.End < sourceText.Length && sourceText[token.Span.End] == ' ');

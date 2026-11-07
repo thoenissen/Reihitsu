@@ -621,64 +621,355 @@ public class RH3201CommentsMustContainTextAnalyzerTests : BatchCodeFixTestsBase<
     }
 
     /// <summary>
-    /// Characterizes that the fix of a comment directly between a keyword and an identifier joins the two tokens
+    /// Verifies an empty comment that alone keeps a keyword and an identifier apart is reported without a code fix,
+    /// because removing it would join the two tokens into one identifier
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfCommentBetweenKeywordAndIdentifierJoinsTheTokens()
+    [Requirement("RH3201-006")]
+    public async Task CommentBetweenKeywordAndIdentifierIsReportedWithoutACodeFix()
     {
         const string testCode = """
                                 class C
                                 {
                                     int M(int a)
                                     {
-                                        return/**/a;
+                                        return{|RH3201:/**/|}a;
                                     }
                                 }
                                 """;
 
-        const string expectedCode = """
-                                    class C
-                                    {
-                                        int M(int a)
-                                        {
-                                            returna;
-                                        }
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Characterizes that the fix of a comment between a space and an identifier removes the space and joins the
-    /// tokens
+    /// Verifies an empty comment spanning several lines that alone keeps two tokens apart is reported without a code
+    /// fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfCommentDirectlyInFrontOfAnIdentifierJoinsTheTokens()
+    [Requirement("RH3201-006")]
+    public async Task CommentSpanningSeveralLinesBetweenKeywordAndIdentifierIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int N(int a)
+                                    {
+                                        return{|RH3201:/*
+                                */|}a;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies each of two adjacent empty comments that together keep two tokens apart is reported without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3201-006")]
+    public async Task AdjacentCommentsBetweenKeywordAndIdentifierAreReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int O(int a)
+                                    {
+                                        return{|RH3201:/**/|}{|RH3201:/**/|}a;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies Fix All leaves two adjacent empty comments that together keep two tokens apart as written and
+    /// reported, and removes the other empty comments of the document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3201-006")]
+    public async Task FixAllLeavesAdjacentCommentsBetweenTwoTokensReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int _a; {|RH3201://|}
+                                    int _b; {|RH3201://|}
+
+                                    int O(int a)
+                                    {
+                                        return{|RH3201:/**/|}{|RH3201:/**/|}a;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int _a;
+                                     int _b;
+
+                                     int O(int a)
+                                     {
+                                         return{|RH3201:/**/|}{|RH3201:/**/|}a;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         // The diagnostics whose fix is withheld stay and are marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies an empty comment that alone keeps a type keyword and an identifier apart is reported without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3201-006")]
+    public async Task CommentBetweenTypeKeywordAndIdentifierIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int{|RH3201:/**/|}x;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an empty comment that alone keeps two operators apart is reported without a code fix, because
+    /// removing it would join <c>+</c> and <c>+</c> into <c>++</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3201-006")]
+    public async Task CommentBetweenTwoOperatorsThatWouldMergeIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int a, int b) => a+{|RH3201:/**/|}+b;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an empty comment between two tokens that read the same without it is removed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3201-006")]
+    public async Task CommentBetweenTokensThatDoNotMergeIsRemoved()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int a, int b) => a+{|RH3201:/**/|}b;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M(int a, int b) => a+b;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix of a comment between a space and an identifier removes the comment alone and keeps the space,
+    /// so the keyword and the identifier stay apart
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3201-007")]
+    public async Task FixOfCommentDirectlyInFrontOfAnIdentifierKeepsTheWhitespaceInFrontOfIt()
     {
         const string testCode = """
                                 class C
                                 {
                                     int M(int a)
                                     {
-                                        return /**/a;
+                                        return {|RH3201:/**/|}a;
                                     }
                                 }
                                 """;
 
-        const string expectedCode = """
-                                    class C
-                                    {
-                                        int M(int a)
-                                        {
-                                            returna;
-                                        }
-                                    }
-                                    """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M(int a)
+                                     {
+                                         return a;
+                                     }
+                                 }
+                                 """;
 
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix of a comment between a tab and an identifier removes the comment alone and keeps the tab
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3201-007")]
+    public async Task FixOfCommentDirectlyInFrontOfAnIdentifierKeepsTheTabInFrontOfIt()
+    {
+        const string testCode = "class C\n{\n    int M(int a)\n    {\n        return\t{|RH3201:/**/|}a;\n    }\n}";
+
+        const string fixedCode = "class C\n{\n    int M(int a)\n    {\n        return\ta;\n    }\n}";
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix of a comment between a space and an operator removes the comment alone and keeps the space,
+    /// so <c>+</c> and <c>+</c> do not join into <c>++</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3201-007")]
+    public async Task FixOfCommentDirectlyInFrontOfAnOperatorKeepsTheWhitespaceInFrontOfIt()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int a, int b) => a + {|RH3201:/**/|}+b;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M(int a, int b) => a + +b;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix of a comment spanning several lines between a space and an identifier removes the comment
+    /// alone and keeps the space
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3201-007")]
+    public async Task FixOfCommentSpanningSeveralLinesDirectlyInFrontOfAnIdentifierKeepsTheWhitespaceInFrontOfIt()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int a)
+                                    {
+                                        return {|RH3201:/*
+                                */|}a;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M(int a)
+                                     {
+                                         return a;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix of a comment between a space and an identifier that a space also follows removes the comment
+    /// together with the space in front of it, as when no token follows the comment directly
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3201-005")]
+    [Requirement("RH3201-007")]
+    public async Task FixOfCommentWithWhitespaceOnBothSidesRemovesTheWhitespaceInFrontOfIt()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int a)
+                                    {
+                                        return {|RH3201:/**/|} a;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M(int a)
+                                     {
+                                         return a;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies Fix All keeps the whitespace in front of a comment directly in front of a token, and removes the
+    /// other empty comments of the document with the whitespace in front of them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3201-007")]
+    public async Task FixAllKeepsTheWhitespaceInFrontOfACommentDirectlyInFrontOfAToken()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int _a; {|RH3201://|}
+
+                                    int M(int a)
+                                    {
+                                        return {|RH3201:/**/|}a;
+                                    }
+
+                                    int N(int a, int b) => a + {|RH3201:/**/|}+b;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int _a;
+
+                                     int M(int a)
+                                     {
+                                         return a;
+                                     }
+
+                                     int N(int a, int b) => a + +b;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     /// <summary>

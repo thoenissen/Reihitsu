@@ -639,6 +639,271 @@ public class RH6021ColonsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
         await VerifyNoCodeFixIsOffered(testData);
     }
 
+    /// <summary>
+    /// Verifies a constructor-initializer colon that starts its line and is directly followed by a
+    /// documentation comment written behind it, so both sides hold a line break, is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6021-002")]
+    public async Task VerifyConstructorInitializerColonStartingItsLineAndFollowedByStrayDocumentationCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class B
+                                {
+                                    public B(int a)
+                                    {
+                                    }
+                                }
+
+                                internal class C : B
+                                {
+                                    public C()
+                                        :/// x
+                                    base(1)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies a constructor-initializer colon with one space in front of it and a
+    /// documentation comment directly behind it, which ends the line, is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6021-002")]
+    public async Task VerifyConstructorInitializerColonWithOneSpaceBeforeAndStrayDocumentationCommentBehindIsNotReported()
+    {
+        const string testData = """
+                                internal class B
+                                {
+                                    public B(int a)
+                                    {
+                                    }
+                                }
+
+                                internal class C : B
+                                {
+                                    public C() :/// x
+                                        base(1)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies a base-list colon with one space in front of it and a documentation comment
+    /// directly behind it, which ends the line, is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6021-002")]
+    public async Task VerifyBaseListColonFollowedByStrayDocumentationCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class B
+                                {
+                                }
+
+                                internal class D :/// x
+                                    B
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies a constructor-initializer colon in column 0 behind a documentation comment
+    /// written behind the parameter list, so its leading side holds a line break, with one space behind it, is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6021-002")]
+    public async Task VerifyColonInColumnZeroBehindStrayDocumentationCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class B
+                                {
+                                    public B(int a)
+                                    {
+                                    }
+                                }
+
+                                internal class C : B
+                                {
+                                    public C() /// x
+                                : base(1)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the control of the documentation-comment case: a constructor-initializer colon that starts its line and is directly followed by a
+    /// single-line comment, so both sides hold a line break, is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyConstructorInitializerColonStartingItsLineAndFollowedBySingleLineCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class B
+                                {
+                                    public B(int a)
+                                    {
+                                    }
+                                }
+
+                                internal class C : B
+                                {
+                                    public C()
+                                        :// x
+                                    base(1)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the control of the documentation-comment case: a constructor-initializer colon with one space in front of it and a
+    /// single-line comment directly behind it, which ends the line, is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyConstructorInitializerColonWithOneSpaceBeforeAndSingleLineCommentBehindIsNotReported()
+    {
+        const string testData = """
+                                internal class B
+                                {
+                                    public B(int a)
+                                    {
+                                    }
+                                }
+
+                                internal class C : B
+                                {
+                                    public C() :// x
+                                        base(1)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the control of the documentation-comment case: a base-list colon with one space in front of it and a single-line comment
+    /// directly behind it, which ends the line, is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyBaseListColonFollowedBySingleLineCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class B
+                                {
+                                }
+
+                                internal class D :// x
+                                    B
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the control of the documentation-comment case: a constructor-initializer colon in column 0 behind a single-line comment
+    /// written behind the parameter list, so its leading side holds a line break, with one space behind it, is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyColonInColumnZeroBehindSingleLineCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class B
+                                {
+                                    public B(int a)
+                                    {
+                                    }
+                                }
+
+                                internal class C : B
+                                {
+                                    public C() // x
+                                : base(1)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a constructor-initializer colon glued to the parameter list and directly followed by a documentation
+    /// comment is reported for its leading side only, and that the fix inserts one space there and leaves the comment
+    /// behind the colon
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6021-001")]
+    [Requirement("RH6021-004")]
+    public async Task VerifyOnlyLeadingSideIsFixedWhenStrayDocumentationCommentEndsTrailingSide()
+    {
+        const string testData = """
+                                internal class B
+                                {
+                                    public B(int a)
+                                    {
+                                    }
+                                }
+
+                                internal class C : B
+                                {
+                                    public C(){|#0::|}/// x
+                                        base(1)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class B
+                                 {
+                                     public B(int a)
+                                     {
+                                     }
+                                 }
+
+                                 internal class C : B
+                                 {
+                                     public C() :/// x
+                                         base(1)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6021MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

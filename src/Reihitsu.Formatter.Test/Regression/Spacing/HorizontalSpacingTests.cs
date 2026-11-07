@@ -1049,7 +1049,6 @@ public class HorizontalSpacingTests : FormatterTestsBase
                                     void M()
                                     {
                                         List
-
                                         /* Keep. */ <int> values;
                                     }
                                 }

@@ -34,7 +34,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
         const string expected = """
                                 class C
                                 {
-                                    int Foo(){return42;}
+                                    int Foo(){return 42;}
                                 }
                                 """;
 
@@ -126,7 +126,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
 
                                 class C
                                 {
-                                    async Task<int> AwaitAndReturnValue(){returnawait Task.FromResult(1);}
+                                    async Task<int> AwaitAndReturnValue(){return await Task.FromResult(1);}
                                 }
                                 """;
 
@@ -192,7 +192,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
 
                                 class C
                                 {
-                                    Task PassThrough(){returnTask.CompletedTask;}
+                                    Task PassThrough(){return Task.CompletedTask;}
                                 }
                                 """;
 
@@ -274,7 +274,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
         const string expected = """
                                 class C
                                 {
-                                    public static C operator +(C a, C b) {returnnew C();}
+                                    public static C operator +(C a, C b) {return new C();}
                                 }
                                 """;
 
@@ -309,9 +309,12 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that a get-only property with an expression-bodied getter is converted to an expression-bodied property
+    /// Verifies that a get-only property with an expression-bodied getter is converted to an expression-bodied property. The
+    /// transform writes no whitespace next to the arrow it creates; the author's single spaces around the removed tokens may be
+    /// kept or dropped, so each arrow gap holds at most that one space
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
     public void ConvertsGetOnlyPropertyToExpressionBodiedProperty()
     {
         // Arrange
@@ -327,7 +330,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
                                 class C
                                 {
                                     int _value;
-                                    int Value => _value;
+                                    int Value=>_value;
                                 }
                                 """;
 
@@ -335,13 +338,16 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
         var actual = ApplyPhase(input);
 
         // Assert
-        Assert.AreEqual(expected, actual);
+        Assert.AreEqual(expected, actual.Replace(" =>", "=>").Replace("=> ", "=>"));
     }
 
     /// <summary>
-    /// Verifies that a get-only indexer with a block-bodied getter is converted to an expression-bodied indexer
+    /// Verifies that a get-only indexer with a block-bodied getter is converted to an expression-bodied indexer. The transform
+    /// writes no whitespace next to the arrow it creates; the author's single spaces around the removed tokens may be kept or
+    /// dropped, so each arrow gap holds at most that one space
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-026")]
     public void ConvertsGetOnlyIndexerToExpressionBodiedIndexer()
     {
         // Arrange
@@ -357,7 +363,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
                                 class C
                                 {
                                     int[] _data;
-                                    int this[int i] => _data[i];
+                                    int this[int i]=>_data[i];
                                 }
                                 """;
 
@@ -365,7 +371,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
         var actual = ApplyPhase(input);
 
         // Assert
-        Assert.AreEqual(expected, actual);
+        Assert.AreEqual(expected, actual.Replace(" =>", "=>").Replace("=> ", "=>"));
     }
 
     /// <summary>
@@ -415,7 +421,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
         const string expected = """
                                 class C
                                 {
-                                    public static implicit operator int(C c) {return0;}
+                                    public static implicit operator int(C c) {return 0;}
                                 }
                                 """;
 
@@ -466,8 +472,8 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
         const string expected = """
                                 class C
                                 {
-                                    int Foo(){return1;}
-                                    int Bar(){return2;}
+                                    int Foo(){return 1;}
+                                    int Bar(){return 2;}
                                 }
                                 """;
 
@@ -639,7 +645,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
 
                                 class C
                                 {
-                                    async ValueTask<int> AwaitAndReturnValue(){returnawait Task.FromResult(1);}
+                                    async ValueTask<int> AwaitAndReturnValue(){return await Task.FromResult(1);}
                                 }
                                 """;
 
@@ -669,7 +675,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
                                 class C
                                 {
                                     int Foo(){// why
-                                return42;}
+                                return 42;}
                                 }
                                 """;
 
@@ -700,7 +706,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
         const string expected = """
                                 class C
                                 {
-                                    int Foo(){return42
+                                    int Foo(){return 42
                                 // why
                                 ;}
                                 }
@@ -736,7 +742,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
         const string expected = """
                                 class C
                                 {
-                                    int Foo(){return42
+                                    int Foo(){return 42
                                 #pragma warning disable CS0168
                                 ;}
                                 }
@@ -835,7 +841,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
                                 class C
                                 {
                                     public static C operator +(C a, C b) {// why
-                                returnnew C();}
+                                return new C();}
                                 }
                                 """;
 
@@ -866,7 +872,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
         const string expected = """
                                 class C
                                 {
-                                    public static C operator +(C a, C b) {returnnew C()
+                                    public static C operator +(C a, C b) {return new C()
                                 // why
                                 ;}
                                 }
@@ -945,7 +951,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
                                 class C
                                 {
                                     public static implicit operator int(C c) {// why
-                                return0;}
+                                return 0;}
                                 }
                                 """;
 
@@ -976,7 +982,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
         const string expected = """
                                 class C
                                 {
-                                    public static implicit operator int(C c) {return0
+                                    public static implicit operator int(C c) {return 0
                                 // why
                                 ;}
                                 }

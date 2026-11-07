@@ -10,12 +10,13 @@ Paths are resolved against **your** working directory, not the repository root: 
 |---|---|
 | `prepare.sh` | Verify the toolchain, installing the SDK only if needed |
 | `build.sh` | `dotnet build Reihitsu.sln`, in Release unless `--configuration Debug` |
-| `test.sh` | Run one or all test projects, with an optional focused filter and configuration |
+| `test.sh` | Run one test project or the default set (every project except the self-hosting scans), with an optional focused filter and configuration |
 | `format.sh` | Format the given paths through `Reihitsu.Cli` |
 | `trace.sh` | Trace source changes at each top-level formatter phase without modifying the input |
 | `apply-fix.sh` | Run one diagnostic's code-fix surface over a fixture directory, under LF and CRLF |
 | `verify-text-only.sh` | Prove that a change carries no compiled behavior |
 | `lane-check.sh` | Confirm the squad lane a run claimed against the paths its diff changes |
+| `usage.sh` | Report the token usage of a Claude Code session and of every subagent it spawned |
 
 ## Examples
 
@@ -23,16 +24,18 @@ Paths are resolved against **your** working directory, not the repository root: 
 scripts/prepare.sh
 scripts/build.sh
 scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH3204"
+scripts/test.sh --project selfhosting
 scripts/format.sh src/Reihitsu.Formatter/Pipeline/LineBreaks/LineBreakDetection.cs
 scripts/trace.sh samples/Example.cs --passes 3 --no-install
 scripts/apply-fix.sh RH7101 /tmp/sweep
 scripts/verify-text-only.sh --base a1b2c3d --head worktree --strict-docs
 scripts/lane-check.sh bug-fix --head worktree
+scripts/usage.sh --json
 ```
 
 ## Formatter pipeline trace
 
-`trace.sh <file> [--passes N] [--no-install]` runs one C# file through the twelve top-level `IFormattingPhase` boundaries. Paths are resolved relative to the caller, including when the wrapper is invoked outside the repository root. The input file is only read: each pass operates in memory, and the complete result is reparsed before the next pass to match repeated CLI invocations.
+`trace.sh <file> [--passes N] [--no-install]` runs one C# file through the twelve formatter phase boundaries: the preparation phase's two sub-phases, `PreparationPhase/TabReplacement` and `PreparationPhase/LineEndings`, and the ten phases after it. Paths are resolved relative to the caller, including when the wrapper is invoked outside the repository root. The input file is only read: each pass operates in memory, and the complete result is reparsed before the next pass to match repeated CLI invocations.
 
 The trace defaults to at most three passes and requires a positive pass count. It prints a pass/phase header only when that phase changes serialized source. Line-content changes get a unified diff; when a change only normalizes line-ending separators, the shared diff generator has no line hunk, so the trace prints before/after CRLF, LF, and CR counts instead. It preserves the input's detected LF or CRLF convention and stops early after the first complete pass that makes no change. Syntax-invalid and generated inputs are reported as legitimate skips.
 
@@ -70,7 +73,11 @@ Convergence is decided by **the diagnostic disappearing**, not by two consecutiv
 
 Exit codes are `0` when every fixture reached a supported end state, `1` when a fixture never stopped reporting the diagnostic (`not-converged` or `no-progress`), and `2` when the command could not run — bad arguments, an unresolvable ID, a missing or fixture-less directory, an unparseable fixture, a fix producing unparseable source, or an analyzer that threw. `no-diagnostic` and `no-fix-offered` deliberately stay at `0`: every negative sweep row depends on "ran, found nothing" being distinguishable from "could not run".
 
-The implementation lives in `Reihitsu.Tooling`, a non-packable project inside `Reihitsu.sln`, with `scripts/apply-fix/apply-fix.cs` as a thin file-based shim over it. Unlike the trace and proof apps it is a real project, because the runner adds classification behavior — fixture selection, target resolution, convergence, exit-code mapping — that needs test coverage; `Reihitsu.Tooling.Test` provides it through `scripts/test.sh --project tooling`. It needs no formatter internals and widens no public API. Both `Reihitsu.ArchitectureTests` and `Reihitsu.Tooling.Test` participate in the default `all` run, so local full validation covers every solution test project.
+The implementation lives in `Reihitsu.Tooling`, a non-packable project inside `Reihitsu.sln`, with `scripts/apply-fix/apply-fix.cs` as a thin file-based shim over it. Unlike the trace and proof apps it is a real project, because the runner adds classification behavior — fixture selection, target resolution, convergence, exit-code mapping — that needs test coverage; `Reihitsu.Tooling.Test` provides it through `scripts/test.sh --project tooling`. It needs no formatter internals and widens no public API. Both `Reihitsu.ArchitectureTests` and `Reihitsu.Tooling.Test` participate in the default `all` run.
+
+## The self-hosting scans
+
+`Reihitsu.SelfHosting.Test` runs the repository's own analyzers and formatter over the repository's own source: one test row per analyzer, and one row per source file for formatter idempotency and for formatter stability. It is a second safety net rather than a requirement check, and it takes long enough that the default `all` run of `test.sh` leaves it out; every other solution test project is in that run. CI runs it on every pull request, and `scripts/test.sh --project selfhosting` runs it locally, narrowed with `--filter` to one analyzer or one file when needed. A violation fails the row of the analyzer or the file that found it and names the file, the line, and the rule.
 
 ## The text-only proof
 
@@ -104,7 +111,7 @@ It first runs the text-only proof over the same range and prints its line, becau
 | Category | Paths |
 |---|---|
 | Change doc | `sdd/changes/**` |
-| Text | the rest of `sdd/**`, `documentation/**`, issue and PR templates, `README.MD`, `LICENSE`, Markdown under `src/`, and C# under `src/` when the proof passed |
+| Text | the rest of `sdd/**`, `documentation/**`, issue and PR templates, `README.MD`, `CONTRIBUTING.md`, `LICENSE`, Markdown under `src/`, and C# under `src/` when the proof passed |
 | Tooling | `.claude/**`, `squad/**`, `scripts/**`, `.github/**`, `binaries/**`, `src/Reihitsu.Tooling/**`, `AGENTS.md`, `CLAUDE.md`, the solution files, `.gitignore`, `.gitattributes`, and every `*.csproj`, `*.props`, `*.targets`, `*.ruleset`, `.editorconfig` |
 | Test | files of test projects (`src/*.Test/**`, `src/Reihitsu.ArchitectureTests/**`) |
 | Production | every other file under `src/` |
@@ -115,3 +122,14 @@ The narrowest lane that admits every category is the lane the diff needs: produc
 Exit codes are `0` when the claim covers the diff, `1` when it does not (the verdict names the lane the diff needs), `2` for a tool or setup error, and `3` when no lane admits the diff — an unknown path, or production next to tooling without a change doc. The single `LANE CHECK: …` line is the quotable evidence the run report records.
 
 The classification lives in `Reihitsu.Tooling` (`LaneClassifier`, `LaneCheckCommand`) with tests in `Reihitsu.Tooling.Test`; `scripts/lane-check/lane-check.cs` is a thin file-based shim over it, like the code-fix runner's.
+
+## The usage report
+
+`usage.sh [--session <id|path>] [--projects-dir <dir>] [--json]` reads the transcripts Claude Code writes for a session and prints its token usage: one row for the main session (the squad's lead) and one row per spawned subagent, split by model. It needs `jq` and no .NET SDK. Without `--session` it takes the most recently modified transcript of the current directory's project.
+
+- **Spawns stay apart.** Every subagent has its own transcript, so a role spawned three times is three rows, numbered per agent type in start order. A subagent resumed through `SendMessage` writes to the same transcript and stays one row; its `Prompts` column counts the instructions it received, and `--json` breaks the row down per prompt.
+- **Responses are counted once.** The transcript holds one line per content block of an API response, all with the same usage, so the report counts per message id.
+- **No prices.** The transcript carries tokens, not costs. Every row names its model so a cost can be computed from the counts.
+- **`--json` holds everything the transcripts record:** cache writes by lifetime, thinking tokens, web search and fetch requests, effort levels, and the first and last message of each model.
+
+Exit codes are `0` when the report is printed and `2` for bad arguments, a missing transcript, or a missing `jq`. The report covers the session up to the moment it runs; a pull request's CI repairs after that are not in it.

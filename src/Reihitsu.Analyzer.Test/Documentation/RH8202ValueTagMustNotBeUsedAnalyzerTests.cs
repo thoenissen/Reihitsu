@@ -24,6 +24,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     [Requirement("RH8202-001")]
     [Requirement("RH8202-002")]
     [Requirement("RH8202-003")]
+    [Requirement("SHARED-DOC-018")]
     public async Task VerifyDiagnosticForValueTagOnProperty()
     {
         const string source = """
@@ -59,6 +60,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH8202-003")]
+    [Requirement("SHARED-DOC-018")]
     public async Task VerifyCodeFixKeepsSummaryTagSharingTheLine()
     {
         const string source = """
@@ -94,6 +96,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH8202-003")]
+    [Requirement("SHARED-DOC-018")]
     public async Task VerifyCodeFixKeepsPrecedingEndTagSharingTheLine()
     {
         const string source = """
@@ -134,6 +137,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     [TestMethod]
     [Requirement("RH8202-002")]
     [Requirement("RH8202-003")]
+    [Requirement("SHARED-DOC-018")]
     public async Task VerifyCodeFixKeepsFollowingTagSharingTheLastLine()
     {
         const string source = """
@@ -174,6 +178,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     [TestMethod]
     [Requirement("RH8202-002")]
     [Requirement("RH8202-003")]
+    [Requirement("SHARED-DOC-018")]
     public async Task VerifyCodeFixRemovesMultiLineValueTagCompletely()
     {
         const string source = """
@@ -212,6 +217,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH8202-003")]
+    [Requirement("SHARED-DOC-018")]
     public async Task VerifyCodeFixKeepsSurroundingTagsSharingTheLine()
     {
         const string source = """
@@ -248,6 +254,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     [TestMethod]
     [Requirement("RH8202-001")]
     [Requirement("RH8202-003")]
+    [Requirement("SHARED-DOC-018")]
     public async Task VerifyCodeFixRemovesValueTagFromDelimitedDocumentationComment()
     {
         const string source = """
@@ -372,6 +379,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     [TestMethod]
     [Requirement("RH8202-001")]
     [Requirement("RH8202-003")]
+    [Requirement("SHARED-DOC-018")]
     public async Task VerifyDiagnosticForValueTagNestedInRemarks()
     {
         const string source = """
@@ -413,6 +421,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     [TestMethod]
     [Requirement("RH8202-001")]
     [Requirement("RH8202-003")]
+    [Requirement("SHARED-DOC-018")]
     public async Task VerifyDiagnosticForValueTagNestedInSummaryText()
     {
         const string source = """
@@ -501,6 +510,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     [TestMethod]
     [Requirement("RH8202-001")]
     [Requirement("RH8202-003")]
+    [Requirement("SHARED-DOC-018")]
     public async Task VerifyTopLevelValueTagIsDetectedBesideCodeSample()
     {
         const string source = """
@@ -593,6 +603,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     [TestMethod]
     [Requirement("RH8202-002")]
     [Requirement("RH8202-003")]
+    [Requirement("SHARED-DOC-018")]
     public async Task VerifySpecificationExampleRemovesValueElement()
     {
         const string source = """
@@ -708,6 +719,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH8202-003")]
+    [Requirement("SHARED-DOC-018")]
     public async Task VerifySpecificationExampleRemovesValueElementInCarriageReturnLineFeedDocument()
     {
         var source = NormalizeToCarriageReturnLineFeed("""
@@ -767,6 +779,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     [TestMethod]
     [Requirement("SHARED-DOC-017")]
     [Requirement("RH8202-003")]
+    [Requirement("SHARED-DOC-018")]
     public async Task VerifyCodeFixRemovesEmptyValueElement()
     {
         const string source = """
@@ -820,6 +833,54 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
                      source,
                      Diagnostic(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId).WithSpan(6, 9, 7, 1)
                                                                                  .WithMessage(AnalyzerResources.RH8202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered for a <c>value</c> element that the end tag of the enclosing
+    /// <c>remarks</c> element closes, so that end tag is kept
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-017")]
+    [Requirement("RH8202-004")]
+    public async Task VerifyNoCodeFixForValueElementClosedByEndTagOfTheEnclosingElement()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  /// <summary>
+                                  /// Gets the size
+                                  /// </summary>
+                                  /// <remarks>{|RH8202:<value>The size</remarks>|}
+                                  public int Size { get; }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that end-tag names are compared exactly, so no code fix is offered for a <c>Value</c> element that
+    /// <c>&lt;/value&gt;</c> closes
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-017")]
+    [Requirement("RH8202-004")]
+    public async Task VerifyNoCodeFixForValueElementClosedByEndTagDifferingOnlyInCase()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  /// <summary>
+                                  /// Gets the size
+                                  /// </summary>
+                                  /// {|RH8202:<Value>The size</value>|}
+                                  public int Size { get; }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     #endregion // Tests

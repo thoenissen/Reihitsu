@@ -82,13 +82,15 @@ public abstract class ModifierOrderingCodeFixProviderBase : CodeFixProvider
     }
 
     /// <summary>
-    /// Determines whether reordering the modifiers would drop a comment or a preprocessor directive that sits
-    /// between them; only the leading trivia of the first modifier is preserved when the modifiers are rebuilt,
-    /// so a comment or directive anywhere else among the modifiers would be silently deleted, leaving the code
-    /// non-compiling in the case of an orphaned directive
+    /// Determines whether reordering the modifiers would drop or relocate a comment or a preprocessor directive that
+    /// sits between them or behind the last of them; only the leading trivia of the first modifier is preserved when
+    /// the modifiers are rebuilt, so a comment or directive anywhere else among the modifiers would be silently
+    /// deleted, leaving the code non-compiling in the case of an orphaned directive. Each rebuilt modifier ends with a
+    /// single space, so a comment, a directive, or disabled text in front of the token after the last modifier would
+    /// be pulled onto the line of the modifiers
     /// </summary>
     /// <param name="modifiers">Modifiers</param>
-    /// <returns><see langword="true"/> when a comment or directive would be dropped; otherwise <see langword="false"/></returns>
+    /// <returns><see langword="true"/> when a comment, a directive, or disabled text would be dropped or relocated; otherwise <see langword="false"/></returns>
     private static bool ReorderingWouldDropCommentOrDirective(SyntaxTokenList modifiers)
     {
         for (var modifierIndex = 0; modifierIndex < modifiers.Count; modifierIndex++)
@@ -100,7 +102,9 @@ public abstract class ModifierOrderingCodeFixProviderBase : CodeFixProvider
             }
         }
 
-        return false;
+        return modifiers.Count > 0
+               && modifiers[modifiers.Count - 1].GetNextToken().LeadingTrivia.Any(trivia => SyntaxNodeUtilities.IsCommentOrDirective(trivia)
+                                                                                            || trivia.IsKind(SyntaxKind.DisabledTextTrivia));
     }
 
     /// <summary>

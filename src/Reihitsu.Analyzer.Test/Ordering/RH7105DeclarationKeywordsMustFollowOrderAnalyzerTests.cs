@@ -805,6 +805,264 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : BatchCodeFi
         await Verify(source, fixedSource);
     }
 
+    /// <summary>
+    /// Verifies that the fix of a type that holds a region pair keeps the text of both region directives
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-028")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task FixOfTypeWithRegionPairKeepsTheRegionDirectives()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    {|#0:static|} public class C
+                                    {
+                                        #region    bar
+
+                                        private static int _a;
+
+                                        #endregion
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     public static class C
+                                     {
+                                         #region    bar
+
+                                         private static int _a;
+
+                                         #endregion
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7105DeclarationKeywordsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7105MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a type that holds a region pair with several spaces in front of an upper-case description keeps
+    /// that separator
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-028")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task FixOfTypeWithRegionPairKeepsTheSeparatorOfAnUpperCaseDescription()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    {|#0:static|} public class C
+                                    {
+                                        #region    Bar
+
+                                        private static int _a;
+
+                                        #endregion // Bar
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     public static class C
+                                     {
+                                         #region    Bar
+
+                                         private static int _a;
+
+                                         #endregion // Bar
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7105DeclarationKeywordsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7105MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a type that holds a region pair with a tab behind each region keyword turns each tab into four
+    /// spaces and keeps the rest of both region directives (<c>→</c> stands for a tab)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-028")]
+    [Requirement("FMT-TAB-002")]
+    public async Task FixOfTypeWithRegionPairReplacesTabsBehindRegionKeywords()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    {|#0:static|} public class C
+                                    {
+                                        #region→bar
+
+                                        private static int _a;
+
+                                        #endregion→// Stale
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     public static class C
+                                     {
+                                         #region    bar
+
+                                         private static int _a;
+
+                                         #endregion    // Stale
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode.Replace("→", "\t"), fixedCode, Diagnostics(RH7105DeclarationKeywordsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7105MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying the shared specification example: a directive between the last modifier and the type withholds the
+    /// fix, and the diagnostic is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-MODORDER-003")]
+    public async Task DirectiveBehindTheLastModifierWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  {|RH7105:static|} public
+                              #pragma warning disable CS0169
+                                  int _a;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying the shared specification example: a comment on its own line, and a comment in front of the type on its
+    /// line, between the last modifier and the type withhold the fix, and the diagnostic is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-MODORDER-003")]
+    public async Task CommentBetweenTheLastModifierAndTheTypeWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  {|RH7105:static|} public
+                                  // the counter
+                                  int _a;
+
+                                  {|RH7105:static|} public
+                                  /* the total */ int _b;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a nullable directive between the last modifier and the type withholds the fix, and the diagnostic
+    /// is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-MODORDER-003")]
+    public async Task NullableDirectiveBehindTheLastModifierWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  {|RH7105:static|} public
+                              #nullable disable
+                                  string _a;
+                              #nullable restore
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that conditional directives between the last modifier and the type withhold the fix, and the diagnostic
+    /// is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-MODORDER-003")]
+    public async Task ConditionalDirectivesBehindTheLastModifierWithholdTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  {|RH7105:static|} public
+                              #if DEBUG
+                                  int _a;
+                              #else
+                                  long _a;
+                              #endif
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a region directive between the last modifier and the type withholds the fix, and the diagnostic is
+    /// still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-MODORDER-003")]
+    public async Task RegionDirectiveBehindTheLastModifierWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  {|RH7105:static|} public
+                                  #region Fields
+                                  int _a;
+                                  #endregion
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a directive between the last modifier and the <c>class</c> keyword of a nested type withholds the
+    /// fix, and the diagnostic is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-MODORDER-003")]
+    public async Task DirectiveBehindTheLastModifierOfATypeWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  {|RH7105:static|} public
+                              #pragma warning disable CS0169
+                                  class D
+                                  {
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
     #endregion // Tests
 
     #region Methods

@@ -1,10 +1,10 @@
 ## Summary
 
-<!-- Briefly describe what changed. Keep it short and concrete. -->
+<!-- What changes, as the user or caller sees it. Two to five sentences or bullets. No process, roles, or tooling. -->
 
 ## Why
 
-<!-- Explain the motivation or problem this pull request addresses. -->
+<!-- The problem or motivation, briefly. -->
 
 ## Linked issues
 
@@ -12,8 +12,8 @@
 
 ## Review notes
 
-<!-- Call out reviewer-relevant context, risks, trade-offs, or migration notes. -->
+<!-- Only what a reviewer needs: a departure from an issue's text, an adjacent fix taken in, a risk, a trade-off, a migration note. Delete this section when there is nothing. -->
 
 ## Follow-up work
 
-<!-- Optional. Note any intentionally deferred work. Write "None" if not applicable. -->
+<!-- Issues for intentionally deferred work. Delete this section when there is none. -->

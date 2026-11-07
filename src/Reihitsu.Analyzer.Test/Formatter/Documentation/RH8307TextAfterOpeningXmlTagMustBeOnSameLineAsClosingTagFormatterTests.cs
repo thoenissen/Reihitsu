@@ -51,5 +51,45 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagFormatterTe
                               ExpectedDiagnostic(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, 3, 9, 5, 19, AnalyzerResources.RH8307MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that comments the formatter leaves as written are neither reported nor changed by the formatter, under
+    /// LF and CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-010")]
+    [Requirement("RH8307-002")]
+    public async Task VerifyFormatterLeavesCommentsKeptAsWrittenUnchanged()
+    {
+        const string input = """
+                             class C
+                             {
+                                 /// <summary>
+                                 /// Gets A
+                                 /// </summary>
+                                 /// <remarks>Text
+                                 /// more
+                                 int A;
+
+                                 /// <summary>
+                                 /// Gets B
+                                 /// </summary>
+                                 /// <remarks>Text
+                                 /// more</returns>
+                                 int B;
+
+                                 /// <summary>Gets D
+                                 /// now</summary>
+                                 /// <remarks>Text
+                                 int D;
+
+                                 int E; /// <remarks>a
+                                 /// b</remarks>
+                             }
+                             """;
+
+        await VerifyFormatter(input);
+    }
+
     #endregion // Tests
 }

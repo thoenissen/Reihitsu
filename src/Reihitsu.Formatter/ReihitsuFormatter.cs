@@ -1,11 +1,17 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Data.Enumerations;
 using Reihitsu.Formatter.Pipeline;
-using Reihitsu.Formatter.Pipeline.StructuralTransforms.Enumerations;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
+using Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
+using Reihitsu.Formatter.Pipeline.UsingDirectives;
 using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter;
@@ -99,9 +105,8 @@ public static class ReihitsuFormatter
     /// </summary>
     /// <param name="node">The syntax node to format</param>
     /// <param name="indentLevel">
-    /// The indentation level of the node within its containing document.
-    /// Required for newly generated nodes that are not yet inserted into a tree,
-    /// where the indentation level cannot be inferred from position
+    /// The indentation level of the node within its containing document. When it is negative, the node is laid out at the
+    /// depth the indentation phase gives its first token at its position in its tree, which is 0 for a node without a parent
     /// </param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A new SyntaxNode with formatting applied</returns>
@@ -112,21 +117,25 @@ public static class ReihitsuFormatter
     /// inspect and is not expected to carry whole-file error diagnostics. Callers are responsible for
     /// passing a node that is safe to format. Like every node-level entry point, it keeps single-statement
     /// accessor blocks instead of converting them to expression bodies, and keeps the accessor list of get-only
-    /// properties and indexers instead of converting them to expression-bodied members. Version-dependent rules follow the language version
-    /// of the node's syntax tree; a detached node carries the default parse options and is formatted for the newest
-    /// supported version
+    /// properties and indexers instead of converting them to expression-bodied members, and applies no region requirement
+    /// (FMT-PIPE-028). Version-dependent rules follow the language version
+    /// of the tree that Roslyn reports as the node's syntax tree, whether or not the node has a parent; a node that reports a tree
+    /// with the default parse options is formatted for the newest supported version. A node that is part of a tree is formatted as
+    /// a root without a parent: the code in front of it and behind it, and the construct it stands in, are not read, so it gets the
+    /// result the same node without a parent gets at the same depth, and its caller decides what stands around the result
     /// </remarks>
     public static SyntaxNode FormatNode(SyntaxNode node, int indentLevel = -1, CancellationToken cancellationToken = default)
     {
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(node);
-        var baseIndentLevel = indentLevel >= 0 ? indentLevel : ReihitsuFormatterHelpers.ComputeBaseIndentLevel(node);
+        var baseIndentLevel = indentLevel >= 0 ? indentLevel : SyntaxIndentationUtilities.ComputeIndentLevel(node);
         var context = new FormattingContext(endOfLine,
                                             baseIndentLevel,
                                             preserveRootDocumentationBoundary: node is not CompilationUnitSyntax,
                                             disabledStructuralTransforms: CodeFixDisabledStructuralTransforms,
-                                            languageVersion: LanguageVersionResolver.Resolve(node.SyntaxTree.Options));
+                                            languageVersion: LanguageVersionResolver.Resolve(node.SyntaxTree.Options),
+                                            formatsRegionDirectives: false);
 
-        return FormattingPipeline.Execute(node, context, cancellationToken);
+        return FormattingPipeline.Execute(ReihitsuFormatterHelpers.Detach(node, cancellationToken), context, cancellationToken);
     }
 
     /// <summary>
@@ -143,11 +152,14 @@ public static class ReihitsuFormatter
     /// <remarks>
     /// Single-statement accessor blocks inside the target are kept rather than converted to expression bodies, and
     /// get-only properties and indexers keep their accessor list rather than becoming expression-bodied members,
-    /// including when the target is the document root, because this entry point serves code fixes.
+    /// including when the target is the document root, because this entry point serves code fixes; for the same reason, it
+    /// applies no region requirement (FMT-PIPE-028).
     /// Version-dependent rules follow the effective language version of the document's project, clamped to the newest
-    /// supported version. The blank lines above a target that starts its line are decided from its surroundings as they stand
-    /// in the document: the token that precedes it and, for a statement or switch section, the sibling that precedes it in its
-    /// list. That sibling is not formatted, so a decision that document-level formatting would base on a rewritten sibling can differ.
+    /// supported version. The target is formatted as a root without a parent; what the phases need from the document around it
+    /// is captured before they run, as plain values: the token that precedes it, its place in its statement or switch-section
+    /// list, its depth, the column of its first token, and the construct it stands in. The blank lines above a target that starts
+    /// its line are decided from those facts as the document stands; the preceding sibling is not formatted, so a decision that
+    /// document-level formatting would base on a rewritten sibling can differ.
     /// The one write outside the target is the whitespace that separated the preceding token from a documentation comment the
     /// target moves onto its own line: it would otherwise end that line, so it is removed as document-level formatting removes it
     /// </remarks>
@@ -162,38 +174,39 @@ public static class ReihitsuFormatter
 
         var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
+        // The generated-code marker is not checked: a code fix runs only where an analyzer reported, so the analyzers'
+        // decision on generated code governs (FMT-PIPE-006)
         if (ReihitsuFormatterHelpers.HasSyntaxErrors(syntaxTree))
-        {
-            return document;
-        }
-
-        if (ReihitsuFormatterHelpers.IsAutoGeneratedSource(root))
         {
             return document;
         }
 
         var originalFirstToken = targetNode.GetFirstToken();
         var precedingToken = originalFirstToken.GetPreviousToken();
-        var originalColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(originalFirstToken);
+        var keepsLeadingTrivia = targetNode.Parent == root || SyntaxTriviaUtilities.AreSeparatedByEndOfLine(precedingToken, originalFirstToken) == false;
+
+        // The indentation phase lays out the target so that its first token keeps its column in the document, so no line
+        // is moved after the last phase (FMT-PIPE-017)
+        int? rootFirstTokenColumn = targetNode == root
+                                        ? null
+                                        : ReihitsuFormatterHelpers.ComputeDocumentColumn(originalFirstToken, keepsLeadingTrivia == false);
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
-        var baseIndentLevel = ReihitsuFormatterHelpers.ComputeBaseIndentLevel(targetNode);
+        var baseIndentLevel = SyntaxIndentationUtilities.ComputeIndentLevel(targetNode);
         var context = new FormattingContext(endOfLine,
                                             baseIndentLevel,
                                             preserveRootDocumentationBoundary: targetNode != root,
                                             disabledStructuralTransforms: CodeFixDisabledStructuralTransforms,
                                             languageVersion: LanguageVersionResolver.Resolve(document.Project.ParseOptions),
                                             rootPrecedingToken: PrecedingTokenFacts.From(precedingToken),
-                                            rootListPosition: RootListPosition.From(targetNode));
-        var formattedTarget = FormattingPipeline.Execute(targetNode, context, cancellationToken);
-        var formattedColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(formattedTarget.GetFirstToken());
-        var columnOffset = originalColumn - formattedColumn;
+                                            rootListPosition: RootListPosition.From(targetNode),
+                                            rootFirstTokenColumn: rootFirstTokenColumn,
+                                            rootChainBoundary: FluentChainBoundary.From(targetNode),
+                                            rootConstruct: ReihitsuFormatterHelpers.CaptureRootConstruct(targetNode),
+                                            formatsRegionDirectives: false);
+        var lastTokenAnnotation = new SyntaxAnnotation();
+        var formattedTarget = FormattingPipeline.Execute(DetachWithAnnotatedLastToken(targetNode, targetNode == root ? null : lastTokenAnnotation, cancellationToken), context, cancellationToken);
 
-        if (columnOffset != 0)
-        {
-            formattedTarget = ReihitsuFormatterHelpers.AdjustNodeIndentation(formattedTarget, columnOffset);
-        }
-
-        if (targetNode.Parent == root || ReihitsuFormatterHelpers.StartsOnNewLineIncludingDocumentation(originalFirstToken) == false)
+        if (keepsLeadingTrivia)
         {
             var formattedFirstToken = formattedTarget.GetFirstToken();
             formattedTarget = formattedTarget.ReplaceToken(formattedFirstToken, formattedFirstToken.WithLeadingTrivia(originalFirstToken.LeadingTrivia));
@@ -204,9 +217,7 @@ public static class ReihitsuFormatter
             return document.WithSyntaxRoot(formattedTarget);
         }
 
-        var originalLastToken = targetNode.GetLastToken();
-        var formattedLastToken = formattedTarget.GetLastToken();
-        formattedTarget = formattedTarget.ReplaceToken(formattedLastToken, formattedLastToken.WithTrailingTrivia(originalLastToken.TrailingTrivia));
+        formattedTarget = WriteBackTrailingTrivia(formattedTarget, targetNode.GetLastToken(), lastTokenAnnotation);
 
         var trimmedTrailingTrivia = EndOfLineWhitespace.StripBeforeFollowingLineBreak(precedingToken.TrailingTrivia, formattedTarget.GetFirstToken().LeadingTrivia);
 
@@ -225,8 +236,8 @@ public static class ReihitsuFormatter
 
     /// <summary>
     /// Formats a target node using a containing node for positional context, then rewrites only the
-    /// target node back into the document. This is useful when the target starts in the middle of a
-    /// line and formatter phases need the preceding owner tokens to compute absolute columns
+    /// target node back into the document. This is useful when the formatter phases need the code of the
+    /// context around the target to lay the target out
     /// </summary>
     /// <param name="document">The Roslyn Document containing both nodes</param>
     /// <param name="targetNode">The syntax node whose formatted result should be applied</param>
@@ -234,12 +245,20 @@ public static class ReihitsuFormatter
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A new Document with only the targeted node formatted</returns>
     /// <remarks>
-    /// Single-statement accessor blocks are kept rather than converted to expression bodies, and get-only properties and
-    /// indexers keep their accessor list rather than becoming expression-bodied members, because this entry point
-    /// serves code fixes. Version-dependent rules follow the effective language version of the document's project, clamped
-    /// to the newest supported version. When the target is the context node, formatting is delegated to
-    /// <see cref="FormatNodeInDocumentAsync(Document, SyntaxNode, CancellationToken)"/>, including its removal of the separator
-    /// whitespace in front of the target
+    /// Single-statement accessor blocks are kept rather than converted to expression bodies, and get-only properties
+    /// and indexers keep their accessor list rather than becoming expression-bodied members, because this entry point
+    /// serves code fixes; for the same reason, no region requirement is applied (FMT-PIPE-028). Version-dependent rules
+    /// follow the effective language version of the document's project, clamped to the newest supported version. The
+    /// target's leading trivia is written back as it stands in the document, and everything in front of the target on
+    /// its line stays as it is, so the target's first token keeps its line and its column in the document, also where
+    /// the context's layout would put it on another line or in another column; the target's other lines are laid out
+    /// as the formatter lays them out from that column, so a line aligned to an anchor on the target's first line stays
+    /// on that anchor (FMT-PIPE-017, FMT-PIPE-018). A target that the structural phase splits into several fields is
+    /// replaced by all of them, laid out as the phases lay them out, and no field shares a line with another member
+    /// (FMT-PIPE-029). The generated-code marker is not checked (FMT-PIPE-006). When the target is the context node,
+    /// formatting is delegated to
+    /// <see cref="FormatNodeInDocumentAsync(Document, SyntaxNode, CancellationToken)"/>, including its removal of the
+    /// separator whitespace in front of the target
     /// </remarks>
     public static async Task<Document> FormatNodeInDocumentWithContextAsync(Document document,
                                                                             SyntaxNode targetNode,
@@ -263,34 +282,33 @@ public static class ReihitsuFormatter
 
         var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-        if (ReihitsuFormatterHelpers.HasSyntaxErrors(syntaxTree)
-            || ReihitsuFormatterHelpers.IsAutoGeneratedSource(root))
+        // The generated-code marker is not checked, as in FormatNodeInDocumentAsync (FMT-PIPE-006)
+        if (ReihitsuFormatterHelpers.HasSyntaxErrors(syntaxTree))
         {
             return document;
         }
 
-        var originalContextFirstToken = contextNode.GetFirstToken();
-        var originalColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(originalContextFirstToken);
-        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
-        var baseIndentLevel = ReihitsuFormatterHelpers.ComputeBaseIndentLevel(contextNode);
-        var context = new FormattingContext(endOfLine,
-                                            baseIndentLevel,
-                                            preserveRootDocumentationBoundary: contextNode != root,
-                                            disabledStructuralTransforms: CodeFixDisabledStructuralTransforms,
-                                            languageVersion: LanguageVersionResolver.Resolve(document.Project.ParseOptions));
+        if (targetNode is FieldDeclarationSyntax fieldDeclaration
+            && SplitsFieldDeclaration(fieldDeclaration))
+        {
+            return FormatSplitFieldInContext(document, root, fieldDeclaration, contextNode, cancellationToken);
+        }
+
         var targetTokenAnnotation = new SyntaxAnnotation();
         var originalFirstToken = targetNode.GetFirstToken();
-        var annotatedTarget = targetNode.ReplaceToken(originalFirstToken,
-                                                      originalFirstToken.WithAdditionalAnnotations(targetTokenAnnotation));
-        var annotatedContext = contextNode.ReplaceNode(targetNode, annotatedTarget);
-        var formattedContext = FormattingPipeline.Execute(annotatedContext, context, cancellationToken);
-        var formattedColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(formattedContext.GetFirstToken());
-        var columnOffset = originalColumn - formattedColumn;
 
-        if (columnOffset != 0)
-        {
-            formattedContext = ReihitsuFormatterHelpers.AdjustNodeIndentation(formattedContext, columnOffset);
-        }
+        // Everything in front of the target's first token is kept as it stands in the document, because only the target
+        // is written back, so that token keeps its line and its column there, and the indentation phase lays out the
+        // target's other lines from that column, wherever the phases leave the token in the context (FMT-PIPE-017,
+        // FMT-PIPE-024)
+        var formattedContext = FormatContext(document,
+                                             root,
+                                             targetNode,
+                                             contextNode,
+                                             ReihitsuFormatterHelpers.ComputeDocumentColumn(originalFirstToken, countsOwnWhitespaceTabsAsReplaced: false),
+                                             targetTokenAnnotation,
+                                             targetNodeAnnotation: null,
+                                             cancellationToken);
 
         var formattedTarget = FindCorrespondingNode(targetNode, formattedContext, targetTokenAnnotation);
 
@@ -299,6 +317,9 @@ public static class ReihitsuFormatter
             return document;
         }
 
+        // The target's leading trivia is written back as it stands in the document, in every case: its blank lines, its
+        // comments and directives in their columns, and the whitespace in front of its first token (FMT-PIPE-018). The
+        // target's first token therefore stays where the document has it, the column its other lines were laid out from
         var formattedFirstToken = formattedTarget.GetFirstToken();
         var updatedFirstToken = formattedFirstToken.WithLeadingTrivia(originalFirstToken.LeadingTrivia)
                                                    .WithoutAnnotations(targetTokenAnnotation);
@@ -310,6 +331,417 @@ public static class ReihitsuFormatter
         formattedTarget = formattedTarget.ReplaceToken(formattedLastToken, formattedLastToken.WithTrailingTrivia(originalLastToken.TrailingTrivia));
 
         return document.WithSyntaxRoot(root.ReplaceNode(targetNode, formattedTarget));
+    }
+
+    /// <summary>
+    /// Rewrites the using block of one scope of a document as the using-directive phase rewrites it, and nothing else of the
+    /// document (FMT-PIPE-030). The phase reads the scope where it stands in the document and is the only phase that runs, so
+    /// its output, the scope's indentation in front of a directive it moves onto a line of its own included, is the block's
+    /// final layout
+    /// </summary>
+    /// <param name="document">The Roslyn Document containing the scope</param>
+    /// <param name="scope">The compilation unit, namespace, or file-scoped namespace whose using block is organized. Must belong to the document's syntax tree</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A new Document with the scope's using block organized, or the unchanged document when the block does not change</returns>
+    /// <remarks>
+    /// Neither syntax errors (FMT-PIPE-005) nor the generated-code marker (FMT-PIPE-006) are checked. The directives of a
+    /// namespace nested in the scope are not changed
+    /// </remarks>
+    public static async Task<Document> OrganizeUsingDirectivesInDocumentAsync(Document document, SyntaxNode scope, CancellationToken cancellationToken = default)
+    {
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        if (root == null
+            || scope.SyntaxTree != root.SyntaxTree)
+        {
+            return document;
+        }
+
+        var usingDirectives = UsingDirectiveOrderingUtilities.GetUsings(scope);
+        var context = new FormattingContext(ReihitsuFormatterHelpers.DetectEndOfLine(root),
+                                            languageVersion: LanguageVersionResolver.Resolve(document.Project.ParseOptions));
+        var organizedScope = new UsingDirectiveOrderingPhase().Execute(scope, context, cancellationToken);
+        var organizedUsings = UsingDirectiveOrderingUtilities.GetUsings(organizedScope);
+
+        if (organizedUsings.SequenceEqual(usingDirectives))
+        {
+            return document;
+        }
+
+        return document.WithSyntaxRoot(root.ReplaceNode(scope, UsingDirectiveOrderingUtilities.WithUsings(scope, organizedUsings)));
+    }
+
+    /// <summary>
+    /// Determines whether the structural phase splits the field declaration into one declaration per declarator: it has more
+    /// than one declarator, is a member of a class, struct, record, or interface, and carries no directive or disabled text
+    /// (FMT-PIPE-031)
+    /// </summary>
+    /// <param name="fieldDeclaration">The field declaration</param>
+    /// <returns><see langword="true"/> if the formatter splits the declaration; otherwise, <see langword="false"/></returns>
+    public static bool SplitsFieldDeclaration(FieldDeclarationSyntax fieldDeclaration)
+    {
+        return FieldDeclarationSplitTransform.Splits(fieldDeclaration);
+    }
+
+    /// <summary>
+    /// Detaches a node-level formatting target from its document as the root of a tree of its own, and marks its last token
+    /// so that <see cref="WriteBackTrailingTrivia"/> can find that token where the phases leave it
+    /// </summary>
+    /// <param name="targetNode">The target node</param>
+    /// <param name="lastTokenAnnotation">The annotation for the target's last token, or <see langword="null"/> to mark nothing</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The detached target</returns>
+    private static SyntaxNode DetachWithAnnotatedLastToken(SyntaxNode targetNode, SyntaxAnnotation lastTokenAnnotation, CancellationToken cancellationToken)
+    {
+        var detachedTarget = ReihitsuFormatterHelpers.Detach(targetNode, cancellationToken);
+
+        if (lastTokenAnnotation == null)
+        {
+            return detachedTarget;
+        }
+
+        var lastToken = detachedTarget.GetLastToken();
+        var annotatedTarget = detachedTarget.ReplaceToken(lastToken, lastToken.WithAdditionalAnnotations(lastTokenAnnotation));
+
+        return detachedTarget.SyntaxTree.WithRootAndOptions(annotatedTarget, detachedTarget.SyntaxTree.Options).GetRoot(cancellationToken);
+    }
+
+    /// <summary>
+    /// Writes the target's trailing trivia back behind the formatted target's last token, which lost it when the target was
+    /// formatted as a root of its own (FMT-PIPE-010). The trivia is the author's text behind the target, so each comment in it
+    /// is written once: when the phases leave the target's original last token inside the result, behind which they inserted
+    /// tokens such as the closing brace of a block wrapped around a body (FMT-STRUCT-001), the comments that token still
+    /// carries stay where they are, and only the rest of the trivia, the line break that keeps the code behind the target on
+    /// its line among it, is written behind the result's last token. The mark on the original last token is removed
+    /// </summary>
+    /// <param name="formattedTarget">The formatted target</param>
+    /// <param name="originalLastToken">The target's last token as it stands in the document</param>
+    /// <param name="lastTokenAnnotation">The annotation that marks the original last token in <paramref name="formattedTarget"/></param>
+    /// <returns>The formatted target with the trailing trivia written back</returns>
+    private static SyntaxNode WriteBackTrailingTrivia(SyntaxNode formattedTarget, SyntaxToken originalLastToken, SyntaxAnnotation lastTokenAnnotation)
+    {
+        var formattedLastToken = formattedTarget.GetLastToken();
+        var markedTokens = formattedTarget.GetAnnotatedTokens(lastTokenAnnotation).ToList();
+        var trailingTrivia = originalLastToken.TrailingTrivia;
+
+        if (formattedLastToken.HasAnnotation(lastTokenAnnotation) == false)
+        {
+            var keptCommentCount = markedTokens.Sum(static token => token.TrailingTrivia.Count(SyntaxTriviaUtilities.IsCommentTrivia));
+
+            trailingTrivia = RemoveLeadingComments(trailingTrivia, keptCommentCount);
+        }
+
+        return formattedTarget.ReplaceTokens(markedTokens.Append(formattedLastToken).Distinct(),
+                                             (original, rewritten) =>
+                                             {
+                                                 var unmarkedToken = rewritten.WithoutAnnotations(lastTokenAnnotation);
+
+                                                 return original == formattedLastToken
+                                                            ? unmarkedToken.WithTrailingTrivia(trailingTrivia)
+                                                            : unmarkedToken;
+                                             });
+    }
+
+    /// <summary>
+    /// Removes the first comments of a trivia list, each together with the whitespace in front of it
+    /// </summary>
+    /// <param name="trivia">The trivia list</param>
+    /// <param name="commentCount">The number of comments to remove</param>
+    /// <returns>The trivia list without those comments</returns>
+    private static SyntaxTriviaList RemoveLeadingComments(SyntaxTriviaList trivia, int commentCount)
+    {
+        if (commentCount == 0)
+        {
+            return trivia;
+        }
+
+        var remainingTrivia = new List<SyntaxTrivia>(trivia.Count);
+        var removedCount = 0;
+
+        foreach (var item in trivia)
+        {
+            if (removedCount < commentCount
+                && SyntaxTriviaUtilities.IsCommentTrivia(item))
+            {
+                while (remainingTrivia.Count > 0
+                       && remainingTrivia[remainingTrivia.Count - 1].IsKind(SyntaxKind.WhitespaceTrivia))
+                {
+                    remainingTrivia.RemoveAt(remainingTrivia.Count - 1);
+                }
+
+                removedCount++;
+
+                continue;
+            }
+
+            remainingTrivia.Add(item);
+        }
+
+        return SyntaxFactory.TriviaList(remainingTrivia);
+    }
+
+    /// <summary>
+    /// Runs the pipeline on a copy of the context in which the target is marked, with the facts the context entry point gives
+    /// the phases: the document column of the context's first token, the code-fix structural transforms, the project's
+    /// language version, no region requirement, and the target-position fact (FMT-PIPE-017, FMT-PIPE-024, FMT-PIPE-028)
+    /// </summary>
+    /// <param name="document">The Roslyn Document containing both nodes</param>
+    /// <param name="root">The document's root</param>
+    /// <param name="targetNode">The target node, contained in the context</param>
+    /// <param name="contextNode">The containing node that is formatted</param>
+    /// <param name="targetFirstTokenColumn">The column the indentation phase lays out the target's other lines from, or <see langword="null"/> when the target's lines are laid out as the phases place them</param>
+    /// <param name="targetTokenAnnotation">The annotation that marks the target's first token</param>
+    /// <param name="targetNodeAnnotation">An annotation that marks the target node, or <see langword="null"/></param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The formatted copy of the context</returns>
+    private static SyntaxNode FormatContext(Document document,
+                                            SyntaxNode root,
+                                            SyntaxNode targetNode,
+                                            SyntaxNode contextNode,
+                                            int? targetFirstTokenColumn,
+                                            SyntaxAnnotation targetTokenAnnotation,
+                                            SyntaxAnnotation targetNodeAnnotation,
+                                            CancellationToken cancellationToken)
+    {
+        // Only the target is written back, and its leading trivia as it stands in the document (FMT-PIPE-018), so the
+        // whitespace in front of the context's first token is never rewritten and each of its characters counts as one
+        // column; the indentation phase keeps that token in its column (FMT-PIPE-017)
+        int? rootFirstTokenColumn = contextNode == root
+                                        ? null
+                                        : ReihitsuFormatterHelpers.ComputeDocumentColumn(contextNode.GetFirstToken(), countsOwnWhitespaceTabsAsReplaced: false);
+        var context = new FormattingContext(ReihitsuFormatterHelpers.DetectEndOfLine(root),
+                                            SyntaxIndentationUtilities.ComputeIndentLevel(contextNode),
+                                            preserveRootDocumentationBoundary: contextNode != root,
+                                            disabledStructuralTransforms: CodeFixDisabledStructuralTransforms,
+                                            languageVersion: LanguageVersionResolver.Resolve(document.Project.ParseOptions),
+                                            rootFirstTokenColumn: rootFirstTokenColumn,
+                                            formatsRegionDirectives: false,
+                                            targetAnnotation: targetTokenAnnotation,
+                                            targetFirstTokenColumn: targetFirstTokenColumn);
+        var originalFirstToken = targetNode.GetFirstToken();
+        var annotatedTarget = targetNode.ReplaceToken(originalFirstToken, originalFirstToken.WithAdditionalAnnotations(targetTokenAnnotation));
+
+        if (targetNodeAnnotation != null)
+        {
+            annotatedTarget = annotatedTarget.WithAdditionalAnnotations(targetNodeAnnotation);
+        }
+
+        // The copy of the context is the root of a tree of its own, so no phase reaches the code around it (FMT-PIPE-023)
+        return FormattingPipeline.Execute(contextNode.ReplaceNode(targetNode, annotatedTarget), context, cancellationToken);
+    }
+
+    /// <summary>
+    /// Formats the type that declares a field declaration the structural phase splits, and writes back in place of the
+    /// declaration every field the split makes of it, and nothing else of the context (FMT-PIPE-029)
+    /// </summary>
+    /// <param name="document">The Roslyn Document containing both nodes</param>
+    /// <param name="root">The document's root</param>
+    /// <param name="targetField">The field declaration the split splits</param>
+    /// <param name="contextNode">A containing syntax node used while formatting the target</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A new Document with the split fields written back, or the unchanged document when the fields cannot be found</returns>
+    /// <remarks>
+    /// The first field keeps the target's leading trivia, and its first token the line and column the target's first token
+    /// has in the document (FMT-PIPE-017, FMT-PIPE-018); the last keeps the target's trailing trivia (FMT-PIPE-010); every
+    /// other line of the fields is the phases' layout. When another member of the type shares the target's first or last line,
+    /// which is read from the context as the phases lay it out and asked only where nothing in the gap starts a line in the
+    /// document, the whitespace in that gap is replaced by one line break and the indentation the phases give a later field,
+    /// so no field shares a line with another member; a comment in the trailing trivia in front of the gap stays behind its
+    /// token, and the leading trivia behind the gap, a documentation comment included, goes with its member onto the next line
+    /// </remarks>
+    private static Document FormatSplitFieldInContext(Document document,
+                                                      SyntaxNode root,
+                                                      FieldDeclarationSyntax targetField,
+                                                      SyntaxNode contextNode,
+                                                      CancellationToken cancellationToken)
+    {
+        // SplitsFieldDeclaration admits only a member of a class, struct, record, or interface
+        var declaringType = (TypeDeclarationSyntax)targetField.Parent;
+        var members = declaringType.Members;
+        var targetIndex = members.IndexOf(targetField);
+        var originalFirstToken = targetField.GetFirstToken();
+        var originalLastToken = targetField.GetLastToken();
+
+        var targetTokenAnnotation = new SyntaxAnnotation();
+        var targetFieldAnnotation = new SyntaxAnnotation();
+
+        // Whether another member shares the target's first or last line is a question only where nothing in the gap starts a
+        // line in the document; where something does, the gap's trivia stays as it stands (FMT-PIPE-010, FMT-PIPE-018)
+        var mayShareLineWithPrecedingMember = targetIndex > 0
+                                              && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(originalFirstToken.GetPreviousToken(), originalFirstToken) == false;
+        var mayShareLineWithFollowingMember = targetIndex < members.Count - 1
+                                              && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(originalLastToken, originalLastToken.GetNextToken()) == false;
+
+        // A first field that keeps the target's line keeps its first token's document column, and the indentation phase lays
+        // out its other lines from that column (FMT-PIPE-017). A first field that starts the next line, behind another member,
+        // stands where the phases place a member, so its lines are laid out as the phases place them. Which of the two applies
+        // is the phases' result, so a context laid out for the one the result does not confirm is laid out again for the
+        // other; the column is read only by the indentation phase, so the second layout starts the same lines
+        var documentColumn = ReihitsuFormatterHelpers.ComputeDocumentColumn(originalFirstToken, countsOwnWhitespaceTabsAsReplaced: false);
+
+        // The split builds every field from the target, so each field it makes carries the target's annotation, and the
+        // first of them the annotated first token, which the target-position fact marks (FMT-PIPE-024)
+        var formattedContext = FormatContext(document,
+                                             root,
+                                             targetField,
+                                             contextNode,
+                                             mayShareLineWithPrecedingMember ? null : documentColumn,
+                                             targetTokenAnnotation,
+                                             targetFieldAnnotation,
+                                             cancellationToken);
+
+        if (TryGetSplitFields(formattedContext, targetField, targetFieldAnnotation, out var formattedFields) == false)
+        {
+            return document;
+        }
+
+        var sharesLineWithPrecedingMember = mayShareLineWithPrecedingMember
+                                            && StartsLineInLayout(formattedFields[0].GetFirstToken());
+
+        if (mayShareLineWithPrecedingMember
+            && sharesLineWithPrecedingMember == false)
+        {
+            formattedContext = FormatContext(document,
+                                             root,
+                                             targetField,
+                                             contextNode,
+                                             documentColumn,
+                                             targetTokenAnnotation,
+                                             targetFieldAnnotation,
+                                             cancellationToken);
+
+            if (TryGetSplitFields(formattedContext, targetField, targetFieldAnnotation, out formattedFields) == false)
+            {
+                return document;
+            }
+        }
+
+        var sharesLineWithFollowingMember = mayShareLineWithFollowingMember
+                                            && StartsLineInLayout(formattedFields[formattedFields.Count - 1].GetLastToken().GetNextToken());
+
+        var memberIndentation = SyntaxFactory.Whitespace(new string(' ', SyntaxTokenPositionUtilities.GetColumn(formattedFields[1].GetFirstToken())));
+        var lineBreak = SyntaxFactory.EndOfLine(ReihitsuFormatterHelpers.DetectEndOfLine(root));
+        var fields = new List<MemberDeclarationSyntax>(formattedFields.Count);
+
+        for (var fieldIndex = 0; fieldIndex < formattedFields.Count; fieldIndex++)
+        {
+            var field = formattedFields[fieldIndex].WithoutAnnotations(targetFieldAnnotation);
+
+            if (fieldIndex == 0)
+            {
+                // The target's leading trivia is written back as it stands in the document (FMT-PIPE-018); behind another
+                // member, the line break in front of it puts it where the phases place a member
+                var leadingTrivia = sharesLineWithPrecedingMember
+                                        ? SyntaxFactory.TriviaList(memberIndentation).AddRange(TrimLeadingWhitespace(originalFirstToken.LeadingTrivia))
+                                        : originalFirstToken.LeadingTrivia;
+                var firstToken = field.GetFirstToken();
+
+                field = field.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(leadingTrivia).WithoutAnnotations(targetTokenAnnotation));
+            }
+
+            if (fieldIndex == formattedFields.Count - 1)
+            {
+                var trailingTrivia = sharesLineWithFollowingMember
+                                         ? TriviaListUtilities.RemoveTrailingWhitespace(originalLastToken.TrailingTrivia).Add(lineBreak)
+                                         : originalLastToken.TrailingTrivia;
+                var lastToken = field.GetLastToken();
+
+                field = field.ReplaceToken(lastToken, lastToken.WithTrailingTrivia(trailingTrivia));
+            }
+
+            fields.Add(field);
+        }
+
+        var updatedMembers = new List<MemberDeclarationSyntax>(members.Count + fields.Count);
+
+        for (var memberIndex = 0; memberIndex < members.Count; memberIndex++)
+        {
+            var member = members[memberIndex];
+
+            if (memberIndex == targetIndex)
+            {
+                updatedMembers.AddRange(fields);
+            }
+            else if (memberIndex == targetIndex - 1
+                     && sharesLineWithPrecedingMember)
+            {
+                // A comment that trails the member in front stays behind it; only the whitespace behind it ends the line
+                var lastToken = member.GetLastToken();
+
+                updatedMembers.Add(member.ReplaceToken(lastToken, lastToken.WithTrailingTrivia(TriviaListUtilities.RemoveTrailingWhitespace(lastToken.TrailingTrivia).Add(lineBreak))));
+            }
+            else if (memberIndex == targetIndex + 1
+                     && sharesLineWithFollowingMember)
+            {
+                // The member behind keeps its leading trivia, a documentation comment included, and starts the next line
+                var firstToken = member.GetFirstToken();
+
+                updatedMembers.Add(member.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(SyntaxFactory.TriviaList(memberIndentation).AddRange(TrimLeadingWhitespace(firstToken.LeadingTrivia)))));
+            }
+            else
+            {
+                updatedMembers.Add(member);
+            }
+        }
+
+        return document.WithSyntaxRoot(root.ReplaceNode(declaringType, declaringType.WithMembers(SyntaxFactory.List(updatedMembers))));
+    }
+
+    /// <summary>
+    /// Gets the fields the split makes of the target in a formatted copy of the context, in source order
+    /// </summary>
+    /// <param name="formattedContext">The formatted copy of the context</param>
+    /// <param name="targetField">The field declaration the split splits</param>
+    /// <param name="targetFieldAnnotation">The annotation that marks every field the split makes of the target</param>
+    /// <param name="formattedFields">One field per declarator of the target</param>
+    /// <returns><see langword="true"/> if the copy holds one single-declarator field per declarator of the target; otherwise, <see langword="false"/></returns>
+    private static bool TryGetSplitFields(SyntaxNode formattedContext, FieldDeclarationSyntax targetField, SyntaxAnnotation targetFieldAnnotation, out List<FieldDeclarationSyntax> formattedFields)
+    {
+        formattedFields = formattedContext.GetAnnotatedNodes(targetFieldAnnotation)
+                                          .OfType<FieldDeclarationSyntax>()
+                                          .ToList();
+
+        return formattedFields.Count == targetField.Declaration.Variables.Count
+               && formattedFields.All(field => field.Declaration.Variables.Count == 1);
+    }
+
+    /// <summary>
+    /// Determines whether the phases started the line of a member's first token in a formatted copy of the context: the token
+    /// starts its line, or a documentation comment in its leading trivia does (FMT-PIPE-029). The documentation-comment phase
+    /// starts the line of a documentation comment written behind code, and the line-break phase starts a member's line where
+    /// the gap in front of it holds no line break, so reading the result covers both without restating either
+    /// </summary>
+    /// <param name="firstToken">The member's first token in the formatted copy of the context</param>
+    /// <returns><see langword="true"/> if the token or a documentation comment in front of it starts a line; otherwise, <see langword="false"/></returns>
+    private static bool StartsLineInLayout(SyntaxToken firstToken)
+    {
+        if (SyntaxTokenPositionUtilities.StartsLine(firstToken))
+        {
+            return true;
+        }
+
+        var leadingTrivia = firstToken.LeadingTrivia;
+
+        for (var triviaIndex = 0; triviaIndex < leadingTrivia.Count; triviaIndex++)
+        {
+            if (SyntaxTriviaUtilities.IsDocumentationCommentTrivia(leadingTrivia[triviaIndex])
+                && TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(firstToken, triviaIndex))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Removes the whitespace a trivia list starts with
+    /// </summary>
+    /// <param name="trivia">The trivia list</param>
+    /// <returns>The trivia list without its leading whitespace</returns>
+    private static SyntaxTriviaList TrimLeadingWhitespace(SyntaxTriviaList trivia)
+    {
+        return SyntaxFactory.TriviaList(trivia.SkipWhile(static item => item.IsKind(SyntaxKind.WhitespaceTrivia)));
     }
 
     /// <summary>

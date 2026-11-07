@@ -8,10 +8,11 @@ using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 
 /// <summary>
-/// Applies Allman brace placement for declarations, member bodies and the accessor lists of
-/// indexer and event declarations — including the accessor-list layout that indexers share with
-/// properties — collapses parameter-list openers onto the declaration line, and places constructor
-/// initializers on their own line
+/// Applies Allman brace placement for type and namespace declarations and the accessor lists of
+/// indexer declarations — including the accessor-list layout that indexers share with properties —
+/// collapses parameter-list openers onto the declaration line, and places constructor initializers
+/// on their own line. The braces of member bodies and event accessor lists are placed by
+/// <see cref="LineBreakBlockRewriter"/>
 /// </summary>
 internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
 {
@@ -126,7 +127,7 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Normalizes a constructor declaration's parameter-list opener, initializer, and body braces
+    /// Normalizes a constructor declaration's parameter-list opener and initializer
     /// </summary>
     /// <param name="node">The constructor declaration node</param>
     /// <returns>The updated constructor declaration</returns>
@@ -139,93 +140,7 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
             node = EnsureConstructorInitializerOnNewLine(node);
         }
 
-        if (node.Body != null)
-        {
-            node = _bracePlacer.NormalizeOwnedBraces(node, static constructor => constructor.Body.OpenBraceToken, static constructor => constructor.Body.CloseBraceToken);
-        }
-
         return node;
-    }
-
-    /// <summary>
-    /// Normalizes a method declaration's parameter-list opener and body braces
-    /// </summary>
-    /// <param name="node">The method declaration node</param>
-    /// <returns>The updated method declaration</returns>
-    private MethodDeclarationSyntax NormalizeMethod(MethodDeclarationSyntax node)
-    {
-        node = LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(node, node.ParameterList);
-
-        if (node.Body != null)
-        {
-            node = _bracePlacer.NormalizeOwnedBraces(node, static method => method.Body.OpenBraceToken, static method => method.Body.CloseBraceToken);
-        }
-
-        return node;
-    }
-
-    /// <summary>
-    /// Normalizes a conversion operator declaration's parameter-list opener and body braces
-    /// </summary>
-    /// <param name="node">The conversion operator declaration node</param>
-    /// <returns>The updated conversion operator declaration</returns>
-    private ConversionOperatorDeclarationSyntax NormalizeConversionOperator(ConversionOperatorDeclarationSyntax node)
-    {
-        node = LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(node, node.ParameterList);
-
-        if (node.Body != null)
-        {
-            node = _bracePlacer.NormalizeOwnedBraces(node, static conversionOperator => conversionOperator.Body.OpenBraceToken, static conversionOperator => conversionOperator.Body.CloseBraceToken);
-        }
-
-        return node;
-    }
-
-    /// <summary>
-    /// Normalizes a destructor declaration's parameter-list opener and body braces
-    /// </summary>
-    /// <param name="node">The destructor declaration node</param>
-    /// <returns>The updated destructor declaration</returns>
-    private DestructorDeclarationSyntax NormalizeDestructor(DestructorDeclarationSyntax node)
-    {
-        node = LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(node, node.ParameterList);
-
-        if (node.Body != null)
-        {
-            node = _bracePlacer.NormalizeOwnedBraces(node, static destructor => destructor.Body.OpenBraceToken, static destructor => destructor.Body.CloseBraceToken);
-        }
-
-        return node;
-    }
-
-    /// <summary>
-    /// Normalizes a local function statement's parameter-list opener and body braces
-    /// </summary>
-    /// <param name="node">The local function statement node</param>
-    /// <returns>The updated local function statement</returns>
-    private LocalFunctionStatementSyntax NormalizeLocalFunction(LocalFunctionStatementSyntax node)
-    {
-        node = LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(node, node.ParameterList);
-
-        if (node.Body != null)
-        {
-            node = _bracePlacer.NormalizeOwnedBraces(node, static localFunction => localFunction.Body.OpenBraceToken, static localFunction => localFunction.Body.CloseBraceToken);
-        }
-
-        return node;
-    }
-
-    /// <summary>
-    /// Places the accessor-list braces of an event declaration on their own lines and starts every accessor on
-    /// its own line
-    /// </summary>
-    /// <param name="eventDeclaration">The event declaration</param>
-    /// <returns>The event declaration with its accessor list laid out</returns>
-    private EventDeclarationSyntax NormalizeEventAccessorList(EventDeclarationSyntax eventDeclaration)
-    {
-        eventDeclaration = _bracePlacer.NormalizeOwnedBraces(eventDeclaration, static declaration => declaration.AccessorList.OpenBraceToken, static declaration => declaration.AccessorList.CloseBraceToken);
-
-        return _bracePlacer.EnsureAccessorsStartOnSeparateLines(eventDeclaration, static declaration => declaration.AccessorList);
     }
 
     #endregion // Methods
@@ -284,24 +199,17 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
 
             case MethodDeclarationSyntax method:
                 {
-                    return NormalizeMethod(method);
-                }
-
-            case OperatorDeclarationSyntax operatorDeclaration:
-                {
-                    return operatorDeclaration.Body == null
-                               ? visited
-                               : _bracePlacer.NormalizeOwnedBraces(operatorDeclaration, static declaration => declaration.Body.OpenBraceToken, static declaration => declaration.Body.CloseBraceToken);
+                    return LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(method, method.ParameterList);
                 }
 
             case ConversionOperatorDeclarationSyntax conversionOperator:
                 {
-                    return NormalizeConversionOperator(conversionOperator);
+                    return LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(conversionOperator, conversionOperator.ParameterList);
                 }
 
             case DestructorDeclarationSyntax destructor:
                 {
-                    return NormalizeDestructor(destructor);
+                    return LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(destructor, destructor.ParameterList);
                 }
 
             case IndexerDeclarationSyntax indexer:
@@ -309,16 +217,9 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
                     return _accessorListLayout.Apply(indexer);
                 }
 
-            case EventDeclarationSyntax eventDeclaration:
-                {
-                    return LineBreakDetection.ShouldNormalizeAccessorListBraces(eventDeclaration.AccessorList)
-                               ? NormalizeEventAccessorList(eventDeclaration)
-                               : visited;
-                }
-
             case LocalFunctionStatementSyntax localFunction:
                 {
-                    return NormalizeLocalFunction(localFunction);
+                    return LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(localFunction, localFunction.ParameterList);
                 }
 
             case DelegateDeclarationSyntax delegateDeclaration:

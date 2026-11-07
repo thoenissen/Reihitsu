@@ -721,21 +721,20 @@ public class RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzerTests 
     }
 
     /// <summary>
-    /// Characterizes a partial override method whose parts lie in two regions that do not match its base type: it is
-    /// reported once for each part. This test pins today's behavior; the decided behavior is stated by SHARED-DIAG-004,
-    /// which judges a partial method by its symbol and reports it at most once, and its change belongs to an existing
-    /// follow-up
+    /// Verifies the specification example of a <see langword="partial"/> method both of whose parts lie outside
+    /// a matching region: it is reported once, on its defining part
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyPartialOverrideMethodIsReportedOncePerPart()
+    [Requirement("RH7401-001")]
+    [Requirement("SHARED-DIAG-004")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialMethodIsReportedOnceOnItsDefiningPart()
     {
         const string testData = """
-                                class B
+                                abstract class B
                                 {
-                                    public virtual void M()
-                                    {
-                                    }
+                                    public abstract void M();
                                 }
 
                                 partial class C : B
@@ -748,7 +747,7 @@ public class RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzerTests 
 
                                     #region Other
 
-                                    public override partial void {|#1:M|}()
+                                    public override partial void M()
                                     {
                                     }
 
@@ -756,7 +755,129 @@ public class RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzerTests 
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzer.DiagnosticId, CreateMessage("B"), 2));
+        await Verify(testData, Diagnostics(RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzer.DiagnosticId, CreateMessage("B")));
+    }
+
+    /// <summary>
+    /// Verifies that a <see langword="partial"/> override method whose implementing part stands first, with
+    /// both parts outside a matching region, is reported once, on its defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialOverrideMethodWithImplementingPartFirstIsReportedOnceOnItsDefiningPart()
+    {
+        const string testData = """
+                                abstract class B
+                                {
+                                    public abstract void M();
+                                }
+
+                                partial class C : B
+                                {
+                                    #region Other
+
+                                    public override partial void M()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    #region Methods
+
+                                    public override partial void {|#0:M|}();
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzer.DiagnosticId, CreateMessage("B")));
+    }
+
+    /// <summary>
+    /// Verifies that a <see langword="partial"/> override method whose implementing part lies in generated code, with
+    /// both parts outside a matching region, is reported once, on its defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialOverrideMethodWithGeneratedImplementingPartIsReportedOnItsDefiningPart()
+    {
+        const string definingPart = """
+                                    abstract class B
+                                    {
+                                        public abstract void M();
+                                    }
+
+                                    partial class C : B
+                                    {
+                                        #region Methods
+
+                                        public override partial void {|#0:M|}();
+
+                                        #endregion
+                                    }
+                                    """;
+
+        const string implementingPart = """
+                                        partial class C
+                                        {
+                                            #region Other
+
+                                            public override partial void M()
+                                            {
+                                            }
+
+                                            #endregion
+                                        }
+                                        """;
+
+        await Verify(definingPart,
+                     test => test.TestState.Sources.Add(("/0/C.g.cs", implementingPart)),
+                     Diagnostics(RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzer.DiagnosticId, CreateMessage("B")));
+    }
+
+    /// <summary>
+    /// Verifies that a <see langword="partial"/> override method whose defining part lies in generated code, with
+    /// both parts outside a matching region, is reported once, on its implementing part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialOverrideMethodWithGeneratedDefiningPartIsReportedOnItsImplementingPart()
+    {
+        const string userPart = """
+                                abstract class B
+                                {
+                                    public abstract void M();
+                                }
+
+                                partial class C : B
+                                {
+                                    #region Other
+
+                                    public override partial void {|#0:M|}()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        const string generatedPart = """
+                                     partial class C
+                                     {
+                                         #region Methods
+
+                                         public override partial void M();
+
+                                         #endregion
+                                     }
+                                     """;
+
+        await Verify(userPart,
+                     test => test.TestState.Sources.Add(("/0/C.g.cs", generatedPart)),
+                     Diagnostics(RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzer.DiagnosticId, CreateMessage("B")));
     }
 
     #endregion // Tests

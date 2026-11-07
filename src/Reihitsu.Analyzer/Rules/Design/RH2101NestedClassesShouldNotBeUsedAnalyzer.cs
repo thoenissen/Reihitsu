@@ -49,7 +49,7 @@ public class RH2101NestedClassesShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase
             return;
         }
 
-        if (NestedTypeAnalyzerHelper.IsNestedType(classDeclaration) is false || NestedTypeAnalyzerHelper.IsStaticType(classDeclaration))
+        if (NestedTypeAnalyzerHelper.IsNestedType(classDeclaration) is false || NestedTypeAnalyzerHelper.IsStaticType(classDeclaration, context.SemanticModel, context.CancellationToken))
         {
             return;
         }

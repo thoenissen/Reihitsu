@@ -19,7 +19,7 @@ You need the .NET 10 SDK. The scripts under `scripts/` are the entry points for 
 ```shell
 scripts/prepare.sh   # verify the toolchain
 scripts/build.sh     # build the solution in Release
-scripts/test.sh      # run all test projects
+scripts/test.sh      # run all test projects except the self-hosting scans, which CI runs
 ```
 
 Run a single test project or filter with `scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH3202"`.

@@ -186,11 +186,11 @@ internal sealed class GetOnlyMemberExpressionBodyTransform : CSharpSyntaxRewrite
             return false;
         }
 
-        arrowExpressionClause = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken)
-                                                                                 .WithLeadingTrivia(SyntaxFactory.Space)
-                                                                                 .WithTrailingTrivia(SyntaxFactory.Space),
+        // The created arrow gets no whitespace on either side; the spacing phase spaces it like every arrow (FMT-STRUCT-026,
+        // FMT-SPACE-017). The created tokens are built with explicit trivia, so they carry no elastic trivia
+        arrowExpressionClause = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.Token(SyntaxFactory.TriviaList(), SyntaxKind.EqualsGreaterThanToken, SyntaxFactory.TriviaList()),
                                                                     bodyExpression);
-        semicolonToken = SyntaxFactory.Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(semicolonTrailingTrivia);
+        semicolonToken = SyntaxFactory.Token(default, SyntaxKind.SemicolonToken, semicolonTrailingTrivia);
 
         return true;
     }

@@ -144,13 +144,4 @@ public class NodeLevelStructuralTransformTests : FormatterTestsBase
     }
 
     #endregion // Methods
-
-    #region Properties
-
-    /// <summary>
-    /// Test context
-    /// </summary>
-    public TestContext TestContext { get; set; }
-
-    #endregion // Properties
 }

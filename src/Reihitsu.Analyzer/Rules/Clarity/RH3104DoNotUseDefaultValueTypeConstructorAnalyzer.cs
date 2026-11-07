@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Threading;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -70,6 +72,55 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzer : DiagnosticAnaly
     }
 
     /// <summary>
+    /// Determine whether the creation stands where only a statement expression is valid: as the expression of an
+    /// expression statement, as an initializer or an iterator of a <c>for</c> statement, or as the expression body of a
+    /// function whose body is a statement. <c>default(S)</c> is not a statement expression, so the change the rule asks
+    /// for cannot be written there (CS0201)
+    /// </summary>
+    /// <param name="creationExpression">Creation expression</param>
+    /// <param name="semanticModel">Semantic model</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> if the creation stands as a statement</returns>
+    private static bool StandsAsStatement(ExpressionSyntax creationExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        switch (creationExpression.Parent)
+        {
+            case ExpressionStatementSyntax:
+                return true;
+
+            case ForStatementSyntax forStatement:
+                return forStatement.Initializers.Contains(creationExpression)
+                       || forStatement.Incrementors.Contains(creationExpression);
+
+            case ArrowExpressionClauseSyntax arrowExpressionClause:
+                return semanticModel.GetDeclaredSymbol(arrowExpressionClause.Parent, cancellationToken) is IMethodSymbol method
+                       && HasStatementBody(method);
+
+            case LambdaExpressionSyntax lambdaExpression when lambdaExpression.ExpressionBody == creationExpression:
+                return semanticModel.GetSymbolInfo(lambdaExpression, cancellationToken).Symbol is IMethodSymbol lambda
+                       && HasStatementBody(lambda);
+
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>
+    /// Determine whether the body of the function is a statement rather than a value: the function returns
+    /// <see langword="void"/>, or it is <see langword="async"/> and its return type, such as <c>Task</c> or
+    /// <c>ValueTask</c>, carries no value. Constructors, finalizers, and <c>set</c>, <c>init</c>, <c>add</c>, and
+    /// <c>remove</c> accessors return <see langword="void"/>
+    /// </summary>
+    /// <param name="method">Method symbol of the function</param>
+    /// <returns><see langword="true"/> if the expression body of the function stands as a statement</returns>
+    private static bool HasStatementBody(IMethodSymbol method)
+    {
+        return method.ReturnsVoid
+               || (method.IsAsync
+                   && method.ReturnType is INamedTypeSymbol { Arity: 0 });
+    }
+
+    /// <summary>
     /// Analyze implicit object creation expressions
     /// </summary>
     /// <param name="context">Context</param>
@@ -82,7 +133,8 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzer : DiagnosticAnaly
 
         if (ShouldReport(context.SemanticModel.GetTypeInfo(implicitObjectCreationExpression, context.CancellationToken).Type,
                          implicitObjectCreationExpression.ArgumentList?.Arguments.Count ?? 0,
-                         implicitObjectCreationExpression.Initializer != null))
+                         implicitObjectCreationExpression.Initializer != null)
+            && StandsAsStatement(implicitObjectCreationExpression, context.SemanticModel, context.CancellationToken) == false)
         {
             context.ReportDiagnostic(CreateDiagnostic(implicitObjectCreationExpression.NewKeyword.GetLocation()));
         }
@@ -101,7 +153,8 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzer : DiagnosticAnaly
 
         if (ShouldReport(context.SemanticModel.GetTypeInfo(objectCreationExpression, context.CancellationToken).Type,
                          objectCreationExpression.ArgumentList?.Arguments.Count ?? 0,
-                         objectCreationExpression.Initializer != null))
+                         objectCreationExpression.Initializer != null)
+            && StandsAsStatement(objectCreationExpression, context.SemanticModel, context.CancellationToken) == false)
         {
             context.ReportDiagnostic(CreateDiagnostic(objectCreationExpression.Type.GetLocation()));
         }

@@ -577,6 +577,266 @@ public class RH4105MethodParameterCasingAnalyzerTests : BatchCodeFixTestsBase<RH
         await Verify(testCode, testCode);
     }
 
+    /// <summary>
+    /// Verifies that a parameter keeps its diagnostic but gets no fix when an excluded <c>#if</c> branch of its method references it, because the rename would leave that reference behind
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenAnExcludedBranchReferencesTheParameter()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    public int M(int {|RH4105:Count|})
+                                    {
+                                #if NEVER
+                                        return Count + 1;
+                                #else
+                                        return Count;
+                                #endif
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a parameter of a partial method gets no fix when an excluded <c>#if</c> branch of the other part names that part's differently spelled parameter, because the rename renames that parameter with it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenAnExcludedBranchOfTheOtherPartOfAPartialMethodNamesItsDifferentlySpelledParameter()
+    {
+        const string testCode = """
+                                public partial class C
+                                {
+                                    public void Use()
+                                    {
+                                        Run(1);
+                                    }
+
+                                    partial void Run(int {|RH4105:Arg|});
+                                }
+                                """;
+
+        const string otherPartCode = """
+                                     public partial class C
+                                     {
+                                         partial void Run(int other)
+                                         {
+                                     #if NEVER
+                                             other++;
+                                     #endif
+                                         }
+                                     }
+                                     """;
+
+        await Verify(testCode,
+                     testCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherPartCode));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", otherPartCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that neither parameter of a partial method gets a fix when an excluded <c>#if</c> branch on the defining part names its parameter and the implementing part spells the parameter differently, because renaming either parameter renames the other with it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenAnExcludedBranchOfTheDefiningPartOfAPartialMethodNamesItsDifferentlySpelledParameter()
+    {
+        const string testCode = """
+                                public partial class C
+                                {
+                                    public void Use()
+                                    {
+                                        Run(1);
+                                    }
+
+                                #if NEVER
+                                    [System.Obsolete(nameof(Arg))]
+                                #endif
+                                    partial void Run(int {|RH4105:Arg|});
+                                }
+                                """;
+
+        const string otherPartCode = """
+                                     public partial class C
+                                     {
+                                         partial void Run(int {|RH4105:Other|})
+                                         {
+                                         }
+                                     }
+                                     """;
+
+        await Verify(testCode,
+                     testCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherPartCode));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", otherPartCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a parameter of a partial indexer gets no fix when an excluded <c>#if</c> branch of the other part names that part's differently spelled parameter, because the rename renames that parameter with it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenAnExcludedBranchOfTheOtherPartOfAPartialIndexerNamesItsDifferentlySpelledParameter()
+    {
+        const string testCode = """
+                                public partial class C
+                                {
+                                    public partial int this[int {|RH4105:Index|}] { get; }
+                                }
+                                """;
+
+        const string otherPartCode = """
+                                     public partial class C
+                                     {
+                                         public partial int this[int position]
+                                         {
+                                             get
+                                             {
+                                     #if NEVER
+                                                 return position;
+                                     #endif
+                                                 return 0;
+                                             }
+                                         }
+                                     }
+                                     """;
+
+        await Verify(testCode,
+                     testCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherPartCode));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", otherPartCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a parameter of a partial method gets no fix when an excluded <c>#if</c> branch of the other part names the new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenAnExcludedBranchOfTheOtherPartOfAPartialMethodNamesTheNewName()
+    {
+        const string testCode = """
+                                public partial class C
+                                {
+                                    public void Use()
+                                    {
+                                        Run(1);
+                                    }
+
+                                    partial void Run(int {|RH4105:Arg|});
+                                }
+                                """;
+
+        const string otherPartCode = """
+                                     public partial class C
+                                     {
+                                         partial void Run(int other)
+                                         {
+                                     #if NEVER
+                                             int arg = 0;
+                                     #endif
+                                         }
+                                     }
+                                     """;
+
+        await Verify(testCode,
+                     testCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherPartCode));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", otherPartCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames the parameter in both parts of a partial method, also where the other part spells it differently, and every reference to it, when no excluded <c>#if</c> branch names an old name or the new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    public async Task FixRenamesTheDifferentlySpelledParameterInBothPartsOfAPartialMethodWhenNoExcludedBranchNamesIt()
+    {
+        const string testCode = """
+                                public partial class C
+                                {
+                                    public void Use()
+                                    {
+                                        Run(1);
+                                    }
+
+                                    partial void Run(int {|RH4105:Arg|});
+                                }
+                                """;
+
+        const string otherPartCode = """
+                                     public partial class C
+                                     {
+                                         partial void Run(int other)
+                                         {
+                                             other++;
+                                     #if NEVER
+                                             System.Console.WriteLine();
+                                     #endif
+                                         }
+                                     }
+                                     """;
+
+        const string fixedCode = """
+                                 public partial class C
+                                 {
+                                     public void Use()
+                                     {
+                                         Run(1);
+                                     }
+
+                                     partial void Run(int arg);
+                                 }
+                                 """;
+
+        const string fixedOtherPartCode = """
+                                          public partial class C
+                                          {
+                                              partial void Run(int arg)
+                                              {
+                                                  arg++;
+                                          #if NEVER
+                                                  System.Console.WriteLine();
+                                          #endif
+                                              }
+                                          }
+                                          """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherPartCode));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", fixedOtherPartCode));
+                     });
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

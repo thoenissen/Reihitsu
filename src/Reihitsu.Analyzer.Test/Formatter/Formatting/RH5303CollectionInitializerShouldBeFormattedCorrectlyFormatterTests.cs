@@ -192,10 +192,14 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyFormatterTests
     }
 
     /// <summary>
-    /// Verifies that comment-prefixed complex-element tokens remain analyzer-clean and formatter-stable
+    /// Verifies that comment-prefixed complex-element tokens measured from the opening brace behind its leading comment remain
+    /// analyzer-clean and formatter-stable
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-INIT-002")]
+    [Requirement("FMT-INDENT-023")]
+    [Requirement("FMT-INDENT-030")]
     public async Task VerifyFormatterKeepsCommentPrefixedComplexElementStable()
     {
         const string source = """
@@ -210,16 +214,179 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyFormatterTests
                                       var values = new Dictionary<Data, Data>()
                                                    {
                                                        /* Keep element. */ {
-                                                           /* Keep key. */ existingKey,
+                                                                               /* Keep key. */ existingKey,
 
-                                                           /* Keep value. */ existingValue
-                                                       /* Keep close. */ }
+                                                                               /* Keep value. */ existingValue
+                                                                           /* Keep close. */ }
                                                    };
                                   }
                               }
                               """;
 
         await VerifyFormatter(source);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter moves the expressions and the closing brace of a comment-prefixed complex element from the
+    /// comment's column to the brace's column and clears the diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-002")]
+    [Requirement("FMT-INDENT-023")]
+    [Requirement("FMT-INDENT-030")]
+    public async Task VerifyFormatterAlignsCommentPrefixedComplexElementToItsBrace()
+    {
+        const string input = """
+                             using System.Collections.Generic;
+
+                             internal class Data;
+
+                             internal class Example
+                             {
+                                 private static void Method(Data existingKey, Data existingValue)
+                                 {
+                                     var values = new Dictionary<Data, Data>()
+                                                  {
+                                                      /* Keep element. */ {|#0:{
+                                                          /* Keep key. */ existingKey,
+
+                                                          /* Keep value. */ existingValue
+                                                      /* Keep close. */ }|}
+                                                  };
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Data;
+
+                                 internal class Example
+                                 {
+                                     private static void Method(Data existingKey, Data existingValue)
+                                     {
+                                         var values = new Dictionary<Data, Data>()
+                                                      {
+                                                          /* Keep element. */ {
+                                                                                  /* Keep key. */ existingKey,
+
+                                                                                  /* Keep value. */ existingValue
+                                                                              /* Keep close. */ }
+                                                      };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter aligns a complex element whose brace stands behind the last line of a multi-line comment to
+    /// that brace and clears the diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-002")]
+    [Requirement("FMT-INDENT-023")]
+    [Requirement("FMT-INDENT-030")]
+    public async Task VerifyFormatterAlignsComplexElementToItsBraceBehindTheLastLineOfAMultiLineComment()
+    {
+        const string input = """
+                             using System.Collections.Generic;
+
+                             internal class Data;
+
+                             internal class Example
+                             {
+                                 private static void Method(Data existingKey, Data existingValue)
+                                 {
+                                     var values = new Dictionary<Data, Data>()
+                                                  {
+                                                      /* Keep
+                                                         element. */ {|#0:{
+                                                          existingKey,
+                                                          existingValue
+                                                      }|}
+                                                  };
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Data;
+
+                                 internal class Example
+                                 {
+                                     private static void Method(Data existingKey, Data existingValue)
+                                     {
+                                         var values = new Dictionary<Data, Data>()
+                                                      {
+                                                          /* Keep
+                                                             element. */ {
+                                                                             existingKey,
+                                                                             existingValue
+                                                                         }
+                                                      };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter aligns the braces of a collection creation whose <c>new</c> stands behind a comment that leads
+    /// its line to <c>new</c>, where the analyzer measures it, and clears the diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5303-001")]
+    [Requirement("FMT-INDENT-022")]
+    [Requirement("FMT-INDENT-030")]
+    public async Task VerifyFormatterAlignsCollectionCreationToNewBehindCommentThatLeadsTheLine()
+    {
+        const string input = """
+                             using System.Collections.Generic;
+
+                             internal class Example
+                             {
+                                 private static void Method()
+                                 {
+                                     var values =
+
+                                     /* c */ {|#0:new List<int>
+                                     {
+                                         2
+                                     }|};
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Example
+                                 {
+                                     private static void Method()
+                                     {
+                                         var values =
+
+                                         /* c */ new List<int>
+                                                 {
+                                                     2
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
     }
 
     /// <summary>

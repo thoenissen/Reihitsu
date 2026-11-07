@@ -39,7 +39,8 @@ public class RH7003FileScopedNamespacesShouldBeUsedAnalyzer : DiagnosticAnalyzer
 
     /// <summary>
     /// Determines whether the given namespace declaration can be converted to a file-scoped namespace without
-    /// changing the file's scope
+    /// changing the file's scope: it is the compilation unit's only member and declares no namespace among its
+    /// own members, because a file-scoped namespace cannot stand next to a block-scoped one
     /// </summary>
     /// <param name="namespaceDeclaration">Namespace declaration</param>
     /// <returns><see langword="true"/> if the namespace should be diagnosed; otherwise, <see langword="false"/></returns>
@@ -51,6 +52,11 @@ public class RH7003FileScopedNamespacesShouldBeUsedAnalyzer : DiagnosticAnalyzer
         }
 
         if (compilationUnit.Members.Count != 1 || compilationUnit.Members[0] != namespaceDeclaration)
+        {
+            return false;
+        }
+
+        if (namespaceDeclaration.Members.Any(member => member is BaseNamespaceDeclarationSyntax))
         {
             return false;
         }

@@ -314,6 +314,25 @@ public class RH4111PrivatePropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that a private property keeps its diagnostic but gets no fix when its new name is the name of a positional parameter of its record, because the public property the compiler declares for the parameter would disappear
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheRenameWouldMatchAPositionalParameter()
+    {
+        const string testCode = """
+                                public record R(int Count)
+                                {
+                                    private int {|RH4111:count|} => 0;
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

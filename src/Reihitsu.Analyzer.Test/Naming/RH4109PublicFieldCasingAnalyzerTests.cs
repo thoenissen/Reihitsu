@@ -228,6 +228,25 @@ public class RH4109PublicFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH4109
                      });
     }
 
+    /// <summary>
+    /// Verifies that a field keeps its diagnostic but gets no fix when it is the member of a record's positional parameter of the same name, because after the rename the compiler would declare a public property for the parameter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheRenameWouldSplitTheFieldFromItsPositionalParameter()
+    {
+        const string testCode = """
+                                public record R(int count)
+                                {
+                                    public int {|RH4109:count|} = count;
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

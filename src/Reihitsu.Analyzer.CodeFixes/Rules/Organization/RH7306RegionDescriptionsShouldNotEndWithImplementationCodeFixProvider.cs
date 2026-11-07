@@ -22,15 +22,6 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Organization;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH7306RegionDescriptionsShouldNotEndWithImplementationCodeFixProvider))]
 public class RH7306RegionDescriptionsShouldNotEndWithImplementationCodeFixProvider : CodeFixProvider
 {
-    #region Constants
-
-    /// <summary>
-    /// Forbidden suffix
-    /// </summary>
-    private const string ForbiddenSuffix = "implementation";
-
-    #endregion // Constants
-
     #region Methods
 
     /// <summary>
@@ -43,31 +34,23 @@ public class RH7306RegionDescriptionsShouldNotEndWithImplementationCodeFixProvid
     private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-        if (root == null)
+        if (root == null
+            || TryGetDirectivesToFix(root, diagnosticSpan, out var directives) == false)
         {
             return document;
         }
 
+        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var replacements = new List<(TextSpan Span, string Text)>();
 
-        foreach (var directiveSpan in GetDirectiveLineStarts(root, diagnosticSpan))
+        foreach (var directive in directives)
         {
-            var line = text.Lines.GetLineFromPosition(directiveSpan);
+            var line = text.Lines.GetLineFromPosition(directive.SpanStart);
             var lineSpan = TextSpan.FromBounds(line.Start, line.End);
             var lineText = text.ToString(lineSpan);
-            var updatedLineText = RemoveForbiddenSuffixFromLine(lineText);
 
-            if (updatedLineText != lineText)
-            {
-                replacements.Add((lineSpan, updatedLineText));
-            }
-        }
-
-        if (replacements.Count == 0)
-        {
-            return document;
+            replacements.Add((lineSpan, RemoveForbiddenSuffixFromLine(lineText)));
         }
 
         var updatedText = text;
@@ -81,12 +64,12 @@ public class RH7306RegionDescriptionsShouldNotEndWithImplementationCodeFixProvid
     }
 
     /// <summary>
-    /// Gets the line start positions of the flagged directive and its matching paired directive
+    /// Gets the reported directive
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>
-    /// <returns>The line start positions to inspect</returns>
-    private static IEnumerable<int> GetDirectiveLineStarts(SyntaxNode root, TextSpan diagnosticSpan)
+    /// <returns>The reported region or endregion directive, or <see langword="null"/></returns>
+    private static DirectiveTriviaSyntax GetReportedDirective(SyntaxNode root, TextSpan diagnosticSpan)
     {
         var directive = root.FindTrivia(diagnosticSpan.Start, findInsideTrivia: true).GetStructure() as DirectiveTriviaSyntax;
 
@@ -99,57 +82,72 @@ public class RH7306RegionDescriptionsShouldNotEndWithImplementationCodeFixProvid
                                    .FirstOrDefault();
         }
 
-        if (directive == null)
-        {
-            yield return diagnosticSpan.Start;
-
-            yield break;
-        }
-
-        yield return directive.GetLocation().SourceSpan.Start;
-
-        foreach (var related in directive.GetRelatedDirectives())
-        {
-            if (related != directive
-                && (related.IsKind(SyntaxKind.RegionDirectiveTrivia) || related.IsKind(SyntaxKind.EndRegionDirectiveTrivia)))
-            {
-                yield return related.GetLocation().SourceSpan.Start;
-            }
-        }
+        return directive is RegionDirectiveTriviaSyntax or EndRegionDirectiveTriviaSyntax
+                   ? directive
+                   : null;
     }
 
     /// <summary>
-    /// Determines whether the specified description ends with the forbidden suffix
+    /// Gets the reported directive and its paired directive whose descriptions end with the forbidden suffix, judged
+    /// by the analyzer's own predicate on each directive's description. The fix is withheld when nothing would remain
+    /// of one of these descriptions
     /// </summary>
-    /// <param name="description">Description to inspect</param>
-    /// <returns><see langword="true"/> if the suffix is present</returns>
-    private static bool EndsWithForbiddenSuffix(string description)
+    /// <param name="root">Syntax root</param>
+    /// <param name="diagnosticSpan">Diagnostic span</param>
+    /// <param name="directives">Directives whose line loses the suffix</param>
+    /// <returns><see langword="true"/> if the fix can remove the suffix from every one of them</returns>
+    private static bool TryGetDirectivesToFix(SyntaxNode root, TextSpan diagnosticSpan, out List<DirectiveTriviaSyntax> directives)
     {
-        var trimmedDescription = description.TrimEnd();
+        directives = [];
 
-        if (trimmedDescription.EndsWith(ForbiddenSuffix, StringComparison.OrdinalIgnoreCase) == false)
+        var directive = GetReportedDirective(root, diagnosticSpan);
+
+        if (directive == null)
         {
             return false;
         }
 
-        return trimmedDescription.Length == ForbiddenSuffix.Length
-               || char.IsWhiteSpace(trimmedDescription[trimmedDescription.Length - ForbiddenSuffix.Length - 1]);
+        var candidates = new List<DirectiveTriviaSyntax>
+                         {
+                             directive
+                         };
+
+        candidates.AddRange(directive.GetRelatedDirectives()
+                                     .Where(related => related != directive
+                                                       && (related.IsKind(SyntaxKind.RegionDirectiveTrivia) || related.IsKind(SyntaxKind.EndRegionDirectiveTrivia))));
+
+        foreach (var candidate in candidates)
+        {
+            var description = RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer.GetDescription(candidate);
+
+            if (RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer.EndsWithForbiddenSuffix(description) == false)
+            {
+                continue;
+            }
+
+            if (RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer.IsForbiddenSuffixAlone(description))
+            {
+                directives.Clear();
+
+                return false;
+            }
+
+            directives.Add(candidate);
+        }
+
+        return directives.Count > 0;
     }
 
     /// <summary>
-    /// Removes the forbidden suffix from a directive line
+    /// Removes the forbidden suffix and the whitespace in front of it from a directive line whose description ends
+    /// with the suffix. The description is the end of the line, so the suffix is the last word of the line
     /// </summary>
     /// <param name="lineText">Line text</param>
     /// <returns>The updated line text</returns>
     private static string RemoveForbiddenSuffixFromLine(string lineText)
     {
-        if (EndsWithForbiddenSuffix(lineText) == false)
-        {
-            return lineText;
-        }
-
         var trimmedLength = lineText.TrimEnd().Length;
-        var removalStart = trimmedLength - ForbiddenSuffix.Length;
+        var removalStart = trimmedLength - RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer.ForbiddenSuffix.Length;
 
         while (removalStart > 0 && char.IsWhiteSpace(lineText[removalStart - 1]))
         {
@@ -173,17 +171,27 @@ public class RH7306RegionDescriptionsShouldNotEndWithImplementationCodeFixProvid
     }
 
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
+        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+
+        if (root == null)
+        {
+            return;
+        }
+
         foreach (var diagnostic in context.Diagnostics)
         {
+            if (TryGetDirectivesToFix(root, diagnostic.Location.SourceSpan, out _) == false)
+            {
+                continue;
+            }
+
             context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7306Title,
                                                       token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
                                                       nameof(RH7306RegionDescriptionsShouldNotEndWithImplementationCodeFixProvider)),
                                     diagnostic);
         }
-
-        return Task.CompletedTask;
     }
 
     #endregion // CodeFixProvider

@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
@@ -136,57 +137,223 @@ public class RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnal
     }
 
     /// <summary>
-    /// Characterizes that the fix removes a comment inside the empty argument list together with the list
+    /// Verifies a comment inside the empty argument list is reported without a code fix, because the fix would delete
+    /// it with the parentheses
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixRemovesACommentInsideTheArgumentList()
+    [Requirement("SHARED-PARENS-003")]
+    public async Task CommentInsideTheArgumentListIsReportedWithoutACodeFix()
     {
         const string testCode = """
                                 using System;
 
-                                [Obsolete(/* none */)]
+                                [Obsolete{|RH3107:(/* none */)|}]
                                 class C
                                 {
                                 }
                                 """;
 
-        const string expectedCode = """
-                                    using System;
-
-                                    [Obsolete]
-                                    class C
-                                    {
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Characterizes that the fix keeps the whitespace on both sides of the removed argument list
+    /// Verifies preprocessor directives inside the empty argument list are reported without a code fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixKeepsTheWhitespaceOnBothSidesOfTheArgumentList()
+    [Requirement("SHARED-PARENS-003")]
+    public async Task DirectiveInsideTheArgumentListIsReportedWithoutACodeFix()
     {
         const string testCode = """
                                 using System;
 
-                                [Obsolete /* a */ ( ) /* b */]
+                                [Obsolete{|RH3107:(
+                                #if DEBUG
+                                #endif
+                                )|}]
                                 class C
                                 {
                                 }
                                 """;
 
-        const string expectedCode = """
-                                    using System;
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
 
-                                    [Obsolete /* a */  /* b */]
-                                    class C
+    /// <summary>
+    /// Verifies Fix All leaves an argument list with a comment inside as written and reported, and removes the other
+    /// empty argument lists of the document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-PARENS-003")]
+    public async Task FixAllLeavesAnArgumentListWithACommentInsideReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                [Obsolete{|RH3107:(/* none */)|}]
+                                class C
+                                {
+                                    [Obsolete{|RH3107:()|}]
+                                    void M()
                                     {
                                     }
-                                    """;
+
+                                    [Obsolete{|RH3107:()|}]
+                                    void N()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 [Obsolete{|RH3107:(/* none */)|}]
+                                 class C
+                                 {
+                                     [Obsolete]
+                                     void M()
+                                     {
+                                     }
+
+                                     [Obsolete]
+                                     void N()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         // The diagnostics whose fix is withheld stay and are marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies the fix leaves one space between two comments that stood on both sides of the removed argument list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-PARENS-002")]
+    public async Task FixLeavesOneSpaceBetweenTheCommentsOnBothSidesOfTheArgumentList()
+    {
+        const string testCode = """
+                                using System;
+
+                                [Obsolete /* a */ {|RH3107:( )|} /* b */]
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 [Obsolete /* a */ /* b */]
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix leaves no space in front of the <c>]</c> behind the attribute
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-PARENS-002")]
+    public async Task FixLeavesNoSpaceInFrontOfTheClosingBracket()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    [Obsolete /* a */ {|RH3107:()|}]
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     [Obsolete /* a */]
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix leaves no space in front of the <c>,</c> behind the attribute
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-PARENS-002")]
+    public async Task FixLeavesNoSpaceInFrontOfTheComma()
+    {
+        const string testCode = """
+                                using System;
+
+                                [Obsolete {|RH3107:()|}, Serializable]
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 [Obsolete, Serializable]
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix leaves no space in front of the <c>]</c> behind the attribute in a document whose line breaks
+    /// are CRLF, and keeps those line breaks
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-PARENS-002")]
+    public async Task FixLeavesNoSpaceInFrontOfTheClosingBracketWithCarriageReturnLineFeed()
+    {
+        var testCode = NormalizeToCarriageReturnLineFeed("""
+                                                         using System;
+
+                                                         [Obsolete /* a */ ()]
+                                                         class C
+                                                         {
+                                                         }
+                                                         """);
+
+        var expectedCode = NormalizeToCarriageReturnLineFeed("""
+                                                             using System;
+
+                                                             [Obsolete /* a */]
+                                                             class C
+                                                             {
+                                                             }
+                                                             """);
 
         Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
     }

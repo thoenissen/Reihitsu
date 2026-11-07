@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -25,11 +26,38 @@ public abstract class FormatterTestsBase
 
     #endregion // Fields
 
+    #region Properties
+
+    /// <summary>
+    /// Test context for the current test. Declared once here, so every formatter test class uses this property
+    /// </summary>
+    public TestContext TestContext { get; set; }
+
+    #endregion // Properties
+
     #region Methods
 
     /// <summary>
+    /// Starts the phase-level stability check of the current test
+    /// </summary>
+    [TestInitialize]
+    public void BeginPhaseStabilityCheck()
+    {
+        PhaseStabilityCheck.BeginTest();
+    }
+
+    /// <summary>
+    /// Ends the phase-level stability check of the current test
+    /// </summary>
+    [TestCleanup]
+    public void EndPhaseStabilityCheck()
+    {
+        PhaseStabilityCheck.EndTest();
+    }
+
+    /// <summary>
     /// Applies the formatter rule and verifies both first-pass and second-pass results under both
-    /// LF and CRLF line endings
+    /// LF and CRLF line endings, and that no phase of the pipeline, run alone, changes the final output
     /// </summary>
     /// <param name="input">The input source text</param>
     /// <param name="expected">The expected formatted output, or <see langword="null"/> when the input is already formatted</param>
@@ -40,6 +68,57 @@ public abstract class FormatterTestsBase
         {
             AssertRuleResult(input, expected, endOfLine, parseOptions);
         }
+    }
+
+    /// <summary>
+    /// Formats the input once and verifies, under both LF and CRLF line endings, that a second pass leaves the output
+    /// of the first pass unchanged and that no phase of the pipeline, run alone, changes that output. Used where a
+    /// requirement leaves the exact output open but the result must still be a fixed point of the formatter
+    /// </summary>
+    /// <param name="input">The input source text</param>
+    /// <param name="parseOptions">The parse options to use, or <see langword="null"/> for the defaults</param>
+    protected static void AssertSecondPassIsStable(string input, CSharpParseOptions parseOptions = null)
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var endingName = DescribeLineEnding(endOfLine);
+            var firstPass = ApplyRule(NormalizeLineEndings(input, endOfLine), endOfLine, parseOptions);
+
+            AssertUsesLineEnding(firstPass, endOfLine);
+
+            var secondPass = ApplyRule(firstPass, endOfLine, parseOptions);
+
+            Assert.AreEqual(firstPass, secondPass, $"Formatter is not idempotent under {endingName} line endings.");
+
+            PhaseStabilityCheck.Verify(secondPass, endOfLine, parseOptions);
+        }
+    }
+
+    /// <summary>
+    /// Formats the input once under LF and CRLF line endings and verifies only whether the line above each named line of
+    /// the output is blank, then verifies that a second pass is stable as <see cref="AssertSecondPassIsStable"/> does.
+    /// Used where a requirement decides the blank lines of a fixture but no requirement decides the columns of its lines
+    /// </summary>
+    /// <param name="input">The input source text</param>
+    /// <param name="expectations">For each line, identified as the first output line whose text without leading whitespace starts with <c>LineStart</c>, whether the line above it is blank</param>
+    protected static void AssertBlankLinesAbove(string input, params (string LineStart, bool IsBlankAbove)[] expectations)
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var endingName = DescribeLineEnding(endOfLine);
+            var output = ApplyRule(NormalizeLineEndings(input, endOfLine), endOfLine);
+            var lines = output.Split(endOfLine);
+
+            foreach (var (lineStart, isBlankAbove) in expectations)
+            {
+                var index = Array.FindIndex(lines, line => line.TrimStart().StartsWith(lineStart, StringComparison.Ordinal));
+
+                Assert.IsGreaterThan(0, index, $"The output under {endingName} line endings has no line starting with '{lineStart}' below its first line:{Environment.NewLine}{output}");
+                Assert.AreEqual(isBlankAbove, string.IsNullOrWhiteSpace(lines[index - 1]), $"Unexpected blank line state above '{lineStart}' under {endingName} line endings:{Environment.NewLine}{output}");
+            }
+        }
+
+        AssertSecondPassIsStable(input);
     }
 
     /// <summary>
@@ -87,7 +166,7 @@ public abstract class FormatterTestsBase
     /// <summary>
     /// Applies the formatter rule with the requested end-of-line sequence and parse options, and
     /// verifies that the output matches the expected text, uses the requested ending byte-for-byte,
-    /// and is idempotent
+    /// is idempotent, and that no phase of the pipeline, run alone, changes it
     /// </summary>
     /// <param name="input">The input source text</param>
     /// <param name="expected">The expected formatted output, or <see langword="null"/> when the input is already formatted</param>
@@ -104,6 +183,8 @@ public abstract class FormatterTestsBase
 
             Assert.AreEqual(normalizedInput, actual, $"Formatter changed already-formatted source under {endingName} line endings.");
             AssertUsesLineEnding(actual, endOfLine);
+
+            PhaseStabilityCheck.Verify(actual, endOfLine, parseOptions);
         }
         else
         {
@@ -116,6 +197,8 @@ public abstract class FormatterTestsBase
             var actualSecondPass = ApplyRule(actual, endOfLine, parseOptions);
 
             Assert.AreEqual(normalizedExpected, actualSecondPass, $"Formatter is not idempotent under {endingName} line endings.");
+
+            PhaseStabilityCheck.Verify(actualSecondPass, endOfLine, parseOptions);
         }
     }
 
@@ -130,9 +213,22 @@ public abstract class FormatterTestsBase
     /// <returns>The formatted source text</returns>
     private static string ApplyRule(string input, string endOfLine, CSharpParseOptions parseOptions = null)
     {
-        var tree = CSharpSyntaxTree.ParseText(input, parseOptions);
-        var context = new FormattingContext(endOfLine, languageVersion: LanguageVersionResolver.Resolve(tree.Options));
-        var result = FormattingPipeline.Execute(tree.GetRoot(), context, CancellationToken.None);
+        var (root, context) = SecondPassInput.Create(input, endOfLine, parseOptions);
+
+        if (root.ContainsDiagnostics
+            && root.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
+        {
+            return FormattingPipeline.Execute(root, context, CancellationToken.None).ToFullString();
+        }
+
+        // Every phase's tree has to parse back to itself with the fixture's parse options (FMT-PIPE-021), so every
+        // fixture of the formatter tests checks it on each pass
+        var (result, failures) = PhaseTreeRoundTrip.ExecuteAndCompare(root, context, (CSharpParseOptions)root.SyntaxTree.Options);
+
+        if (failures.Count > 0)
+        {
+            Assert.Fail(string.Join(Environment.NewLine, failures));
+        }
 
         return result.ToFullString();
     }

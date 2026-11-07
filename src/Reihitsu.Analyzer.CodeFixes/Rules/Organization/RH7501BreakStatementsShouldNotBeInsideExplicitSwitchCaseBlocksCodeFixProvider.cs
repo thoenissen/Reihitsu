@@ -67,6 +67,35 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksCodeF
     }
 
     /// <summary>
+    /// Determines whether the <c>break</c> can move behind the block without rearranging a line or separating a
+    /// directive: the <c>break</c> keyword is the first token on its line, so not even the block's opening brace
+    /// precedes it there, the block's closing brace is the first token on its line, and no directive and no code that <c>#if</c> excludes lies between the token in front of the
+    /// <c>break</c> and the closing brace
+    /// </summary>
+    /// <param name="breakStatement">Break statement</param>
+    /// <param name="block">Containing block</param>
+    /// <returns><see langword="true"/> if the <c>break</c> can be moved</returns>
+    private static bool CanMoveBreak(BreakStatementSyntax breakStatement, BlockSyntax block)
+    {
+        var previousToken = breakStatement.GetFirstToken().GetPreviousToken();
+        var lastBreakToken = breakStatement.GetLastToken();
+        var closeBraceToken = block.CloseBraceToken;
+        var sourceText = breakStatement.SyntaxTree.GetText();
+
+        if (sourceText.Lines.GetLineFromPosition(previousToken.Span.End).LineNumber == sourceText.Lines.GetLineFromPosition(breakStatement.SpanStart).LineNumber
+            || sourceText.Lines.GetLineFromPosition(lastBreakToken.Span.End).LineNumber == sourceText.Lines.GetLineFromPosition(closeBraceToken.SpanStart).LineNumber)
+        {
+            return false;
+        }
+
+        var trivia = previousToken.TrailingTrivia
+                                  .Concat(breakStatement.DescendantTokens().SelectMany(token => token.LeadingTrivia.Concat(token.TrailingTrivia)))
+                                  .Concat(closeBraceToken.LeadingTrivia);
+
+        return trivia.Any(currentTrivia => currentTrivia.IsDirective || currentTrivia.IsKind(SyntaxKind.DisabledTextTrivia)) == false;
+    }
+
+    /// <summary>
     /// Tries to get the nodes required for a safe code fix
     /// </summary>
     /// <param name="breakStatement">Break statement</param>
@@ -83,7 +112,8 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksCodeF
             || breakBlock.Statements.Count == 0
             || breakBlock.Statements[breakBlock.Statements.Count - 1] != breakStatement
             || containingSwitchSection.Statements.Count == 0
-            || containingSwitchSection.Statements[containingSwitchSection.Statements.Count - 1] != breakBlock)
+            || containingSwitchSection.Statements[containingSwitchSection.Statements.Count - 1] != breakBlock
+            || CanMoveBreak(breakStatement, breakBlock) == false)
         {
             return false;
         }

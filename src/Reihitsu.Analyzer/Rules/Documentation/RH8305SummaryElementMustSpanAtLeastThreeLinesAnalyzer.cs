@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
@@ -58,6 +59,14 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer : DiagnosticA
         }
 
         var sourceText = context.Node.SyntaxTree.GetText(context.CancellationToken);
+
+        // The formatter keeps a comment stranded behind code, or one with an element without an end tag of its own, as
+        // written, so the fix would change nothing and the diagnostic would stay for good
+        if (DocumentationCommentUtilities.IsLeftAsWritten(documentationComment.ParentTrivia, sourceText))
+        {
+            return;
+        }
+
         var startTagSpan = summaryElement.StartTag.Span;
         var endTagSpan = summaryElement.EndTag.Span;
 

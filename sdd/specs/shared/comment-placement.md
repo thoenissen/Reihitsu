@@ -5,7 +5,7 @@
 | ID prefix | SHARED-COMMENT |
 | Status | Active |
 | Code owners | `CommentPositionAnalyzerBase`, `CommentRegionAnalyzerBase`, `CommentPositionUtilities`, `FluentChainAnalysisHelper` |
-| Uses | SHARED-BLANK-002, SHARED-CHAIN-004 |
+| Uses | SHARED-BLANK-002, SHARED-CHAIN-004, FMT-BREAK-006, FMT-BREAK-033, FMT-BREAK-034 |
 
 This spec covers the rules that report a comment placed in a position inside a declaration or a statement: which comments they check, where the diagnostic is, and, for the rules that report every comment inside a delimited region such as an argument list or a statement header, which gaps of the region count and which comment positions inside it stay valid. Each rule that uses this spec states the positions it reports, or the regions it checks, and any exception of its own.
 
@@ -514,12 +514,12 @@ class C
 
 A delimited comment — `/* */` or `/** */` — whose closing `*/` stands on a later line than its opening MUST belong to the line on which it starts. The first token behind the closing `*/` on the comment's last line MUST NOT count as starting a line, whatever stands in front of the comment:
 
-- where a requirement of the formatter asks that token to start its own line, the formatter MUST break the line in front of the token;
+- where a requirement of the formatter asks that token to start its own line, the formatter MUST break the line in front of the token. A statement, a switch section, and a switch label are the exceptions: whether the formatter breaks the line in front of one of them behind the closing `*/` or leaves it there is stated by FMT-BREAK-006 for a statement, and by FMT-BREAK-033 and FMT-BREAK-034 for a section and a label;
 - a rule that checks where a line starts — whether a token starts its line, or in which column a line starts — MUST NOT take the comment's last line for a line of its own. When the token would start its line if the comment were not there, because only whitespace stands between the line break in front of the comment and the comment, and between the comment and the token, and the token is one the rule judges where it starts a line, such as an argument of a wrapped argument list for RH5203, the rule MUST report the token, whatever column it reaches, because the token does not start its line; the diagnostic is located where the rule's own requirements locate it. A token that stands behind code on the comment's first line is judged as the rule judges a token behind code on its line.
 
 A delimited comment that starts and ends on the token's line is not covered; it is the line's first element when it starts its line, as SHARED-COMMENT-011 specifies. A `///` comment ends with its line, so a token on the next line starts that line. This requirement states for tokens what SHARED-BLANK-002 states for trivia behind such a comment.
 
-Why: The author writes a comment that spans several lines as part of the line it starts on, and its last line continues that line rather than starting a new one. A token behind the closing `*/` sits where a reader does not look for the start of a statement, a member, or an argument, so it is placed by the line it continues: the formatter gives it a line of its own where one is required, and the rules that judge line starts report it there. A rule and the formatter that took the comment's last line for a line of its own would disagree with those that do not, on the same code.
+Why: The author writes a comment that spans several lines as part of the line it starts on, and its last line continues that line rather than starting a new one. A token behind the closing `*/` sits where a reader does not look for the start of a statement, a member, or an argument, so it is placed by the line it continues: the formatter gives it a line of its own where one is required, and the rules that judge line starts report it there. Statements, switch sections, and switch labels are the exceptions for the formatter: it leaves code behind a comment on its line in many places, and a statement, a section, or a label there stays where the author put it unless its line has to end anyway (FMT-BREAK-006, FMT-BREAK-033, FMT-BREAK-034). A rule and the formatter that took the comment's last line for a line of its own would disagree with those that do not, on the same code.
 
 Example — the formatter breaks the line in front of `Foo();`, which the block asks to start its own line:
 

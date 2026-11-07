@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -394,6 +395,320 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
         const string fixedData = "class C\r\n{\r\n    int x;    // a\tb\r\n}";
 
         await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the tabs indenting the content line and the closing line of an interpolated multi-line raw string are part of the literal and are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-002")]
+    [Requirement("SHARED-DIAG-003")]
+    public async Task VerifyNoDiagnosticsForTabsInTheClosingLineOfAnInterpolatedRawString()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    string s = $"""
+                                →→a
+                                →→""";
+                                }
+                                """";
+
+        await Verify(ExpandWhitespaceMarkers(testData));
+    }
+
+    /// <summary>
+    /// Verifies that the tabs indenting the lines of an interpolated multi-line raw string are not reported when the document uses CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-002")]
+    [Requirement("SHARED-DIAG-003")]
+    public async Task VerifyNoDiagnosticsForTabsInTheClosingLineOfAnInterpolatedRawStringWithCarriageReturnLineFeed()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    string s = $"""
+                                →→a
+                                →→""";
+                                }
+                                """";
+
+        await Verify(NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(testData)));
+    }
+
+    /// <summary>
+    /// Verifies that the tabs indenting the content line and the closing line of a plain multi-line raw string are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-002")]
+    [Requirement("SHARED-DIAG-003")]
+    public async Task VerifyNoDiagnosticsForTabsInTheClosingLineOfARawString()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    string w = """
+                                →→a
+                                →→""";
+                                }
+                                """";
+
+        await Verify(ExpandWhitespaceMarkers(testData));
+    }
+
+    /// <summary>
+    /// Verifies that a tab after the opening quotes of an interpolated multi-line raw string is part of the literal and is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-002")]
+    [Requirement("SHARED-DIAG-003")]
+    public async Task VerifyNoDiagnosticsForTabAfterTheOpeningQuotesOfAnInterpolatedRawString()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    string z = $"""→
+                                        a
+                                        """;
+                                }
+                                """";
+
+        await Verify(ExpandWhitespaceMarkers(testData));
+    }
+
+    /// <summary>
+    /// Verifies that a tab after the opening quotes of a plain multi-line raw string is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-002")]
+    [Requirement("SHARED-DIAG-003")]
+    public async Task VerifyNoDiagnosticsForTabAfterTheOpeningQuotesOfARawString()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    string y = """→
+                                        a
+                                        """;
+                                }
+                                """";
+
+        await Verify(ExpandWhitespaceMarkers(testData));
+    }
+
+    /// <summary>
+    /// Verifies that the tabs indenting a content line that starts with a hole, and the closing line after it, are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-002")]
+    [Requirement("SHARED-DIAG-003")]
+    public async Task VerifyNoDiagnosticsForTabsInTheClosingLineAfterAHoleLine()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    static int x = 1;
+
+                                    string s = $"""
+                                →→{x}
+                                →→""";
+                                }
+                                """";
+
+        await Verify(ExpandWhitespaceMarkers(testData));
+    }
+
+    /// <summary>
+    /// Verifies that the tabs indenting the lines of a double-dollar interpolated multi-line raw string are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-002")]
+    [Requirement("SHARED-DIAG-003")]
+    public async Task VerifyNoDiagnosticsForTabsInTheClosingLineOfADoubleDollarRawString()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    static int x = 1;
+
+                                    string s = $$"""
+                                →→{{x}}
+                                →→""";
+                                }
+                                """";
+
+        // The source holds no markup, because the markup parser reads "$$" as a position marker
+        await Verify(ExpandWhitespaceMarkers(testData), static test => test.TestState.MarkupHandling = MarkupMode.None);
+    }
+
+    /// <summary>
+    /// Verifies that indentation mixing a tab and spaces in the lines of an interpolated multi-line raw string is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-002")]
+    [Requirement("SHARED-DIAG-003")]
+    public async Task VerifyNoDiagnosticsForMixedIndentationOfAnInterpolatedRawString()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    string s = $"""
+                                →  a
+                                →  """;
+                                }
+                                """";
+
+        await Verify(ExpandWhitespaceMarkers(testData));
+    }
+
+    /// <summary>
+    /// Verifies that a tab in front of a line inside a hole of an interpolated multi-line raw string is code, and is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-001")]
+    public async Task VerifyTabInAHoleLineOfAnInterpolatedRawStringIsDetectedAndFixed()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    string u = $"""
+                                        {1
+                                {|#0:→|}+ 2}
+                                        """;
+                                }
+                                """";
+        const string fixedData = """"
+                                 class C
+                                 {
+                                     string u = $"""
+                                         {1
+                                     + 2}
+                                         """;
+                                 }
+                                 """";
+
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a tab behind the closing quotes of an interpolated multi-line raw string is code, and is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-001")]
+    public async Task VerifyTabBehindTheClosingQuotesOfAnInterpolatedRawStringIsDetectedAndFixed()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    string s = $"""
+                                        a
+                                        """{|#0:→|};
+                                }
+                                """";
+        const string fixedData = """"
+                                 class C
+                                 {
+                                     string s = $"""
+                                         a
+                                         """    ;
+                                 }
+                                 """";
+
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a tab behind a regular interpolated string is code, and is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-001")]
+    public async Task VerifyTabBehindAnInterpolatedStringIsDetectedAndFixed()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    string s = $"a"{|#0:→|};
+                                }
+                                """";
+        const string fixedData = """"
+                                 class C
+                                 {
+                                     string s = $"a"    ;
+                                 }
+                                 """";
+
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a tab in front of the opening quotes of an interpolated multi-line raw string on a continuation line is code, and is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-001")]
+    public async Task VerifyTabInFrontOfTheOpeningQuotesOfAnInterpolatedRawStringIsDetectedAndFixed()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    string s =
+                                {|#0:→|}$"""
+                                        a
+                                        """;
+                                }
+                                """";
+        const string fixedData = """"
+                                 class C
+                                 {
+                                     string s =
+                                     $"""
+                                         a
+                                         """;
+                                 }
+                                 """";
+
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a reported tab next to an interpolated multi-line raw string leaves the tabs indenting the literal's lines untouched, so the result compiles
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-002")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyCodeFixLeavesTheTabsOfAnInterpolatedRawStringUntouched()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                {|#0:→|}string s = $"""
+                                →→a
+                                →→""";
+                                }
+                                """";
+        const string fixedData = """"
+                                 class C
+                                 {
+                                     string s = $"""
+                                 →→a
+                                 →→""";
+                                 }
+                                 """";
+
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
     }
 
     #endregion // Tests

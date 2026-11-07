@@ -5,7 +5,7 @@
 | ID prefix | SHARED-INIT |
 | Status | Active |
 | Code owners | `InitializerLayoutAnalysisUtilities` |
-| Uses | — |
+| Uses | FMT-INDENT-023, FMT-INDENT-030 |
 
 This spec covers what the rules that check the layout of object and collection initializers share: which column a line holding a comment in front of a brace or an element counts as, and when a complex element initializer (`{ 1, 2 }` inside a collection initializer) is laid out correctly. Each rule that uses this spec states which initializers it checks, the columns it expects, and where it reports.
 
@@ -83,9 +83,9 @@ A rule that uses this requirement MUST accept a complex element initializer (`{ 
 - one of its expressions starts on the line of the opening brace, on the line of the closing brace, or on a line on which an earlier expression starts; or
 - one of its expressions does not start one level (four columns) deeper than the opening brace.
 
-The columns follow SHARED-INIT-001.
+The columns follow SHARED-INIT-001. The column of the opening brace is the column at which the brace itself stands on its line. When a comment ends on the opening brace's line in front of it, SHARED-INIT-001 checks the comment's column and not the brace's, and the brace stands behind the comment: the closing brace and the expressions MUST then be measured from the column the brace stands in behind the comment, not from the comment's column. When no comment ends on that line in front of the brace — the comment, if any, stands on a line above, or there is none — the brace starts its line, and its column is the column of that line.
 
-Why: A complex element is a small initializer of its own. On one line it reads as one value; once it is wrapped, its braces and its expressions follow the same block layout as the initializer around it, so the nesting stays visible.
+Why: A complex element is a small initializer of its own. On one line it reads as one value; once it is wrapped, its braces and its expressions follow the same block layout as the initializer around it, so the nesting stays visible. The formatter measures the opening brace where it stands, also behind a comment that leads its line (FMT-INDENT-023, FMT-INDENT-030); measuring it from the comment instead would report the formatter's output.
 
 Example — RH5303, which reports a misaligned complex element on its first misplaced part:
 
@@ -114,6 +114,52 @@ class C
                         9,
                         10
                   }|}
+                };
+    }
+}
+```
+
+Example — RH5303, a comment leads the line of a complex element's opening brace, which stands in column 28; the expressions start one level deeper than the brace, and the closing brace starts under it:
+
+```csharp
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var d = new Dictionary<int, int>
+                {
+                    /* e */ {
+                                1,
+                                2
+                            },
+
+                    // f
+                    {
+                        3,
+                        4
+                    }
+                };
+    }
+}
+```
+
+is not reported — the comment `// f` stands on a line of its own above the second element, so that element's brace starts its line and is measured at that line's column, 20. Measured from the comment `/* e */` instead, the first element is misaligned: its closing brace does not start at the brace's column, so RH5303 reports the whole complex element:
+
+```csharp
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var d = new Dictionary<int, int>
+                {
+                    /* e */ {|RH5303:{
+                        1,
+                        2
+                    }|}
                 };
     }
 }

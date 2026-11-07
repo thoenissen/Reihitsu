@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
-using Reihitsu.Formatter.Utilities;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.SwitchCaseBraces.Rewriter;
 
@@ -162,6 +162,290 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Determines whether a local declared directly in one section of the switch is used by simple
+    /// name in another section. C# scopes such a local to the whole switch block, so a block around
+    /// the declaring section would hide it from the other section. A name that a declaration inside the
+    /// other section binds, such as a lambda parameter that shadows the local, is not a use of it
+    /// </summary>
+    /// <param name="node">The switch statement to check</param>
+    /// <returns><see langword="true"/> if another section uses a directly declared local; otherwise, <see langword="false"/></returns>
+    private static bool HasCrossSectionLocalUse(SwitchStatementSyntax node)
+    {
+        var declaringSections = new Dictionary<string, List<SwitchSectionSyntax>>();
+
+        foreach (var section in node.Sections)
+        {
+            foreach (var name in GetDirectlyDeclaredLocalNames(section))
+            {
+                if (declaringSections.TryGetValue(name, out var sections) == false)
+                {
+                    sections = [];
+                    declaringSections[name] = sections;
+                }
+
+                sections.Add(section);
+            }
+        }
+
+        if (declaringSections.Count == 0)
+        {
+            return false;
+        }
+
+        foreach (var section in node.Sections)
+        {
+            foreach (var simpleName in section.DescendantNodes().OfType<SimpleNameSyntax>())
+            {
+                if (declaringSections.TryGetValue(simpleName.Identifier.ValueText, out var sections)
+                    && sections.Any(declaringSection => declaringSection != section)
+                    && IsBoundInsideSection(simpleName, section) == false)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether a simple name in a switch section is bound by a declaration of that section
+    /// that encloses it, in the part of the enclosing construct that the declaration's scope covers:
+    /// <list type="bullet">
+    /// <item><description>a parameter of a lambda, anonymous method, or local function, or a variable that the function's expression body designates, for a name in the function's body — not in its attribute lists, parameter list, return type, or constraint clauses;</description></item>
+    /// <item><description>a local that a block declares directly, for a name in that block, and one that a section of a nested switch declares directly, for a name in a section of that switch — not in its governing expression;</description></item>
+    /// <item><description>the variable of a <c>foreach</c>, <c>using</c>, or <c>fixed</c> statement, for a name in its embedded statement;</description></item>
+    /// <item><description>the variable of a <c>for</c> statement, for a name in its condition, incrementors, or embedded statement;</description></item>
+    /// <item><description>the variable of a <c>catch</c> clause, for a name in its filter or block;</description></item>
+    /// <item><description>a variable that the condition of a <c>while</c> statement designates, for a name in that condition or its embedded statement, and one that the condition of a <c>do</c> statement designates, for a name in that condition;</description></item>
+    /// <item><description>a variable that the pattern or the <c>when</c> clause of a switch-expression arm designates, for a name in that arm.</description></item>
+    /// </list>
+    /// Such a name does not refer to a local of another section, which C# lets a lambda or local function
+    /// shadow. A shadowing form not listed here still counts as a use, which leaves the switch unbraced
+    /// </summary>
+    /// <param name="simpleName">The simple name to inspect</param>
+    /// <param name="section">The switch section that holds the name</param>
+    /// <returns><see langword="true"/> if a declaration inside the section binds the name; otherwise, <see langword="false"/></returns>
+    private static bool IsBoundInsideSection(SimpleNameSyntax simpleName, SwitchSectionSyntax section)
+    {
+        var name = simpleName.Identifier.ValueText;
+        SyntaxNode child = simpleName;
+
+        for (var ancestor = simpleName.Parent; ancestor != null && ancestor != section; child = ancestor, ancestor = ancestor.Parent)
+        {
+            if (IsBoundByAncestor(ancestor, child, name))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether a declaration of an ancestor binds a name that stands in the given child of the ancestor
+    /// </summary>
+    /// <param name="ancestor">The ancestor whose declarations are inspected</param>
+    /// <param name="child">The child of <paramref name="ancestor"/> that holds the name</param>
+    /// <param name="name">The name</param>
+    /// <returns><see langword="true"/> if a declaration of the ancestor binds the name there; otherwise, <see langword="false"/></returns>
+    private static bool IsBoundByAncestor(SyntaxNode ancestor, SyntaxNode child, string name)
+    {
+        return ancestor switch
+               {
+                   SimpleLambdaExpressionSyntax simpleLambda => (child == simpleLambda.Body)
+                                                                && (simpleLambda.Parameter.Identifier.ValueText == name
+                                                                    || IsDesignatedIn(simpleLambda.ExpressionBody, name)),
+                   ParenthesizedLambdaExpressionSyntax parenthesizedLambda => (child == parenthesizedLambda.Body)
+                                                                              && (HasParameter(parenthesizedLambda.ParameterList, name)
+                                                                                  || IsDesignatedIn(parenthesizedLambda.ExpressionBody, name)),
+                   AnonymousMethodExpressionSyntax anonymousMethod => (child == anonymousMethod.Body)
+                                                                      && HasParameter(anonymousMethod.ParameterList, name),
+                   LocalFunctionStatementSyntax localFunction => (child == localFunction.Body || child == localFunction.ExpressionBody)
+                                                                 && (HasParameter(localFunction.ParameterList, name)
+                                                                     || IsDesignatedIn(localFunction.ExpressionBody?.Expression, name)),
+                   BlockSyntax block => GetDirectlyDeclaredLocalNames(block.Statements).Contains(name),
+                   SwitchStatementSyntax switchStatement => child is SwitchSectionSyntax
+                                                            && switchStatement.Sections.Any(nestedSection => GetDirectlyDeclaredLocalNames(nestedSection).Contains(name)),
+                   ForEachStatementSyntax forEachStatement => child == forEachStatement.Statement
+                                                              && forEachStatement.Identifier.ValueText == name,
+                   ForEachVariableStatementSyntax forEachVariableStatement => child == forEachVariableStatement.Statement
+                                                                              && IsDesignatedIn(forEachVariableStatement.Variable, name),
+                   ForStatementSyntax forStatement => (child == forStatement.Statement || child == forStatement.Condition || forStatement.Incrementors.Contains(child))
+                                                      && forStatement.Declaration?.Variables.Any(variable => variable.Identifier.ValueText == name) == true,
+                   UsingStatementSyntax usingStatement => child == usingStatement.Statement
+                                                          && usingStatement.Declaration?.Variables.Any(variable => variable.Identifier.ValueText == name) == true,
+                   FixedStatementSyntax fixedStatement => child == fixedStatement.Statement
+                                                          && fixedStatement.Declaration.Variables.Any(variable => variable.Identifier.ValueText == name),
+                   CatchClauseSyntax catchClause => (child == catchClause.Block || child == catchClause.Filter)
+                                                    && catchClause.Declaration?.Identifier.ValueText == name,
+                   WhileStatementSyntax whileStatement => (child == whileStatement.Condition || child == whileStatement.Statement)
+                                                          && IsDesignatedIn(whileStatement.Condition, name),
+                   DoStatementSyntax doStatement => child == doStatement.Condition
+                                                    && IsDesignatedIn(doStatement.Condition, name),
+                   SwitchExpressionArmSyntax switchExpressionArm => IsDesignatedIn(switchExpressionArm.Pattern, name)
+                                                                    || IsDesignatedIn(switchExpressionArm.WhenClause, name),
+                   _ => false,
+               };
+    }
+
+    /// <summary>
+    /// Determines whether a parameter list declares a parameter of the given name
+    /// </summary>
+    /// <param name="parameterList">The parameter list, or <see langword="null"/></param>
+    /// <param name="name">The name to look for</param>
+    /// <returns><see langword="true"/> if the list declares the name; otherwise, <see langword="false"/></returns>
+    private static bool HasParameter(ParameterListSyntax parameterList, string name)
+    {
+        return parameterList?.Parameters.Any(parameter => parameter.Identifier.ValueText == name) == true;
+    }
+
+    /// <summary>
+    /// Determines whether an expression body declares a variable of the given name
+    /// </summary>
+    /// <param name="expressionBody">The expression body, or <see langword="null"/></param>
+    /// <param name="name">The name to look for</param>
+    /// <returns><see langword="true"/> if the expression body declares the name; otherwise, <see langword="false"/></returns>
+    private static bool IsDesignatedIn(SyntaxNode expressionBody, string name)
+    {
+        return expressionBody != null
+               && GetDesignatedNames(expressionBody).Contains(name);
+    }
+
+    /// <summary>
+    /// Gets the names of the locals that a switch section declares directly: through a statement the
+    /// section owns, or such a statement behind a label, outside any nested body
+    /// </summary>
+    /// <param name="section">The switch section to inspect</param>
+    /// <returns>The names of the directly declared locals</returns>
+    private static IEnumerable<string> GetDirectlyDeclaredLocalNames(SwitchSectionSyntax section)
+    {
+        return GetDirectlyDeclaredLocalNames(section.Statements);
+    }
+
+    /// <summary>
+    /// Gets the names of the locals that a list of statements declares directly, in the scope that owns
+    /// the list: through a statement of the list, or such a statement behind a label, outside any nested
+    /// body. Statements whose header variables C# scopes to the statement itself (loops, <c>using</c>,
+    /// <c>fixed</c>, nested blocks, and the embedded statements and <c>else</c> branch of an <c>if</c>)
+    /// declare nothing here
+    /// </summary>
+    /// <param name="statements">The statements to inspect</param>
+    /// <returns>The names of the directly declared locals</returns>
+    private static IEnumerable<string> GetDirectlyDeclaredLocalNames(SyntaxList<StatementSyntax> statements)
+    {
+        foreach (var sectionStatement in statements)
+        {
+            var statement = sectionStatement;
+
+            while (statement is LabeledStatementSyntax labeledStatement)
+            {
+                statement = labeledStatement.Statement;
+            }
+
+            switch (statement)
+            {
+                case LocalDeclarationStatementSyntax localDeclaration:
+                    {
+                        foreach (var variable in localDeclaration.Declaration.Variables)
+                        {
+                            yield return variable.Identifier.ValueText;
+                        }
+
+                        foreach (var name in GetDesignatedNames(localDeclaration.Declaration))
+                        {
+                            yield return name;
+                        }
+                    }
+                    break;
+
+                case LocalFunctionStatementSyntax localFunction:
+                    {
+                        yield return localFunction.Identifier.ValueText;
+                    }
+                    break;
+
+                case ExpressionStatementSyntax expressionStatement:
+                    {
+                        foreach (var name in GetDesignatedNames(expressionStatement.Expression))
+                        {
+                            yield return name;
+                        }
+                    }
+                    break;
+
+                case ReturnStatementSyntax { Expression: not null } returnStatement:
+                    {
+                        foreach (var name in GetDesignatedNames(returnStatement.Expression))
+                        {
+                            yield return name;
+                        }
+                    }
+                    break;
+
+                case ThrowStatementSyntax { Expression: not null } throwStatement:
+                    {
+                        foreach (var name in GetDesignatedNames(throwStatement.Expression))
+                        {
+                            yield return name;
+                        }
+                    }
+                    break;
+
+                case YieldStatementSyntax { Expression: not null } yieldStatement:
+                    {
+                        foreach (var name in GetDesignatedNames(yieldStatement.Expression))
+                        {
+                            yield return name;
+                        }
+                    }
+                    break;
+
+                case IfStatementSyntax ifStatement:
+                    {
+                        foreach (var name in GetDesignatedNames(ifStatement.Condition))
+                        {
+                            yield return name;
+                        }
+                    }
+                    break;
+
+                case SwitchStatementSyntax switchStatement:
+                    {
+                        foreach (var name in GetDesignatedNames(switchStatement.Expression))
+                        {
+                            yield return name;
+                        }
+                    }
+                    break;
+
+                case LockStatementSyntax lockStatement:
+                    {
+                        foreach (var name in GetDesignatedNames(lockStatement.Expression))
+                        {
+                            yield return name;
+                        }
+                    }
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the names that <c>out var</c>, deconstruction, and pattern designations declare in a node,
+    /// skipping lambda and anonymous-method bodies, switch-expression arms, and the clauses of a query
+    /// behind its first <c>from</c> expression, which scope their designations to themselves
+    /// </summary>
+    /// <param name="node">The node to inspect</param>
+    /// <returns>The designated names</returns>
+    private static IEnumerable<string> GetDesignatedNames(SyntaxNode node)
+    {
+        return node.DescendantNodesAndSelf(static descendant => descendant is not AnonymousFunctionExpressionSyntax and not SwitchExpressionArmSyntax and not QueryBodySyntax)
+                   .OfType<SingleVariableDesignationSyntax>()
+                   .Select(static designation => designation.Identifier.ValueText);
+    }
+
+    /// <summary>
     /// Gets descendants that belong to a switch section's executable scope. Local functions and
     /// anonymous functions own independent label scopes and are not traversed
     /// </summary>
@@ -278,88 +562,6 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Builds leading trivia that preserves any comments from the original leading trivia while
-    /// resetting the layout to a single leading end-of-line per comment
-    /// </summary>
-    /// <param name="original">The original leading trivia</param>
-    /// <param name="eolTrivia">The end-of-line trivia to use</param>
-    /// <returns>The rebuilt leading trivia</returns>
-    private static SyntaxTriviaList BuildLeadingTrivia(SyntaxTriviaList original, SyntaxTrivia eolTrivia)
-    {
-        var result = new List<SyntaxTrivia>
-                     {
-                         eolTrivia
-                     };
-
-        foreach (var comment in CollectComments(original))
-        {
-            result.Add(comment);
-            result.Add(eolTrivia);
-        }
-
-        return SyntaxFactory.TriviaList(result);
-    }
-
-    /// <summary>
-    /// Builds trailing trivia that preserves a trailing comment (for example "DoWork(); // note")
-    /// while terminating the line with the given end-of-line trivia
-    /// </summary>
-    /// <param name="original">The original trailing trivia</param>
-    /// <param name="eolTrivia">The end-of-line trivia to use</param>
-    /// <returns>The rebuilt trailing trivia</returns>
-    private static SyntaxTriviaList BuildTrailingTrivia(SyntaxTriviaList original, SyntaxTrivia eolTrivia)
-    {
-        var comments = CollectComments(original);
-
-        if (comments.Count == 0)
-        {
-            return SyntaxFactory.TriviaList(eolTrivia);
-        }
-
-        var result = new List<SyntaxTrivia>
-                     {
-                         SyntaxFactory.Space
-                     };
-
-        foreach (var comment in comments)
-        {
-            result.Add(comment);
-        }
-
-        result.Add(eolTrivia);
-
-        return SyntaxFactory.TriviaList(result);
-    }
-
-    /// <summary>
-    /// Builds the trailing trivia for the last label, keeping any trailing comment but dropping
-    /// trailing whitespace so the open brace is not preceded by a blank line
-    /// </summary>
-    /// <param name="original">The original label trailing trivia</param>
-    /// <returns>The rebuilt label trailing trivia</returns>
-    private static SyntaxTriviaList BuildLabelTrailingTrivia(SyntaxTriviaList original)
-    {
-        var comments = CollectComments(original);
-
-        if (comments.Count == 0)
-        {
-            return SyntaxFactory.TriviaList();
-        }
-
-        var result = new List<SyntaxTrivia>
-                     {
-                         SyntaxFactory.Space
-                     };
-
-        foreach (var comment in comments)
-        {
-            result.Add(comment);
-        }
-
-        return SyntaxFactory.TriviaList(result);
-    }
-
-    /// <summary>
     /// Determines whether the open or close brace tokens of a block carry comment trivia,
     /// a preprocessor directive, or disabled text
     /// </summary>
@@ -380,25 +582,15 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     /// <returns><see langword="true"/> if the list carries a comment or directive; otherwise, <see langword="false"/></returns>
     private static bool BraceTriviaCarriesCommentOrDirective(SyntaxTriviaList triviaList)
     {
-        return triviaList.Any(static trivia => ReihitsuFormatterHelpers.IsCommentTrivia(trivia)
-                                               || ReihitsuFormatterHelpers.IsDirectiveOrDisabledTextTrivia(trivia));
-    }
-
-    /// <summary>
-    /// Collects the comment trivia from a trivia list, preserving their order
-    /// </summary>
-    /// <param name="triviaList">The trivia list to inspect</param>
-    /// <returns>The comment trivia contained in the list</returns>
-    private static List<SyntaxTrivia> CollectComments(SyntaxTriviaList triviaList)
-    {
-        return triviaList.Where(ReihitsuFormatterHelpers.IsCommentTrivia)
-                         .ToList();
+        return triviaList.Any(static trivia => SyntaxTriviaUtilities.IsCommentTrivia(trivia)
+                                               || SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia));
     }
 
     /// <summary>
     /// Determines whether a switch section carries a preprocessor directive or disabled text in the
-    /// section-level trivia of its labels or statements — the trivia that brace insertion rebuilds
-    /// from comments only and would therefore drop
+    /// section-level trivia of its labels or statements — the trivia that brace insertion carries across
+    /// the new braces. What the carry keeps and drops is owned by <c>BlockWrapTriviaUtilities</c>; a directive
+    /// is blocked because the carry would either discard it or move it onto a line it does not own
     /// </summary>
     /// <param name="section">The switch section to inspect</param>
     /// <returns><see langword="true"/> if the section carries a directive or disabled text; otherwise, <see langword="false"/></returns>
@@ -406,8 +598,8 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     {
         return section.Labels.Cast<SyntaxNode>()
                              .Concat(section.Statements)
-                             .Any(static node => node.GetLeadingTrivia().Any(ReihitsuFormatterHelpers.IsDirectiveOrDisabledTextTrivia)
-                                                 || node.GetTrailingTrivia().Any(ReihitsuFormatterHelpers.IsDirectiveOrDisabledTextTrivia));
+                             .Any(static node => node.GetLeadingTrivia().Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia)
+                                                 || node.GetTrailingTrivia().Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia));
     }
 
     /// <summary>
@@ -434,8 +626,34 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Determines whether the line that a switch section ends on is already ended by the leading trivia of the token behind
+    /// the section — the next section's first token or the switch's closing brace — because the section's last token carries
+    /// no line break and an earlier phase of this pass started that token's line. The braced section then keeps the line
+    /// breaks of that gap instead of writing one more of its own
+    /// </summary>
+    /// <param name="section">The switch section, as part of its switch statement</param>
+    /// <returns><see langword="true"/> if the token behind the section ends the section's last line</returns>
+    private static bool IsLastLineEndedByFollowingToken(SwitchSectionSyntax section)
+    {
+        var lastToken = section.GetLastToken();
+
+        if (lastToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)))
+        {
+            return false;
+        }
+
+        var nextToken = lastToken.GetNextToken();
+
+        return nextToken.LeadingTrivia
+                        .FirstOrDefault(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false)
+                        .IsKind(SyntaxKind.EndOfLineTrivia);
+    }
+
+    /// <summary>
     /// Adds braces around the non-terminal statements of a switch section.
-    /// If braces already exist, the section is returned as-is
+    /// If braces already exist, the section is returned as-is. The section's last line is ended by the section itself,
+    /// unless the token behind it already starts its line through line breaks in its leading trivia
+    /// (<see cref="IsLastLineEndedByFollowingToken"/>); the gap behind the section then keeps exactly those line breaks
     /// </summary>
     /// <param name="section">The switch section</param>
     /// <returns>The section with braces added</returns>
@@ -449,21 +667,23 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
             return section;
         }
 
-        // Adding braces rebuilds the label, first-statement, and trailing-break trivia from comments
-        // only. A preprocessor directive or disabled text in that section-level trivia would be dropped,
-        // silently removing conditional compilation, so leave a directive-bearing section unbraced.
+        // Adding braces carries the comment trivia of the label, first statement, last statement, and trailing
+        // break across the new braces; BlockWrapTriviaUtilities owns what that carry keeps and drops. A
+        // preprocessor directive or disabled text in that trivia would either be discarded or end up on a line
+        // it does not own, silently changing conditional compilation, so leave a directive-bearing section unbraced.
         if (SectionCarriesDirectives(section))
         {
             return section;
         }
 
         var eolTrivia = SyntaxFactory.EndOfLine(_context.EndOfLine);
+        var isLastLineEndedByFollowingToken = IsLastLineEndedByFollowingToken(section);
 
-        // Strip trailing whitespace from the last label to prevent a blank line before the open brace,
-        // but keep any trailing comment (for example "case 1: // note") so it is not deleted
+        // The last label's line ends behind its comments, which keep the gap in front of and between
+        // them as written (for example "case 1:    // note"); the open brace starts the next line
         var labels = section.Labels;
         var lastLabel = labels.Last();
-        section = section.WithLabels(labels.Replace(lastLabel, lastLabel.WithTrailingTrivia(BuildLabelTrailingTrivia(lastLabel.GetTrailingTrivia()))));
+        section = section.WithLabels(labels.Replace(lastLabel, lastLabel.WithTrailingTrivia(BlockWrapTriviaUtilities.GetCarriedTrailingTrivia(lastLabel.GetTrailingTrivia(), eolTrivia, endsLine: true))));
 
         // Separate trailing break from the statements that go into the block
         StatementSyntax trailingBreak = null;
@@ -484,25 +704,29 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
         {
             var stmt = statements[statementIndex];
 
+            // The open brace's line ends in front of the first statement's comments, which keep their layout and the
+            // blank lines in front of them; the blank-line phase, which runs after this phase, decides those
             if (statementIndex == 0)
             {
-                stmt = stmt.WithLeadingTrivia(BuildLeadingTrivia(stmt.GetLeadingTrivia(), eolTrivia));
+                stmt = stmt.WithLeadingTrivia(SyntaxFactory.TriviaList(eolTrivia)
+                                                           .AddRange(BlockWrapTriviaUtilities.GetCarriedLeadingTrivia(stmt.GetLeadingTrivia(), keepBlankLinesAboveFirstComment: true)));
             }
 
+            // The last statement's line ends behind its comments, so the close brace starts the next line
             if (statementIndex == statementsForBlock - 1)
             {
                 var lastToken = stmt.GetLastToken();
-                stmt = stmt.ReplaceToken(lastToken, lastToken.WithTrailingTrivia(BuildTrailingTrivia(lastToken.TrailingTrivia, eolTrivia)));
+                stmt = stmt.ReplaceToken(lastToken, lastToken.WithTrailingTrivia(BlockWrapTriviaUtilities.GetCarriedTrailingTrivia(lastToken.TrailingTrivia, eolTrivia, endsLine: true)));
             }
 
             blockStatements.Add(stmt);
         }
 
         var openBrace = SyntaxFactory.Token(SyntaxKind.OpenBraceToken)
-                                     .WithLeadingTrivia(eolTrivia)
+                                     .WithLeadingTrivia(SyntaxFactory.TriviaList())
                                      .WithTrailingTrivia(SyntaxFactory.TriviaList());
 
-        var closeBraceTrailing = trailingBreak != null
+        var closeBraceTrailing = trailingBreak != null || isLastLineEndedByFollowingToken
                                      ? SyntaxFactory.TriviaList()
                                      : SyntaxFactory.TriviaList(eolTrivia);
 
@@ -521,10 +745,13 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
         if (trailingBreak != null)
         {
-            trailingBreak = trailingBreak.WithLeadingTrivia(BuildLeadingTrivia(trailingBreak.GetLeadingTrivia(), eolTrivia));
+            // The close brace's line ends in front of the break's comments, which keep their layout and the blank
+            // lines in front of them; the blank-line phase, which runs after this phase, decides those
+            trailingBreak = trailingBreak.WithLeadingTrivia(SyntaxFactory.TriviaList(eolTrivia)
+                                                                         .AddRange(BlockWrapTriviaUtilities.GetCarriedLeadingTrivia(trailingBreak.GetLeadingTrivia(), keepBlankLinesAboveFirstComment: true)));
 
             var lastBreakToken = trailingBreak.GetLastToken();
-            trailingBreak = trailingBreak.ReplaceToken(lastBreakToken, lastBreakToken.WithTrailingTrivia(BuildTrailingTrivia(lastBreakToken.TrailingTrivia, eolTrivia)));
+            trailingBreak = trailingBreak.ReplaceToken(lastBreakToken, lastBreakToken.WithTrailingTrivia(BlockWrapTriviaUtilities.GetCarriedTrailingTrivia(lastBreakToken.TrailingTrivia, eolTrivia, endsLine: isLastLineEndedByFollowingToken == false)));
 
             sectionStatements.Add(trailingBreak);
         }
@@ -596,7 +823,11 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
         var anyMultiLine = HasAnyMultiLineSection(sections);
 
-        if (anyMultiLine && HasCrossSectionGotoTarget(node))
+        // A goto into another section, or a local shared between sections, ties the sections
+        // together: braces would hide the target or the local, so the whole switch stays as written
+        if (anyMultiLine
+            && (HasCrossSectionGotoTarget(node)
+                || HasCrossSectionLocalUse(node)))
         {
             return node;
         }

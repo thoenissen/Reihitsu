@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Spacing;
 
@@ -69,7 +70,10 @@ public class RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzer : DiagnosticAnal
             return;
         }
 
-        if (token.TrailingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) || trivia.IsKind(SyntaxKind.EndOfLineTrivia)))
+        // A line break behind the keyword - also the one that ends a `///` comment behind it (SHARED-BLANK-008) - leaves
+        // the following token on the next line, so no space is missing
+        if (token.TrailingTrivia.Any(SyntaxKind.WhitespaceTrivia)
+            || SyntaxTriviaUtilities.AreSeparatedByEndOfLine(token, token.GetNextToken()))
         {
             return;
         }

@@ -80,7 +80,7 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedCodeFixProvider :
         StatementSyntax node = localFunction;
 
         while (node.Parent is LabeledStatementSyntax labeledStatement
-               && ReihitsuFormatterHelpers.StartsOnNewLine(node.GetFirstToken()) == false)
+               && SyntaxTokenPositionUtilities.IsFirstOnLine(node.GetFirstToken()) == false)
         {
             node = labeledStatement;
         }

@@ -1242,7 +1242,6 @@ public class RH5201FluentChainLinkFormatterTests : FormatterTestsBase<RH5201Meth
                                        private static object Run(dynamic a, dynamic x, dynamic order)
                                        {
                                            return a
-
                                                   /* block */ .B()
                                                   .C();
                                        }
@@ -1296,7 +1295,6 @@ public class RH5201FluentChainLinkFormatterTests : FormatterTestsBase<RH5201Meth
                                        private static object Run(dynamic a, dynamic x, dynamic order)
                                        {
                                            return a.B() /* first */
-
                                                    /* second */ ?.C()
                                                    .D();
                                        }

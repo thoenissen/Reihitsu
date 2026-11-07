@@ -19,6 +19,118 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsBase<RH5201MethodChainsShouldBeAlignedAnalyzer, RH5201MethodChainsShouldBeAlignedCodeFixProvider>
 {
+    #region Constants
+
+    /// <summary>
+    /// Source whose last chain link stands behind the closing line of a comment that spans several lines
+    /// </summary>
+    private const string LinkBehindMultiLineCommentTailTestData = """
+                                                                  internal class Example
+                                                                  {
+                                                                      internal object Run(dynamic a)
+                                                                      {
+                                                                          var r = a.B()
+                                                                                   .C()
+
+                                                                                   /* x
+                                                                          */ {|#0:.|}D();
+
+                                                                          return r;
+                                                                      }
+                                                                  }
+                                                                  """;
+
+    /// <summary>
+    /// Expected result of fixing <see cref="LinkBehindMultiLineCommentTailTestData"/>
+    /// </summary>
+    private const string LinkBehindMultiLineCommentTailResultData = """
+                                                                    internal class Example
+                                                                    {
+                                                                        internal object Run(dynamic a)
+                                                                        {
+                                                                            var r = a.B()
+                                                                                     .C()
+
+                                                                                     /* x
+                                                                            */
+                                                                                     .D();
+
+                                                                            return r;
+                                                                        }
+                                                                    }
+                                                                    """;
+
+    /// <summary>
+    /// Source whose chain is the expression of a statement indented two columns deeper than its depth, behind two blank
+    /// lines, with an anonymous method argument whose block the depth places, a misaligned wrapped link, and a space in
+    /// front of the statement's semicolon
+    /// </summary>
+    private const string ChainOfStatementOffItsDepthTestData = """
+                                                               using System;
+
+                                                               internal class Builder
+                                                               {
+                                                                   internal Builder A(Action action) => this;
+
+                                                                   internal Builder C() => this;
+                                                               }
+
+                                                               internal class Example
+                                                               {
+                                                                   private static void M(Builder b)
+                                                                   {
+                                                                   }
+
+                                                                   private static void Run(Builder b)
+                                                                   {
+                                                                       M(b);
+
+
+                                                                         b.A(delegate
+                                                                             {
+                                                                                 M(b);
+                                                                             })
+                                                                     {|#0:.|}C() ;
+                                                                   }
+                                                               }
+                                                               """;
+
+    /// <summary>
+    /// Expected result of fixing <see cref="ChainOfStatementOffItsDepthTestData"/>: only the chain changes, its block keeps
+    /// its place relative to the statement's first token, and the blank lines and the space in front of the semicolon stay
+    /// </summary>
+    private const string ChainOfStatementOffItsDepthResultData = """
+                                                                 using System;
+
+                                                                 internal class Builder
+                                                                 {
+                                                                     internal Builder A(Action action) => this;
+
+                                                                     internal Builder C() => this;
+                                                                 }
+
+                                                                 internal class Example
+                                                                 {
+                                                                     private static void M(Builder b)
+                                                                     {
+                                                                     }
+
+                                                                     private static void Run(Builder b)
+                                                                     {
+                                                                         M(b);
+
+
+                                                                           b.A(delegate
+                                                                           {
+                                                                               M(b);
+                                                                           })
+                                                                            .C() ;
+                                                                     }
+                                                                 }
+                                                                 """;
+
+    #endregion // Constants
+
     #region Tests
 
     /// <summary>
@@ -1763,7 +1875,6 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
                                       private static object Run(int[] items)
                                       {
                                           var list = items.Where(value => value > 0)
-
                                                           /* all */ .Select(value => value)
                                                           .ToList();
 
@@ -1808,7 +1919,6 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
                                       private static object Run(int[] items)
                                       {
                                           var list = items.Where(value => value > 0)
-
                                                           /* all */ .Select(value => value)
                                                           .ToList();
 
@@ -1874,6 +1984,534 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
                                 """;
 
         await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix breaks the line in front of a link whose operator stands behind the closing
+    /// <c>*/</c> of a comment that spans several lines, and converges in one application under LF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-012")]
+    [Requirement("SHARED-CHAIN-008")]
+    public async Task VerifyFixBreaksLinkBehindMultiLineCommentTailInOnePass()
+    {
+        await Verify(LinkBehindMultiLineCommentTailTestData.Replace("\r\n", "\n"),
+                     LinkBehindMultiLineCommentTailResultData.Replace("\r\n", "\n"),
+                     static config =>
+                            {
+                                config.NumberOfIncrementalIterations = 1;
+                                config.NumberOfFixAllIterations = 1;
+                            },
+                     Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix breaks the line in front of a link whose operator stands behind the closing
+    /// <c>*/</c> of a comment that spans several lines, and converges in one application under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-012")]
+    [Requirement("SHARED-CHAIN-008")]
+    public async Task VerifyFixBreaksLinkBehindMultiLineCommentTailInOnePassWithCarriageReturnLineFeed()
+    {
+        await Verify(NormalizeToCarriageReturnLineFeed(LinkBehindMultiLineCommentTailTestData),
+                     NormalizeToCarriageReturnLineFeed(LinkBehindMultiLineCommentTailResultData),
+                     static config =>
+                            {
+                                config.NumberOfIncrementalIterations = 1;
+                                config.NumberOfFixAllIterations = 1;
+                            },
+                     Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a chain whose first link carries a documentation comment written behind the opening brace of
+    /// its block aligns the wrapped link and keeps the brace's line as written, with nothing inserted in front of the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-005")]
+    [Requirement("FMT-PIPE-010")]
+    [Requirement("FMT-PIPE-018")]
+    public async Task VerifyChainWithDocumentationCommentBehindTheOpeningBraceKeepsThatLineAsWritten()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(string a)
+                                    { /// Doc
+                                        a.Trim()
+                                        {|#0:.|}ToUpper();
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(string a)
+                                     { /// Doc
+                                         a.Trim()
+                                          .ToUpper();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a chain whose first link carries a documentation comment written behind the statement in front
+    /// of it aligns the wrapped link and keeps that statement's line as written, with nothing inserted in front of the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-005")]
+    [Requirement("FMT-PIPE-010")]
+    [Requirement("FMT-PIPE-018")]
+    public async Task VerifyChainWithDocumentationCommentBehindThePreviousStatementKeepsThatLineAsWritten()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(string a)
+                                    {
+                                        var x = 1; /// Doc
+                                        a.Trim()
+                                        {|#0:.|}ToUpper();
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(string a)
+                                     {
+                                         var x = 1; /// Doc
+                                         a.Trim()
+                                          .ToUpper();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: later links of a chain that start their lines behind a documentation comment
+    /// written in front of the second link are reported, and the fix aligns them and keeps the comment where it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-002")]
+    [Requirement("SHARED-CHAIN-002")]
+    public async Task VerifyLaterLinksBehindStrayDocumentationCommentAreDetectedAndAligned()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal class C
+                                {
+                                    internal object M(int[] items)
+                                    {
+                                        return items.Where(x => x > 0) /// x
+                                                 {|#0:.|}Select(x => x)
+                                                     {|#1:.|}ToList();
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Linq;
+
+                                 internal class C
+                                 {
+                                     internal object M(int[] items)
+                                     {
+                                         return items.Where(x => x > 0) /// x
+                                                     .Select(x => x)
+                                                     .ToList();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that conditional-access links that start their lines behind a documentation comment written in front of
+    /// the second link are reported, and the fix aligns them and keeps the comment where it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-002")]
+    [Requirement("SHARED-CHAIN-002")]
+    public async Task VerifyConditionalAccessLinksBehindStrayDocumentationCommentAreDetectedAndAligned()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class C
+                                {
+                                    internal string M(List<object> items)
+                                    {
+                                        return items.Find(x => x != null) /// x
+                                                 {|#0:?|}.ToString()
+                                                     {|#1:?|}.Trim();
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class C
+                                 {
+                                     internal string M(List<object> items)
+                                     {
+                                         return items.Find(x => x != null) /// x
+                                                     ?.ToString()
+                                                     ?.Trim();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that a chain whose first link starts its line behind a documentation comment written behind the root is
+    /// reported, and the fix aligns its links and keeps the comment where it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-002")]
+    [Requirement("SHARED-CHAIN-002")]
+    public async Task VerifyLinksBehindStrayDocumentationCommentInFrontOfFirstLinkAreDetectedAndAligned()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal class C
+                                {
+                                    internal object M(int[] items)
+                                    {
+                                        return items /// x
+                                            {|#0:.|}Where(x => x > 0)
+                                            {|#1:.|}ToList();
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Linq;
+
+                                 internal class C
+                                 {
+                                     internal object M(int[] items)
+                                     {
+                                         return items /// x
+                                                .Where(x => x > 0)
+                                                .ToList();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies the control of the documentation-comment case: later links of a chain that start their lines behind a comment in front of the
+    /// second link are reported, and the fix aligns them and keeps the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLaterLinksBehindSingleLineCommentAreDetectedAndAligned()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal class C
+                                {
+                                    internal object M(int[] items)
+                                    {
+                                        return items.Where(x => x > 0) // x
+                                                 {|#0:.|}Select(x => x)
+                                                     {|#1:.|}ToList();
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Linq;
+
+                                 internal class C
+                                 {
+                                     internal object M(int[] items)
+                                     {
+                                         return items.Where(x => x > 0) // x
+                                                     .Select(x => x)
+                                                     .ToList();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies the control of the documentation-comment case: conditional-access links that start their lines behind a comment in front of the
+    /// second link are reported, and the fix aligns them and keeps the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyConditionalAccessLinksBehindSingleLineCommentAreDetectedAndAligned()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class C
+                                {
+                                    internal string M(List<object> items)
+                                    {
+                                        return items.Find(x => x != null) // x
+                                                 {|#0:?|}.ToString()
+                                                     {|#1:?|}.Trim();
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class C
+                                 {
+                                     internal string M(List<object> items)
+                                     {
+                                         return items.Find(x => x != null) // x
+                                                     ?.ToString()
+                                                     ?.Trim();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies the control of the documentation-comment case: a chain whose first link starts its line behind a comment written behind the root
+    /// is reported, and the fix aligns its links and keeps the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLinksBehindSingleLineCommentInFrontOfFirstLinkAreDetectedAndAligned()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal class C
+                                {
+                                    internal object M(int[] items)
+                                    {
+                                        return items // x
+                                            {|#0:.|}Where(x => x > 0)
+                                            {|#1:.|}ToList();
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Linq;
+
+                                 internal class C
+                                 {
+                                     internal object M(int[] items)
+                                     {
+                                         return items // x
+                                                .Where(x => x > 0)
+                                                .ToList();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a chain that is the expression of a statement indented off its depth changes only the chain:
+    /// the anonymous method's block keeps its place relative to the statement's first token, and the blank lines in front of
+    /// the statement and the space in front of its semicolon stay as written, under LF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    [Requirement("SHARED-CHAIN-009")]
+    public async Task VerifyFixOfChainOfStatementOffItsDepthChangesOnlyTheChain()
+    {
+        await Verify(ChainOfStatementOffItsDepthTestData.Replace("\r\n", "\n"),
+                     ChainOfStatementOffItsDepthResultData.Replace("\r\n", "\n"),
+                     Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a chain that is the expression of a statement indented off its depth changes only the chain:
+    /// the anonymous method's block keeps its place relative to the statement's first token, and the blank lines in front of
+    /// the statement and the space in front of its semicolon stay as written, under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    [Requirement("SHARED-CHAIN-009")]
+    public async Task VerifyFixOfChainOfStatementOffItsDepthChangesOnlyTheChainWithCarriageReturnLineFeed()
+    {
+        await Verify(NormalizeToCarriageReturnLineFeed(ChainOfStatementOffItsDepthTestData),
+                     NormalizeToCarriageReturnLineFeed(ChainOfStatementOffItsDepthResultData),
+                     Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a chain that is the expression of a statement in a file indented by two spaces changes only the
+    /// chain: the anonymous method's block keeps its place relative to the statement's first token, and the blank lines in
+    /// front of the statement and the space in front of its semicolon stay as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    [Requirement("SHARED-CHAIN-009")]
+    public async Task VerifyFixOfChainOfStatementInTwoSpaceIndentedFileChangesOnlyTheChain()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class Builder
+                                {
+                                  internal Builder A(Action action) => this;
+
+                                  internal Builder C() => this;
+                                }
+
+                                internal class Example
+                                {
+                                  private static void M(Builder b)
+                                  {
+                                  }
+
+                                  private static void Run(Builder b)
+                                  {
+                                    M(b);
+
+
+                                    b.A(delegate
+                                        {
+                                          M(b);
+                                        })
+                                      {|#0:.|}C() ;
+                                  }
+                                }
+                                """;
+        const string resultData = """
+                                  using System;
+
+                                  internal class Builder
+                                  {
+                                    internal Builder A(Action action) => this;
+
+                                    internal Builder C() => this;
+                                  }
+
+                                  internal class Example
+                                  {
+                                    private static void M(Builder b)
+                                    {
+                                    }
+
+                                    private static void Run(Builder b)
+                                    {
+                                      M(b);
+
+
+                                      b.A(delegate
+                                      {
+                                          M(b);
+                                      })
+                                       .C() ;
+                                    }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the other side of the statement's indentation: the fix of a chain that is the expression of a statement at its
+    /// depth changes only the chain, places the anonymous method's block by the depth, and keeps the blank lines in front of
+    /// the statement and the space in front of its semicolon as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    [Requirement("SHARED-CHAIN-009")]
+    public async Task VerifyFixOfChainOfStatementAtItsDepthChangesOnlyTheChain()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class Builder
+                                {
+                                    internal Builder A(Action action) => this;
+
+                                    internal Builder C() => this;
+                                }
+
+                                internal class Example
+                                {
+                                    private static void M(Builder b)
+                                    {
+                                    }
+
+                                    private static void Run(Builder b)
+                                    {
+                                        M(b);
+
+
+                                        b.A(delegate
+                                            {
+                                                M(b);
+                                            })
+                                    {|#0:.|}C() ;
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System;
+
+                                  internal class Builder
+                                  {
+                                      internal Builder A(Action action) => this;
+
+                                      internal Builder C() => this;
+                                  }
+
+                                  internal class Example
+                                  {
+                                      private static void M(Builder b)
+                                      {
+                                      }
+
+                                      private static void Run(Builder b)
+                                      {
+                                          M(b);
+
+
+                                          b.A(delegate
+                                          {
+                                              M(b);
+                                          })
+                                           .C() ;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
     }
 
     /// <summary>

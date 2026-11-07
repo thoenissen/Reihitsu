@@ -7,17 +7,20 @@ using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Pipeline.DocumentationComments.Utilities;
-using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
-using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.DocumentationComments;
 
 /// <summary>
-/// Normalizes XML documentation comments to repository-specific layout rules. Element-level layout
+/// Starts a new line in front of a documentation comment written behind the code in front of it when the comment documents
+/// the code following it (FMT-DOC-001): a single-line comment in every position, a delimited comment only as the first
+/// comment of its token's leading trivia and not behind an opening brace or the colon of a switch label. It also
+/// normalizes XML documentation comments to repository-specific layout rules. Element-level layout
 /// decisions live in <see cref="DocCommentElementNormalizer"/>; this phase locates the candidate
 /// elements, splices in their normalized text — repeating until no candidate is left, because only
-/// the outermost ones can be rebuilt per round — and fixes the <c>///</c> line prefixes
+/// the outermost ones can be rebuilt per round — and fixes the <c>///</c> line prefixes. A comment stranded behind
+/// code, or one that holds an element without an end tag of its own, keeps its text as written
 /// </summary>
 internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
 {
@@ -33,20 +36,6 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     #endregion // Constants
 
     #region Methods
-
-    /// <summary>
-    /// Determines whether a documentation exterior follows non-whitespace source on the same line
-    /// </summary>
-    /// <param name="documentationCommentTrivia">Documentation comment trivia</param>
-    /// <param name="sourceText">Source text</param>
-    /// <returns><see langword="true"/> when the documentation comment starts after other source text</returns>
-    private static bool IsAfterSourceOnSameLine(SyntaxTrivia documentationCommentTrivia, SourceText sourceText)
-    {
-        var line = sourceText.Lines.GetLineFromPosition(documentationCommentTrivia.FullSpan.Start);
-        var prefix = sourceText.ToString(TextSpan.FromBounds(line.Start, documentationCommentTrivia.FullSpan.Start));
-
-        return prefix.Any(character => char.IsWhiteSpace(character) == false && character != '\uFEFF');
-    }
 
     /// <summary>
     /// Determines whether significant trivia owned by the following token precedes documentation on its physical line
@@ -85,7 +74,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// <param name="token">Owning token</param>
     /// <param name="documentationCommentTrivia">Documentation comment trivia owned by the token</param>
     /// <param name="endOfLine">Line-ending sequence</param>
-    /// <returns>The token with the documentation comment moved onto a line of its own</returns>
+    /// <returns>The token with each documentation comment moved onto a new line</returns>
     private static SyntaxToken MoveBeforeOwningToken(SyntaxToken token, IReadOnlyCollection<SyntaxTrivia> documentationCommentTrivia, string endOfLine)
     {
         var leadingTrivia = token.LeadingTrivia;
@@ -111,14 +100,16 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     }
 
     /// <summary>
-    /// Moves off-position single-line documentation trivia onto a line of its own before its following token
+    /// Starts a new line in front of every documentation comment written behind code that documents the code following
+    /// it: single-line comments in every position, delimited comments in the positions
+    /// <see cref="IsMovableDelimitedDocumentation"/> admits
     /// </summary>
     /// <param name="root">Root node</param>
     /// <param name="sourceText">Source text</param>
-    /// <param name="endOfLine">Line-ending sequence</param>
+    /// <param name="context">The formatting context</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The root with trailing documentation comments moved before their Roslyn owner</returns>
-    private static SyntaxNode RelocateOffPositionDocumentationComments(SyntaxNode root, SourceText sourceText, string endOfLine, CancellationToken cancellationToken)
+    /// <returns>The root with documentation comments written behind code moved onto a new line before their Roslyn owner</returns>
+    private static SyntaxNode RelocateOffPositionDocumentationComments(SyntaxNode root, SourceText sourceText, FormattingContext context, CancellationToken cancellationToken)
     {
         var owningRelocations = new Dictionary<SyntaxToken, List<SyntaxTrivia>>();
         var previousTokenRelocationCounts = new Dictionary<SyntaxToken, int>();
@@ -126,14 +117,14 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
         foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            RegisterRelocation(root, trivia, sourceText, owningRelocations, previousTokenRelocationCounts);
+            RegisterRelocation(root, trivia, sourceText, context, owningRelocations, previousTokenRelocationCounts);
         }
 
         var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
 
         foreach (var owningRelocation in owningRelocations)
         {
-            replacements[owningRelocation.Key] = MoveBeforeOwningToken(owningRelocation.Key, owningRelocation.Value, endOfLine);
+            replacements[owningRelocation.Key] = MoveBeforeOwningToken(owningRelocation.Key, owningRelocation.Value, context.EndOfLine);
         }
 
         foreach (var previousTokenRelocation in previousTokenRelocationCounts)
@@ -148,7 +139,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
 
             for (var relocationIndex = 0; relocationIndex < previousTokenRelocation.Value; relocationIndex++)
             {
-                trailingTrivia = trailingTrivia.Add(SyntaxFactory.EndOfLine(endOfLine));
+                trailingTrivia = trailingTrivia.Add(SyntaxFactory.EndOfLine(context.EndOfLine));
             }
 
             replacements[previousTokenRelocation.Key] = currentPreviousToken.WithTrailingTrivia(trailingTrivia);
@@ -165,36 +156,65 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// <param name="root">Root node</param>
     /// <param name="trivia">Trivia candidate</param>
     /// <param name="sourceText">Source text</param>
+    /// <param name="context">The formatting context</param>
     /// <param name="owningRelocations">Relocations that split the owning token's leading trivia</param>
-    /// <param name="previousTokenRelocationCounts">Line breaks to append to previous tokens</param>
+    /// <param name="previousTokenRelocationCounts">
+    /// Line breaks to append to previous tokens, each of which first loses the whitespace that ends its trailing trivia;
+    /// a count of zero only removes that whitespace
+    /// </param>
     private static void RegisterRelocation(SyntaxNode root,
                                            SyntaxTrivia trivia,
                                            SourceText sourceText,
+                                           FormattingContext context,
                                            IDictionary<SyntaxToken, List<SyntaxTrivia>> owningRelocations,
                                            Dictionary<SyntaxToken, int> previousTokenRelocationCounts)
     {
-        if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) == false
-            || IsAfterSourceOnSameLine(trivia, sourceText) == false)
+        if (SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia) == false
+            || (DocumentationCommentUtilities.IsWrittenBehindSource(trivia, sourceText) == false
+                && IsWrittenBehindRootPrecedingToken(root, trivia, sourceText, context) == false))
         {
             return;
         }
 
-        var owningToken = trivia.Token;
+        if (trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia)
+            && IsMovableDelimitedDocumentation(trivia, context) == false)
+        {
+            return;
+        }
 
         // Relocating the comment above its owning token is what makes it document that token. When the owner
         // does not open a node there is nothing to document - the comment is stranded before a ';' or a closing
         // '}' - so moving it changes the author's layout without making the comment mean anything, and the
         // compiler reports CS1587 either way. Leave it where it was written.
-        if (ReihitsuFormatterHelpers.DocumentsFollowingCode(owningToken) == false)
+        if (DocumentationCommentUtilities.DocumentsFollowingCode(trivia.Token) == false)
         {
             return;
         }
 
+        var owningToken = trivia.Token;
         var previousToken = GetPreviousPresentToken(owningToken);
+        var isPreviousTokenInRoot = previousToken.RawKind != 0
+                                    && TokenContainmentUtilities.ContainsToken(root, previousToken);
+
+        // A delimited comment is the first comment of its owning token's leading trivia here, so its line break goes
+        // in front of it in that leading trivia, and the token in front only loses the whitespace that ended its line.
+        // That token then does not end its line in the trivia, so a later phase that reads whether it does - the
+        // line placement of a conditional operator reads it - sees the same trivia as before the move.
+        if (trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+        {
+            AddOwningRelocation(owningRelocations, owningToken, trivia);
+
+            if (isPreviousTokenInRoot)
+            {
+                previousTokenRelocationCounts.TryGetValue(previousToken, out var lineBreakCount);
+                previousTokenRelocationCounts[previousToken] = lineBreakCount;
+            }
+
+            return;
+        }
 
         if (HasOwningLeadingSourceOnSameLine(trivia, sourceText)
-            || previousToken.RawKind == 0
-            || TokenLocator.ContainsToken(root, previousToken) == false)
+            || isPreviousTokenInRoot == false)
         {
             AddOwningRelocation(owningRelocations, owningToken, trivia);
 
@@ -203,6 +223,52 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
 
         previousTokenRelocationCounts.TryGetValue(previousToken, out var relocationCount);
         previousTokenRelocationCounts[previousToken] = relocationCount + 1;
+    }
+
+    /// <summary>
+    /// Determines whether a delimited documentation comment written behind code is one this phase starts a new line in
+    /// front of. FMT-DOC-001 leaves a delimited comment undecided when it stands behind an earlier comment of the same
+    /// leading trivia, behind an opening brace, or behind the colon of a switch label, so only the first comment of its
+    /// token's leading trivia is moved, and only when the token in front of it neither opens a block nor ends a switch
+    /// label. Both facts are the ones the blank-line boundary in front of a comment reads
+    /// (<see cref="TriviaListUtilities.IndexOfFirstComment"/>, <see cref="BlockStartUtilities.IsFirstInBlock(PrecedingTokenFacts)"/>)
+    /// </summary>
+    /// <param name="trivia">Delimited documentation trivia written behind code</param>
+    /// <param name="context">The formatting context</param>
+    /// <returns><see langword="true"/> if the comment starts a new line; otherwise, <see langword="false"/></returns>
+    private static bool IsMovableDelimitedDocumentation(SyntaxTrivia trivia, FormattingContext context)
+    {
+        var owningToken = trivia.Token;
+        var commentIndex = TriviaListUtilities.IndexOfFirstComment(owningToken.LeadingTrivia);
+
+        if (commentIndex < 0
+            || owningToken.LeadingTrivia[commentIndex] != trivia)
+        {
+            return false;
+        }
+
+        var previousTokenFacts = PrecedingTokenFacts.Resolve(owningToken.GetPreviousToken(), context);
+
+        return BlockStartUtilities.IsFirstInBlock(previousTokenFacts) == false;
+    }
+
+    /// <summary>
+    /// Determines whether a documentation comment on the first line of a detached formatting root is written behind the
+    /// token that precedes the root in its document. A node-level root has no parent (FMT-PIPE-023), so the root's text
+    /// starts with the comment and the token in front of it is not part of the tree; the facts captured for that
+    /// token (<see cref="FormattingContext.RootPrecedingToken"/>) say whether it shares the comment's line
+    /// </summary>
+    /// <param name="root">Root node</param>
+    /// <param name="trivia">Documentation trivia</param>
+    /// <param name="sourceText">Source text of the root</param>
+    /// <param name="context">The formatting context</param>
+    /// <returns><see langword="true"/> if the comment stands behind the root's preceding token on that token's line; otherwise, <see langword="false"/></returns>
+    private static bool IsWrittenBehindRootPrecedingToken(SyntaxNode root, SyntaxTrivia trivia, SourceText sourceText, FormattingContext context)
+    {
+        return context.RootPrecedingToken.Exists
+               && context.RootPrecedingToken.EndsLine == false
+               && GetPreviousPresentToken(trivia.Token).RawKind == 0
+               && sourceText.Lines.GetLineFromPosition(trivia.FullSpan.Start).LineNumber == sourceText.Lines.GetLineFromPosition(root.FullSpan.Start).LineNumber;
     }
 
     /// <summary>
@@ -250,9 +316,10 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// <param name="commentSpan">Span the comment text occupies in <paramref name="sourceText"/></param>
     /// <param name="documentationComment">Structured documentation comment</param>
     /// <param name="sourceText">Source text</param>
+    /// <param name="endOfLine">The detected line ending, written between the lines of an expanded element</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The rebuilt comment text, or <see langword="null"/> if no element required rebuilding</returns>
-    private static string NormalizeOutermostElements(string commentText, TextSpan commentSpan, DocumentationCommentTriviaSyntax documentationComment, SourceText sourceText, CancellationToken cancellationToken)
+    private static string NormalizeOutermostElements(string commentText, TextSpan commentSpan, DocumentationCommentTriviaSyntax documentationComment, SourceText sourceText, string endOfLine, CancellationToken cancellationToken)
     {
         var candidates = documentationComment.DescendantNodes()
                                              .OfType<XmlElementSyntax>()
@@ -274,7 +341,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var replacementText = DocCommentElementNormalizer.BuildReplacement(element, sourceText);
+            var replacementText = DocCommentElementNormalizer.BuildReplacement(element, sourceText, endOfLine);
             var relativeStart = element.Span.Start - commentSpan.Start;
             var relativeEnd = element.Span.End - commentSpan.Start;
 
@@ -323,9 +390,10 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// <param name="documentationCommentTrivia">Documentation comment trivia</param>
     /// <param name="documentationComment">Structured documentation comment</param>
     /// <param name="sourceText">Source text</param>
+    /// <param name="endOfLine">The detected line ending, written between the lines of an expanded element</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The rebuilt comment text, or <see langword="null"/> if no element required rebuilding</returns>
-    private static string NormalizeElementsUntilStable(SyntaxTrivia documentationCommentTrivia, DocumentationCommentTriviaSyntax documentationComment, SourceText sourceText, CancellationToken cancellationToken)
+    private static string NormalizeElementsUntilStable(SyntaxTrivia documentationCommentTrivia, DocumentationCommentTriviaSyntax documentationComment, SourceText sourceText, string endOfLine, CancellationToken cancellationToken)
     {
         var currentComment = documentationComment;
         var currentSourceText = sourceText;
@@ -337,7 +405,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var roundText = NormalizeOutermostElements(currentText, currentSpan, currentComment, currentSourceText, cancellationToken);
+            var roundText = NormalizeOutermostElements(currentText, currentSpan, currentComment, currentSourceText, endOfLine, cancellationToken);
 
             if (roundText == null)
             {
@@ -365,11 +433,12 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// <param name="documentationCommentTrivia">Documentation comment trivia</param>
     /// <param name="documentationComment">Structured documentation comment</param>
     /// <param name="sourceText">Source text</param>
+    /// <param name="endOfLine">The detected line ending, written between the lines of an expanded element</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The normalized comment text, or <see langword="null"/> if no change is required</returns>
-    private static string NormalizeDocumentationComment(SyntaxTrivia documentationCommentTrivia, DocumentationCommentTriviaSyntax documentationComment, SourceText sourceText, CancellationToken cancellationToken)
+    private static string NormalizeDocumentationComment(SyntaxTrivia documentationCommentTrivia, DocumentationCommentTriviaSyntax documentationComment, SourceText sourceText, string endOfLine, CancellationToken cancellationToken)
     {
-        var rebuiltCommentText = NormalizeElementsUntilStable(documentationCommentTrivia, documentationComment, sourceText, cancellationToken);
+        var rebuiltCommentText = NormalizeElementsUntilStable(documentationCommentTrivia, documentationComment, sourceText, endOfLine, cancellationToken);
         var normalizedCommentText = rebuiltCommentText ?? sourceText.ToString(documentationCommentTrivia.FullSpan);
         var changed = rebuiltCommentText != null;
 
@@ -396,7 +465,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
         var sourceText = root.SyntaxTree?.GetText(cancellationToken) ?? SourceText.From(root.ToFullString());
-        var relocatedRoot = RelocateOffPositionDocumentationComments(root, sourceText, context.EndOfLine, cancellationToken);
+        var relocatedRoot = RelocateOffPositionDocumentationComments(root, sourceText, context, cancellationToken);
 
         if (ReferenceEquals(relocatedRoot, root) == false)
         {
@@ -416,7 +485,16 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
                 continue;
             }
 
-            var updatedCommentText = NormalizeDocumentationComment(trivia, documentationComment, sourceText, cancellationToken);
+            // A comment stranded behind code is an ordinary comment to the compiler, and one that holds an element
+            // without an end tag of its own is incomplete documentation whose intended element end is unknown:
+            // rebuilding it would guess that end or pull the code that follows into the comment. Both keep their
+            // text as written, every line of it, including their complete elements and their separators
+            if (DocumentationCommentUtilities.IsLeftAsWritten(trivia, sourceText))
+            {
+                continue;
+            }
+
+            var updatedCommentText = NormalizeDocumentationComment(trivia, documentationComment, sourceText, context.EndOfLine, cancellationToken);
 
             if (updatedCommentText == null)
             {

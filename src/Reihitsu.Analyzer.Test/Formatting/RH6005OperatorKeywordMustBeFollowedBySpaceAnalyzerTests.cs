@@ -132,6 +132,96 @@ public class RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzerTests : BatchCode
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies an <c>operator</c> keyword directly followed by a documentation comment, which ends
+    /// the line, is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6005-001")]
+    public async Task VerifyOperatorKeywordFollowedByStrayDocumentationCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    public static C operator/// x
+                                    +(C a, C b)
+                                    {
+                                        return a;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the <c>operator</c> keyword of a conversion operator directly followed by a
+    /// documentation comment, which ends the line, is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6005-001")]
+    public async Task VerifyConversionOperatorKeywordFollowedByStrayDocumentationCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    public static implicit operator/// x
+                                        int(C c)
+                                    {
+                                        return 0;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the control of the documentation-comment case: an <c>operator</c> keyword directly followed by a single-line comment, which ends
+    /// the line, is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyOperatorKeywordFollowedBySingleLineCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    public static C operator// x
+                                    +(C a, C b)
+                                    {
+                                        return a;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the control of the documentation-comment case: the <c>operator</c> keyword of a conversion operator directly followed by a
+    /// single-line comment, which ends the line, is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyConversionOperatorKeywordFollowedBySingleLineCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class C
+                                {
+                                    public static implicit operator// x
+                                        int(C c)
+                                    {
+                                        return 0;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

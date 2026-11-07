@@ -5,9 +5,9 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.Spacing;
 
 /// <summary>
-/// Tests covering tab characters that sit in the gap between two tokens on the same line. The
-/// horizontal spacing phase collapses such a gap to a single space; the cleanup phase would
-/// otherwise expand a surviving tab to four spaces, which the next run then collapses again
+/// Tests covering tab characters that sit in the gap between two tokens on the same line. The tab
+/// replacement phase turns each such tab into four spaces before any other phase runs, and the
+/// horizontal spacing phase then collapses the gap to a single space, so the output is stable in one run
 /// </summary>
 [TestClass]
 public class TabGapSpacingTests : FormatterTestsBase
@@ -91,8 +91,9 @@ public class TabGapSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a tab used as indentation is still expanded by the cleanup phase rather than
-    /// collapsed — the gap rule applies between tokens, not in front of the first token on a line
+    /// Verifies that a tab used as indentation is replaced by the tab replacement phase and the line
+    /// is indented to its column rather than collapsed — the gap rule applies between tokens, not in
+    /// front of the first token on a line
     /// </summary>
     [TestMethod]
     public void TabIndentationIsStillExpandedToSpaces()

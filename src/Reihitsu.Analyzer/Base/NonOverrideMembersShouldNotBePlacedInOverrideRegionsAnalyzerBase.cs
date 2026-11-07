@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Core;
 
@@ -75,6 +76,65 @@ public abstract class NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyz
     }
 
     /// <summary>
+    /// Gets the names of the override regions of a type declaration: the regions named after the type that introduced
+    /// a member the declaration overrides
+    /// </summary>
+    /// <param name="typeDeclaration">Type declaration</param>
+    /// <param name="semanticModel">Semantic model of the declaration's tree</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The region names</returns>
+    private HashSet<string> GetOverrideRegionNames(TypeDeclarationSyntax typeDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        var overrideRegionNames = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var memberDeclaration in typeDeclaration.Members)
+        {
+            if (TryGetOverrideRegionName(memberDeclaration, semanticModel, cancellationToken, out var overrideRegionName))
+            {
+                overrideRegionNames.Add(overrideRegionName);
+            }
+        }
+
+        return overrideRegionNames;
+    }
+
+    /// <summary>
+    /// Determines whether a part of a partial member lies in an override region of the type declaration that holds it
+    /// </summary>
+    /// <param name="part">Part of the partial member</param>
+    /// <param name="analyzedTypeDeclaration">Type declaration being analyzed</param>
+    /// <param name="analyzedOverrideRegionNames">Override region names of the analyzed type declaration</param>
+    /// <param name="semanticModel">Semantic model of the analyzed type declaration's tree</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>
+    /// <see langword="true"/> when the part lies in an override region, and for a part in another syntax tree, whose
+    /// override regions this analysis cannot bind, so that the part counts as reported as every part of a covered member is
+    /// </returns>
+    private bool LiesInOverrideRegion(MemberDeclarationSyntax part,
+                                      TypeDeclarationSyntax analyzedTypeDeclaration,
+                                      HashSet<string> analyzedOverrideRegionNames,
+                                      SemanticModel semanticModel,
+                                      CancellationToken cancellationToken)
+    {
+        if (part.Parent is not TypeDeclarationSyntax partTypeDeclaration)
+        {
+            return false;
+        }
+
+        if (partTypeDeclaration.SyntaxTree != semanticModel.SyntaxTree)
+        {
+            return true;
+        }
+
+        var overrideRegionNames = partTypeDeclaration == analyzedTypeDeclaration
+                                      ? analyzedOverrideRegionNames
+                                      : GetOverrideRegionNames(partTypeDeclaration, semanticModel, cancellationToken);
+
+        return TryGetContainingRegionName(part, RegionDirectiveUtilities.GetTopLevelRegions(partTypeDeclaration), out var regionName)
+               && overrideRegionNames.Contains(regionName);
+    }
+
+    /// <summary>
     /// Analyzes the type declaration
     /// </summary>
     /// <param name="context">Context</param>
@@ -92,15 +152,7 @@ public abstract class NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyz
             return;
         }
 
-        var overrideRegionNames = new HashSet<string>(StringComparer.Ordinal);
-
-        foreach (var memberDeclaration in typeDeclaration.Members)
-        {
-            if (TryGetOverrideRegionName(memberDeclaration, context.SemanticModel, context.CancellationToken, out var overrideRegionName))
-            {
-                overrideRegionNames.Add(overrideRegionName);
-            }
-        }
+        var overrideRegionNames = GetOverrideRegionNames(typeDeclaration, context.SemanticModel, context.CancellationToken);
 
         if (overrideRegionNames.Count == 0)
         {
@@ -112,6 +164,17 @@ public abstract class NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyz
             if (IsRelevantNonOverrideMember(memberDeclaration, context.SemanticModel, context.CancellationToken) == false
                 || TryGetContainingRegionName(memberDeclaration, regions, out var regionName) == false
                 || overrideRegionNames.Contains(regionName) == false)
+            {
+                continue;
+            }
+
+            // A partial member is one member and is reported once, on the first part in an override region (SHARED-DIAG-012)
+            if (memberDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword)
+                && PartialMemberUtilities.GetReportedPart(memberDeclaration,
+                                                          PartialMemberUtilities.GetDeclaredSymbol(memberDeclaration, context.SemanticModel, context.CancellationToken),
+                                                          part => LiesInOverrideRegion(part, typeDeclaration, overrideRegionNames, context.SemanticModel, context.CancellationToken),
+                                                          context.SemanticModel.Compilation,
+                                                          context.CancellationToken) != memberDeclaration)
             {
                 continue;
             }

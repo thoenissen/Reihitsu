@@ -5,14 +5,15 @@
 | ID prefix | FMT-CLEAN |
 | Status | Active |
 | Code owners | `CleanupPhase`, `EndOfLineWhitespace` |
-| Uses | FMT-PIPE-002, FMT-PIPE-010, FMT-PIPE-012 |
+| Uses | FMT-BLANK-007, FMT-BLANK-008, FMT-PIPE-002, FMT-PIPE-010, FMT-PIPE-023, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003 |
 
-This spec covers `CleanupPhase`: the removal of whitespace that ends a line, the replacement of tabs that earlier phases left in whitespace and inside directives, and the removal of the line breaks at the end of a file — including the cases where a file's final directive keeps its line break.
+This spec covers `CleanupPhase`: the removal of whitespace that ends a line and the removal of the line breaks at the end of a file — including the cases where a file's final directive keeps its line break.
 
 ## Non-goals
 
 - Collapsing runs of blank lines (FMT-BLANK-014) and deciding where blank lines go — the phase only removes whitespace on a blank line, never the line itself, except at the end of the file.
-- Indentation and the gaps between tokens on a line — FMT-INDENT and FMT-SPACE replace leading tabs and normalize token gaps before this phase runs.
+- Indentation and the gaps between tokens on a line — FMT-INDENT and FMT-SPACE decide them before this phase runs.
+- Tabs in whitespace and inside directives — FMT-TAB replaces them in the preparation phase, so this phase receives none.
 - Whitespace after `///` on a documentation line (FMT-DOC-005, FMT-DOC-006).
 - Which character sequence a line break uses (FMT-PIPE-007, FMT-EOL).
 - Whitespace at the end of a single-line comment, a documentation comment line, or a directive line, and whitespace behind the last token of a file that has no final line break — the phase currently leaves all of these in place. Removing that whitespace is decided: at the end of a comment or a documentation comment line as a behavior change, tracked in thoenissen/Reihitsu#959, and at the end of a directive line without message text and behind the last token as a bug, tracked in thoenissen/Reihitsu#960.
@@ -43,46 +44,19 @@ when `int x = 1;` is followed by three spaces and the blank line consists of eig
 
 ### FMT-CLEAN-002 — Tabs in whitespace become four spaces each
 
-The formatter MUST replace every tab character in whitespace trivia with four spaces. The replacement MUST NOT depend on the column the tab starts in.
-
-Why: The formatter's indentation unit is four spaces, and a tab renders at a width that depends on the reader's editor. Earlier phases rebuild indentation and most token gaps; this rule catches the whitespace they keep as written, such as the gap before a trailing comment. A fixed width keeps the result independent of tab-stop settings.
-
-Example — not shown as an input block because the input contains tabs: in a class whose fields read `int z;`, a tab, `// e` and `int w;`, a space, a tab, a space, `// f`, the gaps become four and six spaces:
-
-```csharp
-class C
-{
-    int z;    // e
-    int w;      // f
-}
-```
+Status: Retired — tabs in whitespace are replaced in the first phase of the pipeline, before any phase measures a column; FMT-TAB-001 states the unchanged rule.
 
 ### FMT-CLEAN-003 — Tabs inside directives become four spaces each
 
-The formatter MUST replace every tab in the whitespace between the tokens of a preprocessor directive with four spaces, by the same rule as FMT-CLEAN-002. Free text that a directive carries — a region description, the message of `#error` or `#warning` — is directive content and MUST NOT be changed.
-
-Why: The tokens of a directive live in structured trivia, which the token-level part of the phase does not reach, so the directive interior gets its own pass. A region description is user-authored text (FMT-PIPE-002); a tab inside it is part of the name and is repeated in the `#endregion` comment.
-
-Example — not shown as an input block because the input contains tabs: `#define`, a tab, `DEBUG` and `#pragma warning`, a tab, `disable CS1591` become
-
-```csharp
-#define    DEBUG
-class C
-{
-#pragma warning    disable CS1591
-    int x;
-}
-```
-
-while a tab inside the description of `#region Name` is left as it is.
+Status: Retired — tabs between the tokens of a directive are replaced in the first phase of the pipeline; FMT-TAB-002 states the unchanged rule.
 
 ### FMT-CLEAN-004 — Literals, comments, and disabled text are not cleaned
 
-The formatter MUST NOT replace tabs or remove whitespace inside a comment, a documentation comment, a string or character literal (regular, verbatim, interpolated, or raw), or disabled text. Only whitespace trivia and the whitespace between directive tokens are cleaned.
+The formatter MUST NOT remove whitespace inside a comment, a documentation comment, a string or character literal (regular, verbatim, interpolated, or raw), or disabled text. Only whitespace trivia is cleaned. That tabs inside such text are kept is FMT-TAB-003.
 
-Why: These are user-authored content (FMT-PIPE-002). A tab or a run of spaces inside a literal changes the program's value, and inside a comment or disabled text it may be deliberate alignment.
+Why: These are user-authored content (FMT-PIPE-002). A run of spaces inside a literal is part of the program's value, and inside a comment or disabled text it may be deliberate alignment.
 
-Example — not shown as blocks because the content is tabs and trailing whitespace: in
+Example — not shown as blocks because the difference is trailing whitespace: in
 
 ```csharp
 class C
@@ -98,7 +72,7 @@ line";
 }
 ```
 
-when each space inside the comments, the literals, and the disabled text is a tab, and the line `    disabled text` and the line `string t = @"g h` end in spaces, every tab and every one of those spaces is kept.
+when the line `    disabled text` and the line `string t = @"g h` end in spaces, every one of those spaces is kept.
 
 ### FMT-CLEAN-005 — The file does not end with a line break
 
@@ -191,14 +165,24 @@ int ignored;
 #endif
 ```
 
-### FMT-CLEAN-008 — A detached node does not end with a line break
+### FMT-CLEAN-008 — A node-level root does not end with a line break
 
-When `FormatNode` formats a node that is not part of a syntax tree (FMT-PIPE-012), the formatter MUST remove the line breaks at the end of the node's last token.
+When `FormatNode`, `FormatNodeInDocumentAsync`, or `FormatNodeInDocumentWithContextAsync` formats a root other than a compilation unit, the formatter MUST remove the line breaks at the end of the root's last token. This holds for every such root, also for a node that `FormatNode` is given while it is part of a tree, because each of them is formatted as a root without a parent (FMT-PIPE-023). The end of a compilation unit is the end of its file, which FMT-CLEAN-005 covers.
 
-Why: A detached node has no following token, so it is treated like the end of a file. The caller inserts the node into its target and decides what follows it. The node-in-document entry points restore the target's original trailing trivia instead (FMT-PIPE-010).
+Why: A detached root has no following token, so it is treated like the end of a file. The caller of `FormatNode` inserts the node into its target and decides what follows it. The node-in-document entry points restore the target's original trailing trivia instead (FMT-PIPE-010).
+
+Example — `FormatNode` on the statement `Call(1, 2);` inside a method body returns `        Call(1, 2);` without the line break that ends the statement's line in the tree.
 
 ### FMT-CLEAN-009 — The byte order mark is kept
 
-The formatter MUST keep a byte order mark at the start of the text.
+The formatter MUST keep a byte order mark at the start of the text. This holds also when the first line holds nothing but the byte order mark and white space: the blank lines before the first line are removed (FMT-BLANK-007), and the byte order mark stays at the start of the text.
 
-Why: Removing or adding a byte order mark changes the file's encoding signature, which tools and compilers may depend on; cleanup only removes whitespace and line breaks.
+Only a `U+FEFF` at the start of the text is a byte order mark. A `U+FEFF` on a line that holds nothing but white space anywhere else in the text is white space of that line: it is removed with the line's white space (FMT-CLEAN-001), and with the line itself where the formatter removes that blank line, such as a blank line directly before a closing brace (FMT-BLANK-007) or before `else` (FMT-BLANK-008).
+
+This requirement covers a `U+FEFF` at the start of the text and one on a line that holds nothing but white space; a `U+FEFF` that starts the white space in front of a token on a later line is not covered.
+
+Why: Removing or adding a byte order mark changes the file's encoding signature, which tools and compilers may depend on; cleanup only removes whitespace and line breaks. The byte order mark is not white space of the first line, even where the parser reads it as white-space trivia. Anywhere else, `U+FEFF` is no encoding signature but the zero-width no-break space, which the parser reads as white space, so a blank line that holds it is still a blank line.
+
+Example — the text `U+FEFF`, a line break, and `class C{int x;}` becomes `U+FEFF` followed directly by `class C`, then `{`, `    int x;`, and `}` on lines of their own. The same holds when white space follows the byte order mark on the first line or further blank lines follow that line, and a text that holds nothing but the byte order mark and a line break keeps the byte order mark.
+
+Example — elsewhere in the text: in `int x = 0;`, a line holding only `U+FEFF`, `x++;` inside a method body, the line stays an empty line without the `U+FEFF`; in `}`, a line holding only `U+FEFF`, `else`, the line is removed together with the `U+FEFF`, and `else` follows `}` directly.

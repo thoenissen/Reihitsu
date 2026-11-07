@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -57,6 +57,26 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer : Diagn
     }
 
     /// <summary>
+    /// Determines whether the block stands, at any depth, inside an interpolation of an interpolated string that is
+    /// not verbatim while the code is compiled with C# 10 or earlier. Such an interpolation cannot contain a line
+    /// break before C# 11 (CS8967), so the braces cannot start their own lines there
+    /// </summary>
+    /// <param name="block">Block to inspect</param>
+    /// <returns><see langword="true"/> when the braces cannot be placed on their own lines; otherwise, <see langword="false"/></returns>
+    private static bool IsInsideSingleLineInterpolation(BlockSyntax block)
+    {
+        if (block.SyntaxTree.Options is not CSharpParseOptions { LanguageVersion: < LanguageVersion.CSharp11 })
+        {
+            return false;
+        }
+
+        return block.Ancestors()
+                    .OfType<InterpolationSyntax>()
+                    .Any(interpolation => interpolation.Parent is InterpolatedStringExpressionSyntax interpolatedString
+                                          && interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedStringStartToken));
+    }
+
+    /// <summary>
     /// Analyzes a block for a covered single-line function or accessor body
     /// </summary>
     /// <param name="context">Context</param>
@@ -68,6 +88,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer : Diagn
         }
 
         if (IsCoveredBody(block) == false
+            || IsInsideSingleLineInterpolation(block)
             || block.OpenBraceToken.IsMissing
             || block.CloseBraceToken.IsMissing)
         {

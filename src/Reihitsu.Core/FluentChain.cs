@@ -136,8 +136,21 @@ public sealed class FluentChain
     /// <returns>The chain, or <see langword="null"/> when the node is not an outermost chain node or has no link although one is required</returns>
     public static FluentChain Create(SyntaxNode node, bool requireLink)
     {
+        return Create(node, requireLink, default);
+    }
+
+    /// <summary>
+    /// Creates the chain model for an outermost chain node. Where the decision whether the node is the outermost one reads
+    /// above the root of the node's tree, the boundary answers instead (<see cref="IsOutermostChainNode(SyntaxNode, FluentChainBoundary)"/>)
+    /// </summary>
+    /// <param name="node">The node to inspect</param>
+    /// <param name="requireLink">Whether a chain without any link (only attached parts, such as <c>a?[0]</c>) yields <see langword="null"/></param>
+    /// <param name="boundary">The facts about the code above the root of the node's tree</param>
+    /// <returns>The chain, or <see langword="null"/> when the node is not an outermost chain node or has no link although one is required</returns>
+    public static FluentChain Create(SyntaxNode node, bool requireLink, FluentChainBoundary boundary)
+    {
         if (node is not ExpressionSyntax expression
-            || IsOutermostChainNode(expression) == false)
+            || IsOutermostChainNode(expression, boundary) == false)
         {
             return null;
         }
@@ -180,10 +193,22 @@ public sealed class FluentChain
     /// <returns><see langword="true"/> if the node is the outermost chain node</returns>
     public static bool IsOutermostChainNode(SyntaxNode node)
     {
+        return IsOutermostChainNode(node, default);
+    }
+
+    /// <summary>
+    /// Determines whether a node is the outermost node of a chain spine, i.e. a chain node whose parent does not
+    /// continue the chain. Where the decision reads above the root of the node's tree, the boundary answers instead
+    /// </summary>
+    /// <param name="node">The node to inspect</param>
+    /// <param name="boundary">The facts about the code above the root of the node's tree</param>
+    /// <returns><see langword="true"/> if the node is the outermost chain node</returns>
+    public static bool IsOutermostChainNode(SyntaxNode node, FluentChainBoundary boundary)
+    {
         return IsChainNode(node)
                && node is not MemberBindingExpressionSyntax
                && node is not ElementBindingExpressionSyntax
-               && ContinuesChain(node.Parent, node) == false;
+               && ContinuesChain(node.Parent, node, boundary) == false;
     }
 
     /// <summary>
@@ -196,7 +221,7 @@ public sealed class FluentChain
         var current = node;
 
         while (current.Parent != null
-               && ContinuesChain(current.Parent, current))
+               && ContinuesChain(current.Parent, current, default))
         {
             current = current.Parent;
         }
@@ -245,13 +270,21 @@ public sealed class FluentChain
     }
 
     /// <summary>
-    /// Determines whether a parent node continues the chain of its child
+    /// Determines whether a parent node continues the chain of its child. This is the one statement of the rule. When the
+    /// child is the root of its tree, which has no parent, the boundary says whether the root's parent continues its chain;
+    /// when the rule has to look above the parent and the parent is that root, the boundary answers as well
     /// </summary>
-    /// <param name="parent">The parent node</param>
+    /// <param name="parent">The parent node, or <see langword="null"/> when the child is the root of its tree</param>
     /// <param name="child">The child node</param>
+    /// <param name="boundary">The facts about the code above the root of the tree</param>
     /// <returns><see langword="true"/> if the parent is a chain node that continues the child's chain</returns>
-    private static bool ContinuesChain(SyntaxNode parent, SyntaxNode child)
+    internal static bool ContinuesChain(SyntaxNode parent, SyntaxNode child, FluentChainBoundary boundary)
     {
+        if (parent == null)
+        {
+            return boundary.RootContinuesChain;
+        }
+
         return parent switch
                {
                    InvocationExpressionSyntax invocation => invocation.Expression == child,
@@ -260,10 +293,24 @@ public sealed class FluentChain
                    PostfixUnaryExpressionSyntax postfixUnary => postfixUnary.IsKind(SyntaxKind.SuppressNullableWarningExpression),
                    ConditionalAccessExpressionSyntax => true,
                    AssignmentExpressionSyntax assignment => assignment.Left == child
-                                                            && assignment.Parent is ConditionalAccessExpressionSyntax conditionalAccess
-                                                            && conditionalAccess.WhenNotNull == assignment,
+                                                            && IsConditionalAccessBranch(assignment, boundary),
                    _ => false
                };
+    }
+
+    /// <summary>
+    /// Determines whether a node is the branch that its conditional access evaluates when the expression is not null.
+    /// When the node is the root of its tree, the boundary answers
+    /// </summary>
+    /// <param name="node">The node</param>
+    /// <param name="boundary">The facts about the code above the root of the tree</param>
+    /// <returns><see langword="true"/> if the node is the <c>WhenNotNull</c> branch of a conditional access</returns>
+    internal static bool IsConditionalAccessBranch(SyntaxNode node, FluentChainBoundary boundary)
+    {
+        return node.Parent == null
+                   ? boundary.RootIsConditionalAccessBranch
+                   : node.Parent is ConditionalAccessExpressionSyntax conditionalAccess
+                     && conditionalAccess.WhenNotNull == node;
     }
 
     /// <summary>

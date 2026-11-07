@@ -31,7 +31,7 @@ Everything else is noise. A page should fit on one screen apart from its example
 - A diagnostic reported without a code fix is intended behavior.
 - Suppressing, disabling, or enabling a rule (`.editorconfig`, `#pragma warning`, `[SuppressMessage]`).
 
-When a new limitation applies to every rule (or to every code fix), add it to `general-notes.md` instead of to a rule page. When a rule-specific limitation is just the general comment/directive limitation applied to that rule's code, leave it out of the rule page.
+When a new limitation applies to every rule (or to every code fix), add it to `general-notes.md` instead of to a rule page. A rule-specific limitation — a withheld fix, an exception, a narrowed report in a corner case — is not written on the rule page at all; it belongs in the rule's spec, `sdd/specs/analyzer/RH####.md`.
 
 Every rule page ends with this footer, exactly (verified by `RuleDocumentationConventionTests`):
 
@@ -64,10 +64,6 @@ The readability, maintainability, correctness, or consistency problem from a use
 ## How to fix it
 
 Direct, practical advice. Say whether the code fix does it for you.
-
-## Exceptions
-
-Optional. Only cases specific to this rule where it deliberately does not report, or where its code fix is deliberately withheld. Keep it to a short bullet list.
 
 ## Examples
 
@@ -106,7 +102,7 @@ Add the `| **Enabled by default** | ❌ |` row only for a rule that is off by de
 
 - The formatter or `reihitsu-format`, in any role
 - Anything already covered by `general-notes.md` (see above)
-- Corner cases a user will practically never meet, or long lists of special shapes — summarize the rule instead of enumerating its edge cases
+- Withheld fixes, exceptions, and corner cases, or long lists of special shapes — summarize the rule instead of enumerating its edge cases
 - Roslyn API choices, analyzer registration details, syntax kinds, trivia, tokens, or semantic model discussion
 - Check logic algorithms, code-fix internals, evaluation order, or convergence and idempotency notes
 - Compiler error codes the code fix avoids, unless the user sees them
@@ -123,7 +119,7 @@ If a sentence only makes sense to someone who has read the analyzer source, dele
 ## Writing process
 
 1. Read the rule's spec `sdd/specs/analyzer/RH####.md` when it exists — the page is derived from it (`sdd/README.md`) — then the analyzer name, package README entry, nearby rule docs, and `documentation/rules/general-notes.md`.
-2. Infer the user-visible rule intent from the spec; without a spec, from the analyzer. Take `## Exceptions` from the requirements that state where the rule does not report or withholds its fix, leaving out what the general notes cover.
+2. Infer the user-visible rule intent from the spec; without a spec, from the analyzer. Leave out where the rule does not report or withholds its fix; the spec records that.
 3. Write the page in the required published format, including the footer.
 4. Remove implementation details, formatter mentions, and anything the general notes already cover.
 5. Check that the example code actually matches the rule and its preferred fix.

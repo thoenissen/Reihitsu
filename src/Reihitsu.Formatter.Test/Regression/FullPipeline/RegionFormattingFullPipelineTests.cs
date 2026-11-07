@@ -456,9 +456,11 @@ public class RegionFormattingFullPipelineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an empty region directly inside a block is preserved and formatted
+    /// Verifies that an empty region directly inside a block is preserved and formatted, without a blank
+    /// line after the opening brace
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BLANK-007")]
     public void EmptyRegionInsideBlockIsPreservedAndFormatted()
     {
         // Arrange
@@ -477,7 +479,6 @@ public class RegionFormattingFullPipelineTests : FormatterTestsBase
                                 {
                                     public void M()
                                     {
-
                                         #region Empty
 
                                         #endregion // Empty

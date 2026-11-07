@@ -26,13 +26,12 @@ public class RH3001NotOperatorShouldNotBeUsedCodeFixProvider : CodeFixProvider
     #region Methods
 
     /// <summary>
-    /// Applying code fix
+    /// Builds the comparison with <see langword="false"/> that replaces the logical-not expression. The parentheses are
+    /// annotated for the simplifier, which removes them where the comparison does not need them
     /// </summary>
-    /// <param name="document">Document</param>
-    /// <param name="node">Node with diagnostics</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, PrefixUnaryExpressionSyntax node, CancellationToken cancellationToken)
+    /// <param name="node">Logical-not expression</param>
+    /// <returns>The replacement expression</returns>
+    private static ExpressionSyntax BuildReplacement(PrefixUnaryExpressionSyntax node)
     {
         var operandLeadingTrivia = node.OperatorToken.TrailingTrivia.AddRange(node.Operand.GetLeadingTrivia());
 
@@ -46,17 +45,28 @@ public class RH3001NotOperatorShouldNotBeUsedCodeFixProvider : CodeFixProvider
                                            .WithLeadingTrivia(node.GetLeadingTrivia())
                                            .WithTrailingTrivia(operandLeadingTrivia);
         var operand = node.Operand.WithoutLeadingTrivia();
-        var replacementNode = SyntaxFactory.ParenthesizedExpression(openParenthesis,
-                                                                    SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, operand, SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)),
-                                                                    SyntaxFactory.Token(SyntaxKind.CloseParenToken))
-                                           .WithTrailingTrivia(node.GetTrailingTrivia())
-                                           .WithAdditionalAnnotations(Simplifier.Annotation);
 
+        return SyntaxFactory.ParenthesizedExpression(openParenthesis,
+                                                     SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, operand, SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)),
+                                                     SyntaxFactory.Token(SyntaxKind.CloseParenToken))
+                            .WithTrailingTrivia(node.GetTrailingTrivia())
+                            .WithAdditionalAnnotations(Simplifier.Annotation);
+    }
+
+    /// <summary>
+    /// Applying code fix
+    /// </summary>
+    /// <param name="document">Document</param>
+    /// <param name="node">Node with diagnostics</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task<Document> ApplyCodeFixAsync(Document document, PrefixUnaryExpressionSyntax node, CancellationToken cancellationToken)
+    {
         var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         if (syntaxRoot != null)
         {
-            var newSyntaxRoot = syntaxRoot.ReplaceNode(node, replacementNode);
+            var newSyntaxRoot = syntaxRoot.ReplaceNode(node, BuildReplacement(node));
 
             document = document.WithSyntaxRoot(newSyntaxRoot);
         }
@@ -101,8 +111,11 @@ public class RH3001NotOperatorShouldNotBeUsedCodeFixProvider : CodeFixProvider
         {
             foreach (var diagnostic in context.Diagnostics)
             {
+                // The comparison is checked with its parentheses, which a comparison behind a > operator needs: there,
+                // a < in front of the negation and the > can read as a type argument list
                 if (root.FindNode(diagnostic.Location.SourceSpan) is PrefixUnaryExpressionSyntax node
-                    && HasSafeOperandTrivia(node))
+                    && HasSafeOperandTrivia(node)
+                    && RewriteParseUtilities.ParsesAsWritten(root, root.ReplaceNode(node, BuildReplacement(node)), context.CancellationToken))
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3001Title,
                                                               cancellationToken => ApplyCodeFixAsync(context.Document, node, cancellationToken),

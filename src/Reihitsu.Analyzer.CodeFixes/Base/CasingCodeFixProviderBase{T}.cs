@@ -9,8 +9,11 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
+
+using Reihitsu.Analyzer.CodeFixes.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
@@ -220,7 +223,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
-    /// Finds candidates whose shared normalized target cannot coexist in the same declaration or binding domain
+    /// Finds candidates with one containing symbol and one normalized target whose renames cannot both be applied
     /// </summary>
     /// <param name="solution">Annotated solution</param>
     /// <param name="candidates">Aggregate rename candidates</param>
@@ -346,106 +349,258 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
-    /// Annotates every source declaration that owns a non-namespace target's binding domain
+    /// Gets the rename cascade of a declared symbol: the symbol itself and at least every symbol declared in source that a
+    /// rename of it renames with it, as Roslyn determines it
     /// </summary>
-    /// <param name="solution">Solution containing the declaration</param>
-    /// <param name="documentId">Target declaration document</param>
-    /// <param name="declaredSymbol">Target declaration symbol</param>
+    /// <param name="solution">Solution containing the symbol</param>
+    /// <param name="symbol">Declared symbol</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The annotated solution and binding-domain document/annotation pairs</returns>
-    private static async Task<(Solution Solution, ImmutableArray<(DocumentId DocumentId, SyntaxAnnotation Annotation)> Domains)> AnnotateBindingDomainsAsync(Solution solution,
-                                                                                                                                                             DocumentId documentId,
-                                                                                                                                                             ISymbol declaredSymbol,
-                                                                                                                                                             CancellationToken cancellationToken)
+    /// <returns>The symbols, starting with the declared symbol, without duplicates</returns>
+    /// <remarks>
+    /// The set is read from Roslyn's reference engine rather than modeled by relation kind: the definitions that
+    /// <see cref="SymbolFinder.FindReferencesAsync(ISymbol, Solution, CancellationToken)"/> reports are the symbols it
+    /// cascades to, the same search the renamer uses to find what it renames. This covers, for example, overridden and
+    /// overriding members, implemented interface members and their implementations, and the other part of a partial
+    /// method together with its parameters. The search can also reach a symbol the renamer leaves as it is, such as a
+    /// type parameter of the other part of a partial method; that only widens the region a check inspects, and
+    /// <see cref="GetOldNames"/> takes no old name from such a symbol. Every safety check of a rename takes its region
+    /// from these symbols rather than from the declared symbol alone. A symbol declared only in a referenced assembly
+    /// is not renamed, so it is not part of the cascade
+    /// </remarks>
+    private static async Task<ImmutableArray<ISymbol>> GetRenameCascadeAsync(Solution solution, ISymbol symbol, CancellationToken cancellationToken)
     {
-        var domains = ImmutableArray.CreateBuilder<(DocumentId DocumentId, SyntaxAnnotation Annotation)>();
-        var containingDeclarations = declaredSymbol.ContainingSymbol == null
-                                         ? []
-                                         : declaredSymbol.ContainingSymbol.DeclaringSyntaxReferences
-                                                         .OrderBy(reference => GetDocumentSortKey(solution, reference.SyntaxTree), StringComparer.Ordinal)
-                                                         .ThenBy(static reference => reference.Span.Start)
-                                                         .Select(reference => (DocumentId: solution.GetDocument(reference.SyntaxTree)?.Id, reference.Span))
-                                                         .Where(static reference => reference.DocumentId != null)
-                                                         .ToImmutableArray();
+        var referencedSymbols = await SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
 
-        foreach (var containingDeclaration in containingDeclarations)
+        return referencedSymbols.Select(static referencedSymbol => referencedSymbol.Definition)
+                                .Where(static definition => definition.Locations.Any(static location => location.IsInSource))
+                                .Prepend(symbol)
+                                .Distinct<ISymbol>(SymbolEqualityComparer.Default)
+                                .ToImmutableArray();
+    }
+
+    /// <summary>
+    /// Gets the old names of a rename: the names that the symbols of the cascade carried before the rename and no
+    /// longer carry after it
+    /// </summary>
+    /// <param name="cascade">Rename cascade before the rename</param>
+    /// <param name="renamedCascade">Rename cascade of the renamed symbol after the rename</param>
+    /// <returns>The old names</returns>
+    /// <remarks>
+    /// Only symbols that source can refer to by their name are counted, so an accessor or a constructor adds no old
+    /// name. A symbol of the cascade spelled differently from the declared one, such as the parameter of the other part
+    /// of a partial method, adds its own spelling when the renamer renames it. The names are compared as counts rather
+    /// than by symbol, because the reference search the cascade is read from also reaches symbols the renamer leaves
+    /// as they are, such as a type parameter of the other part of a partial method: such a symbol keeps its name in
+    /// both cascades and adds no old name
+    /// </remarks>
+    private static ImmutableHashSet<string> GetOldNames(ImmutableArray<ISymbol> cascade, ImmutableArray<ISymbol> renamedCascade)
+    {
+        var remainingNames = renamedCascade.Where(static symbol => symbol.CanBeReferencedByName)
+                                           .Select(static symbol => symbol.Name)
+                                           .ToList();
+        var oldNames = ImmutableHashSet.CreateBuilder<string>(StringComparer.Ordinal);
+
+        foreach (var name in cascade.Where(static symbol => symbol.CanBeReferencedByName).Select(static symbol => symbol.Name))
+        {
+            var isRetained = remainingNames.Remove(name);
+
+            if (isRetained == false)
+            {
+                oldNames.Add(name);
+            }
+        }
+
+        return oldNames.ToImmutable();
+    }
+
+    /// <summary>
+    /// Gets the name of the native function that a method binds to through an import attribute
+    /// </summary>
+    /// <param name="symbol">Symbol</param>
+    /// <returns>The entry point name, or <see langword="null"/> when the symbol binds to no native function</returns>
+    private static string GetNativeEntryPoint(ISymbol symbol)
+    {
+        if (symbol is not IMethodSymbol method)
+        {
+            return null;
+        }
+
+        var dllImportData = method.GetDllImportData();
+
+        if (dllImportData != null)
+        {
+            return dllImportData.EntryPointName ?? method.Name;
+        }
+
+        foreach (var attribute in method.GetAttributes())
+        {
+            if (attribute.AttributeClass is { Name: "DllImportAttribute" or "LibraryImportAttribute" } attributeClass
+                && string.Equals(attributeClass.ContainingNamespace?.ToDisplayString(), "System.Runtime.InteropServices", StringComparison.Ordinal))
+            {
+                var entryPoint = attribute.NamedArguments.FirstOrDefault(static argument => string.Equals(argument.Key, "EntryPoint", StringComparison.Ordinal));
+
+                return entryPoint.Value.Value as string ?? method.Name;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Gets the names of the native functions that the methods of a rename cascade bind to through an import attribute
+    /// </summary>
+    /// <param name="cascade">Symbols the rename renames</param>
+    /// <returns>The entry point names in ordinal order</returns>
+    /// <remarks>
+    /// A rename changes no binding of a cascade member other than through its name, so the cascade binds to the same
+    /// native functions after the rename exactly when the two ordered lists are equal
+    /// </remarks>
+    private static ImmutableArray<string> GetNativeEntryPoints(ImmutableArray<ISymbol> cascade)
+    {
+        return cascade.Select(GetNativeEntryPoint)
+                      .Where(static entryPoint => entryPoint != null)
+                      .OrderBy(static entryPoint => entryPoint, StringComparer.Ordinal)
+                      .ToImmutableArray();
+    }
+
+    /// <summary>
+    /// Gets the compile errors of a project: the parse, declaration, and method body errors of every document
+    /// </summary>
+    /// <param name="project">Project</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The errors, or a default array when the compilation is unavailable</returns>
+    /// <remarks>
+    /// A rename can put an error into a document it does not change, for example when the new name makes a query clause,
+    /// a deconstruction, <see langword="foreach"/>, or <see langword="await"/> bind ambiguously, so every document counts
+    /// </remarks>
+    private static async Task<ImmutableArray<Diagnostic>> GetCompileErrorsAsync(Project project, CancellationToken cancellationToken)
+    {
+        var compilation = project == null
+                              ? null
+                              : await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+        return compilation == null
+                   ? default
+                   : compilation.GetDiagnostics(cancellationToken)
+                                .Where(static diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)
+                                .ToImmutableArray();
+    }
+
+    /// <summary>
+    /// Determines whether a rename added a compile error to one of the projects it affects
+    /// </summary>
+    /// <param name="originalSolution">Solution before the rename</param>
+    /// <param name="renamedSolution">Solution after the rename</param>
+    /// <param name="projectIds">Projects the rename affects</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> when the rename added a compile error; otherwise, <see langword="false"/></returns>
+    /// <remarks>
+    /// The renamer renames every source declaration of the symbol's rename cascade but no member declared in a
+    /// referenced assembly, so an added error can stand in any type and any document of an affected project, not only
+    /// in the one declaring the renamed symbol. Errors are compared by ID because the rename moves their locations
+    /// </remarks>
+    private static async Task<bool> HasAddedCompileErrorsAsync(Solution originalSolution,
+                                                               Solution renamedSolution,
+                                                               ImmutableArray<ProjectId> projectIds,
+                                                               CancellationToken cancellationToken)
+    {
+        foreach (var projectId in projectIds)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var domainDocument = solution.GetDocument(containingDeclaration.DocumentId);
-            var domainRoot = domainDocument == null
-                                 ? null
-                                 : await domainDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var domainNode = domainRoot?.FindNode(containingDeclaration.Span, getInnermostNodeForTie: true);
+            var originalErrors = await GetCompileErrorsAsync(originalSolution.GetProject(projectId), cancellationToken).ConfigureAwait(false);
+            var renamedErrors = await GetCompileErrorsAsync(renamedSolution.GetProject(projectId), cancellationToken).ConfigureAwait(false);
 
-            if (domainDocument == null
-                || domainRoot == null
-                || domainNode == null)
+            if (originalErrors.IsDefault
+                || renamedErrors.IsDefault
+                || renamedErrors.GroupBy(static diagnostic => diagnostic.Id)
+                                .Any(errorGroup => errorGroup.Count() > originalErrors.Count(diagnostic => string.Equals(diagnostic.Id, errorGroup.Key, StringComparison.Ordinal))))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Gets, for every positional parameter of every record in the specified projects, whether the compiler declares a
+    /// property for it
+    /// </summary>
+    /// <param name="solution">Solution</param>
+    /// <param name="projectIds">Projects to inspect</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The flags in project, document, and declaration order, or a default array when a model is unavailable</returns>
+    /// <remarks>
+    /// The compiler declares a property for a positional parameter only when the record neither declares nor inherits a
+    /// member of the same name. A rename does not add, remove, or reorder declarations, so the flags of two solutions
+    /// compare position by position
+    /// </remarks>
+    private static async Task<ImmutableArray<bool>> GetPositionalPropertyFlagsAsync(Solution solution,
+                                                                                    ImmutableArray<ProjectId> projectIds,
+                                                                                    CancellationToken cancellationToken)
+    {
+        var flags = ImmutableArray.CreateBuilder<bool>();
+
+        foreach (var document in projectIds.SelectMany(projectId => solution.GetProject(projectId)?.Documents ?? []))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var records = root?.DescendantNodes(static node => node is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax or TypeDeclarationSyntax)
+                              .OfType<RecordDeclarationSyntax>()
+                              .Where(static record => record.ParameterList != null)
+                              .ToImmutableArray() ?? [];
+
+            if (records.IsEmpty)
             {
                 continue;
             }
 
-            var annotation = new SyntaxAnnotation(nameof(AnnotateBindingDomainsAsync), domains.Count.ToString(CultureInfo.InvariantCulture));
-            solution = domainDocument.WithSyntaxRoot(domainRoot.ReplaceNode(domainNode, domainNode.WithAdditionalAnnotations(annotation))).Project.Solution;
-            domains.Add((domainDocument.Id, annotation));
-        }
+            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-        if (domains.Count == 0)
-        {
-            var declarationDocument = solution.GetDocument(documentId);
-            var declarationRoot = declarationDocument == null
-                                      ? null
-                                      : await declarationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            if (declarationDocument != null
-                && declarationRoot != null)
-            {
-                var annotation = new SyntaxAnnotation(nameof(AnnotateBindingDomainsAsync), "fallback");
-                solution = declarationDocument.WithSyntaxRoot(declarationRoot.WithAdditionalAnnotations(annotation)).Project.Solution;
-                domains.Add((declarationDocument.Id, annotation));
-            }
-        }
-
-        return (solution, domains.ToImmutable());
-    }
-
-    /// <summary>
-    /// Gets compiler errors from the tracked source declarations that own a non-namespace rename's binding domain
-    /// </summary>
-    /// <param name="solution">Current solution</param>
-    /// <param name="domains">Binding-domain document/annotation pairs</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Binding-domain compiler errors, or a default array when a tracked domain cannot be resolved</returns>
-    private static async Task<ImmutableArray<Diagnostic>> GetBindingDomainErrorsAsync(Solution solution,
-                                                                                      ImmutableArray<(DocumentId DocumentId, SyntaxAnnotation Annotation)> domains,
-                                                                                      CancellationToken cancellationToken)
-    {
-        var errors = ImmutableArray.CreateBuilder<Diagnostic>();
-
-        foreach (var domain in domains)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var document = solution.GetDocument(domain.DocumentId);
-            var root = document == null
-                           ? null
-                           : await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var model = document == null
-                            ? null
-                            : await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var node = root?.GetAnnotatedNodes(domain.Annotation).SingleOrDefault();
-
-            if (model == null
-                || node == null)
+            if (model == null)
             {
                 return default;
             }
 
-            errors.AddRange(model.GetDiagnostics(node.Span, cancellationToken)
-                                 .Where(static diagnostic => diagnostic.Severity == DiagnosticSeverity.Error));
+            foreach (var record in records)
+            {
+                var recordType = model.GetDeclaredSymbol(record, cancellationToken);
+
+                foreach (var parameter in record.ParameterList.Parameters)
+                {
+                    flags.Add(recordType != null
+                              && recordType.GetMembers(parameter.Identifier.ValueText)
+                                           .OfType<IPropertySymbol>()
+                                           .Any(property => property.DeclaringSyntaxReferences.Any(reference => reference.SyntaxTree == parameter.SyntaxTree
+                                                                                                                && parameter.Span.Contains(reference.Span))));
+                }
+            }
         }
 
-        return errors.ToImmutable();
+        return flags.ToImmutable();
+    }
+
+    /// <summary>
+    /// Determines whether a rename changes which positional parameters of a record get a compiler-declared property
+    /// </summary>
+    /// <param name="originalSolution">Solution before the rename</param>
+    /// <param name="renamedSolution">Solution after the rename</param>
+    /// <param name="projectIds">Projects the rename affects</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> when a public property would appear or disappear; otherwise, <see langword="false"/></returns>
+    private static async Task<bool> ChangesPositionalPropertiesAsync(Solution originalSolution,
+                                                                     Solution renamedSolution,
+                                                                     ImmutableArray<ProjectId> projectIds,
+                                                                     CancellationToken cancellationToken)
+    {
+        var originalFlags = await GetPositionalPropertyFlagsAsync(originalSolution, projectIds, cancellationToken).ConfigureAwait(false);
+        var renamedFlags = await GetPositionalPropertyFlagsAsync(renamedSolution, projectIds, cancellationToken).ConfigureAwait(false);
+
+        return originalFlags.IsDefault
+               || renamedFlags.IsDefault
+               || originalFlags.SequenceEqual(renamedFlags) == false;
     }
 
     /// <summary>
@@ -505,7 +660,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
-    /// Determines whether a comprehensive rename produces Roslyn conflict annotations or added declaration errors
+    /// Determines whether a comprehensive rename is unsafe, as <see cref="RenameWithoutConflictAsync"/> decides it
     /// </summary>
     /// <param name="document">Document containing the declaration</param>
     /// <param name="node">Declaration node to rename</param>
@@ -532,52 +687,80 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
-    /// Applies a rename only when Roslyn produces no namespace member collision, conflict annotations, or added declaration errors
+    /// Applies a rename only when it is safe: no namespace member collision, no name in excluded code, no Roslyn
+    /// conflict annotation, no changed native entry point, no added compile error, and no change to the properties the
+    /// compiler declares for positional record parameters
     /// </summary>
     /// <param name="solution">Solution containing the declaration</param>
     /// <param name="documentId">Declaration document</param>
     /// <param name="annotation">Declaration tracking annotation</param>
     /// <param name="identifier">Proposed replacement identifier</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The renamed solution when conflict-free; otherwise, <see langword="null"/></returns>
+    /// <returns>The renamed solution when it is safe; otherwise, <see langword="null"/></returns>
+    /// <remarks>
+    /// The checks that depend on what the rename reaches take it from <see cref="GetRenameCascadeAsync"/>: the native
+    /// entry points of every cascade member, and the excluded code of every document that can refer to one, searched
+    /// for the new name and for the old names that the cascade before and after the rename gives. The compile
+    /// error and positional property checks inspect every document of every project the rename changes or that depends
+    /// on one of them
+    /// </remarks>
     private static async Task<Solution> RenameWithoutConflictAsync(Solution solution,
                                                                    DocumentId documentId,
                                                                    SyntaxAnnotation annotation,
                                                                    string identifier,
                                                                    CancellationToken cancellationToken)
     {
-        var preparation = await PrepareRenameAsync(solution,
-                                                   documentId,
-                                                   annotation,
-                                                   identifier,
-                                                   cancellationToken).ConfigureAwait(false);
+        var prepared = await PrepareRenameAsync(solution,
+                                                documentId,
+                                                annotation,
+                                                identifier,
+                                                cancellationToken).ConfigureAwait(false);
 
-        if (preparation == null)
+        if (prepared == null)
         {
             return null;
         }
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var prepared = preparation.Value;
-        var renamedSolution = await Renamer.RenameSymbolAsync(prepared.Solution,
-                                                              prepared.Symbol,
+        var renamedSolution = await Renamer.RenameSymbolAsync(solution,
+                                                              prepared.Value.Symbol,
                                                               default,
                                                               identifier,
                                                               cancellationToken)
                                            .ConfigureAwait(false);
 
-        if (await HasConflictAnnotationsAsync(prepared.Solution, renamedSolution, cancellationToken).ConfigureAwait(false)
-            || await ResolveRenameDeclarationAsync(renamedSolution, documentId, annotation, cancellationToken).ConfigureAwait(false) == null)
+        if (await HasConflictAnnotationsAsync(solution, renamedSolution, cancellationToken).ConfigureAwait(false))
         {
             return null;
         }
 
-        if (prepared.HasNamespaceOwner == false
-            && await HasAddedBindingErrorsAsync(renamedSolution,
-                                                prepared.Domains,
-                                                prepared.OriginalErrors,
-                                                cancellationToken).ConfigureAwait(false))
+        var renamedDeclaration = await ResolveRenameDeclarationAsync(renamedSolution, documentId, annotation, cancellationToken).ConfigureAwait(false);
+
+        if (renamedDeclaration == null)
+        {
+            return null;
+        }
+
+        var renamedCascade = await GetRenameCascadeAsync(renamedSolution, renamedDeclaration.Value.Symbol, cancellationToken).ConfigureAwait(false);
+
+        if (GetNativeEntryPoints(prepared.Value.Cascade).SequenceEqual(GetNativeEntryPoints(renamedCascade), StringComparer.Ordinal) == false)
+        {
+            return null;
+        }
+
+        var renamedNames = GetOldNames(prepared.Value.Cascade, renamedCascade).Add(identifier);
+
+        if (await ExcludedCodeUtilities.HasExcludedCodeOccurrenceAsync(solution, prepared.Value.Cascade, renamedNames, cancellationToken).ConfigureAwait(false))
+        {
+            return null;
+        }
+
+        var projectChanges = renamedSolution.GetChanges(solution).GetProjectChanges();
+        var affectedProjectIds = ExcludedCodeUtilities.GetDependentProjectIds(solution, projectChanges.Select(static changes => changes.ProjectId));
+
+        if (await HasAddedCompileErrorsAsync(solution, renamedSolution, affectedProjectIds, cancellationToken).ConfigureAwait(false)
+            || await ChangesPositionalPropertiesAsync(solution, renamedSolution, affectedProjectIds, cancellationToken).ConfigureAwait(false))
         {
             return null;
         }
@@ -586,23 +769,20 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
-    /// Resolves and validates the declaration plus binding domains required before a rename
+    /// Resolves the declaration's symbol and its rename cascade and rejects the renames that are unsafe before the
+    /// renamer runs
     /// </summary>
     /// <param name="solution">Annotated solution</param>
     /// <param name="documentId">Document containing the declaration</param>
     /// <param name="annotation">Declaration tracking annotation</param>
     /// <param name="identifier">Proposed identifier</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The prepared rename inputs, or <see langword="null"/> when the rename is unsafe</returns>
-    private static async Task<(Solution Solution,
-                               ISymbol Symbol,
-                               ImmutableArray<(DocumentId DocumentId, SyntaxAnnotation Annotation)> Domains,
-                               ImmutableArray<Diagnostic> OriginalErrors,
-                               bool HasNamespaceOwner)?> PrepareRenameAsync(Solution solution,
-                                                                            DocumentId documentId,
-                                                                            SyntaxAnnotation annotation,
-                                                                            string identifier,
-                                                                            CancellationToken cancellationToken)
+    /// <returns>The symbol to rename and its rename cascade, or <see langword="null"/> when the rename is unsafe</returns>
+    private static async Task<(ISymbol Symbol, ImmutableArray<ISymbol> Cascade)?> PrepareRenameAsync(Solution solution,
+                                                                                                     DocumentId documentId,
+                                                                                                     SyntaxAnnotation annotation,
+                                                                                                     string identifier,
+                                                                                                     CancellationToken cancellationToken)
     {
         var resolved = await ResolveRenameDeclarationAsync(solution, documentId, annotation, cancellationToken).ConfigureAwait(false);
 
@@ -613,38 +793,14 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
 
         var declaredSymbol = resolved.Value.Symbol;
 
-        if (declaredSymbol.ContainingSymbol is INamespaceSymbol)
-        {
-            return HasNamespaceCollision(declaredSymbol, identifier, cancellationToken)
-                       ? null
-                       : (solution,
-                          declaredSymbol,
-                          ImmutableArray<(DocumentId, SyntaxAnnotation)>.Empty,
-                          ImmutableArray<Diagnostic>.Empty,
-                          true);
-        }
-
-        var domainResult = await AnnotateBindingDomainsAsync(solution,
-                                                             documentId,
-                                                             declaredSymbol,
-                                                             cancellationToken).ConfigureAwait(false);
-        var updatedResolved = await ResolveRenameDeclarationAsync(domainResult.Solution,
-                                                                  documentId,
-                                                                  annotation,
-                                                                  cancellationToken).ConfigureAwait(false);
-
-        if (updatedResolved == null)
+        if (HasNamespaceCollision(declaredSymbol, identifier, cancellationToken))
         {
             return null;
         }
 
-        var originalErrors = await GetBindingDomainErrorsAsync(domainResult.Solution,
-                                                               domainResult.Domains,
-                                                               cancellationToken).ConfigureAwait(false);
+        var cascade = await GetRenameCascadeAsync(solution, declaredSymbol, cancellationToken).ConfigureAwait(false);
 
-        return originalErrors.IsDefault
-                   ? null
-                   : (domainResult.Solution, updatedResolved.Value.Symbol, domainResult.Domains, originalErrors, false);
+        return (declaredSymbol, cascade);
     }
 
     /// <summary>
@@ -704,26 +860,6 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
         }
 
         return false;
-    }
-
-    /// <summary>
-    /// Determines whether a rename added errors within the declaration's binding domains
-    /// </summary>
-    /// <param name="renamedSolution">Solution after the rename</param>
-    /// <param name="domains">Annotated binding domains</param>
-    /// <param name="originalErrors">Errors present before the rename</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns><see langword="true"/> when the rename added binding errors; otherwise, <see langword="false"/></returns>
-    private static async Task<bool> HasAddedBindingErrorsAsync(Solution renamedSolution,
-                                                               ImmutableArray<(DocumentId DocumentId, SyntaxAnnotation Annotation)> domains,
-                                                               ImmutableArray<Diagnostic> originalErrors,
-                                                               CancellationToken cancellationToken)
-    {
-        var renamedErrors = await GetBindingDomainErrorsAsync(renamedSolution, domains, cancellationToken).ConfigureAwait(false);
-
-        return renamedErrors.IsDefault
-               || renamedErrors.GroupBy(static diagnostic => diagnostic.Id)
-                               .Any(errorGroup => errorGroup.Count() > originalErrors.Count(diagnostic => string.Equals(diagnostic.Id, errorGroup.Key, StringComparison.Ordinal)));
     }
 
     /// <summary>
@@ -889,7 +1025,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
         /// <param name="originalSpan">Original diagnostic span</param>
         /// <param name="annotation">Tracking annotation</param>
         /// <param name="identifier">Proposed identifier</param>
-        /// <param name="containingSymbol">Declaration or binding domain owner</param>
+        /// <param name="containingSymbol">Symbol containing the declaration</param>
         public FixAllCandidate(DocumentId documentId,
                                TextSpan originalSpan,
                                SyntaxAnnotation annotation,
@@ -924,7 +1060,8 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
         public string Identifier { get; }
 
         /// <summary>
-        /// Declaration or binding domain owner
+        /// Symbol containing the declaration; candidates with one target are checked against each other only when they
+        /// share it
         /// </summary>
         public ISymbol ContainingSymbol { get; }
     }

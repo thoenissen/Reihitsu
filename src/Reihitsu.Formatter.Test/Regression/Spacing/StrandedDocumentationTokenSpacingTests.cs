@@ -18,7 +18,7 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
     /// Verifies that a statement terminator below a stray documentation comment behind a return expression keeps its indentation
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-SPACE-015")]
+    [Requirement("FMT-SPACE-001")]
     public void KeepsTerminatorIndentationBelowStrayDocumentationCommentBehindReturnExpression()
     {
         const string input = """
@@ -36,11 +36,12 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a closing bracket below a stray documentation comment behind an attribute argument list keeps its indentation
+    /// Verifies that a closing bracket below a stray documentation comment behind an attribute argument list gets the
+    /// column it gets below a single-line comment
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-SPACE-015")]
-    public void KeepsClosingBracketIndentationBelowStrayDocumentationCommentBehindAttributeArguments()
+    [Requirement("FMT-INDENT-002")]
+    public void ClosingBracketBelowStrayDocumentationCommentBehindAttributeArgumentsIsPlacedAsBelowSingleLineComment()
     {
         const string input = """
                              public class C
@@ -50,17 +51,25 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
                                  public int P { get; set; }
                              }
                              """;
+        const string expected = """
+                                public class C
+                                {
+                                    [System.Obsolete("x") /// stray
+                                     ]
+                                    public int P { get; set; }
+                                }
+                                """;
 
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
-    /// Verifies that the column the author wrote is kept even when it is deeper than the construct's indentation, the
-    /// same way a closing brace in that position keeps it
+    /// Verifies that a terminator below a stray documentation comment that the author indented deeper than its statement
+    /// takes the column of its statement, as it does below a single-line comment
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-SPACE-015")]
-    public void KeepsAuthoredColumnOfOverIndentedTerminatorBelowStrayDocumentationComment()
+    [Requirement("FMT-INDENT-002")]
+    public void OverIndentedTerminatorBelowStrayDocumentationCommentTakesStatementColumn()
     {
         const string input = """
                              public class C
@@ -72,15 +81,25 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
                                  }
                              }
                              """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M()
+                                    {
+                                        return 1 /// stray
+                                        ;
+                                    }
+                                }
+                                """;
 
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
     /// Verifies that a field terminator below a stray documentation comment keeps its indentation
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-SPACE-015")]
+    [Requirement("FMT-SPACE-001")]
     public void KeepsFieldTerminatorIndentationBelowStrayDocumentationComment()
     {
         const string input = """
@@ -95,11 +114,12 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an argument separator below a stray documentation comment keeps its indentation
+    /// Verifies that an argument separator below a stray documentation comment is aligned with the first argument, as
+    /// it is below a single-line comment
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-SPACE-015")]
-    public void KeepsCommaIndentationBelowStrayDocumentationComment()
+    [Requirement("FMT-INDENT-002")]
+    public void CommaBelowStrayDocumentationCommentIsAlignedWithFirstArgument()
     {
         const string input = """
                              public class C
@@ -111,16 +131,27 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
                                  }
                              }
                              """;
+        const string expected = """
+                                public class C
+                                {
+                                    public void M()
+                                    {
+                                        System.Math.Max(1 /// stray
+                                                        , 2);
+                                    }
+                                }
+                                """;
 
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
-    /// Verifies that a closing parenthesis below a stray documentation comment keeps its indentation
+    /// Verifies that a closing parenthesis below a stray documentation comment is aligned with the first argument, as it
+    /// is below a single-line comment
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-SPACE-015")]
-    public void KeepsClosingParenthesisIndentationBelowStrayDocumentationComment()
+    [Requirement("FMT-INDENT-002")]
+    public void ClosingParenthesisBelowStrayDocumentationCommentIsAlignedWithFirstArgument()
     {
         const string input = """
                              public class C
@@ -132,16 +163,27 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
                                  }
                              }
                              """;
+        const string expected = """
+                                public class C
+                                {
+                                    public void M()
+                                    {
+                                        System.Math.Abs(1 /// stray
+                                                        );
+                                    }
+                                }
+                                """;
 
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
-    /// Verifies that a member access dot below a stray documentation comment keeps its indentation
+    /// Verifies that a member access dot below a stray documentation comment is aligned behind its receiver, as it is
+    /// below a single-line comment
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-SPACE-015")]
-    public void KeepsMemberAccessDotIndentationBelowStrayDocumentationComment()
+    [Requirement("FMT-INDENT-002")]
+    public void MemberAccessDotBelowStrayDocumentationCommentIsAlignedBehindReceiver()
     {
         const string input = """
                              public class C
@@ -153,8 +195,18 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
                                  }
                              }
                              """;
+        const string expected = """
+                                public class C
+                                {
+                                    public string M()
+                                    {
+                                        return this /// stray
+                                               .ToString();
+                                    }
+                                }
+                                """;
 
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -183,7 +235,7 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
     /// Verifies that a terminator below a two-line stray documentation comment keeps its indentation
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-SPACE-015")]
+    [Requirement("FMT-SPACE-001")]
     public void KeepsTerminatorIndentationBelowTwoLineStrayDocumentationComment()
     {
         const string input = """
@@ -193,6 +245,28 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
                                  {
                                      return 1 /// a
                                      /// b
+                                     ;
+                                 }
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the whitespace in front of a stray documentation comment and the whitespace
+    /// behind it, which is the indentation of the terminator on the next line, are both kept
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-001")]
+    public void KeepsWhitespaceInFrontOfAndBehindStrayDocumentationComment()
+    {
+        const string input = """
+                             class C
+                             {
+                                 public int M()
+                                 {
+                                     return 1    /// stray
                                      ;
                                  }
                              }
@@ -304,10 +378,12 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that the gap between a block comment and a terminator on the line below a stray documentation comment is
-    /// still removed, because it lies on one line
+    /// kept, because the gap between the return expression and the terminator holds the line break that ends the
+    /// documentation comment, as it is kept below a single-line comment
     /// </summary>
     [TestMethod]
-    public void RemovesGapBetweenBlockCommentAndTerminatorBelowStrayDocumentationComment()
+    [Requirement("FMT-SPACE-001")]
+    public void KeepsGapBetweenBlockCommentAndTerminatorBelowStrayDocumentationComment()
     {
         const string input = """
                              public class C
@@ -319,18 +395,8 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
                                  }
                              }
                              """;
-        const string expected = """
-                                public class C
-                                {
-                                    public int M()
-                                    {
-                                        return 1 /// stray
-                                        /* b */;
-                                    }
-                                }
-                                """;
 
-        AssertRuleResult(input, expected);
+        AssertRuleResult(input);
     }
 
     /// <summary>

@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Pipeline.HorizontalSpacing.Utilities;
@@ -101,17 +102,38 @@ public class SpacingPolicyTests
     }
 
     /// <summary>
-    /// Verifies that no rule applies between two ordinary identifiers, so the policy returns
-    /// <see langword="null"/> and only the collapse-multiple-spaces fallback applies
+    /// Verifies that the declared-name rule decides the gap between a variable declaration's type and its name, so the policy
+    /// returns one space
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-SPACE-002")]
-    public void NoRuleAppliesBetweenTypeAndIdentifier()
+    [Requirement("FMT-SPACE-021")]
+    public void DeclaredNameRuleAppliesBetweenTypeAndIdentifier()
     {
         var tree = CSharpSyntaxTree.ParseText("class C{void M(){Foo bar=null;}}", cancellationToken: TestContext.CancellationToken);
         var left = tree.GetRoot(TestContext.CancellationToken)
                        .DescendantTokens()
                        .First(token => token.IsKind(SyntaxKind.IdentifierToken) && token.Text == "Foo");
+        var right = left.GetNextToken();
+
+        var result = SpacingPolicy.GetDesiredSpacesAfter(left, right);
+
+        Assert.AreEqual(1, result);
+    }
+
+    /// <summary>
+    /// Verifies that no rule applies between a cast's closing parenthesis and its operand, so the policy returns
+    /// <see langword="null"/> and only the collapse-multiple-spaces fallback applies
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-002")]
+    public void NoRuleAppliesBetweenCastAndOperand()
+    {
+        var tree = CSharpSyntaxTree.ParseText("class C{void M(object o){var s=(string)o;}}", cancellationToken: TestContext.CancellationToken);
+        var left = tree.GetRoot(TestContext.CancellationToken)
+                       .DescendantNodes()
+                       .OfType<CastExpressionSyntax>()
+                       .Single()
+                       .CloseParenToken;
         var right = left.GetNextToken();
 
         var result = SpacingPolicy.GetDesiredSpacesAfter(left, right);

@@ -146,6 +146,25 @@ public class RH4010RecordNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4010R
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that a record declared directly in a namespace keeps its diagnostic but gets no fix when its new name is the name of one of its positional parameters, whose property would then be named like the record
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenANamespaceRecordWouldHaveAPositionalParameterOfItsName()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    record {|RH4010:order|}(int Order);
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

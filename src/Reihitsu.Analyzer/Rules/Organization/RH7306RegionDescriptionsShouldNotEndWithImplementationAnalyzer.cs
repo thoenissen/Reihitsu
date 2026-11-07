@@ -1,8 +1,10 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Organization;
 
@@ -22,7 +24,7 @@ public class RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer : Re
     /// <summary>
     /// Forbidden suffix
     /// </summary>
-    private const string ForbiddenSuffix = "implementation";
+    internal const string ForbiddenSuffix = "implementation";
 
     #endregion // Constants
 
@@ -41,11 +43,12 @@ public class RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer : Re
     #region Methods
 
     /// <summary>
-    /// Determines whether the specified description ends with the forbidden suffix
+    /// Determines whether the specified description ends with the forbidden suffix, preceded by whitespace or the
+    /// start of the description. The analyzer and its code fix judge every directive by this predicate
     /// </summary>
-    /// <param name="description">Description to inspect</param>
+    /// <param name="description">Description to inspect (SHARED-REGDESC-001)</param>
     /// <returns><see langword="true"/> if the suffix is present</returns>
-    private static bool EndsWithForbiddenSuffix(string description)
+    internal static bool EndsWithForbiddenSuffix(string description)
     {
         var trimmedDescription = description.Trim();
 
@@ -56,6 +59,32 @@ public class RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer : Re
 
         return trimmedDescription.Length == ForbiddenSuffix.Length
                || char.IsWhiteSpace(trimmedDescription[trimmedDescription.Length - ForbiddenSuffix.Length - 1]);
+    }
+
+    /// <summary>
+    /// Determines whether the specified description consists of the forbidden suffix alone, so that nothing would
+    /// remain of it once the suffix is removed
+    /// </summary>
+    /// <param name="description">Description to inspect (SHARED-REGDESC-001)</param>
+    /// <returns><see langword="true"/> if the description is the suffix alone</returns>
+    internal static bool IsForbiddenSuffixAlone(string description)
+    {
+        return string.Equals(description.Trim(), ForbiddenSuffix, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Gets the description of a region or endregion directive, as the analyzer judges it
+    /// </summary>
+    /// <param name="directive">Region or endregion directive</param>
+    /// <returns>The description, or <see langword="null"/> for any other directive</returns>
+    internal static string GetDescription(DirectiveTriviaSyntax directive)
+    {
+        return directive switch
+               {
+                   RegionDirectiveTriviaSyntax region => RegionDirectiveUtilities.GetRegionDescription(region),
+                   EndRegionDirectiveTriviaSyntax endRegion => RegionDirectiveUtilities.GetEndRegionDescription(endRegion),
+                   _ => null
+               };
     }
 
     #endregion // Methods

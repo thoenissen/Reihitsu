@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
@@ -646,12 +647,14 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
     }
 
     /// <summary>
-    /// Characterizes that the fix of a negation as the right operand of a user-defined <c>&gt;</c> in an argument
-    /// writes parentheses that, with the <c>&lt;</c> of the previous argument, read as a generic invocation
+    /// Verifies a negation as the right operand of a user-defined <c>&gt;</c> in an argument is reported without a code
+    /// fix, because the parentheses the fix writes would, with the <c>&lt;</c> of the previous argument, read as a
+    /// generic invocation
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfNegationAfterGreaterThanInAnArgumentWritesAGenericReading()
+    [Requirement("RH3001-007")]
+    public async Task NegationAfterGreaterThanInAnArgumentThatWouldReadAsAGenericNameIsReportedWithoutACodeFix()
     {
         const string testCode = """
                                 class T
@@ -673,46 +676,23 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
 
                                     void Run(bool x)
                                     {
-                                        M(G < A, B > !x);
+                                        M(G < A, B > {|RH3001:!|}x);
                                     }
                                 }
                                 """;
 
-        const string expectedCode = """
-                                    class T
-                                    {
-                                        public static bool operator >(T a, bool b) => b;
-
-                                        public static bool operator <(T a, bool b) => b;
-                                    }
-
-                                    class C
-                                    {
-                                        int G;
-                                        int A;
-                                        T B;
-
-                                        void M(bool x, bool y)
-                                        {
-                                        }
-
-                                        void Run(bool x)
-                                        {
-                                            M(G < A, B > (x == false));
-                                        }
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Characterizes that the fix of a negation as the right operand of a user-defined <c>&gt;</c> in a comparison
-    /// chain writes parentheses that, with the <c>&lt;</c> in front, read as a generic invocation
+    /// Verifies a negation as the right operand of a user-defined <c>&gt;</c> in a comparison chain is reported without
+    /// a code fix, because the parentheses the fix writes would, with the <c>&lt;</c> in front, read as a generic
+    /// invocation
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfNegationAfterGreaterThanInAComparisonChainWritesAGenericReading()
+    [Requirement("RH3001-007")]
+    public async Task NegationAfterGreaterThanInAComparisonChainThatWouldReadAsAGenericNameIsReportedWithoutACodeFix()
     {
         const string testCode = """
                                 class U
@@ -736,49 +716,23 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
 
                                     bool Run(bool x)
                                     {
-                                        return G < A > !x;
+                                        return G < A > {|RH3001:!|}x;
                                     }
                                 }
                                 """;
 
-        const string expectedCode = """
-                                    class U
-                                    {
-                                        public static bool operator >(U a, bool b) => b;
-
-                                        public static bool operator <(U a, bool b) => b;
-                                    }
-
-                                    class T
-                                    {
-                                        public static U operator <(T a, int b) => null;
-
-                                        public static U operator >(T a, int b) => null;
-                                    }
-
-                                    class C
-                                    {
-                                        T G;
-                                        int A;
-
-                                        bool Run(bool x)
-                                        {
-                                            return G < A > (x == false);
-                                        }
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Characterizes that the fix of a negation that starts the right operand of a built-in <c>&gt;</c> in an argument,
-    /// as the governing expression of a <see langword="switch"/> expression, writes parentheses that, with the
-    /// <c>&lt;</c> of the previous argument, read as a generic invocation
+    /// Verifies a negation that starts the right operand of a built-in <c>&gt;</c> in an argument, as the governing
+    /// expression of a <see langword="switch"/> expression, is reported without a code fix, because the parentheses the
+    /// fix writes would, with the <c>&lt;</c> of the previous argument, read as a generic invocation
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfNegationStartingASwitchAfterGreaterThanInAnArgumentWritesAGenericReading()
+    [Requirement("RH3001-007")]
+    public async Task NegationStartingASwitchAfterGreaterThanInAnArgumentThatWouldReadAsAGenericNameIsReportedWithoutACodeFix()
     {
         const string testCode = """
                                 class C
@@ -793,39 +747,23 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
 
                                     void Run(bool x)
                                     {
-                                        M(G < A, B > !x switch { true => 1, false => 0 });
+                                        M(G < A, B > {|RH3001:!|}x switch { true => 1, false => 0 });
                                     }
                                 }
                                 """;
 
-        const string expectedCode = """
-                                    class C
-                                    {
-                                        int G;
-                                        int A;
-                                        int B;
-
-                                        void M(bool x, bool y)
-                                        {
-                                        }
-
-                                        void Run(bool x)
-                                        {
-                                            M(G < A, B > (x == false) switch { true => 1, false => 0 });
-                                        }
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
-    /// Characterizes that the fix of a negation as the right operand of a user-defined <c>&gt;&gt;</c> in an argument
-    /// writes parentheses that, with the two <c>&lt;</c> in front, read as a generic invocation
+    /// Verifies a negation as the right operand of a user-defined <c>&gt;&gt;</c> in an argument is reported without a
+    /// code fix, because the parentheses the fix writes would, with the two <c>&lt;</c> in front, read as a generic
+    /// invocation
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfNegationAfterShiftRightInAnArgumentWritesAGenericReading()
+    [Requirement("RH3001-007")]
+    public async Task NegationAfterShiftRightInAnArgumentThatWouldReadAsAGenericNameIsReportedWithoutACodeFix()
     {
         const string testCode = """
                                 class V
@@ -857,47 +795,12 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
 
                                     void Run(bool x)
                                     {
-                                        M(G < A, H < B >> !x);
+                                        M(G < A, H < B >> {|RH3001:!|}x);
                                     }
                                 }
                                 """;
 
-        const string expectedCode = """
-                                    class V
-                                    {
-                                        public static bool operator <(V a, W b) => true;
-
-                                        public static bool operator >(V a, W b) => true;
-                                    }
-
-                                    class W
-                                    {
-                                    }
-
-                                    class T
-                                    {
-                                        public static W operator >>(T a, bool b) => new W();
-                                    }
-
-                                    class C
-                                    {
-                                        int G;
-                                        int A;
-                                        V H;
-                                        T B;
-
-                                        void M(bool p, bool q)
-                                        {
-                                        }
-
-                                        void Run(bool x)
-                                        {
-                                            M(G < A, H < B >> (x == false));
-                                        }
-                                    }
-                                    """;
-
-        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
@@ -1166,6 +1069,177 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
                                 """;
 
         await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a negation that starts the right operand of a built-in <c>&gt;&gt;&gt;</c> in an argument is reported
+    /// without a code fix, because the parentheses the fix writes would, with the three <c>&lt;</c> in front, read as
+    /// a generic invocation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-007")]
+    public async Task NegationAfterUnsignedShiftRightInAnArgumentThatWouldReadAsAGenericNameIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int G;
+                                    int A;
+                                    int H;
+                                    int J;
+                                    int B;
+
+                                    void M(bool x, bool y, bool z)
+                                    {
+                                    }
+
+                                    void Run(bool x)
+                                    {
+                                        M(G < A, H < A, J < B >>> {|RH3001:!|}x switch { true => 1, false => 0 });
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a negation of a parenthesized operand after a <c>&gt;</c> in an argument is reported without a code
+    /// fix, because the parentheses the fix writes around the comparison would, with the <c>&lt;</c> of the previous
+    /// argument, read as a generic invocation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-007")]
+    public async Task NegationOfAParenthesizedOperandThatWouldReadAsAGenericNameIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int G;
+                                    int A;
+                                    int B;
+
+                                    void M(bool x, bool y)
+                                    {
+                                    }
+
+                                    void Run(bool x)
+                                    {
+                                        M(G < A, B > {|RH3001:!|}(x) switch { true => 1, false => 0 });
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a negation after a <c>&gt;</c> in an argument is still fixed where no <c>&lt;</c> in front of it could
+    /// make the code the fix writes read as a generic name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-007")]
+    public async Task NegationAfterGreaterThanWithoutALessThanInFrontIsFixed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int G;
+                                    int A;
+                                    int B;
+
+                                    void M(bool x, bool y)
+                                    {
+                                    }
+
+                                    void Run(bool x)
+                                    {
+                                        M(G > A, B > {|RH3001:!|}x switch { true => 1, false => 0 });
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int G;
+                                     int A;
+                                     int B;
+
+                                     void M(bool x, bool y)
+                                     {
+                                     }
+
+                                     void Run(bool x)
+                                     {
+                                         M(G > A, B > (x == false) switch { true => 1, false => 0 });
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies Fix All leaves a negation whose fix would read as a generic name as written and reported, and fixes
+    /// the other negations of the document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-007")]
+    public async Task FixAllLeavesANegationThatWouldReadAsAGenericNameReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int G;
+                                    int A;
+                                    int B;
+
+                                    void M(bool x, bool y)
+                                    {
+                                    }
+
+                                    bool Run(bool x)
+                                    {
+                                        M(G < A, B > {|RH3001:!|}x switch { true => 1, false => 0 });
+
+                                        return {|RH3001:!|}x && {|RH3001:!|}x;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int G;
+                                     int A;
+                                     int B;
+
+                                     void M(bool x, bool y)
+                                     {
+                                     }
+
+                                     bool Run(bool x)
+                                     {
+                                         M(G < A, B > {|RH3001:!|}x switch { true => 1, false => 0 });
+
+                                         return x == false && x == false;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         // The diagnostics whose fix is withheld stay and are marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
     }
 
     #endregion // Tests

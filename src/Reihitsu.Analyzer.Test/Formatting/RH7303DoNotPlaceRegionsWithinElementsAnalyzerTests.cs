@@ -254,6 +254,87 @@ public class RH7303DoNotPlaceRegionsWithinElementsAnalyzerTests : BatchCodeFixTe
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), actual);
     }
 
+    /// <summary>
+    /// Verifying the specification example: no code fix is offered for a reported directive whose partner lies between
+    /// declarations, in either direction
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7303-005")]
+    public async Task NoCodeFixForRegionsThatReachBetweenDeclarations()
+    {
+        const string source = """
+                              class C
+                              {
+                                  #region Members
+
+                                  void M()
+                                  {
+                                      {|RH7303:#endregion|}
+                                  }
+
+                                  void N()
+                                  {
+                                      {|RH7303:#region Work|}
+                                      N();
+                                  }
+
+                                  #endregion
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered for an <c>#endregion</c> in a body whose <c>#region</c> lies between
+    /// declarations
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7303-005")]
+    public async Task NoCodeFixForAnEndRegionInABodyWhoseRegionLiesBetweenDeclarations()
+    {
+        const string source = """
+                              class C
+                              {
+                                  #region Members
+
+                                  void M()
+                                  {
+                                      {|RH7303:#endregion|}
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered for a <c>#region</c> in a body whose <c>#endregion</c> lies between
+    /// declarations
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7303-005")]
+    public async Task NoCodeFixForARegionInABodyWhoseEndRegionLiesBetweenDeclarations()
+    {
+        const string source = """
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7303:#region Work|}
+                                      M();
+                                  }
+
+                                  #endregion
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

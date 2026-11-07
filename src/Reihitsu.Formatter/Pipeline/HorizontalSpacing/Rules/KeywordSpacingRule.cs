@@ -7,11 +7,11 @@ namespace Reihitsu.Formatter.Pipeline.HorizontalSpacing.Rules;
 /// <summary>
 /// Handles spacing after keywords that should be followed by a single space before their parenthesis
 /// or expression (such as <c>if</c>, <c>for</c>, <c>return</c>, <c>new</c>). It also covers the
-/// exceptions where these keywords stay compact: attribute targets keep their colon attached, the
-/// <c>return</c> and <c>throw</c> keywords sit directly before a semicolon, and target-typed
-/// <c>new()</c>, constructor constraint <c>new()</c>, and <c>new[]</c> keep their delimiters adjacent.
-/// As the lowest-precedence rule it returns <see langword="null"/> for any non-keyword token, leaving
-/// the rewriter to collapse multiple spaces only
+/// exceptions where these keywords stay compact: the <c>return</c> and <c>throw</c> keywords sit
+/// directly before a semicolon, and target-typed <c>new()</c>, constructor constraint <c>new()</c>,
+/// and <c>new[]</c> keep their delimiters adjacent. A keyword used as an attribute target is spaced by
+/// <see cref="AttributeTargetColonSpacingRule"/>, which decides first. It returns <see langword="null"/>
+/// for any other token, leaving the pair to the rules after it
 /// </summary>
 internal sealed class KeywordSpacingRule : ISpacingRule
 {
@@ -29,13 +29,6 @@ internal sealed class KeywordSpacingRule : ISpacingRule
         {
             // No specific rule — return null so only collapse of multiple spaces is applied.
             return null;
-        }
-
-        // Attribute targets keep the colon attached to the target keyword, e.g. [return: First].
-        if (current.Parent is AttributeTargetSpecifierSyntax
-            && next.IsKind(SyntaxKind.ColonToken))
-        {
-            return 0;
         }
 
         // Special case: return and throw statements have no space before the semicolon.
@@ -97,6 +90,7 @@ internal sealed class KeywordSpacingRule : ISpacingRule
             case SyntaxKind.CatchKeyword:
             case SyntaxKind.UsingKeyword:
             case SyntaxKind.LockKeyword:
+            case SyntaxKind.FixedKeyword:
             case SyntaxKind.ReturnKeyword:
             case SyntaxKind.ThrowKeyword:
             case SyntaxKind.NewKeyword:

@@ -1,8 +1,10 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 
 namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
@@ -10,7 +12,10 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 /// <summary>
 /// Computes the indentation layout model for a syntax tree.
 /// Applies block indentation, then repeats an alignment sweep until the columns settle, then
-/// aligns comments to the code they precede
+/// aligns comments to the code they precede. A line that a token starts inside an interpolation hole
+/// of a multi-line interpolated raw string keeps its column unless a construct inside the hole places it.
+/// Every column is measured where the indentation phase puts the token: behind a comment that leads its line,
+/// and after the phase moved the lines of multi-line raw string literals
 /// </summary>
 internal static class LayoutComputer
 {
@@ -45,8 +50,17 @@ internal static class LayoutComputer
         var model = new LayoutModel();
         var baseColumn = context.BaseIndentLevel * FormattingContext.IndentSize;
 
+        model.UseRawStringLineShifts(new RawStringLineShifts(root, root.SyntaxTree.GetText(cancellationToken), cancellationToken),
+                                     token => GetOpeningQuotesColumnBeforeRawStringShift(token, model));
+
+        RegisterRawStringHoleLines(root, model);
+        UseTargetPosition(root, model, context);
+
         // Pass 1: Block indentation — recursive descent over the tree
         ComputeBlockIndentation(root, 0, model, baseColumn, cancellationToken);
+
+        // A node formatted inside its document keeps its first token in its document column (FMT-PIPE-017)
+        ShiftToRootFirstTokenColumn(root, model, context);
 
         // Pass 2: Alignment contributors — override block indentation for specific constructs
         var contributors = CreateContributors();
@@ -57,6 +71,9 @@ internal static class LayoutComputer
         var commentContributor = new CommentIndentationContributor(cancellationToken);
 
         commentContributor.Contribute(root, model, context);
+
+        // The hole lines no construct inside their hole placed keep their whitespace and move only with the literal
+        model.ReleaseUnplacedRawStringHoleLines();
 
         return model;
     }
@@ -104,7 +121,9 @@ internal static class LayoutComputer
     /// owned by a construct nested inside the chain root (a multi-line initializer closed by "2 }"),
     /// which the pre-order walk reaches after the chain, while an argument list or lambda nested under a
     /// continuation line depends on the chain's own column and is reached before it is final. Sweeping
-    /// once leaves whichever side runs last measuring against a stale column
+    /// once leaves whichever side runs last measuring against a stale column. The model is told which
+    /// node's contributors are writing, so a line of an interpolation hole takes only the columns of
+    /// constructs inside that hole
     /// </summary>
     /// <param name="root">The root syntax node</param>
     /// <param name="model">The layout model to update</param>
@@ -127,11 +146,18 @@ internal static class LayoutComputer
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                model.Contributor = node;
+
                 foreach (var contributor in contributors)
                 {
+                    model.AlignmentContributor = contributor;
+
                     contributor.Contribute(node, model, context);
                 }
             }
+
+            model.Contributor = null;
+            model.AlignmentContributor = null;
 
             if (model.MatchesColumns(columns))
             {
@@ -146,8 +172,8 @@ internal static class LayoutComputer
 
     /// <summary>
     /// Determines whether a token is the first token on its line. The rule itself lives in
-    /// <see cref="SyntaxTokenPositionUtilities.IsFirstOnLine"/>, shared with the RH5204 analyzer so both engines
-    /// agree on which token owns a line; this forwarder keeps the formatter's own call sites unchanged
+    /// <see cref="SyntaxTokenPositionUtilities.IsFirstOnLine"/>, shared with the analyzers so every engine agrees on which
+    /// token owns a line (SHARED-BLANK-008); this forwarder keeps the formatter's own call sites unchanged
     /// </summary>
     /// <param name="token">The token to check</param>
     /// <returns><see langword="true"/> if the token is first on its line; otherwise, <see langword="false"/></returns>
@@ -177,28 +203,40 @@ internal static class LayoutComputer
     }
 
     /// <summary>
-    /// Gets the column of a token as it will be after indentation is applied.
-    /// For tokens that are first on their line, this returns the layout model's column.
-    /// For tokens that are not first on their line, this computes the offset from the
-    /// first token's adjusted position
+    /// Gets the column of a token in the output of the indentation phase: after its line is placed, and after the
+    /// phase moved the lines of multi-line raw string literals, so a token inside such a literal's interpolation hole,
+    /// or behind its closing marker, is measured where the move puts it
     /// </summary>
     /// <param name="token">The token to get the adjusted column for</param>
     /// <param name="model">The layout model from Pass 1</param>
     /// <returns>The adjusted column position</returns>
     internal static int GetAdjustedColumn(SyntaxToken token, LayoutModel model)
     {
-        var originalColumn = GetColumn(token);
-        var line = GetLine(token);
+        return GetColumnBeforeRawStringShift(token, model) + model.GetRawStringShift(GetLine(token));
+    }
 
-        if (model.TryGetLayout(line, out var layout) == false)
+    /// <summary>
+    /// Gets the column of a token once its line is placed, before any line of a multi-line raw string literal moves.
+    /// The indentation phase writes a line's column in front of the text that starts the line — the line's first
+    /// token, or a comment that stands in front of that token on its line — and the rest of the line keeps its gaps,
+    /// so a token is measured at the line's column plus its distance from the start of that text (FMT-INDENT-030).
+    /// A line that starts inside text that began on an earlier line, such as the last line of a multi-line comment or
+    /// the closing line of a raw string literal, is not placed, and its tokens keep their columns; so does a line of
+    /// an interpolation hole that no construct inside the hole placed. A token on the first line of the target the
+    /// target-position fact marks, from the target's first token on, is measured from the column that fact gives that
+    /// token, whatever the phases did with that line in the root (FMT-PIPE-017)
+    /// </summary>
+    /// <param name="token">The token to get the column for</param>
+    /// <param name="model">The layout model</param>
+    /// <returns>The column after its line is placed</returns>
+    internal static int GetColumnBeforeRawStringShift(SyntaxToken token, LayoutModel model)
+    {
+        if (TryGetTargetLineColumn(token, model, out var targetLineColumn))
         {
-            return originalColumn;
+            return targetLineColumn;
         }
 
-        var firstTokenOnLine = FindFirstTokenOnLine(token);
-        var originalLineStart = GetColumn(firstTokenOnLine);
-
-        return layout.Column + (originalColumn - originalLineStart);
+        return GetPlacedColumnBeforeRawStringShift(token, model);
     }
 
     /// <summary>
@@ -214,6 +252,28 @@ internal static class LayoutComputer
         {
             model.Set(GetLine(token), new TokenLayout(column, source));
         }
+    }
+
+    /// <summary>
+    /// Gets the column of a token once its line is placed, before any line of a multi-line raw string literal moves, as
+    /// <see cref="GetColumnBeforeRawStringShift"/> gives it without the target-position fact: the line's column plus the
+    /// token's distance from the start of the text that starts the line, or the token's own column on a line that is not
+    /// placed (FMT-INDENT-030)
+    /// </summary>
+    /// <param name="token">The token to get the column for</param>
+    /// <param name="model">The layout model</param>
+    /// <returns>The column after its line is placed</returns>
+    private static int GetPlacedColumnBeforeRawStringShift(SyntaxToken token, LayoutModel model)
+    {
+        var originalColumn = GetColumn(token);
+
+        if (model.TryGetPlacedColumnBeforeRawStringShift(GetLine(token), out var lineColumn) == false
+            || TryGetLineTextColumn(token, out var lineTextColumn) == false)
+        {
+            return originalColumn;
+        }
+
+        return lineColumn + (originalColumn - lineTextColumn);
     }
 
     /// <summary>
@@ -245,6 +305,148 @@ internal static class LayoutComputer
     }
 
     /// <summary>
+    /// Gets the column the first token of a multi-line raw string literal has once its line is placed, as the move of the
+    /// literal's lines measures it. That is <see cref="GetColumnBeforeRawStringShift"/>, except on a placed line that
+    /// starts with the byte order mark of the text: the rewriter keeps the mark in front of the line's column, and the
+    /// literal's lines, which hold their indentation in the literal's text, count it as a column (FMT-RAW-005)
+    /// </summary>
+    /// <param name="token">The first token of the literal</param>
+    /// <param name="model">The layout model</param>
+    /// <returns>The column the move of the literal's lines measures the token at</returns>
+    private static int GetOpeningQuotesColumnBeforeRawStringShift(SyntaxToken token, LayoutModel model)
+    {
+        var column = GetColumnBeforeRawStringShift(token, model);
+        var lineStart = token.SpanStart - GetColumn(token);
+
+        if (lineStart == 0
+            && token.SyntaxTree?.GetText() is { Length: > 0 } text
+            && text[0] == '\uFEFF'
+            && model.TryGetPlacedColumnBeforeRawStringShift(GetLine(token), out _)
+            && TryGetLineTextColumn(token, out _))
+        {
+            column++;
+        }
+
+        return column;
+    }
+
+    /// <summary>
+    /// Shifts the block indentation of every line by the root's offset when the caller supplies the column of the root's
+    /// first token in its document (FMT-PIPE-017): that column less the column block indentation gives the token. The
+    /// offset is measured from block indentation alone, also when the root's first token is the first token of the
+    /// target the target-position fact marks, so the fact never cancels it. The first token then keeps its column, and a
+    /// line placed by its depth keeps its place relative to it. The alignments
+    /// run after the shift, so a line aligned to an anchor follows the anchor where it stands, also on a line this phase
+    /// does not place. When the first token's line is not placed, because the token stands behind the last line of a
+    /// multi-line comment, the token keeps its column and the offset is zero
+    /// </summary>
+    /// <param name="root">The root syntax node</param>
+    /// <param name="model">The layout model after block indentation</param>
+    /// <param name="context">The formatting context</param>
+    private static void ShiftToRootFirstTokenColumn(SyntaxNode root, LayoutModel model, FormattingContext context)
+    {
+        if (context.RootFirstTokenColumn is not { } rootFirstTokenColumn)
+        {
+            return;
+        }
+
+        var firstToken = root.GetFirstToken();
+
+        if (firstToken.IsKind(SyntaxKind.None)
+            || model.TryGetPlacedColumnBeforeRawStringShift(GetLine(firstToken), out _) == false
+            || TryGetLineTextColumn(firstToken, out _) == false)
+        {
+            return;
+        }
+
+        model.ShiftRange(0, int.MaxValue, rootFirstTokenColumn - GetPlacedColumnBeforeRawStringShift(firstToken, model), "RootFirstTokenColumn");
+    }
+
+    /// <summary>
+    /// Hands the target-position fact (FMT-PIPE-024) to the model when the root holds the token it marks. The context entry
+    /// point writes back only the target, with its own leading trivia, and keeps everything in front of the target as it
+    /// stands in the document, so the target's other lines are laid out as if its first token stood in its document column
+    /// (FMT-PIPE-017)
+    /// </summary>
+    /// <param name="root">The root syntax node</param>
+    /// <param name="model">The layout model</param>
+    /// <param name="context">The formatting context</param>
+    private static void UseTargetPosition(SyntaxNode root, LayoutModel model, FormattingContext context)
+    {
+        if (context.TargetAnnotation == null
+            || context.TargetFirstTokenColumn is not { } targetFirstTokenColumn)
+        {
+            return;
+        }
+
+        var targetFirstToken = root.GetAnnotatedTokens(context.TargetAnnotation).FirstOrDefault();
+
+        if (targetFirstToken.IsKind(SyntaxKind.None) == false)
+        {
+            model.UseTargetFirstToken(targetFirstToken, targetFirstTokenColumn);
+        }
+    }
+
+    /// <summary>
+    /// Gets the column, before the lines of multi-line raw string literals move, of a token on the line of the target's
+    /// first token, from that token on: the target's first token stands in the column the target-position fact gives it
+    /// in the output of the indentation phase, and the rest of its line keeps its distance to it. The move of a raw
+    /// string literal's lines that carries that line in the root is taken off, so the token ends in that column after it
+    /// </summary>
+    /// <param name="token">The token to measure</param>
+    /// <param name="model">The layout model</param>
+    /// <param name="column">The column before the lines of multi-line raw string literals move</param>
+    /// <returns><see langword="true"/> if the token stands on the target's first line, at or behind its first token; otherwise, <see langword="false"/></returns>
+    private static bool TryGetTargetLineColumn(SyntaxToken token, LayoutModel model, out int column)
+    {
+        if (model.TryGetTargetFirstToken(out var targetFirstToken, out var targetFirstTokenColumn) == false
+            || token.SpanStart < targetFirstToken.SpanStart
+            || GetLine(token) != GetLine(targetFirstToken))
+        {
+            column = 0;
+
+            return false;
+        }
+
+        column = targetFirstTokenColumn + (GetColumn(token) - GetColumn(targetFirstToken)) - model.GetRawStringShift(GetLine(token));
+
+        return true;
+    }
+
+    /// <summary>
+    /// Registers every line that a token starts inside an interpolation hole of a multi-line interpolated raw
+    /// string with the innermost such hole. The column the indentation requirements would give such a line from the
+    /// scope depth, or from a construct outside the hole, does not depend on where the literal sits, while the
+    /// move of the literal's lines carries the line with the literal; giving it both would move it twice (FMT-RAW-007).
+    /// The line keeps its whitespace, which holds no tab once the first phase ran, so the column registered for it is
+    /// the column at which its text starts
+    /// </summary>
+    /// <param name="root">The root syntax node</param>
+    /// <param name="model">The layout model to register the lines with</param>
+    private static void RegisterRawStringHoleLines(SyntaxNode root, LayoutModel model)
+    {
+        foreach (var interpolatedString in root.DescendantNodesAndSelf().OfType<InterpolatedStringExpressionSyntax>())
+        {
+            if (interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken) == false)
+            {
+                continue;
+            }
+
+            foreach (var hole in interpolatedString.Contents.OfType<InterpolationSyntax>())
+            {
+                foreach (var token in hole.DescendantTokens().Where(IsFirstOnLine))
+                {
+                    var column = TryGetLineTextColumn(token, out var lineTextColumn)
+                                     ? lineTextColumn
+                                     : GetColumn(token);
+
+                    model.RegisterRawStringHoleLine(GetLine(token), hole, column);
+                }
+            }
+        }
+    }
+
+    /// <summary>
     /// Applies indentation entries for region-related directive trivia. A directive inside a branch the
     /// compiler skipped is left where the author wrote it: the code around it is untouched disabled
     /// text, so re-indenting the directive alone would half-format a region nobody compiles
@@ -268,7 +470,9 @@ internal static class LayoutComputer
     }
 
     /// <summary>
-    /// Applies block indentation for first-on-line tokens
+    /// Applies block indentation for first-on-line tokens, and for the line the end of the file stands on when no token
+    /// with text stands on that line. The end of the file has no text and starts no line (SHARED-BLANK-008), but a comment
+    /// or directive in front of it on its line, and the comments above it, take the column of the file's top level
     /// </summary>
     /// <param name="token">The token to evaluate</param>
     /// <param name="childIndent">The computed child indentation level</param>
@@ -276,7 +480,8 @@ internal static class LayoutComputer
     /// <param name="baseColumn">The base indentation column</param>
     private static void SetTokenIndentation(SyntaxToken token, int childIndent, LayoutModel model, int baseColumn)
     {
-        if (IsFirstOnLine(token) == false)
+        if (IsFirstOnLine(token) == false
+            && IsAloneOnEndOfFileLine(token) == false)
         {
             return;
         }
@@ -285,26 +490,35 @@ internal static class LayoutComputer
     }
 
     /// <summary>
-    /// Finds the first token on the same line as the given token
+    /// Determines whether a token is the end of the file and no token with text stands on its line
     /// </summary>
-    /// <param name="token">The token to find the first token on the same line for</param>
-    /// <returns>The first token on the same line</returns>
-    private static SyntaxToken FindFirstTokenOnLine(SyntaxToken token)
+    /// <param name="token">The token to check</param>
+    /// <returns><see langword="true"/> if the token is the end of the file alone on its line; otherwise, <see langword="false"/></returns>
+    private static bool IsAloneOnEndOfFileLine(SyntaxToken token)
     {
-        var targetLine = GetLine(token);
-        var current = token;
-
-        while (true)
+        if (token.IsKind(SyntaxKind.EndOfFileToken) == false)
         {
-            var prev = current.GetPreviousToken();
-
-            if (prev == default || prev.IsKind(SyntaxKind.None) || GetLine(prev) != targetLine)
-            {
-                return current;
-            }
-
-            current = prev;
+            return false;
         }
+
+        var previousToken = token.GetPreviousToken();
+
+        return previousToken.IsKind(SyntaxKind.None)
+               || SyntaxTriviaUtilities.AreSeparatedByEndOfLine(previousToken, token);
+    }
+
+    /// <summary>
+    /// Gets the column at which the text of a token's line starts: the comment or directive that starts the line, or the
+    /// token that starts it (<see cref="LineStartIndex"/>). The indentation phase writes the line's column there. The text
+    /// does not start on the line when the line starts inside the previous token, inside its trailing trivia, or inside a
+    /// trivia that began on an earlier line, such as a multi-line comment; the phase then leaves the line's start as it is
+    /// </summary>
+    /// <param name="token">A token on the line</param>
+    /// <param name="column">The column at which the line's text starts</param>
+    /// <returns><see langword="true"/> if the line's text starts on the line; otherwise, <see langword="false"/></returns>
+    private static bool TryGetLineTextColumn(SyntaxToken token, out int column)
+    {
+        return LineStartIndex.For(token.SyntaxTree).TryGetLineStartColumn(GetLine(token), out column);
     }
 
     #endregion // Private methods

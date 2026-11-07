@@ -259,6 +259,26 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCode
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that trailing whitespace in the text behind a hole of an interpolated multi-line raw string is part of the literal and is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5602-002")]
+    public async Task VerifyNoDiagnosticsForTrailingWhitespaceBehindAHoleInAnInterpolatedRawString()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    string w = $"""
+                                        {1}··
+                                        """;
+                                }
+                                """";
+
+        await Verify(ExpandWhitespaceMarkers(testData));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -3,13 +3,22 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Core;
+using Reihitsu.Formatter.Data.Enumerations;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
+using Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
+using Reihitsu.Formatter.Pipeline.TabReplacement;
 
 namespace Reihitsu.Formatter.Utilities;
 
 /// <summary>
-/// Helper methods for the <see cref="ReihitsuFormatter"/> class
+/// The entry-point code of <see cref="ReihitsuFormatter"/>: the guards that decide whether a tree is formatted at all, and
+/// what an entry point computes about its input before the pipeline runs — the line ending, the column of a formatting
+/// root's first token in its document, the construct it stands in, and its detached copy. Code fixes and the command-line
+/// tool apply the same guards and computations through it. Phases do not use it; the facts they share live in
+/// <c>Reihitsu.Core</c> and in <c>Pipeline/Core</c>
 /// </summary>
 internal static class ReihitsuFormatterHelpers
 {
@@ -53,7 +62,7 @@ internal static class ReihitsuFormatterHelpers
 
         foreach (var trivia in headerTrivia)
         {
-            if (IsCommentTrivia(trivia) == false)
+            if (SyntaxTriviaUtilities.IsCommentTrivia(trivia) == false)
             {
                 continue;
             }
@@ -68,140 +77,103 @@ internal static class ReihitsuFormatterHelpers
     }
 
     /// <summary>
-    /// Computes the base indentation level of a node from its position in the syntax tree.
-    /// Walks the parent chain and counts indenting constructs (types, namespaces, blocks, etc.)
+    /// Captures the facts about the construct a target stands in in its document (FMT-PIPE-024), one flag for each decision
+    /// of the line-break phase that reads the target's ancestors. Each flag is the answer that decision's own predicate gives
+    /// for the target while it is still part of its document
     /// </summary>
-    /// <param name="node">The node whose base indentation level to compute</param>
-    /// <returns>The number of indenting ancestor constructs</returns>
-    internal static int ComputeBaseIndentLevel(SyntaxNode node)
+    /// <param name="target">The target, still part of its document</param>
+    /// <returns>The facts</returns>
+    internal static RootConstruct CaptureRootConstruct(SyntaxNode target)
     {
-        return SyntaxIndentationUtilities.ComputeBaseIndentLevel(node);
-    }
+        var facts = RootConstruct.None;
 
-    /// <summary>
-    /// Computes the zero-based column position of a token within a syntax root,
-    /// using the token's syntax tree's line table
-    /// </summary>
-    /// <param name="token">The token whose column to compute. Must belong to a syntax tree — every caller passes a node-derived token (for example <c>GetFirstToken()</c>), which always has one</param>
-    /// <returns>The zero-based column position of the token</returns>
-    internal static int ComputeTokenColumn(SyntaxToken token)
-    {
-        return token.SyntaxTree.GetLineSpan(token.Span).StartLinePosition.Character;
-    }
-
-    /// <summary>
-    /// Adjusts the indentation of all tokens within a node that start on a new line
-    /// by the given column offset
-    /// </summary>
-    /// <param name="node">The syntax node whose indentation to adjust</param>
-    /// <param name="columnOffset">The number of columns to shift (positive = right, negative = left)</param>
-    /// <returns>A new syntax node with adjusted indentation</returns>
-    internal static SyntaxNode AdjustNodeIndentation(SyntaxNode node, int columnOffset)
-    {
-        var firstToken = node.GetFirstToken();
-        var tokensToAdjust = new List<SyntaxToken>();
-        var afterEndOfLine = new Dictionary<SyntaxToken, bool>();
-        var genuinelyAfterEndOfLine = new Dictionary<SyntaxToken, bool>();
-
-        foreach (var token in node.DescendantTokens())
+        if (target.Parent == null)
         {
-            var isFirstToken = token == firstToken;
-
-            if (isFirstToken == false && StartsOnNewLine(token) == false)
-            {
-                continue;
-            }
-
-            tokensToAdjust.Add(token);
-
-            var isAfterEndOfLine = IsAfterEndOfLine(token);
-
-            afterEndOfLine[token] = isFirstToken || isAfterEndOfLine;
-            genuinelyAfterEndOfLine[token] = isAfterEndOfLine;
+            return facts;
         }
 
-        if (tokensToAdjust.Count == 0)
+        if (target is AccessorDeclarationSyntax or AccessorListSyntax
+            && AttributeTargetFormattingRewriter.StandsInOneLineProperty(target))
         {
-            return node;
+            facts |= RootConstruct.OneLineProperty;
         }
 
-        return node.ReplaceTokens(tokensToAdjust,
-                                  (original, rewritten) => AdjustLeadingWhitespace(rewritten, columnOffset, afterEndOfLine[original], genuinelyAfterEndOfLine[original]));
+        if (ListElementInteriorUtilities.LiesInListElement(target))
+        {
+            facts |= RootConstruct.ListElement;
+        }
+
+        if (target is BracketedArgumentListSyntax argumentList
+            && LineBreakListRewriter.IsElementAccessArgumentList(argumentList, RootConstruct.None))
+        {
+            facts |= RootConstruct.ElementAccessArguments;
+        }
+
+        if (target is PatternSyntax
+            && LineBreakInitializerRewriter.IsIntroducedByCaseLabel(target, RootConstruct.None))
+        {
+            facts |= RootConstruct.CaseLabelPattern;
+        }
+
+        if (target is InitializerExpressionSyntax initializer
+            && LineBreakInitializerRewriter.IsAssignedCollectionInitializer(initializer, RootConstruct.None))
+        {
+            facts |= RootConstruct.AssignedCollectionInitializer;
+        }
+
+        return facts;
     }
 
     /// <summary>
-    /// Determines whether the token has a comment directly above its line
+    /// Returns a node as the root of a tree of its own (FMT-PIPE-023), with the parse options of the tree it came from, so
+    /// that no phase reaches the code around it. A node without a parent is returned as it is
     /// </summary>
-    /// <param name="token">The token to inspect</param>
-    /// <returns><see langword="true"/> if a comment is directly above the token; otherwise, <see langword="false"/></returns>
-    internal static bool HasCommentDirectlyAbove(SyntaxToken token)
+    /// <param name="node">The node</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The node without a parent</returns>
+    internal static SyntaxNode Detach(SyntaxNode node, CancellationToken cancellationToken)
     {
-        return SyntaxTriviaUtilities.HasCommentDirectlyAbove(token);
+        return node.Parent == null
+                   ? node
+                   : CSharpSyntaxTree.Create((CSharpSyntaxNode)node, node.SyntaxTree.Options as CSharpParseOptions).GetRoot(cancellationToken);
     }
 
     /// <summary>
-    /// Determines whether a trivia is a comment
+    /// Computes the column of a node-level formatting root's first token in its document (FMT-PIPE-017): the number of
+    /// characters in front of it on its line, each one column, except that a byte order mark at the start of the text
+    /// counts as zero columns. When the entry point does not keep the token's own leading trivia, that trivia is measured
+    /// as the preparation phase writes it, through <see cref="TabReplacementPhase.ReplaceWhitespaceTabs"/>, so a tab in its
+    /// whitespace counts with the width that phase gives it (FMT-PIPE-019). A tab in front of the token that the entry
+    /// point keeps, or that stands inside a comment, counts as one column
     /// </summary>
-    /// <param name="trivia">The trivia to check</param>
-    /// <returns><see langword="true"/> if the trivia is a comment; otherwise, <see langword="false"/></returns>
-    internal static bool IsCommentTrivia(SyntaxTrivia trivia)
+    /// <param name="token">The first token of the formatting root. Must belong to a syntax tree</param>
+    /// <param name="countsOwnWhitespaceTabsAsReplaced">Whether the entry point writes back the token's leading trivia as the phases rewrite it</param>
+    /// <returns>The zero-based column of the token in its document</returns>
+    internal static int ComputeDocumentColumn(SyntaxToken token, bool countsOwnWhitespaceTabsAsReplaced)
     {
-        return SyntaxTriviaUtilities.IsCommentTrivia(trivia);
-    }
+        var text = token.SyntaxTree.GetText();
+        var lineStart = text.Lines.GetLineFromPosition(token.SpanStart).Start;
+        var leadingTriviaStart = token.FullSpan.Start;
+        var leadingTrivia = countsOwnWhitespaceTabsAsReplaced
+                                ? TabReplacementPhase.ReplaceWhitespaceTabs(token.LeadingTrivia)
+                                : token.LeadingTrivia;
 
-    /// <summary>
-    /// Determines whether a documentation comment owned by the specified token documents the code that follows it
-    /// </summary>
-    /// <param name="owningToken">The token whose leading trivia holds the documentation comment</param>
-    /// <returns><see langword="true"/> if the documentation comment documents what follows; otherwise, <see langword="false"/></returns>
-    /// <remarks>
-    /// Roslyn files a documentation comment as the leading trivia of the next token whatever that token is, so the
-    /// owning token decides whether the comment documents anything. When it opens the node it belongs to - the
-    /// <c>public</c> of a property, the identifier of a declarator - the comment documents that node. When it does
-    /// not, the comment is stranded before a <c>;</c>, <c>]</c> or <c>}</c>, where the compiler reports CS1587.
-    /// The phases that relocate or separate documentation comments share this predicate so they cannot disagree
-    /// about which comments carry documentation
-    /// </remarks>
-    internal static bool DocumentsFollowingCode(SyntaxToken owningToken)
-    {
-        return owningToken.Parent != null
-               && owningToken.Parent.GetFirstToken() == owningToken;
-    }
+        // The token's line, from its start to the token, as the phases receive it: the text in front of the token's
+        // leading trivia as it stands, followed by that trivia. The trivia may itself hold the line's start
+        var prefixStart = Math.Min(lineStart, leadingTriviaStart);
+        var prefix = SourceText.From(text.ToString(TextSpan.FromBounds(prefixStart, leadingTriviaStart)) + leadingTrivia.ToFullString());
+        var tokenLine = prefix.Lines[prefix.Lines.Count - 1];
+        var column = tokenLine.Span.Length;
 
-    /// <summary>
-    /// Determines whether a trivia is a preprocessor directive or disabled (conditionally compiled out) text
-    /// </summary>
-    /// <param name="trivia">The trivia to check</param>
-    /// <returns><see langword="true"/> if the trivia is a directive or disabled text; otherwise, <see langword="false"/></returns>
-    internal static bool IsDirectiveOrDisabledTextTrivia(SyntaxTrivia trivia)
-    {
-        return SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia);
-    }
+        if (prefixStart == 0
+            && tokenLine.Start == 0
+            && column > 0
+            && prefix[0] == '\uFEFF')
+        {
+            column--;
+        }
 
-    /// <summary>
-    /// Determines whether a token starts on a new line by checking for
-    /// end-of-line trivia in the token's leading trivia or the previous token's trailing trivia
-    /// </summary>
-    /// <param name="token">The token to check</param>
-    /// <returns><see langword="true"/> if the token starts on a new line; otherwise, <see langword="false"/></returns>
-    internal static bool StartsOnNewLine(SyntaxToken token)
-    {
-        return token.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-               || IsAfterEndOfLine(token);
-    }
-
-    /// <summary>
-    /// Determines whether a formatting target's first token starts its line once its own leading trivia is taken into
-    /// account. In addition to <see cref="StartsOnNewLine"/>, a single-line documentation comment in the leading trivia counts,
-    /// because it carries its line break inside its structure rather than as separate end-of-line trivia: a token behind
-    /// such a comment starts its line even when the comment itself is written behind the preceding code
-    /// </summary>
-    /// <param name="token">The first token of the formatting target</param>
-    /// <returns><see langword="true"/> if the token starts its line; otherwise, <see langword="false"/></returns>
-    internal static bool StartsOnNewLineIncludingDocumentation(SyntaxToken token)
-    {
-        return StartsOnNewLine(token)
-               || token.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia));
+        return column;
     }
 
     #endregion // Methods
@@ -217,90 +189,6 @@ internal static class ReihitsuFormatterHelpers
     {
         return commentText.IndexOf("<auto-generated", StringComparison.OrdinalIgnoreCase) >= 0
                || commentText.IndexOf("<autogenerated", StringComparison.OrdinalIgnoreCase) >= 0;
-    }
-
-    /// <summary>
-    /// Determines whether the previous token's trailing trivia ends with an end-of-line trivia
-    /// </summary>
-    /// <param name="token">The token to check</param>
-    /// <returns><see langword="true"/> if the previous token's trailing trivia ends with EOL; otherwise, <see langword="false"/></returns>
-    private static bool IsAfterEndOfLine(SyntaxToken token)
-    {
-        var prevToken = token.GetPreviousToken();
-
-        if (prevToken == default)
-        {
-            return false;
-        }
-
-        var trailing = prevToken.TrailingTrivia;
-
-        return trailing.Count > 0 && trailing.Last().IsKind(SyntaxKind.EndOfLineTrivia);
-    }
-
-    /// <summary>
-    /// Adjusts the leading whitespace trivia of a token by the given column offset.
-    /// Only whitespace trivia that appears at the beginning of a line is adjusted
-    /// </summary>
-    /// <param name="token">The token whose leading whitespace to adjust</param>
-    /// <param name="columnOffset">The number of columns to shift (positive = right, negative = left)</param>
-    /// <param name="previousEndsWithEndOfLine">Whether the previous token's trailing trivia ends with an end-of-line</param>
-    /// <param name="genuinelyPrecededByEndOfLine">
-    /// Whether the token is genuinely preceded by an end-of-line — the previous token's trailing trivia ends
-    /// with one, regardless of <paramref name="previousEndsWithEndOfLine"/>'s forced <see langword="true"/> for
-    /// the node's own first token. A missing whitespace entry may only be filled in when this is
-    /// <see langword="true"/> (or becomes true from an end-of-line trivia found in this token's own leading
-    /// trivia below); otherwise a first token that never starts a real line — for example one immediately
-    /// following an opening brace on the same line — would gain indentation it never had
-    /// </param>
-    /// <returns>A new token with adjusted leading whitespace</returns>
-    private static SyntaxToken AdjustLeadingWhitespace(SyntaxToken token, int columnOffset, bool previousEndsWithEndOfLine, bool genuinelyPrecededByEndOfLine)
-    {
-        var leadingTrivia = token.LeadingTrivia;
-        var newTrivia = new List<SyntaxTrivia>(leadingTrivia.Count);
-        var atLineStart = previousEndsWithEndOfLine;
-        var canInsertMissingWhitespace = genuinelyPrecededByEndOfLine;
-
-        foreach (var trivia in leadingTrivia)
-        {
-            if (atLineStart && trivia.IsKind(SyntaxKind.WhitespaceTrivia))
-            {
-                var currentWidth = trivia.Span.Length;
-                var newWidth = Math.Max(0, currentWidth + columnOffset);
-
-                newTrivia.Add(SyntaxFactory.Whitespace(new string(' ', newWidth)));
-                atLineStart = false;
-            }
-            else
-            {
-                var adjustedTrivia = trivia;
-
-                if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
-                {
-                    adjustedTrivia = DocumentationCommentUtilities.ShiftContinuationExteriorMarkers(trivia, columnOffset);
-                }
-
-                newTrivia.Add(adjustedTrivia);
-                atLineStart = trivia.IsKind(SyntaxKind.EndOfLineTrivia)
-                              || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-                              || (trivia.HasStructure
-                                  && trivia.GetStructure() is DirectiveTriviaSyntax);
-
-                if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-                {
-                    canInsertMissingWhitespace = true;
-                }
-            }
-        }
-
-        // A token that already starts at column zero has no whitespace trivia entry for the loop above to
-        // adjust, so a positive offset needs a new one inserted here instead of being silently dropped
-        if (atLineStart && canInsertMissingWhitespace && columnOffset > 0)
-        {
-            newTrivia.Add(SyntaxFactory.Whitespace(new string(' ', columnOffset)));
-        }
-
-        return token.WithLeadingTrivia(newTrivia);
     }
 
     #endregion // Private methods

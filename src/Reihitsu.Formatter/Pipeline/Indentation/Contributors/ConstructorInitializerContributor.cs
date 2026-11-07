@@ -30,12 +30,12 @@ internal sealed class ConstructorInitializerContributor : ILayoutContributor
         var constructorFirstToken = constructor.GetFirstToken();
         var constructorLine = LayoutComputer.GetLine(constructorFirstToken);
 
-        if (model.TryGetLayout(constructorLine, out var constructorLayout) == false)
+        if (model.TryGetPlacedColumn(constructorLine, out var constructorColumn) == false)
         {
             return;
         }
 
-        var colonColumn = constructorLayout.Column + FormattingContext.IndentSize;
+        var colonColumn = constructorColumn + FormattingContext.IndentSize;
 
         LayoutComputer.SetIfFirstOnLine(initializer.ColonToken, colonColumn, "ConstructorInitializer", model);
     }

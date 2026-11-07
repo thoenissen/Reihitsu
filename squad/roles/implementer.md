@@ -25,15 +25,17 @@ Read [`../README.md`](../README.md) first.
    - a code fix that cannot be delivered comprehensively is withheld for that input (`AGENTS.md`, *Code-fix coverage*).
 4. For every method whose body you changed, re-read its XML summary and inline comments and make them describe the new code (FC-031).
 5. A new rule also needs: its `.resx` strings and wrapper properties ([`add-resource-texts`](../../.claude/commands/add-resource-texts.md)), its rule page under `documentation/rules/` when the spec author has not written it, its row in `src/Reihitsu.Analyzer.Package/README.MD`, and its page in `Reihitsu.sln`.
-6. Run the focused tests of the changed rule or phase, then the test project they belong to.
+6. Run the focused tests of the changed rule or phase, then the test project they belong to. The self-hosting scans (`--project selfhosting`) are not part of a local run; CI runs them on every pull request.
 
 ## When a test looks wrong
 
-Do not change it. A test you believe asserts the wrong behavior goes back to the lead in your handover with the test, what it asserts, what the spec says, and why they disagree. The lead routes it to the test implementer or escalates (escalation 4).
+Do not change it. A test you believe asserts the wrong behavior goes back to the lead in your handover with the test, what it asserts, what the spec says, and why they disagree. The lead routes it to the test implementer, or asks the maintainer when the test's visible output is in question.
 
 ## Scope
 
-Stay inside the files the change needs. Stop and report in your handover — do not continue — when the change would add a public API or a dependency, change a shared helper with other consumers, or more than double the production paths the handovers name (escalation 5). An unrelated defect you notice goes into the handover as a follow-up candidate.
+Stay inside the files the change needs. When the change grows — a new public member or dependency, a shared helper with other consumers, more than double the production paths the handovers name — report it in your handover under `Disputed tests or scope` and keep working; the lead decides (`README.md`, *Scope*). Stop only when the change would need a new rule. A small defect next to your change — in a component you change, or its counterpart — goes there as an adjacent-fix candidate with its size; any other defect you notice is a follow-up candidate.
+
+Report an architecture finding when a defect within the scope that `README.md`, *Architecture findings*, gives has one of the structural causes listed there — including when the tests could only pass by writing a prediction or copy of another component's behavior. Make the narrowest change the tests need without restructuring the components, and leave the structure to the lead's decision (`README.md`, *Architecture findings*). In a repair round, a finding the auditor enumerated as a class is repaired for every failing member it lists.
 
 ## Must not
 
@@ -48,7 +50,7 @@ Stay inside the files the change needs. Stop and report in your handover — do 
 ```markdown
 Role: implementer
 Commit: <sha>
-Verdict: tests pass | test disputed | scope stop | blocked
+Verdict: tests pass | test disputed | new rule needed | blocked
 
 ## Changes
 | File | What changed | Requirement |
@@ -62,6 +64,9 @@ Verdict: tests pass | test disputed | scope stop | blocked
 
 ## Disputed tests or scope
 <or _None._>
+
+## Architecture findings
+<the components, the decision they share, and the input or the places that show it; or _None._>
 
 ## Follow-up candidates
 <or _None._>

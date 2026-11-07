@@ -25,42 +25,6 @@ public class TokenGapNormalizerTests
     #region Methods
 
     /// <summary>
-    /// Verifies that a leading gap is reduced to a single line break when no blank lines are requested
-    /// </summary>
-    [TestMethod]
-    public void NormalizeLeadingGapCollapsesToSingleLineBreak()
-    {
-        // Arrange
-        var endOfLine = SyntaxFactory.EndOfLine("\n");
-        var token = SyntaxFactory.Identifier(SyntaxFactory.TriviaList(endOfLine, endOfLine, endOfLine), "x", SyntaxFactory.TriviaList());
-        var normalizer = new TokenGapNormalizer("\n");
-
-        // Act
-        var result = normalizer.NormalizeLeadingGap(token, blankLineCount: 0);
-
-        // Assert
-        Assert.ContainsSingle(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia), result.LeadingTrivia, "Without blank lines the leading gap should hold a single line break.");
-    }
-
-    /// <summary>
-    /// Verifies that a requested blank line is preserved as two line breaks
-    /// </summary>
-    [TestMethod]
-    public void NormalizeLeadingGapKeepsRequestedBlankLine()
-    {
-        // Arrange
-        var endOfLine = SyntaxFactory.EndOfLine("\n");
-        var token = SyntaxFactory.Identifier(SyntaxFactory.TriviaList(endOfLine, endOfLine, endOfLine), "x", SyntaxFactory.TriviaList());
-        var normalizer = new TokenGapNormalizer("\n");
-
-        // Act
-        var result = normalizer.NormalizeLeadingGap(token, blankLineCount: 1);
-
-        // Assert
-        Assert.AreEqual(2, result.LeadingTrivia.Count(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)), "One blank line should be represented by two line breaks.");
-    }
-
-    /// <summary>
     /// Verifies that a missing line break before a token is inserted
     /// </summary>
     [TestMethod]
@@ -73,51 +37,10 @@ public class TokenGapNormalizerTests
         var normalizer = new TokenGapNormalizer("\n");
 
         // Act
-        var result = normalizer.NormalizeGapBeforeToken(block, secondStatementToken, blankLineCount: 0);
+        var result = normalizer.NormalizeGapBeforeToken(block, secondStatementToken);
 
         // Assert
         Assert.Contains("\n", result.ToFullString(), "A line break should be inserted before the second statement.");
-    }
-
-    /// <summary>
-    /// Verifies that a directive gap whose last significant trivia embeds its own terminating line
-    /// break (a directive always ends its own line, unlike a comment) still keeps the blank-line run
-    /// preceding it, since that run belongs to the directive's own placement, not to the token's
-    /// adjacency requirement.
-    /// </summary>
-    [TestMethod]
-    public void NormalizeLeadingGapPreservesBlankLineBeforeDirective()
-    {
-        // Arrange
-        var leadingTrivia = SyntaxFactory.ParseLeadingTrivia("\n\n#pragma warning disable CA1801\n");
-        var token = SyntaxFactory.Token(leadingTrivia, SyntaxKind.CloseBraceToken, SyntaxFactory.TriviaList());
-        var normalizer = new TokenGapNormalizer("\n");
-
-        // Act
-        var result = normalizer.NormalizeLeadingGap(token, blankLineCount: 0);
-
-        // Assert
-        Assert.AreEqual("\n\n#pragma warning disable CA1801\n}", result.ToFullString(), "The blank line ahead of the directive must be preserved.");
-    }
-
-    /// <summary>
-    /// Verifies that a directive gap emits no further line break after the directive's own embedded
-    /// terminating newline — emitting one unconditionally would recreate a blank line directly adjacent
-    /// to the token that this fix's guard exists to remove.
-    /// </summary>
-    [TestMethod]
-    public void NormalizeLeadingGapEmitsNoExtraBreakAfterDirective()
-    {
-        // Arrange
-        var leadingTrivia = SyntaxFactory.ParseLeadingTrivia("#pragma warning disable CA1801\n\n");
-        var token = SyntaxFactory.Token(leadingTrivia, SyntaxKind.CloseBraceToken, SyntaxFactory.TriviaList());
-        var normalizer = new TokenGapNormalizer("\n");
-
-        // Act
-        var result = normalizer.NormalizeLeadingGap(token, blankLineCount: 0);
-
-        // Assert
-        Assert.AreEqual("#pragma warning disable CA1801\n}", result.ToFullString(), "No blank line should remain directly above the token when the directive already ends its own line.");
     }
 
     #endregion // Methods

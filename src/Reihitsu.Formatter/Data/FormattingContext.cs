@@ -1,7 +1,8 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Core;
-using Reihitsu.Formatter.Pipeline.StructuralTransforms.Enumerations;
+using Reihitsu.Formatter.Data.Enumerations;
 using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Data;
@@ -40,13 +41,37 @@ internal record FormattingContext
     /// <param name="rootListPosition">
     /// The position of the formatting root inside the statement or switch-section list of its document, or <see langword="default"/> when the caller supplies none
     /// </param>
+    /// <param name="rootFirstTokenColumn">
+    /// The column of the formatting root's first token in its document, or <see langword="null"/> when the root is laid out at its depth alone
+    /// </param>
+    /// <param name="rootChainBoundary">
+    /// The facts about the code above the formatting root that the member-access chain rule reads, or <see langword="default"/> when the caller supplies none
+    /// </param>
+    /// <param name="rootConstruct">
+    /// The facts about the construct the formatting root stands in in its document, or <see cref="RootConstruct.None"/> when the caller supplies none
+    /// </param>
+    /// <param name="formatsRegionDirectives">
+    /// Whether the region phase applies the region requirements; the node-level entry points pass <see langword="false"/> (FMT-PIPE-028)
+    /// </param>
+    /// <param name="targetAnnotation">
+    /// The annotation that marks the first token of the target inside the formatting root, or <see langword="null"/> when the root has no such target
+    /// </param>
+    /// <param name="targetFirstTokenColumn">
+    /// The column of the target's first token in its document, or <see langword="null"/> when the root has no such target
+    /// </param>
     public FormattingContext(string endOfLine,
                              int baseIndentLevel = 0,
                              bool preserveRootDocumentationBoundary = false,
                              ConfigurableStructuralTransforms disabledStructuralTransforms = ConfigurableStructuralTransforms.None,
                              LanguageVersion languageVersion = LanguageVersion.Default,
                              PrecedingTokenFacts rootPrecedingToken = default,
-                             RootListPosition rootListPosition = default)
+                             RootListPosition rootListPosition = default,
+                             int? rootFirstTokenColumn = null,
+                             FluentChainBoundary rootChainBoundary = default,
+                             RootConstruct rootConstruct = RootConstruct.None,
+                             bool formatsRegionDirectives = true,
+                             SyntaxAnnotation targetAnnotation = null,
+                             int? targetFirstTokenColumn = null)
     {
         EndOfLine = endOfLine;
         BaseIndentLevel = baseIndentLevel;
@@ -55,6 +80,12 @@ internal record FormattingContext
         LanguageVersion = LanguageVersionResolver.Resolve(languageVersion);
         RootPrecedingToken = rootPrecedingToken;
         RootListPosition = rootListPosition;
+        RootFirstTokenColumn = rootFirstTokenColumn;
+        RootChainBoundary = rootChainBoundary;
+        RootConstruct = rootConstruct;
+        FormatsRegionDirectives = formatsRegionDirectives;
+        TargetAnnotation = targetAnnotation;
+        TargetFirstTokenColumn = targetFirstTokenColumn;
     }
 
     #endregion // Constructor
@@ -67,10 +98,9 @@ internal record FormattingContext
     public string EndOfLine { get; }
 
     /// <summary>
-    /// The base indentation level for isolated node formatting.
-    /// When formatting a node that is detached from its original tree
-    /// (e.g., after a structural transform), this offset accounts for the
-    /// parent context that is no longer reachable via the syntax tree
+    /// The depth of the formatting root, in indentation levels. A node-level entry point formats its root without a parent
+    /// (FMT-PIPE-023), so this level stands for the scopes around the root that the root no longer reaches: the depth the
+    /// indentation phase gives the root's first token at its position in its document (FMT-PIPE-012)
     /// </summary>
     public int BaseIndentLevel { get; }
 
@@ -92,10 +122,10 @@ internal record FormattingContext
     public LanguageVersion LanguageVersion { get; }
 
     /// <summary>
-    /// The facts about the token that precedes the formatting root in its document. A phase that replaces the root detaches
-    /// it, so the root's first token no longer reaches this token through
-    /// <see cref="Microsoft.CodeAnalysis.SyntaxToken.GetPreviousToken"/>; the facts are captured before the pipeline runs so
-    /// that detachment does not change the blank-line decisions or the comment alignment for that token. Only
+    /// The facts about the token that precedes the formatting root in its document. A node-level root has no parent
+    /// (FMT-PIPE-023), so the root's first token does not reach this token through
+    /// <see cref="Microsoft.CodeAnalysis.SyntaxToken.GetPreviousToken"/>; the facts are captured before the pipeline runs, as
+    /// plain values (FMT-PIPE-024), for the blank-line decisions, the documentation phase, and the comment alignment. Only
     /// <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> supplies them. Every other entry point leaves them at
     /// <see langword="default"/>, which means no preceding token is known — not that the root starts its file
     /// </summary>
@@ -109,6 +139,58 @@ internal record FormattingContext
     /// <see langword="default"/>, which means the root has no known preceding sibling
     /// </summary>
     public RootListPosition RootListPosition { get; }
+
+    /// <summary>
+    /// The column of the formatting root's first token in its document (FMT-PIPE-017). The indentation phase lays out the
+    /// root with the columns it gives the root at its depth, shifted so that the first token keeps this column, and nothing
+    /// moves a line after the last phase. Only <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> and
+    /// <see cref="ReihitsuFormatter.FormatNodeInDocumentWithContextAsync"/> supply it. Every other entry point leaves it at
+    /// <see langword="null"/>, which lays out the root at its depth
+    /// </summary>
+    public int? RootFirstTokenColumn { get; }
+
+    /// <summary>
+    /// The facts about the code above the formatting root that the member-access chain rule reads (FMT-PIPE-024): whether
+    /// the root's parent continues the root's chain, and whether the root is the branch of a conditional access. The rule
+    /// (<see cref="FluentChain.IsOutermostChainNode(Microsoft.CodeAnalysis.SyntaxNode, FluentChainBoundary)"/>) reads them for
+    /// every node of the root whose decision reads above the root, not only for the root itself. Only
+    /// <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> supplies them. Every other entry point leaves them at
+    /// <see langword="default"/>, which decides the root as a chain of its own
+    /// </summary>
+    public FluentChainBoundary RootChainBoundary { get; }
+
+    /// <summary>
+    /// The facts about the construct the formatting root stands in in its document (FMT-PIPE-024): one flag for each decision
+    /// of the line-break phase that reads the root's ancestors, which a root without a parent does not reach; the blank-line
+    /// phase reads <see cref="RootConstruct.AssignedCollectionInitializer"/> as well (FMT-BLANK-020). Only
+    /// <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> supplies them. Every other entry point leaves them at
+    /// <see cref="RootConstruct.None"/>, which decides the root as a construct of its own
+    /// </summary>
+    public RootConstruct RootConstruct { get; }
+
+    /// <summary>
+    /// Whether the region phase applies the region requirements (FMT-REGION) to <c>#region</c> and <c>#endregion</c>
+    /// directives. It defaults to <see langword="true"/>, so every context built without the argument keeps it, among them
+    /// those of <see cref="ReihitsuFormatter.FormatDocumentAsync"/> and <see cref="ReihitsuFormatter.FormatSyntaxTree"/>.
+    /// The three node-level entry points serve code fixes, which change only the code their diagnostic is about, so they
+    /// set it to <see langword="false"/> and apply no region requirement (FMT-PIPE-028)
+    /// </summary>
+    public bool FormatsRegionDirectives { get; }
+
+    /// <summary>
+    /// The annotation that marks the first token of the target inside the formatting root, part of the target-position fact
+    /// (FMT-PIPE-024). Only <see cref="ReihitsuFormatter.FormatNodeInDocumentWithContextAsync"/> supplies it, for the target
+    /// it formats within its context; every other entry point leaves it at <see langword="null"/>
+    /// </summary>
+    public SyntaxAnnotation TargetAnnotation { get; }
+
+    /// <summary>
+    /// The column of the target's first token in its document (FMT-PIPE-017), part of the target-position fact
+    /// (FMT-PIPE-024). The indentation phase lays out the target's other lines as if that token stood in this column,
+    /// wherever the phases leave it in the root. Only <see cref="ReihitsuFormatter.FormatNodeInDocumentWithContextAsync"/>
+    /// supplies it; every other entry point leaves it at <see langword="null"/>
+    /// </summary>
+    public int? TargetFirstTokenColumn { get; }
 
     #endregion // Properties
 

@@ -5,7 +5,7 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.Cleanup;
 
 /// <summary>
-/// Tests for the cleanup of trailing whitespace and tabs, and for the content cleanup must leave alone
+/// Tests for the cleanup of trailing whitespace and line breaks at the end of a file, and for the content cleanup must leave alone
 /// </summary>
 [TestClass]
 public class WhitespaceCleanupTests : FormatterTestsBase
@@ -27,63 +27,14 @@ public class WhitespaceCleanupTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the spec example: a tab in front of a trailing comment becomes four spaces regardless of the column it starts in
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-CLEAN-002")]
-    public void TabsBeforeTrailingCommentsBecomeFourSpacesEach()
-    {
-        const string input = "class C\n{\n    int z;\t// e\n    int w; \t // f\n}";
-        const string expected = "class C\n{\n    int z;    // e\n    int w;      // f\n}";
-
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies the spec example: tabs between the tokens of <c>#define</c> and <c>#pragma</c> directives become four spaces each
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-CLEAN-003")]
-    public void TabsBetweenDirectiveTokensBecomeFourSpacesEach()
-    {
-        const string input = "#define\tDEBUG\nclass C\n{\n#pragma warning\tdisable CS1591\n    int x;\n}";
-        const string expected = "#define    DEBUG\nclass C\n{\n#pragma warning    disable CS1591\n    int x;\n}";
-
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that a tab inside a region description and inside the message of a <c>#warning</c> directive is kept
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-CLEAN-003")]
-    public void TabsInsideRegionDescriptionAndWarningMessageAreKept()
-    {
-        const string input = "class C\n{\n    #region Fields\tAnd\tMore\n\n    int x;\n\n    #endregion // Fields\tAnd\tMore\n\n#warning keep\tthis\n    int y;\n}";
-
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
     /// Verifies the spec example: tabs and trailing spaces inside comments, literals, and disabled text are kept
     /// </summary>
     [TestMethod]
     [Requirement("FMT-CLEAN-004")]
+    [Requirement("FMT-TAB-003")]
     public void TabsAndSpacesInsideCommentsLiteralsAndDisabledTextAreKept()
     {
         const string input = "class C\n{\n    // a\tb\n    /* c\td */\n    string s = \"e\tf\";\n    string t = @\"g\th  \nline\";\n#if NEVER\n    disabled\ttext  \n#endif\n}";
-
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
-    /// Verifies that tabs inside character, interpolated, and raw string literals and inside a documentation comment are kept
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-CLEAN-004")]
-    public void TabsInsideOtherLiteralsAndDocumentationCommentsAreKept()
-    {
-        const string input = "class C\n{\n    /// <summary>\n    /// a\tb\n    /// </summary>\n    char c = '\t';\n    string i = $\"x\t{c}\";\n    string r = \"\"\"\n               y\tz\n               \"\"\";\n}";
 
         AssertRuleResult(input);
     }

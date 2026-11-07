@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Organization;
 using Reihitsu.Core;
@@ -40,21 +41,9 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationCodeFixProvider :
             return document;
         }
 
-        if (RegionDirectiveUtilities.TryFindMatchingDirective(syntaxRoot, directiveTrivia, out var matchingDirectiveTrivia) == false)
-        {
-            return document;
-        }
-
-        var regionTrivia = directiveTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
-                               ? directiveTrivia
-                               : matchingDirectiveTrivia;
-        var endRegionTrivia = directiveTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia)
-                                  ? directiveTrivia
-                                  : matchingDirectiveTrivia;
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var expectedIndentation = RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.GetExpectedIndentation(syntaxRoot, sourceText, regionTrivia, endRegionTrivia);
 
-        if (expectedIndentation == null)
+        if (TryGetRegionIndentation(syntaxRoot, sourceText, directiveTrivia, out var regionTrivia, out var endRegionTrivia, out var expectedIndentation) == false)
         {
             return document;
         }
@@ -64,6 +53,41 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationCodeFixProvider :
                                                    (originalToken, rewrittenToken) => ApplyTokenUpdate(originalToken, rewrittenToken, tokenUpdates[originalToken]));
 
         return document.WithSyntaxRoot(updatedRoot);
+    }
+
+    /// <summary>
+    /// Determines the region pair of the directive and the indentation both directives receive. The fix is only
+    /// possible when the text in front of the region's first token on its line is whitespace (or a byte order mark): anything else, such
+    /// as a comment, would be copied in front of the directives and break them
+    /// </summary>
+    /// <param name="syntaxRoot">Syntax root</param>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="directiveTrivia">Reported directive trivia</param>
+    /// <param name="regionTrivia">Region trivia of the pair</param>
+    /// <param name="endRegionTrivia">Endregion trivia of the pair</param>
+    /// <param name="expectedIndentation">Indentation of the region's first token</param>
+    /// <returns><see langword="true"/> if the directives can be given the indentation</returns>
+    private static bool TryGetRegionIndentation(SyntaxNode syntaxRoot, SourceText sourceText, SyntaxTrivia directiveTrivia, out SyntaxTrivia regionTrivia, out SyntaxTrivia endRegionTrivia, out string expectedIndentation)
+    {
+        regionTrivia = default;
+        endRegionTrivia = default;
+        expectedIndentation = null;
+
+        if (RegionDirectiveUtilities.TryFindMatchingDirective(syntaxRoot, directiveTrivia, out var matchingDirectiveTrivia) == false)
+        {
+            return false;
+        }
+
+        regionTrivia = directiveTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
+                           ? directiveTrivia
+                           : matchingDirectiveTrivia;
+        endRegionTrivia = directiveTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia)
+                              ? directiveTrivia
+                              : matchingDirectiveTrivia;
+        expectedIndentation = RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.GetExpectedIndentation(syntaxRoot, sourceText, regionTrivia, endRegionTrivia);
+
+        return expectedIndentation != null
+               && expectedIndentation.All(character => char.IsWhiteSpace(character) || character == '\uFEFF');
     }
 
     /// <summary>
@@ -242,11 +266,14 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationCodeFixProvider :
             return;
         }
 
+        var sourceText = await context.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
+
         foreach (var diagnostic in context.Diagnostics)
         {
             var directiveTrivia = syntaxRoot.FindTrivia(diagnostic.Location.SourceSpan.Start);
 
-            if (SyntaxTriviaUtilities.IsRegionDirective(directiveTrivia))
+            if (SyntaxTriviaUtilities.IsRegionDirective(directiveTrivia)
+                && TryGetRegionIndentation(syntaxRoot, sourceText, directiveTrivia, out _, out _, out _))
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7304Title,
                                                           token => ApplyCodeFixAsync(context.Document, directiveTrivia, token),

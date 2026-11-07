@@ -375,30 +375,158 @@ public class RH2002AsyncVoidShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH2
     }
 
     /// <summary>
-    /// Characterizes an async void partial method: it is reported twice, on the defining declaration without
-    /// <see langword="async"/> and on the implementing declaration. This test pins today's behavior; the decided behavior
-    /// is stated by SHARED-DIAG-004, which judges a partial method by its symbol and reports it at most once, and its
-    /// change belongs to an existing follow-up
+    /// Verifies the specification example of an async void partial method: it is reported once, on the implementing
+    /// part, which is the part that writes <see langword="async"/>
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyAsyncVoidPartialMethodIsReportedOnBothDeclarations()
+    [Requirement("RH2002-001")]
+    [Requirement("SHARED-DIAG-004")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyAsyncVoidPartialMethodIsReportedOnceOnItsImplementingPart()
     {
         const string testData = """
                                 using System.Threading.Tasks;
 
                                 partial class P
                                 {
-                                    partial void {|#0:Q|}();
+                                    partial void Q();
 
-                                    async partial void {|#1:Q|}()
+                                    async partial void {|#0:Q|}()
                                     {
                                         await Task.Delay(1);
                                     }
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2002MessageFormat, 2));
+        await Verify(testData, Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2002MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an async void partial method whose implementing part stands first is reported once, on the
+    /// implementing part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2002-001")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyAsyncVoidPartialMethodWithImplementingPartFirstIsReportedOnItsImplementingPart()
+    {
+        const string testData = """
+                                using System.Threading.Tasks;
+
+                                partial class P
+                                {
+                                    async partial void {|#0:Q|}()
+                                    {
+                                        await Task.Delay(1);
+                                    }
+
+                                    partial void Q();
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2002MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an async void partial method whose parts lie in two documents is reported once, on the
+    /// implementing part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyAsyncVoidPartialMethodInTwoDocumentsIsReportedOnItsImplementingPart()
+    {
+        const string definingPart = """
+                                    partial class P
+                                    {
+                                        partial void Q();
+                                    }
+                                    """;
+
+        const string implementingPart = """
+                                        using System.Threading.Tasks;
+
+                                        partial class P
+                                        {
+                                            async partial void {|#0:Q|}()
+                                            {
+                                                await Task.Delay(1);
+                                            }
+                                        }
+                                        """;
+
+        await Verify(definingPart,
+                     test => test.TestState.Sources.Add(("/0/Test1.cs", implementingPart)),
+                     Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2002MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an async void partial method whose implementing part lies in generated code is reported once, on
+    /// its defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2002-001")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyAsyncVoidPartialMethodWithGeneratedImplementingPartIsReportedOnItsDefiningPart()
+    {
+        const string definingPart = """
+                                    partial class P
+                                    {
+                                        partial void {|#0:Q|}();
+                                    }
+                                    """;
+
+        const string implementingPart = """
+                                        using System.Threading.Tasks;
+
+                                        partial class P
+                                        {
+                                            async partial void Q()
+                                            {
+                                                await Task.Delay(1);
+                                            }
+                                        }
+                                        """;
+
+        await Verify(definingPart,
+                     test => test.TestState.Sources.Add(("/0/P.g.cs", implementingPart)),
+                     Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2002MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an async void partial method whose defining part lies in generated code is reported once, on its
+    /// implementing part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyAsyncVoidPartialMethodWithGeneratedDefiningPartIsReportedOnItsImplementingPart()
+    {
+        const string implementingPart = """
+                                        using System.Threading.Tasks;
+
+                                        partial class P
+                                        {
+                                            async partial void {|#0:Q|}()
+                                            {
+                                                await Task.Delay(1);
+                                            }
+                                        }
+                                        """;
+
+        const string definingPart = """
+                                    partial class P
+                                    {
+                                        partial void Q();
+                                    }
+                                    """;
+
+        await Verify(implementingPart,
+                     test => test.TestState.Sources.Add(("/0/P.g.cs", definingPart)),
+                     Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2002MessageFormat));
     }
 
     #endregion // Tests

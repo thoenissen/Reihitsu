@@ -18,6 +18,53 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
     #region Constants
 
     /// <summary>
+    /// An unbraced body of an <c>else if</c> whose condition carries a trailing line comment
+    /// </summary>
+    private const string ElseIfWithTrailingCommentTestCode = """
+                                                             class C
+                                                             {
+                                                                 void M(bool x, bool y)
+                                                                 {
+                                                                     if (x)
+                                                                     {
+                                                                         Foo();
+                                                                     }
+                                                                     else if (y) // note
+                                                                         {|RH5405:Foo();|}
+                                                                 }
+
+                                                                 void Foo()
+                                                                 {
+                                                                 }
+                                                             }
+                                                             """;
+
+    /// <summary>
+    /// Result of the fix on <see cref="ElseIfWithTrailingCommentTestCode"/>: the comment stays behind the condition; the braces
+    /// stand in the column of the <c>if</c>'s first token
+    /// </summary>
+    private const string ElseIfWithTrailingCommentFixedCode = """
+                                                              class C
+                                                              {
+                                                                  void M(bool x, bool y)
+                                                                  {
+                                                                      if (x)
+                                                                      {
+                                                                          Foo();
+                                                                      }
+                                                                      else if (y) // note
+                                                                           {
+                                                                               Foo();
+                                                                           }
+                                                                  }
+
+                                                                  void Foo()
+                                                                  {
+                                                                  }
+                                                              }
+                                                              """;
+
+    /// <summary>
     /// Input of the SHARED-FIX-008 example: a body on the line of its <c>if</c>, without markup
     /// </summary>
     private const string LineOfIfTestCode = """
@@ -45,6 +92,48 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
                                                  }
                                              }
                                              """;
+
+    /// <summary>
+    /// An unbraced body of an <c>if</c> whose condition carries a trailing line comment, behind another statement
+    /// </summary>
+    private const string IfWithTrailingCommentTestCode = """
+                                                         class C
+                                                         {
+                                                             void M(bool a)
+                                                             {
+                                                                 Foo();
+
+                                                                 if (a) // c
+                                                                     {|RH5405:Foo();|}
+                                                             }
+
+                                                             void Foo()
+                                                             {
+                                                             }
+                                                         }
+                                                         """;
+
+    /// <summary>
+    /// Result of the fix on <see cref="IfWithTrailingCommentTestCode"/>: the comment stays behind the condition
+    /// </summary>
+    private const string IfWithTrailingCommentFixedCode = """
+                                                          class C
+                                                          {
+                                                              void M(bool a)
+                                                              {
+                                                                  Foo();
+
+                                                                  if (a) // c
+                                                                  {
+                                                                      Foo();
+                                                                  }
+                                                              }
+
+                                                              void Foo()
+                                                              {
+                                                              }
+                                                          }
+                                                          """;
 
     #endregion // Constants
 
@@ -618,6 +707,30 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
     }
 
     /// <summary>
+    /// Verifies that the fix on the body of an <c>else if</c> whose condition carries a trailing line comment keeps the
+    /// comment behind the condition
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyFixKeepsTheTrailingCommentOfAnElseIfCondition()
+    {
+        await Verify(ElseIfWithTrailingCommentTestCode, ElseIfWithTrailingCommentFixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix on the body of an <c>else if</c> whose condition carries a trailing line comment keeps the
+    /// comment behind the condition, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyFixKeepsTheTrailingCommentOfAnElseIfConditionWithCarriageReturnLineFeed()
+    {
+        await Verify(NormalizeToCarriageReturnLineFeed(ElseIfWithTrailingCommentTestCode), NormalizeToCarriageReturnLineFeed(ElseIfWithTrailingCommentFixedCode));
+    }
+
+    /// <summary>
     /// Verifies that the fix wraps a body on the line of its if in braces on their own lines in the column of the if,
     /// with the body indented one level inside them, with CRLF line endings
     /// </summary>
@@ -779,6 +892,346 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
         var actual = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testCode).Replace("COMMENT", comment, StringComparison.Ordinal));
 
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode).Replace("COMMENT", comment, StringComparison.Ordinal), actual);
+    }
+
+    /// <summary>
+    /// Verifies that the fix on the body of an <c>if</c> whose condition carries a trailing line comment keeps the comment
+    /// behind the condition
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-036")]
+    public async Task VerifyFixKeepsTheTrailingCommentOfAnIfCondition()
+    {
+        await Verify(IfWithTrailingCommentTestCode, IfWithTrailingCommentFixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix on the body of an <c>if</c> whose condition carries a trailing line comment keeps the comment
+    /// behind the condition, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-036")]
+    public async Task VerifyFixKeepsTheTrailingCommentOfAnIfConditionWithCarriageReturnLineFeed()
+    {
+        await Verify(NormalizeToCarriageReturnLineFeed(IfWithTrailingCommentTestCode), NormalizeToCarriageReturnLineFeed(IfWithTrailingCommentFixedCode));
+    }
+
+    /// <summary>
+    /// Verifies that the fix on the body of an <c>if</c> that is the body of a loop, whose condition carries a trailing
+    /// line comment, keeps the comment behind the condition
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-036")]
+    public async Task VerifyFixKeepsTheTrailingCommentOfAnIfConditionInALoopBody()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, bool b)
+                                    {
+                                        while (b)
+                                            if (a) // c
+                                                {|RH5405:Foo();|}
+                                    }
+
+                                    void Foo()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, bool b)
+                                     {
+                                         while (b)
+                                             if (a) // c
+                                             {
+                                                 Foo();
+                                             }
+                                     }
+
+                                     void Foo()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a line comment behind the body stays behind the body, inside the block, and is not
+    /// repeated behind the closing brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    public async Task VerifyFixWritesTrailingCommentOfBodyOnce()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, int b)
+                                    {
+                                        if (a)
+                                            {|RH5405:M(a, b);|} // trail
+                                        b++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, int b)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a, b); // trail
+                                         }
+                                         b++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a line comment behind the body is written once, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    public async Task VerifyFixWritesTrailingCommentOfBodyOnceWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, int b)
+                                    {
+                                        if (a)
+                                            {|RH5405:M(a, b);|} // trail
+                                        b++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, int b)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a, b); // trail
+                                         }
+                                         b++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
+    /// <summary>
+    /// Verifies a line comment behind a body on the line of its if is written once, behind the body inside the block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    public async Task VerifyFixWritesTrailingCommentOfBodyOnLineOfIfOnce()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, int b)
+                                    {
+                                        if (a) {|RH5405:M(a, b);|} // trail
+                                        b++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, int b)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a, b); // trail
+                                         }
+                                         b++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a multi-line comment behind the body is written once, behind the body inside the block, with its text
+    /// unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    public async Task VerifyFixWritesMultiLineTrailingCommentOfBodyOnce()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, int b)
+                                    {
+                                        if (a)
+                                            {|RH5405:M(a, b);|} /* a
+                                            b */
+                                        b++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, int b)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a, b); /* a
+                                             b */
+                                         }
+                                         b++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a line comment behind the body of an if that is itself the body of another if is written once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    public async Task VerifyFixWritesTrailingCommentOfNestedIfBodyOnce()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, bool c, int b)
+                                    {
+                                        if (a)
+                                            if (c)
+                                                {|RH5405:M(a, c, b);|} // trail
+                                        b++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, bool c, int b)
+                                     {
+                                         if (a)
+                                             if (c)
+                                             {
+                                                 M(a, c, b); // trail
+                                             }
+                                         b++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a line comment behind the body of an if followed by else stays behind that body and is written once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    public async Task VerifyFixKeepsTrailingCommentOfIfBodyFollowedByElseOnce()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, int b)
+                                    {
+                                        if (a)
+                                            {|RH5405:M(a, b);|} // one
+                                        else
+                                        {
+                                            M(a, b);
+                                        }
+                                        b++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, int b)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a, b); // one
+                                         }
+                                         else
+                                         {
+                                             M(a, b);
+                                         }
+                                         b++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies fixing the bodies of an if and its else, each with a line comment behind it, writes each comment once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    public async Task VerifyFixAllWritesTrailingCommentsOfBothBranchesOnce()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, int b)
+                                    {
+                                        if (a)
+                                            {|RH5405:M(a, b);|} // one
+                                        else
+                                            {|RH5405:M(a, b);|} // two
+                                        b++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, int b)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a, b); // one
+                                         }
+                                         else
+                                         {
+                                             M(a, b); // two
+                                         }
+                                         b++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests

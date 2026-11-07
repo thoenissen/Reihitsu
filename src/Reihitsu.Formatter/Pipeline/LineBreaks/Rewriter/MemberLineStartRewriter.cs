@@ -98,7 +98,7 @@ internal sealed class MemberLineStartRewriter : CSharpSyntaxRewriter
                 continue;
             }
 
-            members[memberIndex] = _gapNormalizer.NormalizeGapBeforeToken(members[memberIndex], currentToken, blankLineCount: 0);
+            members[memberIndex] = _gapNormalizer.NormalizeGapBeforeToken(members[memberIndex], currentToken);
             modified = true;
         }
 

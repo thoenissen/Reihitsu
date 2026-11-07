@@ -159,9 +159,11 @@ public class ExpressionBodiedConstructorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment placed before the arrow token is preserved during conversion
+    /// Verifies that a comment placed before the arrow token is carried into the block, in front of the
+    /// created statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
     public void PreservesCommentBeforeArrow()
     {
         // Arrange
@@ -179,9 +181,8 @@ public class ExpressionBodiedConstructorTests : FormatterTestsBase
                        {
                            private int _x;
                            C()
-
-                           // note
                            {
+                               // note
                                _x = 1;
                            }
                        }

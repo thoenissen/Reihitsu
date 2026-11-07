@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
@@ -320,6 +321,539 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
                                   """;
 
         await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies the specified example: an async method returning an alias of <c>Task</c> is reported, and no code
+    /// fix is offered for it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-004")]
+    public async Task VerifyAsyncMethodReturningTaskAliasIsReportedWithoutCodeFix()
+    {
+        const string source = """
+                              using T = System.Threading.Tasks.Task;
+
+                              class C
+                              {
+                                  async T RunAsync() {|RH3202:=> await T.Delay(1)|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that an async method returning an alias of a generic task type is reported, and no code fix is
+    /// offered for it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-004")]
+    public async Task VerifyAsyncMethodReturningGenericTaskAliasIsReportedWithoutCodeFix()
+    {
+        const string source = """
+                              using V = System.Threading.Tasks.ValueTask<int>;
+
+                              class C
+                              {
+                                  async V GetAsync() {|RH3202:=> await System.Threading.Tasks.Task.FromResult(1)|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that async methods returning nullable-annotated task types are fixed: <c>Task?</c> to an expression
+    /// statement and <c>Task&lt;int&gt;?</c> to a return statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-004")]
+    [Requirement("SHARED-BODY-003")]
+    public async Task VerifyAsyncMethodsReturningNullableTaskTypesAreFixed()
+    {
+        const string testData = """
+                                #nullable enable
+
+                                using System.Threading.Tasks;
+
+                                internal class RH3202
+                                {
+                                    public async Task? RunAsync() {|#0:=> await Task.Delay(1)|};
+
+                                    public async Task<int>? GetAsync() {|#1:=> await Task.FromResult(1)|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  #nullable enable
+
+                                  using System.Threading.Tasks;
+
+                                  internal class RH3202
+                                  {
+                                      public async Task? RunAsync()
+                                      {
+                                          await Task.Delay(1);
+                                      }
+
+                                      public async Task<int>? GetAsync()
+                                      {
+                                          return await Task.FromResult(1);
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData.Replace("\r\n", "\n"),
+                     resultData.Replace("\r\n", "\n"),
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that fixing a document converts the methods with a recognized task type and leaves the method
+    /// returning a task alias reported and unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-004")]
+    public async Task VerifyFixLeavesAsyncMethodReturningTaskAliasNextToConvertedMethods()
+    {
+        const string testData = """
+                                using System.Threading.Tasks;
+                                using T = System.Threading.Tasks.Task;
+
+                                internal class RH3202
+                                {
+                                    public async T KeptAsync() {|RH3202:=> await T.Delay(1)|};
+
+                                    public async Task FirstAsync() {|RH3202:=> await Task.Delay(1)|};
+
+                                    public async Task<int> SecondAsync() {|RH3202:=> await Task.FromResult(1)|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System.Threading.Tasks;
+                                  using T = System.Threading.Tasks.Task;
+
+                                  internal class RH3202
+                                  {
+                                      public async T KeptAsync() {|RH3202:=> await T.Delay(1)|};
+
+                                      public async Task FirstAsync()
+                                      {
+                                          await Task.Delay(1);
+                                      }
+
+                                      public async Task<int> SecondAsync()
+                                      {
+                                          return await Task.FromResult(1);
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData.Replace("\r\n", "\n"),
+                     resultData.Replace("\r\n", "\n"),
+                     static config =>
+                            {
+                                // The diagnostic that keeps no fix is marked in the fixed source
+                                config.FixedState.MarkupHandling = MarkupMode.Allow;
+                                config.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                                config.NumberOfIncrementalIterations = 2;
+                                config.NumberOfFixAllIterations = 1;
+                            });
+    }
+
+    /// <summary>
+    /// Verifies that the fix carries a comment on its own line after the arrow into the block, in front of the created
+    /// statement, as the formatter does
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-003")]
+    public async Task VerifyCommentAfterArrowLeadsTheCreatedStatement()
+    {
+        const string testData = """
+                                internal class RH3202
+                                {
+                                    public int GetValue() {|#0:=>
+                                        // why
+                                        42|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3202
+                                  {
+                                      public int GetValue()
+                                      {
+                                          // why
+                                          return 42;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData.Replace("\r\n", "\n"),
+                     resultData.Replace("\r\n", "\n"),
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix carries a comment on its own line before the arrow into the block, in front of the
+    /// created statement, as the formatter does
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-003")]
+    public async Task VerifyCommentBeforeArrowLeadsTheCreatedStatement()
+    {
+        const string testData = """
+                                internal class RH3202
+                                {
+                                    public int GetValue()
+                                        // why
+                                        {|#0:=> 42|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3202
+                                  {
+                                      public int GetValue()
+                                      {
+                                          // why
+                                          return 42;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData.Replace("\r\n", "\n"),
+                     resultData.Replace("\r\n", "\n"),
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the own-line comment before the arrow out of the block, and both comments in their
+    /// source order, when the arrow's line carries a comment, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-003")]
+    public async Task VerifyFixKeepsCommentOrderWhenTheArrowLineCarriesAComment()
+    {
+        const string source = """
+                              internal class RH3202
+                              {
+                                  public int GetValue()
+                                      // a
+                                      => // b
+                                      42;
+                              }
+                              """;
+
+        foreach (var text in new[] { source.Replace("\r\n", "\n"), NormalizeToCarriageReturnLineFeed(source) })
+        {
+            var actual = await ApplyCodeFixAsync(text);
+            var ownLineIndex = actual.IndexOf("// a", System.StringComparison.Ordinal);
+            var arrowLineIndex = actual.IndexOf("// b", System.StringComparison.Ordinal);
+            var statementIndex = actual.IndexOf("return 42;", System.StringComparison.Ordinal);
+
+            Assert.IsGreaterThanOrEqualTo(0, statementIndex, "The fix must convert the method.");
+            Assert.IsGreaterThanOrEqualTo(0, ownLineIndex, "The own-line comment must survive the fix.");
+            Assert.IsLessThan(arrowLineIndex, ownLineIndex, "The comments must keep their source order.");
+            Assert.IsLessThan(statementIndex, arrowLineIndex, "The arrow-line comment must stay in front of the statement.");
+            Assert.IsLessThanOrEqualTo(actual.LastIndexOf('{', statementIndex), ownLineIndex, "The own-line comment must not be moved between the opening brace and the created statement.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that the fix lays out a method indented with tabs from the column the tabs stand for, four columns each
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-TAB-001")]
+    public async Task VerifyFixLaysOutMethodIndentedWithTabsFromTheColumnTheTabsStandFor()
+    {
+        const string testData = "namespace N\n{\n\tclass C\n\t{\n\t\tint Get() {|#0:=> 1|};\n\t}\n}";
+        const string fixedData = "namespace N\n{\n\tclass C\n\t{\n        int Get()\n        {\n            return 1;\n        }\n\t}\n}";
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a method indented with tabs moves the content line and the closing marker of a raw string under
+    /// its opening quotes
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-RAW-001")]
+    public async Task VerifyFixMovesRawStringOfMethodIndentedWithTabsUnderTheOpeningQuotes()
+    {
+        const string testData = "namespace N\n{\n\tclass C\n\t{\n\t\tstring Get() {|#0:=> \"\"\"\n                a\n                \"\"\"|};\n\t}\n}";
+        const string fixedData = "namespace N\n{\n\tclass C\n\t{\n        string Get()\n        {\n            return \"\"\"\n                   a\n                   \"\"\";\n        }\n\t}\n}";
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the spec example: in a class indented with two spaces, the fix keeps the method's first token in column 2, and
+    /// the lines the depth places keep their place relative to it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task VerifyFixKeepsMethodOfTwoSpaceClassInItsColumn()
+    {
+        const string testData = "class C\n{\n  int Get() {|#0:=> 1|};\n}";
+        const string fixedData = "class C\n{\n  int Get()\n  {\n      return 1;\n  }\n}";
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the spec example: in a class indented with two spaces, the fix moves the content line and the closing marker of
+    /// a raw string under its opening quotes in column 13
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-RAW-001")]
+    public async Task VerifyFixMovesRawStringOfMethodInTwoSpaceClassUnderTheOpeningQuotes()
+    {
+        const string testData = "class C\n{\n  string S() {|#0:=> \"\"\"\n      a\n      \"\"\"|};\n}";
+        const string fixedData = "class C\n{\n  string S()\n  {\n      return \"\"\"\n             a\n             \"\"\";\n  }\n}";
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that in a class indented with two spaces, the fix moves every line of an interpolated raw string under its
+    /// opening quotes in column 14, and the hole's expression line with them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    [Requirement("FMT-RAW-001")]
+    [Requirement("FMT-RAW-007")]
+    public async Task VerifyFixMovesInterpolatedRawStringOfMethodInTwoSpaceClassWithItsHoleLines()
+    {
+        const string testData = "class C\n{\n  string S(int x) {|#0:=> $\"\"\"\n      a {\n          x\n      } b\n      \"\"\"|};\n}";
+        const string fixedData = "class C\n{\n  string S(int x)\n  {\n      return $\"\"\"\n              a {\n                  x\n              } b\n              \"\"\";\n  }\n}";
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix moves the first of two delimited documentation comments behind the previous member onto a new
+    /// line below a blank line, keeps the second behind it, and lays out the converted method below them, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixMovesFirstOfTwoDelimitedDocumentationCommentsBehindPreviousMember()
+    {
+        const string testData = "internal class C\n{\n    private int _a; /** a */ /** b */\n    public int M() {|#0:=> 1|};\n}";
+        const string fixedData = "internal class C\n{\n    private int _a;\n\n    /** a */ /** b */\n    public int M()\n    {\n        return 1;\n    }\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps a delimited documentation comment behind the opening brace of the type when the converted
+    /// method starts behind it on the brace's line, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixKeepsDelimitedDocumentationBehindOpeningBraceWhenMethodSharesItsLine()
+    {
+        const string testData = "internal class C\n{ /** d */ public int M() {|#0:=> 1|};\n}";
+        const string fixedData = "internal class C\n{ /** d */ public int M()\n  {\n      return 1;\n  }\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps a delimited documentation comment behind the previous member when the converted method
+    /// starts behind it on its line, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixKeepsDelimitedDocumentationBehindPreviousMemberWhenMethodSharesItsLine()
+    {
+        const string testData = "internal class C\n{\n    private int _a; /** d */ public int M() {|#0:=> 1|};\n}";
+        const string fixedData = "internal class C\n{\n    private int _a; /** d */ public int M()\n                    {\n                        return 1;\n                    }\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix starts a new line in front of a delimited documentation comment behind the <c>:</c> of a
+    /// one-line conditional expression, puts <c>?</c> and <c>:</c> at the start of their own lines, and lays out the
+    /// converted method around them, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-018")]
+    public async Task VerifyFixMovesDelimitedDocumentationBehindColonOfOneLineConditional()
+    {
+        const string testData = "internal class C\n{\n    internal int M(bool b) {|#0:=> b ? 1 : /** d */ 2|};\n}";
+        const string fixedData = "internal class C\n{\n    internal int M(bool b)\n    {\n        return b\n                   ? 1\n                   :\n\n        /** d */ 2;\n    }\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix starts a new line in front of a delimited documentation comment behind a block comment
+    /// behind the <c>:</c> of a one-line conditional expression, puts <c>?</c> and <c>:</c> at the start of their own
+    /// lines, and lays out the converted method around them, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-018")]
+    public async Task VerifyFixMovesDelimitedDocumentationBehindBlockCommentBehindColonOfConditional()
+    {
+        const string testData = "internal class C\n{\n    internal int M(bool b) {|#0:=> b ? 1 : /* c */ /** d */ 2|};\n}";
+        const string fixedData = "internal class C\n{\n    internal int M(bool b)\n    {\n        return b\n                   ? 1\n                   : /* c */\n\n        /** d */ 2;\n    }\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix starts a new line in front of a delimited documentation comment behind the <c>?</c> of a
+    /// one-line conditional expression, puts <c>?</c> and <c>:</c> at the start of their own lines, and lays out the
+    /// converted method around them, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-018")]
+    public async Task VerifyFixMovesDelimitedDocumentationBehindQuestionMarkOfOneLineConditional()
+    {
+        const string testData = "internal class C\n{\n    internal int M(bool b) {|#0:=> b ? /** d */ 1 : 2|};\n}";
+        const string fixedData = "internal class C\n{\n    internal int M(bool b)\n    {\n        return b\n                   ?\n\n        /** d */ 1\n                   : 2;\n    }\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix starts a new line in front of a delimited documentation comment behind a block comment
+    /// behind the <c>?</c> of a one-line conditional expression, puts <c>?</c> and <c>:</c> at the start of their own
+    /// lines, and lays out the converted method around them, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-018")]
+    public async Task VerifyFixMovesDelimitedDocumentationBehindBlockCommentBehindQuestionMarkOfConditional()
+    {
+        const string testData = "internal class C\n{\n    internal int M(bool b) {|#0:=> b ? /* c */ /** d */ 1 : 2|};\n}";
+        const string fixedData = "internal class C\n{\n    internal int M(bool b)\n    {\n        return b\n                   ? /* c */\n\n        /** d */ 1\n                   : 2;\n    }\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix starts a new line in front of a delimited documentation comment behind the <c>:</c> of a
+    /// conditional expression wrapped in front of <c>?</c> only, puts <c>?</c> and <c>:</c> at the start of their own
+    /// lines, and lays out the converted method around them, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-018")]
+    public async Task VerifyFixMovesDelimitedDocumentationBehindColonOfPartlyWrappedConditional()
+    {
+        const string testData = "internal class C\n{\n    internal int M(bool b) {|#0:=> b\n        ? 1 : /** d */ 2|};\n}";
+        const string fixedData = "internal class C\n{\n    internal int M(bool b)\n    {\n        return b\n                   ? 1\n                   :\n\n        /** d */ 2;\n    }\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix starts a new line in front of a delimited documentation comment behind the <c>?</c> of a
+    /// conditional expression wrapped in front of <c>:</c> only, puts <c>?</c> and <c>:</c> at the start of their own
+    /// lines, and lays out the converted method around them, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-018")]
+    public async Task VerifyFixMovesDelimitedDocumentationBehindQuestionMarkOfPartlyWrappedConditional()
+    {
+        const string testData = "internal class C\n{\n    internal int M(bool b) {|#0:=> b ? /** d */ 1\n        : 2|};\n}";
+        const string fixedData = "internal class C\n{\n    internal int M(bool b)\n    {\n        return b\n                   ?\n\n        /** d */ 1\n                   : 2;\n    }\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix starts a new line in front of a delimited documentation comment behind the <c>:</c> of a
+    /// parenthesized conditional nested in the <c>?</c> branch of a conditional expression, puts <c>?</c> and <c>:</c>
+    /// at the start of their own lines, and lays out the converted method around them, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-018")]
+    public async Task VerifyFixMovesDelimitedDocumentationBehindColonOfParenthesizedNestedConditional()
+    {
+        const string testData = "internal class C\n{\n    internal int M(bool b, bool c) {|#0:=> b ? (c ? 1 : /** d */ 2) : 3|};\n}";
+        const string fixedData = "internal class C\n{\n    internal int M(bool b, bool c)\n    {\n        return b\n                   ? (c\n                          ? 1\n                          :\n\n        /** d */ 2)\n                   : 3;\n    }\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix starts a new line in front of a delimited documentation comment behind the <c>?</c> of a
+    /// conditional nested in the <c>:</c> branch of a conditional expression, puts <c>?</c> and <c>:</c> at the start
+    /// of their own lines, and lays out the converted method around them, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-018")]
+    public async Task VerifyFixMovesDelimitedDocumentationBehindQuestionMarkOfNestedConditional()
+    {
+        const string testData = "internal class C\n{\n    internal int M(bool b, bool c) {|#0:=> b ? 1 : c ? /** d */ 2 : 3|};\n}";
+        const string fixedData = "internal class C\n{\n    internal int M(bool b, bool c)\n    {\n        return b\n                   ? 1\n                   : c\n                       ?\n\n        /** d */ 2\n                       : 3;\n    }\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix starts a new line in front of a delimited documentation comment behind a <c>:</c> that
+    /// already starts its line in a conditional expression, puts <c>?</c> and <c>:</c> at the start of their own lines,
+    /// and lays out the converted method around them, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-018")]
+    public async Task VerifyFixMovesDelimitedDocumentationBehindColonStartingItsLine()
+    {
+        const string testData = "internal class C\n{\n    internal int M(bool b) {|#0:=> b\n        ? 1\n        : /** d */ 2|};\n}";
+        const string fixedData = "internal class C\n{\n    internal int M(bool b)\n    {\n        return b\n                   ? 1\n                   :\n\n        /** d */ 2;\n    }\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
     }
 
     #endregion // Tests

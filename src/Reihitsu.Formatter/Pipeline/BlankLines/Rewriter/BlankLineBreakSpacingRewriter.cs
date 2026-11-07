@@ -63,7 +63,7 @@ internal sealed class BlankLineBreakSpacingRewriter : CSharpSyntaxRewriter
     /// </summary>
     /// <param name="section">The switch section</param>
     /// <returns><see langword="true"/> if the section ends in a <see langword="break"/> statement</returns>
-    private static bool EndsInBreak(SwitchSectionSyntax section)
+    internal static bool EndsInBreak(SwitchSectionSyntax section)
     {
         return section.Statements.LastOrDefault() is BreakStatementSyntax;
     }
@@ -72,33 +72,13 @@ internal sealed class BlankLineBreakSpacingRewriter : CSharpSyntaxRewriter
     /// Ensures the blank line required before a statement that directly follows a <see langword="break"/> statement
     /// </summary>
     /// <param name="statement">The current statement</param>
-    /// <param name="previous">The preceding statement</param>
+    /// <param name="previousKind">The kind of the preceding statement</param>
     /// <returns>The statement with a blank line inserted before it, or the original if none is required or one already exists</returns>
-    private StatementSyntax EnsureBlankLineAfterBreak(StatementSyntax statement, StatementSyntax previous)
+    private StatementSyntax EnsureBlankLineAfterBreak(StatementSyntax statement, SyntaxKind previousKind)
     {
-        return previous is BreakStatementSyntax
+        return previousKind == SyntaxKind.BreakStatement
                    ? _editor.EnsureBlankLineBeforeStatement(statement)
                    : statement;
-    }
-
-    /// <summary>
-    /// Ensures a blank line exists before the first token of the specified switch section
-    /// </summary>
-    /// <param name="section">The switch section</param>
-    /// <returns>The section with a blank line inserted before it, or the original if one already exists</returns>
-    private SwitchSectionSyntax EnsureBlankLineBeforeSection(SwitchSectionSyntax section)
-    {
-        var firstToken = section.GetFirstToken();
-
-        if (_editor.HasBlankLineBeforeToken(firstToken))
-        {
-            return section;
-        }
-
-        var endOfLine = SyntaxFactory.EndOfLine(_context.EndOfLine);
-        var newLeadingTrivia = firstToken.LeadingTrivia.Insert(0, endOfLine);
-
-        return section.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(newLeadingTrivia));
     }
 
     /// <summary>
@@ -124,7 +104,7 @@ internal sealed class BlankLineBreakSpacingRewriter : CSharpSyntaxRewriter
         for (var statementIndex = 1; statementIndex < statements.Count; statementIndex++)
         {
             var currentStatement = newStatements[statementIndex];
-            var updatedStatement = EnsureBlankLineAfterBreak(currentStatement, newStatements[statementIndex - 1]);
+            var updatedStatement = EnsureBlankLineAfterBreak(currentStatement, newStatements[statementIndex - 1].Kind());
 
             if (updatedStatement == currentStatement)
             {
@@ -162,15 +142,14 @@ internal sealed class BlankLineBreakSpacingRewriter : CSharpSyntaxRewriter
 
         switch (visited)
         {
-            case StatementSyntax statement when position.PreviousStatement != null:
+            case StatementSyntax statement when position.HasPreviousStatement:
                 {
-                    return EnsureBlankLineAfterBreak(statement, position.PreviousStatement);
+                    return EnsureBlankLineAfterBreak(statement, position.PreviousStatementKind);
                 }
 
-            case SwitchSectionSyntax section when position.PreviousSection != null
-                                                  && EndsInBreak(position.PreviousSection):
+            case SwitchSectionSyntax section when position.IsBehindSectionEndingInBreak:
                 {
-                    return EnsureBlankLineBeforeSection(section);
+                    return _editor.EnsureBlankLineBeforeSection(section);
                 }
 
             default:
@@ -253,7 +232,7 @@ internal sealed class BlankLineBreakSpacingRewriter : CSharpSyntaxRewriter
             }
 
             var section = newSections[sectionIndex];
-            var updatedSection = EnsureBlankLineBeforeSection(section);
+            var updatedSection = _editor.EnsureBlankLineBeforeSection(section);
 
             if (updatedSection == section)
             {

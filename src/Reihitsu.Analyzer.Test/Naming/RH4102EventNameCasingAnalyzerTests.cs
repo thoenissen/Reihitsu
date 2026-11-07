@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -638,6 +639,102 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
     }
 
     /// <summary>
+    /// Verifies that a field-like event override whose rename would cascade to an override in another source type of an event declared in a referenced assembly keeps its diagnostic but gets no fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheRenameCascadesToAFieldLikeEventOverrideOfAReferencedAssemblyEvent()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public abstract class MetaBase
+                                      {
+                                          public abstract event System.EventHandler changed;
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using System;
+
+                                using Meta;
+
+                                public class Middle : MetaBase
+                                {
+                                    public override event EventHandler {|RH4102:changed|};
+                                }
+
+                                public class Leaf : Middle
+                                {
+                                    public override event EventHandler {|RH4102:changed|};
+                                }
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that an event override with accessors whose rename would cascade to an override in another source type of an event declared in a referenced assembly keeps its diagnostic but gets no fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheRenameCascadesToACustomEventOverrideOfAReferencedAssemblyEvent()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public abstract class MetaBase
+                                      {
+                                          public abstract event System.EventHandler opened;
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using System;
+
+                                using Meta;
+
+                                public class Middle : MetaBase
+                                {
+                                    public override event EventHandler {|RH4102:opened|}
+                                    {
+                                        add
+                                        {
+                                        }
+                                        remove
+                                        {
+                                        }
+                                    }
+                                }
+
+                                public class Leaf : Middle
+                                {
+                                    public override event EventHandler {|RH4102:opened|}
+                                    {
+                                        add
+                                        {
+                                        }
+                                        remove
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await VerifyCustomEventWithReference(testCode, testCode, reference);
+    }
+
+    /// <summary>
     /// Verifies a custom-event code fix with the dedicated internal provider
     /// </summary>
     /// <param name="testCode">Test source</param>
@@ -660,6 +757,27 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
         {
             test.NumberOfFixAllIterations = 1;
         }
+
+        await test.RunAsync();
+    }
+
+    /// <summary>
+    /// Verifies a custom-event code fix with the dedicated internal provider in a project that references the given assembly
+    /// </summary>
+    /// <param name="testCode">Test source with markup for every expected diagnostic</param>
+    /// <param name="fixedCode">Expected fixed source</param>
+    /// <param name="reference">Reference to an assembly the test project uses</param>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    private static async Task VerifyCustomEventWithReference(string testCode, string fixedCode, MetadataReference reference)
+    {
+        var test = new CSharpCodeFixVerifierTest<RH4102EventNameCasingAnalyzer, RH4102CustomEventNameCasingCodeFixProvider>
+                   {
+                       TestCode = testCode,
+                       FixedCode = fixedCode,
+                       ReferenceAssemblies = ReferenceAssemblies.Net.Net90
+                   };
+
+        test.TestState.AdditionalReferences.Add(reference);
 
         await test.RunAsync();
     }

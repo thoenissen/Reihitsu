@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,9 +10,8 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Organization;
-using Reihitsu.Formatter.Data;
-using Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
-using Reihitsu.Formatter.Utilities;
+using Reihitsu.Core;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Organization;
 
@@ -25,38 +25,92 @@ public class RH7101DoNotCombineFieldsCodeFixProvider : CodeFixProvider
     #region Methods
 
     /// <summary>
-    /// Applies the code fix
+    /// Applies the code fix: the declaration is formatted with the type that declares it as context, so the structural phase
+    /// splits it as document-level formatting splits it, the later phases lay out the fields, and only the fields the split
+    /// makes of the declaration are written back (FMT-PIPE-029)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="fieldDeclaration">Field declaration</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The updated document</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, FieldDeclarationSyntax fieldDeclaration, CancellationToken cancellationToken)
+    private static Task<Document> ApplyCodeFixAsync(Document document, FieldDeclarationSyntax fieldDeclaration, CancellationToken cancellationToken)
     {
-        if (fieldDeclaration.Parent is not TypeDeclarationSyntax typeDeclaration
-            || fieldDeclaration.Declaration.Variables.Count <= 1)
-        {
-            return document;
-        }
+        return ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, fieldDeclaration, fieldDeclaration.Parent, cancellationToken);
+    }
 
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+    /// <summary>
+    /// Applies the code fix to every fixable diagnostic of one document, one declaration after the other. Two fixes of
+    /// declarations that share a line both write the line break between them; merging their independent text changes
+    /// would write it twice, so each fix runs on the document the previous fix produced
+    /// </summary>
+    /// <param name="context">Fix All context</param>
+    /// <param name="document">Document</param>
+    /// <param name="diagnostics">Diagnostics of the document</param>
+    /// <returns>The updated <see cref="Document"/> with every code fix applied</returns>
+    private static async Task<Document> ApplyFixAllAsync(FixAllContext context, Document document, ImmutableArray<Diagnostic> diagnostics)
+    {
+        var root = await document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
         if (root == null)
         {
             return document;
         }
 
-        // The 1→N replacement the split needs forces a type-level scope, but running the full formatting pipeline
-        // over the type reformats members unrelated to the diagnostic. Reuse the formatter's field-split structural
-        // transform on its own instead: it splits the combined fields and preserves the comments attached to
-        // declarators and their separators, without touching the rest of the type.
-        var context = new FormattingContext(ReihitsuFormatterHelpers.DetectEndOfLine(root),
-                                            languageVersion: LanguageVersionResolver.Resolve(document.Project.ParseOptions));
-        var splitTypeDeclaration = new FieldDeclarationSplitTransform(context, cancellationToken).Visit(typeDeclaration);
+        var fieldDeclarations = new List<FieldDeclarationSyntax>();
 
-        return splitTypeDeclaration == null
-                   ? document
-                   : document.WithSyntaxRoot(root.ReplaceNode(typeDeclaration, splitTypeDeclaration));
+        foreach (var diagnostic in diagnostics)
+        {
+            if (TryGetFixableFieldDeclaration(root, diagnostic, out var fieldDeclaration)
+                && fieldDeclarations.Contains(fieldDeclaration) == false)
+            {
+                fieldDeclarations.Add(fieldDeclaration);
+            }
+        }
+
+        if (fieldDeclarations.Count == 0)
+        {
+            return document;
+        }
+
+        var updatedDocument = document.WithSyntaxRoot(root.TrackNodes(fieldDeclarations));
+
+        foreach (var fieldDeclaration in fieldDeclarations)
+        {
+            var updatedRoot = await updatedDocument.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var currentFieldDeclaration = updatedRoot?.GetCurrentNode(fieldDeclaration);
+
+            if (currentFieldDeclaration != null)
+            {
+                updatedDocument = await ApplyCodeFixAsync(updatedDocument, currentFieldDeclaration, context.CancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        return updatedDocument;
+    }
+
+    /// <summary>
+    /// Gets the field declaration of a diagnostic when the fix is offered for it: only where the formatter splits the
+    /// declaration, because the fix splits it only by formatting it; elsewhere, such as for a declaration with a directive,
+    /// it would change nothing (RH7101-005). A declaration with a documentation comment in its leading trivia is not fixed
+    /// either, although the formatter splits it: the split keeps the comment on the first field only, so the other fields
+    /// would lose their documentation (RH7101-006). The parser reads documentation comments only in the documentation
+    /// modes <c>Parse</c> and <c>Diagnose</c>, so in the mode <c>None</c> such a comment does not withhold the fix
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="diagnostic">Diagnostic</param>
+    /// <param name="fieldDeclaration">The field declaration of the diagnostic</param>
+    /// <returns><see langword="true"/> if the fix is offered for the diagnostic; otherwise, <see langword="false"/></returns>
+    private static bool TryGetFixableFieldDeclaration(SyntaxNode root, Diagnostic diagnostic, out FieldDeclarationSyntax fieldDeclaration)
+    {
+        fieldDeclaration = root.FindToken(diagnostic.Location.SourceSpan.Start)
+                               .Parent
+                               ?.AncestorsAndSelf()
+                               .OfType<FieldDeclarationSyntax>()
+                               .FirstOrDefault();
+
+        return fieldDeclaration != null
+               && fieldDeclaration.GetLeadingTrivia().Any(SyntaxTriviaUtilities.IsDocumentationCommentTrivia) == false
+               && ReihitsuFormatter.SplitsFieldDeclaration(fieldDeclaration);
     }
 
     #endregion // Methods
@@ -69,7 +123,7 @@ public class RH7101DoNotCombineFieldsCodeFixProvider : CodeFixProvider
     /// <inheritdoc/>
     public sealed override FixAllProvider GetFixAllProvider()
     {
-        return WellKnownFixAllProviders.BatchFixer;
+        return FixAllProvider.Create(ApplyFixAllAsync);
     }
 
     /// <inheritdoc/>
@@ -84,17 +138,7 @@ public class RH7101DoNotCombineFieldsCodeFixProvider : CodeFixProvider
 
         foreach (var diagnostic in context.Diagnostics)
         {
-            var fieldDeclaration = syntaxRoot.FindToken(diagnostic.Location.SourceSpan.Start)
-                                             .Parent
-                                             ?.AncestorsAndSelf()
-                                             .OfType<FieldDeclarationSyntax>()
-                                             .FirstOrDefault();
-
-            // The split transform leaves directive-bearing fields intact to avoid dropping the directive, so
-            // offering the fix for such a field would produce a no-op that never clears the diagnostic. Skip the
-            // registration with the same guard the transform uses.
-            if (fieldDeclaration != null
-                && FieldDeclarationSplitTransform.CarriesDirective(fieldDeclaration) == false)
+            if (TryGetFixableFieldDeclaration(syntaxRoot, diagnostic, out var fieldDeclaration))
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7101Title,
                                                           token => ApplyCodeFixAsync(context.Document, fieldDeclaration, token),

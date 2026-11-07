@@ -169,6 +169,27 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer : D
     }
 
     /// <summary>
+    /// Gets the summary of a declaration's documentation comment when it reads as a sentence
+    /// </summary>
+    /// <param name="declaration">Declaration</param>
+    /// <param name="isBooleanProperty"><see langword="true"/> when the summary belongs to a Boolean or nullable Boolean property</param>
+    /// <returns>The summary element, or <see langword="null"/> when the declaration has no summary or its summary is no sentence</returns>
+    private static XmlElementSyntax GetSentenceSummary(MemberDeclarationSyntax declaration, bool isBooleanProperty)
+    {
+        var documentationComment = DirectDocumentationSyntaxChecker.GetDocumentationComment(declaration);
+
+        if (documentationComment == null
+            || DirectDocumentationSyntaxChecker.GetFirstDirectTag(documentationComment, "summary") is not XmlElementSyntax summaryElement)
+        {
+            return null;
+        }
+
+        return IsSentence(GetTextContent(summaryElement), isBooleanProperty)
+                   ? summaryElement
+                   : null;
+    }
+
+    /// <summary>
     /// Analyzes a property declaration
     /// </summary>
     /// <param name="context">Context</param>
@@ -179,17 +200,22 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer : D
             return;
         }
 
-        var documentationComment = DirectDocumentationSyntaxChecker.GetDocumentationComment(propertyDeclaration);
+        var propertySymbol = context.SemanticModel.GetDeclaredSymbol(propertyDeclaration, context.CancellationToken);
+        var isBooleanProperty = IsBooleanType(propertySymbol?.Type);
+        var summaryElement = GetSentenceSummary(propertyDeclaration, isBooleanProperty);
 
-        if (documentationComment == null
-            || DirectDocumentationSyntaxChecker.GetFirstDirectTag(documentationComment, "summary") is not XmlElementSyntax summaryElement)
+        if (summaryElement == null)
         {
             return;
         }
 
-        var propertyType = context.SemanticModel.GetDeclaredSymbol(propertyDeclaration, context.CancellationToken)?.Type;
-
-        if (IsSentence(GetTextContent(summaryElement), IsBooleanType(propertyType)) == false)
+        // A partial property is reported once, on the first part whose summary reads as a sentence (SHARED-DIAG-012)
+        if (propertyDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword)
+            && PartialMemberUtilities.GetReportedPart(propertyDeclaration,
+                                                      propertySymbol,
+                                                      part => GetSentenceSummary(part, isBooleanProperty) != null,
+                                                      context.SemanticModel.Compilation,
+                                                      context.CancellationToken) != propertyDeclaration)
         {
             return;
         }

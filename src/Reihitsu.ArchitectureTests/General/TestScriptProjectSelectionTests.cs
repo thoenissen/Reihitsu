@@ -13,10 +13,24 @@ namespace Reihitsu.ArchitectureTests.General;
 [TestClass]
 public sealed class TestScriptProjectSelectionTests
 {
+    #region Constants
+
+    /// <summary>
+    /// The self-hosting test project, which scans the repository's own source; CI runs it, the default local run leaves it out
+    /// </summary>
+    private const string SelfHostingTestProject = "src/Reihitsu.SelfHosting.Test/Reihitsu.SelfHosting.Test.csproj";
+
+    /// <summary>
+    /// The architecture test project, which the build workflow runs on its own instead of the SonarCloud test loop
+    /// </summary>
+    private const string ArchitectureTestProject = "src/Reihitsu.ArchitectureTests/Reihitsu.ArchitectureTests.csproj";
+
+    #endregion // Constants
+
     #region Fields
 
     /// <summary>
-    /// Test projects in the order used by a full repository test run
+    /// Test projects in the order used by a default repository test run
     /// </summary>
     private static readonly string[] _expectedTestProjects = [
                                                                  "src/Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj",
@@ -33,10 +47,10 @@ public sealed class TestScriptProjectSelectionTests
     #region Methods
 
     /// <summary>
-    /// Verifies that the shell all branch selects every test project in the solution
+    /// Verifies that the shell all branch selects every test project in the solution except the self-hosting project
     /// </summary>
     [TestMethod]
-    public void ShellAllIncludesEverySolutionTestProject()
+    public void ShellAllIncludesEverySolutionTestProjectExceptSelfHosting()
     {
         // Arrange
         var repositoryRoot = FindRepositoryRoot();
@@ -68,6 +82,89 @@ public sealed class TestScriptProjectSelectionTests
     }
 
     /// <summary>
+    /// Verifies that the default run leaves the self-hosting project out
+    /// </summary>
+    [TestMethod]
+    public void ShellAllLeavesOutTheSelfHostingProject()
+    {
+        // Arrange
+        var repositoryRoot = FindRepositoryRoot();
+        var shell = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "test.sh"));
+
+        // Act
+        var selected = ProjectPaths(AllBranchBody(shell));
+
+        // Assert
+        Assert.DoesNotContain(SelfHostingTestProject, selected);
+    }
+
+    /// <summary>
+    /// Verifies that the selfhosting alias selects the self-hosting project and nothing else
+    /// </summary>
+    [TestMethod]
+    public void NamedSelfHostingSelectionSelectsOnlyTheSelfHostingProject()
+    {
+        // Arrange
+        var repositoryRoot = FindRepositoryRoot();
+        var shell = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "test.sh"));
+
+        // Act and assert
+        AssertNamedShellSelection(shell, "selfhosting", SelfHostingTestProject);
+    }
+
+    /// <summary>
+    /// Verifies that the solution lists the self-hosting project as a test project, so a whole-solution build compiles it
+    /// and a whole-solution test run executes it
+    /// </summary>
+    [TestMethod]
+    public void SolutionListsTheSelfHostingTestProject()
+    {
+        // Arrange
+        var repositoryRoot = FindRepositoryRoot();
+
+        // Act
+        var solutionProjects = SolutionTestProjects(repositoryRoot);
+
+        // Assert
+        Assert.Contains(SelfHostingTestProject, solutionProjects);
+    }
+
+    /// <summary>
+    /// Verifies that the SonarCloud test loop runs every test project of the solution except the architecture tests,
+    /// which the build workflow runs on its own, so a pull request runs the self-hosting scans in CI
+    /// </summary>
+    [TestMethod]
+    public void SonarCloudTestLoopRunsEverySolutionTestProjectExceptArchitecture()
+    {
+        // Arrange
+        var repositoryRoot = FindRepositoryRoot();
+        var expected = SolutionTestProjects(repositoryRoot).Where(path => path != ArchitectureTestProject)
+                                                           .ToArray();
+
+        // Act
+        var looped = SonarCloudLoopProjects(repositoryRoot);
+
+        // Assert
+        Assert.AreSequenceEqual(expected, looped, SequenceOrder.InAnyOrder, "The SonarCloud test loop does not match the solution's test projects.");
+    }
+
+    /// <summary>
+    /// Verifies that the SonarCloud test loop names the self-hosting project
+    /// </summary>
+    [TestMethod]
+    public void SonarCloudTestLoopRunsTheSelfHostingProject()
+    {
+        // Arrange
+        var repositoryRoot = FindRepositoryRoot();
+
+        // Act
+        var looped = SonarCloudLoopProjects(repositoryRoot);
+
+        // Assert
+        Assert.Contains(SelfHostingTestProject, looped);
+    }
+
+    /// <summary>
     /// Verifies an all branch against the expected ordered set and the solution's current test projects
     /// </summary>
     /// <param name="script">Script text</param>
@@ -83,7 +180,7 @@ public sealed class TestScriptProjectSelectionTests
         var solutionProjects = SolutionTestProjects(repositoryRoot);
 
         Assert.AreSequenceEqual(_expectedTestProjects, selected, "The all-project order changed.");
-        Assert.AreSequenceEqual(_expectedTestProjects, solutionProjects, SequenceOrder.InAnyOrder, "The all branch does not match the solution's test projects.");
+        Assert.AreSequenceEqual(_expectedTestProjects.Append(SelfHostingTestProject).ToArray(), solutionProjects, SequenceOrder.InAnyOrder, "The all branch and the self-hosting project do not match the solution's test projects.");
     }
 
     /// <summary>
@@ -99,6 +196,38 @@ public sealed class TestScriptProjectSelectionTests
 
         Assert.IsTrue(match.Success, $"Could not locate the shell '{name}' selection.");
         Assert.AreEqual(expectedProject, match.Groups["path"].Value);
+    }
+
+    /// <summary>
+    /// Extracts the body of the shell all branch
+    /// </summary>
+    /// <param name="script">Script text</param>
+    /// <returns>The branch body</returns>
+    private static string AllBranchBody(string script)
+    {
+        var branch = Regex.Match(script, @"(?ms)^\s*all\)\s*\r?\n(?<body>.*?)^\s*;;\s*$");
+
+        Assert.IsTrue(branch.Success, "Could not locate the all-project branch.");
+
+        return branch.Groups["body"].Value;
+    }
+
+    /// <summary>
+    /// Extracts the projects of the SonarCloud workflow's test loop as solution-relative project paths
+    /// </summary>
+    /// <param name="repositoryRoot">Repository root</param>
+    /// <returns>Project paths in loop order</returns>
+    private static string[] SonarCloudLoopProjects(string repositoryRoot)
+    {
+        var workflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "SonarCloud.yml"));
+        var loop = Regex.Match(workflow, @"(?m)^\s*for\s+project\s+in\s+(?<names>[^;\r\n]+);\s*do\s*$");
+
+        Assert.IsTrue(loop.Success, "Could not locate the SonarCloud test loop.");
+
+        return loop.Groups["names"].Value
+                   .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                   .Select(name => $"src/{name}/{name}.csproj")
+                   .ToArray();
     }
 
     /// <summary>

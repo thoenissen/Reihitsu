@@ -111,6 +111,30 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
     }
 
     /// <summary>
+    /// Verifies that the analyzer reports exactly the diagnostics marked in the source, that the code fix offered for the
+    /// first diagnostic produces the text the formatter produces for the whole document, and that the analyzer reports
+    /// nothing on the result. Used where a requirement asks for the fix's output to be the formatter's output and the
+    /// formatter's own columns for the input are decided elsewhere
+    /// </summary>
+    /// <param name="source">
+    /// Source text with markup for every expected diagnostic, laid out as the formatter lays it out
+    /// apart from the code the fix formats, and without a final line break, which the formatter removes
+    /// </param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    protected static async Task VerifyCodeFixMatchesFormatter(string source)
+    {
+        await Verify(source);
+
+        TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+
+        var fixedSource = await ApplyCodeFixAsync(plainSource).ConfigureAwait(false);
+
+        Assert.AreEqual(Format(plainSource), fixedSource, "The code fix must lay out the code as the formatter lays it out.");
+
+        await Verify(fixedSource);
+    }
+
+    /// <summary>
     /// Gets the code actions registered for the provided diagnostic on the given source text
     /// </summary>
     /// <param name="source">Source text</param>
@@ -120,9 +144,24 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
     /// <returns>The registered code actions</returns>
     protected static async Task<List<CodeAction>> GetCodeFixActionsAsync(string source, string diagnosticId, Func<SyntaxNode, Location> locationProvider, params string[] preprocessorSymbols)
     {
+        return await GetCodeFixActionsAsync(source, diagnosticId, locationProvider, DocumentationMode.Parse, preprocessorSymbols).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Gets the code actions registered for the provided diagnostic on the given source text, parsed in the given
+    /// documentation mode
+    /// </summary>
+    /// <param name="source">Source text</param>
+    /// <param name="diagnosticId">Diagnostic ID</param>
+    /// <param name="locationProvider">Callback that selects the diagnostic location from the parsed syntax root</param>
+    /// <param name="documentationMode">Documentation mode of the syntax tree</param>
+    /// <param name="preprocessorSymbols">Preprocessor symbols to define for parsing</param>
+    /// <returns>The registered code actions</returns>
+    protected static async Task<List<CodeAction>> GetCodeFixActionsAsync(string source, string diagnosticId, Func<SyntaxNode, Location> locationProvider, DocumentationMode documentationMode, params string[] preprocessorSymbols)
+    {
         using (var workspace = new AdhocWorkspace())
         {
-            var (document, _) = CreateTestDocument(workspace, source, preprocessorSymbols);
+            var (document, _) = CreateTestDocument(workspace, source, documentationMode, preprocessorSymbols);
 
             return await RegisterCodeFixActionsAsync(document, diagnosticId, locationProvider).ConfigureAwait(false);
         }
@@ -139,9 +178,23 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
     /// <returns>The source text after applying the first offered code action</returns>
     protected static async Task<string> ApplyCodeFixAsync(string source, params string[] preprocessorSymbols)
     {
+        return await TryApplyCodeFixAsync(source, preprocessorSymbols).ConfigureAwait(false)
+                   ?? throw new InvalidOperationException("No code fix action was registered for the diagnostic.");
+    }
+
+    /// <summary>
+    /// Runs the analyzer over the provided source, applies the first code action offered for the first fixable
+    /// diagnostic and returns the resulting raw source text, or <see langword="null"/> when the code fix registers no
+    /// action for that diagnostic
+    /// </summary>
+    /// <param name="source">Source text</param>
+    /// <param name="preprocessorSymbols">Preprocessor symbols to define for parsing</param>
+    /// <returns>The source text after applying the first offered code action, or <see langword="null"/> when none is offered</returns>
+    protected static async Task<string> TryApplyCodeFixAsync(string source, params string[] preprocessorSymbols)
+    {
         using (var workspace = new AdhocWorkspace())
         {
-            var (document, documentId) = CreateTestDocument(workspace, source, preprocessorSymbols);
+            var (document, documentId) = CreateTestDocument(workspace, source, DocumentationMode.Parse, preprocessorSymbols);
 
             var compilation = await document.Project.GetCompilationAsync(CancellationToken.None).ConfigureAwait(false)
                                   ?? throw new InvalidOperationException("Failed to compile test document.");
@@ -160,7 +213,7 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
 
             if (actions.Count == 0)
             {
-                throw new InvalidOperationException("No code fix action was registered for the diagnostic.");
+                return null;
             }
 
             var operations = await actions[0].GetOperationsAsync(CancellationToken.None).ConfigureAwait(false);
@@ -174,6 +227,38 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
     }
 
     /// <summary>
+    /// Verifies that the analyzer reports exactly the diagnostics marked in the source, and that the code fix for the
+    /// first diagnostic is either withheld, where <paramref name="mayBeWithheld"/> allows it, or produces exactly one
+    /// of the accepted texts, line endings included, on which the analyzer reports nothing and which compiles. Used
+    /// where the requirements forbid what a fix must not do to an input (such as dropping a comment) but leave open
+    /// whether the fix is withheld or which of the accepted layouts it writes
+    /// </summary>
+    /// <param name="source">Source text with markup for every expected diagnostic</param>
+    /// <param name="mayBeWithheld">Whether registering no code action is an accepted outcome</param>
+    /// <param name="acceptedFixedSources">The accepted results of the fix, without markup</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    protected static async Task VerifyCodeFixIsWithheldOrProducesOneOf(string source, bool mayBeWithheld, params string[] acceptedFixedSources)
+    {
+        await Verify(source);
+
+        TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+
+        var fixedSource = await TryApplyCodeFixAsync(plainSource).ConfigureAwait(false);
+
+        if (fixedSource == null)
+        {
+            Assert.IsTrue(mayBeWithheld, "A code fix must be offered for this input.");
+
+            return;
+        }
+
+        Assert.IsTrue(acceptedFixedSources.Contains(fixedSource, StringComparer.Ordinal),
+                      $"The code fix produced a result that is not accepted:{Environment.NewLine}{fixedSource}{Environment.NewLine}Accepted results:{Environment.NewLine}{string.Join($"{Environment.NewLine}----{Environment.NewLine}", acceptedFixedSources)}");
+
+        await Verify(fixedSource);
+    }
+
+    /// <summary>
     /// Verifies that the analyzer reports exactly the diagnostics marked in the source, and that the code fix
     /// registers no action for any diagnostic the analyzer reports on the source without its markup
     /// </summary>
@@ -182,13 +267,47 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     protected static async Task VerifyNoCodeFixIsOffered(string source, Action<CSharpAnalyzerVerifierTest<TAnalyzer>> onConfigure = null)
     {
+        await VerifyNoCodeFixIsOffered(source, onConfigure, DocumentationMode.Parse, []);
+    }
+
+    /// <summary>
+    /// Verifies that the analyzer reports exactly the diagnostics marked in the source, and that the code fix
+    /// registers no action for any diagnostic the analyzer reports on the source without its markup, both with the
+    /// given documentation mode and the given preprocessor symbols
+    /// </summary>
+    /// <param name="source">The source text to test, with markup for every expected diagnostic</param>
+    /// <param name="documentationMode">Documentation mode of the syntax tree</param>
+    /// <param name="preprocessorSymbols">Preprocessor symbols to define for parsing</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    protected static async Task VerifyNoCodeFixIsOffered(string source, DocumentationMode documentationMode, params string[] preprocessorSymbols)
+    {
+        await VerifyNoCodeFixIsOffered(source,
+                                       test => test.SolutionTransforms.Add((solution, projectId) => solution.GetProject(projectId)?.ParseOptions is CSharpParseOptions parseOptions
+                                                                                                        ? solution.WithProjectParseOptions(projectId, parseOptions.WithDocumentationMode(documentationMode).WithPreprocessorSymbols(preprocessorSymbols))
+                                                                                                        : solution),
+                                       documentationMode,
+                                       preprocessorSymbols);
+    }
+
+    /// <summary>
+    /// Verifies that the analyzer reports exactly the diagnostics marked in the source, and that the code fix
+    /// registers no action for any diagnostic the analyzer reports on the source without its markup, parsed with the
+    /// given documentation mode and preprocessor symbols
+    /// </summary>
+    /// <param name="source">The source text to test, with markup for every expected diagnostic</param>
+    /// <param name="onConfigure">Additional configuration of the analyzer verification</param>
+    /// <param name="documentationMode">Documentation mode of the document the code fix is asked for</param>
+    /// <param name="preprocessorSymbols">Preprocessor symbols of the document the code fix is asked for</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyNoCodeFixIsOffered(string source, Action<CSharpAnalyzerVerifierTest<TAnalyzer>> onConfigure, DocumentationMode documentationMode, string[] preprocessorSymbols)
+    {
         await Verify(source, onConfigure);
 
         TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
 
         using (var workspace = new AdhocWorkspace())
         {
-            var (document, _) = CreateTestDocument(workspace, plainSource, []);
+            var (document, _) = CreateTestDocument(workspace, plainSource, documentationMode, preprocessorSymbols);
 
             var compilation = await document.Project.GetCompilationAsync(CancellationToken.None).ConfigureAwait(false)
                                   ?? throw new InvalidOperationException("Failed to compile test document.");
@@ -220,14 +339,16 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
     /// </summary>
     /// <param name="workspace">Workspace hosting the document</param>
     /// <param name="source">Source text</param>
+    /// <param name="documentationMode">Documentation mode of the syntax tree</param>
     /// <param name="preprocessorSymbols">Preprocessor symbols to define for parsing</param>
     /// <returns>The created document and its identifier</returns>
-    private static (Document Document, DocumentId DocumentId) CreateTestDocument(AdhocWorkspace workspace, string source, string[] preprocessorSymbols)
+    private static (Document Document, DocumentId DocumentId) CreateTestDocument(AdhocWorkspace workspace, string source, DocumentationMode documentationMode, string[] preprocessorSymbols)
     {
         var projectId = ProjectId.CreateNewId();
         var documentId = DocumentId.CreateNewId(projectId);
         var versionStamp = VersionStamp.Create();
         var parseOptions = new Microsoft.CodeAnalysis.CSharp.CSharpParseOptions(languageVersion: Microsoft.CodeAnalysis.CSharp.LanguageVersion.Latest,
+                                                                                documentationMode: documentationMode,
                                                                                 preprocessorSymbols: preprocessorSymbols);
         var solution = workspace.CurrentSolution
                                 .AddProject(ProjectInfo.Create(projectId,

@@ -8089,6 +8089,166 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifying the code fix of parentheses written directly behind <c>return</c> around a number, which would read as one identifier with <c>return</c>, on the same shape the
+    /// formatter's separator behind a created <c>return</c> decides
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-008")]
+    public async Task ReturnWithoutSpaceBeforeParenthesesAroundANumberGetsOneSpace()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public int Run()
+                                    {
+                                        return{|#0:(42)|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public int Run()
+                                     {
+                                         return 42;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying the code fix of parentheses written directly behind <c>return</c> around an identifier that starts with a Unicode escape, which would read as one identifier with <c>return</c>, on the same shape the
+    /// formatter's separator behind a created <c>return</c> decides
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-008")]
+    public async Task ReturnWithoutSpaceBeforeParenthesesAroundAUnicodeEscapeIdentifierGetsOneSpace()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public int Run(int a)
+                                    {
+                                        return{|#0:(\u0061)|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public int Run(int a)
+                                     {
+                                         return \u0061;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying the code fix of parentheses written directly behind <c>return</c> around a verbatim identifier, which reads as a separate token without a space, on the same shape the
+    /// formatter's separator behind a created <c>return</c> decides
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-008")]
+    public async Task ReturnWithoutSpaceBeforeParenthesesAroundAVerbatimIdentifierGetsNoSpace()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public int Run(int a)
+                                    {
+                                        return{|#0:(@a)|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public int Run(int a)
+                                     {
+                                         return@a;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying the code fix of parentheses written directly behind <c>return</c> around a verbatim string, which reads as a separate token without a space, on the same shape the
+    /// formatter's separator behind a created <c>return</c> decides
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-008")]
+    public async Task ReturnWithoutSpaceBeforeParenthesesAroundAVerbatimStringGetsNoSpace()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public string Run()
+                                    {
+                                        return{|#0:(@"s")|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public string Run()
+                                     {
+                                         return@"s";
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying the code fix of parentheses written directly behind <c>return</c> around a string, which reads as a separate token without a space, on the same shape the
+    /// formatter's separator behind a created <c>return</c> decides
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-008")]
+    public async Task ReturnWithoutSpaceBeforeParenthesesAroundAStringGetsNoSpace()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public string Run()
+                                    {
+                                        return{|#0:("s")|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public string Run()
+                                     {
+                                         return"s";
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

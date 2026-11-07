@@ -143,8 +143,8 @@ public class DocumentationCommentFormattingPhaseTests
 
     /// <summary>
     /// Verifies that every line terminator C# recognizes starts a new documentation line. This phase does not
-    /// rewrite the separator itself, so the exotic terminators survive it and are normalized later by
-    /// <c>LineEndingNormalizationPhase</c>
+    /// rewrite the separator itself, so the exotic terminators survive it when it runs alone; in the pipeline, the
+    /// LineEndings sub-phase of the preparation phase has already rewritten them before this phase runs
     /// </summary>
     /// <param name="lineTerminator">Terminator separating the two documentation lines</param>
     [TestMethod]

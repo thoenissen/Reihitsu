@@ -47,12 +47,13 @@ public class RH7301RegionsShouldMatchFormatterTests : FormatterTestsBase<RH7301R
     }
 
     /// <summary>
-    /// Verifies that an analyzer-clean pair with trailing whitespace on the opening description remains byte-stable
-    /// under LF and CRLF
+    /// Verifies that the formatter removes trailing whitespace behind the opening description of an analyzer-clean
+    /// pair and keeps its canonical close, under LF and CRLF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyFormatterPreservesTrailingOpeningWhitespaceWhenCloseIsCanonical()
+    [Requirement("FMT-REGION-007")]
+    public async Task VerifyFormatterRemovesTrailingOpeningWhitespaceWhenCloseIsCanonical()
     {
         const string source = """
                               internal class Example
@@ -66,16 +67,18 @@ public class RH7301RegionsShouldMatchFormatterTests : FormatterTestsBase<RH7301R
                               """;
         var input = source.Replace("#region Fields", "#region Fields   ");
 
-        await VerifyFormatter(input);
+        await VerifyFormatter(input, source);
     }
 
     /// <summary>
-    /// Verifies that a mismatched close is canonicalized from the normalized opening description without carrying
-    /// its trailing whitespace
+    /// Verifies that a mismatched close is canonicalized from the trimmed opening description and that the formatter
+    /// removes the whitespace behind the opening description
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyFormatterUsesNormalizedOpeningDescriptionForMismatchedClose()
+    [Requirement("FMT-REGION-002")]
+    [Requirement("FMT-REGION-007")]
+    public async Task VerifyFormatterUsesTrimmedOpeningDescriptionForMismatchedClose()
     {
         const string source = """
                               internal class Example
@@ -98,10 +101,9 @@ public class RH7301RegionsShouldMatchFormatterTests : FormatterTestsBase<RH7301R
                                    }
                                    """;
         var input = source.Replace("#region Fields", "#region Fields   ");
-        var expected = fixedSource.Replace("#region Fields", "#region Fields   ");
 
         await VerifyFormatter(input,
-                              expected,
+                              fixedSource,
                               Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat));
     }
 

@@ -346,6 +346,66 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
         await VerifyNoCodeFixIsOffered(testCode);
     }
 
+    /// <summary>
+    /// Verifies that the fix spaces a tight arrow on both sides when it puts the property on one line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-SPACE-017")]
+    public async Task VerifyFixSpacesATightArrow()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    {|RH5401:int A
+                                        =>1;|}
+
+                                    {|RH5401:int B=>
+                                        1;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int A => 1;
+
+                                     int B => 1;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix spaces a tight arrow on both sides when it puts the property on one line, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-SPACE-017")]
+    public async Task VerifyFixSpacesATightArrowWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    {|RH5401:int A
+                                        =>1;|}
+
+                                    {|RH5401:int B=>
+                                        1;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int A => 1;
+
+                                     int B => 1;
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

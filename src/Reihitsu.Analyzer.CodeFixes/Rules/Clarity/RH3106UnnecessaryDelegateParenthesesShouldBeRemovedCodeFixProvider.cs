@@ -1,14 +1,14 @@
-﻿using System.Collections.Immutable;
-using System.Composition;
+﻿using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Clarity;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
 
@@ -17,75 +17,52 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH3106UnnecessaryDelegateParenthesesShouldBeRemovedCodeFixProvider))]
-public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedCodeFixProvider : CodeFixProvider
+public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedCodeFixProvider : EmptyParenthesesCodeFixProviderBase<AnonymousMethodExpressionSyntax>
 {
-    #region Methods
+    #region Constructor
 
     /// <summary>
-    /// Applying the code fix
+    /// Constructor
     /// </summary>
-    /// <param name="document">Document</param>
-    /// <param name="anonymousMethodExpression">Anonymous method expression</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The updated <see cref="Document"/> with the code fix applied</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, AnonymousMethodExpressionSyntax anonymousMethodExpression, CancellationToken cancellationToken)
+    public RH3106UnnecessaryDelegateParenthesesShouldBeRemovedCodeFixProvider()
+        : base(RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzer.DiagnosticId, CodeFixResources.RH3106Title, new RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzer())
     {
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-        if (root == null
-            || anonymousMethodExpression.ParameterList == null)
-        {
-            return document;
-        }
-
-        if (anonymousMethodExpression.RemoveNode(anonymousMethodExpression.ParameterList, SyntaxRemoveOptions.KeepExteriorTrivia) is not AnonymousMethodExpressionSyntax updatedAnonymousMethodExpression)
-        {
-            return document;
-        }
-
-        var updatedRoot = root.ReplaceNode(anonymousMethodExpression, updatedAnonymousMethodExpression);
-
-        return document.WithSyntaxRoot(updatedRoot);
     }
 
-    #endregion // Methods
+    #endregion // Constructor
 
-    #region CodeFixProvider
-
-    /// <inheritdoc/>
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzer.DiagnosticId];
+    #region EmptyParenthesesCodeFixProviderBase
 
     /// <inheritdoc/>
-    public sealed override FixAllProvider GetFixAllProvider()
+    private protected override bool KeepsSpaceInFrontOfFollowingToken => true;
+
+    /// <inheritdoc/>
+    private protected override SyntaxNode GetList(AnonymousMethodExpressionSyntax node)
     {
-        return WellKnownFixAllProviders.BatchFixer;
+        return node.ParameterList;
     }
 
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    private protected override AnonymousMethodExpressionSyntax RemoveList(AnonymousMethodExpressionSyntax node, SyntaxTriviaList separatingTrivia)
     {
-        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-
-        if (root != null)
-        {
-            foreach (var diagnostic in context.Diagnostics)
-            {
-                var anonymousMethodExpression = root.FindToken(diagnostic.Location.SourceSpan.Start)
-                                                    .Parent
-                                                    ?.AncestorsAndSelf()
-                                                    .OfType<AnonymousMethodExpressionSyntax>()
-                                                    .FirstOrDefault();
-
-                if (anonymousMethodExpression != null)
-                {
-                    context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3106Title,
-                                                              token => ApplyCodeFixAsync(context.Document, anonymousMethodExpression, token),
-                                                              nameof(RH3106UnnecessaryDelegateParenthesesShouldBeRemovedCodeFixProvider)),
-                                            diagnostic);
-                }
-            }
-        }
+        return node.WithParameterList(null)
+                   .WithDelegateKeyword(node.DelegateKeyword.WithTrailingTrivia(separatingTrivia));
     }
 
-    #endregion // CodeFixProvider
+    /// <inheritdoc/>
+    private protected override async Task<bool> KeepsMeaningAsync(Document document, SyntaxNode root, AnonymousMethodExpressionSyntax node, CancellationToken cancellationToken)
+    {
+        // Without a parameter list, an anonymous method converts to a delegate of any parameter list and has no natural
+        // type, so it can convert to another delegate type, another overload, user-defined operator, or collection
+        // initializer Add method can be chosen for it, the choice can become ambiguous, or a type argument inferred from
+        // it can no longer be inferred. The list stays unless the code around the anonymous method binds as before
+        // without it and gains no error, and the anonymous method converts to the same type, wherever it stands
+        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+        return semanticModel != null
+               && RewriteBindingUtilities.BindsAsBefore(semanticModel, node, BuildNodeWithoutList(node), out var convertedType, cancellationToken)
+               && SymbolEqualityComparer.Default.Equals(convertedType, semanticModel.GetTypeInfo(node, cancellationToken).ConvertedType);
+    }
+
+    #endregion // EmptyParenthesesCodeFixProviderBase
 }

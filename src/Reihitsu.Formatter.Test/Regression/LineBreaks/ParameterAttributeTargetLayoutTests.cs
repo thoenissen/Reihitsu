@@ -110,6 +110,7 @@ public class ParameterAttributeTargetLayoutTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-027")]
+    [Requirement("FMT-STRUCT-029")]
     public void PropertyTargetedAttributeListWithSeveralAttributesIsNotSplit()
     {
         // Arrange
@@ -130,6 +131,7 @@ public class ParameterAttributeTargetLayoutTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-027")]
+    [Requirement("FMT-STRUCT-029")]
     public void PropertyTargetedAttributeListsOnOneParameterAreMerged()
     {
         // Arrange
@@ -176,6 +178,7 @@ public class ParameterAttributeTargetLayoutTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-027")]
+    [Requirement("FMT-STRUCT-029")]
     public void OnlyAttributeListsOfTheSameTargetAreMerged()
     {
         // Arrange
@@ -203,6 +206,7 @@ public class ParameterAttributeTargetLayoutTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-027")]
+    [Requirement("FMT-STRUCT-029")]
     public void PropertyAndFieldTargetedAttributeListsAreNotMerged()
     {
         // Arrange
@@ -427,6 +431,7 @@ public class ParameterAttributeTargetLayoutTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-027")]
+    [Requirement("FMT-STRUCT-028")]
     public void PropertyTargetedAttributeListWithSeveralAttributesOnPropertyIsStillSplit()
     {
         // Arrange
@@ -598,6 +603,7 @@ public class ParameterAttributeTargetLayoutTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-027")]
+    [Requirement("FMT-STRUCT-029")]
     public void ImplicitListsOnSeparateLinesAreMergedInOnePass()
     {
         // Arrange

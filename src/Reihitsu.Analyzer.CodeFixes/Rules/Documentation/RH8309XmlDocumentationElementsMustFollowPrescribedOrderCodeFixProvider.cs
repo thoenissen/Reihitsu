@@ -39,6 +39,57 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderCodeFixProvi
     }
 
     /// <summary>
+    /// Determines whether the top-level elements of a documentation comment can be reordered without changing what the
+    /// comment says. Reordering moves the elements and leaves every other top-level node in its slot, so text with a
+    /// character that is not white space, an XML comment, a CDATA section, or a processing instruction would end up
+    /// next to another element. An element without an end tag of its own runs to where the parser ends it, so moving it
+    /// would carry an end tag of another name or the declaration that follows the comment, and even in place it marks
+    /// incomplete documentation that is corrected by hand
+    /// </summary>
+    /// <param name="documentationComment">Documentation comment</param>
+    /// <returns><see langword="true"/> if the comment holds nothing at the top level besides elements closed by an end tag of their own, empty elements, and white space</returns>
+    private static bool CanReorderElements(DocumentationCommentTriviaSyntax documentationComment)
+    {
+        foreach (var node in documentationComment.Content)
+        {
+            switch (node)
+            {
+                case XmlElementSyntax element when DocumentationCommentUtilities.HasOwnEndTag(element) == false:
+                    return false;
+
+                case XmlElementSyntax or XmlEmptyElementSyntax:
+                    continue;
+
+                case XmlTextSyntax text when text.TextTokens.All(static token => string.IsNullOrWhiteSpace(token.ValueText)):
+                    continue;
+
+                default:
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Gets the declaration that owns the reported documentation comment, and that comment
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="diagnosticSpan">Diagnostic span</param>
+    /// <param name="declaration">The declaration the comment documents</param>
+    /// <returns>The documentation comment of the declaration, or <see langword="null"/> when there is none</returns>
+    private static DocumentationCommentTriviaSyntax GetDocumentationComment(SyntaxNode root, TextSpan diagnosticSpan, out SyntaxNode declaration)
+    {
+        var diagnosticNode = root.FindNode(diagnosticSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
+
+        declaration = diagnosticNode.AncestorsAndSelf().FirstOrDefault(static node => node is MemberDeclarationSyntax or EnumMemberDeclarationSyntax);
+
+        return declaration == null
+                   ? null
+                   : DirectDocumentationSyntaxChecker.GetDocumentationComment(declaration);
+    }
+
+    /// <summary>
     /// Reorders the top-level XML documentation elements into their canonical order
     /// </summary>
     /// <param name="documentationComment">Documentation comment</param>
@@ -94,15 +145,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderCodeFixProvi
             return document;
         }
 
-        var diagnosticNode = root.FindNode(diagnosticSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
-        var declaration = diagnosticNode.AncestorsAndSelf().FirstOrDefault(static node => node is MemberDeclarationSyntax or EnumMemberDeclarationSyntax);
-
-        if (declaration == null)
-        {
-            return document;
-        }
-
-        var documentationComment = DirectDocumentationSyntaxChecker.GetDocumentationComment(declaration);
+        var documentationComment = GetDocumentationComment(root, diagnosticSpan, out var declaration);
 
         if (documentationComment == null)
         {
@@ -136,17 +179,30 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderCodeFixProvi
     }
 
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
+        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+
+        if (root == null)
+        {
+            return;
+        }
+
         foreach (var diagnostic in context.Diagnostics)
         {
+            var documentationComment = GetDocumentationComment(root, diagnostic.Location.SourceSpan, out _);
+
+            if (documentationComment == null
+                || CanReorderElements(documentationComment) == false)
+            {
+                continue;
+            }
+
             context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH8309Title,
                                                       token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
                                                       nameof(RH8309XmlDocumentationElementsMustFollowPrescribedOrderCodeFixProvider)),
                                     diagnostic);
         }
-
-        return Task.CompletedTask;
     }
 
     #endregion // CodeFixProvider

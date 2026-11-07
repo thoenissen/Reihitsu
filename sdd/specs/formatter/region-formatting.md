@@ -5,9 +5,9 @@
 | ID prefix | FMT-REGION |
 | Status | Active |
 | Code owners | `RegionFormattingPhase`, `RegionNamingRewriter`, `RegionDirectiveUtilities` |
-| Uses | FMT-PIPE-002 |
+| Uses | FMT-PIPE-002, FMT-PIPE-005, FMT-TAB-002 |
 
-This spec covers the region phase: the capitalization of `#region` descriptions and the `// Description` comment on the matching `#endregion`. The phase changes only the text of region directives; it never adds, removes, or moves one.
+This spec covers the region phase: the capitalization of `#region` descriptions, the form of a `#region` line with a description, the `// Description` comment on the matching `#endregion`, the space in front of the text of an `#endregion` whose `#region` has no description, and the end of every region directive line, which ends at its text. The phase changes only the text of region directives; it never adds, removes, or moves one. Its requirements apply when a whole document or syntax tree is formatted.
 
 ## Non-goals
 
@@ -16,12 +16,13 @@ This spec covers the region phase: the capitalization of `#region` descriptions 
 - Whether a region is placed sensibly, for example straddling a member body. The formatter keeps a misplaced region; removing it is an explicit analyzer code-fix action.
 - Unbalanced regions. A `#region` without `#endregion` (or the reverse) is a syntax error, so the whole file is left unchanged under FMT-PIPE-005.
 - Any directive other than `#region` and `#endregion`.
+- Region directives in the code a node-level entry point formats: no requirement of this spec applies there; what node-level formatting still does to them is stated in FMT-PIPE-028.
 
 ## Requirements
 
 ### FMT-REGION-001 — Region descriptions start with an upper-case letter
 
-The formatter MUST change the first character of a `#region` description to its invariant upper-case form when it is a lower-case letter, and MUST leave every other character of the description as written. A description that starts with an upper-case letter or with a character that has no upper-case form (a digit, `_`) MUST keep its first character. When the formatter rewrites a `#region` line, it MUST write it as `#region`, one space, and the trimmed description.
+The formatter MUST change the first character of a `#region` description to its invariant upper-case form when it is a lower-case letter, and MUST leave every other character of the description as written. A description that starts with an upper-case letter or with a character that has no upper-case form (a digit, `_`) MUST keep its first character. The line that holds the description is written as FMT-REGION-007 states.
 
 Why: Region names are headings; a consistent capital letter makes them read as such. Only the first character is touched because the rest is the author's wording — the formatter cannot know whether `fields and properties` should become title case.
 
@@ -156,11 +157,11 @@ class C
 }
 ```
 
-### FMT-REGION-004 — Regions without a description are left alone
+### FMT-REGION-004 — Regions without a description keep their text
 
-The formatter MUST NOT change a `#region` without a description or its matching `#endregion`, including any text after that `#endregion`.
+The formatter MUST NOT add text to a `#region` without a description, and MUST NOT change the text after its matching `#endregion`. When that `#endregion` has text after it, the formatter MUST write exactly one space between the `endregion` keyword and the first character of that text, whatever whitespace stood there before, also when none stood there, and MUST remove whitespace behind that text. A `#region` without a description and an `#endregion` without text after it MUST be written as the bare keyword: whitespace behind `region` or `endregion` is removed, and a line that has none is left unchanged. This holds also for region directives inside a conditional-compilation branch the current build does not compile, and, as for FMT-REGION-007, for the directives the phase pairs (FMT-REGION-003).
 
-Why: There is no name to capitalize or to repeat. Removing the text after the `#endregion` would delete the only label the author wrote for the block.
+Why: There is no name to capitalize or to repeat. Removing or rewriting the text after the `#endregion` would change the only label the author wrote for the block. The whitespace in front of that label and behind it is layout, not part of it: the label gets the one space a `#region` line gets in front of its description, and every region line ends at its last character of text as a `#region` line ends at its description (FMT-REGION-007) — at the keyword when there is no text. The line reads the same whether or not its branch is compiled.
 
 Example:
 
@@ -175,7 +176,79 @@ class C
 }
 ```
 
-is left unchanged.
+is left unchanged, and the whitespace around the label is normalized — `···` stands for three spaces at the end of a line, in every example of this requirement:
+
+```csharp
+class C
+{
+    #region
+
+    int _value;
+
+    #endregion    // Stale···
+}
+```
+
+```csharp
+class C
+{
+    #region
+
+    int _value;
+
+    #endregion // Stale
+}
+```
+
+`#endregion//Stale` becomes `#endregion //Stale`: the text after the keyword is kept as written.
+
+A `#region` and an `#endregion` that are followed only by whitespace lose it:
+
+```csharp
+class C
+{
+    #region···
+
+    int _value;
+
+    #endregion···
+}
+```
+
+```csharp
+class C
+{
+    #region
+
+    int _value;
+
+    #endregion
+}
+```
+
+The same holds in a branch the build does not compile:
+
+```csharp
+class C
+{
+#if false
+    #region···
+    int a;
+    #endregion    // Stale···
+#endif
+}
+```
+
+```csharp
+class C
+{
+#if false
+    #region
+    int a;
+    #endregion // Stale
+#endif
+}
+```
 
 ### FMT-REGION-005 — Region directives are never added, removed, or moved
 
@@ -247,6 +320,81 @@ class C
     }
 
     #endregion // Test
+#endif
+}
+```
+
+### FMT-REGION-007 — A `#region` line is `#region`, one space, and the description
+
+The formatter MUST write every `#region` that has a description as `#region`, exactly one space, and the trimmed description: whatever whitespace stood between the `region` keyword and the description — several spaces, or the four spaces a tab became under FMT-TAB-002 — becomes one space, and whitespace behind the description is removed. This holds whether or not FMT-REGION-001 changes the description's first character, and also for a `#region` inside a conditional-compilation branch the current build does not compile. It applies to the `#region` directives the phase pairs with an `#endregion` (FMT-REGION-003); a file with a region directive that has no partner is left unchanged as a whole (FMT-PIPE-005). A `#region` without a description is left as FMT-REGION-004 states.
+
+Why: The separator and the whitespace behind the description are layout, not part of the name: the description that FMT-REGION-001 and FMT-REGION-002 work with is trimmed. Writing the line form only when the name is rewritten made the output depend on whether the name happened to start with a lower-case letter — `#region    foo` became `#region Foo`, while `#region    Bar` kept its four spaces. One form for every `#region` line with a description matches the one form FMT-REGION-002 gives every `#endregion` behind it, and the line reads the same whether or not its branch is compiled.
+
+Example — `···` stands for three spaces at the end of the line:
+
+```csharp
+class C
+{
+    #region    Bar
+    int a;
+    #endregion    Bar
+
+    #region Baz···
+    int b;
+    #endregion // Baz
+}
+```
+
+```csharp
+class C
+{
+    #region Bar
+
+    int a;
+
+    #endregion // Bar
+
+    #region Baz
+
+    int b;
+
+    #endregion // Baz
+}
+```
+
+and a `#region` line that already has this form is left unchanged:
+
+```csharp
+class C
+{
+    #region Bar
+
+    int a;
+
+    #endregion // Bar
+}
+```
+
+A region in a branch the build does not compile is written the same way:
+
+```csharp
+class C
+{
+#if false
+    #region    Bar
+    int a;
+    #endregion // Bar
+#endif
+}
+```
+
+```csharp
+class C
+{
+#if false
+    #region Bar
+    int a;
+    #endregion // Bar
 #endif
 }
 ```

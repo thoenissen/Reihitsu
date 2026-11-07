@@ -38,7 +38,10 @@ public class RH3103UseShorthandForNullableTypesAnalyzer : DiagnosticAnalyzerBase
     #region Methods
 
     /// <summary>
-    /// Determine whether the node should be skipped
+    /// Determine whether the node should be skipped because <c>T?</c> is not valid C# at its position: as the argument
+    /// of <c>nameof</c>, as the receiver of a member access, as the type of a <c>using static</c> directive, and as the
+    /// target of a using alias when the code is compiled with C# 11 or earlier. A generic name that is a type argument
+    /// stands where <c>T?</c> is valid and is not skipped
     /// </summary>
     /// <param name="genericName">Generic name</param>
     /// <returns><see langword="true"/> if the node should be skipped</returns>
@@ -46,21 +49,31 @@ public class RH3103UseShorthandForNullableTypesAnalyzer : DiagnosticAnalyzerBase
     {
         SyntaxNode nullableType = genericName;
 
-        while (nullableType.Parent is QualifiedNameSyntax or AliasQualifiedNameSyntax)
+        while (nullableType.Parent is QualifiedNameSyntax or AliasQualifiedNameSyntax
+               || (nullableType.Parent is MemberAccessExpressionSyntax qualifyingAccess
+                   && qualifyingAccess.Name == nullableType))
         {
             nullableType = nullableType.Parent;
         }
 
-        return nullableType.Parent is ArgumentSyntax
-                                   {
-                                       Parent: ArgumentListSyntax
-                                       {
-                                           Parent: InvocationExpressionSyntax
-                                           {
-                                               Expression: IdentifierNameSyntax { Identifier.Text: "nameof" }
-                                           }
-                                       }
-                                   };
+        return nullableType.Parent switch
+               {
+                   ArgumentSyntax
+                   {
+                       Parent: ArgumentListSyntax
+                       {
+                           Parent: InvocationExpressionSyntax
+                           {
+                               Expression: IdentifierNameSyntax { Identifier.Text: "nameof" }
+                           }
+                       }
+                   } => true,
+                   MemberAccessExpressionSyntax memberAccessExpression => memberAccessExpression.Expression == nullableType,
+                   UsingDirectiveSyntax usingDirective => usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword)
+                                                          || (usingDirective.Alias != null
+                                                              && genericName.SyntaxTree.Options is CSharpParseOptions { LanguageVersion: < LanguageVersion.CSharp12 }),
+                   _ => false
+               };
     }
 
     /// <summary>
@@ -72,6 +85,7 @@ public class RH3103UseShorthandForNullableTypesAnalyzer : DiagnosticAnalyzerBase
         if (context.Node is not GenericNameSyntax genericName
             || genericName.TypeArgumentList.Arguments.Count != 1
             || genericName.TypeArgumentList.Arguments[0].IsMissing
+            || genericName.TypeArgumentList.Arguments[0] is OmittedTypeArgumentSyntax
             || ShouldSkip(genericName))
         {
             return;

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Clarity;
 using Reihitsu.Formatter;
+using Reihitsu.Formatter.Pipeline.StructuralTransforms.Utilities;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
 
@@ -59,7 +60,10 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedCodeFixProvider : CodeFi
                 var methodDeclaration = root.FindNode(diagnostic.Location.SourceSpan)
                                             .FirstAncestorOrSelf<MethodDeclarationSyntax>();
 
-                if (methodDeclaration != null)
+                // The formatter keeps the expression body of an async method whose task type it cannot see, so a fix that
+                // delegates to it would change nothing there; the method stays reported without a fix
+                if (methodDeclaration != null
+                    && ExpressionBodiedTransformUtilities.RequiresAsyncExpressionBodyPreservation(methodDeclaration) == false)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3202Title,
                                                               cancellationToken => ApplyCodeFixAsync(context.Document, methodDeclaration, cancellationToken),

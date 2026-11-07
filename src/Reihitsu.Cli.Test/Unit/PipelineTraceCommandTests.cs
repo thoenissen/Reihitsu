@@ -150,7 +150,7 @@ public sealed class PipelineTraceCommandTests
 
             // Assert
             Assert.AreEqual(ExitCodes.Success, exitCode);
-            Assert.IsFalse(output.ToString().Contains("LineEndingNormalizationPhase", StringComparison.Ordinal));
+            Assert.IsFalse(output.ToString().Contains("PreparationPhase/LineEndings", StringComparison.Ordinal));
             Assert.AreEqual(string.Empty, error.ToString());
 
             var currentBytes = await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken);
@@ -185,7 +185,7 @@ public sealed class PipelineTraceCommandTests
             var trace = output.ToString();
 
             Assert.AreEqual(ExitCodes.Success, exitCode);
-            Assert.Contains("== Pass 1: LineEndingNormalizationPhase ==", trace);
+            Assert.Contains("== Pass 1: PreparationPhase/LineEndings ==", trace);
             Assert.Contains("Line endings: CRLF=3, LF=2, CR=0 -> CRLF=5, LF=0, CR=0", trace);
             Assert.Contains("Stable after pass 2", trace);
             Assert.DoesNotContain("--- a/", trace);
@@ -194,6 +194,40 @@ public sealed class PipelineTraceCommandTests
             var currentBytes = await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken);
 
             Assert.AreSequenceEqual(originalBytes, currentBytes);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that the trace reports the replacement of a tab under the name of the TabReplacement sub-phase of the
+    /// preparation phase, which is the first phase the trace shows
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncReportsTabReplacementUnderItsSubPhaseName()
+    {
+        // Arrange
+        using (var fixture = new TemporaryDirectoryFixture())
+        {
+            var source = "internal class Sample\n{\n\tpublic void Run()\n\t{\n\t}\n}";
+            var filePath = fixture.CreateFile("Sample.cs", source);
+            var output = new StringWriter();
+            var error = new StringWriter();
+
+            // Act
+            var exitCode = await PipelineTraceCommand.ExecuteAsync([filePath],
+                                                                   output,
+                                                                   error,
+                                                                   TestContext.CancellationToken);
+
+            // Assert
+            var trace = output.ToString();
+            var firstPhaseHeader = trace.IndexOf("== Pass 1:", StringComparison.Ordinal);
+
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+            Assert.IsGreaterThanOrEqualTo(0, firstPhaseHeader, "The trace should report a phase change in the first pass.");
+            Assert.AreEqual(firstPhaseHeader, trace.IndexOf("== Pass 1: PreparationPhase/TabReplacement ==", StringComparison.Ordinal), "The first phase change of the trace should be the TabReplacement sub-phase.");
+            Assert.DoesNotContain("TabReplacementPhase", trace);
+            Assert.AreEqual(string.Empty, error.ToString());
         }
     }
 

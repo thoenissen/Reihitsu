@@ -4,9 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 
 using Reihitsu.Core;
-using Reihitsu.Formatter.Data;
-using Reihitsu.Formatter.Pipeline.UsingDirectives;
-using Reihitsu.Formatter.Utilities;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Core;
 
@@ -18,7 +16,9 @@ internal static class UsingDirectiveCodeFixUtilities
     #region Methods
 
     /// <summary>
-    /// Reorganizes the using directives of a single scope without formatting unrelated nodes
+    /// Reorganizes the using directives of a single scope without formatting unrelated nodes, through
+    /// <see cref="ReihitsuFormatter.OrganizeUsingDirectivesInDocumentAsync"/> (FMT-PIPE-030), for a block of at least two
+    /// directives that may be reordered (SHARED-USING-009)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="scope">Compilation unit or namespace declaration</param>
@@ -26,13 +26,6 @@ internal static class UsingDirectiveCodeFixUtilities
     /// <returns>The updated document</returns>
     internal static async Task<Document> OrganizeScopeUsingsAsync(Document document, SyntaxNode scope, CancellationToken cancellationToken)
     {
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-        if (root == null)
-        {
-            return document;
-        }
-
         var usingDirectives = UsingDirectiveOrderingUtilities.GetUsings(scope);
 
         if (usingDirectives.Count < 2 || UsingDirectiveOrderingSafety.CanSafelyReorder(usingDirectives) == false)
@@ -40,20 +33,7 @@ internal static class UsingDirectiveCodeFixUtilities
             return document;
         }
 
-        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
-        var organizedScope = new UsingDirectiveOrderingPhase().Execute(scope,
-                                                                       new FormattingContext(endOfLine, languageVersion: LanguageVersionResolver.Resolve(document.Project.ParseOptions)),
-                                                                       cancellationToken);
-        var organizedUsings = UsingDirectiveOrderingUtilities.GetUsings(organizedScope);
-
-        if (organizedUsings.SequenceEqual(usingDirectives))
-        {
-            return document;
-        }
-
-        var updatedScope = UsingDirectiveOrderingUtilities.WithUsings(scope, organizedUsings);
-
-        return document.WithSyntaxRoot(root.ReplaceNode(scope, updatedScope));
+        return await ReihitsuFormatter.OrganizeUsingDirectivesInDocumentAsync(document, scope, cancellationToken).ConfigureAwait(false);
     }
 
     #endregion // Methods

@@ -73,6 +73,20 @@ internal static class UsingLeadingTriviaBuilder
     }
 
     /// <summary>
+    /// Determines whether a line break stands in the layout in front of the first significant trivia of a leading
+    /// trivia list, so that this trivia starts a line of its own
+    /// </summary>
+    /// <param name="leadingTrivia">Leading trivia to inspect</param>
+    /// <returns><see langword="true"/> if the list holds significant trivia with a line break in front of it; otherwise, <see langword="false"/></returns>
+    public static bool HasLineBreakBeforeSignificantTrivia(SyntaxTriviaList leadingTrivia)
+    {
+        var firstSignificantTriviaIndex = SyntaxTriviaUtilities.FindFirstSignificantTriviaIndex(leadingTrivia);
+
+        return firstSignificantTriviaIndex > 0
+               && leadingTrivia.Take(firstSignificantTriviaIndex).Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+    }
+
+    /// <summary>
     /// Splits the leading trivia of the original first using directive into a header block that must
     /// stay pinned at the top of the scope and the remainder that continues to belong to the directive
     /// if it is reordered away from the first position. The header is whatever significant trivia is

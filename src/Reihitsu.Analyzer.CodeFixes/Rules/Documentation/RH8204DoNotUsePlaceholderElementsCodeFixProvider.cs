@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Documentation;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
@@ -114,6 +115,11 @@ public class RH8204DoNotUsePlaceholderElementsCodeFixProvider : CodeFixProvider
 
         foreach (var diagnostic in context.Diagnostics)
         {
+            if (DocumentationCommentCodeFixUtilities.CanRewriteElement(root, diagnostic.Location.SourceSpan) == false)
+            {
+                continue;
+            }
+
             context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH8204Title,
                                                       token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
                                                       nameof(RH8204DoNotUsePlaceholderElementsCodeFixProvider)),

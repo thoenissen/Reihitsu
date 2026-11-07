@@ -4,17 +4,17 @@
 |---|---|
 | ID prefix | SHARED-DOC |
 | Status | Active |
-| Code owners | `SplitElementDocumentationAnalyzerBase`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `XmlDocumentationExpander`, `DocumentationModeAnalysisContextExtensions` |
-| Uses | SHARED-FIX-003, SHARED-FIX-006, SHARED-ORDER-002, SHARED-ORDER-006 |
+| Code owners | `SplitElementDocumentationAnalyzerBase`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `XmlDocumentationExpander`, `DocumentationModeAnalysisContextExtensions`, `DocumentationCommentCodeFixUtilities` |
+| Uses | FMT-DOC-013, SHARED-FIX-003, SHARED-FIX-006, SHARED-ORDER-002, SHARED-ORDER-006 |
 
-This spec covers the rules that require one kind of element to be documented. It defines which declarations such a rule checks, the private and non-private groups that split each kind between two rules, the declarations it exempts, and when a declaration counts as documented. It also defines what every documentation rule relies on: which documentation comments belong to a declaration, when a summary has text, when the parameters and type parameters of an element count as documented, and in which documentation modes documentation rules run. For the rules that check the descriptions of parameters, type parameters, and return values, it defines when such a description has text, how the descriptions are paired with the parameters, and when a description lacks a name. For the code fixes that remove or unwrap a documentation element, it defines when an element has an end tag of its own. Each rule that uses this spec states which element kind it checks, which group, and where its diagnostic is located.
+This spec covers the rules that require one kind of element to be documented. It defines which declarations such a rule checks, the private and non-private groups that split each kind between two rules, the declarations it exempts, and when a declaration counts as documented. It also defines what every documentation rule relies on: which documentation comments belong to a declaration, when a summary has text, when the parameters and type parameters of an element count as documented, and in which documentation modes documentation rules run. For the rules that check the descriptions of parameters, type parameters, and return values, it defines when such a description has text, how the descriptions are paired with the parameters, and when a description lacks a name. For the code fixes that remove, unwrap, or reorder documentation elements, it defines when an element has an end tag of its own and withholds them for one that has none; for the code fixes that remove an element, it defines which lines go with it. Each rule that uses this spec states which element kind it checks, which group, and where its diagnostic is located.
 
 ## Non-goals
 
 - Which element kind and which group a rule checks, and where its diagnostic is located — each rule's spec.
 - Which `<summary>` elements are checked for text, and where that diagnostic is located — RH8030 and RH8031; whether `<inheritdoc>` is used where nothing is inherited — RH8203.
 - Which parameters and type parameters a rule checks, and where its diagnostic is located — RH8032, RH8033, RH8101 to RH8104, and RH8108 to RH8111; the documentation of return values — RH8105 to RH8107.
-- The content, order, and layout of a documentation comment — RH8301 to RH8309, apart from which comments they judge (SHARED-DOC-004).
+- The content, order, and layout of a documentation comment — RH8301 to RH8309, apart from which comments they judge (SHARED-DOC-004) and the elements for which their code fixes are withheld (SHARED-DOC-017).
 
 ## Requirements
 
@@ -1307,9 +1307,9 @@ public class C<T>
 
 ### SHARED-DOC-017 — An end tag with another name is no end tag of its own
 
-An XML element of a documentation comment that is written with a start tag MUST count as having an end tag of its own only when the parser closes it with an end tag that carries the name of its start tag. Such an element without an end tag, and one that the parser closes with an end tag of another name — `<returns>` in `<remarks><returns>Nothing</remarks>`, which `</remarks>` closes — has no end tag of its own. The code fixes of RH8107, RH8202, and RH8204 MUST NOT be offered for a reported element that has no end tag of its own; the diagnostic is still reported. An empty element, such as `<returns/>`, `<value/>`, or `<placeholder/>`, needs no end tag, and this requirement does not withhold a fix for it.
+An XML element of a documentation comment that is written with a start tag MUST count as having an end tag of its own only when the parser closes it with an end tag that carries the name of its start tag. Such an element without an end tag, and one that the parser closes with an end tag of another name — `<returns>` in `<remarks><returns>Nothing</remarks>`, which `</remarks>` closes — has no end tag of its own. The names MUST be compared as the compiler reads XML: exactly, prefix and local name, character by character, so `</returns>` is no end tag of its own for `<Returns>`. The code fixes of RH8107, RH8202, and RH8204 MUST NOT be offered for a reported element that has no end tag of its own, and the code fix of RH8309 MUST NOT be offered when any top-level element of the reported comment has no end tag of its own, whether or not the fix would move it; the diagnostic is still reported. An empty element, such as `<returns/>`, `<value/>`, or `<placeholder/>`, needs no end tag, and this requirement does not withhold a fix for it.
 
-Why: An end tag with another name belongs to an element around the reported one, and an element without an end tag runs to the end of the comment. An empty element ends where it is written, so removing it touches nothing else. Removing or unwrapping the reported element up to where the parser ends it would also remove the end tag of the element around it, or the documentation and the code that follow it.
+Why: An end tag with another name belongs to an element around the reported one, and an element without an end tag runs to the end of the comment. An empty element ends where it is written, so removing it touches nothing else. Removing or unwrapping the reported element up to where the parser ends it would also remove the end tag of the element around it, or the documentation and the code that follow it. Moving the element up to where the parser ends it would carry an end tag of another name with it, or take the documentation and the declaration that follow it into the element. A comment with a top-level element that has no end tag of its own is incomplete documentation, which the author corrects by hand and the formatter leaves as written (FMT-DOC-013), so the RH8309 fix is withheld for it even when that element would keep its position. Documentation XML is read the way the compiler reads it, and XML names are case-sensitive.
 
 Example — RH8107 reports the `<returns>` element of the `void` method, which `</remarks>` closes:
 
@@ -1320,6 +1320,23 @@ public class C
     /// Runs
     /// </summary>
     /// <remarks><returns>Nothing</remarks>
+    public void Run()
+    {
+    }
+}
+```
+
+and no code fix is offered.
+
+Example — RH8107 reports the `<Returns>` element, which `</returns>` closes, because the names differ in case:
+
+```csharp
+public class C
+{
+    /// <summary>
+    /// Runs
+    /// </summary>
+    /// <Returns>Nothing</returns>
     public void Run()
     {
     }
@@ -1343,6 +1360,49 @@ public class C
 
 and no code fix is offered.
 
+Example — RH8204 reports the `<placeholder>` element, which has no end tag:
+
+```csharp
+/// <summary>C</summary>
+public class C
+{
+    /// <remarks>Fast</remarks>
+    /// <placeholder>Later text
+    public void Run()
+    {
+    }
+}
+```
+
+and no code fix is offered.
+
+Example — RH8309 reports the `<summary>` element after `<returns>` in all three comments:
+
+```csharp
+class C
+{
+    /// <returns>R</returns>
+    /// <summary>S
+    int A() => 0;
+
+    /// <returns>R</returns>
+    /// <summary>
+    /// S
+    /// </summary>
+    /// <param name="a">P
+    int M(int a) => a;
+
+    /// <returns>R</returns>
+    /// <summary>
+    /// S
+    /// </summary>
+    /// <seealso cref="C">X
+    int N() => 0;
+}
+```
+
+In the first comment, the reported element has no end tag; in the second, the `<param>` element, which the fix would move in front of `<returns>`, has none; in the third, the `<seealso>` element, which keeps its position, has none. No code fix is offered for any of them.
+
 Example — an empty `<returns/>` element ends where it is written, so the RH8107 fix is offered and removes its line:
 
 ```csharp
@@ -1365,6 +1425,53 @@ public class C
     /// Runs
     /// </summary>
     public void Run()
+    {
+    }
+}
+```
+
+### SHARED-DOC-018 — A removed element takes only the lines it owns
+
+A code fix that removes a reported documentation element MUST remove the element. When the element occupies its lines alone — nothing but the documentation exterior (`///`, `*`) and white space before it on its first line, nothing but white space after it on its last line — the fix MUST remove those whole lines. Otherwise it MUST remove the element and the horizontal white space that separates it from the content it shares a line with, and keep that content. The code fixes of RH8107 and RH8202 remove their reported element this way.
+
+Why: An element on its own lines leaves an empty `///` line if only the element is removed. Content that shares the line — a `<summary>` written on one line — belongs to the documentation and stays.
+
+Example — the RH8107 fix:
+
+```csharp
+public class C
+{
+    /// <summary>
+    /// Runs
+    /// </summary>
+    /// {|RH8107:<returns>
+    /// Nothing
+    /// </returns>|}
+    /// <param name="a">A</param>
+    public void Run(int a)
+    {
+    }
+
+    /// <summary>Runs</summary> {|RH8107:<returns>Nothing</returns>|}
+    public void Run2()
+    {
+    }
+}
+```
+
+```csharp
+public class C
+{
+    /// <summary>
+    /// Runs
+    /// </summary>
+    /// <param name="a">A</param>
+    public void Run(int a)
+    {
+    }
+
+    /// <summary>Runs</summary>
+    public void Run2()
     {
     }
 }

@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 
 using Reihitsu.Formatter;
+using Reihitsu.Formatter.Pipeline.StructuralTransforms.Utilities;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
@@ -86,7 +87,10 @@ public abstract class ExpressionBodyToBlockCodeFixProviderBase<TNode> : CodeFixP
                 var node = root.FindNode(diagnostic.Location.SourceSpan)
                                .FirstAncestorOrSelf<TNode>();
 
-                if (node != null)
+                // The formatter keeps the expression body of an async member whose task type it cannot see, so a fix that
+                // delegates to it would change nothing there; the member stays reported without a fix
+                if (node != null
+                    && ExpressionBodiedTransformUtilities.RequiresAsyncExpressionBodyPreservation(node) == false)
                 {
                     context.RegisterCodeFix(CodeAction.Create(_title,
                                                               cancellationToken => ApplyCodeFixAsync(context.Document, node, cancellationToken),
