@@ -4,7 +4,7 @@ Role: lead
 Branch: claude/serene-cori-ckkue0 (the session may push only to this branch; it stands in for `claude/batch-1243-<slug>`)
 PR: thoenissen/Reihitsu#1644 (draft)
 Slug: formatter-layout-fixes
-Lane: bug fix
+Lane: behavior change (widened from bug fix, decision 9)
 
 ## Issues (prompt order)
 
@@ -45,6 +45,7 @@ None in this run so far. The issues' comments carry triage decisions (summarized
 | 6 | Skeptic | #1149 expected RH5111 fix output in 01 (`A = 1` without comma) | Assert `A = 1,`: the trailing comma stays | Observed fix output; the comma is user code | No output changes beyond the join | — |
 | 7 | Skeptic | #952 already fixed on main | Regression test only; `Closes #952` stays since the issue's purpose (regression test) is met | Triage comment says the issue closes once the test lands | Nothing changes | — |
 | 8 | Skeptic | Order: skeptic amendment (decision 5) before or after the output-question batch | Ask the batch now, then route the amendment together with the answers in one spec-author spawn | The amendment does not touch the questions; one spawn instead of two | Internal ordering | — |
+| 9 | Spec author 03 | Q2 extends FMT-RAW into its tab non-goal: change doc or not | Write a change doc recording Q2 (and Q1 for context) and widen the run's lane to behavior change, all six issues | `sdd/README.md` states that extending behavior into a non-goal is a behavior change and needs a change doc; the rulebook is not overridden by the lead | The visible output was decided by the maintainer (Q2 A); the change doc only records it | — |
 | 2 | Lane | Lane for #1149 and #1383, whose bodies say behavior change | Bug fix, all six | The later triage comments on both issues classify them as bugs against FMT-PIPE-014 with spec clarifications; the issues are `agent-filed` | Lane is internal; the outputs are demanded by FMT-PIPE-014 (to be confirmed by the skeptic) | — |
 
 ## Follow-up candidates
@@ -65,4 +66,6 @@ None in this run so far. The issues' comments carry triage decisions (summarized
 - Points for the skeptic: #1149 enum-member `=` treated as already required (RH5111-004, P5-2); #1611 leftward shift removes non-space leading whitespace (derived from RH5202-003, SHARED-FIX-007, FMT-RAW-001).
 - Skeptic 02 at 57ac318: all premises hold; #952 regression test only; #1391 omitted type argument and lone-CR parts already fixed (regression tests only).
 - Output questions batch 1 answered: Q1 A, Q2 A.
-- Next: spec author (03) for decision 5 and the answers Q1/Q2; then test implementer (04).
+- Spec author 03 at f006e33: Q1, Q2, decisions 5, 6 written.
+- Lane widened to behavior change (decision 9); spec author 03 continued for the change doc.
+- Next: test implementer (04).
