@@ -1883,11 +1883,13 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
 
     /// <summary>
     /// Verifies that a comment line between the modifier and the type is neither dropped nor moved away from the code
-    /// it stands with: the fix is withheld, or the comment line stays in front of the field's type
+    /// it stands with: the fix is withheld, or the comment line stays in front of the field's type and the field is
+    /// laid out as the formatter lays it out
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-FIX-003")]
+    [Requirement("SHARED-FIX-007")]
     public async Task VerifyFixKeepsACommentLineInFrontOfTheType()
     {
         const string testData = """
@@ -1908,7 +1910,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
                                }
                                """;
 
-        await VerifyCodeFixIsWithheldOrProducesOneOf(testData, true, inPlace, Format(inPlace));
+        await VerifyCodeFixIsWithheldOrProducesOneOf(testData, true, Format(inPlace));
     }
 
     /// <summary>
