@@ -67,4 +67,6 @@ From `07-spec-author.md`:
 - 08 test implementer done (c062097): D2 fixed; D1/D3 confirmed; 17 new tests (15 failing as expected).
 - 09 implementer done (cf7b1ff): all tests pass (Debug).
 - 10 cleaner done (06a17a3): clean, Release 0 warnings.
-- Next: spec checker (11) → auditor (12) → validator.
+- 11 spec checker done (74b6a19): consistent, no findings.
+- Before auditor: main e3924e2 already merged; no open output questions; Release build green on 74b6a19.
+- Next: auditor (12) on tree 74b6a19 (base main e3924e2) → validator.
