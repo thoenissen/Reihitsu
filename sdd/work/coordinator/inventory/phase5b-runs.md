@@ -36,3 +36,30 @@ Bug-fix lane except P13 (behavior-change). Every open 1.2.1 (54) / 1.2.2 (35) is
 
 Weak overlaps accepted: W1 P12/P10 (RH2001 fix calls CasingUtilities; rerun RH2001 tests after P10); W2 P1/P7 (RH7101 — if P7 must touch RH7101, move P1 to W3).
 Premise checks for the runs (on the issues / run's own skeptic): #1140 & #1147 RH5110 instances after #1632; #1393 & #952 likely resolved; #1594 invalid input; #1598/#1617 unconfirmed; #1076 after #1618; #1604 RH3004 raw-string part is an extension; P13 output questions.
+
+## Sequential order (maintainer 2026-11-07: #1600 stays in P11 (1A); runs one at a time, no parallel waves)
+
+Formatter runs first (fixes that delegate to the formatter follow them), then 1.2.1 fixes by dependency, P11 last of 1.2.1, then 1.2.2.
+
+| # | Run | Command | Status |
+|---|---|---|---|
+| 1 | P2 | `/squad #1243 #1383 #1149 #1391 #952 #1611` | next |
+| 2 | P3 | `/squad #1385 #1398 #1239` | |
+| 3 | P1 | `/squad #963 #1384` | |
+| 4 | P12 | `/squad #1595 #1593 #1616` | |
+| 5 | P10 | `/squad #1597 #1598 #1016 #1015 #1084` | |
+| 6 | P8 | `/squad #1269 #1342 #1343 #1459` | |
+| 7 | P4 | `/squad #946 #972 #1096 #1076 #1626 #1625` | |
+| 8 | P6 | `/squad #1140 #1141 #1144 #1145 #1094 #1393 #1511 #1561` | |
+| 9 | P7 | `/squad #969 #1335 #1263 #1151 #1604` | |
+| 10 | P5 | `/squad #1416 #1388 #1627 #1142` | |
+| 11 | P13 | `/squad #1529 #1543` | |
+| 12 | P9 | `/squad #1283 #1284 #1285` | |
+| 13 | P11 | `/squad #1600 #1150 #1274 #1143` | |
+| 14 | Q3 | `/squad #966 #1105 #1266 #1267` | |
+| 15 | Q5 | `/squad #1071 #1268 #1289 #974` | |
+| 16 | Q6 | `/squad #1074 #1079 #1276 #1613` | |
+| 17 | Q2 | `/squad #1264 #1333 #1334 #1339 #1337 #1412 #1592` | |
+| 18 | Q4 | `/squad #1345 #1346 #1347 #1348 #1270 #1092 #1153 #1617` | |
+| 19 | Q7 | `/squad #1642 #1635` | |
+| 20 | Q1 | `/squad #1147 #1152 #1386 #1387 #1594` | |
