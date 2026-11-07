@@ -46,6 +46,8 @@ None in this run so far. The issues' comments carry triage decisions (summarized
 | 7 | Skeptic | #952 already fixed on main | Regression test only; `Closes #952` stays since the issue's purpose (regression test) is met | Triage comment says the issue closes once the test lands | Nothing changes | — |
 | 8 | Skeptic | Order: skeptic amendment (decision 5) before or after the output-question batch | Ask the batch now, then route the amendment together with the answers in one spec-author spawn | The amendment does not touch the questions; one spawn instead of two | Internal ordering | — |
 | 9 | Spec author 03 | Q2 extends FMT-RAW into its tab non-goal: change doc or not | Write a change doc recording Q2 (and Q1 for context) and widen the run's lane to behavior change, all six issues | `sdd/README.md` states that extending behavior into a non-goal is a behavior change and needs a change doc; the rulebook is not overridden by the lead | The visible output was decided by the maintainer (Q2 A); the change doc only records it | — |
+| 10 | Test implementer 04 | FMT-INDENT-013 enum example and change-doc after block keep `A,`, but FMT-STRUCT-019 (unchanged) removes the trailing comma | Spec author corrects both texts to the whole-document output (no trailing comma) | The unchanged FMT-STRUCT-019 decides it; Q1 was about the column only | Comma removal is demanded by an unchanged requirement; the answered column is kept | — |
+| 11 | Test implementer 04 | #952 did not reproduce | Keep `Closes #952`, no escalation 4 | Decision 7: the issue's triage comment states only a regression test is missing and the issue closes once it lands; the test is in 04 | Nothing visible changes | 6e34031 |
 | 2 | Lane | Lane for #1149 and #1383, whose bodies say behavior change | Bug fix, all six | The later triage comments on both issues classify them as bugs against FMT-PIPE-014 with spec clarifications; the issues are `agent-filed` | Lane is internal; the outputs are demanded by FMT-PIPE-014 (to be confirmed by the skeptic) | — |
 
 ## Follow-up candidates
@@ -58,6 +60,8 @@ None in this run so far. The issues' comments carry triage decisions (summarized
 6. RH5111 does not report compound assignments — P11 question (02-skeptic).
 7. RH5106/RH5107 do not report indexer parameter lists — P11 question (02-skeptic).
 8. Query clauses at statement column outside an argument-like list (02-skeptic).
+10. Compound assignment inside one argument of a multi-argument list (`M(x⏎+= 1, y)`): whether the list returns to one line after the FMT-BREAK-016 join is undecided (04-test-implementer).
+11. Interface indexer `int this⏎[int a] { get; }`: whether its accessor list stays on one line after the join is undecided (04-test-implementer).
 9. Line-break rewriters that already carry a private "line break unless one exists" check: migrate to the shared check (decision 4).
 
 ## Worklist / next step
@@ -68,4 +72,6 @@ None in this run so far. The issues' comments carry triage decisions (summarized
 - Output questions batch 1 answered: Q1 A, Q2 A.
 - Spec author 03 at f006e33: Q1, Q2, decisions 5, 6 written.
 - Lane widened to behavior change (decision 9); spec author 03 continued for the change doc.
-- Next: test implementer (04).
+- Change doc 8432ef4 accepted (both visible changes answered by Q1/Q2). Lane check: behavior-change confirmed.
+- Test implementer 04 at 6e34031: #1243, #1383, #1149, #1391, #1611 reproduced; #952 regression test passes.
+- Next: spec author (05) for decision 10; then implementer (06).
