@@ -1,5 +1,5 @@
 Role: test implementer
-Commit: (this commit; production code at 317a6a5, unchanged)
+Commit: bc05c66 (production code at 317a6a5, unchanged)
 Verdict: tests written
 
 Correction round for decisions 12 and 13. My prompt carried no intended fix or hoped-for verdict. I worked from `00-lead.md`, `04-test-implementer.md`, `06-implementer.md`, the changed specs, and the change doc `sdd/changes/2026-11/raw-string-tab-one-column.md`. Every expected value below was read from a requirement first; I then confirmed it against the Debug CLI output at 317a6a5. No production file was touched.
