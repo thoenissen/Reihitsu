@@ -29,10 +29,16 @@ Bug-fix lane: spec author (clarifications only: the maintainer-decided requireme
 
 ## Follow-up candidates
 
-(none yet)
+1. RH2101 per-part report of a non-static nested partial class (SHARED-NESTED-002) vs. SHARED-DIAG-004 "report once" — 01-spec-author.md.
+2. RH8306 on a partial property whose two summaries disagree — 01-spec-author.md.
+
+## Pending output questions (batch before test implementer)
+
+- Q1 (blocks #1287 rest): location of the single diagnostic of a partial member (RH2002, RH2004, RH8306, RH7401) — A first reporting part in document order (rec.), B first part, C implementing part.
+- Q2: RH2001 mutable-struct boundary — A every non-readonly struct, B only when a non-readonly member is called, C like A but Nullable<enum/readonly struct> counts readonly (rec.).
 
 ## State
 
 - Audited SHA: —
-- Last step: claim, prepare.sh OK.
-- Next: spec author (01).
+- Last step: spec author 01 (fd5393f).
+- Next: skeptic (02), then ask the output-question batch.
