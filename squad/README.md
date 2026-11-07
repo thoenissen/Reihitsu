@@ -23,7 +23,7 @@ Roles are strictly separated. A role that has to re-read everything was given a 
 
 ## Lanes
 
-The lead claims a lane at the start. The diff's paths decide whether the claim holds, not the lead's judgment: `scripts/lane-check.sh <lane>` classifies every changed path and names the narrowest lane that admits them. Every skipped role is recorded with its reason in the PR's run report.
+The lead claims a lane at the start. The diff's paths decide whether the claim holds, not the lead's judgment: `scripts/lane-check.sh <lane>` classifies every changed path and names the narrowest lane that admits them. Every skipped role is recorded with its reason in the run's note, not in the PR.
 
 | Lane | Spec author | Skeptic | Test impl. | Implementer | Cleaner | Spec checker | Auditor | Validator |
 |---|---|---|---|---|---|---|---|---|
@@ -106,13 +106,13 @@ The lead stops and asks the maintainer only when:
 7. the narrowing after the third repair round would change an output the maintainer answered, or the run still blocks after it ([below](#repairs));
 8. before the claim: an issue reference in the prompt is unclear, an existing claim exists, the prompt names more than eight issues, or its issues do not share a lane.
 
-The maintainer's answer to an output question is recorded where it takes effect — the change doc's `Decisions` section or the spec — and in the run report. The answer to any other escalation is recorded in the run report.
+The maintainer's answer to an output question is recorded where it takes effect — the change doc's `Decisions` section or the spec — and in the run's note. The answer to any other escalation is recorded in the run's note; the PR carries only the part that shapes the change.
 
 ## Decisions taken
 
 Every other question the lead decides itself, on the recommendation of the role that raised it or its own, and never stops for it: whether a change doc is required and whether to accept it; spec wording and requirement scope; a test or a requirement that is wrong where nothing visible is in question; scope growth and adjacent fixes ([below](#scope)); architecture findings and repeated classes ([below](#architecture-findings)); a failure that also exists on `main`; widening the lane; merging `main` after an audit; the goals of `agent-filed` issues where nothing visible is in question; and every follow-up issue.
 
-Each decision is a row of the `Decisions taken` table in `00-lead.md`, which the run report carries into the PR:
+Each decision is a row of the `Decisions taken` table in `00-lead.md`, which the run's note summarizes; the PR does not carry it:
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
