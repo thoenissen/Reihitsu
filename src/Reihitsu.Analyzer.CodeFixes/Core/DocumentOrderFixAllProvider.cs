@@ -130,6 +130,28 @@ internal sealed class DocumentOrderFixAllProvider
     /// <returns>The fixed document, or <see langword="null"/> when no fix is offered</returns>
     private static async Task<Document> GetFixedDocumentAsync(FixAllContext context, Document document, Diagnostic diagnostic)
     {
+        var firstAction = await GetFirstMatchingActionAsync(context, document, diagnostic).ConfigureAwait(false);
+
+        if (firstAction == null)
+        {
+            return null;
+        }
+
+        var operations = await firstAction.GetOperationsAsync(context.CancellationToken).ConfigureAwait(false);
+
+        return operations.OfType<ApplyChangesOperation>().FirstOrDefault()?.ChangedSolution.GetDocument(document.Id);
+    }
+
+    /// <summary>
+    /// Registers the provider's fixes for one diagnostic and gets the first registered action that matches the
+    /// equivalence key of the Fix All context, or any action when the context has no key
+    /// </summary>
+    /// <param name="context">Fix All context</param>
+    /// <param name="document">Current document</param>
+    /// <param name="diagnostic">Diagnostic, located in the current document</param>
+    /// <returns>The first matching action, or <see langword="null"/> when the provider registers none</returns>
+    private static async Task<CodeAction> GetFirstMatchingActionAsync(FixAllContext context, Document document, Diagnostic diagnostic)
+    {
         var matchingActions = new List<CodeAction>();
         var fixContext = new CodeFixContext(document,
                                             diagnostic,
@@ -144,16 +166,7 @@ internal sealed class DocumentOrderFixAllProvider
 
         await context.CodeFixProvider.RegisterCodeFixesAsync(fixContext).ConfigureAwait(false);
 
-        var firstAction = matchingActions.FirstOrDefault();
-
-        if (firstAction == null)
-        {
-            return null;
-        }
-
-        var operations = await firstAction.GetOperationsAsync(context.CancellationToken).ConfigureAwait(false);
-
-        return operations.OfType<ApplyChangesOperation>().FirstOrDefault()?.ChangedSolution.GetDocument(document.Id);
+        return matchingActions.FirstOrDefault();
     }
 
     /// <summary>
