@@ -6,7 +6,8 @@ namespace Reihitsu.Formatter.Pipeline.HorizontalSpacing.Rules;
 
 /// <summary>
 /// Requires a single space before braces (outside string interpolation) and around the colon of a
-/// base list or constructor initializer, for example <c>class C : Base</c> and <c>: this()</c>
+/// base list, a constructor initializer, or a type-parameter constraint clause, for example
+/// <c>class C : Base</c>, <c>: this()</c>, and <c>where T : class</c>
 /// </summary>
 internal sealed class SingleSpaceSpacingRule : ISpacingRule
 {
@@ -58,7 +59,9 @@ internal sealed class SingleSpaceSpacingRule : ISpacingRule
     private static bool IsSpacedColonToken(SyntaxToken token)
     {
         return token.IsKind(SyntaxKind.ColonToken)
-               && (token.Parent is BaseListSyntax || token.Parent is ConstructorInitializerSyntax);
+               && (token.Parent is BaseListSyntax
+                   || token.Parent is ConstructorInitializerSyntax
+                   || token.Parent is TypeParameterConstraintClauseSyntax);
     }
 
     #endregion // Methods

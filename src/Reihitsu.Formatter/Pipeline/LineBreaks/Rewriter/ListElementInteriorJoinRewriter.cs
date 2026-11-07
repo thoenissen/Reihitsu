@@ -246,36 +246,33 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Joins every interior wrap of a list element inside the node onto the previous line
+    /// Selects the gaps of the node in which a list element's interior wrap may be joined (<see cref="CanJoin"/>), in text
+    /// order
+    /// </summary>
+    /// <param name="root">The node to rewrite</param>
+    /// <returns>The gaps to join, each given by the token in front of it and the token behind it</returns>
+    private IEnumerable<(SyntaxToken PreviousToken, SyntaxToken Token)> SelectJoinableGaps(SyntaxNode root)
+    {
+        foreach (var token in root.DescendantTokens())
+        {
+            _cancellationToken.ThrowIfCancellationRequested();
+
+            if (CanJoin(root, _context.RootConstruct, token, out var previousToken))
+            {
+                yield return (previousToken, token);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Joins every interior wrap of a list element inside the node onto the previous line through the shared batch join
+    /// (<see cref="LineBreakTriviaUtilities.JoinGaps"/>)
     /// </summary>
     /// <param name="root">The node to rewrite</param>
     /// <returns>The rewritten node, or the original node when nothing was joined</returns>
     private SyntaxNode JoinInteriorWraps(SyntaxNode root)
     {
-        var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
-
-        foreach (var token in root.DescendantTokens())
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            if (CanJoin(root, _context.RootConstruct, token, out var previousToken) == false)
-            {
-                continue;
-            }
-
-            var currentPrevious = replacements.TryGetValue(previousToken, out var replacedPrevious) ? replacedPrevious : previousToken;
-            var currentToken = replacements.TryGetValue(token, out var replacedToken) ? replacedToken : token;
-
-            replacements[previousToken] = currentPrevious.WithTrailingTrivia(LineBreakTriviaUtilities.CreateJoinedTrailingTrivia(currentPrevious, token));
-            replacements[token] = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(currentToken);
-        }
-
-        if (replacements.Count == 0)
-        {
-            return root;
-        }
-
-        return root.ReplaceTokens(replacements.Keys, (original, _) => replacements[original]);
+        return LineBreakTriviaUtilities.JoinGaps(root, SelectJoinableGaps(root));
     }
 
     #endregion // Methods

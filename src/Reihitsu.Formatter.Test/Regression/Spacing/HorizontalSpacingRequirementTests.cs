@@ -337,8 +337,8 @@ public class HorizontalSpacingRequirementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that one space goes before a brace and around base-list and constructor-initializer
-    /// colons, while interpolation braces keep their spacing
+    /// Verifies that one space goes before a brace and around base-list, constructor-initializer,
+    /// and constraint-clause colons, while interpolation braces keep their spacing
     /// </summary>
     [TestMethod]
     [Requirement("FMT-SPACE-009")]
@@ -366,6 +366,11 @@ public class HorizontalSpacingRequirementTests : FormatterTestsBase
 
                                      return $"{a}";
                                  }
+
+                                 void N<T>()
+                                     where T:class
+                                 {
+                                 }
                              }
                              """;
         const string expected = """
@@ -388,6 +393,11 @@ public class HorizontalSpacingRequirementTests : FormatterTestsBase
                                         var values = new int[] { a };
 
                                         return $"{a}";
+                                    }
+
+                                    void N<T>()
+                                        where T : class
+                                    {
                                     }
                                 }
                                 """;
