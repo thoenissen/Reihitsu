@@ -2341,6 +2341,230 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
         await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the fix of the outer literal leaves an empty content line of a raw string literal nested in one of its holes empty when it shifts the literal to the right
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-004")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixLeavesEmptyContentLineOfRawStringNestedInHoleEmptyWhenShiftingRight()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|#0:$"""
+                                    Hello {{|#1:"""
+                                        x
+
+                                        y
+                                        """|}}
+                                    """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = $"""
+                                                   Hello {{|#0:"""
+                                                       x
+
+                                                       y
+                                                       """|}}
+                                                   """;
+                                      }
+                                  }
+                                  """";
+
+        var source = testData;
+        var result = resultData;
+
+        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+
+        TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+        TestFileMarkupParser.GetSpans(result, out var plainResult, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+
+        var fixedSource = await ApplyCodeFixAsync(plainSource);
+
+        Assert.AreEqual(plainResult, fixedSource);
+
+        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of the outer literal leaves an empty content line of a raw string literal nested in one of its holes empty when it shifts the literal to the right, under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-004")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixLeavesEmptyContentLineOfRawStringNestedInHoleEmptyWhenShiftingRightWithCrLf()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|#0:$"""
+                                    Hello {{|#1:"""
+                                        x
+
+                                        y
+                                        """|}}
+                                    """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = $"""
+                                                   Hello {{|#0:"""
+                                                       x
+
+                                                       y
+                                                       """|}}
+                                                   """;
+                                      }
+                                  }
+                                  """";
+
+        var source = NormalizeToCarriageReturnLineFeed(testData);
+        var result = NormalizeToCarriageReturnLineFeed(resultData);
+
+        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+
+        TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+        TestFileMarkupParser.GetSpans(result, out var plainResult, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+
+        var fixedSource = await ApplyCodeFixAsync(plainSource);
+
+        Assert.AreEqual(plainResult, fixedSource);
+
+        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of the outer literal leaves an empty content line of a raw string literal nested in one of its holes empty when it shifts the literal to the left
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-004")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixLeavesEmptyContentLineOfRawStringNestedInHoleEmptyWhenShiftingLeft()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|#0:$"""
+                                                         Hello {{|#1:"""
+                                                             x
+
+                                                             y
+                                                             """|}}
+                                                         """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = $"""
+                                                   Hello {{|#0:"""
+                                                       x
+
+                                                       y
+                                                       """|}}
+                                                   """;
+                                      }
+                                  }
+                                  """";
+
+        var source = testData;
+        var result = resultData;
+
+        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+
+        TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+        TestFileMarkupParser.GetSpans(result, out var plainResult, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+
+        var fixedSource = await ApplyCodeFixAsync(plainSource);
+
+        Assert.AreEqual(plainResult, fixedSource);
+
+        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of the outer literal leaves an empty content line of a raw string literal nested in one of its holes empty when it shifts the literal to the left, under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-004")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixLeavesEmptyContentLineOfRawStringNestedInHoleEmptyWhenShiftingLeftWithCrLf()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|#0:$"""
+                                                         Hello {{|#1:"""
+                                                             x
+
+                                                             y
+                                                             """|}}
+                                                         """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = $"""
+                                                   Hello {{|#0:"""
+                                                       x
+
+                                                       y
+                                                       """|}}
+                                                   """;
+                                      }
+                                  }
+                                  """";
+
+        var source = NormalizeToCarriageReturnLineFeed(testData);
+        var result = NormalizeToCarriageReturnLineFeed(resultData);
+
+        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+
+        TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+        TestFileMarkupParser.GetSpans(result, out var plainResult, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+
+        var fixedSource = await ApplyCodeFixAsync(plainSource);
+
+        Assert.AreEqual(plainResult, fixedSource);
+
+        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
