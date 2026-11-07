@@ -15,4 +15,4 @@ _None._
 
 ## Checks
 - `scripts/build.sh`: 0 Warning(s), 0 Error(s).
-- analyzer RH5202 focused tests: see result below in the commit run (Release).
+- analyzer RH5202: Passed! Failed: 0, Passed: 93, Total: 93.
