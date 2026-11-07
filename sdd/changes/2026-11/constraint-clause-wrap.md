@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | FMT-BREAK-037 (added), FMT-INDENT-032 (added), RH5110-004 (added) |
+| Affected requirements | FMT-BREAK-037 (added), FMT-INDENT-032 (added), RH5110-003 (changed) |
 
 ## What
 
@@ -14,7 +14,7 @@ These rules hold for every `where` clause, whichever declaration owns it: a type
 - **One line or one constraint per line** (FMT-BREAK-037). A clause is wrapped in two cases: a line break stands behind its colon, or its constraints span more than one line. A wrapped clause becomes one constraint per line. The first constraint moves onto the colon's line, every later constraint starts a line no other constraint shares, and each comma stands at the end of the line of the constraint in front of it. A clause written on one line stays on one line.
 - **Comments and directives block joins, never splits** (FMT-BREAK-001, FMT-BREAK-037). A comment, a directive, or disabled text in a gap keeps the line break there. A colon or a first constraint kept that way starts its own line. A comma kept that way stays first on its line. A constraint kept over two lines that way wraps its clause.
 - **Aligned to the first constraint** (FMT-INDENT-032). Every constraint and every comma of a clause that starts a line is indented to the column of the clause's first constraint, the one directly behind the colon. Where a comment or a directive keeps the first constraint below the colon, the column is the one the first constraint would have behind the colon. Where one keeps the colon below the type parameter, the colon is indented one level deeper than `where`, and the constraints align under the first constraint behind it.
-- **RH5110's fix is withheld** (RH5110-004) for a declaration whose clauses could reach that shape only by moving a comment, a directive, or disabled text. The diagnostic stays.
+- **RH5110's fix lays out the constraints too** (RH5110-003). The fix already formats the declaration as the formatter does. Its result now includes the constraint layout. Where a comment, a directive, or disabled text blocks a join, the fix is still offered, and its result is the fallback layout above.
 
 Until now no requirement owned these lines. FMT-BREAK-023 starts each `where` clause on its own line, and FMT-INDENT-017 indents that line. A colon or a constraint that started a line fell back to the block column of the enclosing scope, one level left of its `where` keyword. The formatter also kept partly wrapped clauses as written.
 
@@ -705,7 +705,7 @@ static class E
 
 Where the `where` keyword of an extension block starts its line is unchanged: FMT-BREAK-023 does not apply to extension blocks today, and this change does not extend it.
 
-### 13. RH5110's fix is withheld where a comment or directive blocks a join
+### 13. RH5110's fix is offered where a comment blocks a join, with the fallback layout
 
 ```csharp
 class C
@@ -741,12 +741,30 @@ class C
 }
 ```
 
-After: both diagnostics are reported, and no code fix is offered.
+After:
+
+```csharp
+class C
+{
+    void M<T>()
+        where T : // c
+                  class,
+                  new()
+    {
+    }
+
+    void N<T>()
+        where T : class // c
+                  , new()
+    {
+    }
+}
+```
 
 ### Unchanged
 
 - A clause written on one line, such as `where T : class, new()`, stays on one line.
-- RH5110's diagnostics and every rule page are unchanged. RH5110 still reports only the line and column of the `where` keyword. Its fix is withheld only in the corner case of entry 13, and `general-notes.md` already covers that case ("A diagnostic without a code fix").
+- RH5110's diagnostics and every rule page are unchanged. RH5110 still reports only the line and column of the `where` keyword, and its fix is offered for every input it was offered for before.
 
 ## Decisions
 
@@ -780,9 +798,13 @@ A wrap inside a constraint that no comment or directive holds is joined, and the
 
 In `where T⏎ : …` the colon joins the type parameter's line. Where a comment or a directive blocks the join, the colon keeps its own line, indented one level deeper than `where`, and the constraints align under the first constraint behind it (entry 9; FMT-BREAK-037, FMT-INDENT-032). The rejected option kept every such colon on its own line.
 
-### Q8: RH5110's fix is withheld where only a move would reach the layout
+### Q8: RH5110's fix is withheld only where a comment, directive, or disabled text would have to move
 
-RH5110's fix is withheld for a declaration whose clauses could reach the joined shape only by moving a comment, a directive, or disabled text (entry 13; RH5110-004, SHARED-FIX-003). The diagnostic stays. The rejected option offered the fix and left the blocked line break in place, with the fallback columns of Q3, Q4, and Q7. A literal cannot stand in a constraint clause, so the requirement names comments, directives, and disabled text.
+RH5110's fix is withheld for inputs where its layout could be reached only by moving a comment, a directive, or a literal. Q9 narrowed this answer. The fix formats through the formatter, and FMT-BREAK-037 never joins across a comment, a directive, or disabled text (FMT-BREAK-001). A constraint clause cannot hold a literal. No input therefore reaches the layout by moving one, and no withholding specific to RH5110 remains. SHARED-FIX-003 alone governs, as it does for every fix. No RH5110 requirement records a withheld fix.
+
+### Q9: the fix stays offered where a join is blocked
+
+Where a comment, a directive, or disabled text blocks a join that FMT-BREAK-037 would make, RH5110's fix is still offered (entry 13; RH5110-003). Its result is the formatter's fallback layout. A comment-held first constraint takes the column behind the colon (Q3). A comment-held comma stays first on its line and is aligned (Q4). A comment-held colon goes one level deeper than `where` (Q7). The rejected option withheld the fix for these inputs. That option would have given away inputs the fix rewrites safely, because the fallback layout moves nothing the user wrote.
 
 ### Scope: extension blocks
 
@@ -798,6 +820,6 @@ RH5110 names the position of the `where` keyword, and its non-goal leaves out li
 - **Keep a wrap behind the colon and indent the constraints one level deeper than `where`** — the issue's sketch for that case; rejected (Q2, Q3).
 - **Keep a wrap between the type parameter and the colon** — rejected (Q7).
 - **Let a wrap inside a constraint stay and split the clause** — rejected (Q6).
-- **Offer RH5110's fix with the blocked line break in place** — rejected (Q8).
+- **Withhold RH5110's fix where a comment or directive blocks a join** — rejected (Q9).
 - **Keep a comma that starts a line in front of its constraint** — rejected: FMT-BREAK-011 puts the commas of a parameter list at the end of the line for the same reason.
 - **Indent every wrapped constraint one level deeper than `where` instead of aligning** — rejected: every other wrapped list in a declaration header aligns to its first element (FMT-INDENT-012, FMT-INDENT-015, FMT-INDENT-016).
