@@ -2091,13 +2091,15 @@ class C
 
 This requirement applies to every `where` clause, whichever declaration owns it — a type, a method, a local function, a delegate, or an extension block.
 
-The phase MUST first join the line breaks inside a clause that structure nothing: the colon MUST join the line of the clause's type parameter, and every line break inside one constraint — in a qualified or alias-qualified name, a type argument list (FMT-BREAK-014), `new()`, `class?`, or `allows ref struct` — MUST be joined.
+In this requirement, a line break is one that SHARED-BLANK-008 counts: an end-of-line trivia, or the line break that ends a single-line comment, a `///` comment, or a directive. A line break inside the text of a multi-line comment (`/* … */`) is not one: two tokens that only such a comment puts on different lines of the text are not separated by a line break, for the joins, for whether the clause is wrapped, and for whether a constraint, a comma, or the colon starts a line.
 
-The clause MUST then be judged as these joins leave it. It is wrapped when a line break stands behind its colon, when its colon starts a line because a comment, a directive, or disabled text keeps it off the type parameter's line, or when its constraints, from the first token of the first constraint to the last token of the last one, span more than one line — through a line break in front of or behind a comma between two constraints, or a line break inside one constraint that the joins leave. A wrapped clause MUST become one constraint per line: its first constraint MUST move onto the line of the colon, every later constraint MUST start a line that no other constraint of the clause shares, and every comma between two constraints MUST stand at the end of the line of the constraint in front of it. In a clause that is not wrapped, this requirement changes nothing beyond the joins of the first step.
+The phase MUST first join the line breaks inside a clause that structure nothing: a line break between the clause's type parameter and its colon MUST be joined, so that the colon stands on the type parameter's line, and a line break between two tokens of one constraint MUST be joined — in a qualified or alias-qualified name, in front of the `<` of a type argument list, in `new()`, `class?`, or `allows ref struct`. The gaps of a type argument list, from its `<` to its `>`, are not this requirement's: FMT-BREAK-014 and FMT-BREAK-015 join them. A line break that those requirements, and the requirements of a type argument's own construct, keep — for example one inside a tuple type argument wrapped over two lines (`IEquatable<(int,⏎ string)>`) — stays, and the constraint then spans two lines.
+
+The clause MUST then be judged as these joins leave it. It is wrapped when a line break separates its colon from its first constraint, when a line break separates its colon from its type parameter because a comment, a directive, or disabled text keeps the join from happening, or when a line break separates two tokens of its constraints, from the first token of the first constraint to the last token of the last one — in front of or behind a comma between two constraints, or inside one constraint where the joins leave it. A wrapped clause MUST become one constraint per line: its first constraint MUST move onto the line of the colon, every later constraint MUST start a line — a line break MUST separate it from the token in front of it — that no other constraint of the clause shares, and every comma between two constraints MUST stand at the end of the line of the constraint in front of it. Where a multi-line comment stands behind a comma, the later constraint behind the comment's closing line does not start a line, and the line break goes behind the comment, which stays behind the comma (FMT-BREAK-001). In a clause that is not wrapped, this requirement changes nothing beyond the joins of the first step, also where multi-line comments put its colon or its constraints on different lines of the text.
 
 A join MUST NOT cross a comment, a directive, or disabled text (FMT-BREAK-001). Where one stands in a gap, the line break stays: a colon kept off the type parameter's line starts its own line and wraps the clause, a first constraint kept off the colon's line starts its own line, a comma kept off the previous line stays at the start of the line of the constraint behind it, and a line break inside a constraint that one keeps wraps the clause. The phase keeps the blank lines of every gap it does not join (FMT-BREAK-030).
 
-Why: A partly wrapped clause hides constraints at the end of a line, as a partly wrapped list hides elements (FMT-BREAK-012). With the first constraint on the colon's line and the commas at the end of the line, as in a parameter list (FMT-BREAK-011), the later constraints have a constraint to align under (FMT-INDENT-032). A wrap between the type parameter and the colon, or inside one constraint, splits one part of the clause over two lines without structuring anything, as FMT-BREAK-015 reasons for wraps inside a list element, and the clause is judged after those joins as a list is. A constraint that a comment or a directive keeps over several lines breaks the clause's one-line shape as a multi-line element breaks a list's (FMT-BREAK-013). A colon that one keeps on its own line already takes the clause off the line of its `where` keyword, so its constraints follow the one-per-line layout of every other wrapped clause instead of a shape of their own. RH5110 reports only the position of the `where` keyword, so this layout is a formatter-only decision.
+Why: A partly wrapped clause hides constraints at the end of a line, as a partly wrapped list hides elements (FMT-BREAK-012). With the first constraint on the colon's line and the commas at the end of the line, as in a parameter list (FMT-BREAK-011), the later constraints have a constraint to align under (FMT-INDENT-032). A wrap between the type parameter and the colon, or inside one constraint, splits one part of the clause over two lines without structuring anything, as FMT-BREAK-015 reasons for wraps inside a list element, and the clause is judged after those joins as a list is. A constraint that a comment or a directive keeps over several lines breaks the clause's one-line shape as a multi-line element breaks a list's (FMT-BREAK-013). A colon that one keeps on its own line already takes the clause off the line of its `where` keyword, so its constraints follow the one-per-line layout of every other wrapped clause instead of a shape of their own. Whether a clause is wrapped, and whether a part of it starts a line, is decided on the same line-start facts as every other list (SHARED-BLANK-008): a line break inside a multi-line comment is part of the comment's text and does not wrap a parameter list either (FMT-BREAK-012; `void N(int a, /* x⏎ y */ int b, int c)` stays on one line), and in a wrapped list a parameter behind such a comment's closing line gets a line of its own behind the comment, as a constraint does here. RH5110 reports only the position of the `where` keyword, so this layout is a formatter-only decision.
 
 Example — a clause wrapped between constraints, behind its colon, or in front of a comma becomes one constraint per line; a clause on one line stays:
 
@@ -2386,6 +2388,85 @@ class C
 
     void R<T>()
         where T : class, /* c */
+                  new(),
+                  IDisposable
+    {
+    }
+}
+```
+
+Example — a line break inside a multi-line comment wraps nothing: the comment's closing line does not put the colon (`M`), the first constraint (`N`), a comma (`O`), or a later constraint (`P`) on a line of its own, so these clauses stay as written. In `S`, the line break in front of `IDisposable` wraps the clause; `new()` behind the comment's closing line does not start a line, so a line break goes behind the comment, which stays behind its comma:
+
+```csharp
+using System;
+
+class C
+{
+    void M<T>()
+        where T /* a
+            b */ : class, new()
+    {
+    }
+
+    void N<T>()
+        where T : /* a
+            b */ class, new()
+    {
+    }
+
+    void O<T>()
+        where T : class /* a
+            b */, new()
+    {
+    }
+
+    void P<T>()
+        where T : class, /* a
+            b */ new(), IDisposable
+    {
+    }
+
+    void S<T>()
+        where T : class, /* a
+            b */ new(),
+            IDisposable
+    {
+    }
+}
+```
+
+```csharp
+using System;
+
+class C
+{
+    void M<T>()
+        where T /* a
+            b */ : class, new()
+    {
+    }
+
+    void N<T>()
+        where T : /* a
+            b */ class, new()
+    {
+    }
+
+    void O<T>()
+        where T : class /* a
+            b */, new()
+    {
+    }
+
+    void P<T>()
+        where T : class, /* a
+            b */ new(), IDisposable
+    {
+    }
+
+    void S<T>()
+        where T : class, /* a
+            b */
                   new(),
                   IDisposable
     {

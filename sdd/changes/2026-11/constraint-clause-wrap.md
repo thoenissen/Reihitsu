@@ -10,8 +10,9 @@
 
 These rules hold for every `where` clause, whichever declaration owns it: a type, a method, a local function, a delegate, or an extension block.
 
-- **Wraps that structure nothing are joined first** (FMT-BREAK-037). The colon joins the line of the clause's type parameter, and a line break inside one constraint is joined, for example in a qualified name, a type argument list, `new()`, `class?`, or `allows ref struct`. The clause is judged after these joins.
-- **One line or one constraint per line** (FMT-BREAK-037). A clause is wrapped in two cases: a line break stands behind its colon, or its constraints span more than one line. A wrapped clause becomes one constraint per line. The first constraint moves onto the colon's line, every later constraint starts a line no other constraint shares, and each comma stands at the end of the line of the constraint in front of it. A clause written on one line stays on one line.
+- **Wraps that structure nothing are joined first** (FMT-BREAK-037). The colon joins the line of the clause's type parameter, and a line break inside one constraint is joined, for example in a qualified name, in front of a type argument list, in `new()`, `class?`, or `allows ref struct`. Line breaks inside a type argument list are joined by the type-argument-list rules (FMT-BREAK-014, FMT-BREAK-015); one they keep, such as a wrap inside a tuple type argument, stays. The clause is judged after these joins.
+- **One line or one constraint per line** (FMT-BREAK-037). A clause is wrapped in two cases: a line break separates its colon from its first constraint, or a line break separates two tokens of its constraints. A wrapped clause becomes one constraint per line. The first constraint moves onto the colon's line, every later constraint starts a line no other constraint shares, and each comma stands at the end of the line of the constraint in front of it. A clause written on one line stays on one line.
+- **Line-start facts decide** (FMT-BREAK-037). A line break counts as SHARED-BLANK-008 counts it, as for every other list: a line break inside the text of a multi-line comment (`/* … */`) neither wraps a clause nor puts its colon, a constraint, or a comma on a line of its own. A clause that only such a comment spreads over several lines stays as written. In a wrapped clause, a constraint behind such a comment's closing line gets a line of its own behind the comment (entry 16).
 - **Comments and directives block joins, never splits** (FMT-BREAK-001, FMT-BREAK-037). A comment, a directive, or disabled text in a gap keeps the line break there. A colon or a first constraint kept that way starts its own line, and a colon kept that way wraps its clause. A comma kept that way stays first on its line. A constraint kept over two lines that way wraps its clause.
 - **Aligned to the first constraint** (FMT-INDENT-032). Every constraint and every comma of a clause that starts a line is indented to the column of the clause's first constraint, the one directly behind the colon. Where a comment or a directive keeps the first constraint below the colon, the column is the one the first constraint would have behind the colon. Where one keeps the colon below the type parameter, the colon is indented one level deeper than `where`, and the constraints align under the first constraint behind it.
 - **One space on each side of the colon** (FMT-SPACE-009). The colon of a constraint clause is spaced like the colon of a base list, wherever it shares a line with a neighbor: a clause written `where T:class` becomes `where T : class`, and a colon a join writes gets its spaces too.
@@ -25,7 +26,7 @@ thoenissen/Reihitsu#1631 observed by running the formatter that the wrapped cons
 
 ## Visible output changes
 
-Each entry shows the formatter's output on `main` (`scripts/format.sh` at b1d4a94, entries 9–13 at c317972, entries 14 and 15 at e3924e2, with no production change in between) and the output after this change. Inputs use `using System;` and `using System.Collections.Generic;` where a constraint names an interface.
+Each entry shows the formatter's output on `main` (`scripts/format.sh` at b1d4a94, entries 9–13 at c317972, entries 14–16 at e3924e2, with no production change in between) and the output after this change. Inputs use `using System;` and `using System.Collections.Generic;` where a constraint names an interface.
 
 ### 1. A partly wrapped clause becomes one constraint per line, aligned
 
@@ -907,9 +908,53 @@ class C
 }
 ```
 
+### 16. A constraint behind the closing line of a multi-line comment gets its own line in a wrapped clause
+
+```csharp
+class C
+{
+    void S<T>()
+        where T : class, /* a
+            b */ new(),
+            IDisposable
+    {
+    }
+}
+```
+
+Before:
+
+```csharp
+class C
+{
+    void S<T>()
+        where T : class, /* a
+            b */ new(),
+    IDisposable
+    {
+    }
+}
+```
+
+After:
+
+```csharp
+class C
+{
+    void S<T>()
+        where T : class, /* a
+            b */
+                  new(),
+                  IDisposable
+    {
+    }
+}
+```
+
 ### Unchanged
 
 - A clause written on one line, such as `where T : class, new()`, stays on one line; only the spaces around its colon change (entry 14).
+- A clause that only a line break inside a multi-line comment spreads over several lines stays as written (FMT-BREAK-037), as it does on `main`: `where T /* a⏎ b */ : class, new()`, `where T : /* a⏎ b */ class, new()`, `where T : class /* a⏎ b */, new()`, and `where T : class, /* a⏎ b */ new(), IDisposable`.
 - RH5110's diagnostics and every rule page are unchanged. RH5110 still reports only the line and column of the `where` keyword, and its fix is offered for every input it was offered for before.
 
 ## Decisions
@@ -960,6 +1005,10 @@ The colon of a constraint clause always gets one space on each side, like the co
 
 Where a comment, a directive, or disabled text keeps the colon on its own line, the clause is wrapped: its constraints go one per line, aligned under the first constraint behind the colon (entry 15; FMT-BREAK-037, FMT-INDENT-032). RH5110's fix gives the same result (RH5110-003). The rejected option judged such a clause only by its constraints, so `: class, new()` would have stayed on one line below `where T // c`.
 
+### Line-start facts decide whether a clause is wrapped
+
+Whether a clause is wrapped, and whether its colon, a constraint, or a comma starts a line, is decided on line-start facts (SHARED-BLANK-008), as the parameter-list layout (FMT-BREAK-012) and the constraint alignment (FMT-INDENT-032) decide it. A line break inside the text of a multi-line comment does not count (entry 16, *Unchanged*; FMT-BREAK-037). This is the lead's reading of Q1, recorded after the audit: Q1 makes a clause all or none over constraints on different lines, and in a clause that only such a comment spreads over several lines, no line break separates its constraints. The rejected reading counted a line break inside a comment, which wrapped `where T : /* a⏎ b */ class, new()` and split `where T : class, /* a⏎ b */ new(), IDisposable` partway, while the same comment leaves a parameter list on one line.
+
 ### Scope: extension blocks
 
 FMT-BREAK-037 and FMT-INDENT-032 apply to the clauses of every owner, extension blocks included (entry 12). Whether an extension block's `where` keyword starts its own line is decided by FMT-BREAK-023 and RH5110-001. Neither covers extension blocks today, and changing that is outside this change.
@@ -977,5 +1026,6 @@ RH5110 names the position of the `where` keyword, and its non-goal leaves out li
 - **Withhold RH5110's fix where a comment or directive blocks a join** — rejected (Q9).
 - **Let only a join write the space behind the constraint colon (an exception to FMT-BREAK-031)** — rejected (Q10).
 - **Judge a clause whose colon a comment keeps on its own line by its constraints alone** — rejected (Q11).
+- **Count a line break inside a multi-line comment as a wrap** — rejected: a parameter list does not count it, and it split clauses partway (*Line-start facts decide whether a clause is wrapped*).
 - **Keep a comma that starts a line in front of its constraint** — rejected: FMT-BREAK-011 puts the commas of a parameter list at the end of the line for the same reason.
 - **Indent every wrapped constraint one level deeper than `where` instead of aligning** — rejected: every other wrapped list in a declaration header aligns to its first element (FMT-INDENT-012, FMT-INDENT-015, FMT-INDENT-016).
