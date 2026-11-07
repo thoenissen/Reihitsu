@@ -38,3 +38,7 @@ _None._
 ## Follow-up candidates
 
 _None._ The candidates in `00-lead.md` stay as they are.
+
+## Amendment
+
+Lead decision 9 (`00-lead.md` at `b9e59f8`): the change doc is written, as `sdd/README.md` requires for extending behavior into a non-goal. File: `sdd/changes/2026-11/raw-string-tab-one-column.md`, `Status: Accepted` (lead-accepted; both visible output changes are maintainer-answered). It records Q2 (A), the FMT-RAW tab extension, as the change, and Q1 (A) as the decided reading of FMT-INDENT-013/-016 for a single-type base list. Each has input, before, and after in C#. The run's lane is now behavior change for all six issues. The *Internal choices* entries above that recommend no change doc are superseded.
