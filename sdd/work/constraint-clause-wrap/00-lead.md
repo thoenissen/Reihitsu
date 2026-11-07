@@ -33,6 +33,8 @@ Batch 1 (before test implementer), all recommendations chosen:
 | 5 | Spec | RH5110-004 dropped after Q9; ledger line removed rather than retired | Accept | The ID was only ever issued on this branch; SHARED-FIX-003 alone governs | Q9 answered the visible output | 6ebc723 |
 | 6 | Spec | Accept change doc `sdd/changes/2026-11/constraint-clause-wrap.md` | Accepted | Skeptic ran; amendments and Q1–Q9 carried in | Its visible output changes were all asked | 6ebc723 |
 | 7 | Implementer | D2: `LocalFunctionInLambdaClauseAligns` expects lambda block at column 8; existing lambda layout (unchanged on main) gives 26 | Test expectation is wrong; test implementer fixes it to the existing layout | The lambda block's column is decided by unchanged requirements, not this run | Unchanged requirement decides it | — |
+| 8 | Audit 1 | #1: is a clause wrapped by a line break inside a multi-line block comment (cases a–d)? | Decide on line-start facts (a colon/constraint starts a line, or constraints stand on different lines), as FMT-BREAK-012's parameter-list layout and `GenericConstraintContributor` do; case (b) `where T : /* a⏎ b */ class, new()` stays on one line | Q1's answer is all-or-none over constraints on different lines; all constraints of (b) share a line, so Q1 decides it; matches the counterparts | Q1 answer covers it; `main` leaves (a)–(c) unchanged too | — |
+| 9 | Audit 1 | #2: batch join loop in `JoinUnstructuredWraps` copies `ListElementInteriorJoinRewriter.JoinInteriorWraps` | Repair in this run: extract into a shared helper used by both | PR-introduced copy, small, same component; leaving it adds a second copy (README *Architecture findings*) | Internal refactor, no output change | — |
 | 1 | Claim | Branch name `claude/issue-1631-<slug>` per `lead.md` vs. the session's designated branch | Use `claude/dreamy-curie-x5c135` | The session environment permits pushing only to its designated branch | Branch names are internal | claim commit |
 
 ## Follow-up candidates
@@ -50,6 +52,7 @@ From `02-skeptic.md`:
 (Candidate 1 joined the run as S2, decision 2.)
 
 From `07-spec-author.md`:
+9. `where⏎T : …` puts `T` at the block column; same on `main`, no requirement owns the gap (12-auditor hint).
 8. New-rule candidate (P11): spacing of the constraint colon (`where T:class`), which the formatter rewrites after Q10 but no analyzer reports (RH6021 names only base-list and constructor-initializer colons).
 
 ## Open worklist / next step
@@ -69,4 +72,5 @@ From `07-spec-author.md`:
 - 10 cleaner done (06a17a3): clean, Release 0 warnings.
 - 11 spec checker done (74b6a19): consistent, no findings.
 - Before auditor: main e3924e2 already merged; no open output questions; Release build green on 74b6a19.
-- Next: auditor (12) on tree 74b6a19 (base main e3924e2) → validator.
+- 12 auditor (67bcb95) on 0260784: findings #1 high (multi-line block comment counted as line break), #2 low (copied join loop). Repair round 1 of 3.
+- Worklist round 1: spec author (13) — FMT-BREAK-037 wording to line-start facts per decision 8, outputs of (a)–(d), tuple-in-type-argument wording hint; test implementer (14) — one test per case (a)–(e); implementer (15) — #1 + #2 + correct `IsWrapped`/class remarks; then cleaner, spec checker, auditor (repair only), validator.
