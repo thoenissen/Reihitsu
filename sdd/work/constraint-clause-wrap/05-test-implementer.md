@@ -1,5 +1,5 @@
 Role: test implementer
-Commit: <filled below>
+Commit: 9a1da1d (tests); handover amended in the following commit
 Verdict: tests written
 
 The prompt carried no intended fix, suspected cause, or hoped-for verdict. The issue's "Probable owners" note and its expected output for `where TSecond :⏎ IDisposable` (one level under `where`) were not used; the maintainer's Q2 (join) overrides the latter, and the reproduction test expects `where TSecond : IDisposable`.
