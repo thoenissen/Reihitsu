@@ -1,6 +1,6 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,9 +9,11 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Core;
+using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 
@@ -25,20 +27,24 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
     #region Methods
 
     /// <summary>
-    /// Applies the code fix by realigning raw string content using text-level replacement
+    /// Gets the number of columns by which the code fix shifts the lines of a multi-line raw string literal after its
+    /// first line: the column of its opening quotes minus the width of the whitespace in front of its closing marker,
+    /// measured by <see cref="RawStringLiteralUtilities.GetLeadingWhitespaceLength"/>, as the analyzer measures it. A
+    /// positive shift goes to the right, a negative one to the left
     /// </summary>
-    /// <param name="document">Document</param>
+    /// <param name="sourceText">Text of the document</param>
     /// <param name="node">The syntax node representing the raw string expression</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+    /// <returns>The shift in columns, or 0 when the literal stands on one line</returns>
+    private static int GetShift(SourceText sourceText, SyntaxNode node)
     {
-        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var span = node.Span;
-        var expressionText = sourceText.ToString(span);
+        var openingLine = sourceText.Lines.GetLineFromPosition(span.Start);
+        var closingLine = sourceText.Lines.GetLineFromPosition(span.End);
 
-        var startLine = sourceText.Lines.GetLineFromPosition(span.Start);
-        var startColumn = span.Start - startLine.Start;
+        if (openingLine.LineNumber == closingLine.LineNumber)
+        {
+            return 0;
+        }
 
         var quoteOffset = 0;
 
@@ -47,97 +53,149 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
             quoteOffset = RawStringLiteralUtilities.GetQuoteOffset(interpolated.StringStartToken.Text);
         }
 
-        var targetColumn = startColumn + quoteOffset;
+        var targetColumn = span.Start - openingLine.Start + quoteOffset;
+        var currentClosingColumn = RawStringLiteralUtilities.GetLeadingWhitespaceLength(sourceText.ToString(closingLine.Span));
 
-        var newExpressionText = RealignContent(expressionText, targetColumn);
+        return targetColumn - currentClosingColumn;
+    }
 
-        if (expressionText == newExpressionText)
+    /// <summary>
+    /// Determines whether shifting the lines of an interpolated raw string literal by the given shift would change the
+    /// value of a multi-line raw string literal nested in one of its interpolation holes, at any depth. Only a shift to
+    /// the left can: a line loses up to that many leading whitespace characters, so a nested closing line whose
+    /// whitespace is narrower than the shift loses all of it, while a content line with more whitespace than that
+    /// closing line loses more, and the whitespace the nested literal strips from it no longer matches
+    /// </summary>
+    /// <param name="sourceText">Text of the document</param>
+    /// <param name="interpolatedString">The interpolated raw string literal the fix shifts</param>
+    /// <param name="shift">The shift in columns (<see cref="GetShift"/>)</param>
+    /// <returns><see langword="true"/> if the shift would change a nested literal's value</returns>
+    private static bool ChangesValueOfNestedRawString(SourceText sourceText, InterpolatedStringExpressionSyntax interpolatedString, int shift)
+    {
+        if (shift >= 0)
+        {
+            return false;
+        }
+
+        foreach (var nested in interpolatedString.DescendantNodes())
+        {
+            if (RawStringLineUtilities.IsMultiLineRawStringLiteral(nested) == false)
+            {
+                continue;
+            }
+
+            var openingLine = sourceText.Lines.GetLineFromPosition(nested.Span.Start);
+            var closingLine = sourceText.Lines.GetLineFromPosition(nested.Span.End);
+            var closingWhitespace = RawStringLiteralUtilities.GetLeadingWhitespaceLength(sourceText.ToString(closingLine.Span));
+
+            if (closingWhitespace >= -shift)
+            {
+                continue;
+            }
+
+            for (var lineNumber = openingLine.LineNumber + 1; lineNumber < closingLine.LineNumber; lineNumber++)
+            {
+                var line = sourceText.Lines[lineNumber];
+
+                if (StartsInOwnHole(nested, line.Start) == false
+                    && RawStringLiteralUtilities.GetLeadingWhitespaceLength(sourceText.ToString(line.Span)) > closingWhitespace)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether a line of a raw string literal starts in one of the literal's own interpolation holes rather
+    /// than in its text
+    /// </summary>
+    /// <param name="literal">The raw string literal</param>
+    /// <param name="lineStart">The position at which the line starts</param>
+    /// <returns><see langword="true"/> if the line starts in one of the literal's own holes</returns>
+    private static bool StartsInOwnHole(SyntaxNode literal, int lineStart)
+    {
+        if (literal is not InterpolatedStringExpressionSyntax interpolatedString)
+        {
+            return false;
+        }
+
+        foreach (var content in interpolatedString.Contents)
+        {
+            if (content is InterpolationSyntax
+                && content.Span.Start <= lineStart
+                && lineStart < content.Span.End)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Applies the code fix by shifting the lines of the raw string literal after its first line, so that its closing
+    /// marker starts in the column of its opening quotes. Every shifted line shifts by the same number of columns
+    /// (<see cref="GetShift"/>): spaces are added in front of it, or up to that many leading whitespace characters are
+    /// removed. Which lines shift is the formatter's decision (<see cref="RawStringLineUtilities.MovesLine"/>): an
+    /// empty line stays empty, whether it is literal text, text of a nested raw string, or code in an interpolation
+    /// hole, and a line that starts inside a nested literal other than a raw string, or inside a nested comment, stays
+    /// as written. A nested raw string literal is not aligned here: its lines shift with the outer literal, and it
+    /// keeps its own diagnostic. The fix is not registered where a shift to the left would change a nested raw string
+    /// literal's value (<see cref="ChangesValueOfNestedRawString"/>)
+    /// </summary>
+    /// <param name="document">Document</param>
+    /// <param name="node">The syntax node representing the raw string expression</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task<Document> ApplyCodeFixAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+    {
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var delta = GetShift(sourceText, node);
+
+        if (root == null
+            || delta == 0)
         {
             return document;
         }
 
-        var newSourceText = sourceText.Replace(span, newExpressionText);
+        var openingLine = sourceText.Lines.GetLineFromPosition(node.Span.Start);
+        var closingLine = sourceText.Lines.GetLineFromPosition(node.Span.End);
+        var changes = new List<TextChange>();
 
-        return document.WithText(newSourceText);
-    }
-
-    /// <summary>
-    /// Realigns all content lines of a raw string expression to match the target column
-    /// </summary>
-    /// <param name="expressionText">The full text of the raw string expression</param>
-    /// <param name="targetColumn">The target column for the opening and closing quote markers</param>
-    /// <returns>The realigned expression text</returns>
-    private static string RealignContent(string expressionText, int targetColumn)
-    {
-        var lines = expressionText.Split(["\r\n", "\n"], StringSplitOptions.None);
-
-        if (lines.Length < 2)
+        for (var lineNumber = openingLine.LineNumber + 1; lineNumber <= closingLine.LineNumber; lineNumber++)
         {
-            return expressionText;
-        }
+            var line = sourceText.Lines[lineNumber];
 
-        var lastLine = lines[lines.Length - 1];
-        var currentClosingColumn = lastLine.Length - lastLine.TrimStart().Length;
-
-        if (currentClosingColumn == targetColumn)
-        {
-            return expressionText;
-        }
-
-        var delta = targetColumn - currentClosingColumn;
-        var lineEnding = expressionText.Contains("\r\n")
-                             ? "\r\n"
-                             : "\n";
-        var result = new StringBuilder();
-
-        result.Append(lines[0]);
-
-        for (var lineIndex = 1; lineIndex < lines.Length; lineIndex++)
-        {
-            result.Append(lineEnding);
-
-            var line = lines[lineIndex];
+            if (RawStringLineUtilities.MovesLine(root, line) == false)
+            {
+                continue;
+            }
 
             if (delta > 0)
             {
-                result.Append(new string(' ', delta));
-                result.Append(line);
+                changes.Add(new TextChange(new TextSpan(line.Start, 0), new string(' ', delta)));
             }
             else
             {
-                var charactersToRemove = Math.Min(-delta, GetLeadingWhitespaceCount(line));
+                var charactersToRemove = Math.Min(-delta, RawStringLiteralUtilities.GetLeadingWhitespaceLength(sourceText.ToString(line.Span)));
 
-                result.Append(line.Substring(charactersToRemove));
+                if (charactersToRemove > 0)
+                {
+                    changes.Add(new TextChange(new TextSpan(line.Start, charactersToRemove), string.Empty));
+                }
             }
         }
 
-        return result.ToString();
-    }
-
-    /// <summary>
-    /// Gets the number of leading whitespace characters in a line
-    /// </summary>
-    /// <param name="line">The line to inspect</param>
-    /// <returns>The count of leading whitespace characters</returns>
-    private static int GetLeadingWhitespaceCount(string line)
-    {
-        var count = 0;
-
-        foreach (var character in line)
+        if (changes.Count == 0)
         {
-            // Both spaces and tabs are counted so that outdenting a tab-indented raw string actually removes the
-            // leading whitespace instead of silently doing nothing
-            if (character == ' ' || character == '\t')
-            {
-                count++;
-            }
-            else
-            {
-                break;
-            }
+            return document;
         }
 
-        return count;
+        return document.WithText(sourceText.WithChanges(changes));
     }
 
     #endregion // Methods
@@ -163,6 +221,8 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
             return;
         }
 
+        SourceText sourceText = null;
+
         foreach (var diagnostic in context.Diagnostics)
         {
             var node = root.FindNode(diagnostic.Location.SourceSpan);
@@ -179,6 +239,13 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
             else if (node is InterpolatedStringExpressionSyntax interpolatedString
                      && interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken))
             {
+                sourceText ??= await context.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
+
+                if (ChangesValueOfNestedRawString(sourceText, interpolatedString, GetShift(sourceText, interpolatedString)))
+                {
+                    continue;
+                }
+
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5202Title,
                                                           cancellationToken => ApplyCodeFixAsync(context.Document, interpolatedString, cancellationToken),
                                                           nameof(RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider)),
