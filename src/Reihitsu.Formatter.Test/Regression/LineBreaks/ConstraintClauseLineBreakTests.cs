@@ -1326,5 +1326,160 @@ public class ConstraintClauseLineBreakTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a multi-line comment between the type parameter and the colon does not wrap the clause: the colon behind
+    /// the comment's closing line does not start a line, so the clause stays as written
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-037")]
+    public void ColonBehindMultiLineCommentClosingLineDoesNotWrapClause()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M<T>()
+                                     where T /* a
+                                         b */ : class, new()
+                                 {
+                                 }
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line comment behind the colon does not wrap the clause: the first constraint behind the comment's
+    /// closing line does not start a line, so the clause stays as written
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-037")]
+    public void FirstConstraintBehindMultiLineCommentClosingLineDoesNotWrapClause()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M<T>()
+                                     where T : /* a
+                                         b */ class, new()
+                                 {
+                                 }
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line comment in front of a comma does not wrap the clause: the comma behind the comment's closing
+    /// line does not start a line, so the clause stays as written
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-037")]
+    public void CommaBehindMultiLineCommentClosingLineDoesNotWrapClause()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M<T>()
+                                     where T : class /* a
+                                         b */, new()
+                                 {
+                                 }
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line comment behind a comma does not wrap the clause: the constraint behind the comment's closing
+    /// line does not start a line, so the clause stays as written and is not split partway
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-037")]
+    public void ConstraintBehindMultiLineCommentClosingLineDoesNotWrapClause()
+    {
+        const string input = """
+                             using System;
+
+                             class C
+                             {
+                                 void M<T>()
+                                     where T : class, /* a
+                                         b */ new(), IDisposable
+                                 {
+                                 }
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line comment inside a type argument list does not wrap the clause: no line break separates the
+    /// tokens of the constraint, so the clause stays as written
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-037")]
+    public void TypeArgumentBehindMultiLineCommentClosingLineDoesNotWrapClause()
+    {
+        const string input = """
+                             using System;
+
+                             class C
+                             {
+                                 void M<T>()
+                                     where T : class, IEquatable</* a
+                                         b */T>, new()
+                                 {
+                                 }
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a clause wrapped by a line break in front of a later constraint becomes one constraint per line also
+    /// where a multi-line comment stands behind a comma: the constraint behind the comment's closing line gets a line of
+    /// its own behind the comment, which stays behind its comma
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-037")]
+    [Requirement("FMT-INDENT-032")]
+    public void ConstraintBehindMultiLineCommentClosingLineStartsLineInWrappedClause()
+    {
+        const string input = """
+                             using System;
+
+                             class C
+                             {
+                                 void S<T>()
+                                     where T : class, /* a
+                                         b */ new(),
+                                         IDisposable
+                                 {
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System;
+
+                                class C
+                                {
+                                    void S<T>()
+                                        where T : class, /* a
+                                            b */
+                                                  new(),
+                                                  IDisposable
+                                    {
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
