@@ -1832,6 +1832,515 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                             """");
     }
 
+    /// <summary>
+    /// Verifies that the fix shifts a literal to the right by the full width of the whitespace in front of its closing quotes when that whitespace starts with a no-break space
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    public async Task VerifyFixShiftsRightWhenClosingWhitespaceStartsWithNoBreakSpace()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|#0:"""
+                                ¤   x
+                                ¤   """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = """
+                                              ¤   x
+                                              ¤   """;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(testData.Replace('¤', '\u00A0'), resultData.Replace('¤', '\u00A0'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix shifts a literal to the right by the full width of the whitespace in front of its closing quotes when that whitespace starts with a no-break space, under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    public async Task VerifyFixShiftsRightWhenClosingWhitespaceStartsWithNoBreakSpaceWithCrLf()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|#0:"""
+                                ¤   x
+                                ¤   """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = """
+                                              ¤   x
+                                              ¤   """;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData.Replace('¤', '\u00A0')), NormalizeToCarriageReturnLineFeed(resultData.Replace('¤', '\u00A0')), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix shifts a literal to the right by the full width of the whitespace in front of its closing quotes when that whitespace starts with a form feed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    public async Task VerifyFixShiftsRightWhenClosingWhitespaceStartsWithFormFeed()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|#0:"""
+                                ¤   x
+                                ¤   """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = """
+                                              ¤   x
+                                              ¤   """;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(testData.Replace('¤', '\f'), resultData.Replace('¤', '\f'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix shifts a literal to the right by the full width of the whitespace in front of its closing quotes when that whitespace starts with a vertical tab
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    public async Task VerifyFixShiftsRightWhenClosingWhitespaceStartsWithVerticalTab()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|#0:"""
+                                ¤   x
+                                ¤   """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = """
+                                              ¤   x
+                                              ¤   """;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(testData.Replace('¤', '\v'), resultData.Replace('¤', '\v'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix shifts a UTF-8 literal to the right by the full width of the whitespace in front of its closing quotes when that whitespace starts with an em space
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    public async Task VerifyFixShiftsUtf8LiteralRightWhenClosingWhitespaceStartsWithEmSpace()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|#0:"""
+                                ¤   x
+                                ¤   """u8|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = """
+                                              ¤   x
+                                              ¤   """u8;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(testData.Replace('¤', '\u2003'), resultData.Replace('¤', '\u2003'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix shifts an interpolated literal to the right by the full width of the whitespace in front of its closing quotes when that whitespace starts with a no-break space
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    public async Task VerifyFixShiftsInterpolatedLiteralRightWhenClosingWhitespaceStartsWithNoBreakSpace()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M(int name)
+                                    {
+                                        var a = {|#0:$"""
+                                ¤   {name}
+                                ¤   """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M(int name)
+                                      {
+                                          var a = $"""
+                                               ¤   {name}
+                                               ¤   """;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(testData.Replace('¤', '\u00A0'), resultData.Replace('¤', '\u00A0'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix shifts an interpolated literal to the right by the full width of the whitespace in front of its closing quotes when that whitespace starts with a no-break space, under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    public async Task VerifyFixShiftsInterpolatedLiteralRightWhenClosingWhitespaceStartsWithNoBreakSpaceWithCrLf()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M(int name)
+                                    {
+                                        var a = {|#0:$"""
+                                ¤   {name}
+                                ¤   """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M(int name)
+                                      {
+                                          var a = $"""
+                                               ¤   {name}
+                                               ¤   """;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData.Replace('¤', '\u00A0')), NormalizeToCarriageReturnLineFeed(resultData.Replace('¤', '\u00A0')), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix shifts a literal to the left by the full width of the whitespace in front of its closing quotes when a no-break space follows the spaces of that whitespace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    public async Task VerifyFixShiftsLeftWhenClosingWhitespaceEndsWithNoBreakSpace()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|#0:"""
+                                                    ¤x
+                                                    ¤"""|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = """
+                                                 ¤x
+                                                 ¤""";
+                                      }
+                                  }
+                                  """";
+
+        await Verify(testData.Replace('¤', '\u00A0'), resultData.Replace('¤', '\u00A0'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix shifts a literal to the left by the full width of the whitespace in front of its closing quotes when a no-break space follows the spaces of that whitespace, under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    public async Task VerifyFixShiftsLeftWhenClosingWhitespaceEndsWithNoBreakSpaceWithCrLf()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|#0:"""
+                                                    ¤x
+                                                    ¤"""|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = """
+                                                 ¤x
+                                                 ¤""";
+                                      }
+                                  }
+                                  """";
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData.Replace('¤', '\u00A0')), NormalizeToCarriageReturnLineFeed(resultData.Replace('¤', '\u00A0')), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix shifts a literal to the left by removing leading whitespace that starts with a no-break space, so that its closing quotes start in the column of its opening quotes
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    public async Task VerifyFixShiftsLeftWhenClosingWhitespaceStartsWithNoBreakSpace()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|#0:"""
+                                ¤                    x
+                                ¤                    """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = """
+                                                  x
+                                                  """;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(testData.Replace('¤', '\u00A0'), resultData.Replace('¤', '\u00A0'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix shifts an empty line inside an interpolation hole, outside any nested text, like every other line of the hole, because only an empty content line stays empty
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    [Requirement("RH5202-005")]
+    public async Task VerifyFixShiftsEmptyLineInsideHole()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M(string name)
+                                    {
+                                        var a = {|#0:$"""
+                                    Hello {name
+
+                                    }
+                                    """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M(string name)
+                                      {
+                                          var a = $"""
+                                                   Hello {name
+                                  ·············
+                                                   }
+                                                   """;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix shifts an empty line inside an interpolation hole, outside any nested text, like every other line of the hole, because only an empty content line stays empty, under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    [Requirement("RH5202-005")]
+    public async Task VerifyFixShiftsEmptyLineInsideHoleWithCrLf()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M(string name)
+                                    {
+                                        var a = {|#0:$"""
+                                    Hello {name
+
+                                    }
+                                    """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M(string name)
+                                      {
+                                          var a = $"""
+                                                   Hello {name
+                                  ·············
+                                                   }
+                                                   """;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(testData)), NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(resultData)), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix leaves an empty line inside an interpolation hole empty when it shifts the literal to the left, because the line has no leading whitespace to remove
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    [Requirement("RH5202-005")]
+    public async Task VerifyFixLeavesEmptyLineInsideHoleEmptyWhenShiftingLeft()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M(string name)
+                                    {
+                                        var a = {|#0:$"""
+                                                         Hello {name
+
+                                                         }
+                                                         """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M(string name)
+                                      {
+                                          var a = $"""
+                                                   Hello {name
+
+                                                   }
+                                                   """;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix shifts a line inside an interpolation hole that holds only whitespace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    public async Task VerifyFixShiftsWhitespaceOnlyLineInsideHole()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M(string name)
+                                    {
+                                        var a = {|#0:$"""
+                                    Hello {name
+                                ··
+                                    }
+                                    """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M(string name)
+                                      {
+                                          var a = $"""
+                                                   Hello {name
+                                  ···············
+                                                   }
+                                                   """;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
