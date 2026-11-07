@@ -72,21 +72,22 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Collapses a parameter-list opener when the owning declaration contains the previous token whose trailing trivia
-    /// owns the line break. This is the single collapse policy for every parameter-list owner covered by
-    /// <c>RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer</c>'s <c>ParameterListParentPolicy</c>: unlike a
-    /// policy scoped to the parameter list alone, resolving the previous token from the owning declaration reaches
-    /// it even when a type-parameter list separates the declaration token from the opening parenthesis
+    /// Collapses a parameter-list opener — the opening parenthesis, or the opening bracket of an indexer's parameter list
+    /// (FMT-BREAK-011) — when the owning declaration contains the previous token whose trailing trivia owns the line
+    /// break. This is the single collapse policy for every parameter-list owner covered by
+    /// <c>RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer</c>'s <c>ParameterListParentPolicy</c>, and for indexers:
+    /// unlike a policy scoped to the parameter list alone, resolving the previous token from the owning declaration
+    /// reaches it even when a type-parameter list separates the declaration token from the opening parenthesis
     /// </summary>
     /// <typeparam name="TNode">The parameter-list owner type</typeparam>
     /// <param name="node">The parameter-list owner</param>
     /// <param name="parameterList">The parameter list to normalize</param>
     /// <returns>The updated owner</returns>
     internal static TNode CollapseOwnedOpenParenToDeclarationLine<TNode>(TNode node,
-                                                                         ParameterListSyntax parameterList)
+                                                                         BaseParameterListSyntax parameterList)
         where TNode : SyntaxNode
     {
-        var openParenToken = parameterList.OpenParenToken;
+        var openParenToken = GetOpenToken(parameterList);
         var previousToken = openParenToken.GetPreviousToken();
 
         if (previousToken == default
@@ -104,6 +105,32 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
                                   (original, _) => original == previousToken
                                                        ? newPreviousToken
                                                        : newOpenParen);
+    }
+
+    /// <summary>
+    /// Returns the opening delimiter of a parameter list: the opening parenthesis, or the opening bracket of an indexer's
+    /// parameter list
+    /// </summary>
+    /// <param name="parameterList">The parameter list</param>
+    /// <returns>The opening delimiter</returns>
+    private static SyntaxToken GetOpenToken(BaseParameterListSyntax parameterList)
+    {
+        return parameterList is BracketedParameterListSyntax bracketedParameterList
+                   ? bracketedParameterList.OpenBracketToken
+                   : ((ParameterListSyntax)parameterList).OpenParenToken;
+    }
+
+    /// <summary>
+    /// Returns the closing delimiter of a parameter list: the closing parenthesis, or the closing bracket of an indexer's
+    /// parameter list
+    /// </summary>
+    /// <param name="parameterList">The parameter list</param>
+    /// <returns>The closing delimiter</returns>
+    private static SyntaxToken GetCloseToken(BaseParameterListSyntax parameterList)
+    {
+        return parameterList is BracketedParameterListSyntax bracketedParameterList
+                   ? bracketedParameterList.CloseBracketToken
+                   : ((ParameterListSyntax)parameterList).CloseParenToken;
     }
 
     /// <summary>
@@ -161,15 +188,18 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Collapses misplaced commas onto the previous parameter line. When the moved comma does not already end its line,
-    /// only the whitespace at the end of its trailing trivia is replaced by the line break; whitespace before or between
-    /// block comments that stay after the comma is kept as written
+    /// Collapses misplaced commas onto the previous parameter line, in a parenthesized parameter list and in an indexer's
+    /// bracketed one alike. When the moved comma does not already end its line, only the whitespace at the end of its
+    /// trailing trivia is replaced by the line break; whitespace before or between block comments that stay after the
+    /// comma is kept as written
     /// </summary>
+    /// <typeparam name="TList">The parameter list type</typeparam>
     /// <param name="node">The parameter list node</param>
     /// <param name="endOfLine">The end-of-line sequence to keep after a moved separator</param>
     /// <returns>The updated parameter list</returns>
-    private static ParameterListSyntax CollapseSeparatorsToPreviousParameterLine(ParameterListSyntax node,
-                                                                                 string endOfLine)
+    private static TList CollapseSeparatorsToPreviousParameterLine<TList>(TList node,
+                                                                          string endOfLine)
+        where TList : BaseParameterListSyntax
     {
         for (var separatorIndex = 0; separatorIndex < node.Parameters.SeparatorCount; separatorIndex++)
         {
@@ -205,27 +235,32 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Collapses the closing parenthesis onto the final parameter line
+    /// Collapses the closing parenthesis — or the closing bracket of an indexer's parameter list — onto the final
+    /// parameter line
     /// </summary>
+    /// <typeparam name="TList">The parameter list type</typeparam>
     /// <param name="node">The parameter list node</param>
     /// <returns>The updated parameter list</returns>
-    private static ParameterListSyntax CollapseCloseParenToParameterLine(ParameterListSyntax node)
+    private static TList CollapseCloseParenToParameterLine<TList>(TList node)
+        where TList : BaseParameterListSyntax
     {
-        if (TokenLocator.TryGetPreviousToken(node, node.CloseParenToken, out var previousToken) == false
-            || TokenGapUtilities.HasLineBreakBetween(previousToken, node.CloseParenToken) == false)
+        var closeToken = GetCloseToken(node);
+
+        if (TokenLocator.TryGetPreviousToken(node, closeToken, out var previousToken) == false
+            || TokenGapUtilities.HasLineBreakBetween(previousToken, closeToken) == false)
         {
             return node;
         }
 
-        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousToken, node.CloseParenToken))
+        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousToken, closeToken))
         {
             return node;
         }
 
-        var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.CreateJoinedTrailingTrivia(previousToken, node.CloseParenToken));
-        var newCloseParen = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(node.CloseParenToken);
+        var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.CreateJoinedTrailingTrivia(previousToken, closeToken));
+        var newCloseParen = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(closeToken);
 
-        return node.ReplaceTokens([previousToken, node.CloseParenToken],
+        return node.ReplaceTokens([previousToken, closeToken],
                                   (original, _) => original == previousToken
                                                        ? newPreviousToken
                                                        : newCloseParen);
@@ -460,20 +495,28 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Ensures that all parameters start on their own line once the parameter list is multi-line or a parameter signals a split
+    /// Ensures that all parameters start on their own line once the parameter list — parenthesized, or an indexer's
+    /// bracketed one — is multi-line or a parameter signals a split
     /// </summary>
+    /// <typeparam name="TList">The parameter list type</typeparam>
     /// <param name="node">The parameter list node</param>
     /// <param name="endOfLine">The end-of-line sequence to insert when splitting parameters</param>
+    /// <param name="isWrappedAfterOpener">
+    /// Whether the list was wrapped behind its opening delimiter before the first
+    /// parameter was joined onto that delimiter's line, which splits the list as well
+    /// </param>
     /// <returns>The parameter list with parameters on separate lines</returns>
-    private ParameterListSyntax EnsureParametersOnSeparateLines(ParameterListSyntax node,
-                                                                string endOfLine)
+    private TList EnsureParametersOnSeparateLines<TList>(TList node,
+                                                         string endOfLine,
+                                                         bool isWrappedAfterOpener = false)
+        where TList : BaseParameterListSyntax
     {
         if (node.Parameters.Count <= 1)
         {
             return node;
         }
 
-        return EnsureSeparatorsHaveEndOfLine(node, node.Parameters, endOfLine);
+        return EnsureSeparatorsHaveEndOfLine(node, node.Parameters, endOfLine, isWrappedAfterOpener);
     }
 
     /// <summary>
@@ -488,14 +531,19 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     /// <param name="node">The containing syntax node</param>
     /// <param name="list">The separated syntax list to process</param>
     /// <param name="endOfLine">The end-of-line sequence to add after separators that need splitting</param>
+    /// <param name="isWrappedAfterOpener">
+    /// Whether the caller already joined a wrap behind the list's opening delimiter, which
+    /// signals the split like a wrapped element does
+    /// </param>
     /// <returns>The node with updated separators</returns>
     private TNode EnsureSeparatorsHaveEndOfLine<TNode, TElement>(TNode node,
                                                                  SeparatedSyntaxList<TElement> list,
-                                                                 string endOfLine)
+                                                                 string endOfLine,
+                                                                 bool isWrappedAfterOpener = false)
         where TNode : SyntaxNode
         where TElement : SyntaxNode
     {
-        var hasElementSplitSignal = HasElementSplitSignal(list);
+        var hasElementSplitSignal = isWrappedAfterOpener || HasElementSplitSignal(list);
 
         if (LineBreakDetection.IsMultiLine(node) == false && hasElementSplitSignal == false)
         {
@@ -703,6 +751,32 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
         node = CollapseCloseParenToParameterLine(node);
 
         return EnsureParametersOnSeparateLines(node, _context.EndOfLine);
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitBracketedParameterList(BracketedParameterListSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (BracketedParameterListSyntax)base.VisitBracketedParameterList(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        // An indexer's parameter list hugs its declaration (FMT-BREAK-011); its opening bracket joins `this` where the
+        // indexer declaration is visited. A list wrapped behind its opening bracket is wrapped, and gets one parameter per
+        // line once its first parameter has joined the bracket (FMT-BREAK-012)
+        var firstParameterToken = node.Parameters.Count > 0 ? node.Parameters[0].GetFirstToken() : default;
+        var isWrappedAfterOpener = firstParameterToken != default
+                                   && LineBreakTriviaUtilities.HasLeadingEndOfLine(firstParameterToken);
+
+        node = CollapseFirstElementToSameLine(node, firstParameterToken);
+        node = CollapseSeparatorsToPreviousParameterLine(node, _context.EndOfLine);
+        node = CollapseCloseParenToParameterLine(node);
+
+        return EnsureParametersOnSeparateLines(node, _context.EndOfLine, isWrappedAfterOpener);
     }
 
     /// <inheritdoc/>

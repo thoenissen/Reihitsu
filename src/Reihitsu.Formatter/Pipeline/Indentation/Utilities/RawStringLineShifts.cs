@@ -67,7 +67,7 @@ internal sealed class RawStringLineShifts
             _literals.Add(new RawStringLiteral(node,
                                                openingLine.LineNumber,
                                                closingLine.LineNumber,
-                                               GetLeadingSpaceCount(text, closingLine),
+                                               GetLeadingWhitespaceLength(closingLine),
                                                GetQuoteOffset(node)));
 
             for (var lineNumber = openingLine.LineNumber + 1; lineNumber <= closingLine.LineNumber; lineNumber++)
@@ -102,22 +102,16 @@ internal sealed class RawStringLineShifts
     #region Methods
 
     /// <summary>
-    /// Counts the number of leading space characters of a line
+    /// Gets the width of the whitespace at the start of a line of a raw string literal: every whitespace character counts
+    /// as one column, a tab and a no-break space included (FMT-RAW-001). The measure is the one the RH5202 analyzer and its
+    /// code fix use (<see cref="RawStringLiteralUtilities.GetLeadingWhitespaceLength"/>), so a literal this phase aligns is
+    /// one they find aligned
     /// </summary>
-    /// <param name="text">The text of the syntax tree</param>
     /// <param name="line">The line to examine</param>
-    /// <returns>The number of leading space characters</returns>
-    public static int GetLeadingSpaceCount(SourceText text, TextLine line)
+    /// <returns>The number of leading whitespace characters</returns>
+    private static int GetLeadingWhitespaceLength(TextLine line)
     {
-        var count = 0;
-
-        while (line.Start + count < line.End
-               && text[line.Start + count] == ' ')
-        {
-            count++;
-        }
-
-        return count;
+        return RawStringLiteralUtilities.GetLeadingWhitespaceLength(line.ToString());
     }
 
     /// <summary>
@@ -222,7 +216,7 @@ internal sealed class RawStringLineShifts
                 continue;
             }
 
-            var indentation = GetIndentationLength(root, text, line);
+            var indentation = GetIndentationLength(root, line);
             var newSpaces = getColumnAfterMove(lineNumber, indentation);
 
             if (newSpaces == indentation)
@@ -290,7 +284,7 @@ internal sealed class RawStringLineShifts
 
     /// <summary>
     /// Applies the indentation edits of one token. An edit at a position inside the token's text, or at its start when
-    /// the token holds the text of a raw string literal, replaces the leading spaces of that line of the text. An edit at
+    /// the token holds the text of a raw string literal, moves that line of the text (<see cref="ReplaceIndentation"/>). An edit at
     /// the token's end replaces nothing and appends the moved indentation of the line that starts behind the token, a
     /// line that starts with an interpolation hole's opening brace. An edit in
     /// the token's leading trivia replaces the whitespace trivia that starts the line, or inserts whitespace in front of the
@@ -399,15 +393,22 @@ internal sealed class RawStringLineShifts
     }
 
     /// <summary>
-    /// Replaces the indentation of a line inside a text by the number of spaces an edit gives it
+    /// Moves a line inside a text from the column its indentation gives it to the column an edit gives it (FMT-RAW-002): a
+    /// move to the right adds spaces in front of the line, and a move to the left removes that many characters from the
+    /// start of its indentation, whatever whitespace they are. The whitespace characters the move does not remove stay as
+    /// written. The column after the move is never below 0, so a move to the left removes at most the whole indentation
     /// </summary>
     /// <param name="text">The text</param>
     /// <param name="offset">The offset of the line's start in the text</param>
-    /// <param name="edit">The edit: the position the line starts at, the number of characters of indentation it replaces, and the number of spaces that replace them</param>
-    /// <returns>The text with the line's indentation replaced</returns>
+    /// <param name="edit">The edit: the position the line starts at, the number of characters of indentation it has, and the column it has after the move</param>
+    /// <returns>The text with the line moved</returns>
     private static string ReplaceIndentation(string text, int offset, (int LineStart, int OldLength, int NewLength) edit)
     {
-        return $"{text.Substring(0, offset)}{new string(' ', edit.NewLength)}{text.Substring(offset + edit.OldLength)}";
+        var shift = edit.NewLength - edit.OldLength;
+
+        return shift >= 0
+                   ? text.Insert(offset, new string(' ', shift))
+                   : text.Remove(offset, Math.Min(-shift, edit.OldLength));
     }
 
     /// <summary>
@@ -428,14 +429,13 @@ internal sealed class RawStringLineShifts
     /// <summary>
     /// Gets the length of the indentation that moving a line rewrites. On a line of an interpolation hole, the
     /// indentation is whitespace trivia, which holds no tab once the first phase ran; it is rewritten as a whole, so
-    /// the line moves by the full shift. On a content or closing line, the indentation is the literal's text, and only
-    /// its leading spaces are rewritten
+    /// the line moves by the full shift. On a content or closing line, the indentation is the literal's text, and its
+    /// leading whitespace characters, each one column, are measured as the closing marker's column is (FMT-RAW-001)
     /// </summary>
     /// <param name="root">The indented syntax root</param>
-    /// <param name="text">The text of the indented syntax tree</param>
     /// <param name="line">The line to examine</param>
     /// <returns>The number of characters the indentation takes, each of them one column</returns>
-    private static int GetIndentationLength(SyntaxNode root, SourceText text, TextLine line)
+    private static int GetIndentationLength(SyntaxNode root, TextLine line)
     {
         var trivia = root.FindTrivia(line.Start);
 
@@ -445,7 +445,7 @@ internal sealed class RawStringLineShifts
             return Math.Min(trivia.Span.End, line.End) - line.Start;
         }
 
-        return GetLeadingSpaceCount(text, line);
+        return GetLeadingWhitespaceLength(line);
     }
 
     /// <summary>

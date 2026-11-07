@@ -214,6 +214,8 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
 
             case IndexerDeclarationSyntax indexer:
                 {
+                    indexer = LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(indexer, indexer.ParameterList);
+
                     return _accessorListLayout.Apply(indexer);
                 }
 
