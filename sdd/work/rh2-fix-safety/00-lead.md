@@ -20,7 +20,7 @@ Bug-fix lane: spec author (clarifications only: the maintainer-decided requireme
 Maintainer: "keep it simple".
 
 - Q1 (partial member, single diagnostic location; RH2002, RH2004, RH8306, RH7401–RH7412): **A** — reported once, on the first part the rule would report on its own; generated parts skipped; the defining part before the implementing part; when no part qualifies by what it writes, the defining part.
-- Q2 (RH2001 mutable-struct boundary): **C** (not C′) — fix withheld for a settable property whose type is a struct not declared `readonly` (per the type symbol of the compilation's references); `Nullable<T>` of an enum or `readonly` struct counts as readonly. No special-type exemption: on netstandard2.0/.NET Framework targets `int`/`bool` properties lose the fix — accepted by the maintainer.
+- Q2 (RH2001 mutable-struct boundary): **C** (not C′) — fix withheld for a property whose type is a struct not declared `readonly` (option C as asked: "every struct not declared readonly"; the earlier "settable" in this note was the lead's gloss, not the answer) (per the type symbol of the compilation's references); `Nullable<T>` of an enum or `readonly` struct counts as readonly. No special-type exemption: on netstandard2.0/.NET Framework targets `int`/`bool` properties lose the fix — accepted by the maintainer.
 - Q3 (RH2005 references outside the type body that still compile — `nameof` in the type's own attribute, `cref` from another type): **B** — every reference outside the bodies of the type's declarations withholds the fix; spec text as written.
 
 ## Decisions taken
@@ -35,11 +35,12 @@ Maintainer: "keep it simple".
 | 6 | Skeptic | RH2005-004 wording | "any field the declaration declares" | Fix changes every declarator at once; only one safe reading | Wording only | — |
 | 7 | Skeptic | RH2001-007 scope | Widen to comments or directives between the name and the end of the declaration, except inside the initializer | SHARED-FIX-003 already withholds these; one place states the class | Both readings withhold the fix | — |
 | 8 | Skeptic | #1287 goal "RH2004-002 and its tests are updated" | Replace by RH2004-001 coverage and the characterization test near `RH2004AccessModifierMustBeDeclaredAnalyzerTests.cs:881` | RH2004-002 covers partial types/methods, which stay unreported | Goal wording only | — |
+| 10 | Spec author 03 | RH2001: get-only property of a non-readonly struct, and a type parameter not constrained to a reference type | Withhold the fix for both | Literal reading of answer 2C ("every struct not declared readonly"; a type parameter may be such a struct); matches the spec author's recommendation and the maintainer's "keep it simple" | Covered by the maintainer's answer to Q2 | — |
 | 9 | Skeptic | Spec-author follow-up candidates 1 and 2 | Collapse into one spec-wording follow-up for SHARED-DIAG-004; candidate 2 folds into Q1's answer | SHARED-NESTED-002 already decides candidate 1 | Wording follow-up only | — |
 
 ## Follow-up candidates
 
-1. SHARED-DIAG-004 wording: exclusion list should name SHARED-NESTED-002's per-part reports; second paragraph should not seem to cover RH8306 summaries (replaces spec-author candidates 1+2) — 02-skeptic.md.
+1. SHARED-DIAG-004 wording (extended by 03-spec-author: last paragraph should not read as covering the region a part of a partial member lies in): exclusion list should name SHARED-NESTED-002's per-part reports; second paragraph should not seem to cover RH8306 summaries (replaces spec-author candidates 1+2) — 02-skeptic.md.
 
 ## Pending output questions (batch before test implementer)
 
@@ -53,4 +54,5 @@ Maintainer: "keep it simple".
 - Audited SHA: —
 - Last step: spec author 01 (fd5393f).
 - Last step: skeptic 02 (7e38ec4). Output questions Q1–Q3 asked.
-- Answers received. Next: fresh spec author (03) amends per answers + decisions 4–8, then test implementer.
+- Spec author 03 done (bbfd717). Continued once for decision 10.
+- Next: test implementer (04).
