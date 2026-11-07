@@ -100,6 +100,7 @@ Maintainer: "keep it simple".
 - Spec author 12 done (5d0db01): RH2005-003 clarified, RH2005-005 new, RH2001-007 widened.
 - Test implementer 13 done (e70fd29): 17 intended reds in RH2001/RH2005 plus 4a/4b reds.
 - Implementer 14 done (2f1fb5a, d09d88f): all tests pass (analyzer 7153, core 649, architecture 115).
-- Next: cleaner (15), spec checker (16), auditor on repair only (17), validator (18).
+- Cleaner 15 clean (f4be099); spec checker 16 consistent (38ad14b).
+- Next: auditor on repair only (17), validator (18).
 - (old line) Next (was: test implementer 13) narrows tests to the answered outputs; implementer (14) repairs findings 1–4 with decisions 16–18.
 - Repair round 1 (of 3) worklist: test implementer (11) adds regressions for 1, 2a, 2b, 4a, 4b; implementer (12) repairs 1–4 with decisions 16–18; cleaner, spec checker, auditor (repair only), validator.
