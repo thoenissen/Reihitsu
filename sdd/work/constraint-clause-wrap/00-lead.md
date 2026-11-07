@@ -10,7 +10,15 @@
 
 ## Maintainer answers
 
-(none yet)
+Batch 1 (before test implementer), all recommendations chosen:
+- Q1 → A: a wrapped clause puts one constraint per line, aligned under the first constraint (column behind `where T : `).
+- Q2 → A: a first constraint wrapped below the colon is joined onto the colon's line; the clause is then laid out by Q1.
+- Q3 → A: where a comment or directive blocks that join, the constraints take the column the first constraint would have behind the colon.
+- Q4 → A: a leading comma moves to the end of the previous line; where a comment blocks that, the comma stays first on its line and is aligned to the constraint column.
+- Q5 → A: a constraint a comment keeps over two lines wraps the whole clause (one per line); its inner line aligns inside the constraint.
+- Q6 → A (skeptic S1): wraps inside a constraint that no comment/directive holds are joined first; the clause is judged after the join.
+- Q7 → A (skeptic S2): `where T⏎ : …` — the colon joins the type parameter's line; where a comment blocks the join, the colon keeps its own line one level deeper than `where` and the constraints align under the first.
+- Q8 → A: RH5110's fix is withheld for inputs where the layout could only be reached by moving a comment, directive, or literal.
 
 ## Decisions taken
 
@@ -39,4 +47,5 @@ From `02-skeptic.md`:
 
 - 01 spec author done (44509cd): change doc `sdd/changes/2026-11/constraint-clause-wrap.md` (Draft), FMT-BREAK-037, FMT-INDENT-032; 5 output questions in its handover.
 - 02 skeptic done (38c6f09): premise confirmed; verdict output question; S1, S2 added.
-- **Waiting on maintainer**: output-question batch 1 posted (Q1–Q5 from 01, Q6 = S1, Q7 = S2, Q8 = RH5110 fix withholding). Next after answers: spec author amends spec/change doc (answers + decision 3), then test implementer.
+- Batch 1 answered (all A).
+- Next: fresh spec author (03) amends change doc Decisions + specs for answers and decision 3; then test implementer.
