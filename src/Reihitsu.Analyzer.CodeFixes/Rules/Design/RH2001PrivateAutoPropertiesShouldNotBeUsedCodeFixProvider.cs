@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -178,6 +179,12 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
     /// <param name="node">Property declaration</param>
     /// <param name="fieldDeclaration">Field declaration</param>
     /// <returns><see langword="true"/> if the property shape is safe to convert</returns>
+    /// <remarks>
+    /// The field keeps the property's leading and trailing trivia, its modifiers, its type, and its initializer. It gets a
+    /// new name, a new <c>;</c>, and no accessor list, so the trivia of the property's name, of its accessor list, of its
+    /// <c>;</c>, and in front of the initializer's <c>=</c> is not carried over. When that trivia holds a comment or a
+    /// directive, the field would lose it, and the conversion is withheld (RH2001-007, SHARED-FIX-003)
+    /// </remarks>
     private static bool TryCreateFieldDeclaration(PropertyDeclarationSyntax node, out FieldDeclarationSyntax fieldDeclaration)
     {
         fieldDeclaration = null;
@@ -196,32 +203,58 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
             modifiers = ModifierOrderingUtilities.OrderModifiersForRh7105(modifiers.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)));
         }
 
-        fieldDeclaration = SyntaxFactory.FieldDeclaration(SyntaxFactory.VariableDeclaration(node.Type)
-                                                                       .AddVariables(SyntaxFactory.VariableDeclarator(fieldName)
-                                                                                                  .WithInitializer(node.Initializer)))
-                                        .WithAttributeLists(node.AttributeLists)
-                                        .WithModifiers(modifiers)
-                                        .WithLeadingTrivia(node.GetLeadingTrivia())
-                                        .WithTrailingTrivia(node.GetTrailingTrivia());
+        var initializer = node.Initializer?.WithEqualsToken(node.Initializer.EqualsToken.WithLeadingTrivia(SyntaxFactory.TriviaList()));
+        var candidate = SyntaxFactory.FieldDeclaration(SyntaxFactory.VariableDeclaration(node.Type)
+                                                                    .AddVariables(SyntaxFactory.VariableDeclarator(fieldName)
+                                                                                               .WithInitializer(initializer)))
+                                     .WithAttributeLists(node.AttributeLists)
+                                     .WithModifiers(modifiers)
+                                     .WithLeadingTrivia(node.GetLeadingTrivia())
+                                     .WithTrailingTrivia(node.GetTrailingTrivia());
+
+        if (KeepsEveryCommentAndDirective(node, candidate) == false)
+        {
+            return false;
+        }
+
+        fieldDeclaration = candidate;
 
         return true;
     }
 
     /// <summary>
-    /// Checks whether the property shape is safe to convert automatically. A comment or directive between the name and
-    /// the end of the declaration, other than inside the initializer, has no place in the field, so it withholds the
-    /// conversion (RH2001-007)
+    /// Checks whether the field keeps every comment, directive, and disabled text of the property, in the same order
     /// </summary>
     /// <param name="node">Property declaration</param>
-    /// <returns><see langword="true"/> if the fixer can safely convert the property</returns>
+    /// <param name="fieldDeclaration">Field declaration built from the property</param>
+    /// <returns><see langword="true"/> if the field holds the same comments, directives, and disabled text</returns>
+    private static bool KeepsEveryCommentAndDirective(PropertyDeclarationSyntax node, FieldDeclarationSyntax fieldDeclaration)
+    {
+        return GetCommentsAndDirectives(node).SequenceEqual(GetCommentsAndDirectives(fieldDeclaration), StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    /// Gets the text of every comment, directive, and disabled text of a declaration, in document order
+    /// </summary>
+    /// <param name="declaration">Declaration</param>
+    /// <returns>The texts</returns>
+    private static IEnumerable<string> GetCommentsAndDirectives(SyntaxNode declaration)
+    {
+        return declaration.DescendantTrivia()
+                          .Where(static trivia => SyntaxTriviaUtilities.IsCommentTrivia(trivia)
+                                                  || SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia))
+                          .Select(static trivia => trivia.ToFullString());
+    }
+
+    /// <summary>
+    /// Checks whether the property has the shape the fix converts: an auto-property with a getter, an optional setter,
+    /// and no attributes, accessor modifiers, accessor bodies, expression body, or explicit interface specifier
+    /// </summary>
+    /// <param name="node">Property declaration</param>
+    /// <returns><see langword="true"/> if the fixer can convert the property's shape</returns>
     private static bool IsSupportedPropertyShape(PropertyDeclarationSyntax node)
     {
         if (node.AttributeLists.Count > 0 || node.AccessorList == null || node.ExpressionBody != null || node.ExplicitInterfaceSpecifier != null)
-        {
-            return false;
-        }
-
-        if (HasCommentOrDirectiveInsideDeclaration(node))
         {
             return false;
         }
@@ -271,43 +304,6 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
         }
 
         return hasGetter;
-    }
-
-    /// <summary>
-    /// Checks whether a comment or directive stands between the property's name and the end of its declaration, other
-    /// than inside its initializer: behind the name, anywhere in the accessor list, or between the accessor list and the
-    /// initializer's <c>=</c>. The trivia behind the accessor list's closing brace is the declaration's own trailing
-    /// trivia when no initializer follows, and the field keeps it
-    /// </summary>
-    /// <param name="node">Property declaration</param>
-    /// <returns><see langword="true"/> if such a comment or directive exists</returns>
-    private static bool HasCommentOrDirectiveInsideDeclaration(PropertyDeclarationSyntax node)
-    {
-        var accessorList = node.AccessorList;
-        var trivia = node.Identifier.TrailingTrivia.AsEnumerable();
-
-        foreach (var token in accessorList.DescendantTokens())
-        {
-            trivia = trivia.Concat(token.LeadingTrivia);
-
-            if (token != accessorList.CloseBraceToken
-                || node.Initializer != null)
-            {
-                trivia = trivia.Concat(token.TrailingTrivia);
-            }
-        }
-
-        if (node.Initializer != null)
-        {
-            trivia = trivia.Concat(node.Initializer.EqualsToken.LeadingTrivia);
-        }
-
-        return trivia.Any(static obj => obj.IsDirective
-                                        || obj.IsKind(SyntaxKind.DisabledTextTrivia)
-                                        || obj.IsKind(SyntaxKind.SingleLineCommentTrivia)
-                                        || obj.IsKind(SyntaxKind.MultiLineCommentTrivia)
-                                        || obj.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-                                        || obj.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia));
     }
 
     /// <summary>
@@ -409,7 +405,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
         foreach (var diagnostic in context.Diagnostics)
         {
             if (root.FindNode(diagnostic.Location.SourceSpan) is PropertyDeclarationSyntax node
-                && IsSupportedPropertyShape(node)
+                && TryCreateFieldDeclaration(node, out _)
                 && HasFieldNameCollision(semanticModel, node) == false
                 && semanticModel?.GetDeclaredSymbol(node, context.CancellationToken) is { } symbol
                 && HasValueSafeFieldType(symbol.Type)

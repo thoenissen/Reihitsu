@@ -155,7 +155,9 @@ public class RH2005FieldsMustBePrivateCodeFixProvider : CodeFixProvider
                                            .OfType<FieldDeclarationSyntax>()
                                            .FirstOrDefault();
 
+                // A comment or directive in front of an accessibility modifier behind another modifier withholds the fix (RH2005-005)
                 if (fieldDeclaration != null
+                    && DeclarationModifierUtilities.HasCommentOrDirectiveInFrontOfLaterAccessibilityModifier(fieldDeclaration.Modifiers) == false
                     && await IsReferencedOutsideContainingTypeAsync(context.Document, fieldDeclaration, context.CancellationToken).ConfigureAwait(false) == false)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH2005Title,

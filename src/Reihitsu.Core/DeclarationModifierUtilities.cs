@@ -25,6 +25,22 @@ public static class DeclarationModifierUtilities
     }
 
     /// <summary>
+    /// Checks whether a comment, a directive, or disabled text stands in front of an accessibility modifier that is not
+    /// the first modifier: the trivia that <see cref="AddAccessibilityModifiers(MemberDeclarationSyntax, IReadOnlyList{SyntaxKind})"/>
+    /// carries onto the token behind such a modifier when it removes the modifier
+    /// </summary>
+    /// <param name="modifiers">Modifiers</param>
+    /// <returns><see langword="true"/> if such a comment, directive, or disabled text exists</returns>
+    public static bool HasCommentOrDirectiveInFrontOfLaterAccessibilityModifier(SyntaxTokenList modifiers)
+    {
+        return modifiers.Skip(1)
+                        .Where(static modifier => IsAccessibilityModifier(modifier.Kind()))
+                        .SelectMany(static modifier => modifier.LeadingTrivia)
+                        .Any(static trivia => SyntaxTriviaUtilities.IsCommentTrivia(trivia)
+                                              || SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia));
+    }
+
+    /// <summary>
     /// Maps a declared accessibility to the modifier keywords that express it, using the canonical keyword order
     /// for the compound accessibilities (<see langword="protected"/> <see langword="internal"/> and
     /// <see langword="private"/> <see langword="protected"/>). This is the single accessibility-keyword policy
@@ -103,13 +119,15 @@ public static class DeclarationModifierUtilities
     /// declaration's leading trivia, so a doc comment stays in front of the inserted modifiers instead of being
     /// detached from the symbol (CS1587). With attribute lists on their own line, the indentation and every
     /// comment and directive line in front of the declaration stay in front of the inserted modifiers, which
-    /// therefore stand on the declaration's line and in its column
+    /// therefore stand on the declaration's line and in its column. An accessibility modifier that is removed from behind
+    /// another modifier hands its leading trivia to the token that followed it, so a line that modifier started keeps its
+    /// place and that token stands on it, in the modifier's column
     /// </remarks>
     public static MemberDeclarationSyntax AddAccessibilityModifiers(MemberDeclarationSyntax memberDeclaration, IReadOnlyList<SyntaxKind> accessibilityModifiers)
     {
         var firstToken = GetFirstTokenBehindAttributeLists(memberDeclaration);
         var leadingTrivia = firstToken.LeadingTrivia;
-        var declarationWithoutLeadingTrivia = memberDeclaration.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(SyntaxFactory.TriviaList()));
+        var declarationWithoutLeadingTrivia = CarryLeadingTriviaOfLaterAccessibilityModifiers(memberDeclaration.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(SyntaxFactory.TriviaList())));
         var updatedModifiers = AddAccessibilityModifiers(declarationWithoutLeadingTrivia.Modifiers, accessibilityModifiers);
         var updatedDeclaration = declarationWithoutLeadingTrivia.WithModifiers(updatedModifiers);
         var updatedFirstToken = GetFirstTokenBehindAttributeLists(updatedDeclaration);
@@ -174,6 +192,48 @@ public static class DeclarationModifierUtilities
     public static MemberDeclarationSyntax WithModifiers(MemberDeclarationSyntax memberDeclaration, SyntaxTokenList modifiers)
     {
         return memberDeclaration.WithModifiers(modifiers);
+    }
+
+    /// <summary>
+    /// Moves the leading trivia of every accessibility modifier that is not the declaration's first modifier onto the
+    /// token that follows it and is kept: the next modifier that is no accessibility modifier, or the token behind the
+    /// modifier list. The accessibility modifiers are removed afterwards, and the trivia in front of them would go with
+    /// them
+    /// </summary>
+    /// <param name="memberDeclaration">Declaration</param>
+    /// <returns>The declaration with the leading trivia of its later accessibility modifiers carried onward</returns>
+    private static MemberDeclarationSyntax CarryLeadingTriviaOfLaterAccessibilityModifiers(MemberDeclarationSyntax memberDeclaration)
+    {
+        var modifiers = memberDeclaration.Modifiers;
+        var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
+        var carriedTrivia = new List<SyntaxTrivia>();
+
+        for (var index = 1; index < modifiers.Count; index++)
+        {
+            var modifier = modifiers[index];
+
+            if (IsAccessibilityModifier(modifier.Kind()))
+            {
+                carriedTrivia.AddRange(modifier.LeadingTrivia);
+                replacements[modifier] = modifier.WithLeadingTrivia(SyntaxFactory.TriviaList());
+            }
+            else if (carriedTrivia.Count > 0)
+            {
+                replacements[modifier] = modifier.WithLeadingTrivia(carriedTrivia.Concat(modifier.LeadingTrivia));
+                carriedTrivia.Clear();
+            }
+        }
+
+        if (carriedTrivia.Count > 0)
+        {
+            var nextToken = modifiers[modifiers.Count - 1].GetNextToken();
+
+            replacements[nextToken] = nextToken.WithLeadingTrivia(carriedTrivia.Concat(nextToken.LeadingTrivia));
+        }
+
+        return replacements.Count == 0
+                   ? memberDeclaration
+                   : memberDeclaration.ReplaceTokens(replacements.Keys, (original, _) => replacements[original]);
     }
 
     /// <summary>

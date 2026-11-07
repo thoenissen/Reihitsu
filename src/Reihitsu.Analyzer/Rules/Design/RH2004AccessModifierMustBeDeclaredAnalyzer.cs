@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -74,19 +76,13 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzer : DiagnosticAnalyzerBase
     }
 
     /// <summary>
-    /// Gets the part of a partial property, indexer, event, or constructor that carries the member's one diagnostic
-    /// (SHARED-DIAG-004, SHARED-DIAG-012). A part qualifies when it states no accessibility
+    /// Checks whether a part of a partial member qualifies for the member's one diagnostic: it states no accessibility
     /// </summary>
-    /// <param name="context">Context</param>
-    /// <param name="memberDeclaration">Declaration</param>
-    /// <returns>The part, or <see langword="null"/> when the analysis of this part reports nothing</returns>
-    private static MemberDeclarationSyntax GetReportedPart(SyntaxNodeAnalysisContext context, MemberDeclarationSyntax memberDeclaration)
+    /// <param name="part">Part of a partial member</param>
+    /// <returns><see langword="true"/> if the part states no accessibility</returns>
+    private static bool StatesNoAccessibility(MemberDeclarationSyntax part)
     {
-        return PartialMemberUtilities.GetReportedPart(memberDeclaration,
-                                                      PartialMemberUtilities.GetDeclaredSymbol(memberDeclaration, context.SemanticModel, context.CancellationToken),
-                                                      static part => DeclarationModifierUtilities.HasAccessibilityModifier(part.Modifiers) == false,
-                                                      context.SemanticModel.Compilation,
-                                                      context.CancellationToken);
+        return DeclarationModifierUtilities.HasAccessibilityModifier(part.Modifiers) == false;
     }
 
     /// <summary>
@@ -136,16 +132,49 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzer : DiagnosticAnalyzerBase
             return;
         }
 
-        var reportedDeclaration = modifiers.Any(SyntaxKind.PartialKeyword)
-                                      ? GetReportedPart(context, memberDeclaration)
-                                      : memberDeclaration;
-
-        if (reportedDeclaration == null)
+        // A member declared in a defining and an implementing part is reported from its containing type (OnNamedType)
+        if (modifiers.Any(SyntaxKind.PartialKeyword)
+            && PartialMemberUtilities.GetDeclaredSymbol(memberDeclaration, context.SemanticModel, context.CancellationToken) is { } symbol
+            && PartialMemberUtilities.TryGetParts(symbol, context.CancellationToken, out _, out _))
         {
             return;
         }
 
-        context.ReportDiagnostic(CreateDiagnostic(GetDiagnosticLocation(reportedDeclaration)));
+        context.ReportDiagnostic(CreateDiagnostic(GetDiagnosticLocation(memberDeclaration)));
+    }
+
+    /// <summary>
+    /// Reports each partial property, indexer, event, and constructor of a type once, on the part SHARED-DIAG-012 selects
+    /// (SHARED-DIAG-004). The type sees every part of its members, also a part the analysis of declarations does not
+    /// reach, so the choice is made here once per member from all of its parts
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnNamedType(SymbolAnalysisContext context)
+    {
+        if (context.Symbol is not INamedTypeSymbol typeSymbol)
+        {
+            return;
+        }
+
+        var definingParts = new HashSet<MemberDeclarationSyntax>();
+
+        foreach (var member in typeSymbol.GetMembers())
+        {
+            if (PartialMemberUtilities.TryGetParts(member, context.CancellationToken, out var definingPart, out var implementingPart) == false
+                || definingParts.Add(definingPart) == false
+                || ShouldSkip(definingPart))
+            {
+                continue;
+            }
+
+            var reportedPart = PartialMemberUtilities.SelectReportedPart(definingPart, implementingPart, StatesNoAccessibility, context.Compilation, context.CancellationToken);
+
+            if (reportedPart != null
+                && StatesNoAccessibility(reportedPart))
+            {
+                context.ReportDiagnostic(CreateDiagnostic(GetDiagnosticLocation(reportedPart)));
+            }
+        }
     }
 
     #endregion // Methods
@@ -174,6 +203,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzer : DiagnosticAnalyzerBase
                                          SyntaxKind.IndexerDeclaration,
                                          SyntaxKind.OperatorDeclaration,
                                          SyntaxKind.ConversionOperatorDeclaration);
+        context.RegisterSymbolAction(OnNamedType, SymbolKind.NamedType);
     }
 
     #endregion // DiagnosticAnalyzer

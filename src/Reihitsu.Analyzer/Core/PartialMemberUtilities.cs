@@ -55,9 +55,36 @@ internal static class PartialMemberUtilities
     }
 
     /// <summary>
+    /// Gets the symbol on which the analysis of a part judges the facts the compiler binds to the defining part of a
+    /// partial member only, such as the interface member the member implements. The defining part stands for the member;
+    /// when it is in generated code, no analysis reaches it, and the implementing part stands for the member in its place,
+    /// as in the order of SHARED-DIAG-012. So for an implementing part whose defining part is in generated code, the
+    /// defining part's symbol is returned, and every other symbol is returned as it is
+    /// </summary>
+    /// <param name="symbol">Symbol of the analyzed part, or of a member that is not partial</param>
+    /// <param name="compilation">Compilation containing the part</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The symbol on which the member's facts are judged</returns>
+    internal static ISymbol GetStandInSymbol(ISymbol symbol, Compilation compilation, CancellationToken cancellationToken)
+    {
+        ISymbol definitionPart = symbol switch
+                                 {
+                                     IMethodSymbol method => method.PartialDefinitionPart,
+                                     IPropertySymbol property => property.PartialDefinitionPart,
+                                     IEventSymbol eventSymbol => eventSymbol.PartialDefinitionPart,
+                                     _ => null
+                                 };
+
+        return definitionPart?.DeclaringSyntaxReferences.Length == 1
+               && IsGeneratedCode(definitionPart.DeclaringSyntaxReferences[0].SyntaxTree, compilation, cancellationToken)
+                   ? definitionPart
+                   : symbol;
+    }
+
+    /// <summary>
     /// Gets the part on which the analysis of a declaration reports the diagnostic of the member it declares: the
-    /// declaration itself when it is not a part of a partial member, and for a part of a partial member the part
-    /// <see cref="SelectReportedPart"/> chooses, from the analysis of exactly one of the parts
+    /// declaration itself when it is not a part of a partial member or when it is the part <see cref="SelectReportedPart"/>
+    /// chooses from all parts of the member, and <see langword="null"/> for every other part
     /// </summary>
     /// <param name="declaration">Declaration the rule analyzes and would report</param>
     /// <param name="symbol">Symbol the declaration declares</param>
@@ -65,13 +92,15 @@ internal static class PartialMemberUtilities
     /// <param name="compilation">Compilation containing the declaration</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>
-    /// The part that carries the diagnostic, <paramref name="declaration"/> itself when that is the part, or
-    /// <see langword="null"/> when the analysis of this declaration reports nothing
+    /// <paramref name="declaration"/> when its analysis reports, or <see langword="null"/> when the analysis of this
+    /// declaration reports nothing
     /// </returns>
     /// <remarks>
-    /// Each part is analyzed on its own, so the analysis of a part reports only when that part is the chosen one. The
-    /// analyzer driver does not analyze the defining part of a partial constructor, so for a constructor the analysis of
-    /// the implementing part reports on the chosen part, whichever it is
+    /// The choice is made from every part of the member, so the analysis of each part reaches the same choice, and only
+    /// the analysis of the chosen part reports. The chosen part is never in generated code, so a caller whose analysis
+    /// runs for every declaration of a kind outside generated code, and that judges the facts bound to the defining part on
+    /// <see cref="GetStandInSymbol"/>, reports the member exactly once. A caller whose analysis does not reach every part
+    /// decides from the containing type instead, with <see cref="TryGetParts"/> and <see cref="SelectReportedPart"/>
     /// </remarks>
     internal static MemberDeclarationSyntax GetReportedPart(MemberDeclarationSyntax declaration,
                                                             ISymbol symbol,
@@ -85,19 +114,9 @@ internal static class PartialMemberUtilities
             return declaration;
         }
 
-        var reportedPart = SelectReportedPart(definingPart, implementingPart, qualifies, compilation, cancellationToken);
-        var analyzingPart = declaration is ConstructorDeclarationSyntax
-                                ? implementingPart
-                                : reportedPart;
-
-        if (IsSameDeclaration(analyzingPart, declaration) == false)
-        {
-            return null;
-        }
-
-        return IsSameDeclaration(reportedPart, declaration)
+        return IsSameDeclaration(SelectReportedPart(definingPart, implementingPart, qualifies, compilation, cancellationToken), declaration)
                    ? declaration
-                   : reportedPart;
+                   : null;
     }
 
     /// <summary>
