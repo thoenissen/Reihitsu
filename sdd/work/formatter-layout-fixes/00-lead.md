@@ -54,6 +54,7 @@ None in this run so far. The issues' comments carry triage decisions (summarized
 | 15 | Implementer 06 | Arch. finding: raw-string line shift implemented in the RH5202 fix and in `RawStringLineShifts.ReplaceIndentation`, the latter now restating the fix's rule | Change the structure in this run: one shared shift helper in `Reihitsu.Core` (next to `GetLeadingWhitespaceLength`) used by both | The run's change made the formatter a second statement of the fix's shift rule; both components are the run's and counterparts | RH5202 fix output is unchanged; the formatter output is FMT-RAW-001/-002 and Q2 | — |
 | 16 | Implementer 08 | Hole lines in `RawStringLineShifts.ApplyEdits` rewritten as spaces, outside the shared shift helper | Leave as is | They set the indentation of code in an interpolation hole, not literal text; after preparation the trivia holds only spaces, so no second statement of the literal shift rule exists | No output changes | acc2f4c |
 | 17 | Implementer 08 | Direct Core test for `GetLineShiftEdit` | Not added | Both callers' tests cover every branch the helper has; no spec requirement names the helper | Internal | — |
+| 18 | Spec checker 10 | Change doc implies main already counted non-tab whitespace; FMT-RAW-002 missing from Affected requirements | Change doc states that counting non-tab whitespace (U+00A0 etc.) and removing it on a leftward shift is the #1611 bug fix against RH5202-003 and SHARED-FIX-007, that the tab is the only extension into the non-goal, and lists FMT-RAW-002; repair round 1 | 02-skeptic confirmed RH5202-003 already demanded it; Q2 covers only the tab | Non-tab output is demanded by unchanged RH5202-003/SHARED-FIX-007 | — |
 | 2 | Lane | Lane for #1149 and #1383, whose bodies say behavior change | Bug fix, all six | The later triage comments on both issues classify them as bugs against FMT-PIPE-014 with spec clarifications; the issues are `agent-filed` | Lane is internal; the outputs are demanded by FMT-PIPE-014 (to be confirmed by the skeptic) | — |
 
 ## Follow-up candidates
@@ -87,4 +88,5 @@ None in this run so far. The issues' comments carry triage decisions (summarized
 - Test implementer 07 at d5f7b7a: decisions 12, 13 done; formatter, analyzer, architecture projects all green at that head.
 - Implementer 08 at 64b11e6 (production acc2f4c): decision 15 done; core/formatter/analyzer green.
 - Cleaner 09 at 63dc580: clean, Release build 0 warnings.
-- Next: spec checker (10), then auditor (11).
+- Spec checker 10 at 4619ccd: one change-doc finding (decision 18). Repair round 1 of 3.
+- Next: spec author (11) for decision 18; spec checker (12); then auditor (13).
