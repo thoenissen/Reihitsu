@@ -44,4 +44,4 @@
 
 - Done: spec author (01, 461faa4). Open output questions from it: Q1 RH5023 blank lines inside an interpolation hole; Q2-Q6 statement-brace outputs (Q2 is the issue's own decision).
 - Done: skeptic (02, 1a16550).
-- Maintainer answered Q1: B. Done: spec-author amendment (03, 5c70c13). Next: test implementer.
+- Maintainer answered Q1: B. Done: spec-author amendment (03, 5c70c13); test implementer (04, 55c161f: #1075 and #1261 reproduced). Next: implementer.
