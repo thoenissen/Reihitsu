@@ -82,6 +82,7 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 | 47 | Audit 6 | #18: decision 39 refuses every move of a type with a conditional directive in its header; plain multi-targeting classes (`#if !NETSTANDARD [Serializable] #endif`, conditional base list) lose main's fix — common code | The header check feeds only the layout flag (`fieldOrderSetsLayout || header directive`); plain classes keep main's fix; spec example and tests re-pointed | The rule forbids refusing common code; the auditor's form costs nothing | Restores main's output | — |
 | 48 | Audit 6 | #19/#21: decision 40 reads excluded branches with `ParseTokens` and a keyword list in the RH2001 fix and amended SHARED-FIX-009 | Replace by the refusal: any conditional directive between the modifiers or in front of the type withholds the RH2001 fix; revert the SHARED-FIX-009 amendment; decision 36's kept shape is withdrawn (rare class, no question under lead.md section 5) | Special cases do not grow the source | Rare shape refused; stated in the PR | — |
 | 49 | Audit 6 | #22 stale `IsLayoutField` summary | Updated with decision 46 | Comment | — | — |
+| 50 | Repair 3 (spec author) | Internal choices: abstract/extern exemption kept in SHARED-ORDER-007; decision 47 written inside SHARED-ORDER-008; SHARED-FIX-009 keeps a reworded RH2001 example; a directive in front of the first modifier stays under RH2001-004 | Accept all | Within decisions 46–48 | Spec wording | 545922d6 |
 
 ## Follow-up candidates
 
@@ -114,4 +115,6 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 - Done: cleaner `46-cleaner.md` (f568ebb1) clean.
 - Done: spec checker `47-spec-checker.md` (b7b8da71) consistent.
 - Audit 6 at 051f337f: `48-auditor.md` (1424c9a2): #14–#16 closed; #17, #20 repeats → decision 46; #18 → 47; #19, #21 → 48; #22 → 49.
-- Repair round 3 of 3 (last; decision 46 is structural): spec author → `49-spec-author.md` ∥ test implementer → `50-test-implementer.md`; implementer → `51-implementer.md`; cleaner; spec checker; auditor (audit 7, repair only); validator. A block after this round is resolved by narrowing.
+- Done: spec author `49-spec-author.md` (545922d6); test implementer `50-test-implementer.md` (359a6fc2): 9 tests red.
+- Open output question (batch 7): instance-field moves in a plain class with a conditional directive in its header (RH7109 `[Serializable]`) — withheld under decision 47 vs keep main's fix.
+- Repair round 3 of 3 (last; decision 46 is structural): implementer → `51-implementer.md`; cleaner; spec checker; auditor (audit 7, repair only); validator. A block after this round is resolved by narrowing.
