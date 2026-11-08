@@ -17,6 +17,8 @@
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Branch name | Use the session-designated branch `claude/magical-albattani-jl4e5j` instead of `claude/issues-963-1384-<slug>` | The session's environment forbids pushing to any other branch | Branch names are internal | claim commit |
+| 3 | Spec author | Own-line comment between attribute list and modifiers (`[Obsolete]⏎// why⏎private int _a, _b;`) blocks the split | Accept the spec author's reading; no output question | FMT-STRUCT-024 (P36) forbids a structural rewrite that moves or duplicates a comment; today's output copies the comment onto every field, which that unchanged requirement rules out, and #963's comment of 2026-10-21 lists the attribute-list twin | An unchanged requirement decides the output | 41f8fc4 |
+| 4 | Spec author | Rule page RH7101.md not changed for the withheld fix (RH7101-007) | Accept | `general-notes.md` covers diagnostics without a fix (AGENTS.md, Code-fix coverage) | Rule page unchanged | 41f8fc4 |
 | 2 | Lane | Lane for both issues | Bug fix; spec author runs for a clarification only | FMT-STRUCT-024 already demands both guards; triage recorded the lane | Unchanged requirement decides the output | — |
 
 ## Follow-up candidates
@@ -25,4 +27,5 @@
 
 ## Worklist / next step
 
-- Next: spawn spec author (clarification).
+- Spec author done (01-spec-author.md, 41f8fc4): FMT-STRUCT-030, RH7101-007 added; FMT-STRUCT-022/024, FMT-PIPE-029/031, RH7101-004/006 aligned. No output questions.
+- Next: skeptic on the spec diff and premise.
