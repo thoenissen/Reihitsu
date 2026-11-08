@@ -3837,9 +3837,9 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Verifies that a conditional group around the <c>StructLayout</c> attribute of a class refuses every member move of
-    /// the type: in a build with <c>X</c>, the class has sequential layout, and the reorder would put <c>_x</c> in front of
-    /// the backing field of <c>Value</c>, so no code fix is offered
+    /// Verifies that a conditional group around the <c>StructLayout</c> attribute of a class makes the class count as one
+    /// whose field order sets its layout: in a build with <c>X</c>, the class has sequential layout, and the reorder would
+    /// put <c>_x</c> in front of the backing field of <c>Value</c>, so no code fix is offered
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -3882,6 +3882,209 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
                               """;
 
         await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the implementing declaration of a partial property of a struct with <c>get =&gt; field;</c> and
+    /// <c>set;</c> counts as declaring a backing field, an instance field of the layout: moving the <c>Fields</c> block in
+    /// front of it would put <c>_x</c> in front of that backing field, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7309-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenTheImplementingDeclarationOfAPartialPropertyOfAStructHasAnAccessorWithoutABodyAndUsesTheFieldKeyword(string endOfLine)
+    {
+        const string source = """
+                              public partial struct S
+                              {
+                                  public partial int Value { get; set; }
+                              }
+
+                              public partial struct S : System.IComparable
+                              {
+                                  #region IComparable
+
+                                  public partial int Value { get => field; set; }
+
+                                  public int CompareTo(object obj)
+                                  {
+                                      return 0;
+                                  }
+
+                                  #endregion // IComparable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private int _x;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the implementing declaration of a partial property of a struct with <c>get =&gt; 0;</c> and
+    /// <c>set;</c> counts as declaring a backing field, because one of its accessors lacks a body: moving the
+    /// <c>Fields</c> block in front of it would put <c>_x</c> in front of that backing field, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7309-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenTheImplementingDeclarationOfAPartialPropertyOfAStructHasAnAccessorWithoutABody(string endOfLine)
+    {
+        const string source = """
+                              public partial struct S
+                              {
+                                  public partial int Value { get; set; }
+                              }
+
+                              public partial struct S : System.IComparable
+                              {
+                                  #region IComparable
+
+                                  public partial int Value { get => 0; set; }
+
+                                  public int CompareTo(object obj)
+                                  {
+                                      return 0;
+                                  }
+
+                                  #endregion // IComparable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private int _x;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the defining declaration of a partial property of a struct, whose accessors all lack a body,
+    /// counts as declaring a backing field, as every property with an accessor without a body does: moving the
+    /// <c>Fields</c> block in front of it is refused, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7309-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenTheDefiningDeclarationOfAPartialPropertyOfAStructStandsInTheCrossedBlock(string endOfLine)
+    {
+        const string source = """
+                              public partial struct S
+                              {
+                                  public partial int Value { get => 0; set { } }
+                              }
+
+                              public partial struct S : System.IComparable
+                              {
+                                  #region IComparable
+
+                                  public partial int Value { get; set; }
+
+                                  public int CompareTo(object obj)
+                                  {
+                                      return 0;
+                                  }
+
+                                  #endregion // IComparable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private int _x;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the counterpart of the partial property declarations: an implementing declaration whose accessors all
+    /// have a body and that does not use the <c>field</c> keyword declares no backing field, and the fix moves the
+    /// <c>Fields</c> block in front of the <c>IComparable</c> block
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7309-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task CodeFixMovesABlockOfAStructAcrossTheImplementingDeclarationOfAPartialPropertyWhoseAccessorsAllHaveABody(string endOfLine)
+    {
+        const string source = """
+                              public partial struct S
+                              {
+                                  public partial int Value { get; set; }
+                              }
+
+                              public partial struct S : System.IComparable
+                              {
+                                  #region IComparable
+
+                                  public partial int Value { get => 0; set { } }
+
+                                  public int CompareTo(object obj)
+                                  {
+                                      return 0;
+                                  }
+
+                                  #endregion // IComparable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private int _x;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public partial struct S
+                                   {
+                                       public partial int Value { get; set; }
+                                   }
+
+                                   public partial struct S : System.IComparable
+                                   {
+                                       #region Fields
+
+                                       private int _x;
+
+                                       #endregion // Fields
+
+                                       #region IComparable
+
+                                       public partial int Value { get => 0; set { } }
+
+                                       public int CompareTo(object obj)
+                                       {
+                                           return 0;
+                                       }
+
+                                       #endregion // IComparable
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
     }
 
     #endregion // Tests

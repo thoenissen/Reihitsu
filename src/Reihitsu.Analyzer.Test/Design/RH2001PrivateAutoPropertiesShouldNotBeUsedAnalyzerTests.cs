@@ -2471,9 +2471,8 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
     }
 
     /// <summary>
-    /// Verifies that SHARED-FIX-009 adds nothing to a fix that reads no excluded code and leaves every directive in place:
-    /// a conditional group that adds <c>static</c> between the last modifier and the type keeps the fix, and the fix
-    /// writes <c>readonly</c> behind the group, in front of the type
+    /// Verifies that a conditional group between the last modifier and the type withholds the fix, also when its branch
+    /// holds only <c>static</c>: the property is reported, and no code fix is offered
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -2481,8 +2480,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
     [DataRow("\n")]
     [DataRow("\r\n")]
     [Requirement("RH2001-009")]
-    [Requirement("SHARED-FIX-009")]
-    public async Task VerifyFixIsOfferedForAConditionalModifierBetweenTheModifiersAndTheType(string endOfLine)
+    public async Task VerifyNoCodeFixIsOfferedForAConditionalModifierBetweenTheModifiersAndTheType(string endOfLine)
     {
         const string source = """
                               public class C
@@ -2500,28 +2498,12 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
                               }
                               """;
 
-        const string fixedSource = """
-                                   public class C
-                                   {
-                                       private
-                                   #if DEBUG
-                                           static
-                                   #endif
-                                       readonly int _value;
-
-                                       public int Get()
-                                       {
-                                           return _value;
-                                       }
-                                   }
-                                   """;
-
-        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
     }
 
     /// <summary>
-    /// Verifies that a conditional group between the modifiers and the type that holds <c>extern</c>, which is not valid on
-    /// a field, withholds the fix: written as a field, a build with <c>DEBUG</c> would declare an extern field
+    /// Verifies that a conditional group between the modifiers and the type withholds the fix when it holds <c>extern</c>,
+    /// which is not valid on a field: written as a field, a build with <c>DEBUG</c> would declare an extern field
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -2551,8 +2533,8 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
     }
 
     /// <summary>
-    /// Verifies that a conditional group between the modifiers and the type that holds <c>readonly</c> withholds the fix:
-    /// with the <c>readonly</c> the fix adds, a build with <c>DEBUG</c> would declare the modifier twice
+    /// Verifies that a conditional group between the modifiers and the type withholds the fix when it holds
+    /// <c>readonly</c>: with the <c>readonly</c> the fix adds, a build with <c>DEBUG</c> would declare the modifier twice
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -2582,8 +2564,8 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
     }
 
     /// <summary>
-    /// Verifies that a conditional group between the modifiers and the type that holds a modifier RH7105 puts behind
-    /// <c>readonly</c>, such as <c>unsafe</c>, withholds the fix
+    /// Verifies that a conditional group between the modifiers and the type withholds the fix when it holds a modifier
+    /// RH7105 puts behind <c>readonly</c>, such as <c>unsafe</c>
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -2613,8 +2595,8 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
     }
 
     /// <summary>
-    /// Verifies that a conditional group between the modifiers and the type that holds <c>new</c>, a modifier RH7105 puts in
-    /// front of <c>readonly</c> and that is valid on a field, keeps the fix, which writes <c>readonly</c> behind the group
+    /// Verifies that a conditional group whose <c>#else</c> and <c>#endif</c> stand between two modifiers withholds the fix,
+    /// although every branch holds an accessibility modifier: the property is reported, and no code fix is offered
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -2622,16 +2604,48 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
     [DataRow("\n")]
     [DataRow("\r\n")]
     [Requirement("RH2001-009")]
-    public async Task VerifyFixIsOfferedForAConditionalNewBetweenTheModifiersAndTheType(string endOfLine)
+    public async Task VerifyNoCodeFixIsOfferedForAConditionalGroupWithADirectiveBetweenTwoModifiers(string endOfLine)
     {
         const string source = """
                               public class C
                               {
+                              #if !DEBUG
                                   private
-                              #if DEBUG
-                                      new
+                              #else
+                                  internal
                               #endif
-                                      int {|RH2001:Value|} { get; }
+                                  static int {|RH2001:Value|} { get; }
+
+                                  public int Get()
+                                  {
+                                      return Value;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the counterpart of a conditional group between the modifiers: a whole conditional group in front of the
+    /// first modifier keeps the fix, and the group stays in front of the field
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-004")]
+    [Requirement("RH2001-009")]
+    public async Task VerifyFixKeepsAConditionalGroupInFrontOfTheFirstModifier(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                              #if DEBUG
+                                  private int _debug;
+                              #endif
+                                  private static int {|RH2001:Value|} { get; }
 
                                   public int Get()
                                   {
@@ -2643,11 +2657,10 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
         const string fixedSource = """
                                    public class C
                                    {
-                                       private
                                    #if DEBUG
-                                           new
+                                       private int _debug;
                                    #endif
-                                       readonly int _value;
+                                       private static readonly int _value;
 
                                        public int Get()
                                        {

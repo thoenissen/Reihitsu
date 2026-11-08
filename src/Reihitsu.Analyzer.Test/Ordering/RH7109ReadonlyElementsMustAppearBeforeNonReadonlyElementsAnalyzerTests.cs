@@ -4314,9 +4314,9 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     }
 
     /// <summary>
-    /// Verifying that a conditional group around the <c>StructLayout</c> attribute of a class refuses every member move of
-    /// the type: in a build with <c>X</c>, the class has sequential layout, which the fix would reorder, so no code fix is
-    /// offered
+    /// Verifying that a conditional group around the <c>StructLayout</c> attribute of a class makes the class count as one
+    /// whose field order sets its layout: in a build with <c>X</c>, the class has sequential layout, and moving <c>_c</c> in
+    /// front of <c>_a</c> would reorder it, so no code fix is offered
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -4344,8 +4344,10 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     }
 
     /// <summary>
-    /// Verifying that the refusal for a conditional directive in the attribute lists of the type depends on its place, not
-    /// on the attribute: a group around <c>[System.Obsolete]</c> refuses the move, so no code fix is offered
+    /// Verifying that a conditional directive in the attribute lists of the type counts by its place, not by the
+    /// attribute: a group around <c>[System.Obsolete]</c> makes the class count as one whose field order sets its layout,
+    /// and moving the instance field <c>_c</c> in front of the instance field <c>_a</c> would reorder it, so no code fix is
+    /// offered
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -4405,8 +4407,9 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     }
 
     /// <summary>
-    /// Verifying that a conditional group in the header of the type refuses every member move of the type: in a build with
-    /// <c>X</c>, the type is a struct whose field order sets its layout, so no code fix is offered
+    /// Verifying that a conditional group in the header of the type makes the type count as one whose field order sets its
+    /// layout: in a build with <c>X</c>, the type is a struct, and moving <c>_c</c> in front of <c>_a</c> would reorder its
+    /// layout, so no code fix is offered
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -4435,8 +4438,9 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     }
 
     /// <summary>
-    /// Verifying that a conditional group in the base list of the type, in front of its opening brace, refuses every member
-    /// move of the type, so no code fix is offered
+    /// Verifying that a conditional group in the base list of the type, in front of its opening brace, makes the type count
+    /// as one whose field order sets its layout: moving the instance field <c>_c</c> in front of the instance field
+    /// <c>_a</c> would reorder it, so no code fix is offered
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -4459,6 +4463,83 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
                               """;
 
         await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart of a conditional group around an attribute list of a class for fields that are no
+    /// instance fields: moving the static <c>_c</c> in front of the static <c>_a</c> reorders no instance field, and the fix
+    /// moves it
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-008")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAStaticFieldOfAClassWhoseAttributeListsHoldAConditionalGroup(string endOfLine)
+    {
+        const string source = """
+                              #if X
+                              [System.Obsolete]
+                              #endif
+                              public class C
+                              {
+                                  private static int _a;
+                                  private static readonly int {|RH7109:_c|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   #if X
+                                   [System.Obsolete]
+                                   #endif
+                                   public class C
+                                   {
+                                       private static readonly int _c;
+                                       private static int _a;
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart of a conditional group in the base list of a class for fields that are no instance fields:
+    /// moving the static <c>_c</c> in front of the static <c>_a</c> reorders no instance field, and the fix moves it
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-008")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAStaticFieldOfAClassWhoseBaseListHoldsAConditionalGroup(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              #if X
+                                  : System.IDisposable
+                              #endif
+                              {
+                                  private static int _a;
+                                  private static readonly int {|RH7109:_c|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   #if X
+                                       : System.IDisposable
+                                   #endif
+                                   {
+                                       private static readonly int _c;
+                                       private static int _a;
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
     }
 
     /// <summary>

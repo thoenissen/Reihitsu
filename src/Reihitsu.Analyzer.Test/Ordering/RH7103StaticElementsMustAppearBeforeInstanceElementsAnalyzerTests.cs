@@ -2771,6 +2771,134 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
         await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
     }
 
+    /// <summary>
+    /// Verifying the <c>No backing field from a branch</c> clause for an active branch in a class: the active
+    /// <c>set;</c> behind <c>get =&gt; 0;</c> gives a crossed property a backing field only in a build without
+    /// <c>DEBUG</c>, so no code fix is offered, although the field order of a class sets no layout
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task NoCodeFixWhenAnActiveGroupOfWholeAccessorsOfACrossedPropertyOfAClassHoldsAnAccessorWithoutABody(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  public int Value
+                                  {
+                                      get => 0;
+                              #if !DEBUG
+                                      set;
+                              #endif
+                                  }
+
+                                  public static int {|RH7103:Shared|} => 1;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a conditional attribute list on a class whose field order sets no layout keeps the move of a member
+    /// that reorders no instance field: the fix moves the static <c>Create</c> in front of <c>Run</c>
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task FixMovesAStaticMethodOfAClassWithAConditionalAttributeList(string endOfLine)
+    {
+        const string source = """
+                              #if DEBUG
+                              [System.Serializable]
+                              #endif
+                              public class C
+                              {
+                                  public void Run()
+                                  {
+                                  }
+
+                                  public static void {|RH7103:Create|}()
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   #if DEBUG
+                                   [System.Serializable]
+                                   #endif
+                                   public class C
+                                   {
+                                       public static void Create()
+                                       {
+                                       }
+
+                                       public void Run()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a conditional entry in the base list of a class whose field order sets no layout keeps the move of a
+    /// member that reorders no instance field: the fix moves the static <c>Create</c> in front of <c>Dispose</c>
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task FixMovesAStaticMethodOfAClassWithAConditionalEntryInItsBaseList(string endOfLine)
+    {
+        const string source = """
+                              public sealed class C : System.IDisposable
+                              #if NET
+                                  , System.IAsyncDisposable
+                              #endif
+                              {
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  public static void {|RH7103:Create|}()
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public sealed class C : System.IDisposable
+                                   #if NET
+                                       , System.IAsyncDisposable
+                                   #endif
+                                   {
+                                       public static void Create()
+                                       {
+                                       }
+
+                                       public void Dispose()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods
