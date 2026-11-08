@@ -2472,13 +2472,15 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
 
     /// <summary>
     /// Verifies that SHARED-FIX-009 adds nothing to a fix that reads no excluded code and leaves every directive in place:
-    /// a conditional group that adds <c>static</c> between the last modifier and the type keeps the fix
+    /// a conditional group that adds <c>static</c> between the last modifier and the type keeps the fix, and the fix
+    /// writes <c>readonly</c> behind the group, in front of the type
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [DataRow("\n")]
     [DataRow("\r\n")]
+    [Requirement("RH2001-009")]
     [Requirement("SHARED-FIX-009")]
     public async Task VerifyFixIsOfferedForAConditionalModifierBetweenTheModifiersAndTheType(string endOfLine)
     {
@@ -2498,17 +2500,23 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
                               }
                               """;
 
-        await Verify(WithEndOfLine(source, endOfLine));
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private
+                                   #if DEBUG
+                                           static
+                                   #endif
+                                       readonly int _value;
 
-        var actions = await GetCodeFixActionsAsync(WithEndOfLine(source, endOfLine).Replace("{|RH2001:Value|}", "Value"),
-                                                   RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId,
-                                                   root => root.DescendantNodes()
-                                                               .OfType<PropertyDeclarationSyntax>()
-                                                               .Single()
-                                                               .Identifier
-                                                               .GetLocation());
+                                       public int Get()
+                                       {
+                                           return _value;
+                                       }
+                                   }
+                                   """;
 
-        Assert.HasCount(1, actions);
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
     }
 
     #endregion // Tests
