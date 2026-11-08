@@ -2672,6 +2672,66 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
         await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
     }
 
+    /// <summary>
+    /// Verifies that a conditional group holding <c>extern</c> in front of the type of a get-only property without other
+    /// modifiers withholds the fix: written as a field, a build with <c>DEBUG</c> would declare an extern field
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-009")]
+    public async Task VerifyNoCodeFixIsOfferedForAConditionalModifierInFrontOfTheTypeOfAGetOnlyPropertyWithoutModifiers(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                              #if DEBUG
+                                  extern
+                              #endif
+                                  int {|RH2001:Value|} { get; }
+
+                                  public int Get()
+                                  {
+                                      return Value;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a conditional group holding <c>extern</c> in front of the type of a property with a setter and
+    /// without other modifiers withholds the fix: written as a field, a build with <c>DEBUG</c> would declare an extern field
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-009")]
+    public async Task VerifyNoCodeFixIsOfferedForAConditionalModifierInFrontOfTheTypeOfAReadWritePropertyWithoutModifiers(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                              #if DEBUG
+                                  extern
+                              #endif
+                                  int {|RH2001:Value|} { get; set; }
+
+                                  public int Get()
+                                  {
+                                      return Value;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods
