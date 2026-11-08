@@ -66,6 +66,7 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 - Done: spec author amendment `04-spec-author.md` (2b21209).
 - Done: test implementer `05-test-implementer.md` (6f468b4): all three reproduced; 37 failing tests.
 - Done: implementer 750237e, handover `06-implementer.md` (008670d).
-- Now: cleaner → `07-cleaner.md`; then spec checker.
+- Done: cleaner `07-cleaner.md` (cc77feb): clean.
+- Now: spec checker → `08-spec-checker.md`.
 - Next: spec author amendment (decisions 12–14 + answer; change doc lists the visible change), accept change doc, test implementer.
 - Next: spec author (clarifications D5, D7 outcome, RH2001 spec after answers) → test implementer.
