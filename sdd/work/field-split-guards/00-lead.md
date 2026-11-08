@@ -14,6 +14,8 @@
 
 - Output question 1 (#963, comment on its own line in front of the first declarator, i.e. in the first declarator's leading trivia): **A** — split as today; the comment stays in front of the first field only; the RH7101 fix is offered. FMT-STRUCT-030 and RH7101-007 must name this slot explicitly on the split side.
 
+- Output question 2 (#963, `///` or `/** */` behind the type on the type's line, Parse/Diagnose — Roslyn attaches it to the first declarator's leading trivia): **B** — split as on main; the comment stays in front of the first field only; the RH7101 fix is offered. FMT-STRUCT-030, FMT-PIPE-031 and RH7101-007 must put this case on the split side explicitly; the guard's code behavior stays.
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
@@ -46,4 +48,5 @@
 - Test implementer 06 (0a31af4): disputed test corrected; RH7101 104/104 pass.
 - Cleaner 07 (8472a86): clean, Release 0 warnings.
 - Spec checker 08 (b6a5f22): consistent, no findings.
-- Auditor 09 (b0ec5cf) audited 4ad21a7 against main 026fb64: 1 high finding (#963): `///`/`/** */` behind the type on its line (Parse/Diagnose) is owned by the first declarator's leading trivia, so the split goes ahead against FMT-STRUCT-030 bullet 2 / RH7101-007; literal repair is not idempotent. Repair round 1 needs output question 2 — WAITING for maintainer.
+- Auditor 09 (b0ec5cf) audited 4ad21a7 against main 026fb64: 1 high finding (#963): `///`/`/** */` behind the type on its line (Parse/Diagnose) is owned by the first declarator's leading trivia, so the split goes ahead against FMT-STRUCT-030 bullet 2 / RH7101-007; literal repair is not idempotent. Output question 2 answered B.
+- Repair round 1 worklist: spec author (10) amends FMT-STRUCT-030 / FMT-PIPE-031 / RH7101-007 per answer B; test implementer (11) pins the case on the split side (formatter + RH7101 fix offered); implementer (12) aligns the summaries of `CarriesCommentInRepeatedPart` and `SplitsFieldDeclaration` with the boundary; cleaner (13) fixes the stale `CreateSplitField` comment (decision 11); then spec checker, auditor on the repair only, validator.
