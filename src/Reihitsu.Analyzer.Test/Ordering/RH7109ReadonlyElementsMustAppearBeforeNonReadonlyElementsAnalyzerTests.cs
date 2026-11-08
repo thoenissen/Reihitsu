@@ -3180,6 +3180,508 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
         await VerifyCodeFixIsOffered(WithEndOfLine(source, endOfLine));
     }
 
+    /// <summary>
+    /// Verifying that a crossed declaration that one branch declares <c>static readonly</c> and the other branch <c>const</c>
+    /// gives no build an instance initializer, because a constant contributes nothing to the initializer order, so
+    /// moving an instance initialized field across it is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixIsOfferedWhenACrossedDeclarationIsAStaticReadonlyFieldInOneBranchAndAConstantInTheOther(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a;
+                              #if DEBUG
+                                  internal static readonly
+                              #else
+                                  private const
+                              #endif
+                                      int K = 1;
+                                  private readonly int {|RH7109:_b|} = Log("b");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart where the active branch declares the crossed declaration <c>readonly</c> instead of
+    /// <c>const</c>: that build gives it an instance initializer, so moving an instance initialized field across it is
+    /// withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenACrossedDeclarationIsAnInstanceFieldInsteadOfAConstantInTheActiveBranch(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a;
+                              #if DEBUG
+                                  internal static readonly
+                              #else
+                                  private readonly
+                              #endif
+                                      int {|RH7109:K|} = 1;
+                                  private readonly int {|RH7109:_b|} = Log("b");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await Verify(WithEndOfLine(source, endOfLine));
+
+        TestFileMarkupParser.GetSpans(WithEndOfLine(source, endOfLine), out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+
+        var actions = await GetCodeFixActionsAsync(plainSource,
+                                                   RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<VariableDeclaratorSyntax>()
+                                                               .Single(declarator => declarator.Identifier.ValueText == "_b")
+                                                               .Identifier
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying that conditional groups that only write attribute lists in front of a crossed field change nothing the
+    /// field contributes, so moving an instance initialized field across the static field keeps its fix, however many
+    /// such groups there are
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAFieldAcrossAFieldWithNineConditionalAttributeLists(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              public class C
+                              {
+                                  private int _a;
+                              #if A1
+                                  [Obsolete]
+                              #endif
+                              #if A2
+                                  [NonSerialized]
+                              #endif
+                              #if A3
+                                  [Obsolete]
+                              #endif
+                              #if A4
+                                  [NonSerialized]
+                              #endif
+                              #if A5
+                                  [Obsolete]
+                              #endif
+                              #if A6
+                                  [NonSerialized]
+                              #endif
+                              #if A7
+                                  [Obsolete]
+                              #endif
+                              #if A8
+                                  [NonSerialized]
+                              #endif
+                              #if A9
+                                  [Obsolete]
+                              #endif
+                                  private static int _b = Log("b");
+                                  private readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System;
+
+                                   public class C
+                                   {
+                                       private readonly int _c = Log("c");
+                                       private int _a;
+                                   #if A1
+                                       [Obsolete]
+                                   #endif
+                                   #if A2
+                                       [NonSerialized]
+                                   #endif
+                                   #if A3
+                                       [Obsolete]
+                                   #endif
+                                   #if A4
+                                       [NonSerialized]
+                                   #endif
+                                   #if A5
+                                       [Obsolete]
+                                   #endif
+                                   #if A6
+                                       [NonSerialized]
+                                   #endif
+                                   #if A7
+                                       [Obsolete]
+                                   #endif
+                                   #if A8
+                                       [NonSerialized]
+                                   #endif
+                                   #if A9
+                                       [Obsolete]
+                                   #endif
+                                       private static int _b = Log("b");
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that conditional groups that only write entries of a crossed field's collection initializer change
+    /// nothing the field contributes, so moving an instance initialized field across the static field keeps its fix,
+    /// however many such groups there are
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAFieldAcrossAFieldWhoseCollectionInitializerHasNineConditionalEntries(string endOfLine)
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              public class C
+                              {
+                                  private int _a;
+                                  private static List<int> _b = new List<int>
+                                                                {
+                              #if A1
+                                      1,
+                              #endif
+                              #if A2
+                                      2,
+                              #endif
+                              #if A3
+                                      3,
+                              #endif
+                              #if A4
+                                      4,
+                              #endif
+                              #if A5
+                                      5,
+                              #endif
+                              #if A6
+                                      6,
+                              #endif
+                              #if A7
+                                      7,
+                              #endif
+                              #if A8
+                                      8,
+                              #endif
+                              #if A9
+                                      9,
+                              #endif
+                                                                };
+                                  private readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.Collections.Generic;
+
+                                   public class C
+                                   {
+                                       private readonly int _c = Log("c");
+                                       private int _a;
+                                       private static List<int> _b = new List<int>
+                                                                     {
+                                   #if A1
+                                           1,
+                                   #endif
+                                   #if A2
+                                           2,
+                                   #endif
+                                   #if A3
+                                           3,
+                                   #endif
+                                   #if A4
+                                           4,
+                                   #endif
+                                   #if A5
+                                           5,
+                                   #endif
+                                   #if A6
+                                           6,
+                                   #endif
+                                   #if A7
+                                           7,
+                                   #endif
+                                   #if A8
+                                           8,
+                                   #endif
+                                   #if A9
+                                           9,
+                                   #endif
+                                                                     };
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that eight conditional groups in front of a crossed field, whose 256 build configurations declare no
+    /// initialized member, keep the fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAFieldAcrossEightConditionalGroupsInFrontOfACrossedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a;
+                              #if A1
+                                  private int _x1;
+                              #endif
+                              #if A2
+                                  private int _x2;
+                              #endif
+                              #if A3
+                                  private int _x3;
+                              #endif
+                              #if A4
+                                  private int _x4;
+                              #endif
+                              #if A5
+                                  private int _x5;
+                              #endif
+                              #if A6
+                                  private int _x6;
+                              #endif
+                              #if A7
+                                  private int _x7;
+                              #endif
+                              #if A8
+                                  private int _x8;
+                              #endif
+                                  private int _b;
+                                  private readonly int {|RH7109:_c|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private readonly int _c;
+                                       private int _a;
+                                   #if A1
+                                       private int _x1;
+                                   #endif
+                                   #if A2
+                                       private int _x2;
+                                   #endif
+                                   #if A3
+                                       private int _x3;
+                                   #endif
+                                   #if A4
+                                       private int _x4;
+                                   #endif
+                                   #if A5
+                                       private int _x5;
+                                   #endif
+                                   #if A6
+                                       private int _x6;
+                                   #endif
+                                   #if A7
+                                       private int _x7;
+                                   #endif
+                                   #if A8
+                                       private int _x8;
+                                   #endif
+                                       private int _b;
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that nine conditional groups in front of a crossed field, whose 512 build configurations exceed the
+    /// number the member-order guard reads, are treated as a changed order, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task NoCodeFixWhenConditionalGroupsInFrontOfACrossedFieldExceedTheConfigurationLimit(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a;
+                              #if A1
+                                  private int _x1;
+                              #endif
+                              #if A2
+                                  private int _x2;
+                              #endif
+                              #if A3
+                                  private int _x3;
+                              #endif
+                              #if A4
+                                  private int _x4;
+                              #endif
+                              #if A5
+                                  private int _x5;
+                              #endif
+                              #if A6
+                                  private int _x6;
+                              #endif
+                              #if A7
+                                  private int _x7;
+                              #endif
+                              #if A8
+                                  private int _x8;
+                              #endif
+                              #if A9
+                                  private int _x9;
+                              #endif
+                                  private int _b;
+                                  private readonly int {|RH7109:_c|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a conditional group of the type's body whose <c>#endif</c> lies behind the type's closing brace
+    /// keeps the fix when the move crosses no initialized member
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAFieldWhenAConditionalGroupOfTheBodyClosesBehindTheClosingBraceOfTheType(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a;
+                                  private readonly int {|RH7109:_b|};
+                              #if DEBUG
+                                  private int _d;
+                              }
+                              #else
+                              }
+                              #endif
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private readonly int _b;
+                                       private int _a;
+                                   #if DEBUG
+                                       private int _d;
+                                   }
+                                   #else
+                                   }
+                                   #endif
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart where the move crosses an instance initialized field: with a conditional group of the
+    /// type's body whose <c>#endif</c> lies behind the type's closing brace, no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenAConditionalGroupOfTheBodyClosesBehindTheClosingBraceOfTheTypeAndAnInitializedFieldIsCrossed(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a = Log("a");
+                                  private readonly int {|RH7109:_b|} = Log("b");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              #if DEBUG
+                                  private int _d;
+                              }
+                              #else
+                              }
+                              #endif
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods
