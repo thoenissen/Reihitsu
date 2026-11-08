@@ -68,4 +68,5 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
   4. Hint: RH7102.md and RH7103.md `Uses` lack SHARED-DIAG-008 → spec author. Done: `11-spec-author.md` (938e1b2).
 - Done: test implementer `10-test-implementer.md` (3390e51): 11 tests red as intended.
 - Done: implementer e190498, `12-implementer.md` (6ea120e).
-- Next: → cleaner → spec checker → auditor (repair only) → validator.
+- Done: cleaner `13-cleaner.md` (375f80b) clean; spec checker `14-spec-checker.md` (6c73bb7) consistent.
+- Next: auditor on repair (audit 2) → `15-auditor.md` → validator.
