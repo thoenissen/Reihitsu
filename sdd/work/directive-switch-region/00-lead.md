@@ -31,7 +31,8 @@
 
 - Multi-line parenthesized pattern layout is broken (`o is (int⏎or long)`, `case (int⏎or long):`). Source: 02-skeptic.md.
 - Open question: a `return`/`throw`-only section with a multi-line label braces the whole switch (`{ return; }`); spec requires it today. Source: 02-skeptic.md.
-- (conditional on #1239 answer A) Whether the formatter should normalize whitespace between `#` and the keyword of other directives (`# pragma`, `# if`). Source: 01-spec-author.md.
+- Whitespace between `#` and the keyword of other directives (`# pragma`, `# if`, `# endif`); OQ2 = A makes this live. Source: 01-spec-author.md, 02-skeptic.md.
+- (superseded by previous line) (conditional on #1239 answer A) Whether the formatter should normalize whitespace between `#` and the keyword of other directives (`# pragma`, `# if`). Source: 01-spec-author.md.
 
 ## Worklist / next step
 
@@ -49,4 +50,5 @@
 - Done: auditor (09): pass, text cleanup — doc comments in SwitchCaseBraceRewriter.cs and BlankLineEditor.cs.
 - Done: cleaner (10, 46f5c7e): (a)/(b) text-only PASS; (c) fails strict-docs.
 - Repair round 1 done: cleaner 23a542f, spec checker 11 consistent, auditor 12 pass.
-- Next: validator, then publish.
+- Done: validator (13, 66a2c28): pass.
+- Next: issue manager with the three follow-up candidates, then note + delete sdd/work + trigger commit + PR body.
