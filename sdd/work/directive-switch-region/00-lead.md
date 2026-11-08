@@ -35,7 +35,7 @@
 
 ## Worklist / next step
 
-- Audited SHA: 8fd6edf (audit 09 at 29f037e: pass with comment findings)
+- Audited SHA: 94462b3 (repair audit 12 at b819eca: pass; earlier audit 09 at 8fd6edf)
 - Open output questions (batch before test implementer): OQ1 #1385 directive between a `break`-ending section and the next section (A: no blank line / B: blank line after directive); OQ2 #1239 whitespace between `#` and `region` (A: `#region Fields` / B: keep).
 - Done: spec author (01, commit 9ee6cfb, verdict open question).
 - Done: skeptic (02, commit 3372b14): #1385 proceed (+OQ1 second input), #1398 proceed, #1239 OQ2.
@@ -48,4 +48,5 @@
 - Done: spec checker (08, 76bcafa): consistent, no findings.
 - Done: auditor (09): pass, text cleanup — doc comments in SwitchCaseBraceRewriter.cs and BlankLineEditor.cs.
 - Done: cleaner (10, 46f5c7e): (a)/(b) text-only PASS; (c) fails strict-docs.
-- Repair round 1 (Decision 7): cleaner applies (c) → spec checker → auditor on repair → validator.
+- Repair round 1 done: cleaner 23a542f, spec checker 11 consistent, auditor 12 pass.
+- Next: validator, then publish.
