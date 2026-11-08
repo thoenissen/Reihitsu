@@ -23,7 +23,7 @@
 | 3 | Skeptic | FMT-BLANK-016 coverage list omits the blank line before a `break` (FMT-BLANK-004 first clause) | Spec author adds it as clarification wording | Same requirement, existing behavior is wrong against -016 | Wording only; output already demanded by FMT-BLANK-016 | — |
 | 4 | Answers | Does OQ1=A need a change doc? | Yes: it changes FMT-BLANK-006's intended behavior (sections added). Lane widens bug fix → behavior change; spec author and skeptic already ran; change doc records 1A in `Decisions`. OQ2=A is a reading of the existing FMT-REGION-007 → clarification, no change doc | sdd/README *When a change doc is required* | Visible changes are the maintainer's answers | — |
 | 5 | Answers | Second skeptic run on the change doc? | No — the doc only records the answered output; the skeptic already examined OQ1 and the spec diff | Saves a stage; nothing undecided | Answered | — |
-| 6 | Implementer | Disputed test `PhaseLineEndingOwnershipTests.LineBreaksAroundDirectivesAndCommentsAreTheDetectedLineEndingInEveryPhase` pins the blank line in front of `#endif` | Test is wrong: FMT-BLANK-016 (amended, maintainer-answered change doc) places it behind the last directive; fresh test implementer moves the blank line in `expected` only | The test checks line endings (FMT-PIPE-019), not placement; placement is decided by FMT-BLANK-016 | Covered by FMT-BLANK-016 and answer 1A | — |
+| 6 | Implementer | Disputed test `PhaseLineEndingOwnershipTests.LineBreaksAroundDirectivesAndCommentsAreTheDetectedLineEndingInEveryPhase` pins the blank line in front of `#endif` | Test is wrong: FMT-BLANK-016 (amended, maintainer-answered change doc) places it behind the last directive; fresh test implementer moves the blank line in `expected` only | The test checks line endings (FMT-PIPE-019), not placement; placement is decided by FMT-BLANK-016 | Covered by FMT-BLANK-016 and answer 1A | fbf26fe |
 | 1 | Claim | Branch name | Use the session's designated branch `claude/nifty-hypatia-urch1j` instead of `claude/issues-1385-1398-1239-<slug>` | The session environment forbids pushing to any other branch | Branch names are internal | 32e14d4 |
 
 ## Follow-up candidates
@@ -42,4 +42,5 @@
 - Done: spec author round 2 (03, commit 1bee8f5): change doc `sdd/changes/2026-11/directive-before-switch-section.md` accepted by lead. Lane check behavior-change confirmed.
 - Done: test implementer (04, commit eaf6799): 34 new/rewritten tests fail on spec differences only.
 - Done: implementer (05, commits aaa7241, 8a76f40): verdict test disputed (Decision 6).
-- Next: fresh test implementer fixes disputed test; then cleaner.
+- Done: test implementer follow-up (06, fbf26fe); formatter project green.
+- Next: cleaner.
