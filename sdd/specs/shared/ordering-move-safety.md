@@ -315,7 +315,9 @@ The moved members are the moved declaration and the members of excluded code in 
 
 A member reordering fix MUST NOT offer a move either when it would reorder the instance fields of a type whose field order sets its layout (SHARED-FIX-003, *Run time*), and it counts the instance fields the same way: an instance field of excluded code in the moved declaration's leading trivia moves across every instance field the move crosses, and an instance field of excluded code in the crossed span is crossed. A move of a static member therefore reorders instance fields when excluded code in its leading trivia declares one and the move crosses an instance field.
 
-Both guards judge each build configuration on its own. A configuration chooses, in every `#if` group that declares, or splits, a member the move moves or crosses, the one branch it compiles, or none when no branch's condition holds; it compiles the members, and the parts of members, that its branches hold. The move is refused when, in some configuration, a member it moves and a member it crosses have a runtime initializer of the same context, or when, in some configuration, it reorders the instance fields of a type whose field order sets its layout. What one configuration compiles is never combined with what another compiles, and declarations in branches that exclude each other are not joined into one member by their name: each is a member of the configurations that compile it. The fix may also read a combination of branches that no definition of the symbols selects, such as an `#if DEBUG` group beside an `#if !DEBUG` group; such a combination can only refuse a move.
+Both guards judge each build configuration on its own. A build configuration is an assignment of the preprocessor symbols that the conditions of the conditional directives in the moved span and in the crossed span (SHARED-ORDER-003) name: each of these symbols is either defined or not, and every other symbol keeps the definition the document is analyzed with. In each configuration, the fix reads the document as the compiler reads it with that assignment: every `#if` and `#elif` condition is evaluated, also that of a directive outside both spans, and each configuration compiles the members, and the parts of members, that the branches it selects hold. The move is refused when, in some configuration, a member it moves and a member it crosses have a runtime initializer of the same context, or when, in some configuration, it reorders the instance fields of a type whose field order sets its layout. What one configuration compiles is never combined with what another compiles, and declarations in branches that exclude each other are not joined into one member by their name: each is a member of the configurations that compile it. A combination of branches that no assignment selects is never read: the `#if DEBUG` branch of one group together with the `#if !DEBUG` branch of another, or together with the empty `#else` side of a second `#if DEBUG` group, describes code that no build compiles, and it neither refuses nor keeps a move.
+
+In each configuration, the move MUST stay among the members of the type (SHARED-ORDER-001). It is refused when, in some configuration, code that the configuration compiles in the moved span or in the crossed span is not part of a member of the type, because a branch closes the type's body in front of it or opens another type around it, or when a member of the type that the configuration compiles reaches across the start of the target, or across the start or the end of the moved declaration, as a nested type does that a branch opens in the crossed span and another branch closes behind the moved declaration, or a method whose block a branch leaves open.
 
 A member whose declaration an `#if`, `#elif`, or `#else` branch splits, so that the configurations compile different parts of it, is in each configuration what that configuration compiles:
 
@@ -326,11 +328,11 @@ A member whose declaration an `#if`, `#elif`, or `#else` branch splits, so that 
 
 A member that is `static` without an initializer in one configuration and an instance member with an initializer in another is therefore a static member without a runtime initializer in the first and an instance member with one in the second; no configuration gives it a static initializer, so a move across it is refused only for a moved member with an instance initializer. A split member keeps the move when no configuration gives it a runtime initializer of the context of a member it is moved across that has one too, and no configuration makes it an instance field of a layout type that the move reorders.
 
-The fix reads at most 256 configurations for a move. When the `#if` groups that declare or split a member the move moves or crosses have more, the move is refused, because the fix cannot show that every configuration keeps the order. A group that holds no member the move moves or crosses does not count toward the limit and does not refuse the move.
+The fix reads at most 256 configurations for a move, which is eight symbols. When the conditional directives in the moved span and in the crossed span name more than eight symbols together, the move is refused, because the fix cannot show that every configuration keeps the order. A directive outside both spans does not count toward the limit and does not refuse the move.
 
-Every member reordering fix applies both guards. RH7102 moves only constants. A constant that no `#if`, `#elif`, or `#else` splits has no runtime initializer and takes no place in the layout, but the excluded code in its leading trivia moves with it; a declaration that is `const` only in some configurations counts as a split member. RH7309 counts initializers and instance fields the same way.
+Every member reordering fix applies both guards. RH7102 moves only constants. A constant that no `#if`, `#elif`, or `#else` splits has no runtime initializer and takes no place in the layout, but the excluded code in its leading trivia moves with it; a declaration that is `const` only in some configurations counts as a split member. RH7309 counts initializers and instance fields the same way; for its fix, the moved span and the crossed span are the region blocks whose order it changes.
 
-Why: Initializers run in declaration order within their context, the static ones in the static constructor and the instance ones in each instance constructor. Swapping two of them can change observable values silently. Static and instance initializers run at different times, so crossing a member of the other context is safe. Excluded code is compiled by another build, and the code in front of the moved declaration goes where the declaration goes, so in that build its members are moved like the declaration itself; refusing only for the declaration's own initializer would let the fix reorder that build's initializers or fields. A build sees only the parts of a split member that it compiles, so an initializer or a `static` that one build adds to the member is that build's, and the member is moved or crossed with it in that build only; combining an initializer of one build with a `static` of another would describe a member that no build compiles and withhold moves that no build changes. A build that compiles the member as a `const` sees a constant, which runs no initializer and takes no place in the layout. The limit on configurations bounds the work of the fix on many independent groups; refusing the move is the safe side when the fix cannot read every configuration, and only the groups the move touches can make it change an order.
+Why: Initializers run in declaration order within their context, the static ones in the static constructor and the instance ones in each instance constructor. Swapping two of them can change observable values silently. Static and instance initializers run at different times, so crossing a member of the other context is safe. Excluded code is compiled by another build, and the code in front of the moved declaration goes where the declaration goes, so in that build its members are moved like the declaration itself; refusing only for the declaration's own initializer would let the fix reorder that build's initializers or fields. A build sees only the parts of a split member that it compiles, so an initializer or a `static` that one build adds to the member is that build's, and the member is moved or crossed with it in that build only; combining an initializer of one build with a `static` of another would describe a member that no build compiles and withhold moves that no build changes. A build that compiles the member as a `const` sees a constant, which runs no initializer and takes no place in the layout. A build is a definition of the symbols, so only the combinations of branches that a definition selects are builds; combining branches that exclude each other would describe code that no build compiles and withhold moves that no build changes, or, read group by group, would miss what one branch does to the code behind its group. A branch can close the type's body or open another type around the members behind it, so a member of the type in one build is a member of another type in another, and the move would take it out of that type or carry it into one. The limit bounds the work of the fix on many symbols; refusing the move is the safe side when the fix cannot read every configuration, and the directives that name only other symbols lie outside the code the move moves or crosses.
 
 Example:
 
@@ -590,7 +592,82 @@ public class C
 
 is reported by RH7109, and its code fix is offered and moves `_c` in front of `_t`: in a build with `DEBUG`, `_b` is a static member without an initializer, and in a build without `DEBUG`, `_b` has an instance initializer, which the static `_c` may cross. No build gives `_b` a static initializer. With `private readonly int _c = Log("c");` in place of the static `_c`, the build without `DEBUG` would run `Log("c")` before `Log("b")`, and no code fix is offered. Two complete declarations of `_b`, one in each branch, are judged the same way.
 
-Groups beyond the configuration limit refuse only a move that touches them. Without `FEATURE` or any `A` symbol defined,
+A branch that closes the type's body takes the members behind it out of the type in its build. Without `DEBUG` defined,
+
+```csharp
+public class C
+{
+    private static int _t;
+#if DEBUG
+}
+
+public class D
+{
+    private static int _z = Log("z");
+#endif
+    private int _d;
+    private static readonly int {|RH7109:_c|} = Log("c");
+
+    private static int Log(string name)
+    {
+        return 0;
+    }
+}
+```
+
+is reported by RH7109, and no code fix is offered: in a build with `DEBUG`, `_d` and `_c` are members of `D`, and the move would carry `_c` out of `D` in front of `_t` and across `_z`. The same holds when a branch opens a nested type around the members behind it and a second group, behind the moved declaration, closes it in the same build:
+
+```csharp
+public class C
+{
+    private static int _t;
+#if DEBUG
+    private class N
+    {
+#endif
+        private int _d;
+        private static readonly int {|RH7109:_c|} = Log("c");
+
+        private static int Log(string name)
+        {
+            return 0;
+        }
+#if DEBUG
+    }
+#endif
+}
+```
+
+is reported by RH7109, and no code fix is offered: in a build with `DEBUG`, `_c` is a member of the nested type `N`, which reaches across the moved declaration.
+
+Groups whose conditions name one symbol are read together, so a member that two groups split is in each configuration what one definition of the symbols compiles. Without `DEBUG` defined,
+
+```csharp
+public class C
+{
+    private static int _t;
+    private
+#if DEBUG
+        static
+#endif
+        int _b
+#if !DEBUG
+        = Log("b")
+#endif
+        ;
+    private int _d;
+    private static readonly int {|RH7109:_c|} = Log("c");
+
+    private static int Log(string name)
+    {
+        return 0;
+    }
+}
+```
+
+is reported by RH7109, and its code fix is offered and moves `_c` in front of `_t`: a build with `DEBUG` compiles `private static int _b;` and a build without `DEBUG` compiles `private int _b = Log("b");`, so no build gives `_b` a static initializer, although the `static` of one group and the initializer of the other appear together in the source. The fix is offered as well when both groups test `#if DEBUG`, so that `_b` is `static` with an initializer in a build with `DEBUG` and an instance field without one otherwise, and the moved `_c` is an instance field with an initializer; and when a crossed member and the moved member both have an initializer and the crossed member is `static` only without `DEBUG`, the moved member only with `DEBUG`, each split by its own group. With `#if TRACE` in place of `#if !DEBUG`, a build with both `DEBUG` and `TRACE` compiles `private static int _b = Log("b");`, and no code fix is offered.
+
+Symbols beyond the configuration limit refuse only a move whose moved span or crossed span holds a directive that names them. Without `FEATURE` or any `A` symbol defined,
 
 ```csharp
 public class C
@@ -631,7 +708,7 @@ public class C
 }
 ```
 
-is reported by RH7109, and its code fix moves `_c` in front of `_t`; the groups keep their place, because the move neither moves nor crosses a member they declare. When the nine groups `A1` to `A9`, each declaring one field without an initializer, lie between `_t` and a further field `private int _b;` in front of `_c`, the move crosses their members, their 512 configurations exceed the limit, and no code fix is offered.
+is reported by RH7109, and its code fix moves `_c` in front of `_t`; the groups keep their place, and they name ten symbols, but none of their directives lies in the moved span or the crossed span. When the nine groups `A1` to `A9`, each declaring one field without an initializer, lie between `_t` and a further field `private int _b;` in front of `_c`, the crossed span holds their directives, the nine symbols they name give 512 configurations, which exceed the limit, and no code fix is offered. The symbols of every directive in the two spans count together, also when active members separate the groups: five groups `R1A1` to `R1A5` in front of a crossed field `_m1` and five groups `R2A1` to `R2A5` in front of a crossed field `_m2` name ten symbols, and no code fix is offered either.
 
 Crossing an instance initializer is allowed:
 
