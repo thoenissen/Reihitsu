@@ -130,4 +130,5 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 - Done: spec checker `52-spec-checker.md` (e76e63f6) consistent; audit 7 `53-auditor.md` (c806c465): findings → narrowing (decision 53).
 - Done: narrowing — tests `54-test-implementer.md` (498bb0b7), spec `56-spec-author.md` (107bb846, 8b0722c5), implementer `55-implementer.md` (529b0da8): analyzer 7708/7708.
 - Done: audit 8 `57-auditor.md` (0593d454): #23, #26 closed; #27, #28 → decision 55. Issue manager `59-issue-manager.md` (02924ad8): #1664–#1668 created, #1604 extended.
-- Next: spec author `60-spec-author.md` ∥ test implementer `61-test-implementer.md` (decision 55); spec checker `62-spec-checker.md`; validator `63-validator.md`; issue manager; note; publish. (old line:) implementer → `51-implementer.md`; cleaner; spec checker; auditor (audit 7, repair only); validator. A block after this round is resolved by narrowing.
+- Done: spec author `60-spec-author.md` (52df787b); test implementer `61-test-implementer.md` (0a72b30a).
+- Next: spec checker `62-spec-checker.md`; validator `63-validator.md`; issue manager; note; publish. (old line:) implementer → `51-implementer.md`; cleaner; spec checker; auditor (audit 7, repair only); validator. A block after this round is resolved by narrowing.
