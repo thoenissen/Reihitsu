@@ -296,8 +296,8 @@ public static class OrderingDeclarationUtilities
     /// member in front of the target member's leading trivia. Code that an <c>#if</c> branch excludes in the moved
     /// member's leading trivia therefore moves with it, and such code from the target member up to the moved member
     /// is crossed. The move counts as changing the order as well when the moved or crossed span holds a directive of
-    /// a conditional group that does not wrap whole units, or the type's declaration holds a conditional directive
-    /// in front of its body (SHARED-ORDER-008)
+    /// a conditional group that does not wrap whole units, and a type whose declaration holds a conditional
+    /// directive in front of its body counts as one whose field order sets its layout (SHARED-ORDER-008)
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
     /// <param name="typeSymbol">Symbol of the type, which decides whether the order of its instance fields sets its layout</param>
@@ -315,8 +315,9 @@ public static class OrderingDeclarationUtilities
     /// initializer (SHARED-ORDER-007), or two instance fields of a type whose field order sets its layout, which the
     /// type's symbol decides. Members in code that an <c>#if</c> branch excludes count as well, at the position of
     /// that code, because another build configuration compiles them. The reorder counts as changing the order as
-    /// well when the reordered span holds a directive of a conditional group that does not wrap whole units, or the
-    /// type's declaration holds a conditional directive in front of its body (SHARED-ORDER-008). The reorder is given
+    /// well when the reordered span holds a directive of a conditional group that does not wrap whole units, and a
+    /// type whose declaration holds a conditional directive in front of its body counts as one whose field order
+    /// sets its layout (SHARED-ORDER-008). The reorder is given
     /// as the rank, after the reorder, of the part of the body that holds a position; code within one part keeps its
     /// order
     /// </summary>
@@ -400,9 +401,9 @@ public static class OrderingDeclarationUtilities
     /// their order is behavior, as
     /// <see cref="ChangesMemberOrder(TypeDeclarationSyntax, INamedTypeSymbol, Func{int, int})"/> describes, with the
     /// layout check given as a flag. The reorder counts as changed as well when the reordered span holds a directive
-    /// of a conditional group that does not wrap whole units (<see cref="WrapsWholeUnits"/>, SHARED-ORDER-008), or
-    /// when the type's declaration holds a conditional directive in front of its body
-    /// (<see cref="DeclarationHoldsConditionalDirective"/>)
+    /// of a conditional group that does not wrap whole units (<see cref="WrapsWholeUnits"/>, SHARED-ORDER-008). A
+    /// type whose declaration holds a conditional directive in front of its body
+    /// (<see cref="DeclarationHoldsConditionalDirective"/>) counts as one whose field order sets its layout
     /// </summary>
     /// <param name="typeDeclaration">Type declaration whose body is reordered</param>
     /// <param name="fieldOrderSetsLayout">Whether the order of the type's instance fields sets its layout (<see cref="FieldOrderSetsLayout"/>)</param>
@@ -419,8 +420,7 @@ public static class OrderingDeclarationUtilities
                                     .Select(directive => directive.GetRelatedDirectives())
                                     .GroupBy(group => group[0].SpanStart, (_, sameGroups) => sameGroups.First());
 
-        if (DeclarationHoldsConditionalDirective(typeDeclaration)
-            || groups.Any(group => WrapsWholeUnits(typeDeclaration, group) == false))
+        if (groups.Any(group => WrapsWholeUnits(typeDeclaration, group) == false))
         {
             return true;
         }
@@ -444,7 +444,7 @@ public static class OrderingDeclarationUtilities
 
         return ChangesOrder(member => HasInitializer(member) && IsStatic(member))
                || ChangesOrder(member => HasInitializer(member) && IsStatic(member) == false)
-               || (fieldOrderSetsLayout && ChangesOrder(IsLayoutField));
+               || ((fieldOrderSetsLayout || DeclarationHoldsConditionalDirective(typeDeclaration)) && ChangesOrder(IsLayoutField));
     }
 
     /// <summary>
@@ -481,8 +481,7 @@ public static class OrderingDeclarationUtilities
 
     /// <summary>
     /// Determines whether the declaration declares an instance field of the type's layout: an instance field, an
-    /// instance field-like event, or an instance property that the compiler gives a backing field, because it is an
-    /// auto-property or uses the <c>field</c> keyword
+    /// instance field-like event, or an instance property that can have a backing field (<see cref="HasBackingField"/>)
     /// </summary>
     /// <param name="memberDeclaration">Declaration</param>
     /// <returns><see langword="true"/> if the declaration declares an instance field</returns>
@@ -520,14 +519,15 @@ public static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Determines whether the property has a backing field the compiler declares: a property with an accessor that
-    /// has neither a body nor an expression body, or a property that uses the <c>field</c> keyword
-    /// (SHARED-ORDER-007). The parser reads <c>field</c> as the keyword only from C# 14 on; before, it is an
-    /// identifier that names a member. Abstract and extern properties have none, and neither has the bodiless
-    /// defining declaration of a partial property
+    /// Determines whether the property counts as having a backing field the compiler declares (SHARED-ORDER-007): a
+    /// property with an accessor that has neither a body nor an expression body, or a property that uses the
+    /// <c>field</c> keyword. The count goes by the shape of the declaration alone, also for either declaration of a
+    /// partial property, so it can count a field the compiler does not declare; that only withholds a reorder. The
+    /// parser reads <c>field</c> as the keyword only from C# 14 on; before, it is an identifier that names a member.
+    /// Abstract and extern properties have none
     /// </summary>
     /// <param name="propertyDeclaration">Property declaration</param>
-    /// <returns><see langword="true"/> if the property has a backing field</returns>
+    /// <returns><see langword="true"/> if the property counts as having a backing field</returns>
     private static bool HasBackingField(PropertyDeclarationSyntax propertyDeclaration)
     {
         if (propertyDeclaration.Modifiers.Any(SyntaxKind.AbstractKeyword)
@@ -536,13 +536,8 @@ public static class OrderingDeclarationUtilities
             return false;
         }
 
-        if (propertyDeclaration.AccessorList is { } accessorList
-            && accessorList.Accessors.Any(IsWithoutBody))
-        {
-            return propertyDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword) == false;
-        }
-
-        return propertyDeclaration.DescendantTokens().Any(token => token.IsKind(SyntaxKind.FieldKeyword));
+        return propertyDeclaration.AccessorList?.Accessors.Any(IsWithoutBody) == true
+               || propertyDeclaration.DescendantTokens().Any(token => token.IsKind(SyntaxKind.FieldKeyword));
     }
 
     /// <summary>
@@ -716,7 +711,8 @@ public static class OrderingDeclarationUtilities
 
     /// <summary>
     /// Determines whether the declaration of the type holds a conditional directive in front of its body
-    /// (SHARED-ORDER-008), which can make the type's layout depend on the build: one in the leading trivia of a token
+    /// (SHARED-ORDER-008), which can make the type's layout depend on the build, so that the type counts as one whose
+    /// field order sets its layout: one in the leading trivia of a token
     /// behind the declaration's first token, up to and including the opening brace, or one in the leading trivia of
     /// the first token whose excluded branch does not read as whole members
     /// </summary>
