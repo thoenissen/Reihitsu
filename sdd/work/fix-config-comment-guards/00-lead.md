@@ -125,4 +125,5 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 - Batch 7 answered (A). Finish: after the implementer, cleaner; spec checker ∥ audit 7 (both read-only, decision 51); validator; issue manager; note; publish.
 - Done: implementer `51-implementer.md` (6cb404d2): all tests pass; src diff vs main +629/−79 (round shrank it).
 - Done: spec checker `52-spec-checker.md` (e76e63f6) consistent; audit 7 `53-auditor.md` (c806c465): findings → narrowing (decision 53).
-- Narrowing round: test implementer (#23 test) → `54-test-implementer.md`; implementer (#23, #26) → `55-implementer.md`; auditor on the narrowing only `56-auditor.md` ∥ validator `57-validator.md`; issue manager; note; publish. (old line:) implementer → `51-implementer.md`; cleaner; spec checker; auditor (audit 7, repair only); validator. A block after this round is resolved by narrowing.
+- Done: narrowing — tests `54-test-implementer.md` (498bb0b7), spec `56-spec-author.md` (107bb846, 8b0722c5), implementer `55-implementer.md` (529b0da8): analyzer 7708/7708.
+- Next: auditor on the narrowing only `57-auditor.md` ∥ validator `58-validator.md`; issue manager; note; publish. (old line:) implementer → `51-implementer.md`; cleaner; spec checker; auditor (audit 7, repair only); validator. A block after this round is resolved by narrowing.
