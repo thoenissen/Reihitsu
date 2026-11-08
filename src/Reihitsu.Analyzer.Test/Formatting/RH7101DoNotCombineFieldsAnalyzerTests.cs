@@ -2774,6 +2774,96 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     }
 
     /// <summary>
+    /// Verifies the specification example: when the documentation mode is Parse, a <c>/** */</c> comment behind the type on
+    /// the type's line belongs to the first declarator and does not withhold the fix; the comment stays in the first field
+    /// only, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [Requirement("RH7101-004")]
+    public async Task SpecExampleDocumentationStyleCommentBehindTheTypeDoesNotWithholdTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int /** c */ _first, {|RH7101:_second|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int
+
+                                       /** c */ _first;
+                                       private int _second;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject));
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_second");
+    }
+
+    /// <summary>
+    /// Verifies that when the documentation mode is Diagnose, a <c>///</c> comment behind the type on the type's line, with the
+    /// first declarator on the next line, belongs to the first declarator and does not withhold the fix; the comment stays in
+    /// the first field only, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [Requirement("RH7101-004")]
+    public async Task SingleLineDocumentationStyleCommentBehindTheTypeDoesNotWithholdTheFixInDocumentationModeDiagnose()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int /// <summary>c</summary>
+                                      _g, {|RH7101:_h|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int
+
+                                       /// <summary>
+                                       /// c
+                                       /// </summary>
+                                       _g;
+                                       private int _h;
+                                   }
+                                   """;
+
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_h", DocumentationMode.Diagnose);
+    }
+
+    /// <summary>
+    /// Verifies the counterpart of the specification example: in the documentation mode None, a <c>/** */</c> or <c>///</c>
+    /// comment behind the type on the type's line is an ordinary comment in the part every field repeats; the diagnostic is
+    /// reported and the fix is withheld
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    public async Task DocumentationStyleCommentBehindTheTypeWithholdsTheFixInDocumentationModeNone()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int /** c */ _first, {|RH7101:_second|};
+
+                                  private int /// <summary>c</summary>
+                                      _g, {|RH7101:_h|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source, DocumentationMode.None);
+    }
+
+    /// <summary>
     /// Verifies that a comment in the declaration's leading trivia, on the declaration's line, does not withhold the fix,
     /// under LF and CRLF
     /// </summary>

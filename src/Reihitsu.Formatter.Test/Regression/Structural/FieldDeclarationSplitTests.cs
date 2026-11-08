@@ -2377,6 +2377,139 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies the specification example: when the documentation mode is Parse, a <c>/** */</c> or <c>///</c> comment behind
+    /// the type on the type's line belongs to the first declarator, so the declaration is split and the comment stays in the
+    /// first field only, also when the first declarator starts the next line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-030")]
+    [Requirement("FMT-STRUCT-022")]
+    public void SpecExampleDocumentationStyleCommentBehindTheTypeStaysWithTheFirstField()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int /** c */ _first, _second;
+
+                                 private int /// <summary>c</summary>
+                                     _g, _h;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private int
+
+                                    /** c */ _first;
+                                    private int _second;
+
+                                    private int
+
+                                    /// <summary>
+                                    /// c
+                                    /// </summary>
+                                    _g;
+                                    private int _h;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected, CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: in the documentation mode None, a <c>/** */</c> or <c>///</c> comment behind the
+    /// type on the type's line is an ordinary comment in the part every field repeats, and neither declaration is split. The
+    /// requirement decides only the split; the input writes the declarators on the next line at the column the formatter
+    /// gives a declaration that stays whole, so the rest of the layout is a fixed point
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-030")]
+    public void SpecExampleDocumentationStyleCommentBehindTheTypeKeepsTheDeclarationUnsplitInDocumentationModeNone()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int /** c */ _first, _second;
+
+                                 private int /// <summary>c</summary>
+                                 _g, _h;
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input, parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None));
+    }
+
+    /// <summary>
+    /// Verifies that when the documentation mode is Parse, a <c>/** */</c> comment behind the type on the type's line, with the
+    /// first declarator on the next line, belongs to the first declarator: the declaration is split and the comment stays in the
+    /// first field only
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-030")]
+    [Requirement("FMT-STRUCT-022")]
+    public void DelimitedDocumentationStyleCommentBehindTheTypeWithTheDeclaratorsOnTheNextLineStaysWithTheFirstField()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int /** c */
+                                     _first, _second;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private int
+
+                                    /** c */
+                                    _first;
+                                    private int _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected, CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse));
+    }
+
+    /// <summary>
+    /// Verifies that when the documentation mode is Diagnose, a <c>///</c> comment behind a generic type on the type's line
+    /// belongs to the first declarator: the declaration is split, the type is repeated without the comment, and the comment
+    /// stays in the first field only
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-030")]
+    [Requirement("FMT-STRUCT-022")]
+    public void SingleLineDocumentationStyleCommentBehindAGenericTypeStaysWithTheFirstFieldInDocumentationModeDiagnose()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private System.Collections.Generic.List<int> /// c
+                                     _first, _second;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private System.Collections.Generic.List<int>
+
+                                    /// c
+                                    _first;
+                                    private System.Collections.Generic.List<int> _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected, CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
+    }
+
+    /// <summary>
     /// Formats the input under LF and CRLF line endings, verifies that a second pass is stable, and that the field declaration that
     /// declares the named variable keeps every declarator it has in the input
     /// </summary>

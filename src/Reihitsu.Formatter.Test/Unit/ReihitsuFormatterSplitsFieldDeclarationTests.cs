@@ -19,8 +19,8 @@ public class ReihitsuFormatterSplitsFieldDeclarationTests : FormatterTestsBase
     #region Constants
 
     /// <summary>
-    /// Source of the FMT-PIPE-031 example with a documented declaration, a declaration with a comment behind the type, and one
-    /// with a comment in its first declarator's initializer
+    /// Source of the FMT-PIPE-031 example with a documented declaration, a declaration with a comment behind the type, one
+    /// with a comment in its first declarator's initializer, and one with a <c>/** */</c> comment behind the type
     /// </summary>
     private const string DocumentationAndCommentExample = """
                                                           class C
@@ -33,6 +33,8 @@ public class ReihitsuFormatterSplitsFieldDeclarationTests : FormatterTestsBase
                                                               private int /* c */ _first, _second;
 
                                                               private int _a = /* c */ 1, _b;
+
+                                                              private int /** c */ _g, _h;
                                                           }
                                                           """;
 
@@ -140,7 +142,8 @@ public class ReihitsuFormatterSplitsFieldDeclarationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the spec example: when the documentation mode is Parse, the method returns false for a documented declaration and
-    /// for one with a comment behind the type, and true for one with a comment in its first declarator's initializer
+    /// for one with a comment behind the type, and true for one with a comment in its first declarator's initializer and for one
+    /// with a <c>/** */</c> comment behind the type, which belongs to the first declarator
     /// </summary>
     [TestMethod]
     [Requirement("FMT-PIPE-031")]
@@ -151,11 +154,13 @@ public class ReihitsuFormatterSplitsFieldDeclarationTests : FormatterTestsBase
         Assert.IsFalse(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "X")));
         Assert.IsFalse(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_first")));
         Assert.IsTrue(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_a")));
+        Assert.IsTrue(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_g")));
     }
 
     /// <summary>
     /// Verifies the spec example in the documentation mode None: the documentation-style comment is an ordinary comment, so the
-    /// method returns true for the declaration it precedes, while the comment behind the type still keeps its declaration whole
+    /// method returns true for the declaration it precedes, while the comment behind the type still keeps its declaration whole,
+    /// and so does the <c>/** */</c> comment behind the type, which is an ordinary comment as well
     /// </summary>
     [TestMethod]
     [Requirement("FMT-PIPE-031")]
@@ -166,6 +171,7 @@ public class ReihitsuFormatterSplitsFieldDeclarationTests : FormatterTestsBase
         Assert.IsTrue(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "X")));
         Assert.IsFalse(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_first")));
         Assert.IsTrue(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_a")));
+        Assert.IsFalse(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_g")));
     }
 
     /// <summary>
@@ -250,6 +256,37 @@ public class ReihitsuFormatterSplitsFieldDeclarationTests : FormatterTestsBase
         var root = CSharpSyntaxTree.ParseText($"class C\n{{\n{declaration}\n}}", CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse), cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
 
         Assert.IsTrue(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_x")));
+    }
+
+    /// <summary>
+    /// Verifies that the method returns true for a combined declaration with a <c>///</c> or <c>/** */</c> comment behind the type
+    /// on the type's line in the documentation modes Parse and Diagnose, where the comment belongs to the first declarator, also
+    /// when the first declarator starts the next line, and false in the documentation mode None, where it is an ordinary comment
+    /// behind the type
+    /// </summary>
+    /// <param name="declaration">The combined declaration with its comment</param>
+    [TestMethod]
+    [Requirement("FMT-PIPE-031")]
+    [DataRow("    private int /** c */ _x, _y;")]
+    [DataRow("    private int /** c */\n        _x, _y;")]
+    [DataRow("    private int /// <summary>c</summary>\n        _x, _y;")]
+    [DataRow("    private System.Collections.Generic.List<int> /// c\n        _x, _y;")]
+    [DataRow("    private int[] /** c */ _x, _y;")]
+    [DataRow("    [System.Obsolete]\n    private int /** c */ _x, _y;")]
+    public void ReturnsTrueForADocumentationStyleCommentBehindTheTypeUnlessDocumentationCommentsAreNotParsed(string declaration)
+    {
+        var source = $"class C\n{{\n{declaration}\n}}";
+
+        foreach (var documentationMode in new[] { DocumentationMode.Parse, DocumentationMode.Diagnose })
+        {
+            var root = CSharpSyntaxTree.ParseText(source, CSharpParseOptions.Default.WithDocumentationMode(documentationMode), cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
+
+            Assert.IsTrue(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_x")), $"Documentation mode {documentationMode}");
+        }
+
+        var rootWithoutDocumentation = CSharpSyntaxTree.ParseText(source, CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None), cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
+
+        Assert.IsFalse(ReihitsuFormatter.SplitsFieldDeclaration(FindField(rootWithoutDocumentation, "_x")));
     }
 
     /// <summary>
