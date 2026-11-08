@@ -1,5 +1,5 @@
 Role: implementer
-Commit: <see git log: "Implement directive-switch-region">
+Commit: aaa7241
 Verdict: test disputed
 
 The prompt carried no intended fix, suspected cause, or hoped-for verdict. All 35 handed-over red tests pass; one existing test outside the handover now fails because it pins the output FMT-BLANK-016 forbids (see *Disputed tests or scope*).
