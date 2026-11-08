@@ -315,19 +315,22 @@ The moved members are the moved declaration and the members of excluded code in 
 
 A member reordering fix MUST NOT offer a move either when it would reorder the instance fields of a type whose field order sets its layout (SHARED-FIX-003, *Run time*), and it counts the instance fields the same way: an instance field of excluded code in the moved declaration's leading trivia moves across every instance field the move crosses, and an instance field of excluded code in the crossed span is crossed. A move of a static member therefore reorders instance fields when excluded code in its leading trivia declares one and the move crosses an instance field.
 
-A member whose declaration an `#if`, `#elif`, or `#else` branch splits, so that the configurations compile different parts of it, is read per configuration: each configuration contributes what it declares the member as, and the member counts with what any configuration contributes:
+Both guards judge each build configuration on its own. A configuration chooses, in every `#if` group that declares, or splits, a member the move moves or crosses, the one branch it compiles, or none when no branch's condition holds; it compiles the members, and the parts of members, that its branches hold. The move is refused when, in some configuration, a member it moves and a member it crosses have a runtime initializer of the same context, or when, in some configuration, it reorders the instance fields of a type whose field order sets its layout. What one configuration compiles is never combined with what another compiles, and declarations in branches that exclude each other are not joined into one member by their name: each is a member of the configurations that compile it. The fix may also read a combination of branches that no definition of the symbols selects, such as an `#if DEBUG` group beside an `#if !DEBUG` group; such a combination can only refuse a move.
 
-- it has a runtime initializer when one configuration that does not declare it `const` gives it an initializer, such as an `= Log("b")` that only a build with `DEBUG` compiles, also behind the accessor list of a property, and also when its initializer is active in every configuration and only one configuration declares it without `const`;
-- it is a static member when one configuration declares it `static` and not `const`, and an instance member when one configuration declares it neither `static` nor `const`; it counts in both contexts when one configuration makes it a static member and another an instance member;
-- it is an instance field when one configuration declares it as one;
-- a configuration that declares it `const` contributes nothing: neither a runtime initializer, nor a context, nor an instance field, because a constant has nothing to reorder. A member that is `static readonly` in one configuration and `const` in every other therefore counts only as a static member, with a runtime initializer when the `static readonly` configuration gives it one;
-- a further member that excluded code inside its declaration declares counts like any member of excluded code, at that position.
+A member whose declaration an `#if`, `#elif`, or `#else` branch splits, so that the configurations compile different parts of it, is in each configuration what that configuration compiles:
 
-A split member whose parts give it no runtime initializer, context, or instance field that conflicts with a member it is moved across keeps the move.
+- it has a runtime initializer in a configuration that gives it an initializer and does not declare it `const`, such as an `= Log("b")` that only a build with `DEBUG` compiles, also behind the accessor list of a property; an initializer that is active in every configuration counts in each configuration that does not declare the member `const`;
+- it is a static member in a configuration that declares it `static` and not `const`, an instance member in a configuration that declares it neither `static` nor `const`, and an instance field in a configuration that declares it as one;
+- in a configuration that declares it `const`, it has no runtime initializer and no context and takes no place in the layout, because a constant has nothing to reorder;
+- a further member that excluded code inside its declaration declares counts like any member of excluded code, at that position, in the configurations that compile it.
+
+A member that is `static` without an initializer in one configuration and an instance member with an initializer in another is therefore a static member without a runtime initializer in the first and an instance member with one in the second; no configuration gives it a static initializer, so a move across it is refused only for a moved member with an instance initializer. A split member keeps the move when no configuration gives it a runtime initializer of the context of a member it is moved across that has one too, and no configuration makes it an instance field of a layout type that the move reorders.
+
+The fix reads at most 256 configurations for a move. When the `#if` groups that declare or split a member the move moves or crosses have more, the move is refused, because the fix cannot show that every configuration keeps the order. A group that holds no member the move moves or crosses does not count toward the limit and does not refuse the move.
 
 Every member reordering fix applies both guards. RH7102 moves only constants. A constant that no `#if`, `#elif`, or `#else` splits has no runtime initializer and takes no place in the layout, but the excluded code in its leading trivia moves with it; a declaration that is `const` only in some configurations counts as a split member. RH7309 counts initializers and instance fields the same way.
 
-Why: Initializers run in declaration order within their context, the static ones in the static constructor and the instance ones in each instance constructor. Swapping two of them can change observable values silently. Static and instance initializers run at different times, so crossing a member of the other context is safe. Excluded code is compiled by another build, and the code in front of the moved declaration goes where the declaration goes, so in that build its members are moved like the declaration itself; refusing only for the declaration's own initializer would let the fix reorder that build's initializers or fields. A build sees only the parts of a split member that it compiles, so an initializer or a `static` that one build adds to the member is that build's, and the member is moved or crossed with it; a build that compiles the member as a `const` sees a constant, which runs no initializer and takes no place in the layout, so that build adds nothing to the member.
+Why: Initializers run in declaration order within their context, the static ones in the static constructor and the instance ones in each instance constructor. Swapping two of them can change observable values silently. Static and instance initializers run at different times, so crossing a member of the other context is safe. Excluded code is compiled by another build, and the code in front of the moved declaration goes where the declaration goes, so in that build its members are moved like the declaration itself; refusing only for the declaration's own initializer would let the fix reorder that build's initializers or fields. A build sees only the parts of a split member that it compiles, so an initializer or a `static` that one build adds to the member is that build's, and the member is moved or crossed with it in that build only; combining an initializer of one build with a `static` of another would describe a member that no build compiles and withhold moves that no build changes. A build that compiles the member as a `const` sees a constant, which runs no initializer and takes no place in the layout. The limit on configurations bounds the work of the fix on many independent groups; refusing the move is the safe side when the fix cannot read every configuration, and only the groups the move touches can make it change an order.
 
 Example:
 
@@ -449,7 +452,7 @@ public class C
 
 is reported by RH7109, and no code fix is offered: in a build with `DEBUG`, `_b` has an initializer, and moving it in front of `_a` would run `Log("b")` before `Log("a")`.
 
-A `static` that only one configuration compiles counts in both contexts. Without `DEBUG` defined,
+A `static` that only one configuration compiles leaves the member an instance field in the other configuration. Without `DEBUG` defined,
 
 ```csharp
 using System;
@@ -480,7 +483,7 @@ public struct S : IDisposable
 
 is reported by RH7309, and no code fix is offered: in a build with `DEBUG`, `_b` is an instance field, and moving `Fields` in front of `IDisposable` would lay out `_b` before `_a`.
 
-A configuration that declares the split member `const` adds no context. Without `DEBUG` defined,
+A configuration that declares the split member `const` gives it no context. Without `DEBUG` defined,
 
 ```csharp
 public class C
@@ -562,6 +565,73 @@ public class C : IDisposable
     private static int Log(string name) => 0;
 }
 ```
+
+A member split into a static member without an initializer in one configuration and an instance member with an initializer in another is judged in each configuration on its own. Without `DEBUG` defined,
+
+```csharp
+public class C
+{
+    private static int _t;
+#if DEBUG
+    private static int _b
+#else
+    private int _b = Log("b")
+#endif
+        ;
+    private int _d;
+    private static readonly int {|RH7109:_c|} = Log("c");
+
+    private static int Log(string name)
+    {
+        return 0;
+    }
+}
+```
+
+is reported by RH7109, and its code fix is offered and moves `_c` in front of `_t`: in a build with `DEBUG`, `_b` is a static member without an initializer, and in a build without `DEBUG`, `_b` has an instance initializer, which the static `_c` may cross. No build gives `_b` a static initializer. With `private readonly int _c = Log("c");` in place of the static `_c`, the build without `DEBUG` would run `Log("c")` before `Log("b")`, and no code fix is offered. Two complete declarations of `_b`, one in each branch, are judged the same way.
+
+Groups beyond the configuration limit refuse only a move that touches them. Without `FEATURE` or any `A` symbol defined,
+
+```csharp
+public class C
+{
+    private int _t;
+    private readonly int {|RH7109:_c|};
+
+#if FEATURE
+#if A1
+    private int _a1;
+#endif
+#if A2
+    private int _a2;
+#endif
+#if A3
+    private int _a3;
+#endif
+#if A4
+    private int _a4;
+#endif
+#if A5
+    private int _a5;
+#endif
+#if A6
+    private int _a6;
+#endif
+#if A7
+    private int _a7;
+#endif
+#if A8
+    private int _a8;
+#endif
+#if A9
+    private int _a9;
+#endif
+    private int _f;
+#endif
+}
+```
+
+is reported by RH7109, and its code fix moves `_c` in front of `_t`; the groups keep their place, because the move neither moves nor crosses a member they declare. When the nine groups `A1` to `A9`, each declaring one field without an initializer, lie between `_t` and a further field `private int _b;` in front of `_c`, the move crosses their members, their 512 configurations exceed the limit, and no code fix is offered.
 
 Crossing an instance initializer is allowed:
 
