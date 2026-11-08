@@ -67,4 +67,5 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
   3. Hint: per-call token walk without a directive check → implementer (same code, cheap).
   4. Hint: RH7102.md and RH7103.md `Uses` lack SHARED-DIAG-008 → spec author. Done: `11-spec-author.md` (938e1b2).
 - Done: test implementer `10-test-implementer.md` (3390e51): 11 tests red as intended.
-- Next: implementer → `12-implementer.md` → cleaner → spec checker → auditor (repair only) → validator.
+- Done: implementer e190498, `12-implementer.md` (6ea120e).
+- Next: → cleaner → spec checker → auditor (repair only) → validator.
