@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Design;
@@ -193,7 +194,8 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
     {
         fieldDeclaration = null;
 
-        if (IsSupportedPropertyShape(node) == false)
+        if (IsSupportedPropertyShape(node) == false
+            || HasConditionalGroupOfOtherModifiers(node))
         {
             return false;
         }
@@ -231,6 +233,43 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
         fieldDeclaration = candidate;
 
         return true;
+    }
+
+    /// <summary>
+    /// Determines whether a conditional group with a directive between two modifiers or between the last modifier and
+    /// the type holds, in a branch, active or excluded, anything other than a modifier that RH7105 puts in front of
+    /// <see langword="readonly"/> and that a field can carry (RH2001-009)
+    /// </summary>
+    /// <param name="node">Property declaration</param>
+    /// <returns><see langword="true"/> if such a group holds another modifier, a comment, or other code</returns>
+    private static bool HasConditionalGroupOfOtherModifiers(PropertyDeclarationSyntax node)
+    {
+        var root = node.SyntaxTree.GetRoot();
+
+        return node.Modifiers
+                   .Skip(1)
+                   .SelectMany(modifier => modifier.LeadingTrivia)
+                   .Concat(node.Type.GetLeadingTrivia())
+                   .Select(trivia => trivia.GetStructure())
+                   .OfType<DirectiveTriviaSyntax>()
+                   .Where(directive => directive is ConditionalDirectiveTriviaSyntax or ElseDirectiveTriviaSyntax or EndIfDirectiveTriviaSyntax)
+                   .Select(directive => directive.GetRelatedDirectives())
+                   .Any(group =>
+                        {
+                            var span = TextSpan.FromBounds(group[0].Span.End, group[group.Count - 1].SpanStart);
+                            var excludedTokens = root.DescendantTrivia(span)
+                                                     .Where(trivia => span.Contains(trivia.SpanStart) && trivia.IsKind(SyntaxKind.DisabledTextTrivia))
+                                                     .SelectMany(trivia => SyntaxFactory.ParseTokens(trivia.ToFullString()))
+                                                     .Where(token => token.IsKind(SyntaxKind.EndOfFileToken) == false
+                                                                     || token.LeadingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia));
+
+                            return root.DescendantTrivia(span).Any(trivia => span.Contains(trivia.SpanStart) && SyntaxTriviaUtilities.IsCommentTrivia(trivia))
+                                   || root.DescendantTokens(span)
+                                          .Where(token => span.Contains(token.SpanStart))
+                                          .Concat(excludedTokens)
+                                          .Any(token => token.Kind() is not (SyntaxKind.PublicKeyword or SyntaxKind.PrivateKeyword or SyntaxKind.ProtectedKeyword or SyntaxKind.InternalKeyword or SyntaxKind.NewKeyword or SyntaxKind.StaticKeyword)
+                                                        || token.GetAllTrivia().Any(SyntaxTriviaUtilities.IsCommentTrivia));
+                        });
     }
 
     /// <summary>

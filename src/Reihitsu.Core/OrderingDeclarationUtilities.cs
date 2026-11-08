@@ -295,7 +295,9 @@ public static class OrderingDeclarationUtilities
     /// target member up to the moved member, and the text behind the moved member, each in itself, and puts the moved
     /// member in front of the target member's leading trivia. Code that an <c>#if</c> branch excludes in the moved
     /// member's leading trivia therefore moves with it, and such code from the target member up to the moved member
-    /// is crossed
+    /// is crossed. The move counts as changing the order as well when the moved or crossed span holds a directive of
+    /// a conditional group that does not wrap whole units, or the type's declaration holds a conditional directive
+    /// in front of its body (SHARED-ORDER-008)
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
     /// <param name="typeSymbol">Symbol of the type, which decides whether the order of its instance fields sets its layout</param>
@@ -312,8 +314,11 @@ public static class OrderingDeclarationUtilities
     /// their order is behavior: two members of one context — both static or both instance — that each have a runtime
     /// initializer (SHARED-ORDER-007), or two instance fields of a type whose field order sets its layout, which the
     /// type's symbol decides. Members in code that an <c>#if</c> branch excludes count as well, at the position of
-    /// that code, because another build configuration compiles them. The reorder is given as the rank, after the
-    /// reorder, of the part of the body that holds a position; code within one part keeps its order
+    /// that code, because another build configuration compiles them. The reorder counts as changing the order as
+    /// well when the reordered span holds a directive of a conditional group that does not wrap whole units, or the
+    /// type's declaration holds a conditional directive in front of its body (SHARED-ORDER-008). The reorder is given
+    /// as the rank, after the reorder, of the part of the body that holds a position; code within one part keeps its
+    /// order
     /// </summary>
     /// <param name="typeDeclaration">Type declaration whose body is reordered</param>
     /// <param name="typeSymbol">Symbol of the type, which decides whether the order of its instance fields sets its layout</param>
@@ -395,7 +400,9 @@ public static class OrderingDeclarationUtilities
     /// their order is behavior, as
     /// <see cref="ChangesMemberOrder(TypeDeclarationSyntax, INamedTypeSymbol, Func{int, int})"/> describes, with the
     /// layout check given as a flag. The reorder counts as changed as well when the reordered span holds a directive
-    /// of a conditional group that does not wrap whole units (<see cref="WrapsWholeUnits"/>, SHARED-ORDER-008)
+    /// of a conditional group that does not wrap whole units (<see cref="WrapsWholeUnits"/>, SHARED-ORDER-008), or
+    /// when the type's declaration holds a conditional directive in front of its body
+    /// (<see cref="DeclarationHoldsConditionalDirective"/>)
     /// </summary>
     /// <param name="typeDeclaration">Type declaration whose body is reordered</param>
     /// <param name="fieldOrderSetsLayout">Whether the order of the type's instance fields sets its layout (<see cref="FieldOrderSetsLayout"/>)</param>
@@ -412,7 +419,8 @@ public static class OrderingDeclarationUtilities
                                     .Select(directive => directive.GetRelatedDirectives())
                                     .GroupBy(group => group[0].SpanStart, (_, sameGroups) => sameGroups.First());
 
-        if (groups.Any(group => WrapsWholeUnits(typeDeclaration, group) == false))
+        if (DeclarationHoldsConditionalDirective(typeDeclaration)
+            || groups.Any(group => WrapsWholeUnits(typeDeclaration, group) == false))
         {
             return true;
         }
@@ -512,12 +520,11 @@ public static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Determines whether the property has a backing field the compiler declares: an auto-property, whose accessors
-    /// have no body, or a property that uses the <c>field</c> keyword. The parser reads <c>field</c> as the keyword
-    /// only from C# 14 on; before, it is an identifier that names a member. An accessor without a body in a branch of
-    /// a conditional group of the accessor list, active or excluded, gives the property one as well, because a build
-    /// that compiles it does (SHARED-ORDER-007). Abstract and extern properties have none, and neither has the
-    /// bodiless defining declaration of a partial property
+    /// Determines whether the property has a backing field the compiler declares: a property with an accessor that
+    /// has neither a body nor an expression body, or a property that uses the <c>field</c> keyword
+    /// (SHARED-ORDER-007). The parser reads <c>field</c> as the keyword only from C# 14 on; before, it is an
+    /// identifier that names a member. Abstract and extern properties have none, and neither has the bodiless
+    /// defining declaration of a partial property
     /// </summary>
     /// <param name="propertyDeclaration">Property declaration</param>
     /// <returns><see langword="true"/> if the property has a backing field</returns>
@@ -530,15 +537,9 @@ public static class OrderingDeclarationUtilities
         }
 
         if (propertyDeclaration.AccessorList is { } accessorList
-            && accessorList.Accessors.All(accessor => accessor.Body == null && accessor.ExpressionBody == null))
+            && accessorList.Accessors.Any(IsWithoutBody))
         {
             return propertyDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword) == false;
-        }
-
-        if (propertyDeclaration.AccessorList is { } conditionalAccessorList
-            && HasConditionalAccessorWithoutBody(conditionalAccessorList))
-        {
-            return true;
         }
 
         return propertyDeclaration.DescendantTokens().Any(token => token.IsKind(SyntaxKind.FieldKeyword));
@@ -654,9 +655,10 @@ public static class OrderingDeclarationUtilities
     /// Determines whether a conditional group wraps whole units of one unit list, deciding only from where its
     /// directives stand (SHARED-ORDER-008): every directive stands at a boundary of the same list
     /// (<see cref="GetBoundaryLists"/>), no other conditional group lies inside or around it, the text of every
-    /// excluded branch parses on its own as whole units of that list (<see cref="ReadsAsWholeUnits"/>), and for the
-    /// accessors of a property or the statements in an accessor's body, no branch holds a <c>field</c> token. No
-    /// condition is evaluated
+    /// excluded branch parses on its own as whole units of that list (<see cref="ReadsAsWholeUnits"/>), for the
+    /// accessors of a property or the statements in an accessor's body, no branch holds a <c>field</c> token, and
+    /// for the accessors of a property, no branch holds an accessor without a body unless no accessor of the list
+    /// has one, so that the group cannot decide whether the property has a backing field. No condition is evaluated
     /// </summary>
     /// <param name="typeDeclaration">Type declaration whose body is reordered</param>
     /// <param name="group">Directives of the group, from <c>#if</c> to <c>#endif</c></param>
@@ -689,10 +691,50 @@ public static class OrderingDeclarationUtilities
 
         return group.Select(directive => GetBoundaryLists(typeDeclaration, directive.ParentTrivia.Token))
                     .Aggregate((lists, nextLists) => lists.Intersect(nextLists))
-                    .Any(list => (ForbidsFieldKeyword(list) == false || activeTokens.Any(token => token.Text == "field") == false)
-                                 && excludedTexts.All(text => ReadsAsWholeUnits(text, list, options, out var units)
-                                                              && (ForbidsFieldKeyword(list) == false
-                                                                  || units.DescendantTokens().Any(token => token.Text == "field") == false)));
+                    .Any(list =>
+                         {
+                             var branches = excludedTexts.Select(text => ReadsAsWholeUnits(text, list, options, out var units) ? units : null)
+                                                         .ToList();
+
+                             if (branches.Contains(null))
+                             {
+                                 return false;
+                             }
+
+                             var listAccessors = list.Owner.ChildNodes().OfType<AccessorDeclarationSyntax>().ToList();
+                             var branchAccessors = listAccessors.Where(accessor => accessor.SpanStart > groupStart && accessor.SpanStart < groupEnd)
+                                                                .Concat(branches.SelectMany(units => units.DescendantNodes().OfType<AccessorDeclarationSyntax>()))
+                                                                .ToList();
+
+                             return (ForbidsFieldKeyword(list) == false
+                                     || activeTokens.Concat(branches.SelectMany(units => units.DescendantTokens())).Any(token => token.Text == "field") == false)
+                                    && (list.Owner is not AccessorListSyntax
+                                        || branchAccessors.Any(IsWithoutBody) == false
+                                        || listAccessors.Concat(branchAccessors).All(IsWithoutBody));
+                         });
+    }
+
+    /// <summary>
+    /// Determines whether the declaration of the type holds a conditional directive in front of its body
+    /// (SHARED-ORDER-008), which can make the type's layout depend on the build: one in the leading trivia of a token
+    /// behind the declaration's first token, up to and including the opening brace, or one in the leading trivia of
+    /// the first token whose excluded branch does not read as whole members
+    /// </summary>
+    /// <param name="typeDeclaration">Type declaration whose body is reordered</param>
+    /// <returns><see langword="true"/> if the declaration holds such a directive</returns>
+    private static bool DeclarationHoldsConditionalDirective(TypeDeclarationSyntax typeDeclaration)
+    {
+        var firstToken = typeDeclaration.GetFirstToken();
+        var options = typeDeclaration.SyntaxTree.Options as CSharpParseOptions;
+
+        return typeDeclaration.DescendantTokens()
+                              .TakeWhile(token => token.SpanStart <= typeDeclaration.OpenBraceToken.SpanStart)
+                              .SelectMany(token => token.LeadingTrivia.Select(trivia => (Token: token, Directive: trivia.GetStructure() as DirectiveTriviaSyntax)))
+                              .Any(entry => entry.Directive != null
+                                            && IsConditionalDirective(entry.Directive)
+                                            && (entry.Token != firstToken
+                                                || (GetExcludedText(entry.Directive) is { } text
+                                                    && ReadsAsWholeUnits(text, (typeDeclaration, false), options, out _) == false)));
     }
 
     /// <summary>
@@ -867,36 +909,13 @@ public static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Determines whether an accessor without a body and without an expression body stands in a branch of a
-    /// conditional group of the accessor list, active or excluded (SHARED-ORDER-007)
+    /// Determines whether the accessor has neither a body nor an expression body
     /// </summary>
-    /// <param name="accessorList">Accessor list</param>
-    /// <returns><see langword="true"/> if a build that compiles such an accessor gives the property a backing field</returns>
-    private static bool HasConditionalAccessorWithoutBody(AccessorListSyntax accessorList)
+    /// <param name="accessor">Accessor</param>
+    /// <returns><see langword="true"/> if the accessor has no body</returns>
+    private static bool IsWithoutBody(AccessorDeclarationSyntax accessor)
     {
-        if (accessorList.ContainsDirectives == false)
-        {
-            return false;
-        }
-
-        var options = accessorList.SyntaxTree.Options as CSharpParseOptions;
-        var groupSpans = accessorList.DescendantTrivia()
-                                     .Select(trivia => trivia.GetStructure())
-                                     .OfType<IfDirectiveTriviaSyntax>()
-                                     .Select(directive => directive.GetRelatedDirectives())
-                                     .Select(group => TextSpan.FromBounds(group[0].SpanStart, group[group.Count - 1].SpanStart))
-                                     .ToList();
-        var excludedAccessors = accessorList.DescendantTrivia()
-                                            .Where(trivia => trivia.IsKind(SyntaxKind.DisabledTextTrivia)
-                                                             && trivia.Token.Parent?.FirstAncestorOrSelf<AccessorListSyntax>() == accessorList)
-                                            .SelectMany(trivia => ReadsAsWholeUnits(trivia.ToFullString(), (accessorList, false), options, out var units)
-                                                                      ? units.DescendantNodes().OfType<AccessorDeclarationSyntax>()
-                                                                      : []);
-
-        return accessorList.Accessors
-                           .Where(accessor => groupSpans.Any(span => span.Contains(accessor.SpanStart)))
-                           .Concat(excludedAccessors)
-                           .Any(accessor => accessor.Body == null && accessor.ExpressionBody == null);
+        return accessor.Body == null && accessor.ExpressionBody == null;
     }
 
     #endregion // Methods
