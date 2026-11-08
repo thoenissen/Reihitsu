@@ -34,7 +34,7 @@
 
 ## Worklist / next step
 
-- Audited SHA: —
+- Audited SHA: 8fd6edf (audit 09 at 29f037e: pass with comment findings)
 - Open output questions (batch before test implementer): OQ1 #1385 directive between a `break`-ending section and the next section (A: no blank line / B: blank line after directive); OQ2 #1239 whitespace between `#` and `region` (A: `#region Fields` / B: keep).
 - Done: spec author (01, commit 9ee6cfb, verdict open question).
 - Done: skeptic (02, commit 3372b14): #1385 proceed (+OQ1 second input), #1398 proceed, #1239 OQ2.
@@ -45,4 +45,5 @@
 - Done: test implementer follow-up (06, fbf26fe); formatter project green.
 - Done: cleaner (07, 0f55234): clean.
 - Done: spec checker (08, 76bcafa): consistent, no findings.
-- Next: auditor.
+- Done: auditor (09): pass, text cleanup — doc comments in SwitchCaseBraceRewriter.cs and BlankLineEditor.cs.
+- Next: cleaner fixes comments; prove with `scripts/verify-text-only.sh --strict-docs --base 8fd6edf --head worktree`; then validator.
