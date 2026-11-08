@@ -66,4 +66,5 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
   2. Finding #2 (high, PR-introduced): any excluded `=` counts as a runtime initializer, withholding correct fixes main offers → test implementer (counterparts that keep the fix) → implementer.
   3. Hint: per-call token walk without a directive check → implementer (same code, cheap).
   4. Hint: RH7102.md and RH7103.md `Uses` lack SHARED-DIAG-008 → spec author. Done: `11-spec-author.md` (938e1b2).
-- Next: test implementer + spec author (parallel) → implementer → cleaner → spec checker → auditor (repair only) → validator.
+- Done: test implementer `10-test-implementer.md` (3390e51): 11 tests red as intended.
+- Next: implementer → `12-implementer.md` → cleaner → spec checker → auditor (repair only) → validator.
