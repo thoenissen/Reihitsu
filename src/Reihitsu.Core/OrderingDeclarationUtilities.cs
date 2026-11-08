@@ -451,23 +451,28 @@ public static class OrderingDeclarationUtilities
     /// A field, event field, or property whose declaration a conditional directive splits counts with what any build
     /// configuration gives it: a runtime initializer when one configuration gives it one, both contexts when one
     /// configuration declares it <c>static</c> and another does not, and an instance field when one configuration
-    /// declares it as one. Further members that excluded code inside its declaration declares count at the position
-    /// of that code
+    /// declares it as one. The split includes excluded code in front of the declaration's first token that the
+    /// declaration continues, such as a <c>static</c> modifier that only one configuration compiles. Further members that
+    /// excluded code inside its declaration declares count at the position of that code
     /// </summary>
     /// <param name="memberDeclaration">Member of the active code</param>
     /// <returns>The ordered members</returns>
     private static IEnumerable<OrderedMember> GetOrderedMembersOfDeclaration(MemberDeclarationSyntax memberDeclaration)
     {
-        if (memberDeclaration is not (FieldDeclarationSyntax or EventFieldDeclarationSyntax or PropertyDeclarationSyntax))
+        if (memberDeclaration is not (FieldDeclarationSyntax or EventFieldDeclarationSyntax or PropertyDeclarationSyntax)
+            || memberDeclaration.ContainsDirectives == false)
         {
             yield return CreateOrderedMember(memberDeclaration.SpanStart, memberDeclaration);
 
             yield break;
         }
 
+        var options = memberDeclaration.SyntaxTree.Options as CSharpParseOptions;
         var conditionalTrivia = GetConditionalTriviaOfDeclaration(memberDeclaration);
+        var isStaticInExcludedCodeInFront = IsStaticInExcludedCodeInFront(memberDeclaration, options);
 
-        if (conditionalTrivia.Count == 0)
+        if (conditionalTrivia.Count == 0
+            && isStaticInExcludedCodeInFront == false)
         {
             yield return CreateOrderedMember(memberDeclaration.SpanStart, memberDeclaration);
 
@@ -479,25 +484,36 @@ public static class OrderingDeclarationUtilities
         var staticModifiers = modifiers.Where(modifier => modifier.IsKind(SyntaxKind.StaticKeyword)).ToList();
         var constModifiers = modifiers.Where(modifier => modifier.IsKind(SyntaxKind.ConstKeyword)).ToList();
 
-        var isStaticInAnyConfiguration = staticModifiers.Count > 0;
+        var isStaticInAnyConfiguration = staticModifiers.Count > 0 || isStaticInExcludedCodeInFront;
         var isInstanceInAnyConfiguration = staticModifiers.Count == 0 || staticModifiers.TrueForAll(modifier => conditionalSpans.Any(span => span.Contains(modifier.SpanStart)));
         var isNonConstantInAnyConfiguration = constModifiers.Count == 0 || constModifiers.TrueForAll(modifier => conditionalSpans.Any(span => span.Contains(modifier.SpanStart)));
         var hasInitializerInAnyConfiguration = HasInitializerSyntax(memberDeclaration);
-        var options = memberDeclaration.SyntaxTree.Options as CSharpParseOptions;
 
         foreach (var disabledText in conditionalTrivia.Where(trivia => trivia.IsKind(SyntaxKind.DisabledTextTrivia)))
         {
             var text = disabledText.ToFullString();
             var tokens = SyntaxFactory.ParseTokens(text, options: options).ToList();
-            var headTokens = tokens.TakeWhile(token => token.IsKind(SyntaxKind.SemicolonToken) == false).ToList();
+            var depths = GetNestingDepths(tokens, GetNestingDepth(memberDeclaration, disabledText.SpanStart));
+            var headLength = 0;
 
-            isStaticInAnyConfiguration |= headTokens.Any(token => token.IsKind(SyntaxKind.StaticKeyword));
-            hasInitializerInAnyConfiguration |= headTokens.Any(token => token.IsKind(SyntaxKind.EqualsToken));
-
-            if (headTokens.Count < tokens.Count
-                && tokens[headTokens.Count].IsKind(SyntaxKind.SemicolonToken))
+            while (headLength < tokens.Count
+                   && (depths[headLength] != 0 || tokens[headLength].IsKind(SyntaxKind.SemicolonToken) == false))
             {
-                foreach (var orderedMember in GetOrderedMembersOfText(text.Substring(tokens[headTokens.Count].Span.End), disabledText.SpanStart, options))
+                headLength++;
+            }
+
+            for (var index = 0; index < headLength; index++)
+            {
+                if (depths[index] == 0)
+                {
+                    isStaticInAnyConfiguration |= tokens[index].IsKind(SyntaxKind.StaticKeyword);
+                    hasInitializerInAnyConfiguration |= tokens[index].IsKind(SyntaxKind.EqualsToken);
+                }
+            }
+
+            if (headLength < tokens.Count)
+            {
+                foreach (var orderedMember in GetOrderedMembersOfText(text.Substring(tokens[headLength].Span.End), disabledText.SpanStart, options))
                 {
                     yield return orderedMember;
                 }
@@ -513,9 +529,185 @@ public static class OrderingDeclarationUtilities
     }
 
     /// <summary>
+    /// Determines whether excluded code in the leading trivia of the declaration's first token declares the
+    /// declaration <c>static</c> in some build configuration: a <c>static</c> outside every bracket in the part of an
+    /// excluded branch behind its last complete member, which the declaration continues. The excluded code of a
+    /// conditional group in front of a group whose excluded code completes a member continues that member instead, so it
+    /// does not count. The members that the excluded code declares count where the excluded code outside every member
+    /// counts (<see cref="GetOrderedMembersOfDisabledText"/>)
+    /// </summary>
+    /// <param name="memberDeclaration">Declaration</param>
+    /// <param name="options">Parse options of the document</param>
+    /// <returns><see langword="true"/> if some build configuration declares the declaration <c>static</c> in front of its first token</returns>
+    private static bool IsStaticInExcludedCodeInFront(MemberDeclarationSyntax memberDeclaration, CSharpParseOptions options)
+    {
+        var leadingTrivia = memberDeclaration.GetFirstToken().LeadingTrivia;
+
+        if (leadingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.DisabledTextTrivia)) == false)
+        {
+            return false;
+        }
+
+        // Each excluded text, with the start of the outermost conditional group that holds it in this trivia
+        var disabledTexts = new List<(SyntaxTrivia Trivia, int GroupStart)>();
+        var groupStarts = new Stack<int>();
+
+        for (var index = 0; index < leadingTrivia.Count; index++)
+        {
+            var trivia = leadingTrivia[index];
+
+            if (trivia.IsKind(SyntaxKind.IfDirectiveTrivia)
+                || ((trivia.IsKind(SyntaxKind.ElifDirectiveTrivia) || trivia.IsKind(SyntaxKind.ElseDirectiveTrivia)) && groupStarts.Count == 0))
+            {
+                groupStarts.Push(index);
+            }
+            else if (trivia.IsKind(SyntaxKind.EndIfDirectiveTrivia))
+            {
+                if (groupStarts.Count > 0)
+                {
+                    groupStarts.Pop();
+                }
+            }
+            else if (trivia.IsKind(SyntaxKind.DisabledTextTrivia))
+            {
+                disabledTexts.Add((trivia, groupStarts.Count > 0 ? groupStarts.Last() : index));
+            }
+        }
+
+        var completedGroupStart = -1;
+
+        for (var index = disabledTexts.Count - 1; index >= 0; index--)
+        {
+            var (trivia, groupStart) = disabledTexts[index];
+
+            if (completedGroupStart >= 0
+                && groupStart < completedGroupStart)
+            {
+                break;
+            }
+
+            var tokens = SyntaxFactory.ParseTokens(trivia.ToFullString(), options: options).ToList();
+            var depths = GetNestingDepths(tokens, 0);
+            var tailStart = 0;
+
+            for (var tokenIndex = 0; tokenIndex < tokens.Count; tokenIndex++)
+            {
+                if (depths[tokenIndex] == 0
+                    && (tokens[tokenIndex].IsKind(SyntaxKind.SemicolonToken) || tokens[tokenIndex].IsKind(SyntaxKind.CloseBraceToken)))
+                {
+                    tailStart = tokenIndex + 1;
+                }
+            }
+
+            for (var tokenIndex = tailStart; tokenIndex < tokens.Count; tokenIndex++)
+            {
+                if (depths[tokenIndex] == 0
+                    && tokens[tokenIndex].IsKind(SyntaxKind.StaticKeyword))
+                {
+                    return true;
+                }
+            }
+
+            if (tailStart > 0
+                && completedGroupStart < 0)
+            {
+                completedGroupStart = groupStart;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Gets the nesting depth of the declaration's active code at a position: the number of parentheses, brackets, and
+    /// braces of the declaration that open in front of the position and are not closed there
+    /// </summary>
+    /// <param name="memberDeclaration">Declaration</param>
+    /// <param name="position">Position inside the declaration</param>
+    /// <returns>The nesting depth</returns>
+    private static int GetNestingDepth(MemberDeclarationSyntax memberDeclaration, int position)
+    {
+        var depth = 0;
+
+        foreach (var token in memberDeclaration.DescendantTokens())
+        {
+            if (token.SpanStart >= position)
+            {
+                break;
+            }
+
+            depth += GetNestingDelta(token);
+        }
+
+        return depth;
+    }
+
+    /// <summary>
+    /// Gets the nesting depth of each token of a token sequence, starting at a given depth. A parenthesis, bracket, or
+    /// brace gets the depth outside of it, so the tokens outside every bracket have depth zero
+    /// </summary>
+    /// <param name="tokens">Tokens</param>
+    /// <param name="initialDepth">Depth in front of the first token</param>
+    /// <returns>The depth of each token</returns>
+    private static List<int> GetNestingDepths(List<SyntaxToken> tokens, int initialDepth)
+    {
+        var depths = new List<int>(tokens.Count);
+        var depth = initialDepth;
+
+        foreach (var token in tokens)
+        {
+            var delta = GetNestingDelta(token);
+
+            if (delta < 0)
+            {
+                depth += delta;
+            }
+
+            depths.Add(depth);
+
+            if (delta > 0)
+            {
+                depth += delta;
+            }
+        }
+
+        return depths;
+    }
+
+    /// <summary>
+    /// Gets how a token changes the nesting depth: an opening parenthesis, bracket, or brace opens a level, and a closing
+    /// one closes it
+    /// </summary>
+    /// <param name="token">Token</param>
+    /// <returns><c>1</c>, <c>-1</c>, or <c>0</c></returns>
+    private static int GetNestingDelta(SyntaxToken token)
+    {
+        return token.Kind() switch
+               {
+                   SyntaxKind.OpenParenToken or SyntaxKind.OpenBracketToken or SyntaxKind.OpenBraceToken => 1,
+                   SyntaxKind.CloseParenToken or SyntaxKind.CloseBracketToken or SyntaxKind.CloseBraceToken => -1,
+                   _ => 0,
+               };
+    }
+
+    /// <summary>
+    /// Determines whether a token sequence holds a token of the given kind outside every parenthesis, bracket, and brace
+    /// </summary>
+    /// <param name="tokens">Tokens</param>
+    /// <param name="kind">Kind of the token</param>
+    /// <returns><see langword="true"/> if such a token lies at depth zero</returns>
+    private static bool ContainsTopLevelToken(List<SyntaxToken> tokens, SyntaxKind kind)
+    {
+        var depths = GetNestingDepths(tokens, 0);
+
+        return Enumerable.Range(0, tokens.Count).Any(index => depths[index] == 0 && tokens[index].IsKind(kind));
+    }
+
+    /// <summary>
     /// Gets the conditional directives and the code they exclude inside the declaration of a field, event field, or
     /// property, apart from those inside an accessor body, an expression body, or a lambda body of an initializer,
-    /// which hold statements and expressions rather than a part of the declaration
+    /// which hold statements and expressions rather than a part of the declaration. Only the tokens that carry a
+    /// directive are read
     /// </summary>
     /// <param name="memberDeclaration">Member declaration</param>
     /// <returns>The conditional trivia, in source order</returns>
@@ -523,10 +715,11 @@ public static class OrderingDeclarationUtilities
     {
         var span = memberDeclaration.Span;
 
-        return memberDeclaration.DescendantTokens()
-                                .Where(token => token.Parent?.AncestorsAndSelf()
-                                                            .TakeWhile(node => node != memberDeclaration)
-                                                            .Any(node => node is BlockSyntax or ArrowExpressionClauseSyntax) != true)
+        return memberDeclaration.DescendantTokens(node => node.ContainsDirectives)
+                                .Where(token => token.ContainsDirectives
+                                                && token.Parent?.AncestorsAndSelf()
+                                                               .TakeWhile(node => node != memberDeclaration)
+                                                               .Any(node => node is BlockSyntax or ArrowExpressionClauseSyntax) != true)
                                 .SelectMany(token => token.LeadingTrivia.Concat(token.TrailingTrivia))
                                 .Where(trivia => span.Contains(trivia.SpanStart)
                                                  && (trivia.IsKind(SyntaxKind.DisabledTextTrivia)
@@ -754,7 +947,9 @@ public static class OrderingDeclarationUtilities
     /// Gets what excluded code, parsed as the body of a type, contributes to the order of the initializers and of the
     /// layout fields, at the position of that code. Each member it declares counts as written. Text that parses as no
     /// complete member, such as the initializer of a property behind its accessor list, counts as a runtime
-    /// initializer of both contexts when it holds an <c>=</c>, because it can complete a member of either
+    /// initializer of both contexts when it holds an <c>=</c> outside every parenthesis, bracket, and brace, because it
+    /// can complete a member of either. An <c>=</c> inside them, such as a named attribute argument or an assignment in
+    /// an accessor body, is no initializer
     /// </summary>
     /// <param name="text">Excluded code</param>
     /// <param name="position">Position of the excluded code</param>
@@ -777,14 +972,13 @@ public static class OrderingDeclarationUtilities
             yield return CreateOrderedMember(position, member);
         }
 
-        var unparsedTokens = parsedType.Members
-                                       .OfType<IncompleteMemberSyntax>()
-                                       .SelectMany(member => member.DescendantTokens())
-                                       .Concat(parsedType.DescendantTrivia(descendIntoTrivia: true)
-                                                         .Where(trivia => trivia.IsKind(SyntaxKind.SkippedTokensTrivia))
-                                                         .SelectMany(trivia => trivia.GetStructure()?.DescendantTokens() ?? []));
-
-        if (unparsedTokens.Any(token => token.IsKind(SyntaxKind.EqualsToken)))
+        if (parsedType.Members
+                      .OfType<IncompleteMemberSyntax>()
+                      .Select(member => member.DescendantTokens())
+                      .Concat(parsedType.DescendantTrivia(descendIntoTrivia: true)
+                                        .Where(trivia => trivia.IsKind(SyntaxKind.SkippedTokensTrivia))
+                                        .Select(trivia => trivia.GetStructure()?.DescendantTokens() ?? []))
+                      .Any(tokens => ContainsTopLevelToken(tokens.ToList(), SyntaxKind.EqualsToken)))
         {
             yield return new OrderedMember(position, true, true, false);
         }
