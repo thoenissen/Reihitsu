@@ -3265,9 +3265,8 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     }
 
     /// <summary>
-    /// Verifying that conditional groups that only write attribute lists in front of a crossed field change nothing the
-    /// field contributes, so moving an instance initialized field across the static field keeps its fix, however many
-    /// such groups there are
+    /// Verifying that the symbols of conditional groups in the crossed span count toward the configuration limit also when
+    /// the groups only write attribute lists of a crossed field: nine symbols exceed the limit, so no code fix is offered
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -3276,7 +3275,7 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     [DataRow("\r\n")]
     [Requirement("SHARED-ORDER-007")]
     [Requirement("RH7109-006")]
-    public async Task FixMovesAFieldAcrossAFieldWithNineConditionalAttributeLists(string endOfLine)
+    public async Task NoCodeFixWhenNineConditionalAttributeListsOfACrossedFieldExceedTheConfigurationLimit(string endOfLine)
     {
         const string source = """
                               using System;
@@ -3321,56 +3320,13 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
                               }
                               """;
 
-        const string fixedSource = """
-                                   using System;
-
-                                   public class C
-                                   {
-                                       private readonly int _c = Log("c");
-                                       private int _a;
-                                   #if A1
-                                       [Obsolete]
-                                   #endif
-                                   #if A2
-                                       [NonSerialized]
-                                   #endif
-                                   #if A3
-                                       [Obsolete]
-                                   #endif
-                                   #if A4
-                                       [NonSerialized]
-                                   #endif
-                                   #if A5
-                                       [Obsolete]
-                                   #endif
-                                   #if A6
-                                       [NonSerialized]
-                                   #endif
-                                   #if A7
-                                       [Obsolete]
-                                   #endif
-                                   #if A8
-                                       [NonSerialized]
-                                   #endif
-                                   #if A9
-                                       [Obsolete]
-                                   #endif
-                                       private static int _b = Log("b");
-
-                                       private static int Log(string name)
-                                       {
-                                           return 0;
-                                       }
-                                   }
-                                   """;
-
-        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
     }
 
     /// <summary>
-    /// Verifying that conditional groups that only write entries of a crossed field's collection initializer change
-    /// nothing the field contributes, so moving an instance initialized field across the static field keeps its fix,
-    /// however many such groups there are
+    /// Verifying that the symbols of conditional groups in the crossed span count toward the configuration limit also when
+    /// the groups only write entries of a crossed field's collection initializer: nine symbols exceed the limit, so no
+    /// code fix is offered
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -3379,7 +3335,7 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     [DataRow("\r\n")]
     [Requirement("SHARED-ORDER-007")]
     [Requirement("RH7109-006")]
-    public async Task FixMovesAFieldAcrossAFieldWhoseCollectionInitializerHasNineConditionalEntries(string endOfLine)
+    public async Task NoCodeFixWhenNineConditionalEntriesOfACrossedFieldsCollectionInitializerExceedTheConfigurationLimit(string endOfLine)
     {
         const string source = """
                               using System.Collections.Generic;
@@ -3426,52 +3382,7 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
                               }
                               """;
 
-        const string fixedSource = """
-                                   using System.Collections.Generic;
-
-                                   public class C
-                                   {
-                                       private readonly int _c = Log("c");
-                                       private int _a;
-                                       private static List<int> _b = new List<int>
-                                                                     {
-                                   #if A1
-                                           1,
-                                   #endif
-                                   #if A2
-                                           2,
-                                   #endif
-                                   #if A3
-                                           3,
-                                   #endif
-                                   #if A4
-                                           4,
-                                   #endif
-                                   #if A5
-                                           5,
-                                   #endif
-                                   #if A6
-                                           6,
-                                   #endif
-                                   #if A7
-                                           7,
-                                   #endif
-                                   #if A8
-                                           8,
-                                   #endif
-                                   #if A9
-                                           9,
-                                   #endif
-                                                                     };
-
-                                       private static int Log(string name)
-                                       {
-                                           return 0;
-                                       }
-                                   }
-                                   """;
-
-        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
     }
 
     /// <summary>

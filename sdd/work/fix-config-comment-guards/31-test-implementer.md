@@ -117,3 +117,25 @@ No new test. Nothing in decisions 27 to 29 touches it.
 scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTests|FullyQualifiedName~RH7309RegionsShouldFollowCategoryOrderAnalyzerTests"
 scripts/test.sh --project analyzer --filter "FullyQualifiedName~ExcludedBranchClosesTheTypeAndOpens|FullyQualifiedName~OpensANestedTypeAroundTheMovedField|FullyQualifiedName~InFrontOfTheMovedFieldClosesANestedType|FullyQualifiedName~ExcludedBranchesOpen|FullyQualifiedName~GroupsWith|FullyQualifiedName~InBuildsThatExcludeEachOther|FullyQualifiedName~StaticInTheSameBuild|FullyQualifiedName~SeparatedConditionalGroups|FullyQualifiedName~AutoAccessorOnlyInOneBranch|FullyQualifiedName~AccessorListBranchesAreAllBodied"
 ```
+
+## Addendum: decision 31
+
+This addendum applies decision 31 to the two tests that conflicted with decision 28. Both are in `RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTests.cs`.
+
+- Each test now asserts that no code fix is offered. Each is renamed, its summary is rewritten, its source is unchanged, and its expected fixed source is removed.
+- Both keep the tags `SHARED-ORDER-007` and `RH7109-006`. The limit paragraph is part of SHARED-ORDER-007, so no other tag applies.
+
+| Test (old name → new name) | Requirement / failure class | Helper | Expected now |
+|---|---|---|---|
+| `FixMovesAFieldAcrossAFieldWithNineConditionalAttributeLists` → `NoCodeFixWhenNineConditionalAttributeListsOfACrossedFieldExceedTheConfigurationLimit` | SHARED-ORDER-007, RH7109-006 | `VerifyNoCodeFixIsOffered` | red: one action registered (main: red too) |
+| `FixMovesAFieldAcrossAFieldWhoseCollectionInitializerHasNineConditionalEntries` → `NoCodeFixWhenNineConditionalEntriesOfACrossedFieldsCollectionInitializerExceedTheConfigurationLimit` | SHARED-ORDER-007, RH7109-006 | `VerifyNoCodeFixIsOffered` | red: one action registered (main: red too) |
+
+The counterpart below the limit is the existing `FixMovesAFieldAcrossEightConditionalGroupsInFrontOfACrossedField`, which has eight symbols and keeps its fix.
+
+The SHARED-ORDER-007 limit example names neither test nor its shape. It names far9, the nine-group input, and cap2, so it needs no change.
+
+Command:
+
+```shell
+scripts/test.sh --project analyzer --filter "FullyQualifiedName~ExceedTheConfigurationLimit"
+```
