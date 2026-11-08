@@ -59,16 +59,10 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 
 ## Worklist / next step
 
-- Done: skeptic `01-skeptic.md` (36f11ca).
-- Done: output questions batch 1 answered (1A, 2A).
-- Done: spec author `02-spec-author.md` (ade7768); open output question: RH2001 `static private /* a */ int Value { get; }` placement of `readonly` (A recommended).
-- Done: skeptic on spec diff `03-skeptic.md` (6340a92).
-- Done: output questions batch 2 answered (A; standing answer: recommended for all further).
-- Done: spec author amendment `04-spec-author.md` (2b21209).
-- Done: test implementer `05-test-implementer.md` (6f468b4): all three reproduced; 37 failing tests.
-- Done: implementer 750237e, handover `06-implementer.md` (008670d).
-- Done: cleaner `07-cleaner.md` (cc77feb): clean.
-- Done: spec checker `08-spec-checker.md` (b5e2f53): consistent.
-- Now: merge main if behind, build, auditor → `09-auditor.md`.
-- Next: spec author amendment (decisions 12–14 + answer; change doc lists the visible change), accept change doc, test implementer.
-- Next: spec author (clarifications D5, D7 outcome, RH2001 spec after answers) → test implementer.
+- Audit 1 at cf4d7c6 (origin/main 57acf0d): blocked, `09-auditor.md` (c34b733).
+- Repair round 1 worklist:
+  1. Finding #1 (high, same requirement, SHARED-ORDER-007): split whose excluded part lies in front of the declaration's first token is not counted → test implementer (failing rows from 09-auditor.md) → implementer.
+  2. Finding #2 (high, PR-introduced): any excluded `=` counts as a runtime initializer, withholding correct fixes main offers → test implementer (counterparts that keep the fix) → implementer.
+  3. Hint: per-call token walk without a directive check → implementer (same code, cheap).
+  4. Hint: RH7102.md and RH7103.md `Uses` lack SHARED-DIAG-008 → spec author.
+- Next: test implementer + spec author (parallel) → implementer → cleaner → spec checker → auditor (repair only) → validator.
