@@ -79,4 +79,5 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 - Done: spec author `18-spec-author.md` (9589141); implementer 234e32a, `17-implementer.md` (784c2b3): all tests pass.
 - Done: test implementer pins `19-test-implementer.md` (704891f).
 - Done: cleaner `20-cleaner.md` (3bb3b43) clean.
-- Next: spec checker → `21-spec-checker.md`; auditor (audit 3); validator.
+- Done: spec checker `21-spec-checker.md` (8d403ca) consistent.
+- Next: auditor (audit 3); validator.
