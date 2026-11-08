@@ -51,6 +51,8 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 
 - RH7102 analyzer ignores regions: reports a constant in `#region Constants` after a field in `#region Fields`, against RH7102-001/-003; `NoCodeFixWhenDirectivesAreInLeadingTrivia` hides it (01-skeptic.md, #1595).
 - Member-moving fixes (RH7102, RH7103, RH7109; `TypeMemberOrderingCodeFixProviderBase.cs:98-108`) format the whole type after the move: an unmoved expression-bodied method becomes a block body (SHARED-FIX-006); a line break inside the moved member is joined (SHARED-FIX-007 *Moved code*); the column of a moved continuation line after `#endif` changes (open reading of *Moved code*, carries an output question; related #953) (02-spec-author.md, 03-skeptic.md).
+- RH2001 analyzer with an `#if` between the property's modifiers (fixtures p, d): reported today; whether SHARED-DIAG-008 forbids the report is undecided for RH2001 (05-test-implementer.md).
+- RH7102: a `const` whose initializer (not its modifiers) holds `#if` — RH7102-001 excludes it from reporting; unchecked whether it is reported today (05-test-implementer.md).
 
 ## Worklist / next step
 
@@ -60,6 +62,7 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 - Done: skeptic on spec diff `03-skeptic.md` (6340a92).
 - Done: output questions batch 2 answered (A; standing answer: recommended for all further).
 - Done: spec author amendment `04-spec-author.md` (2b21209).
-- Now: test implementer → `05-test-implementer.md`.
+- Done: test implementer `05-test-implementer.md` (6f468b4): all three reproduced; 37 failing tests.
+- Now: implementer → `06-implementer.md` (decisions 4, 7 are structural changes; 16 adjacent analyzer fix).
 - Next: spec author amendment (decisions 12–14 + answer; change doc lists the visible change), accept change doc, test implementer.
 - Next: spec author (clarifications D5, D7 outcome, RH2001 spec after answers) → test implementer.
