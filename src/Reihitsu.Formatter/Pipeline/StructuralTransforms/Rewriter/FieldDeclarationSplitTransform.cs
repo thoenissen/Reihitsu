@@ -49,8 +49,8 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     /// <summary>
     /// Determines whether the transform splits the field declaration: it declares more than one variable, is a member of a
     /// class, struct, record, or interface, carries no preprocessor directive or disabled text, has no documentation comment,
-    /// and has no comment in the trivia of the tokens every generated field repeats; a comment in the first declarator's
-    /// leading trivia does not count (FMT-STRUCT-021, FMT-STRUCT-023, FMT-STRUCT-030)
+    /// and has no comment in the part every generated field repeats; FMT-STRUCT-030 states where that part ends
+    /// (FMT-STRUCT-021, FMT-STRUCT-023, FMT-STRUCT-030)
     /// </summary>
     /// <param name="fieldDeclaration">The field declaration to inspect</param>
     /// <returns><see langword="true"/> if the transform splits the declaration; otherwise, <see langword="false"/></returns>
@@ -78,15 +78,10 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
 
     /// <summary>
     /// Determines whether a comment stands in the trivia of the tokens every generated field repeats: every token from the
-    /// declaration's first token up to the first declarator, which covers a comment inside or behind an attribute list,
-    /// between modifiers, between a modifier and the type, inside the type, or in the trailing trivia of the type's last
-    /// token. Every generated field repeats these tokens with their trivia, so the comment would be copied onto every field.
-    /// The boundary is trivia ownership, not the line. The declaration's leading trivia is not part of it, and neither is the
-    /// first declarator's own leading trivia, which stays with the first field only: a comment that starts on a later line
-    /// than the type's last token, and, in the documentation modes <c>Parse</c> and <c>Diagnose</c>, a <c>///</c> or
-    /// <c>/** */</c> comment behind the type on the type's line, because the parser makes it leading trivia of the token behind
-    /// it. An ordinary comment behind the type on the type's line, and a <c>///</c> or <c>/** */</c> comment there in the mode
-    /// <c>None</c>, are trailing trivia of the type's last token and count (FMT-STRUCT-030)
+    /// declaration's first token up to the first declarator, leaving out the declaration's leading trivia and the first
+    /// declarator's own leading trivia. Every generated field repeats these tokens with their trivia, so such a comment would
+    /// be copied onto every field. The boundary is trivia ownership as the parser assigns it, not the line; FMT-STRUCT-030
+    /// is its single statement
     /// </summary>
     /// <param name="fieldDeclaration">The field declaration to inspect</param>
     /// <returns><see langword="true"/> if a comment stands in the repeated part; otherwise, <see langword="false"/></returns>
@@ -253,9 +248,8 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
         var variable = variables[variableIndex];
 
         // Only a later declarator's leading trivia is dropped, because BuildLeadingTrivia rebuilds it below. The
-        // first declarator is carried over unchanged, so the only comments in front of its name that reach this code
-        // stay in that slot: the guard lets through a comment on its own line in front of the name and, when
-        // documentation comments are parsed, a documentation comment behind the type on the type's line.
+        // first declarator is carried over unchanged: the comments in its leading trivia belong to it, and
+        // FMT-STRUCT-030 states which comments the guard lets through into that slot.
         // Trailing trivia stays on its declarator so comments are not moved into a leading position.
         var declarator = variableIndex == 0
                              ? variable

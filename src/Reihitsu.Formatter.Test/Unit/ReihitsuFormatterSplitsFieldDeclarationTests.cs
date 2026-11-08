@@ -285,18 +285,7 @@ public class ReihitsuFormatterSplitsFieldDeclarationTests : FormatterTestsBase
     [DataRow("    [System.Obsolete]\n    private int /** c */ _x, _y;")]
     public void ReturnsTrueForADocumentationStyleCommentBehindTheTypeUnlessDocumentationCommentsAreNotParsed(string declaration)
     {
-        var source = $"class C\n{{\n{declaration}\n}}";
-
-        foreach (var documentationMode in new[] { DocumentationMode.Parse, DocumentationMode.Diagnose })
-        {
-            var root = CSharpSyntaxTree.ParseText(source, CSharpParseOptions.Default.WithDocumentationMode(documentationMode), cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
-
-            Assert.IsTrue(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_x")), $"Documentation mode {documentationMode}");
-        }
-
-        var rootWithoutDocumentation = CSharpSyntaxTree.ParseText(source, CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None), cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
-
-        Assert.IsFalse(ReihitsuFormatter.SplitsFieldDeclaration(FindField(rootWithoutDocumentation, "_x")));
+        AssertSplitsOnlyWhenDocumentationCommentsAreParsed(declaration);
     }
 
     /// <summary>
@@ -320,18 +309,7 @@ public class ReihitsuFormatterSplitsFieldDeclarationTests : FormatterTestsBase
     [DataRow("    [System.Obsolete]\n    private int /** c */ /* d */ _x, _y;")]
     public void ReturnsTrueForACommentBehindADocumentationStyleCommentBehindTheTypeUnlessDocumentationCommentsAreNotParsed(string declaration)
     {
-        var source = $"class C\n{{\n{declaration}\n}}";
-
-        foreach (var documentationMode in new[] { DocumentationMode.Parse, DocumentationMode.Diagnose })
-        {
-            var root = CSharpSyntaxTree.ParseText(source, CSharpParseOptions.Default.WithDocumentationMode(documentationMode), cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
-
-            Assert.IsTrue(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_x")), $"Documentation mode {documentationMode}");
-        }
-
-        var rootWithoutDocumentation = CSharpSyntaxTree.ParseText(source, CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None), cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
-
-        Assert.IsFalse(ReihitsuFormatter.SplitsFieldDeclaration(FindField(rootWithoutDocumentation, "_x")));
+        AssertSplitsOnlyWhenDocumentationCommentsAreParsed(declaration);
     }
 
     /// <summary>
@@ -372,6 +350,27 @@ public class ReihitsuFormatterSplitsFieldDeclarationTests : FormatterTestsBase
         return root.DescendantNodes()
                    .OfType<FieldDeclarationSyntax>()
                    .Single(field => field.Declaration.Variables.Any(variable => variable.Identifier.ValueText == variableName));
+    }
+
+    /// <summary>
+    /// Asserts that the method returns true for the declaration in the documentation modes Parse and Diagnose and false in the
+    /// documentation mode None
+    /// </summary>
+    /// <param name="declaration">The combined declaration with its comments</param>
+    private void AssertSplitsOnlyWhenDocumentationCommentsAreParsed(string declaration)
+    {
+        var source = $"class C\n{{\n{declaration}\n}}";
+
+        foreach (var documentationMode in new[] { DocumentationMode.Parse, DocumentationMode.Diagnose })
+        {
+            var root = CSharpSyntaxTree.ParseText(source, CSharpParseOptions.Default.WithDocumentationMode(documentationMode), cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
+
+            Assert.IsTrue(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_x")), $"Documentation mode {documentationMode}");
+        }
+
+        var rootWithoutDocumentation = CSharpSyntaxTree.ParseText(source, CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None), cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
+
+        Assert.IsFalse(ReihitsuFormatter.SplitsFieldDeclaration(FindField(rootWithoutDocumentation, "_x")));
     }
 
     #endregion // Methods
