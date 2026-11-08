@@ -11,7 +11,7 @@
 - **The reorder is specified.** When the RH2001 fix adds `readonly` to a get-only property whose modifiers are not in RH7105's order, it writes the field's modifiers in that order, as RH7105 does (SHARED-MODORDER-002): the trivia in front of the property's first modifier stays once in front of the field's first modifier, each modifier is followed by one space, and the modifiers stay on one line (RH2001-004). A blank line above the property stays above the field.
 - **A comment or directive that a reordered modifier would cross withholds the fix** (RH2001-009). A comment or directive between modifiers that keep their order keeps its place, and the fix stays available.
 - **`readonly` goes behind a comment that stands at its place** (RH2001-009): between the modifiers RH7105 puts in front of it and those it puts behind it, or in front of the type when none follows it.
-- **A conditional directive between the modifiers withholds the fix** (RH2001-009): an `#if`, `#elif`, `#else`, or `#endif` between two modifiers, or between the last modifier and the type, withholds the fix whatever its branches hold; the diagnostic stays. For a property without a modifier, a conditional directive in front of its type, also on the lines above the property, withholds the fix the same way, as on `main`. The fix reads no excluded code. A conditional directive on the lines above a property that has a modifier keeps the fix (RH2001-004).
+- **A conditional directive between the modifiers withholds the fix** (RH2001-009): an `#if`, `#elif`, `#else`, or `#endif` between two modifiers, or between the last modifier and the type, withholds the fix whatever its branches hold; the diagnostic stays. For a property without a modifier, a conditional directive in front of its type, also on the lines above the property, withholds the fix the same way; `main` withholds it there only for a get-only property and fixes a read-write one. The fix reads no excluded code. A conditional directive on the lines above a property that has a modifier keeps the fix (RH2001-004).
 
 ## Why
 
@@ -144,6 +144,58 @@ The same holds for every other conditional group between the modifiers:
 - `static` in the group of a property with a `set` accessor (`private` / `#if DEBUG` / `static` / `#endif` / `int Value { get; set; }`): `main` writes the group unchanged and `int _value;` behind it, which is valid in every build.
 
 After: no fix offered in each case; the diagnostic stays. An earlier stage of this change wrote `readonly` behind a group of `static` or `new` (`private` / the group / `readonly int _value;`); that output is withdrawn as well.
+
+A conditional directive above a read-write property without a modifier, measured with `scripts/apply-fix.sh` at `3578f98e` (`main`), LF and CRLF. A group of whole members above the property:
+
+```csharp
+class C
+{
+#if DEBUG
+    private int _trace;
+#endif
+    int Value { get; set; }
+}
+```
+
+Before (`main`):
+
+```csharp
+class C
+{
+#if DEBUG
+    private int _trace;
+#endif
+    int _value;
+}
+```
+
+After: no fix offered; the diagnostic stays.
+
+A property inside a conditional block:
+
+```csharp
+class C
+{
+    private int _x;
+#if !DEBUG
+    int Value { get; set; }
+#endif
+}
+```
+
+Before (`main`):
+
+```csharp
+class C
+{
+    private int _x;
+#if !DEBUG
+    int _value;
+#endif
+}
+```
+
+After: no fix offered; the diagnostic stays. For a get-only property below a group of whole members, `main` already offers no fix.
 
 ## Decisions
 
