@@ -231,47 +231,34 @@ internal sealed class BlankLineEditor
 
     /// <summary>
     /// Ensures a blank line exists before the specified statement by inserting one if absent, exempting
-    /// statements immediately preceded by a preprocessor directive
+    /// statements directly preceded by a preprocessor directive (FMT-BLANK-006). When the gap holds a directive that a
+    /// comment separates from the statement, the blank line goes after the last directive (FMT-BLANK-016)
     /// </summary>
     /// <param name="statement">The statement to check and potentially modify</param>
-    /// <returns>The statement with a blank line inserted before it, or the original if one already exists</returns>
+    /// <returns>The statement with a blank line inserted before it, or the original if none is required or one already exists</returns>
     /// <remarks>
-    /// No blank line is inserted when the statement is immediately preceded by a preprocessor directive,
+    /// No blank line is inserted when the statement is directly preceded by a preprocessor directive,
     /// mirroring the exemption the PrecededBy/FollowedBy analyzer bases apply. Callers whose
     /// rule has no such exemption, such as the "blank line after a closing brace" rule, must use
     /// <see cref="EnsureBlankLineAfterClosingBrace"/> instead
     /// </remarks>
     public StatementSyntax EnsureBlankLineBeforeStatement(StatementSyntax statement)
     {
-        var firstToken = statement.GetFirstToken();
-
-        if (HasBlankLineBeforeToken(firstToken))
-        {
-            return statement;
-        }
-
-        if (SyntaxTriviaUtilities.IsPrecededByDirective(CombinedLeadingTrivia(firstToken)))
-        {
-            return statement;
-        }
-
-        return InsertBlankLineBeforeToken(statement, firstToken, insertIndex: 0);
+        return EnsureBlankLineUnlessPrecededByDirective(statement);
     }
 
     /// <summary>
-    /// Ensures a blank line exists before the first token of the specified switch section (FMT-BLANK-004). The line-break
-    /// phase, which runs before this phase, has already started the section's line (FMT-BREAK-033), so only the blank line
-    /// is added
+    /// Ensures a blank line exists before the first token of the specified switch section (FMT-BLANK-004), unless a
+    /// preprocessor directive directly precedes the section (FMT-BLANK-006). When the gap holds a directive that a comment
+    /// separates from the section, the blank line goes after the last directive (FMT-BLANK-016). The line-break phase,
+    /// which runs before this phase, has already started the section's line (FMT-BREAK-033), so only the blank line is
+    /// added
     /// </summary>
     /// <param name="section">The switch section</param>
-    /// <returns>The section with a blank line inserted before it, or the original if one already exists</returns>
+    /// <returns>The section with a blank line inserted before it, or the original if none is required or one already exists</returns>
     public SwitchSectionSyntax EnsureBlankLineBeforeSection(SwitchSectionSyntax section)
     {
-        var firstToken = section.GetFirstToken();
-
-        return HasBlankLineBeforeToken(firstToken)
-                   ? section
-                   : InsertBlankLineBeforeToken(section, firstToken, insertIndex: 0);
+        return EnsureBlankLineUnlessPrecededByDirective(section);
     }
 
     /// <summary>
@@ -298,6 +285,32 @@ internal sealed class BlankLineEditor
         var insertIndex = SyntaxTriviaUtilities.FindIndexAfterLeadingDirectives(firstToken.LeadingTrivia);
 
         return InsertBlankLineBeforeToken(statement, firstToken, insertIndex);
+    }
+
+    /// <summary>
+    /// Ensures a blank line exists before the first token of the specified statement or switch section. No blank line is
+    /// inserted when the gap already holds one or when the last trivia in front of the token, apart from whitespace and
+    /// line breaks, is a directive — a whole conditional group ends with its <c>#endif</c> and so counts (FMT-BLANK-006).
+    /// Otherwise the blank line is inserted after the last directive of the token's leading trivia, in front of the
+    /// comments between that directive and the token, and never directly in front of a directive (FMT-BLANK-016)
+    /// </summary>
+    /// <typeparam name="TNode">The statement or switch section type</typeparam>
+    /// <param name="node">The statement or switch section</param>
+    /// <returns>The node with a blank line inserted before it, or the original if none is required or one already exists</returns>
+    private TNode EnsureBlankLineUnlessPrecededByDirective<TNode>(TNode node)
+        where TNode : SyntaxNode
+    {
+        var firstToken = node.GetFirstToken();
+
+        if (HasBlankLineBeforeToken(firstToken)
+            || SyntaxTriviaUtilities.IsPrecededByDirective(CombinedLeadingTrivia(firstToken)))
+        {
+            return node;
+        }
+
+        var insertIndex = SyntaxTriviaUtilities.FindIndexAfterLeadingDirectives(firstToken.LeadingTrivia);
+
+        return InsertBlankLineBeforeToken(node, firstToken, insertIndex);
     }
 
     /// <summary>

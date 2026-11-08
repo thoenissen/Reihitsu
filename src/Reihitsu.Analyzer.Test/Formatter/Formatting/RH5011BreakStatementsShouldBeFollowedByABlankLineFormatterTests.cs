@@ -116,5 +116,40 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineFormatterTests : F
                               ExpectedDiagnostic(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, 7, 13, 7, 18, AnalyzerResources.RH5011MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter leaves a switch section directly preceded by a directive behind a section that ends in a
+    /// break statement unchanged, and that the result stays analyzer-clean
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BLANK-006")]
+    public async Task VerifyFormatterKeepsSwitchSectionDirectlyPrecededByDirectiveWithoutBlankLine()
+    {
+        const string source = """
+                              internal class Example
+                              {
+                                  internal void Method(int value)
+                                  {
+                                      switch (value)
+                                      {
+                                          case 1:
+                                              Consume();
+                                              break;
+                              #pragma warning disable CS0168
+                                          case 2:
+                                              Consume();
+                                              break;
+                                      }
+                                  }
+
+                                  private static void Consume()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await VerifyFormatter(source);
+    }
+
     #endregion // Tests
 }

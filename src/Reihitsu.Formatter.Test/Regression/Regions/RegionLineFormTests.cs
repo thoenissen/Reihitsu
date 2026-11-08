@@ -6,7 +6,8 @@ namespace Reihitsu.Formatter.Test.Regression.Regions;
 
 /// <summary>
 /// Full-pipeline tests for the form of a <c>#region</c> line with a description — <c>#region</c>, one space, and the trimmed
-/// description — and for the whitespace around the text of an <c>#endregion</c> whose <c>#region</c> has no description
+/// description — for the whitespace around the text of an <c>#endregion</c> whose <c>#region</c> has no description, and
+/// for the whitespace between <c>#</c> and the keyword of every paired region line
 /// </summary>
 [TestClass]
 public class RegionLineFormTests : FormatterTestsBase
@@ -717,6 +718,274 @@ public class RegionLineFormTests : FormatterTestsBase
     }
 
     #endregion // Region without a description
+
+    #region Whitespace between the number sign and the keyword
+
+    /// <summary>
+    /// Verifies the spec example: whitespace between <c>#</c> and the keyword is removed on a <c>#region</c> line whose
+    /// description changes and on its <c>#endregion</c>
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-REGION-007")]
+    [Requirement("FMT-REGION-002")]
+    public void WhitespaceAfterNumberSignOfDescribedRegionPairIsRemoved()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 # region fields
+
+                                 int _a;
+
+                                 #  endregion
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    #region Fields
+
+                                    int _a;
+
+                                    #endregion // Fields
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that whitespace between <c>#</c> and the keyword is removed on a described region pair that is canonical
+    /// apart from that whitespace
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-REGION-007")]
+    [Requirement("FMT-REGION-002")]
+    public void WhitespaceAfterNumberSignIsRemovedWhenNothingElseChanges()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 # region Fields
+
+                                 int _a;
+
+                                 #   endregion // Fields
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    #region Fields
+
+                                    int _a;
+
+                                    #endregion // Fields
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a tab between <c>#</c> and <c>region</c> is removed
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-REGION-007")]
+    public void TabAfterNumberSignOfRegionLineIsRemoved()
+    {
+        // Arrange
+        const string input = "class C\n{\n    #\tregion Fields\n\n    int _a;\n\n    #endregion // Fields\n}";
+        const string expected = "class C\n{\n    #region Fields\n\n    int _a;\n\n    #endregion // Fields\n}";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a tab between <c>#</c> and <c>endregion</c> of a described region is removed
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-REGION-002")]
+    public void TabAfterNumberSignOfEndRegionLineIsRemoved()
+    {
+        // Arrange
+        const string input = "class C\n{\n    #region Fields\n\n    int _a;\n\n    #\tendregion // Fields\n}";
+        const string expected = "class C\n{\n    #region Fields\n\n    int _a;\n\n    #endregion // Fields\n}";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: whitespace between <c>#</c> and the keyword is removed in a branch the build does not
+    /// compile
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-REGION-007")]
+    [Requirement("FMT-REGION-002")]
+    public void WhitespaceAfterNumberSignOfRegionPairInDisabledBranchIsRemoved()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                             #if false
+                                 # region fields
+                                 int a;
+                                 #  endregion
+                             #endif
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                #if false
+                                    #region Fields
+                                    int a;
+                                    #endregion // Fields
+                                #endif
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: whitespace between <c>#</c> and the keyword is removed on an undescribed <c>#region</c>
+    /// and on its <c>#endregion</c>, whose text keeps one space in front of it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-REGION-004")]
+    public void WhitespaceAfterNumberSignOfUndescribedRegionPairWithEndRegionTextIsRemoved()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 # region
+
+                                 int _value;
+
+                                 #  endregion  note
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    #region
+
+                                    int _value;
+
+                                    #endregion note
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that whitespace between <c>#</c> and the keyword is removed on a bare undescribed region pair
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-REGION-004")]
+    public void WhitespaceAfterNumberSignOfBareRegionPairIsRemoved()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 # region
+
+                                 int _value;
+
+                                 #  endregion
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    #region
+
+                                    int _value;
+
+                                    #endregion
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that whitespace between <c>#</c> and the keyword is removed on an undescribed region pair in a branch the
+    /// build does not compile
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-REGION-004")]
+    public void WhitespaceAfterNumberSignOfUndescribedRegionPairInDisabledBranchIsRemoved()
+    {
+        // Arrange
+        const string input = "class C\n{\n#if false\n    # region\n    int a;\n    #  endregion note\n#endif\n}";
+        const string expected = "class C\n{\n#if false\n    #region\n    int a;\n    #endregion note\n#endif\n}";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that whitespace between <c>#</c> and the keyword is removed on nested region pairs
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-REGION-007")]
+    [Requirement("FMT-REGION-002")]
+    public void WhitespaceAfterNumberSignOfNestedRegionPairsIsRemoved()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 # region Methods
+
+                                 #  region helpers
+
+                                 void M()
+                                 {
+                                 }
+
+                                 # endregion
+
+                                 #   endregion // Methods
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    #region Methods
+
+                                    #region Helpers
+
+                                    void M()
+                                    {
+                                    }
+
+                                    #endregion // Helpers
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    #endregion // Whitespace between the number sign and the keyword
 
     #endregion // Methods
 }

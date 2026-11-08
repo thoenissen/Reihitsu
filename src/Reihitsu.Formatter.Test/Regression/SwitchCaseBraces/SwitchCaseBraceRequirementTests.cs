@@ -691,6 +691,248 @@ public class SwitchCaseBraceRequirementTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies the spec example: a <c>break</c>-only section whose label holds a multi-line property pattern does not make
+    /// the switch multi-line, so the switch is left unchanged
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-004")]
+    [Requirement("FMT-SWITCH-006")]
+    public void BreakOnlySectionWithMultiLinePropertyPatternDoesNotMakeTheSwitchMultiLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(object o)
+                                 {
+                                     switch (o)
+                                     {
+                                         case Point
+                                              {
+                                                  X: 1,
+                                                  Y: 2
+                                              }:
+                                             break;
+
+                                         case string s:
+                                             B();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: when another section is multi-line, the switch is braced and the <c>break</c>-only
+    /// section with a multi-line property pattern stays bare
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-004")]
+    [Requirement("FMT-SWITCH-006")]
+    public void BreakOnlySectionWithMultiLinePropertyPatternStaysBareWhenAnotherSectionBracesTheSwitch()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(object o)
+                                 {
+                                     switch (o)
+                                     {
+                                         case Point
+                                              {
+                                                  X: 1,
+                                                  Y: 2
+                                              }:
+                                             break;
+
+                                         case string s:
+                                             A();
+                                             B();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(object o)
+                                    {
+                                        switch (o)
+                                        {
+                                            case Point
+                                                 {
+                                                     X: 1,
+                                                     Y: 2
+                                                 }:
+                                                break;
+
+                                            case string s:
+                                                {
+                                                    A();
+                                                    B();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>break</c>-only section whose label holds a multi-line list pattern does not make the switch
+    /// multi-line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-004")]
+    [Requirement("FMT-SWITCH-006")]
+    public void BreakOnlySectionWithMultiLineListPatternDoesNotMakeTheSwitchMultiLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int[] values)
+                                 {
+                                     switch (values)
+                                     {
+                                         case [
+                                                  1,
+                                                  2
+                                              ]:
+                                             break;
+
+                                         case [3]:
+                                             B();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>break</c>-only section whose <c>when</c> clause holds a multi-line property pattern does not make
+    /// the switch multi-line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-004")]
+    [Requirement("FMT-SWITCH-006")]
+    public void BreakOnlySectionWithMultiLinePatternInWhenClauseDoesNotMakeTheSwitchMultiLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(object o)
+                                 {
+                                     switch (o)
+                                     {
+                                         case int x when o is Point
+                                                           {
+                                                               X: 1
+                                                           }:
+                                             break;
+
+                                         case string s:
+                                             B();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>break</c>-only section with stacked labels, one of which holds a multi-line property pattern, does
+    /// not make the switch multi-line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-004")]
+    [Requirement("FMT-SWITCH-006")]
+    public void BreakOnlySectionWithStackedLabelsAndMultiLinePatternDoesNotMakeTheSwitchMultiLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(object o)
+                                 {
+                                     switch (o)
+                                     {
+                                         case int:
+                                         case Point
+                                              {
+                                                  X: 1,
+                                                  Y: 2
+                                              }:
+                                             break;
+
+                                         case string s:
+                                             B();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a section of two <c>break</c> statements whose label holds a multi-line property pattern does not make
+    /// the switch multi-line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-004")]
+    [Requirement("FMT-SWITCH-006")]
+    public void SectionOfTwoBreaksWithMultiLinePatternDoesNotMakeTheSwitchMultiLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(object o)
+                                 {
+                                     switch (o)
+                                     {
+                                         case Point
+                                              {
+                                                  X: 1,
+                                                  Y: 2
+                                              }:
+                                             break;
+
+                                             break;
+
+                                         case string s:
+                                             B();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
     /// Verifies that an existing one-line block is kept, laid out over several lines, and braces
     /// the other sections of the switch
     /// </summary>

@@ -9,10 +9,11 @@ using Reihitsu.Core;
 namespace Reihitsu.Formatter.Pipeline.RegionFormatting.Utilities;
 
 /// <summary>
-/// The region phase's naming step. It pairs each <c>#region</c> with its <c>#endregion</c> and writes the text of both:
-/// a <c>#region</c> with a description as <c>#region</c>, one space, and the capitalized, trimmed description, with the
-/// matching <c>#endregion</c> comment; a region without a description as the bare keyword, with the text behind its
-/// <c>#endregion</c> kept behind one space. It replaces only directive trivia and never changes directive placement
+/// The region phase's naming step. It pairs each <c>#region</c> with its <c>#endregion</c> and writes the text of both,
+/// with no whitespace between the number sign and the keyword: a <c>#region</c> with a description as <c>#region</c>, one
+/// space, and the capitalized, trimmed description, with the matching <c>#endregion</c> comment; a region without a
+/// description as the bare keyword, with the text behind its <c>#endregion</c> kept behind one space. It replaces only
+/// directive trivia and never changes directive placement
 /// </summary>
 /// <remarks>
 /// Unlike the layout steps around it, this one deliberately reaches directives inside a branch the
@@ -25,7 +26,8 @@ internal static class RegionNamingRewriter
     #region Methods
 
     /// <summary>
-    /// Writes every paired region directive in its canonical form: a described <c>#region</c> as <c>#region</c>, one
+    /// Writes every paired region directive in its canonical form, with no whitespace between the number sign and the
+    /// keyword (FMT-REGION-002, FMT-REGION-004, FMT-REGION-007): a described <c>#region</c> as <c>#region</c>, one
     /// space, and the capitalized description (FMT-REGION-001, FMT-REGION-007) with its <c>#endregion</c> comment
     /// (FMT-REGION-002); an undescribed <c>#region</c> as the bare keyword, and its <c>#endregion</c> as the bare keyword
     /// or the keyword, one space, and its trimmed text (FMT-REGION-004)
@@ -51,8 +53,8 @@ internal static class RegionNamingRewriter
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var regionDirective = (RegionDirectiveTriviaSyntax)region.GetStructure();
-            var endRegionDirective = (EndRegionDirectiveTriviaSyntax)endRegion.GetStructure();
+            var regionDirective = WithoutWhitespaceAfterNumberSign((RegionDirectiveTriviaSyntax)region.GetStructure());
+            var endRegionDirective = WithoutWhitespaceAfterNumberSign((EndRegionDirectiveTriviaSyntax)endRegion.GetStructure());
             var regionName = RegionDirectiveUtilities.GetRegionDescription(regionDirective);
 
             SyntaxTrivia canonicalRegion;
@@ -93,6 +95,30 @@ internal static class RegionNamingRewriter
         {
             replacements[original] = canonical;
         }
+    }
+
+    /// <summary>
+    /// Returns the region directive without whitespace between its number sign and its keyword, so every line the
+    /// naming step writes starts with <c>#region</c>
+    /// </summary>
+    /// <param name="directive">The region directive</param>
+    /// <returns>The directive whose number sign carries no trailing trivia</returns>
+    private static RegionDirectiveTriviaSyntax WithoutWhitespaceAfterNumberSign(RegionDirectiveTriviaSyntax directive)
+    {
+        return directive.WithHashToken(directive.HashToken.WithTrailingTrivia(SyntaxTriviaList.Empty));
+    }
+
+    /// <summary>
+    /// Returns the endregion directive without whitespace between its number sign and its keyword, so every line the
+    /// naming step writes starts with <c>#endregion</c>. The step strips the gap here rather than in
+    /// <see cref="RegionDirectiveUtilities.CreateCanonicalEndRegionTrivia"/>, which RH7301's code fix shares and whose
+    /// output keeps the gap
+    /// </summary>
+    /// <param name="directive">The endregion directive</param>
+    /// <returns>The directive whose number sign carries no trailing trivia</returns>
+    private static EndRegionDirectiveTriviaSyntax WithoutWhitespaceAfterNumberSign(EndRegionDirectiveTriviaSyntax directive)
+    {
+        return directive.WithHashToken(directive.HashToken.WithTrailingTrivia(SyntaxTriviaList.Empty));
     }
 
     /// <summary>

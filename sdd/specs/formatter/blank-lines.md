@@ -5,7 +5,7 @@
 | ID prefix | FMT-BLANK |
 | Status | Active |
 | Code owners | `BlankLinePhase`, `BlankLineTokenCleanupRewriter`, `BlankLineTriviaBoundaryRewriter`, `BlankLineRegionDirectiveRewriter`, `BlankLineStatementSpacingRewriter`, `BlankLineBreakSpacingRewriter`, `BlankLineCollapser`, `BlankLineEditor`, `BraceBlankLinePolicy` |
-| Uses | FMT-PIPE-002, FMT-BREAK-019, FMT-BREAK-022, FMT-BREAK-030, FMT-BREAK-033, SHARED-USING-011, SHARED-BLANK-001, SHARED-BLANK-002, SHARED-BLANK-003, SHARED-BLANK-004, SHARED-BLANK-005, SHARED-BLANK-006, SHARED-BLANK-007, SHARED-COMMENT-012, FMT-DOC-001, FMT-DOC-003, FMT-BREAK-006, FMT-PIPE-001, FMT-PIPE-025 |
+| Uses | FMT-PIPE-002, FMT-BREAK-019, FMT-BREAK-022, FMT-BREAK-030, FMT-BREAK-033, SHARED-USING-011, SHARED-BLANK-001, SHARED-BLANK-002, SHARED-BLANK-003, SHARED-BLANK-004, SHARED-BLANK-005, SHARED-BLANK-006, SHARED-BLANK-007, SHARED-COMMENT-012, FMT-DOC-001, FMT-DOC-003, FMT-BREAK-006, FMT-PIPE-001, FMT-PIPE-025, RH5011-002 |
 
 This spec covers `BlankLinePhase`: where the formatter inserts a blank line (before statements and comments, after closing braces and `break`, around region directives), where it removes one (next to braces, closing brackets, chained keywords, and documentation comments, and between a comment and the brace or bracket behind it), and how it collapses runs of blank lines. The phase runs after the line-break and switch-brace phases (FMT-PIPE-001), so it decides every blank line on the lines the output keeps. What counts as a blank line, the closing-brace and terminal-`break` rules, and the region-directive rules are shared with the analyzer and specified in SHARED-BLANK.
 
@@ -150,7 +150,7 @@ class C
 
 ### FMT-BLANK-004 — `break` is separated on both sides
 
-The formatter MUST insert a blank line before a `break` statement that is not the first statement of its block or switch section and not exempt under SHARED-BLANK-004, and after a `break` statement that is followed by another statement in the same list. It MUST insert a blank line before a switch section whose preceding section ends in a `break` statement; a section ending in any other statement gets none. Every section starts its own line before this phase runs (FMT-BREAK-033), so the phase adds only the blank line in front of it.
+The formatter MUST insert a blank line before a `break` statement that is not the first statement of its block or switch section and not exempt under SHARED-BLANK-004, and after a `break` statement that is followed by another statement in the same list. It MUST insert a blank line before a switch section whose preceding section ends in a `break` statement, unless a directive directly precedes the section (FMT-BLANK-006); a section ending in any other statement gets none. Every section starts its own line before this phase runs (FMT-BREAK-033), so the phase adds only the blank line in front of it.
 
 Why: `break` leaves the enclosing loop or switch, so it is set off from the work before it, and code after it is a new path. Sections that end in `break` are the common case and are separated so each case reads as its own unit; sections ending in `return` or `throw` get no blank line between them because only the `break` rule (RH5011) asks for the line, and they still start their own lines (FMT-BREAK-033). The line break in front of a section is the line-break phase's, which runs before this phase and inserts no blank line (FMT-BREAK-030); this phase only adds the blank line, in the same run (FMT-PIPE-025).
 
@@ -344,11 +344,11 @@ class C
 }
 ```
 
-### FMT-BLANK-006 — A directive directly before a statement suppresses its statement-kind blank line
+### FMT-BLANK-006 — A directive directly before a statement or a switch section suppresses its blank line
 
-The formatter MUST NOT insert the blank line of FMT-BLANK-001 to FMT-BLANK-004 before a statement whose first token is directly preceded by a preprocessor directive.
+The formatter MUST NOT insert the blank line of FMT-BLANK-001 to FMT-BLANK-004 before a statement whose first token is directly preceded by a preprocessor directive, and MUST NOT insert the blank line FMT-BLANK-004 asks for in front of a switch section whose first token is directly preceded by a preprocessor directive. A token is directly preceded by a directive when the last trivia in front of it, apart from whitespace and line breaks, is a directive; a whole conditional group, with the disabled text between its directives, ends with its `#endif` and so counts as directly preceding. A comment between the last directive and the token means the token is not directly preceded: the blank line is inserted, after the last directive (FMT-BLANK-016).
 
-Why: The directive already separates the statement from what precedes it, and a blank line inserted in front of the directive would change which code the author grouped with the condition. The analyzer rules apply the same exemption. SHARED-BLANK-003 is not affected (FMT-BLANK-005).
+Why: The directive already separates the statement or section from what precedes it, and a blank line inserted in front of the directive would change which code the author grouped with the condition. The analyzer rules apply the same exemption; RH5011 does not report a `break` whose next trivia is a directive (RH5011-002), in front of a statement and in front of a section alike. SHARED-BLANK-003 is not affected (FMT-BLANK-005).
 
 Example — no blank line before `if` or `return`, but one after `#endif` because the `if` statement ends with a closing brace:
 
@@ -385,6 +385,77 @@ class C
         a++;
 #pragma warning disable CS0168
         return;
+    }
+}
+```
+
+A directive, or a whole conditional group whose branch the build does not compile, directly in front of a switch section behind a section that ends in `break` gets no blank line, so this switch is left unchanged:
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        switch (a)
+        {
+            case 1:
+                a++;
+                break;
+#pragma warning disable CS0168
+            case 2:
+                a--;
+                break;
+#if NEVER
+            case 3:
+                break;
+#endif
+            case 4:
+                a++;
+                break;
+        }
+    }
+}
+```
+
+With a comment between the directive and the section, the section is not directly preceded by the directive, and the blank line goes after the directive, in front of the comment (FMT-BLANK-016):
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        switch (a)
+        {
+            case 1:
+                a++;
+                break;
+#pragma warning disable CS0168
+            // two
+            case 2:
+                a--;
+                break;
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        switch (a)
+        {
+            case 1:
+                a++;
+                break;
+#pragma warning disable CS0168
+
+            // two
+            case 2:
+                a--;
+                break;
+        }
     }
 }
 ```
@@ -1201,7 +1272,7 @@ y";
 
 ### FMT-BLANK-016 — A required blank line goes after directives, never directly in front of one
 
-When the formatter inserts a blank line that FMT-BLANK-001 to FMT-BLANK-005 ask for into a gap that holds a preprocessor directive, it MUST insert the blank line after the last directive of the gap, in front of the comments that stand between that directive and the code behind it, and it MUST NOT insert a blank line directly in front of a directive. Whether such a gap needs the blank line at all is decided by the requirement that asks for it, together with FMT-BLANK-006 for a directive directly in front of a statement. This requirement covers only the blank lines the formatter inserts; a blank line the author wrote in front of a directive is decided by the other requirements, such as FMT-BLANK-009.
+When the formatter inserts a blank line that FMT-BLANK-001 to FMT-BLANK-005 ask for into a gap that holds a preprocessor directive, it MUST insert the blank line after the last directive of the gap, in front of the comments that stand between that directive and the code behind it, and it MUST NOT insert a blank line directly in front of a directive. This holds for every gap in front of a statement or a switch section, whichever of these requirements asks for the blank line: the gap in front of a compound or jump statement (FMT-BLANK-001), a local declaration or the statement behind one (FMT-BLANK-002), a `yield` statement (FMT-BLANK-003), a `break` statement, the statement behind a `break`, and the switch section behind a section that ends in `break` (FMT-BLANK-004), and the statement behind a closing brace (FMT-BLANK-005), also when the gap holds a whole conditional group, with the disabled text between its directives. Whether such a gap needs the blank line at all is decided by the requirement that asks for it, together with FMT-BLANK-006 for a directive directly in front of a statement or a switch section. This requirement covers only the blank lines the formatter inserts; a blank line the author wrote in front of a directive is decided by the other requirements, such as FMT-BLANK-009.
 
 Why: A directive opens or closes a conditional region, or changes the compiler's state for the code behind it. A blank line inserted in front of it lands inside the region of the directive above, or separates the directive from code the author grouped with it. Behind the last directive, the blank line separates what the requirement asks it to separate: the code that follows, with the comments that describe it, from what comes before.
 
@@ -1273,6 +1344,95 @@ class C
 
         // why
         a++;
+    }
+}
+```
+
+A gap that holds a conditional group whose branch the build does not compile gets the blank line after its `#endif`, in front of the comment that leads the `if` statement (FMT-BLANK-001):
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        a++;
+#if NEVER
+        a--;
+#endif
+        // why
+        if (a > 0)
+        {
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        a++;
+#if NEVER
+        a--;
+#endif
+
+        // why
+        if (a > 0)
+        {
+        }
+    }
+}
+```
+
+The blank line in front of a local declaration (FMT-BLANK-002) and the one behind a `break` (FMT-BLANK-004) go after the directive, in front of the comment that leads the statement; the `while` statement directly behind `#endif` gets none (FMT-BLANK-006):
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        a++;
+#if !NEVER
+        // setup
+        var b = a;
+#endif
+        while (a > 0)
+        {
+            break;
+#if !NEVER
+            // scope
+            {
+                a++;
+            }
+#endif
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        a++;
+#if !NEVER
+
+        // setup
+        var b = a;
+#endif
+        while (a > 0)
+        {
+            break;
+#if !NEVER
+
+            // scope
+            {
+                a++;
+            }
+#endif
+        }
     }
 }
 ```
