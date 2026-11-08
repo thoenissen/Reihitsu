@@ -106,4 +106,5 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 - Audit 5 at df9c9147 (origin/main 3578f98e): findings, `42-auditor.md` (a33ec145): #1595, #1616 pass; #1593 #14, #15 (medium), #16 (low). Earlier classes #1–#13 closed. Decision 34 size judged acceptable by the auditor except #14.
 - Done: spec author `43-spec-author.md` (4d647f09).
 - Done: test implementer `44-test-implementer.md` (5295d539): 10 tests red against head.
-- Repair round 2 of 3: implementer → `45-implementer.md`; cleaner; spec checker; auditor (repair only); validator.
+- Done: implementer `45-implementer.md` (037c4703): all tests pass; production diff vs main +643/−69 (this round net +58, mostly RH2001 decision 40).
+- Repair round 2 of 3: cleaner → `46-cleaner.md`; spec checker; auditor (repair only); validator.
