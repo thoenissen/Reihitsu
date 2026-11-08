@@ -2732,6 +2732,36 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
         await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
     }
 
+    /// <summary>
+    /// Verifies that a conditional group holding only a whole member in front of the type of a property with a setter
+    /// and without modifiers withholds the fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-009")]
+    public async Task VerifyNoCodeFixIsOfferedForAConditionalWholeMemberGroupInFrontOfTheTypeOfAReadWritePropertyWithoutModifiers(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                              #if DEBUG
+                                  private int _trace;
+                              #endif
+                                  int {|RH2001:Value|} { get; set; }
+
+                                  public int Get()
+                                  {
+                                      return Value;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods
