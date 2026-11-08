@@ -38,4 +38,5 @@
 - Done: spec author (01, commit 9ee6cfb, verdict open question).
 - Done: skeptic (02, commit 3372b14): #1385 proceed (+OQ1 second input), #1398 proceed, #1239 OQ2.
 - Asked OQ1/OQ2; answered 1A 2A.
-- Next: spec author (continued) writes change doc + FMT-BLANK-006/-016 amendment + region clarifications; then test implementer.
+- Done: spec author round 2 (03, commit 1bee8f5): change doc `sdd/changes/2026-11/directive-before-switch-section.md` accepted by lead. Lane check behavior-change confirmed.
+- Next: test implementer.
