@@ -18,10 +18,14 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 2 | Skeptic | Should the #1239 change go into the Core helper `RegionDirectiveUtilities.CreateCanonicalEndRegionTrivia`, shared with the RH7301 code fix? | Keep any #1239 change inside the formatter's region phase; the RH7301 fix output stays as on `main` | Avoids putting a code-fix result in question; scope stays on the formatter | RH7301 output unchanged | — |
+| 3 | Skeptic | FMT-BLANK-016 coverage list omits the blank line before a `break` (FMT-BLANK-004 first clause) | Spec author adds it as clarification wording | Same requirement, existing behavior is wrong against -016 | Wording only; output already demanded by FMT-BLANK-016 | — |
 | 1 | Claim | Branch name | Use the session's designated branch `claude/nifty-hypatia-urch1j` instead of `claude/issues-1385-1398-1239-<slug>` | The session environment forbids pushing to any other branch | Branch names are internal | 32e14d4 |
 
 ## Follow-up candidates
 
+- Multi-line parenthesized pattern layout is broken (`o is (int⏎or long)`, `case (int⏎or long):`). Source: 02-skeptic.md.
+- Open question: a `return`/`throw`-only section with a multi-line label braces the whole switch (`{ return; }`); spec requires it today. Source: 02-skeptic.md.
 - (conditional on #1239 answer A) Whether the formatter should normalize whitespace between `#` and the keyword of other directives (`# pragma`, `# if`). Source: 01-spec-author.md.
 
 ## Worklist / next step
@@ -29,4 +33,5 @@
 - Audited SHA: —
 - Open output questions (batch before test implementer): OQ1 #1385 directive between a `break`-ending section and the next section (A: no blank line / B: blank line after directive); OQ2 #1239 whitespace between `#` and `region` (A: `#region Fields` / B: keep).
 - Done: spec author (01, commit 9ee6cfb, verdict open question).
-- Next: skeptic.
+- Done: skeptic (02, commit 3372b14): #1385 proceed (+OQ1 second input), #1398 proceed, #1239 OQ2.
+- Next: ask OQ1/OQ2 batch; then route answers + Decision 3 to spec author; then test implementer.
