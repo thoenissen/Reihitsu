@@ -77,4 +77,5 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 - Repair rounds used: 1 of 3 (the structural change does not count).
 - Done: test implementer `16-test-implementer.md` (65cb71a): 15 tests red as intended.
 - Done: spec author `18-spec-author.md` (9589141); implementer 234e32a, `17-implementer.md` (784c2b3): all tests pass.
-- Next: test implementer pins (decision 23) → `19-test-implementer.md`; cleaner; spec checker; auditor (audit 3); validator.
+- Done: test implementer pins `19-test-implementer.md` (704891f).
+- Next: cleaner → `20-cleaner.md`; cleaner; spec checker; auditor (audit 3); validator.
