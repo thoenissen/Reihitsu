@@ -3278,6 +3278,132 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     }
 
     /// <summary>
+    /// Verifies the specification example: an enum member's <c>=</c> below its name is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-001")]
+    public async Task VerifyEnumMemberEqualsBelowNameIsReported()
+    {
+        const string testData = """
+                                enum E
+                                {
+                                    {|#0:A
+                                        = 1|}
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of an enum member whose <c>=</c> stands below its name joins the member in one application and
+    /// keeps the trailing comma, which belongs to the enum, not to the member
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-001")]
+    [Requirement("RH5111-004")]
+    public async Task VerifyEnumMemberEqualsBelowNameIsFixedInOneApplication()
+    {
+        const string testData = """
+                                enum E
+                                {
+                                    {|#0:A
+                                        = 1|},
+                                }
+                                """;
+        const string fixedData = """
+                                 enum E
+                                 {
+                                     A = 1,
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     static config =>
+                            {
+                                config.NumberOfIncrementalIterations = 1;
+                                config.NumberOfFixAllIterations = 1;
+                            },
+                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData),
+                     NormalizeToCarriageReturnLineFeed(fixedData),
+                     static config =>
+                            {
+                                config.NumberOfIncrementalIterations = 1;
+                                config.NumberOfFixAllIterations = 1;
+                            },
+                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of an enum member whose <c>=</c> stands alone on its line joins name, <c>=</c>, and value in one
+    /// application
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-004")]
+    public async Task VerifyLoneEnumMemberEqualsIsFixedInOneApplication()
+    {
+        const string testData = """
+                                enum E
+                                {
+                                    {|#0:A
+                                        =
+                                        1|},
+                                }
+                                """;
+        const string fixedData = """
+                                 enum E
+                                 {
+                                     A = 1,
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     static config =>
+                            {
+                                config.NumberOfIncrementalIterations = 1;
+                                config.NumberOfFixAllIterations = 1;
+                            },
+                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that Fix All joins two enum members whose <c>=</c> stands below the name in one iteration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-004")]
+    public async Task VerifyFixAllJoinsSeveralEnumMembers()
+    {
+        const string testData = """
+                                enum E
+                                {
+                                    {|#0:A
+                                        = 1|},
+                                    {|#1:B
+                                        = 2|}
+                                }
+                                """;
+        const string fixedData = """
+                                 enum E
+                                 {
+                                     A = 1,
+                                     B = 2
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat, 2));
+    }
+
+    /// <summary>
     /// Verifies the one diagnostic marked in the source and the fix result under LF and under CRLF
     /// </summary>
     /// <param name="testData">The source with LF line endings</param>

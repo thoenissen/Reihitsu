@@ -151,5 +151,35 @@ public class RH5111AssignmentsMustHaveProperLineBreaksFormatterTests : Formatter
                               Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter joins an enum member whose <c>=</c> stands below its name, so the analyzer reports
+    /// nothing on the formatted code
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-016")]
+    public async Task VerifyFormatterFixesEnumMemberEqualsBelowName()
+    {
+        const string input = """
+                             internal enum Values
+                             {
+                                 {|#0:First
+                                     = 1|},
+                                 Second
+                             }
+                             """;
+        const string fixedData = """
+                                 internal enum Values
+                                 {
+                                     First = 1,
+                                     Second
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
     #endregion // Tests
 }

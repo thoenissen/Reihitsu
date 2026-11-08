@@ -152,29 +152,25 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Moves a simple-assignment operator onto the target line
+    /// Moves an assignment operator — <c>=</c> or any compound assignment operator, such as <c>+=</c> or <c>??=</c> — onto
+    /// the target line (FMT-BREAK-016, FMT-PIPE-014)
     /// </summary>
     /// <param name="node">The assignment expression to normalize</param>
     /// <returns>The updated assignment expression</returns>
-    private static AssignmentExpressionSyntax NormalizeSimpleAssignmentOperatorPlacement(AssignmentExpressionSyntax node)
+    private static AssignmentExpressionSyntax NormalizeAssignmentOperatorPlacement(AssignmentExpressionSyntax node)
     {
-        if (node.IsKind(SyntaxKind.SimpleAssignmentExpression) == false)
-        {
-            return node;
-        }
-
         return NormalizeOperatorPlacement(node, node.OperatorToken);
     }
 
     /// <summary>
-    /// Moves a simple-assignment value onto the operator line
+    /// Moves an assignment value onto the operator line, for <c>=</c> and every compound assignment operator alike
+    /// (FMT-BREAK-016, FMT-PIPE-014)
     /// </summary>
     /// <param name="node">The assignment expression to normalize</param>
     /// <returns>The updated assignment expression</returns>
-    private static AssignmentExpressionSyntax NormalizeSimpleAssignmentValuePlacement(AssignmentExpressionSyntax node)
+    private static AssignmentExpressionSyntax NormalizeAssignmentValuePlacement(AssignmentExpressionSyntax node)
     {
-        if (node.IsKind(SyntaxKind.SimpleAssignmentExpression) == false
-            || node.Right is CollectionExpressionSyntax
+        if (node.Right is CollectionExpressionSyntax
             || node.Right is InitializerExpressionSyntax
             || LineBreakTriviaUtilities.HasTrailingEndOfLine(node.OperatorToken) == false)
         {
@@ -292,6 +288,18 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
                    : NormalizeOperatorPlacement(node, node.Initializer.EqualsToken);
     }
 
+    /// <summary>
+    /// Moves an enum member's equals token onto the line of the member's name (FMT-BREAK-016)
+    /// </summary>
+    /// <param name="node">The enum member declaration to normalize</param>
+    /// <returns>The updated enum member declaration</returns>
+    private static EnumMemberDeclarationSyntax NormalizeEnumMemberValueOperatorPlacement(EnumMemberDeclarationSyntax node)
+    {
+        return node.EqualsValue == null
+                   ? node
+                   : NormalizeOperatorPlacement(node, node.EqualsValue.EqualsToken);
+    }
+
     #endregion // Methods
 
     #region CSharpSyntaxVisitor
@@ -310,9 +318,9 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
 
         node = NormalizeCollectionInitializerAssignment(node);
         node = NormalizeCollectionExpressionAssignment(node);
-        node = NormalizeSimpleAssignmentOperatorPlacement(node);
+        node = NormalizeAssignmentOperatorPlacement(node);
 
-        return NormalizeSimpleAssignmentValuePlacement(node);
+        return NormalizeAssignmentValuePlacement(node);
     }
 
     /// <inheritdoc/>
@@ -330,6 +338,21 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
         node = NormalizeCollectionExpressionEqualsValue(node);
 
         return NormalizeEqualsValuePlacement(node);
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (EnumMemberDeclarationSyntax)base.VisitEnumMemberDeclaration(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        return NormalizeEnumMemberValueOperatorPlacement(node);
     }
 
     /// <inheritdoc/>

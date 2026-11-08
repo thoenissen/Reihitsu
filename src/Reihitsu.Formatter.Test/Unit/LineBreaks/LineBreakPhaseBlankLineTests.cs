@@ -219,6 +219,75 @@ public class LineBreakPhaseBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that where the phase joins a lone binary operator with its right operand below a comment on its own line,
+    /// it inserts no blank line above the comment
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-030")]
+    public void InsertsNoBlankLineAboveCommentLineWhereItJoinsLoneBinaryOperator()
+    {
+        const string input = """
+                             class C
+                             {
+                                 bool M(bool a, bool b)
+                                 {
+                                     var p = a
+                                             // between
+                                             &&
+                                             b;
+                                     return p;
+                                 }
+                             }
+                             """;
+
+        AssertPhaseJoinsWithoutBlankLine(input, "&&");
+    }
+
+    /// <summary>
+    /// Verifies that where the phase joins a lone conditional <c>:</c> with the false branch below a comment on its own line,
+    /// it inserts no blank line above the comment
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-030")]
+    public void InsertsNoBlankLineAboveCommentLineWhereItJoinsLoneConditionalColon()
+    {
+        const string input = """
+                             class C
+                             {
+                                 int M(bool a)
+                                 {
+                                     var p = a
+                                             ? 1
+                                             // c
+                                             :
+                                             2;
+                                     return p;
+                                 }
+                             }
+                             """;
+
+        AssertPhaseJoinsWithoutBlankLine(input, ":");
+    }
+
+    /// <summary>
+    /// Runs the phase alone on the input under LF and CRLF line endings and asserts that it joined the lone operator with
+    /// the operand below it and inserted no blank line
+    /// </summary>
+    /// <param name="input">The input with LF line endings, which holds no blank line</param>
+    /// <param name="operatorText">The text of the lone operator</param>
+    private void AssertPhaseJoinsWithoutBlankLine(string input, string operatorText)
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var output = ExecutePhase(NormalizeLineEndings(input, endOfLine), endOfLine);
+            var lines = output.Split(endOfLine);
+
+            Assert.DoesNotContain(line => string.IsNullOrWhiteSpace(line), lines, $"The phase inserted a blank line under {DescribeLineEnding(endOfLine)} line endings:{Environment.NewLine}{output}");
+            Assert.DoesNotContain(line => line.Trim() == operatorText, lines, $"The phase should have joined the lone operator under {DescribeLineEnding(endOfLine)} line endings:{Environment.NewLine}{output}");
+        }
+    }
+
+    /// <summary>
     /// Runs the phase alone on the input under LF and CRLF line endings and asserts that it returns the input unchanged
     /// </summary>
     /// <param name="input">The input with LF line endings</param>

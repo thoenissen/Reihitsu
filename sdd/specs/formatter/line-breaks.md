@@ -5,7 +5,7 @@
 | ID prefix | FMT-BREAK |
 | Status | Active |
 | Code owners | `LineBreakPhase`, `LineBreakBlockRewriter`, `LineBreakInitializerRewriter`, `LineBreakContainedBlockRewriter`, `LineBreakAssignmentRewriter`, `DeclarationSemicolonLineBreakRewriter`, `ListElementInteriorJoinRewriter`, `ListElementInteriorUtilities`, `LineBreakListRewriter`, `PropertyLayoutLineBreakRewriter`, `GenericConstraintLineBreakRewriter`, `DeclarationBraceLineBreakRewriter`, `MemberLineStartRewriter`, `AttributeTargetFormattingRewriter`, `AttributeTargetFormattingShared`, `BinaryOperatorLineBreakRewriter`, `ChainLineBreakRewriter`, `TernaryLineBreakRewriter`, `SwitchCaseWhenLineBreakRewriter`, `BracePlacer`, `TokenGapNormalizer`, `AccessorListLayout`, `LineBreakDetection`, `LineBreakTriviaUtilities` |
-| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-INDENT-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-010, FMT-PIPE-021, FMT-PIPE-025, FMT-PIPE-026, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, SHARED-ATTR-014, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-STMT-001 |
+| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-INDENT-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-010, FMT-PIPE-014, FMT-PIPE-021, FMT-PIPE-025, FMT-PIPE-026, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, SHARED-ATTR-014, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-STMT-001 |
 
 This spec covers `LineBreakPhase`, the phase of the pipeline that decides where lines break (its position in the phase order is FMT-PIPE-001): brace placement, one statement and one member per line, the layout of argument, parameter, attribute, and type-argument lists, initializers and patterns, assignments, operators, conditionals, chains, generic constraints, attribute lists, accessor lists, the lines that switch sections, their labels, and their first statements start, and `case … when` guards. The phase adds and removes line breaks and keeps the blank lines it finds (FMT-BREAK-030), and it changes tokens only where it shapes an accessor's attribute lists (FMT-BREAK-032). The columns the resulting lines start in are decided later by FMT-INDENT, and the spaces between tokens on a line by FMT-SPACE.
 
@@ -555,7 +555,7 @@ class C
 
 ### FMT-BREAK-011 — Parameter lists hug their declaration
 
-A comma between parameters MUST stay at the end of the previous parameter's line, and the closing parenthesis MUST stay on the line of the last parameter. This holds for every parameter list — methods, constructors, operators, delegates, local functions, records, primary constructors, anonymous methods, and parenthesized lambdas. The opening parenthesis MUST stay on the declaration line for every one of these parameter lists except a parenthesized lambda's.
+A comma between parameters MUST stay at the end of the previous parameter's line, and the closing parenthesis MUST stay on the line of the last parameter. This holds for every parameter list — methods, constructors, operators, delegates, local functions, records, primary constructors, anonymous methods, parenthesized lambdas, and indexers, whose bracketed parameter list (`this[int a, int b]`) has its brackets in place of the parentheses (FMT-PIPE-014). The opening parenthesis MUST stay on the declaration line for every one of these parameter lists except a parenthesized lambda's; the opening bracket of an indexer's parameter list stays on the line of `this`.
 
 The opening parenthesis of a parenthesized lambda is the lambda's first token unless a modifier or a return type stands in front of it, and this requirement does not move it: the requirement that owns the gap in front of the lambda decides it — inside a list element FMT-BREAK-015 joins it, as the first element of a list FMT-BREAK-012 does, and as an assignment's value FMT-BREAK-016 does — and where no requirement joins that gap, the phase leaves its line break and its blank lines as written (FMT-BREAK-030). A line break that another requirement inserts in front of the lambda — in front of an element of an initializer (FMT-BREAK-021) or of a collection expression (FMT-BREAK-022), or of a list element (FMT-BREAK-012) — stays, as in front of any other expression.
 
@@ -590,6 +590,34 @@ class C
     void N(int a, int b)
     {
     }
+}
+```
+
+Example — an indexer's parameter list is laid out as a method's is: its opening bracket joins `this`, its commas end their lines, and its closing bracket joins the last parameter:
+
+```csharp
+class C
+{
+    int this
+        [int a] => a;
+
+    int this[int a
+             , int b] => a;
+
+    int this[string a, string b
+        ] => 0;
+}
+```
+
+```csharp
+class C
+{
+    int this[int a] => a;
+
+    int this[int a,
+             int b] => a;
+
+    int this[string a, string b] => 0;
 }
 ```
 
@@ -678,7 +706,7 @@ class C
 
 ### FMT-BREAK-012 — A list is on one line or one element per line
 
-An argument list, a parameter list, and an attribute argument list MUST either stay on one line or put every element on its own line. A list that is wrapped anywhere — after its opening parenthesis or between two elements — MUST become one element per line, with the first element on the line of the opening parenthesis. A list written on one line MUST be left on one line.
+An argument list, a parameter list — the bracketed parameter list of an indexer included (FMT-BREAK-011) — and an attribute argument list MUST either stay on one line or put every element on its own line. A list that is wrapped anywhere — after its opening parenthesis or bracket or between two elements — MUST become one element per line, with the first element on the line of the opening parenthesis or bracket. A list written on one line MUST be left on one line.
 
 Why: A partly wrapped list hides elements at the end of a line. Keeping the first element on the opening line lets the remaining elements align under it (FMT-INDENT). RH5101, RH5102, and RH5109 report the same shapes.
 
@@ -722,9 +750,28 @@ class C
 }
 ```
 
+and an indexer's parameter list, wrapped between two of its parameters, gets one parameter per line:
+
+```csharp
+class C
+{
+    int this[int a, int b,
+             int c] => a;
+}
+```
+
+```csharp
+class C
+{
+    int this[int a,
+             int b,
+             int c] => a;
+}
+```
+
 ### FMT-BREAK-013 — A multi-line element splits its list
 
-When an element of an argument, parameter, or attribute argument list spans several lines — a nested wrapped list, a lambda with a block body, an initializer — the list MUST put every element on its own line, as if it were wrapped.
+When an element of an argument, parameter, or attribute argument list spans several lines — a nested wrapped list, a lambda with a block body, an initializer — the list MUST put every element on its own line, as if it were wrapped. This holds for the bracketed parameter list of an indexer as for any other parameter list (FMT-BREAK-011).
 
 Why: An element that spans lines already breaks the list's one-line shape; continuing the list on the element's last line would hide the following elements behind it.
 
@@ -794,7 +841,7 @@ class C<T, U>
 
 ### FMT-BREAK-015 — Wraps inside a list element are joined
 
-A line inside an element of an argument, parameter, attribute argument, tuple, or type-argument list that starts at a token other than the element's first token MUST be joined onto the previous line. A gap whose layout another requirement owns MUST NOT be joined by this rule: list boundaries, the opening parenthesis of a parameter list other than a lambda's, operator wraps of binary, conditional, member-access, postfix, `is`-pattern, and assignment expressions (FMT-BREAK-016 to FMT-BREAK-020), multi-line literals, attribute placement, and every line inside a nested braced, bracketed, or query construct.
+A line inside an element of an argument, parameter, attribute argument, tuple, or type-argument list that starts at a token other than the element's first token MUST be joined onto the previous line. A gap whose layout another requirement owns MUST NOT be joined by this rule: list boundaries, the opening parenthesis of a parameter list other than a lambda's, operator wraps of binary, conditional, member-access, postfix, `is`-pattern, and assignment expressions (FMT-BREAK-016 to FMT-BREAK-020), multi-line literals, attribute placement, and every line inside a nested braced, bracketed, or query construct. The `=` of a parameter's default value is not such an operator wrap: the gap in front of it is a wrap inside the element, and this rule joins it, in a bracketed parameter list as in a parenthesized one (FMT-BREAK-016 defers to it there). The gap behind it is not this rule's: FMT-BREAK-016 places the value, as for every equals-value clause.
 
 Why: A wrap such as `out⏎var value` or `message:⏎"x"` splits one element over two lines without structuring anything. Joining runs before the list layout, so a list that was multi-line only because of such a wrap is laid out as the one-line list it becomes. No analyzer rule reports these wraps; the join is a formatter-only decision.
 
@@ -832,9 +879,11 @@ class C
 
 ### FMT-BREAK-016 — Assignments keep target, operator, and value together
 
-The `=` of an assignment, a variable declarator, or a property initializer MUST stay on the line of its target, and the value MUST start on the line of the `=`. A value that spans several lines starts on the `=` line and keeps its own layout; a collection initializer or collection expression assigned to a target keeps its opening delimiter on the `=` line.
+The operator of an assignment MUST stay on the line of its target, and the value MUST start on the line of the operator. This holds for every assignment operator — `=` and every compound assignment operator, such as `+=`, `-=`, `|=`, `<<=`, and `??=` — and for the `=` of a variable declarator, a property initializer, an enum member's value, and a parameter's default value (FMT-PIPE-014). A value that spans several lines starts on the operator line and keeps its own layout; a collection initializer or collection expression assigned to a target keeps its opening delimiter on the operator line. Inside a parameter list, this requirement does not decide the gap in front of a parameter's default `=`: FMT-BREAK-015 owns it and joins it as a wrap inside a list element, which gives the layout stated here. The value behind the `=` is placed by this requirement, for a parameter's default as for every equals-value clause, so a multi-line literal default starts on the `=` line (`string s = """`) although FMT-BREAK-015 does not join a multi-line literal.
 
-Why: Splitting the target from its value makes the reader search for what is assigned to what. RH5111 reports the same shapes.
+A binary operator is not an assignment operator: `a⏎+ b` is laid out by FMT-BREAK-017, while `a⏎+= b` is joined by this requirement.
+
+Why: Splitting the target from its value makes the reader search for what is assigned to what, whichever operator assigns it and whichever construct the `=` belongs to. RH5111 reports the same shapes for the `=` of an assignment, a declarator, a property, an enum member, and a parameter; the formatter lays out the compound assignment operators alike as well (FMT-PIPE-014).
 
 Example:
 
@@ -867,6 +916,52 @@ class C
         var w = """
                 a
                 """;
+    }
+}
+```
+
+Example — a compound assignment, an enum member's value, and a parameter's default value are laid out as an assignment with `=` is, while a wrapped binary operator keeps its wrap; the parameter list, wrapped only inside its elements, becomes the one-line list it is once they are joined (FMT-BREAK-015 in front of each `=`, this requirement behind it):
+
+```csharp
+enum E
+{
+    A
+        = 1,
+    B =
+        2
+}
+
+class C
+{
+    void M(int a
+               = 1, string s =
+                   null)
+    {
+        a
+            += 1;
+        s ??=
+            "x";
+        a = a
+            + 1;
+    }
+}
+```
+
+```csharp
+enum E
+{
+    A = 1,
+    B = 2
+}
+
+class C
+{
+    void M(int a = 1, string s = null)
+    {
+        a += 1;
+        s ??= "x";
+        a = a
+            + 1;
     }
 }
 ```

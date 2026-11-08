@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -22,6 +23,7 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-020")]
+    [Requirement("FMT-INDENT-006")]
     public void RemovesBlankLineBetweenCommentAndBraceOrBracket()
     {
         const string input = """
@@ -55,7 +57,7 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
                                     int[] F = [
                                                   1
 
-                                              // end of list
+                                                  // end of list
                                               ];
 
                                     void M(int a)
@@ -183,6 +185,7 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-020")]
+    [Requirement("FMT-INDENT-006")]
     public void RemovesBlankLineBetweenCommentAndEveryNamedBraceOrBracket()
     {
         const string input = """
@@ -281,7 +284,7 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
                                             int[] f = [
                                                           1
 
-                                                      // end list
+                                                          // end list
                                                       ];
                                             var b = o is [
                                                              1
@@ -315,6 +318,7 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-020")]
+    [Requirement("FMT-INDENT-006")]
     public void RemovesBlankLineBetweenCommentBehindDirectiveAndBraceOrBracket()
     {
         const string input = """
@@ -357,7 +361,7 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
                                 #if NEVER
                                         , 2
                                 #endif
-                                              // c
+                                                  // c
                                               ];
                                 }
                                 """;
@@ -740,6 +744,7 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-020")]
+    [Requirement("FMT-INDENT-006")]
     public void RemovesBlankLineBehindLineOfTwoDelimitedComments()
     {
         AssertRemovesBlankLineBehindCommentLine("/* a */ /* b */");
@@ -751,6 +756,7 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-020")]
+    [Requirement("FMT-INDENT-006")]
     public void RemovesBlankLineBehindLineOfDelimitedCommentAndLineComment()
     {
         AssertRemovesBlankLineBehindCommentLine("/* a */ // b");
@@ -762,6 +768,7 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-020")]
+    [Requirement("FMT-INDENT-006")]
     public void RemovesBlankLineBehindLineCommentThatFollowsEndOfMultiLineComment()
     {
         AssertRemovesBlankLineBehindCommentLine("/* x", "   y */ // b");
@@ -773,6 +780,7 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-020")]
+    [Requirement("FMT-INDENT-006")]
     public void RemovesBlankLineBehindLineCommentThatFollowsDelimitedDocumentationComment()
     {
         AssertRemovesBlankLineBehindCommentLine("/** d */ // c");
@@ -826,7 +834,9 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
     /// Formats a fixture that holds the given comment line, followed by a blank line, before a collection expression's
     /// closing bracket, a method body's opening brace, an <c>if</c> body's opening brace, an object initializer's closing
     /// brace, a method body's closing brace, and a type's closing brace, and verifies that each of these blank lines is
-    /// removed while FMT-BLANK-011 puts one above the comment
+    /// removed while FMT-BLANK-011 puts one above the comment; the comment in front of the collection expression's closing
+    /// bracket moves its first line into the column of the expression's elements (FMT-INDENT-006), and every further line
+    /// of it stays where it is (FMT-INDENT-007)
     /// </summary>
     /// <param name="commentLines">
     /// The lines of the comment line, the first one starting at the comment's column and every
@@ -873,7 +883,7 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
                                     int[] F = [
                                                   1
 
-                                              @@
+                                              @@+4
                                               ];
 
                                     void M(int a)
@@ -933,7 +943,8 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
 
     /// <summary>
     /// Replaces every line of the fixture that holds only the placeholder <c>@@</c> with the given comment lines, each
-    /// indented by the placeholder's indentation
+    /// indented by the placeholder's indentation; a placeholder <c>@@+n</c> indents the first comment line by <c>n</c>
+    /// further columns and leaves every further comment line at the placeholder's indentation
     /// </summary>
     /// <param name="fixture">The fixture with placeholder lines</param>
     /// <param name="commentLines">The comment lines to place</param>
@@ -945,11 +956,17 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
 
         foreach (var line in lines)
         {
-            if (line.Trim() == "@@")
+            var placeholder = line.Trim();
+
+            if (placeholder.StartsWith("@@", StringComparison.Ordinal))
             {
                 var indentation = line[..line.IndexOf('@')];
+                var firstLineShift = placeholder.Length > 2
+                                         ? int.Parse(placeholder[3..], CultureInfo.InvariantCulture)
+                                         : 0;
 
-                result.AddRange(commentLines.Select(commentLine => indentation + commentLine));
+                result.Add($"{indentation}{new string(' ', firstLineShift)}{commentLines[0]}");
+                result.AddRange(commentLines.Skip(1).Select(commentLine => indentation + commentLine));
             }
             else
             {

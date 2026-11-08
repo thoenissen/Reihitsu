@@ -13,6 +13,22 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyFormatterTests : FormatterTestsBase<RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer>
 {
+    #region Methods
+
+    /// <summary>
+    /// Replaces the placeholders of a fixture with the whitespace characters they stand for: <c>·</c> with a no-break space
+    /// (U+00A0) and <c>→</c> with a tab
+    /// </summary>
+    /// <param name="text">The fixture text</param>
+    /// <returns>The text with the whitespace characters</returns>
+    private static string WithWhitespace(string text)
+    {
+        return text.Replace("·", ((char)0x00A0).ToString())
+                   .Replace("→", "\t");
+    }
+
+    #endregion // Methods
+
     #region Tests
 
     /// <summary>
@@ -175,6 +191,166 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyFormatterTests : F
         await VerifyFormatter(input,
                               fixedData,
                               ExpectedDiagnostic(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 5, 25, 7, 8, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter aligns a literal whose closing line starts with four no-break spaces by the analyzer's
+    /// measure, so the analyzer reports nothing on the formatted code
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-RAW-001")]
+    [Requirement("FMT-RAW-002")]
+    public async Task VerifyFormatterAlignsLiteralBehindNoBreakSpacesAndClearsTheDiagnostic()
+    {
+        var input = WithWhitespace("""""
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           var a = {|#0:"""
+                                   ····x
+                                   ····"""|};
+                                       }
+                                   }
+                                   """"");
+        var fixedData = WithWhitespace(""""
+                                       class C
+                                       {
+                                           void M()
+                                           {
+                                               var a = """
+                                                   ····x
+                                                   ····""";
+                                           }
+                                       }
+                                       """");
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter aligns a literal whose closing line starts with four tabs by the analyzer's measure, one
+    /// column per tab, so the analyzer reports nothing on the formatted code
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-RAW-001")]
+    public async Task VerifyFormatterAlignsLiteralBehindTabsAndClearsTheDiagnostic()
+    {
+        var input = WithWhitespace("""""
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           var a = {|#0:"""
+                                   →→→→x
+                                   →→→→"""|};
+                                       }
+                                   }
+                                   """"");
+        var fixedData = WithWhitespace(""""
+                                       class C
+                                       {
+                                           void M()
+                                           {
+                                               var a = """
+                                                   →→→→x
+                                                   →→→→""";
+                                           }
+                                       }
+                                       """");
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter moves a literal behind twenty no-break spaces to the left by removing four of them, so the
+    /// analyzer reports nothing on the formatted code
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-RAW-002")]
+    public async Task VerifyFormatterMovesLiteralBehindNoBreakSpacesLeftAndClearsTheDiagnostic()
+    {
+        var input = WithWhitespace("""""
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           var a = {|#0:"""
+                                   ····················x
+                                   ····················"""|};
+                                       }
+                                   }
+                                   """"");
+        var fixedData = WithWhitespace(""""
+                                       class C
+                                       {
+                                           void M()
+                                           {
+                                               var a = """
+                                       ················x
+                                       ················""";
+                                           }
+                                       }
+                                       """");
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter leaves a literal the analyzer finds aligned, 12 spaces and four no-break spaces, as the
+    /// analyzer's fix writes it, untouched
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-RAW-001")]
+    public async Task VerifyFormatterKeepsLiteralAlignedByTheAnalyzersMeasureBehindNoBreakSpaces()
+    {
+        var input = WithWhitespace(""""
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           var a = """
+                                               ····x
+                                               ····""";
+                                       }
+                                   }
+                                   """");
+
+        await VerifyFormatter(input);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter leaves a literal the analyzer finds aligned, 12 spaces and four tabs, as the analyzer's
+    /// fix writes it, untouched
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-RAW-001")]
+    public async Task VerifyFormatterKeepsLiteralAlignedByTheAnalyzersMeasureBehindTabs()
+    {
+        var input = WithWhitespace(""""
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           var a = """
+                                               →→→→x
+                                               →→→→""";
+                                       }
+                                   }
+                                   """");
+
+        await VerifyFormatter(input);
     }
 
     #endregion // Tests
