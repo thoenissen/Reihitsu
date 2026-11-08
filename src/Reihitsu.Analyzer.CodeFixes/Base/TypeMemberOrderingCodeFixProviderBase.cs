@@ -64,7 +64,8 @@ public abstract class TypeMemberOrderingCodeFixProviderBase : CodeFixProvider
     /// allowed (SHARED-ORDER-003 to SHARED-ORDER-006). It is refused as well when it would put two members of one
     /// context that each have a runtime initializer, or two instance fields of a type whose field order sets its
     /// layout, into the other order, counting the members that code excluded by an <c>#if</c> branch declares
-    /// (SHARED-ORDER-007). Every member reordering fix applies both guards, because every one of them moves the
+    /// (SHARED-ORDER-007), and when the moved or the crossed span holds a directive of a conditional group that does not
+    /// wrap whole units (SHARED-ORDER-008). Every member reordering fix applies both guards, because every one of them moves the
     /// member together with its leading trivia
     /// </summary>
     /// <param name="semanticModel">Semantic model of the document</param>

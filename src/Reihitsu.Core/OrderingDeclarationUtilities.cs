@@ -18,16 +18,6 @@ namespace Reihitsu.Core;
 /// </summary>
 public static class OrderingDeclarationUtilities
 {
-    #region Constants
-
-    /// <summary>
-    /// The largest number of preprocessor symbols whose assignments the member-order guard reads for one reorder,
-    /// which gives 256 build configurations. A reorder whose reordered span names more counts as changed
-    /// </summary>
-    private const int MaximumSymbolCount = 8;
-
-    #endregion // Constants
-
     #region Methods
 
     /// <summary>
@@ -304,8 +294,8 @@ public static class OrderingDeclarationUtilities
     /// keeps the text in front of the target member, the moved member with its leading trivia, the text from the
     /// target member up to the moved member, and the text behind the moved member, each in itself, and puts the moved
     /// member in front of the target member's leading trivia. Code that an <c>#if</c> branch excludes in the moved
-    /// member's leading trivia or inside it therefore moves with it, and such code from the target member up to the
-    /// moved member is crossed
+    /// member's leading trivia therefore moves with it, and such code from the target member up to the moved member
+    /// is crossed
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
     /// <param name="typeSymbol">Symbol of the type, which decides whether the order of its instance fields sets its layout</param>
@@ -321,13 +311,9 @@ public static class OrderingDeclarationUtilities
     /// Determines whether a reorder of the type's body puts two members of the type into the other order where
     /// their order is behavior: two members of one context — both static or both instance — that each have a runtime
     /// initializer (SHARED-ORDER-007), or two instance fields of a type whose field order sets its layout, which the
-    /// type's symbol decides. Each build configuration — an assignment of the preprocessor symbols that the
-    /// conditional directives in the reordered span name — is read as the compiler reads it and judged on its own, so
-    /// members in code that an <c>#if</c> branch excludes count in the configurations that compile them, and a member
-    /// whose declaration a conditional directive splits counts in each configuration with what that configuration
-    /// gives it. The reorder counts as changed as well when, in some configuration, it does not stay among the members
-    /// of the type, or when the reordered span names too many symbols (SHARED-FIX-003). The reorder is given as the
-    /// rank, after the reorder, of the part of the body that holds a position; code within one part keeps its order
+    /// type's symbol decides. Members in code that an <c>#if</c> branch excludes count as well, at the position of
+    /// that code, because another build configuration compiles them. The reorder is given as the rank, after the
+    /// reorder, of the part of the body that holds a position; code within one part keeps its order
     /// </summary>
     /// <param name="typeDeclaration">Type declaration whose body is reordered</param>
     /// <param name="typeSymbol">Symbol of the type, which decides whether the order of its instance fields sets its layout</param>
@@ -408,14 +394,8 @@ public static class OrderingDeclarationUtilities
     /// Determines whether a reorder of the type's body puts two members of the type into the other order where
     /// their order is behavior, as
     /// <see cref="ChangesMemberOrder(TypeDeclarationSyntax, INamedTypeSymbol, Func{int, int})"/> describes, with the
-    /// layout check given as a flag. Each build configuration is an assignment of the preprocessor symbols that the
-    /// conditional directives in the reordered span name (<see cref="GetConditionSymbols"/>); every other symbol keeps
-    /// the definition the document is analyzed with. The document is parsed once per assignment, so the parser
-    /// evaluates every directive, and each configuration is judged on its own with the members its parse compiles. The
-    /// reorder counts as changed when, in some configuration, it does not stay among the members of the type
-    /// (<see cref="KeepsReorderAmongMembers"/>), when it puts two members of one context that each have a runtime
-    /// initializer, or two layout fields, into the other order, or when the reordered span names more than
-    /// <see cref="MaximumSymbolCount"/> symbols
+    /// layout check given as a flag. The reorder counts as changed as well when the reordered span holds a directive
+    /// of a conditional group that does not wrap whole units (<see cref="WrapsWholeUnits"/>, SHARED-ORDER-008)
     /// </summary>
     /// <param name="typeDeclaration">Type declaration whose body is reordered</param>
     /// <param name="fieldOrderSetsLayout">Whether the order of the type's instance fields sets its layout (<see cref="FieldOrderSetsLayout"/>)</param>
@@ -423,399 +403,40 @@ public static class OrderingDeclarationUtilities
     /// <returns><see langword="true"/> if the reorder changes initializer execution order or the layout</returns>
     private static bool ChangesMemberOrder(TypeDeclarationSyntax typeDeclaration, bool fieldOrderSetsLayout, Func<int, int> getNewRank)
     {
-        if (TryGetReorderedSpan(typeDeclaration, getNewRank, out var reorderedSpan, out var boundaries) == false)
-        {
-            return false;
-        }
+        var reorderedSpan = GetReorderedSpan(typeDeclaration, getNewRank);
+        var groups = typeDeclaration.DescendantTrivia(reorderedSpan)
+                                    .Where(trivia => reorderedSpan.Contains(trivia.SpanStart))
+                                    .Select(trivia => trivia.GetStructure())
+                                    .OfType<DirectiveTriviaSyntax>()
+                                    .Where(IsConditionalDirective)
+                                    .Select(directive => directive.GetRelatedDirectives())
+                                    .GroupBy(group => group[0].SpanStart, (_, sameGroups) => sameGroups.First());
 
-        var syntaxTree = typeDeclaration.SyntaxTree;
-        var symbols = GetConditionSymbols(syntaxTree.GetRoot(), reorderedSpan);
-
-        if (symbols.Count > MaximumSymbolCount)
+        if (groups.Any(group => WrapsWholeUnits(typeDeclaration, group) == false))
         {
             return true;
         }
 
-        var options = syntaxTree.Options as CSharpParseOptions ?? CSharpParseOptions.Default;
-        var analyzedSymbols = new HashSet<string>(options.PreprocessorSymbolNames, StringComparer.Ordinal);
-        var otherSymbols = analyzedSymbols.Where(symbol => symbols.Contains(symbol) == false).ToList();
-        var analyzedAssignment = Enumerable.Range(0, symbols.Count)
-                                           .Where(index => analyzedSymbols.Contains(symbols[index]))
-                                           .Sum(index => 1 << index);
-        var text = syntaxTree.GetText();
+        var members = typeDeclaration.Members
+                                     .Select(member => (Position: member.SpanStart, Member: member))
+                                     .Concat(GetMembersOfDisabledText(typeDeclaration))
+                                     .ToList();
 
-        for (var assignment = 0; assignment < 1 << symbols.Count; assignment++)
+        bool ChangesOrder(Func<MemberDeclarationSyntax, bool> isOrdered)
         {
-            var configurationType = typeDeclaration;
-            var isAnalyzedConfiguration = assignment == analyzedAssignment;
+            var writtenOrder = members.Where(member => isOrdered(member.Member))
+                                      .Select(member => member.Position)
+                                      .OrderBy(position => position)
+                                      .ToList();
+            var newOrder = writtenOrder.OrderBy(getNewRank)
+                                       .ThenBy(position => position);
 
-            if (isAnalyzedConfiguration == false)
-            {
-                var definedSymbols = otherSymbols.Concat(Enumerable.Range(0, symbols.Count)
-                                                                   .Where(index => (assignment & (1 << index)) != 0)
-                                                                   .Select(index => symbols[index]));
-                var root = CSharpSyntaxTree.ParseText(text, options.WithPreprocessorSymbols(definedSymbols)).GetRoot();
-
-                configurationType = FindConfigurationType(root, typeDeclaration);
-
-                if (KeepsReorderAmongMembers(root, configurationType, reorderedSpan, boundaries) == false)
-                {
-                    return true;
-                }
-
-                if (configurationType == null)
-                {
-                    continue;
-                }
-            }
-
-            var members = GetOrderedMembersOfConfiguration(configurationType, isAnalyzedConfiguration == false);
-
-            if (ChangesOrder(members, getNewRank, member => member.HasStaticInitializer)
-                || ChangesOrder(members, getNewRank, member => member.HasInstanceInitializer)
-                || (fieldOrderSetsLayout && ChangesOrder(members, getNewRank, member => member.IsLayoutField)))
-            {
-                return true;
-            }
+            return writtenOrder.SequenceEqual(newOrder) == false;
         }
 
-        return false;
-    }
-
-    /// <summary>
-    /// Gets the span of the type's body whose parts the reorder puts into another order: from the first position
-    /// that the reorder puts behind a later position up to the last position that it puts in front of an earlier
-    /// one. Every position in between is moved or crossed. The boundaries are the start and the end of that span
-    /// and every position inside it where the part of the body changes
-    /// </summary>
-    /// <param name="typeDeclaration">Type declaration whose body is reordered</param>
-    /// <param name="getNewRank">Rank after the reorder of the part of the body that holds a position</param>
-    /// <param name="reorderedSpan">The span whose parts change their order</param>
-    /// <param name="boundaries">The boundaries of the parts within the span, in source order</param>
-    /// <returns><see langword="false"/> if the reorder changes the order of no two positions</returns>
-    private static bool TryGetReorderedSpan(TypeDeclarationSyntax typeDeclaration, Func<int, int> getNewRank, out TextSpan reorderedSpan, out List<int> boundaries)
-    {
-        reorderedSpan = default;
-        boundaries = [];
-
-        var bodyStart = typeDeclaration.OpenBraceToken.Span.End;
-        var length = Math.Max(0, typeDeclaration.CloseBraceToken.SpanStart - bodyStart);
-        var ranks = new int[length];
-        var suffixMinimums = new int[length + 1];
-
-        for (var index = 0; index < length; index++)
-        {
-            ranks[index] = getNewRank(bodyStart + index);
-        }
-
-        suffixMinimums[length] = int.MaxValue;
-
-        for (var index = length - 1; index >= 0; index--)
-        {
-            suffixMinimums[index] = Math.Min(ranks[index], suffixMinimums[index + 1]);
-        }
-
-        var first = -1;
-        var last = -1;
-        var prefixMaximum = int.MinValue;
-
-        for (var index = 0; index < length; index++)
-        {
-            if (first < 0
-                && ranks[index] > suffixMinimums[index + 1])
-            {
-                first = index;
-            }
-
-            if (ranks[index] < prefixMaximum)
-            {
-                last = index;
-            }
-
-            prefixMaximum = Math.Max(prefixMaximum, ranks[index]);
-        }
-
-        if (first < 0
-            || last < first)
-        {
-            return false;
-        }
-
-        reorderedSpan = TextSpan.FromBounds(bodyStart + first, bodyStart + last + 1);
-        boundaries.Add(reorderedSpan.Start);
-
-        for (var index = first + 1; index <= last; index++)
-        {
-            if (ranks[index] != ranks[index - 1])
-            {
-                boundaries.Add(bodyStart + index);
-            }
-        }
-
-        boundaries.Add(reorderedSpan.End);
-
-        return true;
-    }
-
-    /// <summary>
-    /// Gets the preprocessor symbols that the conditions of the conditional groups with a directive in a span name,
-    /// in a stable order. A group counts with the conditions of all its <c>#if</c> and <c>#elif</c> directives when
-    /// any of its directives, also an <c>#else</c> or an <c>#endif</c>, lies in the span, because the code of the span
-    /// that the group's branches hold depends on those conditions. The directives inside excluded code count as well,
-    /// because the parser reads them as directives
-    /// </summary>
-    /// <param name="root">Root of the syntax tree</param>
-    /// <param name="span">Span</param>
-    /// <returns>The symbols</returns>
-    private static List<string> GetConditionSymbols(SyntaxNode root, TextSpan span)
-    {
-        var symbols = new SortedSet<string>(StringComparer.Ordinal);
-
-        if (root.ContainsDirectives == false)
-        {
-            return [];
-        }
-
-        var openGroups = new Stack<List<DirectiveTriviaSyntax>>();
-
-        void AddSymbolsOfGroup(List<DirectiveTriviaSyntax> group)
-        {
-            if (group.Exists(directive => span.Contains(directive.SpanStart)))
-            {
-                foreach (var condition in group.OfType<ConditionalDirectiveTriviaSyntax>().Select(directive => directive.Condition))
-                {
-                    symbols.UnionWith(condition.DescendantNodesAndSelf()
-                                               .OfType<IdentifierNameSyntax>()
-                                               .Select(identifier => identifier.Identifier.ValueText));
-                }
-            }
-        }
-
-        foreach (var directive in root.DescendantTrivia(node => node.ContainsDirectives)
-                                      .Select(trivia => trivia.GetStructure())
-                                      .OfType<DirectiveTriviaSyntax>())
-        {
-            switch (directive)
-            {
-                case IfDirectiveTriviaSyntax:
-                    {
-                        openGroups.Push([directive]);
-                    }
-                    break;
-
-                case ElifDirectiveTriviaSyntax:
-                case ElseDirectiveTriviaSyntax:
-                case EndIfDirectiveTriviaSyntax:
-                    {
-                        if (openGroups.Count == 0)
-                        {
-                            openGroups.Push([]);
-                        }
-
-                        openGroups.Peek().Add(directive);
-
-                        if (directive is EndIfDirectiveTriviaSyntax)
-                        {
-                            AddSymbolsOfGroup(openGroups.Pop());
-                        }
-                    }
-                    break;
-            }
-        }
-
-        foreach (var unclosedGroup in openGroups)
-        {
-            AddSymbolsOfGroup(unclosedGroup);
-        }
-
-        return symbols.ToList();
-    }
-
-    /// <summary>
-    /// Finds, in the parse of one build configuration, the declaration of the type whose body is reordered: the type
-    /// whose opening brace lies in the text of the analyzed declaration up to its opening brace, which holds every
-    /// header that an <c>#if</c> may choose for the type. When several do, the last one is the type, because the
-    /// others are declared in the declaration's leading trivia
-    /// </summary>
-    /// <param name="root">Root of the configuration's parse</param>
-    /// <param name="typeDeclaration">Analyzed type declaration</param>
-    /// <returns>The type declaration, or <see langword="null"/> if the configuration compiles none</returns>
-    private static TypeDeclarationSyntax FindConfigurationType(SyntaxNode root, TypeDeclarationSyntax typeDeclaration)
-    {
-        var headerSpan = TextSpan.FromBounds(typeDeclaration.FullSpan.Start, typeDeclaration.OpenBraceToken.Span.End);
-
-        return root.DescendantNodes(node => node.FullSpan.IntersectsWith(headerSpan))
-                   .OfType<TypeDeclarationSyntax>()
-                   .Where(type => type.OpenBraceToken.IsMissing == false
-                                  && headerSpan.Contains(type.OpenBraceToken.Span))
-                   .OrderBy(type => type.OpenBraceToken.SpanStart)
-                   .LastOrDefault();
-    }
-
-    /// <summary>
-    /// Determines whether, in one build configuration, the reorder stays among the members of the type
-    /// (SHARED-ORDER-001): every token that the configuration compiles in the reordered span is part of a member of
-    /// the type, so no branch has closed the type's body in front of it or opened another type around it, and no
-    /// member of the type reaches across a boundary of the reordered parts, as a nested type or a method block does
-    /// that one branch opens and another closes
-    /// </summary>
-    /// <param name="root">Root of the configuration's parse</param>
-    /// <param name="configurationType">The type in the configuration's parse, or <see langword="null"/> if it compiles none</param>
-    /// <param name="reorderedSpan">The span whose parts change their order</param>
-    /// <param name="boundaries">The boundaries of the parts within the span</param>
-    /// <returns><see langword="true"/> if the reorder moves and crosses only whole members of the type</returns>
-    private static bool KeepsReorderAmongMembers(SyntaxNode root, TypeDeclarationSyntax configurationType, TextSpan reorderedSpan, List<int> boundaries)
-    {
-        foreach (var token in root.DescendantTokens(reorderedSpan).Where(token => reorderedSpan.OverlapsWith(token.Span)))
-        {
-            if (configurationType == null
-                || token.Parent?.AncestorsAndSelf().Any(node => node is MemberDeclarationSyntax && node.Parent == configurationType) != true)
-            {
-                return false;
-            }
-        }
-
-        return configurationType == null
-               || configurationType.Members
-                                   .Where(member => member.Span.OverlapsWith(reorderedSpan))
-                                   .All(member => boundaries.TrueForAll(boundary => boundary <= member.SpanStart || boundary >= member.Span.End));
-    }
-
-    /// <summary>
-    /// Determines whether a reorder puts two members of one kind of one build configuration into the other order
-    /// </summary>
-    /// <param name="members">The members of the configuration</param>
-    /// <param name="getNewRank">Rank after the reorder of the part of the body that holds a position</param>
-    /// <param name="isOrdered">Whether a member is of the kind whose order is kept</param>
-    /// <returns><see langword="true"/> if two members of the kind change their order</returns>
-    private static bool ChangesOrder(List<OrderedMember> members, Func<int, int> getNewRank, Func<OrderedMember, bool> isOrdered)
-    {
-        var maximumRank = int.MinValue;
-
-        foreach (var rank in members.Where(isOrdered)
-                                    .OrderBy(member => member.Position)
-                                    .Select(member => getNewRank(member.Position)))
-        {
-            if (rank < maximumRank)
-            {
-                return true;
-            }
-
-            maximumRank = Math.Max(maximumRank, rank);
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Gets what each member of one build configuration contributes to the order of the initializers and of the
-    /// layout fields, at the position of its first token (SHARED-ORDER-007). In a configuration other than the
-    /// analyzed one, which no build may compile without errors, text that parses as no complete member counts as a
-    /// runtime initializer of both contexts when it holds an <c>=</c> outside every parenthesis, bracket, and brace,
-    /// because it can complete a member of either. An <c>=</c> inside them, such as a named attribute argument or an
-    /// assignment in an accessor body, is no initializer
-    /// </summary>
-    /// <param name="configurationType">The type in the configuration's parse</param>
-    /// <param name="countsIncompleteMembers">Whether text that parses as no complete member counts</param>
-    /// <returns>The ordered members of the configuration</returns>
-    private static List<OrderedMember> GetOrderedMembersOfConfiguration(TypeDeclarationSyntax configurationType, bool countsIncompleteMembers)
-    {
-        var orderedMembers = configurationType.Members
-                                              .Select(member => CreateOrderedMember(member.SpanStart, member))
-                                              .ToList();
-
-        if (countsIncompleteMembers == false)
-        {
-            return orderedMembers;
-        }
-
-        foreach (var incompleteTokens in configurationType.Members
-                                                          .OfType<IncompleteMemberSyntax>()
-                                                          .Select(member => (member.SpanStart, Tokens: member.DescendantTokens()))
-                                                          .Concat(configurationType.DescendantTrivia(descendIntoTrivia: true)
-                                                                                   .Where(trivia => trivia.IsKind(SyntaxKind.SkippedTokensTrivia))
-                                                                                   .Select(trivia => (trivia.SpanStart, Tokens: trivia.GetStructure()?.DescendantTokens() ?? [])))
-                                                          .Where(incompleteTokens => ContainsTopLevelToken(incompleteTokens.Tokens.ToList(), SyntaxKind.EqualsToken)))
-        {
-            orderedMembers.Add(new OrderedMember(incompleteTokens.SpanStart, true, true, false));
-        }
-
-        return orderedMembers;
-    }
-
-    /// <summary>
-    /// Gets the nesting depth of each token of a token sequence, starting at a given depth. A parenthesis, bracket, or
-    /// brace gets the depth outside of it, so the tokens outside every bracket have depth zero
-    /// </summary>
-    /// <param name="tokens">Tokens</param>
-    /// <param name="initialDepth">Depth in front of the first token</param>
-    /// <returns>The depth of each token</returns>
-    private static List<int> GetNestingDepths(List<SyntaxToken> tokens, int initialDepth)
-    {
-        var depths = new List<int>(tokens.Count);
-        var depth = initialDepth;
-
-        foreach (var token in tokens)
-        {
-            var delta = GetNestingDelta(token);
-
-            if (delta < 0)
-            {
-                depth += delta;
-            }
-
-            depths.Add(depth);
-
-            if (delta > 0)
-            {
-                depth += delta;
-            }
-        }
-
-        return depths;
-    }
-
-    /// <summary>
-    /// Gets how a token changes the nesting depth: an opening parenthesis, bracket, or brace opens a level, and a closing
-    /// one closes it
-    /// </summary>
-    /// <param name="token">Token</param>
-    /// <returns><c>1</c>, <c>-1</c>, or <c>0</c></returns>
-    private static int GetNestingDelta(SyntaxToken token)
-    {
-        return token.Kind() switch
-               {
-                   SyntaxKind.OpenParenToken or SyntaxKind.OpenBracketToken or SyntaxKind.OpenBraceToken => 1,
-                   SyntaxKind.CloseParenToken or SyntaxKind.CloseBracketToken or SyntaxKind.CloseBraceToken => -1,
-                   _ => 0,
-               };
-    }
-
-    /// <summary>
-    /// Determines whether a token sequence holds a token of the given kind outside every parenthesis, bracket, and brace
-    /// </summary>
-    /// <param name="tokens">Tokens</param>
-    /// <param name="kind">Kind of the token</param>
-    /// <returns><see langword="true"/> if such a token lies at depth zero</returns>
-    private static bool ContainsTopLevelToken(List<SyntaxToken> tokens, SyntaxKind kind)
-    {
-        var depths = GetNestingDepths(tokens, 0);
-
-        return Enumerable.Range(0, tokens.Count).Any(index => depths[index] == 0 && tokens[index].IsKind(kind));
-    }
-
-    /// <summary>
-    /// Gets what a member contributes to the order of the initializers and of the layout fields, read from its syntax
-    /// </summary>
-    /// <param name="position">Position the member counts at</param>
-    /// <param name="memberDeclaration">Member declaration</param>
-    /// <returns>The ordered member</returns>
-    private static OrderedMember CreateOrderedMember(int position, MemberDeclarationSyntax memberDeclaration)
-    {
-        var hasInitializer = HasInitializer(memberDeclaration);
-        var isStatic = IsStatic(memberDeclaration);
-
-        return new OrderedMember(position, hasInitializer && isStatic, hasInitializer && isStatic == false, IsLayoutField(memberDeclaration));
+        return ChangesOrder(member => HasInitializer(member) && IsStatic(member))
+               || ChangesOrder(member => HasInitializer(member) && IsStatic(member) == false)
+               || (fieldOrderSetsLayout && ChangesOrder(IsLayoutField));
     }
 
     /// <summary>
@@ -859,19 +480,11 @@ public static class OrderingDeclarationUtilities
     /// <returns><see langword="true"/> if the declaration declares an instance field</returns>
     private static bool IsLayoutField(MemberDeclarationSyntax memberDeclaration)
     {
-        return IsStatic(memberDeclaration) == false
-               && IsConst(memberDeclaration) == false
-               && DeclaresLayoutField(memberDeclaration);
-    }
+        if (IsStatic(memberDeclaration) || IsConst(memberDeclaration))
+        {
+            return false;
+        }
 
-    /// <summary>
-    /// Determines whether the declaration declares a field when it is neither static nor constant: a field, a
-    /// field-like event, or a property that the compiler gives a backing field
-    /// </summary>
-    /// <param name="memberDeclaration">Declaration</param>
-    /// <returns><see langword="true"/> if the declaration declares a field</returns>
-    private static bool DeclaresLayoutField(MemberDeclarationSyntax memberDeclaration)
-    {
         return memberDeclaration switch
                {
                    FieldDeclarationSyntax => true,
@@ -888,21 +501,10 @@ public static class OrderingDeclarationUtilities
     /// <returns><see langword="true"/> if the declaration carries a runtime initializer</returns>
     private static bool HasInitializer(MemberDeclarationSyntax memberDeclaration)
     {
-        return IsConst(memberDeclaration) == false
-               && HasInitializerSyntax(memberDeclaration);
-    }
-
-    /// <summary>
-    /// Determines whether the declaration of a field, event field, or property carries an initializer, which is a
-    /// runtime initializer unless the declaration is constant
-    /// </summary>
-    /// <param name="memberDeclaration">Declaration</param>
-    /// <returns><see langword="true"/> if the declaration carries an initializer</returns>
-    private static bool HasInitializerSyntax(MemberDeclarationSyntax memberDeclaration)
-    {
         return memberDeclaration switch
                {
-                   FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Declaration.Variables.Any(variable => variable.Initializer != null),
+                   FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) == false
+                                                              && fieldDeclaration.Declaration.Variables.Any(variable => variable.Initializer != null),
                    EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Declaration.Variables.Any(variable => variable.Initializer != null),
                    PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Initializer != null,
                    _ => false,
@@ -912,8 +514,10 @@ public static class OrderingDeclarationUtilities
     /// <summary>
     /// Determines whether the property has a backing field the compiler declares: an auto-property, whose accessors
     /// have no body, or a property that uses the <c>field</c> keyword. The parser reads <c>field</c> as the keyword
-    /// only from C# 14 on; before, it is an identifier that names a member. Abstract and extern properties have none,
-    /// and neither has the bodiless defining declaration of a partial property
+    /// only from C# 14 on; before, it is an identifier that names a member. An accessor without a body in a branch of
+    /// a conditional group of the accessor list, active or excluded, gives the property one as well, because a build
+    /// that compiles it does (SHARED-ORDER-007). Abstract and extern properties have none, and neither has the
+    /// bodiless defining declaration of a partial property
     /// </summary>
     /// <param name="propertyDeclaration">Property declaration</param>
     /// <returns><see langword="true"/> if the property has a backing field</returns>
@@ -931,6 +535,12 @@ public static class OrderingDeclarationUtilities
             return propertyDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword) == false;
         }
 
+        if (propertyDeclaration.AccessorList is { } conditionalAccessorList
+            && HasConditionalAccessorWithoutBody(conditionalAccessorList))
+        {
+            return true;
+        }
+
         return propertyDeclaration.DescendantTokens().Any(token => token.IsKind(SyntaxKind.FieldKeyword));
     }
 
@@ -943,6 +553,350 @@ public static class OrderingDeclarationUtilities
     {
         return attribute.AttributeClass is { Name: nameof(StructLayoutAttribute) } attributeClass
                && attributeClass.ContainingNamespace?.ToDisplayString() == typeof(StructLayoutAttribute).Namespace;
+    }
+
+    /// <summary>
+    /// Gets the members declared in code that an <c>#if</c> branch excludes in the type's body, outside every member,
+    /// with the position of that code
+    /// </summary>
+    /// <param name="typeDeclaration">Type declaration</param>
+    /// <returns>The members of the excluded code</returns>
+    private static IEnumerable<(int Position, MemberDeclarationSyntax Member)> GetMembersOfDisabledText(TypeDeclarationSyntax typeDeclaration)
+    {
+        var bodyStart = typeDeclaration.OpenBraceToken.Span.End;
+        var bodyEnd = typeDeclaration.CloseBraceToken.SpanStart;
+        var options = typeDeclaration.SyntaxTree.Options as CSharpParseOptions;
+
+        foreach (var trivia in typeDeclaration.DescendantTrivia())
+        {
+            if (trivia.IsKind(SyntaxKind.DisabledTextTrivia) == false
+                || trivia.SpanStart < bodyStart
+                || trivia.SpanStart >= bodyEnd
+                || typeDeclaration.Members.Any(member => member.Span.Contains(trivia.SpanStart)))
+            {
+                continue;
+            }
+
+            var parsedType = ParseInTypeBody(trivia.ToFullString(), options).Members
+                                                                            .OfType<TypeDeclarationSyntax>()
+                                                                            .FirstOrDefault();
+
+            if (parsedType == null)
+            {
+                continue;
+            }
+
+            foreach (var member in parsedType.Members)
+            {
+                yield return (trivia.SpanStart, member);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Parses text as the content of the body of a type <c>C</c>, as excluded code of a type's body is read
+    /// </summary>
+    /// <param name="text">Text</param>
+    /// <param name="options">Parse options of the document</param>
+    /// <returns>The parsed compilation unit</returns>
+    private static CompilationUnitSyntax ParseInTypeBody(string text, CSharpParseOptions options)
+    {
+        return SyntaxFactory.ParseCompilationUnit($"class C\n{{\n{text}\n}}", options: options);
+    }
+
+    /// <summary>
+    /// Gets the span of the type's body whose order the reorder changes: from the first position that a later
+    /// position goes in front of, up to the last position that goes in front of an earlier one. It covers the moved
+    /// and the crossed span (SHARED-ORDER-003)
+    /// </summary>
+    /// <param name="typeDeclaration">Type declaration whose body is reordered</param>
+    /// <param name="getNewRank">Rank after the reorder of the part of the body that holds a position</param>
+    /// <returns>The reordered span; empty when the reorder changes nothing</returns>
+    private static TextSpan GetReorderedSpan(TypeDeclarationSyntax typeDeclaration, Func<int, int> getNewRank)
+    {
+        var bodyStart = typeDeclaration.OpenBraceToken.Span.End;
+        var ranks = Enumerable.Range(bodyStart, Math.Max(0, typeDeclaration.CloseBraceToken.SpanStart - bodyStart))
+                              .Select(getNewRank)
+                              .ToList();
+        var first = -1;
+        var last = -1;
+        var maximum = int.MinValue;
+        var minimum = int.MaxValue;
+
+        for (var index = 0; index < ranks.Count; index++)
+        {
+            last = ranks[index] < maximum ? index : last;
+            maximum = Math.Max(maximum, ranks[index]);
+        }
+
+        for (var index = ranks.Count - 1; index >= 0; index--)
+        {
+            first = ranks[index] > minimum ? index : first;
+            minimum = Math.Min(minimum, ranks[index]);
+        }
+
+        return first < 0
+                   ? new TextSpan(bodyStart, 0)
+                   : TextSpan.FromBounds(bodyStart + first, bodyStart + last + 1);
+    }
+
+    /// <summary>
+    /// Determines whether the directive is an <c>#if</c>, <c>#elif</c>, <c>#else</c>, or <c>#endif</c> directive
+    /// </summary>
+    /// <param name="directive">Directive</param>
+    /// <returns><see langword="true"/> if the directive belongs to a conditional group</returns>
+    private static bool IsConditionalDirective(DirectiveTriviaSyntax directive)
+    {
+        return directive is ConditionalDirectiveTriviaSyntax or ElseDirectiveTriviaSyntax or EndIfDirectiveTriviaSyntax;
+    }
+
+    /// <summary>
+    /// Determines whether a conditional group wraps whole units of one unit list, deciding only from where its
+    /// directives stand (SHARED-ORDER-008): every directive stands at a boundary of the same list
+    /// (<see cref="GetBoundaryLists"/>), no other conditional group lies inside or around it, the text of every
+    /// excluded branch parses on its own as whole units of that list (<see cref="ReadsAsWholeUnits"/>), and for the
+    /// accessors of a property or the statements in an accessor's body, no branch holds a <c>field</c> token. No
+    /// condition is evaluated
+    /// </summary>
+    /// <param name="typeDeclaration">Type declaration whose body is reordered</param>
+    /// <param name="group">Directives of the group, from <c>#if</c> to <c>#endif</c></param>
+    /// <returns><see langword="true"/> if the group wraps whole units</returns>
+    private static bool WrapsWholeUnits(TypeDeclarationSyntax typeDeclaration, IReadOnlyList<DirectiveTriviaSyntax> group)
+    {
+        var root = typeDeclaration.SyntaxTree.GetRoot();
+        var conditionalDirectives = root.DescendantTrivia()
+                                        .Select(trivia => trivia.GetStructure())
+                                        .OfType<DirectiveTriviaSyntax>()
+                                        .Where(IsConditionalDirective)
+                                        .ToList();
+        var groupStart = group[0].SpanStart;
+        var groupEnd = group[group.Count - 1].SpanStart;
+
+        if (group[group.Count - 1] is not EndIfDirectiveTriviaSyntax
+            || conditionalDirectives.Count(directive => directive.SpanStart > groupStart && directive.SpanStart < groupEnd) != group.Count - 2
+            || conditionalDirectives.Count(directive => directive.SpanStart < groupStart && directive is IfDirectiveTriviaSyntax)
+               != conditionalDirectives.Count(directive => directive.SpanStart < groupStart && directive is EndIfDirectiveTriviaSyntax))
+        {
+            return false;
+        }
+
+        var options = typeDeclaration.SyntaxTree.Options as CSharpParseOptions;
+        var excludedTexts = group.Select(GetExcludedText)
+                                 .Where(text => text != null)
+                                 .ToList();
+        var activeTokens = root.DescendantTokens(TextSpan.FromBounds(groupStart, groupEnd))
+                               .Where(token => token.SpanStart > groupStart && token.Span.End <= groupEnd);
+
+        return group.Select(directive => GetBoundaryLists(typeDeclaration, directive.ParentTrivia.Token))
+                    .Aggregate((lists, nextLists) => lists.Intersect(nextLists))
+                    .Any(list => (ForbidsFieldKeyword(list) == false || activeTokens.Any(token => token.Text == "field") == false)
+                                 && excludedTexts.All(text => ReadsAsWholeUnits(text, list, options, out var units)
+                                                              && (ForbidsFieldKeyword(list) == false
+                                                                  || units.DescendantTokens().Any(token => token.Text == "field") == false)));
+    }
+
+    /// <summary>
+    /// Gets the text of the branch behind the directive when a build configuration other than the analyzed one
+    /// compiles it: the excluded code that follows the directive in its token's leading trivia
+    /// </summary>
+    /// <param name="directive">Conditional directive</param>
+    /// <returns>The excluded text, or <see langword="null"/> when the branch is active or empty</returns>
+    private static string GetExcludedText(DirectiveTriviaSyntax directive)
+    {
+        var leadingTrivia = directive.ParentTrivia.Token.LeadingTrivia;
+        var index = leadingTrivia.IndexOf(directive.ParentTrivia) + 1;
+
+        return index < leadingTrivia.Count && leadingTrivia[index].IsKind(SyntaxKind.DisabledTextTrivia)
+                   ? leadingTrivia[index].ToFullString()
+                   : null;
+    }
+
+    /// <summary>
+    /// Gets the unit lists at whose boundary a token stands (SHARED-ORDER-008): the token begins a unit of the list,
+    /// or follows its last unit. A list is given by its owner — a type declaration for its members, an accessor list
+    /// for its accessors, a block or a switch section for its statements — and, for the attribute lists of a member,
+    /// by the member with <c>OfAttributes</c> set. Members count only in the body of the reordered type or a type
+    /// nested in it, and statements only inside the body block of a member
+    /// </summary>
+    /// <param name="typeDeclaration">Type declaration whose body is reordered</param>
+    /// <param name="token">Token whose leading trivia holds a directive</param>
+    /// <returns>The unit lists</returns>
+    private static IEnumerable<(SyntaxNode Owner, bool OfAttributes)> GetBoundaryLists(TypeDeclarationSyntax typeDeclaration, SyntaxToken token)
+    {
+        var lists = new List<(SyntaxNode Owner, bool OfAttributes)>();
+
+        switch (token.Parent)
+        {
+            case TypeDeclarationSyntax type when token == type.CloseBraceToken:
+                lists.Add((type, false));
+                break;
+
+            case AccessorListSyntax accessorList when token == accessorList.CloseBraceToken:
+                lists.Add((accessorList, false));
+                break;
+
+            case BlockSyntax block when token == block.CloseBraceToken:
+                lists.Add((block, false));
+                break;
+
+            case SwitchStatementSyntax switchStatement when token == switchStatement.CloseBraceToken && switchStatement.Sections.Count > 0:
+                lists.Add((switchStatement.Sections.Last(), false));
+                break;
+        }
+
+        foreach (var node in token.Parent.AncestorsAndSelf().TakeWhile(node => node.GetFirstToken() == token))
+        {
+            switch (node)
+            {
+                case MemberDeclarationSyntax { Parent: TypeDeclarationSyntax type } member:
+                    {
+                        lists.Add((type, false));
+                        lists.Add((member, true));
+                    }
+                    break;
+
+                case AttributeListSyntax { Parent: MemberDeclarationSyntax member }:
+                    {
+                        lists.Add((member, true));
+                    }
+                    break;
+
+                case AccessorDeclarationSyntax { Parent: AccessorListSyntax accessorList }:
+                    {
+                        lists.Add((accessorList, false));
+                    }
+                    break;
+
+                case StatementSyntax { Parent: BlockSyntax or SwitchSectionSyntax } statement:
+                    {
+                        lists.Add((statement.Parent, false));
+                    }
+                    break;
+
+                case SwitchSectionSyntax { Parent: SwitchStatementSyntax switchStatement } section when switchStatement.Sections.IndexOf(section) > 0:
+                    {
+                        lists.Add((switchStatement.Sections[switchStatement.Sections.IndexOf(section) - 1], false));
+                    }
+                    break;
+            }
+        }
+
+        if (token.Parent?.FirstAncestorOrSelf<MemberDeclarationSyntax>() is { AttributeLists.Count: > 0 } attributedMember
+            && attributedMember.AttributeLists.Last().GetLastToken().GetNextToken() == token)
+        {
+            lists.Add((attributedMember, true));
+        }
+
+        return lists.Where(list => typeDeclaration.Contains(list.Owner) && IsUnitListOfTypeBody(list));
+    }
+
+    /// <summary>
+    /// Determines whether a unit list belongs to a type body as SHARED-ORDER-008 lists them: the members of a type,
+    /// the attribute lists of a member of a type, the accessors of such a member, or the statements of a block or a
+    /// switch section inside the body block of a method, constructor, destructor, operator, conversion operator, or
+    /// accessor, also in a lambda or local function there
+    /// </summary>
+    /// <param name="list">Unit list</param>
+    /// <returns><see langword="true"/> if the list is one of a type body</returns>
+    private static bool IsUnitListOfTypeBody((SyntaxNode Owner, bool OfAttributes) list)
+    {
+        return list switch
+               {
+                   { OfAttributes: true } => list.Owner.Parent is TypeDeclarationSyntax,
+                   { Owner: TypeDeclarationSyntax } => true,
+                   { Owner: AccessorListSyntax accessorList } => accessorList.Parent?.Parent is TypeDeclarationSyntax,
+                   _ => list.Owner.AncestorsAndSelf().Any(node => node is BlockSyntax { Parent: BaseMethodDeclarationSyntax or AccessorDeclarationSyntax }),
+               };
+    }
+
+    /// <summary>
+    /// Determines whether the <c>field</c> clause of SHARED-ORDER-008 applies to a unit list: the accessors of a
+    /// property, or the statements of a block inside an accessor's body
+    /// </summary>
+    /// <param name="list">Unit list</param>
+    /// <returns><see langword="true"/> if no branch of a group of the list may hold a <c>field</c> token</returns>
+    private static bool ForbidsFieldKeyword((SyntaxNode Owner, bool OfAttributes) list)
+    {
+        return list.OfAttributes == false
+               && (list.Owner is AccessorListSyntax
+                   || (list.Owner is not TypeDeclarationSyntax && list.Owner.FirstAncestorOrSelf<AccessorDeclarationSyntax>() != null));
+    }
+
+    /// <summary>
+    /// Determines whether excluded text, parsed on its own as the content of an empty unit list of the list's kind,
+    /// reads as a sequence of whole units of that list without a syntax error, closing no brace it did not open
+    /// </summary>
+    /// <param name="text">Excluded text</param>
+    /// <param name="list">Unit list at whose boundary the text stands</param>
+    /// <param name="options">Parse options of the document</param>
+    /// <param name="units">The node that holds the parsed units</param>
+    /// <returns><see langword="true"/> if the text reads as whole units</returns>
+    private static bool ReadsAsWholeUnits(string text, (SyntaxNode Owner, bool OfAttributes) list, CSharpParseOptions options, out SyntaxNode units)
+    {
+        var (prefix, suffix) = list switch
+                               {
+                                   { OfAttributes: true } => (string.Empty, "\nvoid M()\n{\n}"),
+                                   { Owner: TypeDeclarationSyntax } => (string.Empty, string.Empty),
+                                   { Owner: AccessorListSyntax } => ("int P\n{\n", "\n}"),
+                                   _ => ("void M()\n{\n", "\n}"),
+                               };
+
+        var compilationUnit = ParseInTypeBody($"{prefix}{text}{suffix}", options);
+
+        units = compilationUnit.Members.Count == 1 && compilationUnit.Members[0] is ClassDeclarationSyntax parsedType
+                    ? parsedType
+                    : null;
+
+        if (units is not ClassDeclarationSyntax { Members: var members }
+            || compilationUnit.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
+        {
+            return false;
+        }
+
+        var onlyMember = members.Count == 1
+                             ? members[0]
+                             : null;
+
+        return list switch
+               {
+                   { OfAttributes: true } => onlyMember is MethodDeclarationSyntax { Modifiers.Count: 0 },
+                   { Owner: TypeDeclarationSyntax } => true,
+                   { Owner: AccessorListSyntax } => onlyMember is PropertyDeclarationSyntax { AccessorList: not null },
+                   _ => onlyMember is MethodDeclarationSyntax { Body: not null },
+               };
+    }
+
+    /// <summary>
+    /// Determines whether an accessor without a body and without an expression body stands in a branch of a
+    /// conditional group of the accessor list, active or excluded (SHARED-ORDER-007)
+    /// </summary>
+    /// <param name="accessorList">Accessor list</param>
+    /// <returns><see langword="true"/> if a build that compiles such an accessor gives the property a backing field</returns>
+    private static bool HasConditionalAccessorWithoutBody(AccessorListSyntax accessorList)
+    {
+        if (accessorList.ContainsDirectives == false)
+        {
+            return false;
+        }
+
+        var options = accessorList.SyntaxTree.Options as CSharpParseOptions;
+        var groupSpans = accessorList.DescendantTrivia()
+                                     .Select(trivia => trivia.GetStructure())
+                                     .OfType<IfDirectiveTriviaSyntax>()
+                                     .Select(directive => directive.GetRelatedDirectives())
+                                     .Select(group => TextSpan.FromBounds(group[0].SpanStart, group[group.Count - 1].SpanStart))
+                                     .ToList();
+        var excludedAccessors = accessorList.DescendantTrivia()
+                                            .Where(trivia => trivia.IsKind(SyntaxKind.DisabledTextTrivia)
+                                                             && trivia.Token.Parent?.FirstAncestorOrSelf<AccessorListSyntax>() == accessorList)
+                                            .SelectMany(trivia => ReadsAsWholeUnits(trivia.ToFullString(), (accessorList, false), options, out var units)
+                                                                      ? units.DescendantNodes().OfType<AccessorDeclarationSyntax>()
+                                                                      : []);
+
+        return accessorList.Accessors
+                           .Where(accessor => groupSpans.Any(span => span.Contains(accessor.SpanStart)))
+                           .Concat(excludedAccessors)
+                           .Any(accessor => accessor.Body == null && accessor.ExpressionBody == null);
     }
 
     #endregion // Methods
