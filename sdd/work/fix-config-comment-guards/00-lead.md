@@ -87,4 +87,5 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 - Done: test implementer `23-test-implementer.md` (1b40180): 8 tests red as intended.
 - Done: spec author `25-spec-author.md` (9bc4acf); implementer 6b91450, `24-implementer.md` (1e41012): all tests pass.
 - Done: test implementer `26-test-implementer.md` (ef74ba2).
-- Next: int Q => 2 #endif ;` from 24-implementer.md); cleaner; spec checker; auditor (audit 4); validator.
+- Done: cleaner `27-cleaner.md` (1d89f40) clean.
+- Next: spec checker → `28-spec-checker.md`; auditor (audit 4); validator.
