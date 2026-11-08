@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Organization;
@@ -341,7 +342,783 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
         await Verify(source, fixedSource);
     }
 
+    /// <summary>
+    /// Verifying the specification example: without <c>DEBUG</c> defined, an instance field of excluded code in front of
+    /// the constant would move with it in front of an instance field of a struct, so a build with <c>DEBUG</c> would lay
+    /// out the fields in another order; the constant is reported, and no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7102-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenExcludedCodeInFrontOfTheConstantWouldReorderTheInstanceFieldsOfAStruct(string endOfLine)
+    {
+        const string source = """
+                              public struct S
+                              {
+                                  private int _x;
+                              #if DEBUG
+                                  private int _y;
+                              #endif
+                                  private const int {|RH7102:K|} = 1;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that the instance fields of a record struct, whose field order sets its layout, withhold the move of
+    /// an instance field of excluded code in front of the constant
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7102-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenExcludedCodeInFrontOfTheConstantWouldReorderTheInstanceFieldsOfARecordStruct(string endOfLine)
+    {
+        const string source = """
+                              public record struct R
+                              {
+                                  private int _x;
+                              #if DEBUG
+                                  private int _y;
+                              #endif
+                                  private const int {|RH7102:K|} = 1;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that the instance fields of a class with sequential layout withhold the move of an instance field of
+    /// excluded code in front of the constant
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7102-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenExcludedCodeInFrontOfTheConstantWouldReorderTheInstanceFieldsOfASequentialClass(string endOfLine)
+    {
+        const string source = """
+                              using System.Runtime.InteropServices;
+
+                              [StructLayout(LayoutKind.Sequential)]
+                              public class C
+                              {
+                                  private int _x;
+                              #if DEBUG
+                                  private int _y;
+                              #endif
+                                  private const int {|RH7102:K|} = 1;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that an auto-property of excluded code in front of the constant counts as an instance field of a struct
+    /// and withholds the move across an instance field
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7102-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenAnAutoPropertyOfExcludedCodeInFrontOfTheConstantWouldReorderTheInstanceFieldsOfAStruct(string endOfLine)
+    {
+        const string source = """
+                              public struct S
+                              {
+                                  private int _x;
+                              #if DEBUG
+                                  private int Y { get; set; }
+                              #endif
+                                  private const int {|RH7102:K|} = 1;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the other side of the layout condition: in a struct with explicit layout, whose fields keep their
+    /// offsets in every order, an instance field of excluded code moves with the constant, and the fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7102-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task FixCarriesAnInstanceFieldOfExcludedCodeWithTheConstantInAnExplicitLayoutStruct(string endOfLine)
+    {
+        const string source = """
+                              using System.Runtime.InteropServices;
+
+                              [StructLayout(LayoutKind.Explicit)]
+                              public struct S
+                              {
+                                  [FieldOffset(0)]
+                                  private int _x;
+                              #if DEBUG
+                                  [FieldOffset(4)]
+                                  private int _y;
+                              #endif
+                                  private const int {|RH7102:K|} = 1;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.Runtime.InteropServices;
+
+                                   [StructLayout(LayoutKind.Explicit)]
+                                   public struct S
+                                   {
+                                   #if DEBUG
+                                       [FieldOffset(4)]
+                                       private int _y;
+                                   #endif
+                                       private const int K = 1;
+                                       [FieldOffset(0)]
+                                       private int _x;
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the other side of the layout condition: a static field of excluded code in front of the constant takes
+    /// no place in the layout of the struct, so it moves with the constant, and the fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7102-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task FixCarriesAStaticFieldOfExcludedCodeWithTheConstantInAStruct(string endOfLine)
+    {
+        const string source = """
+                              public struct S
+                              {
+                                  private int _x;
+                              #if DEBUG
+                                  private static int _y;
+                              #endif
+                                  private const int {|RH7102:K|} = 1;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public struct S
+                                   {
+                                   #if DEBUG
+                                       private static int _y;
+                                   #endif
+                                       private const int K = 1;
+                                       private int _x;
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that excluded code in the crossed span keeps its order: the instance field of excluded code between the
+    /// target and the constant is crossed, not moved, so the fix is offered also in a struct
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7102-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task FixCrossesAnInstanceFieldOfExcludedCodeInAStruct(string endOfLine)
+    {
+        const string source = """
+                              public struct S
+                              {
+                                  private int _x;
+                              #if DEBUG
+                                  private int _y;
+                              #endif
+                                  private int _z;
+                                  private const int {|RH7102:K|} = 1;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public struct S
+                                   {
+                                       private const int K = 1;
+                                       private int _x;
+                                   #if DEBUG
+                                       private int _y;
+                                   #endif
+                                       private int _z;
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the specification example: without <c>DEBUG</c> defined, an initialized field of excluded code in front
+    /// of the constant would move with it across an initialized field, so a build with <c>DEBUG</c> would run the
+    /// initializers in another order; no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7102-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenAnInitializedFieldOfExcludedCodeInFrontOfTheConstantWouldCrossAnInitializedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _i = Log("i");
+                              #if DEBUG
+                                  private int _c = Log("c");
+                              #endif
+                                  private const int {|RH7102:K|} = 1;
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the specification example on the other side of the initializer condition: the crossed field has no
+    /// initializer, so the initialized field of excluded code moves with the constant, and the fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7102-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task FixCarriesAnInitializedFieldOfExcludedCodeWithTheConstantAcrossAFieldWithoutInitializer(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _i;
+                              #if DEBUG
+                                  private int _c = Log("c");
+                              #endif
+                                  private const int {|RH7102:K|} = 1;
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                   #if DEBUG
+                                       private int _c = Log("c");
+                                   #endif
+                                       private const int K = 1;
+                                       private int _i;
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a field of excluded code without initializer moves with the constant across a field without
+    /// initializer of a class, and the fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7102-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task FixCarriesAFieldOfExcludedCodeWithoutInitializerWithTheConstant(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _i;
+                              #if DEBUG
+                                  private int _c;
+                              #endif
+                                  private const int {|RH7102:K|} = 1;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                   #if DEBUG
+                                       private int _c;
+                                   #endif
+                                       private const int K = 1;
+                                       private int _i;
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that an initialized static field of excluded code in front of the constant withholds the move across an
+    /// initialized static field
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7102-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenAnInitializedStaticFieldOfExcludedCodeInFrontOfTheConstantWouldCrossAnInitializedStaticField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _i = Log("i");
+                              #if DEBUG
+                                  private static int _c = Log("c");
+                              #endif
+                                  private const int {|RH7102:K|} = 1;
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the other side of the context condition: an initialized static field of excluded code crosses only an
+    /// instance initializer, which runs at another time, so the fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7102-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task FixCarriesAnInitializedStaticFieldOfExcludedCodeWithTheConstantAcrossAnInstanceInitializer(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _i = Log("i");
+                              #if DEBUG
+                                  private static int _c = Log("c");
+                              #endif
+                                  private const int {|RH7102:K|} = 1;
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                   #if DEBUG
+                                       private static int _c = Log("c");
+                                   #endif
+                                       private const int K = 1;
+                                       private int _i = Log("i");
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a property initializer of excluded code in front of the constant withholds the move across an
+    /// initialized field
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7102-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenAnInitializedPropertyOfExcludedCodeInFrontOfTheConstantWouldCrossAnInitializedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _i = Log("i");
+                              #if DEBUG
+                                  private int P { get; } = Log("p");
+                              #endif
+                                  private const int {|RH7102:K|} = 1;
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that an initialized event field of excluded code in front of the constant withholds the move across an
+    /// initialized field
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7102-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenAnInitializedEventFieldOfExcludedCodeInFrontOfTheConstantWouldCrossAnInitializedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _i = Log("i");
+                              #if DEBUG
+                                  private event System.EventHandler Changed = delegate { };
+                              #endif
+                                  private const int {|RH7102:K|} = 1;
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that every crossed member counts, not only the target: the move crosses an initialized property of
+    /// another accessibility between the target and the constant, so the initialized field of excluded code in front of
+    /// the constant withholds the fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7102-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenAnInitializedFieldOfExcludedCodeInFrontOfTheConstantWouldCrossAnInitializedPropertyBehindTheTarget(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _i;
+                                  public int Count { get; } = Log("p");
+                              #if DEBUG
+                                  private int _c = Log("c");
+                              #endif
+                                  private const int {|RH7102:K|} = 1;
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that code an <c>#if false</c> block excludes counts like any other excluded code
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7102-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenAnInitializedFieldOfAnIfFalseBlockInFrontOfTheConstantWouldCrossAnInitializedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _i = Log("i");
+                              #if false
+                                  private int _c = Log("c");
+                              #endif
+                                  private const int {|RH7102:K|} = 1;
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that the members of every excluded branch of an <c>#if</c>/<c>#elif</c> block in front of the constant
+    /// count
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7102-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenAnInitializedFieldOfAnExcludedElifBranchInFrontOfTheConstantWouldCrossAnInitializedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _i = Log("i");
+                              #if DEBUG
+                                  private int _c = Log("c");
+                              #elif TRACE
+                                  private int _d = Log("d");
+                              #endif
+                                  private const int {|RH7102:K|} = 1;
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a crossed declaration which an <c>#if</c> splits counts with what the excluded part gives it:
+    /// with <c>DEBUG</c> defined, <c>J</c> is an initialized instance field, so the initialized field of excluded code
+    /// in front of the constant would move across it, and no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7102-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenTheMoveCrossesADeclarationThatIsConstOnlyInSomeConfigurations(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _i;
+                                  public
+                              #if DEBUG
+                                      readonly
+                              #else
+                                      const
+                              #endif
+                                      int J = 1;
+                              #if DEBUG
+                                  private int _c = Log("c");
+                              #endif
+                                  private const int {|RH7102:K|} = 1;
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a constant whose <c>const</c> modifier an <c>#if</c> splits, and that is a static initialized field
+    /// in a build with <c>DEBUG</c>, is not reported
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7102-001")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task ConstantWhoseModifiersAnIfSplitsIntoAStaticFieldIsNotReported(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _s = Log("s");
+                                  private
+                              #if DEBUG
+                                      static readonly
+                              #else
+                                      const
+                              #endif
+                                      int K = 1;
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await Verify(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a constant whose <c>const</c> modifier an <c>#if</c> splits, and that is an instance field of a
+    /// struct in a build with <c>DEBUG</c>, is not reported
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7102-001")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task ConstantWhoseModifiersAnIfSplitsIntoAnInstanceFieldIsNotReported(string endOfLine)
+    {
+        const string source = """
+                              public struct S
+                              {
+                                  private int _x;
+                                  private
+                              #if DEBUG
+                                      readonly
+                              #else
+                                      const
+                              #endif
+                                      int K = 1;
+                              }
+                              """;
+
+        await Verify(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that Fix All moves the constant whose fix is offered and leaves the constant whose move would reorder
+    /// the initializers of a build with <c>DEBUG</c> reported without a fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7102-006")]
+    [Requirement("SHARED-FIX-002")]
+    public async Task FixAllSkipsTheConstantWhoseMoveWouldReorderTheInitializersOfAnotherConfiguration()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _i = Log("i");
+                              #if DEBUG
+                                  private int _c = Log("c");
+                              #endif
+                                  private const int {|RH7102:K|} = 1;
+                                  protected int _p;
+                                  protected const int {|RH7102:L|} = 2;
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private int _i = Log("i");
+                                   #if DEBUG
+                                       private int _c = Log("c");
+                                   #endif
+                                       private const int {|RH7102:K|} = 1;
+                                       protected const int L = 2;
+                                       protected int _p;
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
+    }
+
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Writes the provided text with the given line break
+    /// </summary>
+    /// <param name="text">Text</param>
+    /// <param name="endOfLine">Line break</param>
+    /// <returns>The text with every line break replaced by <paramref name="endOfLine"/></returns>
+    private static string WithEndOfLine(string text, string endOfLine)
+    {
+        return text.Replace("\r\n", "\n").Replace("\n", endOfLine);
+    }
+
+    #endregion // Methods
 
     #region BatchCodeFixTestsBase
 

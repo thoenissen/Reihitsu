@@ -1983,9 +1983,82 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                      Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
     }
 
+    /// <summary>
+    /// Verifying that a static member whose <c>static</c> modifier only some configurations compile is not reported,
+    /// because a conditional directive lies in the modifier list the rule judges
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task StaticMemberWhoseStaticModifierAnIfSplitsIsNotReported(string endOfLine)
+    {
+        const string source = """
+                              public struct S
+                              {
+                                  private int _a;
+                                  private
+                              #if !DEBUG
+                                      static
+                              #endif
+                                      int _b;
+                              }
+                              """;
+
+        await Verify(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the other side of the judged span: a conditional directive in the initializer of the static member, not
+    /// in its modifiers, keeps it reported; the moved field has an initializer in a build with <c>DEBUG</c> and would
+    /// cross an initialized static field of another accessibility, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-DIAG-008")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenTheMovedStaticFieldHasAnInitializerOnlyInAnotherConfiguration(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _i;
+                                  public static int Shared = Log("p");
+                                  private static int {|RH7103:_s|}
+                              #if DEBUG
+                                      = Log("s")
+                              #endif
+                                      ;
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods
+
+    /// <summary>
+    /// Writes the provided text with the given line break
+    /// </summary>
+    /// <param name="text">Text</param>
+    /// <param name="endOfLine">Line break</param>
+    /// <returns>The text with every line break replaced by <paramref name="endOfLine"/></returns>
+    private static string WithEndOfLine(string text, string endOfLine)
+    {
+        return text.Replace("\r\n", "\n").Replace("\n", endOfLine);
+    }
 
     /// <summary>
     /// Applies the one code action registered for <c>_a</c>, asserts the exact result, and asserts that <c>_b</c> is

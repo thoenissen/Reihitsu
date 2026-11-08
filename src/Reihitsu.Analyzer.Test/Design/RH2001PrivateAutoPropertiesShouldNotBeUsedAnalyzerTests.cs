@@ -1939,7 +1939,553 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
         await VerifyCodeFixIsWithheldOrProducesOneOf(testData, true, inPlace, Format(inPlace));
     }
 
+    /// <summary>
+    /// Verifies the specification example of get-only properties whose modifiers are not in the order of RH7105: the fix
+    /// writes the modifiers in that order on one line, keeps the blank line, the comment, and the documentation comment
+    /// once in front of the field, and keeps the written order of a property with a <c>set</c> accessor
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-004")]
+    public async Task VerifyFixWritesReorderedModifiersOnOneLineBehindTheLeadingTrivia(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int _x;
+
+                                    // the shared value
+                                    static private int {|RH2001:Value|} { get; }
+
+                                    /// <summary>
+                                    /// The name.
+                                    /// </summary>
+                                    static private string {|RH2001:Name|} { get; } = "v"; // name
+
+                                    static private int {|RH2001:Count|} { get; set; }
+
+                                    int Read() => _x + Value + Name.Length + Count;
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      private int _x;
+
+                                      // the shared value
+                                      private static readonly int _value;
+
+                                      /// <summary>
+                                      /// The name.
+                                      /// </summary>
+                                      private static readonly string _name = "v"; // name
+
+                                      static private int _count;
+
+                                      int Read() => _x + _value + _name.Length + _count;
+                                  }
+                                  """;
+
+        await Verify(WithEndOfLine(testData, endOfLine), WithEndOfLine(resultData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a comment in front of the first modifier on its line: it stays once in
+    /// front of the reordered modifiers
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-004")]
+    public async Task VerifyFixKeepsACommentInFrontOfTheFirstModifierOnceInFrontOfTheReorderedModifiers(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /* lead */ static private int {|RH2001:Value|} { get; }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      /* lead */ private static readonly int _value;
+                                  }
+                                  """;
+
+        await Verify(WithEndOfLine(testData, endOfLine), WithEndOfLine(resultData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix writes the reordered modifiers of a get-only property with one space between them
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-004")]
+    public async Task VerifyFixWritesReorderedModifiersWithOneSpaceBetweenThem(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    static private int {|RH2001:Value|} { get; }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      private static readonly int _value;
+                                  }
+                                  """;
+
+        await Verify(WithEndOfLine(testData, endOfLine), WithEndOfLine(resultData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix writes three reordered modifiers and the added <c>readonly</c> in the order of RH7105 with
+    /// one space between them
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-004")]
+    public async Task VerifyFixWritesThreeReorderedModifiersInTheOrderOfRh7105(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    static new private int {|RH2001:Value|} { get; }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      private static new readonly int _value;
+                                  }
+                                  """;
+
+        await Verify(WithEndOfLine(testData, endOfLine), WithEndOfLine(resultData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind the property stays behind the field when the fix reorders the modifiers
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-004")]
+    public async Task VerifyFixKeepsATrailingCommentWhenItReordersTheModifiers(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    static private int {|RH2001:Value|} { get; } // t
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      private static readonly int _value; // t
+                                  }
+                                  """;
+
+        await Verify(WithEndOfLine(testData, endOfLine), WithEndOfLine(resultData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the change-document example of a blank line above a property whose modifiers the fix reorders: the
+    /// blank line stays above the field, and the modifiers stay on one line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-004")]
+    public async Task VerifyFixKeepsTheBlankLineAboveAndTheReorderedModifiersOnOneLine(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int _x;
+
+                                    static private int {|RH2001:Value|} { get; }
+
+                                    int Read() => _x + Value;
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      private int _x;
+
+                                      private static readonly int _value;
+
+                                      int Read() => _x + _value;
+                                  }
+                                  """;
+
+        await Verify(WithEndOfLine(testData, endOfLine), WithEndOfLine(resultData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#pragma</c> directive on the line above a property whose modifiers the fix reorders stays once
+    /// in front of the field, and the fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-004")]
+    public async Task VerifyFixKeepsAPragmaDirectiveAboveOnceInFrontOfTheReorderedModifiers(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                #pragma warning disable CS0414
+                                    static private int {|RH2001:Value|} { get; }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                  #pragma warning disable CS0414
+                                      private static readonly int _value;
+                                  }
+                                  """;
+
+        await Verify(WithEndOfLine(testData, endOfLine), WithEndOfLine(resultData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#region</c> directive on the line above a property whose modifiers the fix reorders stays once
+    /// in front of the field, and the fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-004")]
+    public async Task VerifyFixKeepsARegionDirectiveAboveOnceInFrontOfTheReorderedModifiers(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Properties
+
+                                    static private int {|RH2001:Value|} { get; }
+
+                                    #endregion // Properties
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      #region Properties
+
+                                      private static readonly int _value;
+
+                                      #endregion // Properties
+                                  }
+                                  """;
+
+        await Verify(WithEndOfLine(testData, endOfLine), WithEndOfLine(resultData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix writes <c>readonly</c> in front of a modifier that RH7105 puts behind it, also when the
+    /// property's modifiers already are in order
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-004")]
+    public async Task VerifyFixWritesReadonlyInFrontOfUnsafe()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private unsafe string {|RH2001:First|} { get; }
+
+                                    unsafe private string {|RH2001:Second|} { get; }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      private readonly unsafe string _first;
+
+                                      private readonly unsafe string _second;
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, test => test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of comments that a reordered modifier would cross: all three properties are
+    /// reported, and no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-009")]
+    public async Task VerifyNoFixIsOfferedForACommentThatAReorderedModifierWouldCross(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    static /* a */ private int {|RH2001:First|} { get; }
+
+                                    static // b
+                                    private int {|RH2001:Second|} { get; }
+
+                                    new /* c */ static private int {|RH2001:Third|} { get; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a directive that a reordered modifier would cross: the property is reported,
+    /// and no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-009")]
+    public async Task VerifyNoFixIsOfferedForADirectiveThatAReorderedModifierWouldCross(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    static
+                                #pragma warning disable CS0169
+                                    private int {|RH2001:Value|} { get; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of comments that no modifier crosses: each keeps its place, and
+    /// <c>readonly</c> is written behind a comment that stands at its place
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-009")]
+    public async Task VerifyFixKeepsACommentThatNoModifierCrosses(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private /* a */ static int {|RH2001:First|} { get; }
+
+                                    private /* b */ new static int {|RH2001:Second|} { get; }
+
+                                    static private /* c */ int {|RH2001:Third|} { get; }
+
+                                    private static /* d */ int {|RH2001:Fourth|} { get; }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      private /* a */ static readonly int _first;
+
+                                      private /* b */ static new readonly int _second;
+
+                                      private static /* c */ readonly int _third;
+
+                                      private static /* d */ readonly int _fourth;
+                                  }
+                                  """;
+
+        await Verify(WithEndOfLine(testData, endOfLine), WithEndOfLine(resultData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a comment in front of the place of <c>readonly</c>, with a modifier that RH7105 puts behind
+    /// <c>readonly</c>, keeps its place and has <c>readonly</c> written behind it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-009")]
+    public async Task VerifyFixWritesReadonlyBehindACommentInFrontOfUnsafe()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private /* c */ unsafe string {|RH2001:Value|} { get; }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      private /* c */ readonly unsafe string _value;
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, test => test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that an end-of-line comment between two modifiers that keep their order keeps its line, and the fix is
+    /// offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-009")]
+    public async Task VerifyFixKeepsAnEndOfLineCommentBetweenModifiersThatKeepTheirOrder(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private // a
+                                    static int {|RH2001:Value|} { get; }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      private // a
+                                      static readonly int _value;
+                                  }
+                                  """;
+
+        await Verify(WithEndOfLine(testData, endOfLine), WithEndOfLine(resultData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a directive between two modifiers that keep their order keeps its place, and the fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-009")]
+    public async Task VerifyFixKeepsADirectiveBetweenModifiersThatKeepTheirOrder(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private
+                                #pragma warning disable CS0169
+                                    static int {|RH2001:Value|} { get; }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      private
+                                  #pragma warning disable CS0169
+                                      static readonly int _value;
+                                  }
+                                  """;
+
+        await Verify(WithEndOfLine(testData, endOfLine), WithEndOfLine(resultData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that Fix All replaces the property whose modifiers the fix reorders and leaves the property with a
+    /// comment that a reordered modifier would cross reported without a fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-004")]
+    [Requirement("RH2001-009")]
+    [Requirement("SHARED-FIX-002")]
+    public async Task VerifyFixAllSkipsThePropertyWithACommentThatAReorderedModifierWouldCross()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    static /* a */ private int {|RH2001:First|} { get; }
+
+                                    static private int {|RH2001:Second|} { get; }
+
+                                    new static private int {|RH2001:Third|} { get; }
+
+                                    int Read() => First + Second + Third;
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      static /* a */ private int {|RH2001:First|} { get; }
+
+                                      private static readonly int _second;
+
+                                      private static new readonly int _third;
+
+                                      int Read() => First + _second + _third;
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
+    }
+
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Writes the provided text with the given line break
+    /// </summary>
+    /// <param name="text">Text</param>
+    /// <param name="endOfLine">Line break</param>
+    /// <returns>The text with every line break replaced by <paramref name="endOfLine"/></returns>
+    private static string WithEndOfLine(string text, string endOfLine)
+    {
+        return text.Replace("\r\n", "\n").Replace("\n", endOfLine);
+    }
+
+    #endregion // Methods
 
     #region BatchCodeFixTestsBase
 

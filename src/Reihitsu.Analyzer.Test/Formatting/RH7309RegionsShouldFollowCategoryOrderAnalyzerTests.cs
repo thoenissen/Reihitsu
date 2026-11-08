@@ -2764,9 +2764,425 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
         await Verify(source, fixedSource);
     }
 
+    /// <summary>
+    /// Verifies that a field of the moved block whose initializer only a build with <c>DEBUG</c> compiles counts as
+    /// initialized: the reorder would run it before the initializer of the other block in that build, so no code fix is
+    /// offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7309-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenAFieldOfTheMovedBlockHasAnInitializerOnlyInAnotherConfiguration(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  private static readonly int A = Log("a");
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private static readonly int B
+                              #if DEBUG
+                                      = Log("b")
+                              #endif
+                                      ;
+
+                                  #endregion // Fields
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a further member which excluded code inside a field of the moved block declares counts: a build with
+    /// <c>DEBUG</c> declares the initialized field <c>Z</c> there, so the reorder would run its initializer before the
+    /// initializer of the other block, and no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7309-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenExcludedCodeInsideAFieldOfTheMovedBlockDeclaresAnInitializedField(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  private static readonly int A = Log("a");
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private static readonly int B
+                              #if DEBUG
+                                      ;
+                                  private static readonly int Z = Log("z")
+                              #endif
+                                      ;
+
+                                  #endregion // Fields
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a property initializer which only a build with <c>DEBUG</c> compiles behind the accessor list of a
+    /// property of the moved block counts, although the excluded text does not form a member on its own
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7309-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenAPropertyOfTheMovedBlockHasAnInitializerBehindItsAccessorListOnlyInAnotherConfiguration(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  private static readonly int A = Log("a");
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private static int B { get; }
+                              #if DEBUG
+                                      = Log("b");
+                              #endif
+
+                                  #endregion // Fields
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the shared specification example: a field of a struct that only a build without <c>DEBUG</c> declares
+    /// <c>static</c> is an instance field in a build with <c>DEBUG</c>, so the reorder would change the layout of that
+    /// build, and no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7309-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenAFieldOfTheMovedBlockIsAnInstanceFieldOfAStructOnlyInAnotherConfiguration(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              public struct S : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  private int _a;
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private
+                              #if !DEBUG
+                                      static
+                              #endif
+                                      int _b;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the other side of the split <c>static</c>: a field of a struct that only a build with <c>DEBUG</c>
+    /// declares <c>static</c> is an instance field in the active code already, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7309-006")]
+    public async Task NoCodeFixWhenAFieldOfTheMovedBlockIsAnInstanceFieldOfAStructInTheActiveCode(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              public struct S : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  private int _a;
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private
+                              #if DEBUG
+                                      static
+                              #endif
+                                      int _b;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a field between the region blocks, which the reorder crosses, counts with the initializer only a
+    /// build with <c>DEBUG</c> compiles, so the moved block's initialized field would run before it in that build
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7309-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenACrossedFieldBetweenTheBlocksHasAnInitializerOnlyInAnotherConfiguration(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  private static readonly int G
+                              #if DEBUG
+                                      = Log("g")
+                              #endif
+                                      ;
+
+                                  {|RH7309:#region Fields|}
+
+                                  private static readonly int A = Log("a");
+
+                                  #endregion // Fields
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that excluded code at the start of the moved block that declares an initialized field counts, also when
+    /// it ends in the head of the active field: the reorder would run <c>Log("x")</c> before <c>Log("a")</c> in a build
+    /// with <c>DEBUG</c>, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7309-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenExcludedCodeThatEndsInTheHeadOfAFieldDeclaresAnInitializedField(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  private static readonly int A = Log("a");
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                              #if DEBUG
+                                  private static readonly int X = Log("x");
+                                  private static readonly int Y
+                              #else
+                                  private static readonly int Y
+                              #endif
+                                      ;
+
+                                  #endregion // Fields
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the shared specification example: a member split across <c>#if DEBUG</c> and <c>#else</c> keeps the move
+    /// when no configuration gives a moved member and a crossed member of one context an initializer each
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7309-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task CodeFixMovesABlockWithAMemberSplitAcrossConfigurationsWhenNothingInitializedIsCrossed(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                              #if DEBUG
+                                  private static readonly int X = Log("x");
+                                  private static readonly int Y =
+                              #else
+                                  private static readonly int Y =
+                              #endif
+                                      Log("y");
+
+                                  #endregion // Fields
+
+                                  private static int Log(string name) => 0;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System;
+
+                                   public class C : IDisposable
+                                   {
+                                       #region Fields
+
+                                   #if DEBUG
+                                       private static readonly int X = Log("x");
+                                       private static readonly int Y =
+                                   #else
+                                       private static readonly int Y =
+                                   #endif
+                                           Log("y");
+
+                                       #endregion // Fields
+
+                                       #region IDisposable
+
+                                       public void Dispose()
+                                       {
+                                       }
+
+                                       #endregion // IDisposable
+
+                                       private static int Log(string name) => 0;
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods
+
+    /// <summary>
+    /// Writes the provided text with the given line break
+    /// </summary>
+    /// <param name="text">Text</param>
+    /// <param name="endOfLine">Line break</param>
+    /// <returns>The text with every line break replaced by <paramref name="endOfLine"/></returns>
+    private static string WithEndOfLine(string text, string endOfLine)
+    {
+        return text.Replace("\r\n", "\n").Replace("\n", endOfLine);
+    }
 
     /// <summary>
     /// Gets the location of the last <c>#region</c> directive in the syntax tree

@@ -1498,7 +1498,123 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifying the shared specification example: without <c>DEBUG</c> defined, the moved field has an initializer only
+    /// in a build with <c>DEBUG</c>, and moving it in front of an initialized field would run the initializers of that
+    /// build in another order, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenTheMovedFieldHasAnInitializerOnlyInAnotherConfiguration(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a = Log("a");
+                                  private readonly int {|RH7109:_b|}
+                              #if DEBUG
+                                      = Log("b")
+                              #endif
+                                      ;
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a crossed field which has an initializer only in a build with <c>DEBUG</c> counts as initialized,
+    /// so moving an initialized field across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenTheCrossedFieldHasAnInitializerOnlyInAnotherConfiguration(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a
+                              #if DEBUG
+                                      = Log("a")
+                              #endif
+                                      ;
+                                  private readonly int {|RH7109:_b|} = Log("b");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a property initializer which only a build with <c>DEBUG</c> compiles behind the accessor list of a
+    /// crossed property counts, although the excluded text does not form a member on its own
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenACrossedPropertyHasAnInitializerBehindItsAccessorListOnlyInAnotherConfiguration(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a;
+                                  private int Count { get; set; }
+                              #if DEBUG
+                                      = Log("p");
+                              #endif
+                                  private int _c;
+                                  private readonly int {|RH7109:_b|} = Log("b");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Writes the provided text with the given line break
+    /// </summary>
+    /// <param name="text">Text</param>
+    /// <param name="endOfLine">Line break</param>
+    /// <returns>The text with every line break replaced by <paramref name="endOfLine"/></returns>
+    private static string WithEndOfLine(string text, string endOfLine)
+    {
+        return text.Replace("\r\n", "\n").Replace("\n", endOfLine);
+    }
+
+    #endregion // Methods
 
     #region BatchCodeFixTestsBase
 
