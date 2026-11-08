@@ -22,7 +22,8 @@ Read [`../README.md`](../README.md) first.
    - a guard you narrow or widen keeps every region the decision depends on covered (FC-001);
    - a rewrite preserves every comment, directive, and disabled text in the gap it edits, or refuses (FC-004);
    - a formatting-aware code fix delegates final layout to `ReihitsuFormatter.FormatNodeInDocumentAsync` or `FormatNode`, scoped to the node it fixes (FC-030);
-   - a code fix that cannot be delivered comprehensively is withheld for that input (`AGENTS.md`, *Code-fix coverage*).
+   - a code fix that cannot be delivered comprehensively is withheld for that input (`AGENTS.md`, *Code-fix coverage*);
+   - a guard is a cheap syntactic check. When making the change safe for an input class needs more — another build configuration, a prediction of another component, parser-like rules, a new type — stop: do not build it, and return `blocked` with the class and the check it would need (`AGENTS.md`, *Code-fix coverage*).
 4. For every method whose body you changed, re-read its XML summary and inline comments and make them describe the new code (FC-031).
 5. A new rule also needs: its `.resx` strings and wrapper properties ([`add-resource-texts`](../../.claude/commands/add-resource-texts.md)), its rule page under `documentation/rules/` when the spec author has not written it, its row in `src/Reihitsu.Analyzer.Package/README.MD`, and its page in `Reihitsu.sln`.
 6. Run the focused tests of the changed rule or phase, then the test project they belong to. The self-hosting scans (`--project selfhosting`) are not part of a local run; CI runs them on every pull request.
@@ -58,6 +59,9 @@ Verdict: tests pass | test disputed | new rule needed | blocked
 
 ## Policy owners
 <for each policy the change touches: the rg command and every owner it found>
+
+## Production diff size
+<`git diff --shortstat origin/main...HEAD -- src ':(exclude,glob)src/*Test*/**'` and any new type; in a repair round, also the delta of the round>
 
 ## Tests run
 <the focused commands and their result lines>

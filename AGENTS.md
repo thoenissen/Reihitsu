@@ -46,8 +46,16 @@ A code fix is never required to correct every case its diagnostic reports. Some 
 - A reported diagnostic with no available fix is a supported end state. "The diagnostic has no fix here" is an observation that still has to be argued on its merits; it is never a defect on its own.
 - For new analyzer rules, only implement a code fix when it can be delivered comprehensively. If only light or partial support is possible, omit the code fix.
 - Prefer no fix over an unsafe one. A rewrite that would drop, reorder, or relocate user-authored comments, directives, disabled text, or literals must withhold itself for that input. `SHARED-FIX-003` in `sdd/specs/shared/code-fixes.md` states what makes a fix unsafe; a fix that violates it is a bug against that spec, not an open question.
-- None of this licenses an imprecise guard. A fix that refuses inputs it could rewrite safely is still worth narrowing, but the defect there is the guard's scope — how much safe ground it gives away — and not the bare fact that a diagnostic went unfixed.
+- None of this licenses an imprecise guard. A fix that refuses inputs it could rewrite safely is still worth narrowing, as long as the narrowing stays a cheap check (below), but the defect there is the guard's scope — how much safe ground it gives away — and not the bare fact that a diagnostic went unfixed.
 - When a rule's fix deliberately leaves a class of inputs to manual correction, `documentation/rules/general-notes.md` already covers it ("A diagnostic without a code fix") and the rule page is not changed for it. Record the gap in the rule's spec, `sdd/specs/analyzer/RH####.md`, where it reads as a decision rather than an oversight.
+
+**Special cases do not grow the source.** This is the one statement of the rule for code fixes and the formatter; other documents point here.
+
+- A guard is a cheap syntactic check of the nodes and trivia the rewrite touches, built from what the syntax tree already provides: where a comment or directive sits, whether a token is missing, which kind a node has.
+- When making a rewrite safe for a rare class of inputs needs more than that — evaluating `#if` conditions or reconstructing other build configurations, predicting what another component or a later formatter phase will produce, parser-like rules over text or trivia, or a new type — the code fix is withheld for that class, and the formatter leaves the construct as written. Rare inputs never justify that machinery.
+- Rare inputs are shapes people seldom write. Every input that already violates another Reihitsu rule is rare by definition, such as a comment inside an argument list (RH5038) or a `#region` inside a member (RH7303): that rule reports it anyway.
+- Non-destructiveness still comes first. A formatter rewrite or a fix that damages user code is repaired — by skipping the construct, not by modelling it.
+- A refusal that would withhold a fix, or leave a construct unformatted, for code people commonly write is not covered by this rule; it is a question for the maintainer, not a license for machinery.
 
 ## Supported inputs
 
@@ -162,7 +170,7 @@ In short: a bug is a difference between the code and a spec. Behavior that looks
 
 The trace tools show these phase boundaries, the preparation phase's two sub-phases included, without modifying the input: `scripts/trace.sh <file> [--passes N] [--no-install]`. They default to three passes, print a unified diff for each phase that changes line content (or line-ending counts when only separators change), and stop early when a complete pass is stable.
 
-Formatter transformations are non-destructive: they may rewrite syntax and trivia into canonical form, but they must preserve user-authored directives, comments, disabled text, literals, and executable information. Region formatting may normalize names, matching comments, layout, indentation, and line endings, but it never deletes `#region` or `#endregion`; removing a misplaced region remains an explicit analyzer code-fix action.
+Formatter transformations are non-destructive: they may rewrite syntax and trivia into canonical form, but they must preserve user-authored directives, comments, disabled text, literals, and executable information. Region formatting may normalize names, matching comments, layout, indentation, and line endings, but it never deletes `#region` or `#endregion`; removing a misplaced region remains an explicit analyzer code-fix action. Where staying non-destructive for a rare input would need more than a cheap check, the phase leaves the construct as written ([Code-fix coverage](#code-fix-coverage), *Special cases do not grow the source*).
 
 | Phase | Decisions it owns | Primary policy/guards |
 |---|---|---|
