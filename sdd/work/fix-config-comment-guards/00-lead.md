@@ -21,7 +21,7 @@ Bug fix. Roles: spec author (only for a clarification — #1616 "Done when" asks
 
 ## Maintainer answers
 
-(none yet)
+- Batch 1 (2026-11-08), #1616 RH2001: Q1 comment between two modifiers the fix reorders (`static /* a */ private int Value { get; }`) → **A**: no fix offered, diagnostic stays; only where the reorder moves a modifier across the comment (already-ordered `private /* a */ static` keeps its fix). Q2 blank line above a reordered property → **A**: modifiers on one line (`private static readonly int _value;`), blank line kept above.
 
 ## Decisions taken
 
@@ -44,5 +44,6 @@ Bug fix. Roles: spec author (only for a clarification — #1616 "Done when" asks
 ## Worklist / next step
 
 - Done: skeptic `01-skeptic.md` (36f11ca).
-- Now: output questions batch 1 (#1616 Q1 comment between reordered modifiers, Q2 blank line above) — waiting for the maintainer.
+- Done: output questions batch 1 answered (1A, 2A).
+- Now: spec author → `02-spec-author.md`.
 - Next: spec author (clarifications D5, D7 outcome, RH2001 spec after answers) → test implementer.
