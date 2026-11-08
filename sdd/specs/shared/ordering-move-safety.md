@@ -306,18 +306,27 @@ public class TestClass
 
 ### SHARED-ORDER-007 — Initializer execution order is kept
 
-A member reordering fix that can move fields, event fields, or properties with a runtime initializer MUST NOT offer a move when a member that the move moves has a runtime initializer and a member of the same context that the move crosses — both static or both instance — also has one. A `const` field has no runtime initializer. A member that code excluded by an `#if`, `#elif`, or `#else` branch declares counts like any other member, because a build that includes it runs its initializer (SHARED-FIX-003, *Build configurations*):
+A member reordering fix — RH7102, RH7103, or RH7109 — MUST NOT offer a move when a member that the move moves has a runtime initializer and a member of the same context that the move crosses — both static or both instance — also has one. A `const` field has no runtime initializer. A member that code excluded by an `#if`, `#elif`, or `#else` branch declares counts like any other member, because a build that includes it runs its initializer (SHARED-FIX-003, *Build configurations*):
 
 - a member of excluded code in the crossed span (SHARED-ORDER-003) is crossed;
 - a member of excluded code in the moved declaration's own leading trivia moves, because that trivia travels with the declaration (SHARED-ORDER-002), and it crosses every member the declaration crosses. The move is refused when such a member has a runtime initializer and a crossed member of its context has one, also when the moved declaration itself has none.
 
 The moved members are the moved declaration and the members of excluded code in its leading trivia; no other member moves.
 
-A fix that withholds a move because it would reorder the instance fields of a type whose field order sets its layout (SHARED-FIX-003, *Run time*) counts the instance fields the same way: an instance field of excluded code in the moved declaration's leading trivia moves across every instance field the move crosses, and an instance field of excluded code in the crossed span is crossed. A move of a static member therefore reorders instance fields when excluded code in its leading trivia declares one and the move crosses an instance field.
+A member reordering fix MUST NOT offer a move either when it would reorder the instance fields of a type whose field order sets its layout (SHARED-FIX-003, *Run time*), and it counts the instance fields the same way: an instance field of excluded code in the moved declaration's leading trivia moves across every instance field the move crosses, and an instance field of excluded code in the crossed span is crossed. A move of a static member therefore reorders instance fields when excluded code in its leading trivia declares one and the move crosses an instance field.
 
-RH7103 and RH7109 apply both guards, and RH7309 counts initializers and instance fields the same way.
+A member whose declaration an `#if`, `#elif`, or `#else` branch splits, so that the configurations compile different parts of it, counts with what any configuration gives it:
 
-Why: Initializers run in declaration order within their context, the static ones in the static constructor and the instance ones in each instance constructor. Swapping two of them can change observable values silently. Static and instance initializers run at different times, so crossing a member of the other context is safe. Excluded code is compiled by another build, and the code in front of the moved declaration goes where the declaration goes, so in that build its members are moved like the declaration itself; refusing only for the declaration's own initializer would let the fix reorder that build's initializers or fields.
+- it has a runtime initializer when one configuration gives it one, such as an `= Log("b")` that only a build with `DEBUG` compiles, also behind the accessor list of a property;
+- it counts in both contexts when one configuration declares it `static` and another does not;
+- it is an instance field when one configuration declares it as one;
+- a further member that excluded code inside its declaration declares counts like any member of excluded code, at that position.
+
+A split member whose parts give it no runtime initializer, context, or instance field that conflicts with a member it is moved across keeps the move.
+
+Every member reordering fix applies both guards. RH7102 moves only constants, which have no runtime initializer and take no place in the layout, but the excluded code in a constant's leading trivia moves with it. RH7309 counts initializers and instance fields the same way.
+
+Why: Initializers run in declaration order within their context, the static ones in the static constructor and the instance ones in each instance constructor. Swapping two of them can change observable values silently. Static and instance initializers run at different times, so crossing a member of the other context is safe. Excluded code is compiled by another build, and the code in front of the moved declaration goes where the declaration goes, so in that build its members are moved like the declaration itself; refusing only for the declaration's own initializer would let the fix reorder that build's initializers or fields. A build sees only the parts of a split member that it compiles, so an initializer or a `static` that one build adds to the member is that build's, and the member is moved or crossed with it.
 
 Example:
 
@@ -417,6 +426,103 @@ public struct S
 ```
 
 is reported by RH7103, and no code fix is offered: `_y` moves with `_s` in front of `_x`, so a build with `DEBUG` would lay out `_y` before `_x`.
+
+A member that an `#if` splits counts with what the excluded part gives it. Without `DEBUG` defined,
+
+```csharp
+public class C
+{
+    private int _a = Log("a");
+    private readonly int {|RH7109:_b|}
+#if DEBUG
+        = Log("b")
+#endif
+        ;
+
+    private static int Log(string name)
+    {
+        return 0;
+    }
+}
+```
+
+is reported by RH7109, and no code fix is offered: in a build with `DEBUG`, `_b` has an initializer, and moving it in front of `_a` would run `Log("b")` before `Log("a")`.
+
+A `static` that only one configuration compiles counts in both contexts. Without `DEBUG` defined,
+
+```csharp
+public struct S
+{
+    private int _a;
+    private
+#if !DEBUG
+        static
+#endif
+        int {|RH7103:_b|};
+}
+```
+
+is reported by RH7103, and no code fix is offered: in a build with `DEBUG`, `_b` is an instance field, and moving it in front of `_a` would lay out `_b` before `_a`.
+
+A member split across `#if DEBUG` and `#else` keeps the move when no configuration gives a moved member and a crossed member of one context an initializer each. Without `DEBUG` defined, RH7309 reports the `Fields` block, and its fix moves the block in front of `IDisposable`, which holds no initialized member:
+
+```csharp
+using System;
+
+public class C : IDisposable
+{
+    #region IDisposable
+
+    public void Dispose()
+    {
+    }
+
+    #endregion // IDisposable
+
+    {|RH7309:#region Fields|}
+
+#if DEBUG
+    private static readonly int X = Log("x");
+    private static readonly int Y =
+#else
+    private static readonly int Y =
+#endif
+        Log("y");
+
+    #endregion // Fields
+
+    private static int Log(string name) => 0;
+}
+```
+
+```csharp
+using System;
+
+public class C : IDisposable
+{
+    #region Fields
+
+#if DEBUG
+    private static readonly int X = Log("x");
+    private static readonly int Y =
+#else
+    private static readonly int Y =
+#endif
+        Log("y");
+
+    #endregion // Fields
+
+    #region IDisposable
+
+    public void Dispose()
+    {
+    }
+
+    #endregion // IDisposable
+
+    private static int Log(string name) => 0;
+}
+```
 
 Crossing an instance initializer is allowed:
 
