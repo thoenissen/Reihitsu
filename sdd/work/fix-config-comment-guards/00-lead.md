@@ -49,6 +49,7 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 | 18 | Implementer | Scope: two new public Core members (`ModifierOrderingUtilities.TryWriteModifiersInOrder`, `OrderingDeclarationUtilities.HasModifiersSplitByConditionalDirective`), `IsMoveSafe` no longer an extension point, new internal `OrderedMember` | Accept | They carry out decisions 4, 7, 16 within the components the run changes; no assembly is a public API | Internal API | 750237e |
 | 19 | Spec checker | RH7102-006 now names SHARED-ORDER-007, so RH7102's fix is withheld where it is offered today; change doc needed? | No change doc for RH7102: the withholding is demanded by unchanged SHARED-FIX-003 (maintainer triage on #1595 calls it a meaning change) | Bug fix against an unchanged requirement | Demanded by SHARED-FIX-003 | 2b21209 |
 | 20 | Repair 1 (spec author) | RH7102-001/RH7103-001 clarified in place (judged span = modifier list) rather than a new requirement; a conditional group ending right before the first modifier left out of the spec | Accept both | Tests already tag SHARED-DIAG-008; the left-out shape is an analyzer gap, filed with the existing modifier-judging candidate | Spec wording; no output changed | 938e1b2 |
+| 21 | Audit 2 | Findings #3 (repeats #1) and #4 (repeats #2) in the shared guard; architecture finding: one decision (what an `#if`-split declaration contributes per configuration) is read in pieces by span/trivia location and the other branches are guessed by token scans | Change the structure in this run: `OrderingDeclarationUtilities` reads each conditional group once with all its branches and decides the member's contribution per branch/configuration, replacing the piecewise readers and token guesses. Routed as a structural change (does not use a repair round): test implementer (tests for #3, #4a, #4b, #5 and the class matrix across piece boundaries) → implementer → cleaner → spec checker → auditor → validator | The class repeated in audit 2; repairing one member per round only finds the next. The change stays inside the one component the run changes | Withholds only where SHARED-FIX-003/SHARED-ORDER-007 demand; restores main's fixes where #4 withheld them | — |
 
 ## Follow-up candidates
 
@@ -69,4 +70,6 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 - Done: test implementer `10-test-implementer.md` (3390e51): 11 tests red as intended.
 - Done: implementer e190498, `12-implementer.md` (6ea120e).
 - Done: cleaner `13-cleaner.md` (375f80b) clean; spec checker `14-spec-checker.md` (6c73bb7) consistent.
-- Next: auditor on repair (audit 2) → `15-auditor.md` → validator.
+- Audit 2 at 3b3f696: findings, `15-auditor.md` (b18ad54). #1, #2, hints closed. #3, #4 repeat classes → architecture decision 21; #5 (medium, missing test for top-level-only `static`) goes with it.
+- Repair rounds used: 1 of 3 (the structural change does not count).
+- Next: test implementer → `16-test-implementer.md`; implementer → `17-implementer.md`; cleaner; spec checker; auditor (audit 3); validator.
