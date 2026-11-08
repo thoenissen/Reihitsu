@@ -1599,6 +1599,339 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
         await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
     }
 
+    /// <summary>
+    /// Verifying that a crossed field whose <c>static</c> modifier only a build with <c>DEBUG</c> compiles, in a conditional
+    /// group that opens in front of its first token, counts as a static initialized field of that build, so moving a static
+    /// initialized field across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenACrossedFieldIsStaticOnlyInAGroupInFrontOfItsFirstToken(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                              #if DEBUG
+                                  private static
+                              #else
+                                  private
+                              #endif
+                                  int _b = Log("b");
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a crossed field whose <c>static</c> modifier an <c>#if DEBUG</c> group in front of its first token adds
+    /// counts as a static initialized field of that build, so moving a static initialized field across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenACrossedFieldIsStaticOnlyThroughAWholeGroupInFrontOfItsFirstToken(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                              #if DEBUG
+                                  static
+                              #endif
+                                  private int _b = Log("b");
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart with the <c>#if</c> behind the crossed field's first modifier: the field is static in a
+    /// build with <c>DEBUG</c>, so moving a static initialized field across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenACrossedFieldIsStaticOnlyInAGroupBehindItsFirstModifier(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                                  private
+                              #if DEBUG
+                                  static
+                              #endif
+                                  int _b = Log("b");
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a crossed declaration which a group in front of its first token makes a constant in the active code
+    /// and a static readonly field in a build with <c>DEBUG</c> counts as a static initialized field of that build, so
+    /// moving a static initialized field that reads it across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenACrossedConstantIsAStaticReadonlyFieldOnlyInAGroupInFrontOfItsFirstToken(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                              #if DEBUG
+                                  private static readonly
+                              #else
+                                  private const
+                              #endif
+                                  int K = 1;
+                                  private static readonly int {|RH7109:_c|} = Log(K);
+
+                                  private static int Log(int value)
+                                  {
+                                      return value;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a moved field whose <c>static</c> modifier only a build with <c>DEBUG</c> compiles, in a conditional
+    /// group that opens in front of its first token, counts as a static initialized field of that build, so moving it
+    /// across a static initialized field is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenTheMovedFieldIsStaticOnlyInAGroupInFrontOfItsFirstToken(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a;
+                                  private static int _s = Log("s");
+                              #if DEBUG
+                                  private static readonly
+                              #else
+                                  private readonly
+                              #endif
+                                  int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a named attribute argument in excluded code in front of the moved field is no initializer: the field
+    /// has none in any build, so the fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAFieldWithAnExcludedAttributeWithANamedArgumentInItsLeadingTrivia(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              public class C
+                              {
+                                  private int _a = Log("a");
+                              #if DEBUG
+                                  [Obsolete("x", DiagnosticId = "y")]
+                              #endif
+                                  private readonly int {|RH7109:_b|};
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System;
+
+                                   public class C
+                                   {
+                                   #if DEBUG
+                                       [Obsolete("x", DiagnosticId = "y")]
+                                   #endif
+                                       private readonly int _b;
+                                       private int _a = Log("a");
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a named attribute argument in excluded code behind an active attribute of the moved field is no
+    /// initializer: the field has none in any build, so the fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAFieldWithAnExcludedAttributeWithANamedArgumentBehindAnActiveAttribute(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              public class C
+                              {
+                                  private int _a = Log("a");
+                                  [NonSerialized]
+                              #if DEBUG
+                                  [Obsolete("x", DiagnosticId = "y")]
+                              #endif
+                                  private readonly int {|RH7109:_b|};
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System;
+
+                                   public class C
+                                   {
+                                       [NonSerialized]
+                                   #if DEBUG
+                                       [Obsolete("x", DiagnosticId = "y")]
+                                   #endif
+                                       private readonly int _b;
+                                       private int _a = Log("a");
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart without a named argument: an excluded attribute in front of the moved field is no
+    /// initializer, so the fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAFieldWithAnExcludedAttributeInItsLeadingTrivia(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              public class C
+                              {
+                                  private int _a = Log("a");
+                              #if DEBUG
+                                  [Obsolete("x")]
+                              #endif
+                                  private readonly int {|RH7109:_b|};
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System;
+
+                                   public class C
+                                   {
+                                   #if DEBUG
+                                       [Obsolete("x")]
+                                   #endif
+                                       private readonly int _b;
+                                       private int _a = Log("a");
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods

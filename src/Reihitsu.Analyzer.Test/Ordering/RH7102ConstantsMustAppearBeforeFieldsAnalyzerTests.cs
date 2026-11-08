@@ -1103,6 +1103,45 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
                      });
     }
 
+    /// <summary>
+    /// Verifying that a crossed field whose <c>static</c> modifier only a build with <c>DEBUG</c> compiles, in a conditional
+    /// group that opens in front of its first token, counts as a static initialized field of that build, so moving a
+    /// constant that carries an excluded static initialized field across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7102-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenACrossedFieldIsStaticOnlyInAGroupInFrontOfItsFirstToken(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a;
+                              #if DEBUG
+                                  private static
+                              #else
+                                  private
+                              #endif
+                                  int _b = Log("b");
+                              #if DEBUG
+                                  private static int _x = Log("x");
+                              #endif
+                                  private const int {|RH7102:K|} = 1;
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods

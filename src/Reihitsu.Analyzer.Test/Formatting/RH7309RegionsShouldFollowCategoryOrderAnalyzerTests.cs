@@ -3169,6 +3169,56 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
         await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
     }
 
+    /// <summary>
+    /// Verifies that a field of the moved block whose <c>static</c> modifier only a build with <c>DEBUG</c> compiles, in a
+    /// conditional group that opens in front of its first token, counts as a static initialized field of that build: the
+    /// reorder would run <c>Log("b")</c> before <c>Log("a")</c> there, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7309-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenAFieldOfTheMovedBlockIsStaticOnlyInAGroupInFrontOfItsFirstToken(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  private static int _a = Log("a");
+
+                                  {|RH7309:#region Fields|}
+
+                              #if DEBUG
+                                  private static
+                              #else
+                                  private
+                              #endif
+                                  int _b = Log("b");
+
+                                  #endregion // Fields
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods

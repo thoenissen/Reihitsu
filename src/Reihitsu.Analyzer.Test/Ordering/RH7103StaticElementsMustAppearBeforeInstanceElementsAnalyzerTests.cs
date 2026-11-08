@@ -2045,6 +2045,250 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
         await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
     }
 
+    /// <summary>
+    /// Verifying that a crossed field whose <c>static</c> modifier only a build with <c>DEBUG</c> compiles, in a conditional
+    /// group that opens in front of its first token, counts as a static initialized field of that build, so moving a static
+    /// initialized field across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenACrossedFieldIsStaticOnlyInAGroupInFrontOfItsFirstToken(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a;
+                              #if DEBUG
+                                  private static
+                              #else
+                                  private
+                              #endif
+                                  int _b = Log("b");
+                                  private static int {|RH7103:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a named attribute argument in excluded code in front of a moved static method is no initializer, so
+    /// the fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task FixMovesAStaticMethodWithAnExcludedAttributeWithANamedArgument(string endOfLine)
+    {
+        const string source = """
+                              using System.Runtime.InteropServices;
+
+                              public class C
+                              {
+                                  private void Run()
+                                  {
+                                  }
+
+                                  private int _b = 2;
+
+                              #if DEBUG
+                                  [DllImport("a", EntryPoint = "b")]
+                              #else
+                                  [DllImport("a")]
+                              #endif
+                                  private static extern void {|RH7103:M|}();
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.Runtime.InteropServices;
+
+                                   public class C
+                                   {
+                                   #if DEBUG
+                                       [DllImport("a", EntryPoint = "b")]
+                                   #else
+                                       [DllImport("a")]
+                                   #endif
+                                       private static extern void M();
+
+                                       private void Run()
+                                       {
+                                       }
+
+                                       private int _b = 2;
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that an assignment in an excluded accessor of a moved static property is no initializer, so moving the
+    /// property across a static initialized field is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task FixMovesAStaticPropertyWithAnAssignmentInAnExcludedAccessor(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _v;
+
+                                  private int Instance { get; set; }
+
+                                  public static int Counter = Log("c");
+
+                                  private static int {|RH7103:Value|}
+                                  {
+                                      get
+                                      {
+                                          return _v;
+                                      }
+                              #if DEBUG
+                                      set
+                                      {
+                                          _v = value;
+                                      }
+                              #endif
+                                  }
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private static int _v;
+
+                                       private static int Value
+                                       {
+                                           get
+                                           {
+                                               return _v;
+                                           }
+                                   #if DEBUG
+                                           set
+                                           {
+                                               _v = value;
+                                           }
+                                   #endif
+                                       }
+
+                                       private int Instance { get; set; }
+
+                                       public static int Counter = Log("c");
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart without an assignment: an excluded accessor of a moved static property is no initializer, so
+    /// moving the property across a static initialized field is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task FixMovesAStaticPropertyWithAnExcludedAccessor(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _v;
+
+                                  private int Instance { get; set; }
+
+                                  public static int Counter = Log("c");
+
+                                  private static int {|RH7103:Value|}
+                                  {
+                                      get
+                                      {
+                                          return _v;
+                                      }
+                              #if DEBUG
+                                      set
+                                      {
+                                          Log("v");
+                                      }
+                              #endif
+                                  }
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private static int _v;
+
+                                       private static int Value
+                                       {
+                                           get
+                                           {
+                                               return _v;
+                                           }
+                                   #if DEBUG
+                                           set
+                                           {
+                                               Log("v");
+                                           }
+                                   #endif
+                                       }
+
+                                       private int Instance { get; set; }
+
+                                       public static int Counter = Log("c");
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods
