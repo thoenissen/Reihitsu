@@ -337,13 +337,15 @@ public static class OrderingDeclarationUtilities
     /// constructor), so reordering a member carrying an initializer past another member of the same
     /// context that also carries an initializer can silently change observable values. The members are ranked as
     /// <see cref="ChangesMemberOrder(TypeDeclarationSyntax, INamedTypeSymbol, MemberDeclarationSyntax, MemberDeclarationSyntax)"/>
-    /// ranks them, without the layout check that only the type's symbol decides, so no code fix asks this question:
+    /// ranks them, without the layout check that the type's symbol decides. The layout check still applies to a type
+    /// whose declaration holds a conditional directive in front of its body (<see cref="DeclarationHoldsConditionalDirective"/>),
+    /// so the move of an instance field in such a type counts as changed as well. No code fix asks this question:
     /// a code fix asks <see cref="ChangesMemberOrder(TypeDeclarationSyntax, INamedTypeSymbol, MemberDeclarationSyntax, MemberDeclarationSyntax)"/>
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
     /// <param name="memberToMove">Member to move</param>
     /// <param name="targetMember">Target member</param>
-    /// <returns><see langword="true"/> if the move would change initializer execution order</returns>
+    /// <returns><see langword="true"/> if the move would change initializer execution order, or the layout of a type whose declaration holds a conditional directive</returns>
     internal static bool ChangesInitializerExecutionOrder(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberToMove, MemberDeclarationSyntax targetMember)
     {
         return ChangesMemberOrder(typeDeclaration, false, memberToMove, targetMember);

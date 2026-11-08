@@ -185,7 +185,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
     /// <see cref="ModifierOrderingUtilities.TryWriteModifiersInOrder"/>: the leading trivia stays in front of the new first
     /// modifier, the modifiers stand on one line, a comment or directive between them keeps its place, and the
     /// conversion is withheld when a reordered modifier would cross one (RH2001-004, RH2001-009). A conditional
-    /// directive between the modifiers withholds the conversion in any case (RH2001-009). The field gets a new
+    /// directive between the modifiers or in front of the type withholds the conversion in any case (RH2001-009). The field gets a new
     /// name, a new <c>;</c>, and no accessor list, so the trivia of the property's name, of its accessor list, of its
     /// <c>;</c>, and in front of the initializer's <c>=</c> is not carried over. When that trivia holds a comment or a
     /// directive, the field would lose it, and the conversion is withheld (RH2001-007, SHARED-FIX-003)
@@ -236,20 +236,20 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
     }
 
     /// <summary>
-    /// Determines whether an <c>#if</c>, <c>#elif</c>, <c>#else</c>, or <c>#endif</c> stands between two modifiers or
-    /// between the last modifier and the type. Another build configuration can compile other modifiers there, so the
-    /// conversion is withheld whatever the branches hold (RH2001-009)
+    /// Determines whether an <c>#if</c>, <c>#elif</c>, <c>#else</c>, or <c>#endif</c> stands between two modifiers, or
+    /// in front of the type: behind the last modifier, or, for a property without modifiers, in front of the type as
+    /// its first token. Another build configuration can compile other modifiers there, so the conversion is withheld
+    /// whatever the branches hold (RH2001-009)
     /// </summary>
     /// <param name="node">Property declaration</param>
-    /// <returns><see langword="true"/> if such a directive stands between the modifiers</returns>
+    /// <returns><see langword="true"/> if such a directive stands between the modifiers or in front of the type</returns>
     private static bool HasConditionalDirectiveBetweenModifiers(PropertyDeclarationSyntax node)
     {
-        return node.Modifiers.Count > 0
-               && node.Modifiers
-                      .Skip(1)
-                      .SelectMany(modifier => modifier.LeadingTrivia)
-                      .Concat(node.Type.GetLeadingTrivia())
-                      .Any(trivia => trivia.Kind() is SyntaxKind.IfDirectiveTrivia or SyntaxKind.ElifDirectiveTrivia or SyntaxKind.ElseDirectiveTrivia or SyntaxKind.EndIfDirectiveTrivia);
+        return node.Modifiers
+                   .Skip(1)
+                   .SelectMany(modifier => modifier.LeadingTrivia)
+                   .Concat(node.Type.GetLeadingTrivia())
+                   .Any(trivia => trivia.Kind() is SyntaxKind.IfDirectiveTrivia or SyntaxKind.ElifDirectiveTrivia or SyntaxKind.ElseDirectiveTrivia or SyntaxKind.EndIfDirectiveTrivia);
     }
 
     /// <summary>
