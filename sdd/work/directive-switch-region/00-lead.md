@@ -39,4 +39,5 @@
 - Done: skeptic (02, commit 3372b14): #1385 proceed (+OQ1 second input), #1398 proceed, #1239 OQ2.
 - Asked OQ1/OQ2; answered 1A 2A.
 - Done: spec author round 2 (03, commit 1bee8f5): change doc `sdd/changes/2026-11/directive-before-switch-section.md` accepted by lead. Lane check behavior-change confirmed.
-- Next: test implementer.
+- Done: test implementer (04, commit eaf6799): 34 new/rewritten tests fail on spec differences only.
+- Next: implementer.
