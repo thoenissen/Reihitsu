@@ -2502,6 +2502,368 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies the specification example: a declaration with a comment behind the type, between a modifier and the type,
+    /// inside its attribute list, or behind the type on the type's line with the declarators on the next line is reported,
+    /// and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    public async Task SpecExampleCommentInThePartEveryFieldRepeatsWithholdsTheFix()
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  private int /* c */ _first, {|RH7101:_second|};
+
+                                  private /* c */ int _a, {|RH7101:_b|};
+
+                                  [Obsolete /* why */]
+                                  private int _c, {|RH7101:_d|};
+
+                                  private int // c
+                                      _e, {|RH7101:_f|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind the attribute list, on the attribute list's line, withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    public async Task CommentBehindTheAttributeListOnItsLineWithholdsTheFix()
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  [Obsolete] /* c */
+                                  private int _s, {|RH7101:_t|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a comment on its own line between the attribute list and the modifiers withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    public async Task CommentOnItsOwnLineBetweenTheAttributeListAndTheModifiersWithholdsTheFix()
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  [Obsolete]
+                                  // c
+                                  private int _e, {|RH7101:_f|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a comment between two modifiers withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    public async Task CommentBetweenTwoModifiersWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public /* c */ static int _q, {|RH7101:_r|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a comment inside a qualified type withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    public async Task CommentInsideTheTypeWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private System. /* c */ Int32 _o, {|RH7101:_p|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation-style comment between the attribute list and the modifiers, which is no documentation
+    /// comment of the declaration, withholds the fix as any comment in that slot does
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    public async Task DocumentationStyleCommentBehindTheAttributeListWithholdsTheFix()
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  [Obsolete]
+                                  /// <summary>m</summary>
+                                  public int U, {|RH7101:V|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that in the documentation mode None a documentation-style comment between the attribute list and the
+    /// modifiers is an ordinary comment in the part every field repeats, and withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    public async Task DocumentationStyleCommentBehindTheAttributeListWithholdsTheFixInDocumentationModeNone()
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  [Obsolete]
+                                  /// <summary>m</summary>
+                                  public int U, {|RH7101:V|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source, DocumentationMode.None);
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind the type withholds the fix for a declaration of a nested type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    public async Task CommentBehindTheTypeOfADeclarationOfANestedTypeWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  class D
+                                  {
+                                      private int /* c */ _a, {|RH7101:_b|};
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a comment inside the first declarator does not withhold the fix, and the comment
+    /// stays in the first field's initializer, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [Requirement("RH7101-004")]
+    public async Task SpecExampleCommentInsideTheFirstDeclaratorDoesNotWithholdTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _first = /* c */ 1, {|RH7101:_second|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _first = /* c */ 1;
+                                       private int _second;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_second");
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a comment on its own line in front of the first declarator's name does not
+    /// withhold the fix, and the comment stays in front of the first field's name only, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [Requirement("RH7101-004")]
+    public async Task SpecExampleCommentOnItsOwnLineInFrontOfTheFirstNameDoesNotWithholdTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int
+                                      /* c */ _first, {|RH7101:_second|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int
+                                       /* c */ _first;
+                                       private int
+                                       _second;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_second");
+    }
+
+    /// <summary>
+    /// Verifies that a <c>/** */</c> comment on its own line in front of the first declarator's name, which is no
+    /// documentation comment of the declaration, does not withhold the fix in the documentation mode Parse, and stays in
+    /// front of the first field's name only
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [Requirement("RH7101-004")]
+    public async Task DocumentationStyleCommentOnItsOwnLineInFrontOfTheFirstNameDoesNotWithholdTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int
+                                      /** c */ _first, {|RH7101:_second|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int
+
+                                       /** c */ _first;
+                                       private int
+                                       _second;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject));
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_second");
+    }
+
+    /// <summary>
+    /// Verifies that a comment in the declaration's leading trivia, on the declaration's line, does not withhold the fix,
+    /// under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [Requirement("RH7101-004")]
+    public async Task CommentInFrontOfTheDeclarationDoesNotWithholdTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /* c */ private int _first, {|RH7101:_second|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       /* c */ private int _first;
+                                       private int _second;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_second");
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind the first declarator, in front of the separating comma, does not withhold the fix,
+    /// and stays in front of the semicolon the comma becomes, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [Requirement("RH7101-004")]
+    public async Task CommentBehindTheFirstDeclaratorDoesNotWithholdTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _first /* c */, {|RH7101:_second|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _first /* c */;
+                                       private int _second;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_second");
+    }
+
+    /// <summary>
+    /// Verifies that Fix All splits a declaration without a comment in the part every field repeats and leaves a
+    /// declaration with one combined, which keeps its diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [Requirement("RH7101-004")]
+    public async Task FixAllSplitsOnlyTheDeclarationWithoutACommentInThePartEveryFieldRepeats()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int /* c */ _a, {|RH7101:_b|};
+                                  private int _c, {|RH7101:_d|};
+                                  private int _e, {|RH7101:_f|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int /* c */ _a, {|RH7101:_b|};
+                                       private int _c;
+                                       private int _d;
+                                       private int _e;
+                                       private int _f;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
     #endregion // Tests
 
     #region Methods
