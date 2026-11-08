@@ -31,6 +31,7 @@
 | 10 | Implementer | Disputed test `FixAllSplitsOnlyTheDeclarationWithoutACommentInThePartEveryFieldRepeats` fails on markup handling, not on asserted output | Route to a fresh test implementer to fix the test's markup configuration; expected output stays | Test-harness configuration is internal; the asserted output follows RH7101-007 | Asserted output unchanged | 0a31af4 |
 | 11 | Auditor 09 | Hint: stale comment in `CreateSplitField` | Route to the cleaner in repair round 1 | Comment the run's change made stale | Comment only | — |
 | 12 | Auditor 09 | Hints: wrapped declarator list continuation at member column; doc phase moving a doc-style comment that documents nothing onto its own line | Follow-up candidates (widen the existing line-break candidate; add the doc-phase one) | Pre-existing, outside both issues | Not changed in this run | — |
+| 13 | Repair 1, spec author | Example output keeps the doc phase's blank line and moved comment (`private int⏎⏎    /** c */ _first;`) | Accept; FMT-STRUCT-030 states the placement is the documentation-comment phase's | The maintainer chose B from exactly this output; the placement is a follow-up candidate | Covered by answer B | 4672256 |
 | 2 | Lane | Lane for both issues | Bug fix; spec author runs for a clarification only | FMT-STRUCT-024 already demands both guards; triage recorded the lane | Unchanged requirement decides the output | — |
 
 ## Follow-up candidates
@@ -49,4 +50,5 @@
 - Cleaner 07 (8472a86): clean, Release 0 warnings.
 - Spec checker 08 (b6a5f22): consistent, no findings.
 - Auditor 09 (b0ec5cf) audited 4ad21a7 against main 026fb64: 1 high finding (#963): `///`/`/** */` behind the type on its line (Parse/Diagnose) is owned by the first declarator's leading trivia, so the split goes ahead against FMT-STRUCT-030 bullet 2 / RH7101-007; literal repair is not idempotent. Output question 2 answered B.
+- Spec author 10 (4672256) done.
 - Repair round 1 worklist: spec author (10) amends FMT-STRUCT-030 / FMT-PIPE-031 / RH7101-007 per answer B; test implementer (11) pins the case on the split side (formatter + RH7101 fix offered); implementer (12) aligns the summaries of `CarriesCommentInRepeatedPart` and `SplitsFieldDeclaration` with the boundary; cleaner (13) fixes the stale `CreateSplitField` comment (decision 11); then spec checker, auditor on the repair only, validator.
