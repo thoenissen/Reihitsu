@@ -20,3 +20,4 @@ _None._ The behavior is `main`'s output for these inputs (audit 7 #23), decided 
 
 ## Follow-up candidates
 - `sdd/changes/2026-11/rh2001-modifier-reorder-trivia.md:14` still says "A conditional directive on the lines above the property keeps the fix (RH2001-004)" without the "has a modifier" qualifier. Outside this prompt's file scope; the lead may have it aligned.
+- Coordinator follow-up: `sdd/changes/2026-11/rh2001-modifier-reorder-trivia.md` line 14 aligned with RH2001-009: a conditional directive in front of the type of a property without a modifier (lines above included) withholds the fix, as on `main`; the RH2001-004 carve-out now names a property that has a modifier.
