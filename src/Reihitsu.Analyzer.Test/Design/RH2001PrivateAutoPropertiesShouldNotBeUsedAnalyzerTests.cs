@@ -2470,6 +2470,47 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
                      });
     }
 
+    /// <summary>
+    /// Verifies that SHARED-FIX-009 adds nothing to a fix that reads no excluded code and leaves every directive in place:
+    /// a conditional group that adds <c>static</c> between the last modifier and the type keeps the fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-009")]
+    public async Task VerifyFixIsOfferedForAConditionalModifierBetweenTheModifiersAndTheType(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private
+                              #if DEBUG
+                                      static
+                              #endif
+                                      int {|RH2001:Value|} { get; }
+
+                                  public int Get()
+                                  {
+                                      return Value;
+                                  }
+                              }
+                              """;
+
+        await Verify(WithEndOfLine(source, endOfLine));
+
+        var actions = await GetCodeFixActionsAsync(WithEndOfLine(source, endOfLine).Replace("{|RH2001:Value|}", "Value"),
+                                                   RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<PropertyDeclarationSyntax>()
+                                                               .Single()
+                                                               .Identifier
+                                                               .GetLocation());
+
+        Assert.HasCount(1, actions);
+    }
+
     #endregion // Tests
 
     #region Methods

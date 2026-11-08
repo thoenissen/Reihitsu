@@ -2765,17 +2765,16 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Verifies that a field of the moved block whose initializer only a build with <c>DEBUG</c> compiles counts as
-    /// initialized: the reorder would run it before the initializer of the other block in that build, so no code fix is
-    /// offered
+    /// Verifies that a conditional group that completes the initializer of a field of the moved block stands between two
+    /// tokens of the declaration, at no boundary of whole units, so no code fix is offered
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    [Requirement("RH7309-006")]
-    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
     public async Task NoCodeFixWhenAFieldOfTheMovedBlockHasAnInitializerOnlyInAnotherConfiguration(string endOfLine)
     {
         const string source = """
@@ -2814,17 +2813,16 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Verifies that a further member which excluded code inside a field of the moved block declares counts: a build with
-    /// <c>DEBUG</c> declares the initialized field <c>Z</c> there, so the reorder would run its initializer before the
-    /// initializer of the other block, and no code fix is offered
+    /// Verifies that a conditional group inside a field of the moved block whose excluded branch ends the field and begins
+    /// another declaration withholds the fix
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    [Requirement("RH7309-006")]
-    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
     public async Task NoCodeFixWhenExcludedCodeInsideAFieldOfTheMovedBlockDeclaresAnInitializedField(string endOfLine)
     {
         const string source = """
@@ -2864,16 +2862,16 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Verifies that a property initializer which only a build with <c>DEBUG</c> compiles behind the accessor list of a
-    /// property of the moved block counts, although the excluded text does not form a member on its own
+    /// Verifies that a conditional group behind the accessor list of a property of the moved block whose excluded branch
+    /// holds an initializer, which is neither whole members nor whole attribute lists, withholds the fix
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    [Requirement("RH7309-006")]
-    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
     public async Task NoCodeFixWhenAPropertyOfTheMovedBlockHasAnInitializerBehindItsAccessorListOnlyInAnotherConfiguration(string endOfLine)
     {
         const string source = """
@@ -2911,17 +2909,16 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Verifies the shared specification example: a field of a struct that only a build without <c>DEBUG</c> declares
-    /// <c>static</c> is an instance field in a build with <c>DEBUG</c>, so the reorder would change the layout of that
-    /// build, and no code fix is offered
+    /// Verifies that a conditional group between two modifiers of a field of the moved block stands at no boundary of whole
+    /// units, so no code fix is offered
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    [Requirement("RH7309-006")]
-    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
     public async Task NoCodeFixWhenAFieldOfTheMovedBlockIsAnInstanceFieldOfAStructOnlyInAnotherConfiguration(string endOfLine)
     {
         const string source = """
@@ -2997,16 +2994,16 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Verifies that a field between the region blocks, which the reorder crosses, counts with the initializer only a
-    /// build with <c>DEBUG</c> compiles, so the moved block's initialized field would run before it in that build
+    /// Verifies that a conditional group that completes the initializer of a field between the region blocks, which the
+    /// reorder crosses, withholds the fix
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    [Requirement("RH7309-006")]
-    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
     public async Task NoCodeFixWhenACrossedFieldBetweenTheBlocksHasAnInitializerOnlyInAnotherConfiguration(string endOfLine)
     {
         const string source = """
@@ -3045,17 +3042,16 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Verifies that excluded code at the start of the moved block that declares an initialized field counts, also when
-    /// it ends in the head of the active field: the reorder would run <c>Log("x")</c> before <c>Log("a")</c> in a build
-    /// with <c>DEBUG</c>, so no code fix is offered
+    /// Verifies that a conditional group at the start of the moved block whose branches begin a declaration that ends
+    /// behind the group withholds the fix
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    [Requirement("RH7309-006")]
-    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
     public async Task NoCodeFixWhenExcludedCodeThatEndsInTheHeadOfAFieldDeclaresAnInitializedField(string endOfLine)
     {
         const string source = """
@@ -3096,17 +3092,18 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Verifies the shared specification example: a member split across <c>#if DEBUG</c> and <c>#else</c> keeps the move
-    /// when no configuration gives a moved member and a crossed member of one context an initializer each
+    /// Verifies the SHARED-ORDER-008 example of a member that an <c>#if</c> splits inside a region block: the <c>#endif</c>
+    /// stands inside the declaration of <c>Y</c>, and the excluded branch begins a declaration that it does not end, so no
+    /// code fix is offered
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    [Requirement("RH7309-006")]
-    [Requirement("SHARED-ORDER-007")]
-    public async Task CodeFixMovesABlockWithAMemberSplitAcrossConfigurationsWhenNothingInitializedIsCrossed(string endOfLine)
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task NoCodeFixWhenAnIfSplitsAMemberInsideTheMovedBlock(string endOfLine)
     {
         const string source = """
                               using System;
@@ -3137,50 +3134,20 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
                               }
                               """;
 
-        const string fixedSource = """
-                                   using System;
-
-                                   public class C : IDisposable
-                                   {
-                                       #region Fields
-
-                                   #if DEBUG
-                                       private static readonly int X = Log("x");
-                                       private static readonly int Y =
-                                   #else
-                                       private static readonly int Y =
-                                   #endif
-                                           Log("y");
-
-                                       #endregion // Fields
-
-                                       #region IDisposable
-
-                                       public void Dispose()
-                                       {
-                                       }
-
-                                       #endregion // IDisposable
-
-                                       private static int Log(string name) => 0;
-                                   }
-                                   """;
-
-        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
     }
 
     /// <summary>
-    /// Verifies that a field of the moved block whose <c>static</c> modifier only a build with <c>DEBUG</c> compiles, in a
-    /// conditional group that opens in front of its first token, counts as a static initialized field of that build: the
-    /// reorder would run <c>Log("b")</c> before <c>Log("a")</c> there, so no code fix is offered
+    /// Verifies that a conditional group in front of a field of the moved block whose branches hold its modifiers, which
+    /// are neither whole members nor whole attribute lists, withholds the fix
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    [Requirement("RH7309-006")]
-    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
     public async Task NoCodeFixWhenAFieldOfTheMovedBlockIsStaticOnlyInAGroupInFrontOfItsFirstToken(string endOfLine)
     {
         const string source = """
@@ -3220,89 +3187,16 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Verifies that a field of the moved block whose every branch writes <c>static</c>, with another accessibility in each,
-    /// is a static field in every build, so moving the block of a struct across an instance field reorders no instance
-    /// field and the code fix is offered
+    /// Verifies that a conditional group in front of a field of the moved block of a struct whose branches write different
+    /// modifiers withholds the fix
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    [Requirement("RH7309-006")]
-    [Requirement("SHARED-ORDER-007")]
-    public async Task CodeFixMovesABlockOfAStructAcrossAnInstanceFieldWhenEveryBranchDeclaresItsFieldStatic(string endOfLine)
-    {
-        const string source = """
-                              using System;
-
-                              public struct S : IDisposable
-                              {
-                                  #region IDisposable
-
-                                  private int _a;
-
-                                  public void Dispose()
-                                  {
-                                  }
-
-                                  #endregion // IDisposable
-
-                                  {|RH7309:#region Fields|}
-
-                              #if DEBUG
-                                  internal static
-                              #else
-                                  private static
-                              #endif
-                                  int _b;
-
-                                  #endregion // Fields
-                              }
-                              """;
-
-        const string fixedSource = """
-                                   using System;
-
-                                   public struct S : IDisposable
-                                   {
-                                       #region Fields
-
-                                   #if DEBUG
-                                       internal static
-                                   #else
-                                       private static
-                                   #endif
-                                       int _b;
-
-                                       #endregion // Fields
-
-                                       #region IDisposable
-
-                                       private int _a;
-
-                                       public void Dispose()
-                                       {
-                                       }
-
-                                       #endregion // IDisposable
-                                   }
-                                   """;
-
-        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
-    }
-
-    /// <summary>
-    /// Verifies the counterpart where the excluded branch lacks <c>static</c>: the field of the moved block is an instance
-    /// field of a struct in that build, so the reorder would change its layout and no code fix is offered
-    /// </summary>
-    /// <param name="endOfLine">Line break of the document</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [DataRow("\n")]
-    [DataRow("\r\n")]
-    [Requirement("RH7309-006")]
-    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
     public async Task NoCodeFixWhenAFieldOfTheMovedBlockOfAStructLacksStaticOnlyInAnExcludedBranch(string endOfLine)
     {
         const string source = """
@@ -3337,9 +3231,9 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Verifies that an accessor list whose conditional group chooses an auto-accessor in one build and a bodied accessor in
-    /// the other gives the property a backing field in the build with the auto-accessor: moving the block of a struct
-    /// across it would reorder the instance fields of that build, so no code fix is offered
+    /// Verifies that a property of a struct whose group of whole accessors holds an accessor without a body in one branch
+    /// counts as declaring a backing field: moving the block of a struct across it would reorder the instance fields of
+    /// that build, so no code fix is offered
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -3384,9 +3278,9 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Verifies the counterpart of an accessor list split by a conditional group: when every branch declares a bodied
-    /// accessor, no build gives the property a backing field, so moving the block of a struct across it reorders no
-    /// instance field and the code fix is offered
+    /// Verifies the counterpart of a group of whole accessors: when every branch declares a bodied accessor, the property
+    /// declares no backing field, so moving the block of a struct across it reorders no instance field and the code fix is
+    /// offered
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -3454,6 +3348,176 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
                                        }
 
                                        #endregion // IDisposable
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the SHARED-ORDER-008 example of the <c>field</c> clause for a region reorder: without <c>TRACE</c> defined,
+    /// a build with <c>TRACE</c> gives <c>Value</c> a backing field, and the reorder would put <c>_x</c> in front of it, so
+    /// no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task NoCodeFixWhenAGroupInAnAccessorBodyOfAStructUsesTheFieldKeyword(string endOfLine)
+    {
+        const string source = """
+                              public struct S : System.IComparable
+                              {
+                                  #region IComparable
+
+                                  public int Value
+                                  {
+                                      get
+                                      {
+                              #if TRACE
+                                          return field;
+                              #else
+                                          return 0;
+                              #endif
+                                      }
+                                  }
+
+                                  public int CompareTo(object obj)
+                                  {
+                                      return 0;
+                                  }
+
+                                  #endregion // IComparable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private int _x;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the SHARED-ORDER-007 example of a conditional accessor without a body: in a build with <c>DEBUG</c>,
+    /// <c>Value</c> is an auto-property whose backing field the reorder would put behind <c>_x</c>, so no code fix is
+    /// offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7309-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenAConditionalAccessorWithoutABodyGivesAPropertyOfAStructABackingField(string endOfLine)
+    {
+        const string source = """
+                              public struct S : System.IComparable
+                              {
+                                  #region IComparable
+
+                                  public int Value
+                                  {
+                              #if DEBUG
+                                      get;
+                              #else
+                                      get => 0;
+                              #endif
+                                  }
+
+                                  public int CompareTo(object obj)
+                                  {
+                                      return 0;
+                                  }
+
+                                  #endregion // IComparable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private int _x;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the counterpart of the SHARED-ORDER-007 example: with <c>get => 0;</c> and <c>set { }</c> inside <c>
+    /// #if
+    /// DEBUG
+    /// </c>, no accessor lacks a body, no build gives <c>Value</c> a backing field, and the fix moves the
+    /// <c>Fields</c> block in front of the <c>IComparable</c> block
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7309-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task CodeFixMovesABlockOfAStructAcrossAPropertyWhoseConditionalAccessorHasABody(string endOfLine)
+    {
+        const string source = """
+                              public struct S : System.IComparable
+                              {
+                                  #region IComparable
+
+                                  public int Value
+                                  {
+                                      get => 0;
+                              #if DEBUG
+                                      set { }
+                              #endif
+                                  }
+
+                                  public int CompareTo(object obj)
+                                  {
+                                      return 0;
+                                  }
+
+                                  #endregion // IComparable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private int _x;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public struct S : System.IComparable
+                                   {
+                                       #region Fields
+
+                                       private int _x;
+
+                                       #endregion // Fields
+
+                                       #region IComparable
+
+                                       public int Value
+                                       {
+                                           get => 0;
+                                   #if DEBUG
+                                           set { }
+                                   #endif
+                                       }
+
+                                       public int CompareTo(object obj)
+                                       {
+                                           return 0;
+                                       }
+
+                                       #endregion // IComparable
                                    }
                                    """;
 

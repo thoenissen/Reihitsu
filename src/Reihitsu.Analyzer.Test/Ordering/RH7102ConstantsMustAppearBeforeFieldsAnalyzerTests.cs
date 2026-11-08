@@ -943,9 +943,8 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
     }
 
     /// <summary>
-    /// Verifying that a crossed declaration which an <c>#if</c> splits counts with what the excluded part gives it:
-    /// with <c>DEBUG</c> defined, <c>J</c> is an initialized instance field, so the initialized field of excluded code
-    /// in front of the constant would move across it, and no code fix is offered
+    /// Verifying that a crossed declaration whose modifiers an <c>#if</c> splits into <c>readonly</c> and <c>const</c>
+    /// withholds the move of the constant: the group stands between two modifiers, at no boundary of whole units
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -953,7 +952,7 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
     [DataRow("\n")]
     [DataRow("\r\n")]
     [Requirement("RH7102-006")]
-    [Requirement("SHARED-ORDER-007")]
+    [Requirement("SHARED-ORDER-008")]
     public async Task NoCodeFixWhenTheMoveCrossesADeclarationThatIsConstOnlyInSomeConfigurations(string endOfLine)
     {
         const string source = """
@@ -1104,9 +1103,8 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
     }
 
     /// <summary>
-    /// Verifying that a crossed field whose <c>static</c> modifier only a build with <c>DEBUG</c> compiles, in a conditional
-    /// group that opens in front of its first token, counts as a static initialized field of that build, so moving a
-    /// constant that carries an excluded static initialized field across it is withheld
+    /// Verifying that a conditional group in front of a crossed field's first token whose branches hold its modifiers,
+    /// which are neither whole members nor whole attribute lists, withholds the move of the constant
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1114,7 +1112,7 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
     [DataRow("\n")]
     [DataRow("\r\n")]
     [Requirement("RH7102-006")]
-    [Requirement("SHARED-ORDER-007")]
+    [Requirement("SHARED-ORDER-008")]
     public async Task NoCodeFixWhenACrossedFieldIsStaticOnlyInAGroupInFrontOfItsFirstToken(string endOfLine)
     {
         const string source = """
