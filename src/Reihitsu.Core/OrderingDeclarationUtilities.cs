@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Core.Enumerations;
 
@@ -150,6 +151,27 @@ public static class OrderingDeclarationUtilities
     }
 
     /// <summary>
+    /// Determines whether a conditional directive — <c>#if</c>, <c>#elif</c>, <c>#else</c>, or <c>#endif</c> — or code
+    /// that such a directive excludes lies inside the declaration's modifier list or between its last modifier and the
+    /// token behind it, so that another build configuration compiles other modifiers (SHARED-DIAG-008)
+    /// </summary>
+    /// <param name="memberDeclaration">Declaration</param>
+    /// <returns><see langword="true"/> if a conditional directive splits the modifiers</returns>
+    public static bool HasModifiersSplitByConditionalDirective(MemberDeclarationSyntax memberDeclaration)
+    {
+        var modifiers = DeclarationModifierUtilities.GetModifiers(memberDeclaration);
+
+        if (modifiers.Count == 0)
+        {
+            return false;
+        }
+
+        var span = TextSpan.FromBounds(modifiers.First().SpanStart, modifiers.Last().GetNextToken().SpanStart);
+
+        return SyntaxTriviaUtilities.ContainsConditionalCompilationBoundary(memberDeclaration, span);
+    }
+
+    /// <summary>
     /// Gets the preferred diagnostic location for a declaration
     /// </summary>
     /// <param name="memberDeclaration">Declaration</param>
@@ -272,8 +294,8 @@ public static class OrderingDeclarationUtilities
     /// keeps the text in front of the target member, the moved member with its leading trivia, the text from the
     /// target member up to the moved member, and the text behind the moved member, each in itself, and puts the moved
     /// member in front of the target member's leading trivia. Code that an <c>#if</c> branch excludes in the moved
-    /// member's leading trivia therefore moves with it, and such code from the target member up to the moved member
-    /// is crossed
+    /// member's leading trivia or inside it therefore moves with it, and such code from the target member up to the
+    /// moved member is crossed
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
     /// <param name="typeSymbol">Symbol of the type, which decides whether the order of its instance fields sets its layout</param>
@@ -290,8 +312,9 @@ public static class OrderingDeclarationUtilities
     /// their order is behavior: two members of one context — both static or both instance — that each have a runtime
     /// initializer (SHARED-ORDER-007), or two instance fields of a type whose field order sets its layout, which the
     /// type's symbol decides. Members in code that an <c>#if</c> branch excludes count as well, at the position of
-    /// that code, because another build configuration compiles them. The reorder is given as the rank, after the
-    /// reorder, of the part of the body that holds a position; code within one part keeps its order
+    /// that code, because another build configuration compiles them, and a member whose declaration a conditional
+    /// directive splits counts with what any configuration gives it (SHARED-FIX-003). The reorder is given as the
+    /// rank, after the reorder, of the part of the body that holds a position; code within one part keeps its order
     /// </summary>
     /// <param name="typeDeclaration">Type declaration whose body is reordered</param>
     /// <param name="typeSymbol">Symbol of the type, which decides whether the order of its instance fields sets its layout</param>
@@ -380,14 +403,11 @@ public static class OrderingDeclarationUtilities
     /// <returns><see langword="true"/> if the reorder changes initializer execution order or the layout</returns>
     private static bool ChangesMemberOrder(TypeDeclarationSyntax typeDeclaration, bool fieldOrderSetsLayout, Func<int, int> getNewRank)
     {
-        var members = typeDeclaration.Members
-                                     .Select(member => (Position: member.SpanStart, Member: member))
-                                     .Concat(GetMembersOfDisabledText(typeDeclaration))
-                                     .ToList();
+        var members = GetOrderedMembers(typeDeclaration).ToList();
 
-        bool ChangesOrder(Func<MemberDeclarationSyntax, bool> isOrdered)
+        bool ChangesOrder(Func<OrderedMember, bool> isOrdered)
         {
-            var writtenOrder = members.Where(member => isOrdered(member.Member))
+            var writtenOrder = members.Where(isOrdered)
                                       .Select(member => member.Position)
                                       .OrderBy(position => position)
                                       .ToList();
@@ -397,9 +417,181 @@ public static class OrderingDeclarationUtilities
             return writtenOrder.SequenceEqual(newOrder) == false;
         }
 
-        return ChangesOrder(member => HasInitializer(member) && IsStatic(member))
-               || ChangesOrder(member => HasInitializer(member) && IsStatic(member) == false)
-               || (fieldOrderSetsLayout && ChangesOrder(IsLayoutField));
+        return ChangesOrder(member => member.HasStaticInitializer)
+               || ChangesOrder(member => member.HasInstanceInitializer)
+               || (fieldOrderSetsLayout && ChangesOrder(member => member.IsLayoutField));
+    }
+
+    /// <summary>
+    /// Gets what every member of the type's body, in any build configuration, contributes to the order of the
+    /// initializers and of the layout fields, with its position: the members of the active code, the members of code
+    /// that an <c>#if</c> branch excludes outside every member, and the further members that such code declares
+    /// inside a member whose declaration a conditional directive splits
+    /// </summary>
+    /// <param name="typeDeclaration">Type declaration</param>
+    /// <returns>The ordered members</returns>
+    private static IEnumerable<OrderedMember> GetOrderedMembers(TypeDeclarationSyntax typeDeclaration)
+    {
+        foreach (var member in typeDeclaration.Members)
+        {
+            foreach (var orderedMember in GetOrderedMembersOfDeclaration(member))
+            {
+                yield return orderedMember;
+            }
+        }
+
+        foreach (var orderedMember in GetOrderedMembersOfDisabledText(typeDeclaration))
+        {
+            yield return orderedMember;
+        }
+    }
+
+    /// <summary>
+    /// Gets what a member of the active code contributes to the order of the initializers and of the layout fields.
+    /// A field, event field, or property whose declaration a conditional directive splits counts with what any build
+    /// configuration gives it: a runtime initializer when one configuration gives it one, both contexts when one
+    /// configuration declares it <c>static</c> and another does not, and an instance field when one configuration
+    /// declares it as one. Further members that excluded code inside its declaration declares count at the position
+    /// of that code
+    /// </summary>
+    /// <param name="memberDeclaration">Member of the active code</param>
+    /// <returns>The ordered members</returns>
+    private static IEnumerable<OrderedMember> GetOrderedMembersOfDeclaration(MemberDeclarationSyntax memberDeclaration)
+    {
+        if (memberDeclaration is not (FieldDeclarationSyntax or EventFieldDeclarationSyntax or PropertyDeclarationSyntax))
+        {
+            yield return CreateOrderedMember(memberDeclaration.SpanStart, memberDeclaration);
+
+            yield break;
+        }
+
+        var conditionalTrivia = GetConditionalTriviaOfDeclaration(memberDeclaration);
+
+        if (conditionalTrivia.Count == 0)
+        {
+            yield return CreateOrderedMember(memberDeclaration.SpanStart, memberDeclaration);
+
+            yield break;
+        }
+
+        var conditionalSpans = GetConditionalSpans(memberDeclaration.Span, conditionalTrivia);
+        var modifiers = DeclarationModifierUtilities.GetModifiers(memberDeclaration);
+        var staticModifiers = modifiers.Where(modifier => modifier.IsKind(SyntaxKind.StaticKeyword)).ToList();
+        var constModifiers = modifiers.Where(modifier => modifier.IsKind(SyntaxKind.ConstKeyword)).ToList();
+
+        var isStaticInAnyConfiguration = staticModifiers.Count > 0;
+        var isInstanceInAnyConfiguration = staticModifiers.Count == 0 || staticModifiers.TrueForAll(modifier => conditionalSpans.Any(span => span.Contains(modifier.SpanStart)));
+        var isNonConstantInAnyConfiguration = constModifiers.Count == 0 || constModifiers.TrueForAll(modifier => conditionalSpans.Any(span => span.Contains(modifier.SpanStart)));
+        var hasInitializerInAnyConfiguration = HasInitializerSyntax(memberDeclaration);
+        var options = memberDeclaration.SyntaxTree.Options as CSharpParseOptions;
+
+        foreach (var disabledText in conditionalTrivia.Where(trivia => trivia.IsKind(SyntaxKind.DisabledTextTrivia)))
+        {
+            var text = disabledText.ToFullString();
+            var tokens = SyntaxFactory.ParseTokens(text, options: options).ToList();
+            var headTokens = tokens.TakeWhile(token => token.IsKind(SyntaxKind.SemicolonToken) == false).ToList();
+
+            isStaticInAnyConfiguration |= headTokens.Any(token => token.IsKind(SyntaxKind.StaticKeyword));
+            hasInitializerInAnyConfiguration |= headTokens.Any(token => token.IsKind(SyntaxKind.EqualsToken));
+
+            if (headTokens.Count < tokens.Count
+                && tokens[headTokens.Count].IsKind(SyntaxKind.SemicolonToken))
+            {
+                foreach (var orderedMember in GetOrderedMembersOfText(text.Substring(tokens[headTokens.Count].Span.End), disabledText.SpanStart, options))
+                {
+                    yield return orderedMember;
+                }
+            }
+        }
+
+        var hasInitializer = hasInitializerInAnyConfiguration && isNonConstantInAnyConfiguration;
+
+        yield return new OrderedMember(memberDeclaration.SpanStart,
+                                       hasInitializer && isStaticInAnyConfiguration,
+                                       hasInitializer && isInstanceInAnyConfiguration,
+                                       isInstanceInAnyConfiguration && isNonConstantInAnyConfiguration && DeclaresLayoutField(memberDeclaration));
+    }
+
+    /// <summary>
+    /// Gets the conditional directives and the code they exclude inside the declaration of a field, event field, or
+    /// property, apart from those inside an accessor body, an expression body, or a lambda body of an initializer,
+    /// which hold statements and expressions rather than a part of the declaration
+    /// </summary>
+    /// <param name="memberDeclaration">Member declaration</param>
+    /// <returns>The conditional trivia, in source order</returns>
+    private static List<SyntaxTrivia> GetConditionalTriviaOfDeclaration(MemberDeclarationSyntax memberDeclaration)
+    {
+        var span = memberDeclaration.Span;
+
+        return memberDeclaration.DescendantTokens()
+                                .Where(token => token.Parent?.AncestorsAndSelf()
+                                                            .TakeWhile(node => node != memberDeclaration)
+                                                            .Any(node => node is BlockSyntax or ArrowExpressionClauseSyntax) != true)
+                                .SelectMany(token => token.LeadingTrivia.Concat(token.TrailingTrivia))
+                                .Where(trivia => span.Contains(trivia.SpanStart)
+                                                 && (trivia.IsKind(SyntaxKind.DisabledTextTrivia)
+                                                     || trivia.IsKind(SyntaxKind.IfDirectiveTrivia)
+                                                     || trivia.IsKind(SyntaxKind.ElifDirectiveTrivia)
+                                                     || trivia.IsKind(SyntaxKind.ElseDirectiveTrivia)
+                                                     || trivia.IsKind(SyntaxKind.EndIfDirectiveTrivia)))
+                                .ToList();
+    }
+
+    /// <summary>
+    /// Gets the parts of a declaration's span that only some build configurations compile: the code between a
+    /// conditional directive inside the span and the directive that ends its branch. A branch whose <c>#if</c> lies in
+    /// front of the span is conditional from the start of the span, and a branch whose <c>#endif</c> lies behind it is
+    /// conditional up to its end
+    /// </summary>
+    /// <param name="span">Span of the declaration</param>
+    /// <param name="conditionalTrivia">Conditional directives and excluded code inside the span, in source order</param>
+    /// <returns>The conditional parts of the span</returns>
+    private static List<TextSpan> GetConditionalSpans(TextSpan span, List<SyntaxTrivia> conditionalTrivia)
+    {
+        var conditionalSpans = new List<TextSpan>();
+        var branchStarts = new Stack<int>();
+
+        foreach (var trivia in conditionalTrivia)
+        {
+            if (trivia.IsKind(SyntaxKind.IfDirectiveTrivia))
+            {
+                branchStarts.Push(trivia.Span.End);
+            }
+            else if (trivia.IsKind(SyntaxKind.ElifDirectiveTrivia)
+                     || trivia.IsKind(SyntaxKind.ElseDirectiveTrivia))
+            {
+                if (branchStarts.Count == 0)
+                {
+                    conditionalSpans.Add(TextSpan.FromBounds(span.Start, trivia.SpanStart));
+                    branchStarts.Push(trivia.Span.End);
+                }
+            }
+            else if (trivia.IsKind(SyntaxKind.EndIfDirectiveTrivia))
+            {
+                conditionalSpans.Add(TextSpan.FromBounds(branchStarts.Count > 0 ? branchStarts.Pop() : span.Start, trivia.SpanStart));
+            }
+        }
+
+        while (branchStarts.Count > 0)
+        {
+            conditionalSpans.Add(TextSpan.FromBounds(branchStarts.Pop(), span.End));
+        }
+
+        return conditionalSpans;
+    }
+
+    /// <summary>
+    /// Gets what a member contributes to the order of the initializers and of the layout fields, read from its syntax
+    /// </summary>
+    /// <param name="position">Position the member counts at</param>
+    /// <param name="memberDeclaration">Member declaration</param>
+    /// <returns>The ordered member</returns>
+    private static OrderedMember CreateOrderedMember(int position, MemberDeclarationSyntax memberDeclaration)
+    {
+        var hasInitializer = HasInitializer(memberDeclaration);
+        var isStatic = IsStatic(memberDeclaration);
+
+        return new OrderedMember(position, hasInitializer && isStatic, hasInitializer && isStatic == false, IsLayoutField(memberDeclaration));
     }
 
     /// <summary>
@@ -443,11 +635,19 @@ public static class OrderingDeclarationUtilities
     /// <returns><see langword="true"/> if the declaration declares an instance field</returns>
     private static bool IsLayoutField(MemberDeclarationSyntax memberDeclaration)
     {
-        if (IsStatic(memberDeclaration) || IsConst(memberDeclaration))
-        {
-            return false;
-        }
+        return IsStatic(memberDeclaration) == false
+               && IsConst(memberDeclaration) == false
+               && DeclaresLayoutField(memberDeclaration);
+    }
 
+    /// <summary>
+    /// Determines whether the declaration declares a field when it is neither static nor constant: a field, a
+    /// field-like event, or a property that the compiler gives a backing field
+    /// </summary>
+    /// <param name="memberDeclaration">Declaration</param>
+    /// <returns><see langword="true"/> if the declaration declares a field</returns>
+    private static bool DeclaresLayoutField(MemberDeclarationSyntax memberDeclaration)
+    {
         return memberDeclaration switch
                {
                    FieldDeclarationSyntax => true,
@@ -464,10 +664,21 @@ public static class OrderingDeclarationUtilities
     /// <returns><see langword="true"/> if the declaration carries a runtime initializer</returns>
     private static bool HasInitializer(MemberDeclarationSyntax memberDeclaration)
     {
+        return IsConst(memberDeclaration) == false
+               && HasInitializerSyntax(memberDeclaration);
+    }
+
+    /// <summary>
+    /// Determines whether the declaration of a field, event field, or property carries an initializer, which is a
+    /// runtime initializer unless the declaration is constant
+    /// </summary>
+    /// <param name="memberDeclaration">Declaration</param>
+    /// <returns><see langword="true"/> if the declaration carries an initializer</returns>
+    private static bool HasInitializerSyntax(MemberDeclarationSyntax memberDeclaration)
+    {
         return memberDeclaration switch
                {
-                   FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) == false
-                                                              && fieldDeclaration.Declaration.Variables.Any(variable => variable.Initializer != null),
+                   FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Declaration.Variables.Any(variable => variable.Initializer != null),
                    EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Declaration.Variables.Any(variable => variable.Initializer != null),
                    PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Initializer != null,
                    _ => false,
@@ -511,12 +722,12 @@ public static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Gets the members declared in code that an <c>#if</c> branch excludes in the type's body, outside every member,
-    /// with the position of that code
+    /// Gets what the code that an <c>#if</c> branch excludes in the type's body, outside every member, contributes to
+    /// the order of the initializers and of the layout fields, at the position of that code
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
-    /// <returns>The members of the excluded code</returns>
-    private static IEnumerable<(int Position, MemberDeclarationSyntax Member)> GetMembersOfDisabledText(TypeDeclarationSyntax typeDeclaration)
+    /// <returns>The ordered members of the excluded code</returns>
+    private static IEnumerable<OrderedMember> GetOrderedMembersOfDisabledText(TypeDeclarationSyntax typeDeclaration)
     {
         var bodyStart = typeDeclaration.OpenBraceToken.Span.End;
         var bodyEnd = typeDeclaration.CloseBraceToken.SpanStart;
@@ -532,20 +743,50 @@ public static class OrderingDeclarationUtilities
                 continue;
             }
 
-            var parsedType = SyntaxFactory.ParseCompilationUnit($"class C\n{{\n{trivia.ToFullString()}\n}}", options: options)
-                                          .Members
-                                          .OfType<TypeDeclarationSyntax>()
-                                          .FirstOrDefault();
-
-            if (parsedType == null)
+            foreach (var orderedMember in GetOrderedMembersOfText(trivia.ToFullString(), trivia.SpanStart, options))
             {
-                continue;
+                yield return orderedMember;
             }
+        }
+    }
 
-            foreach (var member in parsedType.Members)
-            {
-                yield return (trivia.SpanStart, member);
-            }
+    /// <summary>
+    /// Gets what excluded code, parsed as the body of a type, contributes to the order of the initializers and of the
+    /// layout fields, at the position of that code. Each member it declares counts as written. Text that parses as no
+    /// complete member, such as the initializer of a property behind its accessor list, counts as a runtime
+    /// initializer of both contexts when it holds an <c>=</c>, because it can complete a member of either
+    /// </summary>
+    /// <param name="text">Excluded code</param>
+    /// <param name="position">Position of the excluded code</param>
+    /// <param name="options">Parse options of the document</param>
+    /// <returns>The ordered members of the excluded code</returns>
+    private static IEnumerable<OrderedMember> GetOrderedMembersOfText(string text, int position, CSharpParseOptions options)
+    {
+        var parsedType = SyntaxFactory.ParseCompilationUnit($"class C\n{{\n{text}\n}}", options: options)
+                                      .Members
+                                      .OfType<TypeDeclarationSyntax>()
+                                      .FirstOrDefault();
+
+        if (parsedType == null)
+        {
+            yield break;
+        }
+
+        foreach (var member in parsedType.Members)
+        {
+            yield return CreateOrderedMember(position, member);
+        }
+
+        var unparsedTokens = parsedType.Members
+                                       .OfType<IncompleteMemberSyntax>()
+                                       .SelectMany(member => member.DescendantTokens())
+                                       .Concat(parsedType.DescendantTrivia(descendIntoTrivia: true)
+                                                         .Where(trivia => trivia.IsKind(SyntaxKind.SkippedTokensTrivia))
+                                                         .SelectMany(trivia => trivia.GetStructure()?.DescendantTokens() ?? []));
+
+        if (unparsedTokens.Any(token => token.IsKind(SyntaxKind.EqualsToken)))
+        {
+            yield return new OrderedMember(position, true, true, false);
         }
     }
 

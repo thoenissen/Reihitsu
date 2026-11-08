@@ -58,30 +58,6 @@ public abstract class ModifierOrderingCodeFixProviderBase : CodeFixProvider
     protected abstract SyntaxTokenList GetUpdatedModifiers(SyntaxTokenList modifiers);
 
     /// <summary>
-    /// Normalizes modifier spacing after reordering
-    /// </summary>
-    /// <param name="updatedModifiers">Updated modifiers</param>
-    /// <param name="originalModifiers">Original modifiers</param>
-    /// <returns>The normalized modifiers</returns>
-    private static SyntaxTokenList NormalizeModifierTrivia(SyntaxTokenList updatedModifiers, SyntaxTokenList originalModifiers)
-    {
-        if (updatedModifiers.Count == 0)
-        {
-            return updatedModifiers;
-        }
-
-        var firstLeadingTrivia = originalModifiers[0].LeadingTrivia;
-        var normalizedModifiers = new List<SyntaxToken>(updatedModifiers.Count);
-
-        for (var modifierIndex = 0; modifierIndex < updatedModifiers.Count; modifierIndex++)
-        {
-            normalizedModifiers.Add(SyntaxFactory.Token(modifierIndex == 0 ? firstLeadingTrivia : default, (SyntaxKind)updatedModifiers[modifierIndex].RawKind, [SyntaxFactory.Space]));
-        }
-
-        return SyntaxFactory.TokenList(normalizedModifiers);
-    }
-
-    /// <summary>
     /// Determines whether reordering the modifiers would drop or relocate a comment or a preprocessor directive that
     /// sits between them or behind the last of them; only the leading trivia of the first modifier is preserved when
     /// the modifiers are rebuilt, so a comment or directive anywhere else among the modifiers would be silently
@@ -124,8 +100,18 @@ public abstract class ModifierOrderingCodeFixProviderBase : CodeFixProvider
         }
 
         var originalModifiers = DeclarationModifierUtilities.GetModifiers(memberDeclaration);
+
+        // The guard of RegisterCodeFixesAsync leaves no comment or directive between the modifiers or behind the last
+        // of them, so the rewrite writes each modifier with a single space behind it and leaves the token behind the
+        // modifiers as it is (SHARED-MODORDER-002)
+        if (originalModifiers.Count == 0
+            || ModifierOrderingUtilities.TryWriteModifiersInOrder(originalModifiers, originalModifiers[originalModifiers.Count - 1].GetNextToken(), GetUpdatedModifiers(originalModifiers), out var updatedModifiers, out _) == false)
+        {
+            return document;
+        }
+
         var formattingAnnotation = new SyntaxAnnotation();
-        var updatedDeclaration = DeclarationModifierUtilities.WithModifiers(memberDeclaration, NormalizeModifierTrivia(GetUpdatedModifiers(originalModifiers), originalModifiers))
+        var updatedDeclaration = DeclarationModifierUtilities.WithModifiers(memberDeclaration, updatedModifiers)
                                                              .WithAdditionalAnnotations(formattingAnnotation);
         var updatedRoot = root.ReplaceNode(memberDeclaration, updatedDeclaration);
         var updatedDocument = document.WithSyntaxRoot(updatedRoot);
