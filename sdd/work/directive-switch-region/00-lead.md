@@ -24,6 +24,7 @@
 | 4 | Answers | Does OQ1=A need a change doc? | Yes: it changes FMT-BLANK-006's intended behavior (sections added). Lane widens bug fix → behavior change; spec author and skeptic already ran; change doc records 1A in `Decisions`. OQ2=A is a reading of the existing FMT-REGION-007 → clarification, no change doc | sdd/README *When a change doc is required* | Visible changes are the maintainer's answers | — |
 | 5 | Answers | Second skeptic run on the change doc? | No — the doc only records the answered output; the skeptic already examined OQ1 and the spec diff | Saves a stage; nothing undecided | Answered | — |
 | 6 | Implementer | Disputed test `PhaseLineEndingOwnershipTests.LineBreaksAroundDirectivesAndCommentsAreTheDetectedLineEndingInEveryPhase` pins the blank line in front of `#endif` | Test is wrong: FMT-BLANK-016 (amended, maintainer-answered change doc) places it behind the last directive; fresh test implementer moves the blank line in `expected` only | The test checks line endings (FMT-PIPE-019), not placement; placement is decided by FMT-BLANK-016 | Covered by FMT-BLANK-016 and answer 1A | fbf26fe |
+| 7 | Post-audit | Doc fix on public `BlankLineEditor.EnsureBlankLineBeforeStatement` fails `--strict-docs` | Apply it as repair round 1 (cleaner → spec checker → auditor on repair only → validator) | A stale doc on a member whose behavior this PR changed is PR-introduced; process requires a round when the proof fails | XML doc of an internal-use member; no user surface | — |
 | 1 | Claim | Branch name | Use the session's designated branch `claude/nifty-hypatia-urch1j` instead of `claude/issues-1385-1398-1239-<slug>` | The session environment forbids pushing to any other branch | Branch names are internal | 32e14d4 |
 
 ## Follow-up candidates
@@ -46,4 +47,5 @@
 - Done: cleaner (07, 0f55234): clean.
 - Done: spec checker (08, 76bcafa): consistent, no findings.
 - Done: auditor (09): pass, text cleanup — doc comments in SwitchCaseBraceRewriter.cs and BlankLineEditor.cs.
-- Next: cleaner fixes comments; prove with `scripts/verify-text-only.sh --strict-docs --base 8fd6edf --head worktree`; then validator.
+- Done: cleaner (10, 46f5c7e): (a)/(b) text-only PASS; (c) fails strict-docs.
+- Repair round 1 (Decision 7): cleaner applies (c) → spec checker → auditor on repair → validator.
