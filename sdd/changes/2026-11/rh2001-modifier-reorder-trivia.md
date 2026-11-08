@@ -11,6 +11,7 @@
 - **The reorder is specified.** When the RH2001 fix adds `readonly` to a get-only property whose modifiers are not in RH7105's order, it writes the field's modifiers in that order, as RH7105 does (SHARED-MODORDER-002): the trivia in front of the property's first modifier stays once in front of the field's first modifier, each modifier is followed by one space, and the modifiers stay on one line (RH2001-004). A blank line above the property stays above the field.
 - **A comment or directive that a reordered modifier would cross withholds the fix** (RH2001-009). A comment or directive between modifiers that keep their order keeps its place, and the fix stays available.
 - **`readonly` goes behind a comment that stands at its place** (RH2001-009): between the modifiers RH7105 puts in front of it and those it puts behind it, or in front of the type when none follows it.
+- **`readonly` goes behind a conditional group of modifiers that stands at its place** (RH2001-009): when the group's branches hold only modifiers RH7105 puts in front of `readonly`, it is written behind the group's `#endif`, so it stands at its place in every build.
 
 ## Why
 
@@ -105,6 +106,46 @@ class C
 
 Unchanged: `private static /* b */ int Value { get; }` still becomes `private static /* b */ readonly int _value;`, and `private /* c */ unsafe string Value { get; }` still becomes `private /* c */ readonly unsafe string _value;`. Also unchanged: `private /* a */ static int Value { get; }` still becomes `private /* a */ static readonly int _value;`, and `private /* a */ new static int Value { get; }` still becomes `private /* a */ static new readonly int _value;`.
 
+A conditional group of modifiers at the place of `readonly`, measured with `scripts/apply-fix.sh` at `57acf0d` (`main`) and `e8b2a713`:
+
+```csharp
+public class C
+{
+    private
+#if DEBUG
+        static
+#endif
+        int Value { get; }
+}
+```
+
+Before (`main`):
+
+```csharp
+public class C
+{
+    private
+    readonly
+#if DEBUG
+        static
+#endif
+    int _value;
+}
+```
+
+After:
+
+```csharp
+public class C
+{
+    private
+#if DEBUG
+        static
+#endif
+    readonly int _value;
+}
+```
+
 ## Decisions
 
 ### A comment that a reordered modifier would cross withholds the fix
@@ -123,6 +164,10 @@ The maintainer's answer (2026-11-08, batch 2, option A). It keeps today's output
 
 The maintainer's answer (2026-11-08, question 2, option A). The line break came only from the blank line's trivia that the fix carried into the modifier list; the author wrote the modifiers on one line.
 
+### `readonly` goes behind a conditional group of modifiers at its place
+
+The lead's decision 36 under the maintainer's standing answer (recommended option). When the place of `readonly` lies directly behind a conditional group whose branches hold only modifiers that RH7105-001 puts in front of `readonly` (`static` above), `readonly` is written behind the group's `#endif` (RH2001-009). It then stands at its RH7105 place in every build — `private static readonly` with `DEBUG`, `private readonly` without — as batch 2's "`readonly` at its place" does for a comment. `main` writes it in front of the group, which puts it in front of `static` in the `DEBUG` build. A conditional group that holds a modifier RH7105 puts behind `readonly` stays outside RH2001-009.
+
 ## Alternatives considered
 
 - **Keep the comment next to the keyword it follows** (`private static /* a */ readonly int _value;`) — rejected by the maintainer's answer (option B).
@@ -131,3 +176,5 @@ The maintainer's answer (2026-11-08, question 2, option A). The line break came 
 - **Write `readonly` in front of the comment** (`private static readonly /* a */ int _value;`) — rejected by the maintainer's answer (batch 2, option B).
 - **Withhold the fix for a comment between the last modifier and the type when the fix reorders** — rejected by the maintainer's answer (batch 2, option C).
 - **Keep the line break below the blank line** — rejected by the maintainer's answer (option B).
+- **Write `readonly` in front of the conditional group** (`main`'s output) — rejected by decision 36: in the builds that define the group's symbol it stands in front of `static`, out of RH7105's order.
+- **Write `readonly` inside the conditional group's branch** — rejected: the field would be `readonly` only in the builds that include that branch.
