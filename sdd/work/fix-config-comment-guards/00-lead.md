@@ -48,6 +48,7 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 | 17 | Spec author (amendment) | Change doc `rh2001-modifier-reorder-trivia.md` | Accepted (status Accepted), after the spec-diff skeptic and the amendment | Both visible changes answered by the maintainer (batch 1 Q1, batch 2) | — | 2b21209 |
 | 18 | Implementer | Scope: two new public Core members (`ModifierOrderingUtilities.TryWriteModifiersInOrder`, `OrderingDeclarationUtilities.HasModifiersSplitByConditionalDirective`), `IsMoveSafe` no longer an extension point, new internal `OrderedMember` | Accept | They carry out decisions 4, 7, 16 within the components the run changes; no assembly is a public API | Internal API | 750237e |
 | 19 | Spec checker | RH7102-006 now names SHARED-ORDER-007, so RH7102's fix is withheld where it is offered today; change doc needed? | No change doc for RH7102: the withholding is demanded by unchanged SHARED-FIX-003 (maintainer triage on #1595 calls it a meaning change) | Bug fix against an unchanged requirement | Demanded by SHARED-FIX-003 | 2b21209 |
+| 20 | Repair 1 (spec author) | RH7102-001/RH7103-001 clarified in place (judged span = modifier list) rather than a new requirement; a conditional group ending right before the first modifier left out of the spec | Accept both | Tests already tag SHARED-DIAG-008; the left-out shape is an analyzer gap, filed with the existing modifier-judging candidate | Spec wording; no output changed | 938e1b2 |
 
 ## Follow-up candidates
 
@@ -55,7 +56,7 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 - Member-moving fixes (RH7102, RH7103, RH7109; `TypeMemberOrderingCodeFixProviderBase.cs:98-108`) format the whole type after the move: an unmoved expression-bodied method becomes a block body (SHARED-FIX-006); a line break inside the moved member is joined (SHARED-FIX-007 *Moved code*); the column of a moved continuation line after `#endif` changes (open reading of *Moved code*, carries an output question; related #953) (02-spec-author.md, 03-skeptic.md).
 - RH2001 analyzer with an `#if` between the property's modifiers (fixtures p, d): reported today; whether SHARED-DIAG-008 forbids the report is undecided for RH2001 (05-test-implementer.md).
 - RH7102: a `const` whose initializer (not its modifiers) holds `#if` — RH7102-001 excludes it from reporting; unchecked whether it is reported today (05-test-implementer.md).
-- Other modifier-judging analyzers (RH7105, RH7106, RH7109, and the non-constant field RH7102 compares against) may still report when `#if` splits the judged modifiers (SHARED-DIAG-008); unchecked (06-implementer.md).
+- Other modifier-judging analyzers (RH7105, RH7106, RH7109, and the non-constant field RH7102 compares against) may still report when `#if` splits the judged modifiers (SHARED-DIAG-008); unchecked (06-implementer.md). Includes a conditional group ending directly before the first modifier that switches accessibility (`#if X` / `protected` / `#endif` / `internal static void M()`) (11-spec-author.md).
 
 ## Worklist / next step
 
@@ -64,5 +65,5 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
   1. Finding #1 (high, same requirement, SHARED-ORDER-007): split whose excluded part lies in front of the declaration's first token is not counted → test implementer (failing rows from 09-auditor.md) → implementer.
   2. Finding #2 (high, PR-introduced): any excluded `=` counts as a runtime initializer, withholding correct fixes main offers → test implementer (counterparts that keep the fix) → implementer.
   3. Hint: per-call token walk without a directive check → implementer (same code, cheap).
-  4. Hint: RH7102.md and RH7103.md `Uses` lack SHARED-DIAG-008 → spec author.
+  4. Hint: RH7102.md and RH7103.md `Uses` lack SHARED-DIAG-008 → spec author. Done: `11-spec-author.md` (938e1b2).
 - Next: test implementer + spec author (parallel) → implementer → cleaner → spec checker → auditor (repair only) → validator.
