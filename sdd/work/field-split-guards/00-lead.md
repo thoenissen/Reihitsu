@@ -54,6 +54,6 @@
 - Auditor 09 (b0ec5cf) audited 4ad21a7 against main 026fb64: 1 high finding (#963): `///`/`/** */` behind the type on its line (Parse/Diagnose) is owned by the first declarator's leading trivia, so the split goes ahead against FMT-STRUCT-030 bullet 2 / RH7101-007; literal repair is not idempotent. Output question 2 answered B.
 - Spec author 10 (4672256) done. Test implementer 11 (7370231) done: split-side tests green, shown to fail under the literal-spec guard. Implementer 12 (9662f22): summaries only, text-only proven. Cleaner 13 (d093595): clean. Spec checker 14 (d1bb028): consistent.
 - Auditor 15 (a00947d) audited f133f2f: #1 closed; #2 repeats #1's class → architecture finding (decision 14). Repair rounds used: 1.
-- Spec author 16 (a88bc7a) done.
+- Spec author 16 (a88bc7a) done. Test implementer 17 (c5c7423) done, mutation-checked.
 - Structural change worklist: spec author 16 (single ownership statement), test implementer 17 (pin new members, formatter + RH7101), cleaner 18 (code comments point to the statement; format; build), spec checker 19, auditor 20, validator 21.
 - Repair round 1 worklist: spec author (10) amends FMT-STRUCT-030 / FMT-PIPE-031 / RH7101-007 per answer B; test implementer (11) pins the case on the split side (formatter + RH7101 fix offered); implementer (12) aligns the summaries of `CarriesCommentInRepeatedPart` and `SplitsFieldDeclaration` with the boundary; cleaner (13) fixes the stale `CreateSplitField` comment (decision 11); then spec checker, auditor on the repair only, validator.
