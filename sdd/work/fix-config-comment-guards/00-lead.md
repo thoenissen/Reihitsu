@@ -47,6 +47,7 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 | 16 | Spec author (amendment) | s1/s2 (split `const`/`static readonly` under `#if` in the constant's modifier list) and 1593c/a (split `static` in RH7103's reported member) are reported today, against RH7102-001 / SHARED-DIAG-008; tests asserting "reported, no fix" would lock in a forbidden report | Adjacent fix in this run: the RH7102 and RH7103 analyzers stop reporting a member whose judged modifiers a conditional directive splits (SHARED-DIAG-008); tests assert no diagnostic for these rows. The fix guard still counts a split member that is crossed | Leaving the fix active there would ship a meaning-changing fix (safety rail) in an output the run changes; withholding while reporting would lock in a report the spec forbids. Small, in the code fix's counterpart, demanded by unchanged requirements | Demanded by unchanged SHARED-DIAG-008 and RH7102-001; nothing undecided | — |
 | 17 | Spec author (amendment) | Change doc `rh2001-modifier-reorder-trivia.md` | Accepted (status Accepted), after the spec-diff skeptic and the amendment | Both visible changes answered by the maintainer (batch 1 Q1, batch 2) | — | 2b21209 |
 | 18 | Implementer | Scope: two new public Core members (`ModifierOrderingUtilities.TryWriteModifiersInOrder`, `OrderingDeclarationUtilities.HasModifiersSplitByConditionalDirective`), `IsMoveSafe` no longer an extension point, new internal `OrderedMember` | Accept | They carry out decisions 4, 7, 16 within the components the run changes; no assembly is a public API | Internal API | 750237e |
+| 19 | Spec checker | RH7102-006 now names SHARED-ORDER-007, so RH7102's fix is withheld where it is offered today; change doc needed? | No change doc for RH7102: the withholding is demanded by unchanged SHARED-FIX-003 (maintainer triage on #1595 calls it a meaning change) | Bug fix against an unchanged requirement | Demanded by SHARED-FIX-003 | 2b21209 |
 
 ## Follow-up candidates
 
@@ -67,6 +68,7 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 - Done: test implementer `05-test-implementer.md` (6f468b4): all three reproduced; 37 failing tests.
 - Done: implementer 750237e, handover `06-implementer.md` (008670d).
 - Done: cleaner `07-cleaner.md` (cc77feb): clean.
-- Now: spec checker → `08-spec-checker.md`.
+- Done: spec checker `08-spec-checker.md` (b5e2f53): consistent.
+- Now: merge main if behind, build, auditor → `09-auditor.md`.
 - Next: spec author amendment (decisions 12–14 + answer; change doc lists the visible change), accept change doc, test implementer.
 - Next: spec author (clarifications D5, D7 outcome, RH2001 spec after answers) → test implementer.
