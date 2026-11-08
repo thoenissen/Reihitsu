@@ -1021,9 +1021,9 @@ class C
 
 ### FMT-STRUCT-022 — Split fields keep their comments
 
-When the formatter splits a field under FMT-STRUCT-021, the declaration's leading trivia MUST stay on the first generated field; a comment that trailed a separating comma MUST trail the field that comma now ends; and a comment in front of a later declarator MUST move onto its own line in front of that declarator's field.
+When the formatter splits a field under FMT-STRUCT-021, the declaration's leading trivia MUST stay on the first generated field; a comment in front of the first declarator's name on a line of its own (FMT-STRUCT-030) MUST stay in front of the first field's name; a comment that trailed a separating comma MUST trail the field that comma now ends; and a comment in front of a later declarator MUST move onto its own line in front of that declarator's field.
 
-A declaration with a documentation comment, or with a comment between its first token and its first declarator, is not split (FMT-STRUCT-030), so the leading trivia that stays on the first field holds no documentation comment, and no comment stands in the part of the declaration that every generated field repeats.
+A declaration with a documentation comment, or with a comment between its first token and its first declarator as FMT-STRUCT-030 delimits it, is not split (FMT-STRUCT-030), so the leading trivia that stays on the first field holds no documentation comment, and no comment stands in the part of the declaration that every generated field repeats.
 
 Why: Each comment keeps describing the declarator it was written next to. A comment in front of the declaration stays in front of it, where its first field now begins. A documentation comment documents every field of the declaration, so keeping it on the first field would leave the others undocumented, and the declaration is not split instead (FMT-STRUCT-030).
 
@@ -1588,14 +1588,15 @@ class C
 
 The method keeps one `[param: A, B]` list and one `[typevar: C, D]` list, and `[E, F]` becomes `[E]` and `[F]`.
 
-### FMT-STRUCT-030 — A documented field, or one with a comment in front of its first declarator, is not split
+### FMT-STRUCT-030 — A documented field, or one with a comment in the part every field repeats, is not split
 
-The formatter MUST NOT split a field declaration under FMT-STRUCT-021, and MUST leave it as one declaration, when either of these holds:
+The formatter MUST NOT split a field declaration under FMT-STRUCT-021, and MUST leave it as one declaration, when either of the first two conditions below holds; the third delimits the second:
 
 - The declaration has a documentation comment (SHARED-DOC-004): a `///` or `/** */` comment in its leading trivia, and the documentation mode of the syntax tree is `Parse` or `Diagnose`. In the documentation mode `None`, such a comment is an ordinary comment and does not keep the declaration from being split. A `///` or `/** */` comment in front of a later declarator is not a documentation comment of the declaration and does not keep it from being split; FMT-STRUCT-022 moves it in front of that declarator's field.
-- A comment stands between the declaration's first token and its first declarator: inside or behind an attribute list, between two modifiers, between a modifier and the type, inside the type, or between the type and the first declarator. A comment in the declaration's leading trivia, in front of its first token, is not between them; neither is a comment inside the first declarator or behind it, such as one in its initializer or behind the comma that ends it. FMT-STRUCT-022 places those comments.
+- A comment stands between the declaration's first token and its first declarator: inside or behind an attribute list, between two modifiers, between a modifier and the type, inside the type, or behind the type on the type's line. A comment in the declaration's leading trivia, in front of its first token, is not between them; neither is a comment inside the first declarator or behind it, such as one in its initializer or behind the comma that ends it. FMT-STRUCT-022 places those comments.
+- A comment that starts on a later line than the type's last token, in front of the first declarator's name, belongs to the first declarator — it is that declarator's leading trivia — and does not keep the declaration from being split: the comment stays in front of the first field's name only (FMT-STRUCT-022). A `///` or `/** */` comment there is not a documentation comment of the declaration (SHARED-DOC-004) and is treated the same way. A comment behind the type on the type's line keeps the declaration from being split also when the first declarator starts the next line.
 
-Why: A documentation comment documents every field of the declaration, and the split keeps the declaration's leading trivia on the first field only (FMT-STRUCT-022), so every other field would lose its documentation. A comment between the first token and the first declarator stands in the attributes, modifiers, and type that every generated field repeats (FMT-STRUCT-021): repeating it would put a copy next to fields it was not written next to, and keeping it on one field would separate it from the others it described. Both results are what FMT-STRUCT-024 refuses. When documentation comments are not parsed, the compiler attaches the comment to no field, and it stays in front of the declaration's first field like any comment in its leading trivia.
+Why: A documentation comment documents every field of the declaration, and the split keeps the declaration's leading trivia on the first field only (FMT-STRUCT-022), so every other field would lose its documentation. A comment between the first token and the first declarator stands in the attributes, modifiers, and type that every generated field repeats (FMT-STRUCT-021): repeating it would put a copy next to fields it was not written next to, and keeping it on one field would separate it from the others it described. Both results are what FMT-STRUCT-024 refuses. A comment on its own line in front of the first name stands in no repeated part: it is written next to the first declarator, stays next to it, and is copied nowhere, so FMT-STRUCT-024 does not refuse that split. When documentation comments are not parsed, the compiler attaches the comment to no field, and it stays in front of the declaration's first field like any comment in its leading trivia.
 
 Example — when the documentation mode is `Parse`, none of these declarations is split:
 
@@ -1618,6 +1619,9 @@ class C
 
     [Obsolete /* why */]
     private int _c, _d;
+
+    private int // c
+        _e, _f;
 }
 ```
 
@@ -1642,6 +1646,26 @@ class C
 
     private int _first = /* c */ 1;
     private int _second;
+}
+```
+
+Example — a comment on its own line in front of the first declarator's name is the first declarator's: the declaration is split, the comment stays in front of `_first` only, and each field keeps the line break its declarator had:
+
+```csharp
+class C
+{
+    private int
+        /* c */ _first, _second;
+}
+```
+
+```csharp
+class C
+{
+    private int
+    /* c */ _first;
+    private int
+    _second;
 }
 ```
 
