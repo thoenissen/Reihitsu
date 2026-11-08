@@ -3558,7 +3558,8 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
 
     /// <summary>
     /// Verifying that nine conditional groups in front of a crossed field, whose 512 build configurations exceed the
-    /// number the member-order guard reads, are treated as a changed order, so no code fix is offered
+    /// number the member-order guard reads, are treated as a changed order when the move crosses their members, so no
+    /// code fix is offered
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -3680,6 +3681,850 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
                               """;
 
         await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a group nested in an excluded branch counts at member level in the builds where that branch
+    /// closes the bracket the active code opens, so the static initialized field it declares is crossed and moving a
+    /// static initialized field across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenAnExcludedBranchThatClosesTheActiveBracketHoldsAGroupDeclaringAStaticInitializedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                                  private int _a = Run(1
+                              #if DEBUG
+                                      );
+                              #if TRACE
+                                  private static int _z = Log("z");
+                              #endif
+                                  private int _y = Run(2
+                              #endif
+                                      );
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Run(int a, int b = 0)
+                                  {
+                                      return a + b;
+                                  }
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a group next to an earlier group that closes the active bracket in another build counts at member
+    /// level in that build, so the static initialized field it declares is crossed and moving a static initialized
+    /// field across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenAGroupBesideAGroupThatClosesTheActiveBracketDeclaresAStaticInitializedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                                  private int _a = Run(1
+                              #if DEBUG
+                                      );
+                              #else
+                                      , 2
+                              #endif
+                              #if TRACE && DEBUG
+                                  private static int _z = Log("z");
+                              #endif
+                              #if !DEBUG
+                                      );
+                              #endif
+                                  private int _d;
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Run(int a, int b = 0)
+                                  {
+                                      return a + b;
+                                  }
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart of a group nested in a branch that closes a bracket: the nested group stands at member
+    /// level in every build, so the static initialized field it declares is crossed and the move is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenTheNestedGroupDeclaringAStaticInitializedFieldIsAtMemberLevelInEveryBuild(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                                  private int _a = Run(1);
+                              #if DEBUG
+                              #if TRACE
+                                  private static int _z = Log("z");
+                              #endif
+                                  private int _y = Run(2);
+                              #endif
+                                  private int _d;
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Run(int a, int b = 0)
+                                  {
+                                      return a + b;
+                                  }
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that an excluded branch that closes the enclosing method block, declares a static initialized field,
+    /// and opens another method contributes that field at member level in its build, so moving a static initialized
+    /// field across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenAnExcludedBranchClosesAMethodBlockAndDeclaresAStaticInitializedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+
+                                  public void M()
+                                  {
+                              #if DEBUG
+                                  }
+
+                                  private static int _z = Log("z");
+
+                                  public void N()
+                                  {
+                              #endif
+                                  }
+
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Run(int a, int b = 0)
+                                  {
+                                      return a + b;
+                                  }
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart of an excluded branch that closes a method block: a group that stays inside the method
+    /// block in every build declares no member, so the move keeps its fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAFieldAcrossAMethodWhoseBlockHoldsAnExcludedStatement(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+
+                                  public void M()
+                                  {
+                              #if DEBUG
+                                      var z = Log("z");
+                              #endif
+                                  }
+
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Run(int a, int b = 0)
+                                  {
+                                      return a + b;
+                                  }
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private static readonly int _c = Log("c");
+
+                                       private static int _t;
+
+                                       public void M()
+                                       {
+                                   #if DEBUG
+                                           var z = Log("z");
+                                   #endif
+                                       }
+
+                                       private static int Run(int a, int b = 0)
+                                       {
+                                           return a + b;
+                                       }
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that an excluded branch that closes an expression body, declares a static initialized field, and opens
+    /// another expression-bodied property contributes that field at member level in its build, so moving a static
+    /// initialized field across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenAnExcludedBranchClosesAnExpressionBodyAndDeclaresAStaticInitializedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+
+                                  public int P => Run(1
+                              #if DEBUG
+                                  );
+
+                                  private static int _z = Log("z");
+
+                                  public int Q => Run(2
+                              #endif
+                                  );
+
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Run(int a, int b = 0)
+                                  {
+                                      return a + b;
+                                  }
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart of an excluded branch that closes an expression body: a group that stays inside the
+    /// expression body in every build declares no member, so the move keeps its fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAFieldAcrossAPropertyWhoseExpressionBodyHoldsAnExcludedArgument(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+
+                                  public int P => Run(1
+                              #if DEBUG
+                                                      , Log("z")
+                              #endif
+                                                      );
+
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Run(int a, int b = 0)
+                                  {
+                                      return a + b;
+                                  }
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private static readonly int _c = Log("c");
+
+                                       private static int _t;
+
+                                       public int P => Run(1
+                                   #if DEBUG
+                                                           , Log("z")
+                                   #endif
+                                                           );
+
+                                       private static int Run(int a, int b = 0)
+                                       {
+                                           return a + b;
+                                       }
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that an excluded branch that closes a nested type's body, declares a static initialized field, and
+    /// opens another nested type contributes that field to the outer type in its build, so moving a static initialized
+    /// field across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenAnExcludedBranchClosesANestedTypeAndDeclaresAStaticInitializedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+
+                                  private class N
+                                  {
+                              #if DEBUG
+                                  }
+
+                                  private static int _z = Log("z");
+
+                                  private class M
+                                  {
+                              #endif
+                                  }
+
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Run(int a, int b = 0)
+                                  {
+                                      return a + b;
+                                  }
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart of an excluded branch that closes a nested type's body: a group that stays inside the
+    /// nested type in every build declares a member of the nested type only, so the move keeps its fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAFieldAcrossANestedTypeWhoseBodyHoldsAnExcludedStaticInitializedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+
+                                  private class N
+                                  {
+                              #if DEBUG
+                                      private static int _z = Log("z");
+                              #endif
+                                  }
+
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Run(int a, int b = 0)
+                                  {
+                                      return a + b;
+                                  }
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private static readonly int _c = Log("c");
+
+                                       private static int _t;
+
+                                       private class N
+                                       {
+                                   #if DEBUG
+                                           private static int _z = Log("z");
+                                   #endif
+                                       }
+
+                                       private static int Run(int a, int b = 0)
+                                       {
+                                           return a + b;
+                                       }
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that two declarations of one name in mutually exclusive branches are judged each in its own build: the
+    /// static one has no initializer and the initialized one is an instance field, so no build crosses a static
+    /// initialized field and the move keeps its fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAStaticFieldAcrossTwoDeclarationsOfOneNameOfWhichNoneIsAStaticInitializedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                              #if DEBUG
+                                  private static int _b;
+                              #else
+                                  private int _b = Log("b");
+                              #endif
+                                  private int _d;
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Run(int a, int b = 0)
+                                  {
+                                      return a + b;
+                                  }
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private static readonly int _c = Log("c");
+                                       private static int _t;
+                                   #if DEBUG
+                                       private static int _b;
+                                   #else
+                                       private int _b = Log("b");
+                                   #endif
+                                       private int _d;
+
+                                       private static int Run(int a, int b = 0)
+                                       {
+                                           return a + b;
+                                       }
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that two declarations of one name in mutually exclusive branches are judged each in its own build: the
+    /// initialized one is static and the instance one has no initializer, so no build crosses an instance initialized
+    /// field and the move keeps its fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAnInstanceFieldAcrossTwoDeclarationsOfOneNameOfWhichNoneIsAnInstanceInitializedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _t;
+                              #if DEBUG
+                                  private static int _b = Log("b");
+                              #else
+                                  private int _b;
+                              #endif
+                                  private static int _d;
+                                  private readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Run(int a, int b = 0)
+                                  {
+                                      return a + b;
+                                  }
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private readonly int _c = Log("c");
+                                       private int _t;
+                                   #if DEBUG
+                                       private static int _b = Log("b");
+                                   #else
+                                       private int _b;
+                                   #endif
+                                       private static int _d;
+
+                                       private static int Run(int a, int b = 0)
+                                       {
+                                           return a + b;
+                                       }
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart with distinct names: a static field without initializer in one branch and an instance
+    /// initialized field in the other give no build a crossed static initialized field, so the move keeps its fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAStaticFieldAcrossTwoDeclarationsOfDifferentNamesOfWhichNoneIsAStaticInitializedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                              #if DEBUG
+                                  private static int _b;
+                              #else
+                                  private int _e = Log("b");
+                              #endif
+                                  private int _d;
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Run(int a, int b = 0)
+                                  {
+                                      return a + b;
+                                  }
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private static readonly int _c = Log("c");
+                                       private static int _t;
+                                   #if DEBUG
+                                       private static int _b;
+                                   #else
+                                       private int _e = Log("b");
+                                   #endif
+                                       private int _d;
+
+                                       private static int Run(int a, int b = 0)
+                                       {
+                                           return a + b;
+                                       }
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the other side of judging each build on its own: one of two declarations of one name is a static
+    /// initialized field in its build, so moving a static initialized field across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenOneOfTwoDeclarationsOfOneNameIsAStaticInitializedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                              #if DEBUG
+                                  private static int _b = Log("b");
+                              #else
+                                  private int _b;
+                              #endif
+                                  private int _d;
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Run(int a, int b = 0)
+                                  {
+                                      return a + b;
+                                  }
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the other side of judging each build on its own: one of two declarations of one name is an instance
+    /// initialized field in its build, so moving an instance initialized field across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenOneOfTwoDeclarationsOfOneNameIsAnInstanceInitializedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _t;
+                              #if DEBUG
+                                  private static int _b;
+                              #else
+                                  private int _b = Log("b");
+                              #endif
+                                  private static int _d;
+                                  private readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Run(int a, int b = 0)
+                                  {
+                                      return a + b;
+                                  }
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that conditional groups whose build configurations exceed the number the member-order guard reads only
+    /// withhold a move that touches them: a move that neither crosses nor moves a member of those groups keeps its fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task FixMovesAFieldWhenConditionalGroupsThatExceedTheConfigurationLimitLieAwayFromTheMove(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _t;
+                                  private readonly int {|RH7109:_c|};
+
+                              #if FEATURE
+                              #if A1
+                                  private int _a1;
+                              #endif
+                              #if A2
+                                  private int _a2;
+                              #endif
+                              #if A3
+                                  private int _a3;
+                              #endif
+                              #if A4
+                                  private int _a4;
+                              #endif
+                              #if A5
+                                  private int _a5;
+                              #endif
+                              #if A6
+                                  private int _a6;
+                              #endif
+                              #if A7
+                                  private int _a7;
+                              #endif
+                              #if A8
+                                  private int _a8;
+                              #endif
+                              #if A9
+                                  private int _a9;
+                              #endif
+                                  private int _f;
+                              #endif
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private readonly int _c;
+                                       private int _t;
+
+                                   #if FEATURE
+                                   #if A1
+                                       private int _a1;
+                                   #endif
+                                   #if A2
+                                       private int _a2;
+                                   #endif
+                                   #if A3
+                                       private int _a3;
+                                   #endif
+                                   #if A4
+                                       private int _a4;
+                                   #endif
+                                   #if A5
+                                       private int _a5;
+                                   #endif
+                                   #if A6
+                                       private int _a6;
+                                   #endif
+                                   #if A7
+                                       private int _a7;
+                                   #endif
+                                   #if A8
+                                       private int _a8;
+                                   #endif
+                                   #if A9
+                                       private int _a9;
+                                   #endif
+                                       private int _f;
+                                   #endif
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
     }
 
     #endregion // Tests
