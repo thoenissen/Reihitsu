@@ -2618,6 +2618,159 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
         await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
     }
 
+    /// <summary>
+    /// Verifying the <c>field</c> clause for the active branch: without <c>TRACE</c> defined, the active branch of a group of
+    /// whole statements in a crossed accessor's body returns <c>field</c>, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task NoCodeFixWhenTheActiveBranchOfAGroupInACrossedAccessorBodyUsesTheFieldKeyword(string endOfLine)
+    {
+        const string source = """
+                              public struct S
+                              {
+                                  private int _x;
+
+                                  public int Value
+                                  {
+                                      get
+                                      {
+                              #if !TRACE
+                                          return field;
+                              #else
+                                          return 0;
+                              #endif
+                                      }
+                                  }
+
+                                  public static int {|RH7103:Shared|} => 1;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the <c>field</c> clause for a group of whole accessors: the excluded <c>set =&gt; field = value;</c> of a
+    /// crossed property uses <c>field</c>, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task NoCodeFixWhenAGroupOfWholeAccessorsOfACrossedPropertyUsesTheFieldKeyword(string endOfLine)
+    {
+        const string source = """
+                              public struct S
+                              {
+                                  private int _x;
+
+                                  public int Value
+                                  {
+                                      get => 0;
+                              #if DEBUG
+                                      set => field = value;
+                              #endif
+                                  }
+
+                                  public static int {|RH7103:Shared|} => 1;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart of the <c>field</c> clause for a group of whole accessors: with <c>set { }</c> in place of
+    /// <c>set =&gt; field = value;</c>, the group wraps whole accessors with a body, and the fix moves <c>Shared</c> in front
+    /// of <c>Value</c>
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task FixMovesAMemberAcrossAPropertyOfAStructWhoseGroupOfWholeAccessorsDoesNotUseTheFieldKeyword(string endOfLine)
+    {
+        const string source = """
+                              public struct S
+                              {
+                                  private int _x;
+
+                                  public int Value
+                                  {
+                                      get => 0;
+                              #if DEBUG
+                                      set { }
+                              #endif
+                                  }
+
+                                  public static int {|RH7103:Shared|} => 1;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public struct S
+                                   {
+                                       private int _x;
+
+                                       public static int Shared => 1;
+
+                                       public int Value
+                                       {
+                                           get => 0;
+                                   #if DEBUG
+                                           set { }
+                                   #endif
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the <c>No backing field from a branch</c> clause in a class: the excluded <c>set;</c> behind
+    /// <c>get =&gt; 0;</c> would give a crossed property a backing field in a build with <c>DEBUG</c> only, so no code fix is
+    /// offered, although the field order of a class sets no layout
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task NoCodeFixWhenAGroupOfWholeAccessorsOfACrossedPropertyOfAClassHoldsAnAccessorWithoutABody(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  public int Value
+                                  {
+                                      get => 0;
+                              #if DEBUG
+                                      set;
+                              #endif
+                                  }
+
+                                  public static int {|RH7103:Shared|} => 1;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods

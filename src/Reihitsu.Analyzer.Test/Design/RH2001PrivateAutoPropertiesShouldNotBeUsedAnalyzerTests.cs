@@ -2519,6 +2519,146 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
         await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
     }
 
+    /// <summary>
+    /// Verifies that a conditional group between the modifiers and the type that holds <c>extern</c>, which is not valid on
+    /// a field, withholds the fix: written as a field, a build with <c>DEBUG</c> would declare an extern field
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-009")]
+    public async Task VerifyNoCodeFixIsOfferedForAConditionalExternBetweenTheModifiersAndTheType(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private
+                              #if DEBUG
+                                      extern
+                              #endif
+                                      int {|RH2001:Value|} { get; }
+
+                                  public int Get()
+                                  {
+                                      return Value;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a conditional group between the modifiers and the type that holds <c>readonly</c> withholds the fix:
+    /// with the <c>readonly</c> the fix adds, a build with <c>DEBUG</c> would declare the modifier twice
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-009")]
+    public async Task VerifyNoCodeFixIsOfferedForAConditionalReadonlyBetweenTheModifiersAndTheType(string endOfLine)
+    {
+        const string source = """
+                              public struct C
+                              {
+                                  private
+                              #if DEBUG
+                                      readonly
+                              #endif
+                                      int {|RH2001:Value|} { get; }
+
+                                  public int Get()
+                                  {
+                                      return Value;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a conditional group between the modifiers and the type that holds a modifier RH7105 puts behind
+    /// <c>readonly</c>, such as <c>unsafe</c>, withholds the fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-009")]
+    public async Task VerifyNoCodeFixIsOfferedForAConditionalUnsafeBetweenTheModifiersAndTheType(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private
+                              #if DEBUG
+                                      unsafe
+                              #endif
+                                      int {|RH2001:Value|} { get; }
+
+                                  public int Get()
+                                  {
+                                      return Value;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a conditional group between the modifiers and the type that holds <c>new</c>, a modifier RH7105 puts in
+    /// front of <c>readonly</c> and that is valid on a field, keeps the fix, which writes <c>readonly</c> behind the group
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-009")]
+    public async Task VerifyFixIsOfferedForAConditionalNewBetweenTheModifiersAndTheType(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private
+                              #if DEBUG
+                                      new
+                              #endif
+                                      int {|RH2001:Value|} { get; }
+
+                                  public int Get()
+                                  {
+                                      return Value;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private
+                                   #if DEBUG
+                                           new
+                                   #endif
+                                       readonly int _value;
+
+                                       public int Get()
+                                       {
+                                           return _value;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods

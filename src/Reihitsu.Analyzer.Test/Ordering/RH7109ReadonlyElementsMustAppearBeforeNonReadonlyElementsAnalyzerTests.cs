@@ -4243,6 +4243,267 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
         await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
     }
 
+    /// <summary>
+    /// Verifying the <c>No nesting</c> clause for a group whose enclosing group lies outside both spans: the <c>DEBUG</c>
+    /// group around <c>_x</c> stands inside the <c>!FEATURE</c> group, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-008")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenAGroupInTheCrossedSpanIsNestedInAGroupOutsideBothSpans(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                              #if !FEATURE
+                                  private readonly int _z;
+                                  private int _a;
+                              #if DEBUG
+                                  private int _x;
+                              #endif
+                                  private readonly int {|RH7109:_c|};
+                              #endif
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart of the nested group: without the <c>DEBUG</c> group around <c>_x</c>, the <c>!FEATURE</c>
+    /// group lies outside both spans, is not read, and the fix moves <c>_c</c> in front of <c>_a</c>
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-008")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAFieldInsideAGroupOutsideBothSpansWithNoGroupInTheSpans(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                              #if !FEATURE
+                                  private readonly int _z;
+                                  private int _a;
+                                  private int _x;
+                                  private readonly int {|RH7109:_c|};
+                              #endif
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                   #if !FEATURE
+                                       private readonly int _z;
+                                       private readonly int _c;
+                                       private int _a;
+                                       private int _x;
+                                   #endif
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a conditional group around the <c>StructLayout</c> attribute of a class refuses every member move of
+    /// the type: in a build with <c>X</c>, the class has sequential layout, which the fix would reorder, so no code fix is
+    /// offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-008")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenAConditionalGroupWrapsTheLayoutAttributeOfTheType(string endOfLine)
+    {
+        const string source = """
+                              using System.Runtime.InteropServices;
+
+                              #if X
+                              [StructLayout(LayoutKind.Sequential)]
+                              #endif
+                              public class C
+                              {
+                                  private int _a;
+                                  private readonly int {|RH7109:_c|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that the refusal for a conditional directive in the attribute lists of the type depends on its place, not
+    /// on the attribute: a group around <c>[System.Obsolete]</c> refuses the move, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-008")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenAConditionalGroupWrapsAnAttributeListOfTheType(string endOfLine)
+    {
+        const string source = """
+                              #if X
+                              [System.Obsolete]
+                              #endif
+                              public class C
+                              {
+                                  private int _a;
+                                  private readonly int {|RH7109:_c|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart of a conditional group in the attribute lists of the type: with <c>[System.Obsolete]</c>
+    /// outside any group, the fix moves <c>_c</c> in front of <c>_a</c>
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-008")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAFieldOfATypeWithAnAttributeListOutsideAnyGroup(string endOfLine)
+    {
+        const string source = """
+                              [System.Obsolete]
+                              public class C
+                              {
+                                  private int _a;
+                                  private readonly int {|RH7109:_c|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   [System.Obsolete]
+                                   public class C
+                                   {
+                                       private readonly int _c;
+                                       private int _a;
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a conditional group in the header of the type refuses every member move of the type: in a build with
+    /// <c>X</c>, the type is a struct whose field order sets its layout, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-008")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenAConditionalGroupDecidesTheKindOfTheType(string endOfLine)
+    {
+        const string source = """
+                              public
+                              #if X
+                                  struct
+                              #else
+                                  class
+                              #endif
+                                  C
+                              {
+                                  private int _a;
+                                  private readonly int {|RH7109:_c|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a conditional group in the base list of the type, in front of its opening brace, refuses every member
+    /// move of the type, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-008")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenAConditionalGroupStandsInTheBaseListOfTheType(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              #if X
+                                  : System.IDisposable
+                              #endif
+                              {
+                                  private int _a;
+                                  private readonly int {|RH7109:_c|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart of a conditional directive in front of the type's body: a group in the leading trivia of
+    /// the type's first token whose excluded branch declares a whole type keeps the moves, and the fix moves <c>_c</c> in
+    /// front of <c>_a</c>
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-008")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAFieldOfATypeBehindAGroupOfAWholeTypeInFrontOfIt(string endOfLine)
+    {
+        const string source = """
+                              #if X
+                              public class D
+                              {
+                              }
+                              #endif
+                              public class C
+                              {
+                                  private int _a;
+                                  private readonly int {|RH7109:_c|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   #if X
+                                   public class D
+                                   {
+                                   }
+                                   #endif
+                                   public class C
+                                   {
+                                       private readonly int _c;
+                                       private int _a;
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods
