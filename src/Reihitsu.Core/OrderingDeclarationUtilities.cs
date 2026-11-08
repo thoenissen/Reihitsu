@@ -460,12 +460,9 @@ public static class OrderingDeclarationUtilities
             regions = GetConditionalRegions(typeDeclaration, GetConditionalGroups(typeDeclaration));
         }
 
-        foreach (var member in typeDeclaration.Members)
+        foreach (var member in typeDeclaration.Members.Where(member => regions.Exists(region => region.Span.Contains(member.FullSpan)) == false))
         {
-            if (regions.Exists(region => region.Span.Contains(member.FullSpan)) == false)
-            {
-                orderedMembers.Add(CreateOrderedMember(member.SpanStart, member));
-            }
+            orderedMembers.Add(CreateOrderedMember(member.SpanStart, member));
         }
 
         foreach (var (span, groups) in regions)
@@ -562,9 +559,9 @@ public static class OrderingDeclarationUtilities
         {
             var span = group.Span;
 
-            foreach (var member in typeDeclaration.Members.Where(member => member.FullSpan.OverlapsWith(group.Span)))
+            foreach (var memberSpan in typeDeclaration.Members.Where(member => member.FullSpan.OverlapsWith(group.Span)).Select(member => member.FullSpan))
             {
-                span = TextSpan.FromBounds(Math.Min(span.Start, member.FullSpan.Start), Math.Max(span.End, member.FullSpan.End));
+                span = TextSpan.FromBounds(Math.Min(span.Start, memberSpan.Start), Math.Max(span.End, memberSpan.End));
             }
 
             var regionGroups = new List<ConditionalGroup>
@@ -746,7 +743,7 @@ public static class OrderingDeclarationUtilities
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
     /// <param name="groups">Conditional groups</param>
-    /// <returns>For each configuration, the spans of the text it does not compile; <see langword="null"/> if there are more than <see cref="MaximumConfigurationCount"/></returns>
+    /// <returns>For each configuration, the spans of the text it does not compile; an empty list if there are more than <see cref="MaximumConfigurationCount"/></returns>
     private static List<List<TextSpan>> GetConfigurations(TypeDeclarationSyntax typeDeclaration, IEnumerable<ConditionalGroup> groups)
     {
         var configurations = new List<List<TextSpan>>
@@ -758,10 +755,10 @@ public static class OrderingDeclarationUtilities
         {
             var groupConfigurations = GetConfigurations(typeDeclaration, group);
 
-            if (groupConfigurations == null
+            if (groupConfigurations.Count == 0
                 || configurations.Count * groupConfigurations.Count > MaximumConfigurationCount)
             {
-                return null;
+                return [];
             }
 
             configurations = configurations.SelectMany(configuration => groupConfigurations.Select(groupConfiguration => configuration.Concat(groupConfiguration).ToList()))
@@ -779,7 +776,7 @@ public static class OrderingDeclarationUtilities
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
     /// <param name="group">Conditional group</param>
-    /// <returns>For each configuration, the spans of the text it does not compile; <see langword="null"/> if there are more than <see cref="MaximumConfigurationCount"/></returns>
+    /// <returns>For each configuration, the spans of the text it does not compile; an empty list if there are more than <see cref="MaximumConfigurationCount"/></returns>
     private static List<List<TextSpan>> GetConfigurations(TypeDeclarationSyntax typeDeclaration, ConditionalGroup group)
     {
         var directiveSpans = group.Boundaries;
@@ -792,10 +789,10 @@ public static class OrderingDeclarationUtilities
             var excludedSpans = directiveSpans.Concat(branchSpans.Where((_, index) => index != branchIndex)).ToList();
             var nestedConfigurations = GetConfigurations(typeDeclaration, group.Children.Where(child => branchSpan.Contains(child.Span) && IsReadAsText(typeDeclaration, child) == false));
 
-            if (nestedConfigurations == null
+            if (nestedConfigurations.Count == 0
                 || configurations.Count + nestedConfigurations.Count > MaximumConfigurationCount)
             {
-                return null;
+                return [];
             }
 
             configurations.AddRange(nestedConfigurations.Select(nestedConfiguration => excludedSpans.Concat(nestedConfiguration).ToList()));
@@ -807,7 +804,7 @@ public static class OrderingDeclarationUtilities
         }
 
         return configurations.Count > MaximumConfigurationCount
-                   ? null
+                   ? []
                    : configurations;
     }
 
@@ -1036,7 +1033,7 @@ public static class OrderingDeclarationUtilities
     {
         var configurations = GetConfigurations(typeDeclaration, groups);
 
-        if (configurations == null)
+        if (configurations.Count == 0)
         {
             return false;
         }
@@ -1096,12 +1093,10 @@ public static class OrderingDeclarationUtilities
                                                        .Select(member => (member.SpanStart, Tokens: member.DescendantTokens()))
                                                        .Concat(parsedType.DescendantTrivia(descendIntoTrivia: true)
                                                                          .Where(trivia => trivia.IsKind(SyntaxKind.SkippedTokensTrivia))
-                                                                         .Select(trivia => (trivia.SpanStart, Tokens: trivia.GetStructure()?.DescendantTokens() ?? []))))
+                                                                         .Select(trivia => (trivia.SpanStart, Tokens: trivia.GetStructure()?.DescendantTokens() ?? [])))
+                                                       .Where(incompleteTokens => ContainsTopLevelToken(incompleteTokens.Tokens.ToList(), SyntaxKind.EqualsToken)))
             {
-                if (ContainsTopLevelToken(incompleteTokens.Tokens.ToList(), SyntaxKind.EqualsToken))
-                {
-                    contributions.Add((null, getPosition(incompleteTokens.SpanStart), true, true, true, false));
-                }
+                contributions.Add((null, getPosition(incompleteTokens.SpanStart), true, true, true, false));
             }
         }
 
