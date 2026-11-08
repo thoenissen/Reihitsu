@@ -43,4 +43,5 @@
 - Done: test implementer (04, commit eaf6799): 34 new/rewritten tests fail on spec differences only.
 - Done: implementer (05, commits aaa7241, 8a76f40): verdict test disputed (Decision 6).
 - Done: test implementer follow-up (06, fbf26fe); formatter project green.
-- Next: cleaner.
+- Done: cleaner (07, 0f55234): clean.
+- Next: spec checker.
