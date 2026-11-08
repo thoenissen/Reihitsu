@@ -1269,12 +1269,12 @@ public class StructuralTransformSeparatorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the created field gets no indentation when a single-line documentation comment, which ends its own line,
-    /// leads the declaration
+    /// Verifies that the created field gets no indentation when a single-line documentation-style comment, which ends its own line,
+    /// leads the declaration in the documentation mode None, where it is an ordinary comment
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-026")]
-    public void FieldCreatedBehindADocumentedDeclarationGetsNoIndentation()
+    public void FieldCreatedBehindADeclarationWithADocumentationStyleCommentInDocumentationModeNoneGetsNoIndentation()
     {
         AssertSplitFields("""
                               /// <summary>Coordinates</summary>
@@ -1283,6 +1283,25 @@ public class StructuralTransformSeparatorTests : FormatterTestsBase
                           """
                               /// <summary>Coordinates</summary>
                               private int _x;private int _y;
+                          """,
+                          CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None));
+    }
+
+    /// <summary>
+    /// Verifies that the phase leaves a declaration with a single-line documentation comment as one declaration when the
+    /// documentation mode is Parse
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-030")]
+    public void DocumentedDeclarationIsLeftAsOneDeclaration()
+    {
+        AssertSplitFields("""
+                              /// <summary>Coordinates</summary>
+                              private int _x, _y;
+                          """,
+                          """
+                              /// <summary>Coordinates</summary>
+                              private int _x, _y;
                           """);
     }
 
@@ -1539,14 +1558,16 @@ public class StructuralTransformSeparatorTests : FormatterTestsBase
     /// </summary>
     /// <param name="members">The members, indented as in the class, with LF line endings</param>
     /// <param name="expectedMembers">The expected members in the phase output, with LF line endings</param>
-    private static void AssertSplitFields(string members, string expectedMembers)
+    /// <param name="parseOptions">The parse options to use, or <see langword="null"/> for the defaults</param>
+    private static void AssertSplitFields(string members, string expectedMembers, CSharpParseOptions parseOptions = null)
     {
         ForEachLineEnding($"class C\n{{\n{members}\n}}",
                           (output, endOfLine, description) =>
                           {
                               Assert.AreEqual(NormalizeLineEndings($"class C\n{{\n{expectedMembers}\n}}", endOfLine), output.ToFullString(), description);
-                              AssertSameTree(output, description);
-                          });
+                              AssertSameTree(output, description, parseOptions);
+                          },
+                          parseOptions);
     }
 
     /// <summary>

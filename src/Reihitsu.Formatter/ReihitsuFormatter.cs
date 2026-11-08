@@ -373,8 +373,9 @@ public static class ReihitsuFormatter
 
     /// <summary>
     /// Determines whether the structural phase splits the field declaration into one declaration per declarator: it has more
-    /// than one declarator, is a member of a class, struct, record, or interface, and carries no directive or disabled text
-    /// (FMT-PIPE-031)
+    /// than one declarator, is a member of a class, struct, record, or interface, carries no directive or disabled text, has
+    /// no documentation comment, and has no comment in the part every generated field repeats; FMT-STRUCT-030 states where
+    /// that part ends (FMT-STRUCT-030, FMT-PIPE-031)
     /// </summary>
     /// <param name="fieldDeclaration">The field declaration</param>
     /// <returns><see langword="true"/> if the formatter splits the declaration; otherwise, <see langword="false"/></returns>

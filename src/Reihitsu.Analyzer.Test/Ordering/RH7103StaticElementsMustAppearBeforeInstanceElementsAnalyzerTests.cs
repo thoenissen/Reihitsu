@@ -1879,6 +1879,110 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifying the fix, which formats the whole type, leaves a documented field declaration with several declarators
+    /// as one declaration when the documentation mode is Parse, so its documentation keeps documenting every field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-030")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task CodeFixLeavesADocumentedCombinedFieldOfTheTypeUnsplit()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    /// <summary>
+                                    /// The coordinates
+                                    /// </summary>
+                                    public int X, Y;
+
+                                    public void Run()
+                                    {
+                                    }
+
+                                    public static void {|#0:Create|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     /// <summary>
+                                     /// The coordinates
+                                     /// </summary>
+                                     public int X, Y;
+
+                                     public static void Create()
+                                     {
+                                     }
+
+                                     public void Run()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject),
+                     Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying the fix leaves a documented field declaration with several declarators as one declaration under CRLF
+    /// line endings when the documentation mode is Parse
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-030")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task CodeFixLeavesADocumentedCombinedFieldOfTheTypeUnsplitUnderCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    /// <summary>
+                                    /// The coordinates
+                                    /// </summary>
+                                    public int X, Y;
+
+                                    public void Run()
+                                    {
+                                    }
+
+                                    public static void {|#0:Create|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     /// <summary>
+                                     /// The coordinates
+                                     /// </summary>
+                                     public int X, Y;
+
+                                     public static void Create()
+                                     {
+                                     }
+
+                                     public void Run()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode),
+                     NormalizeToCarriageReturnLineFeed(fixedCode),
+                     test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject),
+                     Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
+    }
+
     #endregion // Tests
 
     #region Methods

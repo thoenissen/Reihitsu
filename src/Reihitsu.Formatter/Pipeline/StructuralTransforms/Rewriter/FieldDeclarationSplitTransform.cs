@@ -48,8 +48,9 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
 
     /// <summary>
     /// Determines whether the transform splits the field declaration: it declares more than one variable, is a member of a
-    /// class, struct, record, or interface, and carries no preprocessor directive or disabled text (FMT-STRUCT-021,
-    /// FMT-STRUCT-023)
+    /// class, struct, record, or interface, carries no preprocessor directive or disabled text, has no documentation comment,
+    /// and has no comment in the part every generated field repeats; FMT-STRUCT-030 states where that part ends
+    /// (FMT-STRUCT-021, FMT-STRUCT-023, FMT-STRUCT-030)
     /// </summary>
     /// <param name="fieldDeclaration">The field declaration to inspect</param>
     /// <returns><see langword="true"/> if the transform splits the declaration; otherwise, <see langword="false"/></returns>
@@ -57,7 +58,53 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     {
         return fieldDeclaration.Declaration.Variables.Count > 1
                && fieldDeclaration.Parent is ClassDeclarationSyntax or StructDeclarationSyntax or RecordDeclarationSyntax or InterfaceDeclarationSyntax
-               && CarriesDirective(fieldDeclaration) == false;
+               && CarriesDirective(fieldDeclaration) == false
+               && IsDocumented(fieldDeclaration) == false
+               && CarriesCommentInRepeatedPart(fieldDeclaration) == false;
+    }
+
+    /// <summary>
+    /// Determines whether a field declaration has a documentation comment in its leading trivia. The split keeps that trivia
+    /// on the first generated field only, so every other field would lose the documentation that applied to it. The parser
+    /// produces documentation comment trivia only in the documentation modes <c>Parse</c> and <c>Diagnose</c>; in the mode
+    /// <c>None</c>, a <c>///</c> or <c>/** */</c> comment is an ordinary comment and does not count (FMT-STRUCT-030)
+    /// </summary>
+    /// <param name="fieldDeclaration">The field declaration to inspect</param>
+    /// <returns><see langword="true"/> if the declaration is documented; otherwise, <see langword="false"/></returns>
+    private static bool IsDocumented(FieldDeclarationSyntax fieldDeclaration)
+    {
+        return fieldDeclaration.GetLeadingTrivia().Any(SyntaxTriviaUtilities.IsDocumentationCommentTrivia);
+    }
+
+    /// <summary>
+    /// Determines whether a comment stands in the trivia of the tokens every generated field repeats: every token from the
+    /// declaration's first token up to the first declarator, leaving out the declaration's leading trivia and the first
+    /// declarator's own leading trivia. Every generated field repeats these tokens with their trivia, so such a comment would
+    /// be copied onto every field. The boundary is trivia ownership as the parser assigns it, not the line; FMT-STRUCT-030
+    /// is its single statement
+    /// </summary>
+    /// <param name="fieldDeclaration">The field declaration to inspect</param>
+    /// <returns><see langword="true"/> if a comment stands in the repeated part; otherwise, <see langword="false"/></returns>
+    private static bool CarriesCommentInRepeatedPart(FieldDeclarationSyntax fieldDeclaration)
+    {
+        var firstToken = fieldDeclaration.GetFirstToken();
+        var firstDeclaratorToken = fieldDeclaration.Declaration.Variables[0].GetFirstToken();
+
+        foreach (var token in fieldDeclaration.DescendantTokens())
+        {
+            if (token == firstDeclaratorToken)
+            {
+                break;
+            }
+
+            if ((token != firstToken && token.LeadingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia))
+                || token.TrailingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -201,7 +248,8 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
         var variable = variables[variableIndex];
 
         // Only a later declarator's leading trivia is dropped, because BuildLeadingTrivia rebuilds it below. The
-        // first declarator is carried over unchanged so comments between the type and declarator remain in that slot.
+        // first declarator is carried over unchanged: the comments in its leading trivia belong to it, and
+        // FMT-STRUCT-030 states which comments the guard lets through into that slot.
         // Trailing trivia stays on its declarator so comments are not moved into a leading position.
         var declarator = variableIndex == 0
                              ? variable
