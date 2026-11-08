@@ -75,6 +75,8 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 | 40 | Audit 5 | Hint: RH2001 fix breaks another build when a conditional group in the modifier list holds `extern` or `readonly` | Adjacent fix, cheap refusal: decision 36's kept group may hold only modifiers RH7105-001 puts in front of `readonly` and that are valid on a field (accessibility, `new`, `static`); any other modifier in a conditional group of the list refuses the fix | The run changes this output (decision 36); safety rail must not ship | Withholds only a rare shape | — |
 | 41 | Audit 5 | Hint: a type-closing group in front of the span turns the fields into members of another struct in build X (main and head fix) | Follow-up (bug, exists on main): not changed by the run's rule, needs a wider refusal than the span | Keeps the run bounded | Not changed by the run | — |
 | 42 | Audit 5 | #15 (M1–M4 untested), #16 (stale summaries) | Tests for M1–M3 (M4 goes with #14), summaries of the public `ChangesMemberOrder` overloads updated | Same requirement / comment | — | — |
+| 43 | Repair 2 (spec author) | Two readings: (1) a whole-type `#if` block in front of a type's first token — keep main's fix (A) or refuse (B); (2) decision 38 vs batch 5 3A — refuse a bodiless conditional accessor only when the list also holds an accessor with a body (A) or always (B) | A for both, under the standing answer; decision 39 stays inside SHARED-ORDER-008 (no new ID); RH2001 change doc stays Accepted | (1) B would refuse common code; (2) A keeps the maintainer's 3A answer | Covered by batch 5 and the standing answer; stated in the PR | 4d647f09 |
+| 44 | Repair 2 (spec author) | Candidates: conditional `[StructLayout]`/`struct` on another partial part; RH2001 conditional group in front of the first modifier; conditional `using` in front of a type | Dropped (unverified, rare input classes; AGENTS.md *Special cases do not grow the source*) | New rule: a candidate that only serves a rare input class is not a follow-up | Not changed by the run | — |
 
 ## Follow-up candidates
 
@@ -101,4 +103,5 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 - Done: cleaner `40-cleaner.md` (93896eb3) clean.
 - Done: spec checker `41-spec-checker.md` (4f4d8243) consistent.
 - Audit 5 at df9c9147 (origin/main 3578f98e): findings, `42-auditor.md` (a33ec145): #1595, #1616 pass; #1593 #14, #15 (medium), #16 (low). Earlier classes #1–#13 closed. Decision 34 size judged acceptable by the auditor except #14.
-- Repair round 2 of 3: spec author (decisions 38–40) → `43-spec-author.md` ∥ test implementer (#14 counterexamples, M1–M3, decisions 39–40) → `44-test-implementer.md`; implementer → `45-implementer.md`; cleaner; spec checker; auditor (repair only); validator.
+- Done: spec author `43-spec-author.md` (4d647f09).
+- Repair round 2 of 3 (running): test implementer (#14 counterexamples, M1–M3, decisions 39–40) → `44-test-implementer.md`; implementer → `45-implementer.md`; cleaner; spec checker; auditor (repair only); validator.
