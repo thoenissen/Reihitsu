@@ -1753,7 +1753,7 @@ using System.Linq; class C { } } }
 
 ### FMT-PIPE-031 — The formatter answers whether it splits a field declaration
 
-`SplitsFieldDeclaration` MUST return whether the structural phase splits the field declaration it is given: true exactly when the declaration has more than one declarator, is a member of a class, struct, record, or interface (FMT-STRUCT-021), carries no directive or disabled text (FMT-STRUCT-023), has no documentation comment when the documentation mode of its syntax tree is `Parse` or `Diagnose`, and has no comment between its first token and its first declarator as FMT-STRUCT-030 delimits it: a comment on its own line in front of the first declarator's name does not count (FMT-STRUCT-030).
+`SplitsFieldDeclaration` MUST return whether the structural phase splits the field declaration it is given: true exactly when the declaration has more than one declarator, is a member of a class, struct, record, or interface (FMT-STRUCT-021), carries no directive or disabled text (FMT-STRUCT-023), has no documentation comment when the documentation mode of its syntax tree is `Parse` or `Diagnose`, and has no comment between its first token and its first declarator as FMT-STRUCT-030 delimits it: a comment that belongs to the first declarator does not count — one on its own line in front of the first declarator's name, and, when the documentation mode is `Parse` or `Diagnose`, a `///` or `/** */` comment behind the type on the type's line (FMT-STRUCT-030).
 
 This requirement decides the input the RH7101 code fix passes (`AGENTS.md`, *Supported inputs*): the field declaration of a diagnostic.
 
@@ -1788,7 +1788,9 @@ class C
     private int /* c */ _first, _second;
 
     private int _a = /* c */ 1, _b;
+
+    private int /** c */ _g, _h;
 }
 ```
 
-the method returns false for `X, Y` and for `_first, _second`, and true for `_a, _b`. In the documentation mode `None`, it returns true for `X, Y` as well.
+the method returns false for `X, Y` and for `_first, _second`, and true for `_a, _b` and for `_g, _h`. In the documentation mode `None`, it returns true for `X, Y` as well, and false for `_g, _h`, whose comment is then an ordinary comment behind the type.
