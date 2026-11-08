@@ -89,4 +89,5 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 - Repair rounds used: 1 of 3 (structural changes do not count).
 - Done: spec author `33-spec-author.md` (030b4573): SHARED-FIX-009, SHARED-ORDER-008, change doc `member-move-conditional-groups.md` (Draft); written on batch 4 A.
 - Done: test implementer `36-test-implementer.md` (5d41c928): 14 tests red against head (per-configuration code still in place).
-- Next: implementer → `37-implementer.md` (reset guard to main + SHARED-ORDER-008, decision 34) ∥ spec author (decision 36) → `38-spec-author.md`; then test pin for decision 36; cleaner; spec checker; auditor (audit 5); validator.
+- Done: implementer 6d1e583c, `37-implementer.md` (776c06db): all tests pass; Core diff vs main: OrderingDeclarationUtilities.cs +357/−7 (227 code lines, ~15 of them decision 16), OrderedMember.cs gone. Spec author `38-spec-author.md` (1973b10a).
+- Next: test implementer pins decision 36 → `39-test-implementer.md`; cleaner; cleaner; spec checker; auditor (audit 5); validator.
