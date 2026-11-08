@@ -18,6 +18,8 @@ The squad follows it:
 - the auditor reports production growth a refusal would have avoided, and suggests "refuse this class" for findings on rare inputs;
 - the implementer reports its production diff size and stops when a guard needs more than a cheap check.
 
+An issue that asks a fix or the formatter to serve a rare input class with more than a cheap check argues against the rule (`AGENTS.md`, *Issue intake*), and a follow-up candidate that only serves a rare input class is dropped instead of filed, so such issues stop being generated.
+
 ## Why
 
 In the run on issues #1595, #1593, and #1616, the member-moving fixes of RH7102, RH7103, RH7109, and RH7309 had to be made safe around `#if`. Repeated audit findings restructured the shared guard in `src/Reihitsu.Core/OrderingDeclarationUtilities.cs` three times — parsing per configuration, enumerating symbol assignments, limiting the number of configurations — and grew it by about 1000 lines for `#if` shapes nobody writes. The maintainer then decided that `#if` is a special case: a fix decides only from where directives sit in the syntax tree, evaluates no condition, and is withheld where that check cannot classify the input.
