@@ -1,7 +1,7 @@
 ﻿namespace Reihitsu.Core;
 
 /// <summary>
-/// What a member of a type's body, in any build configuration, contributes to the orders that a member reordering fix
+/// What a member of a type's body, in one build configuration or in all of them, contributes to the orders that a member reordering fix
 /// keeps: the order of the static and of the instance runtime initializers, and the order of the instance fields that
 /// set a type's layout. The member counts at its position in the body
 /// </summary>
@@ -34,7 +34,7 @@ internal readonly struct OrderedMember
     public int Position { get; }
 
     /// <summary>
-    /// Whether the member has a static runtime initializer in some build configuration
+    /// Whether the member has a static runtime initializer
     /// </summary>
     public bool HasStaticInitializer { get; }
 
@@ -44,7 +44,7 @@ internal readonly struct OrderedMember
     public bool HasInstanceInitializer { get; }
 
     /// <summary>
-    /// Whether the member is an instance field of the type's layout in some build configuration
+    /// Whether the member is an instance field of the type's layout
     /// </summary>
     public bool IsLayoutField { get; }
 

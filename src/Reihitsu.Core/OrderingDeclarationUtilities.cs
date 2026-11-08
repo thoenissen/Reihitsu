@@ -22,7 +22,7 @@ public static class OrderingDeclarationUtilities
 
     /// <summary>
     /// The largest number of build configurations of one region of a type's body that the member-order guard reads.
-    /// A region with more counts as reordered, so no fix moves the members of its type
+    /// A region with more counts as reordered when the reorder moves or crosses a part of it
     /// </summary>
     private const int MaximumConfigurationCount = 256;
 
@@ -323,7 +323,8 @@ public static class OrderingDeclarationUtilities
     /// initializer (SHARED-ORDER-007), or two instance fields of a type whose field order sets its layout, which the
     /// type's symbol decides. Members in code that an <c>#if</c> branch excludes count as well, at the position of
     /// that code, because another build configuration compiles them, and a member whose declaration a conditional
-    /// directive splits counts with what any configuration gives it (SHARED-FIX-003). The reorder is given as the
+    /// directive splits counts in each configuration with what that configuration gives it; each configuration is
+    /// judged on its own (SHARED-FIX-003). The reorder is given as the
     /// rank, after the reorder, of the part of the body that holds a position; code within one part keeps its order
     /// </summary>
     /// <param name="typeDeclaration">Type declaration whose body is reordered</param>
@@ -405,8 +406,12 @@ public static class OrderingDeclarationUtilities
     /// Determines whether a reorder of the type's body puts two members of the type into the other order where
     /// their order is behavior, as
     /// <see cref="ChangesMemberOrder(TypeDeclarationSyntax, INamedTypeSymbol, Func{int, int})"/> describes, with the
-    /// layout check given as a flag. A body whose conditional groups cannot be read per build configuration
-    /// (<see cref="TryGetOrderedMembers"/>) counts as changed, so no fix moves its members
+    /// layout check given as a flag. A member that no conditional group touches is read from the active code and is
+    /// compiled in every build configuration. The conditional groups that touch a common member, and the members they
+    /// touch, form one region, which is read per build configuration (<see cref="TryGetOrderedMembersOfRegion"/>); each
+    /// configuration of a region is judged on its own and is combined with every configuration of every other region.
+    /// A region with more configurations than <see cref="MaximumConfigurationCount"/> counts as changed when the
+    /// reorder touches it (<see cref="IsTouched"/>), and is left out otherwise
     /// </summary>
     /// <param name="typeDeclaration">Type declaration whose body is reordered</param>
     /// <param name="fieldOrderSetsLayout">Whether the order of the type's instance fields sets its layout (<see cref="FieldOrderSetsLayout"/>)</param>
@@ -414,66 +419,194 @@ public static class OrderingDeclarationUtilities
     /// <returns><see langword="true"/> if the reorder changes initializer execution order or the layout</returns>
     private static bool ChangesMemberOrder(TypeDeclarationSyntax typeDeclaration, bool fieldOrderSetsLayout, Func<int, int> getNewRank)
     {
-        if (TryGetOrderedMembers(typeDeclaration, out var members) == false)
-        {
-            return true;
-        }
-
-        bool ChangesOrder(Func<OrderedMember, bool> isOrdered)
-        {
-            var writtenOrder = members.Where(isOrdered)
-                                      .Select(member => member.Position)
-                                      .OrderBy(position => position)
-                                      .ToList();
-            var newOrder = writtenOrder.OrderBy(getNewRank)
-                                       .ThenBy(position => position);
-
-            return writtenOrder.SequenceEqual(newOrder) == false;
-        }
-
-        return ChangesOrder(member => member.HasStaticInitializer)
-               || ChangesOrder(member => member.HasInstanceInitializer)
-               || (fieldOrderSetsLayout && ChangesOrder(member => member.IsLayoutField));
-    }
-
-    /// <summary>
-    /// Gets what every member of the type's body, in any build configuration, contributes to the order of the
-    /// initializers and of the layout fields, with its position. A member that no conditional group touches is read
-    /// from the active code. Each conditional group of the body is read once, as a whole with all its branches; the
-    /// groups that touch a common member, and the members they touch, form one region, which is read per build
-    /// configuration (<see cref="TryAddOrderedMembersOfRegion"/>). A group touches a member when it lies in the
-    /// member's declaration or in its leading trivia. A group inside a block, an expression body, or the body of a
-    /// nested type changes nothing that a member of this type contributes and is not read
-    /// </summary>
-    /// <param name="typeDeclaration">Type declaration</param>
-    /// <param name="orderedMembers">The ordered members</param>
-    /// <returns><see langword="false"/> if a region of the body has more configurations than <see cref="MaximumConfigurationCount"/></returns>
-    private static bool TryGetOrderedMembers(TypeDeclarationSyntax typeDeclaration, out List<OrderedMember> orderedMembers)
-    {
-        orderedMembers = [];
-
-        var regions = new List<(TextSpan Span, List<ConditionalGroup> Groups)>();
-
-        if (typeDeclaration.ContainsDirectives
-            && typeDeclaration.OpenBraceToken.IsKind(SyntaxKind.OpenBraceToken))
-        {
-            regions = GetConditionalRegions(typeDeclaration, GetConditionalGroups(typeDeclaration));
-        }
-
-        foreach (var member in typeDeclaration.Members.Where(member => regions.Exists(region => region.Span.Contains(member.FullSpan)) == false))
-        {
-            orderedMembers.Add(CreateOrderedMember(member.SpanStart, member));
-        }
+        var regions = GetConditionalRegions(typeDeclaration);
+        var activeMembers = typeDeclaration.Members
+                                           .Where(member => regions.Exists(region => region.Span.Contains(member.FullSpan)) == false)
+                                           .Select(member => CreateOrderedMember(member.SpanStart, member))
+                                           .ToList();
+        var regionConfigurations = new List<List<List<OrderedMember>>>();
+        var unreadRegionSpans = new List<TextSpan>();
 
         foreach (var (span, groups) in regions)
         {
-            if (TryAddOrderedMembersOfRegion(typeDeclaration, span, groups, orderedMembers) == false)
+            if (TryGetOrderedMembersOfRegion(typeDeclaration, span, groups, out var configurations))
             {
-                return false;
+                regionConfigurations.Add(configurations);
+            }
+            else
+            {
+                unreadRegionSpans.Add(span);
             }
         }
 
-        return true;
+        if (unreadRegionSpans.Count > 0)
+        {
+            var positions = typeDeclaration.Members
+                                           .Select(member => member.SpanStart)
+                                           .Concat(regionConfigurations.SelectMany(configurations => configurations.SelectMany(configuration => configuration))
+                                                                       .Select(member => member.Position))
+                                           .Concat(unreadRegionSpans.Select(span => span.Start))
+                                           .ToList();
+
+            if (unreadRegionSpans.Exists(span => IsTouched(span, positions, getNewRank)))
+            {
+                return true;
+            }
+        }
+
+        return ChangesOrder(activeMembers, regionConfigurations, getNewRank, member => member.HasStaticInitializer)
+               || ChangesOrder(activeMembers, regionConfigurations, getNewRank, member => member.HasInstanceInitializer)
+               || (fieldOrderSetsLayout && ChangesOrder(activeMembers, regionConfigurations, getNewRank, member => member.IsLayoutField));
+    }
+
+    /// <summary>
+    /// Determines whether a reorder puts two members of one kind into the other order in some build configuration.
+    /// Two members of one region count together only when one configuration of the region compiles both; a member of
+    /// the active code, which no conditional group touches, counts together with every member of every configuration,
+    /// and two members of different regions count together in any of their configurations, because the groups of
+    /// different regions are read as independent
+    /// </summary>
+    /// <param name="activeMembers">The members that no conditional group touches</param>
+    /// <param name="regionConfigurations">For each region, the members of each of its configurations</param>
+    /// <param name="getNewRank">Rank after the reorder of the part of the body that holds a position</param>
+    /// <param name="isOrdered">Whether a member is of the kind whose order is kept</param>
+    /// <returns><see langword="true"/> if two members of the kind change their order in some configuration</returns>
+    private static bool ChangesOrder(List<OrderedMember> activeMembers, List<List<List<OrderedMember>>> regionConfigurations, Func<int, int> getNewRank, Func<OrderedMember, bool> isOrdered)
+    {
+        foreach (var configuration in regionConfigurations.SelectMany(configurations => configurations))
+        {
+            var maximumRank = int.MinValue;
+
+            foreach (var rank in configuration.Where(isOrdered)
+                                              .OrderBy(member => member.Position)
+                                              .Select(member => getNewRank(member.Position)))
+            {
+                if (rank < maximumRank)
+                {
+                    return true;
+                }
+
+                maximumRank = Math.Max(maximumRank, rank);
+            }
+        }
+
+        var entries = activeMembers.Where(isOrdered)
+                                   .Select((member, index) => (member.Position, Unit: index))
+                                   .Concat(regionConfigurations.SelectMany((configurations, index) => configurations.SelectMany(configuration => configuration)
+                                                                                                                    .Where(isOrdered)
+                                                                                                                    .Select(member => (member.Position, Unit: activeMembers.Count + index))))
+                                   .Distinct()
+                                   .OrderBy(entry => entry.Position);
+
+        // The highest rank in front of the current entry, and the highest rank of another unit than that one
+        var highest = (Rank: int.MinValue, Unit: -1);
+        var highestOfOtherUnit = int.MinValue;
+
+        foreach (var (position, unit) in entries)
+        {
+            var rank = getNewRank(position);
+            var highestOfOtherUnits = unit == highest.Unit
+                                          ? highestOfOtherUnit
+                                          : highest.Rank;
+
+            if (rank < highestOfOtherUnits)
+            {
+                return true;
+            }
+
+            if (unit == highest.Unit)
+            {
+                highest.Rank = Math.Max(highest.Rank, rank);
+            }
+            else if (rank > highest.Rank)
+            {
+                highestOfOtherUnit = highest.Rank;
+                highest = (rank, unit);
+            }
+            else
+            {
+                highestOfOtherUnit = Math.Max(highestOfOtherUnit, rank);
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether a reorder touches a region of the body: it changes the order of two parts of the region, or
+    /// it puts a member outside the region on the other side of it
+    /// </summary>
+    /// <param name="span">Span of the region</param>
+    /// <param name="positions">Positions of the members of the body, in any configuration</param>
+    /// <param name="getNewRank">Rank after the reorder of the part of the body that holds a position</param>
+    /// <returns><see langword="true"/> if the reorder moves or crosses a part of the region</returns>
+    private static bool IsTouched(TextSpan span, List<int> positions, Func<int, int> getNewRank)
+    {
+        var rank = getNewRank(span.Start);
+
+        for (var position = span.Start + 1; position < span.End; position++)
+        {
+            if (getNewRank(position) != rank)
+            {
+                return true;
+            }
+        }
+
+        return positions.Where(position => span.Contains(position) == false)
+                        .Any(position => position < span.Start
+                                             ? getNewRank(position) > rank
+                                             : getNewRank(position) < rank);
+    }
+
+    /// <summary>
+    /// Gets the regions of the type's body that are read per build configuration: each outermost conditional group,
+    /// other than a group that only writes square brackets (<see cref="IsBalanced"/>), extended over the members it
+    /// touches, with the regions that share a member merged. A group touches a member when it lies in the member's
+    /// declaration or in its leading trivia
+    /// </summary>
+    /// <param name="typeDeclaration">Type declaration</param>
+    /// <returns>The regions with their outermost groups, in source order</returns>
+    private static List<(TextSpan Span, List<ConditionalGroup> Groups)> GetConditionalRegions(TypeDeclarationSyntax typeDeclaration)
+    {
+        var regions = new List<(TextSpan Span, List<ConditionalGroup> Groups)>();
+
+        if (typeDeclaration.ContainsDirectives == false
+            || typeDeclaration.OpenBraceToken.IsKind(SyntaxKind.OpenBraceToken) == false)
+        {
+            return regions;
+        }
+
+        var options = typeDeclaration.SyntaxTree.Options as CSharpParseOptions;
+        var text = typeDeclaration.SyntaxTree.GetText();
+
+        foreach (var group in GetConditionalGroups(typeDeclaration).Where(group => IsBalanced(text, options, group, out var holdsOnlySquareBrackets) == false || holdsOnlySquareBrackets == false))
+        {
+            var span = group.Span;
+
+            foreach (var memberSpan in typeDeclaration.Members.Where(member => member.FullSpan.OverlapsWith(group.Span)).Select(member => member.FullSpan))
+            {
+                span = TextSpan.FromBounds(Math.Min(span.Start, memberSpan.Start), Math.Max(span.End, memberSpan.End));
+            }
+
+            var regionGroups = new List<ConditionalGroup>
+                               {
+                                   group
+                               };
+
+            while (regions.Count > 0
+                   && regions[regions.Count - 1].Span.OverlapsWith(span))
+            {
+                var previousRegion = regions[regions.Count - 1];
+
+                regions.RemoveAt(regions.Count - 1);
+                span = TextSpan.FromBounds(Math.Min(span.Start, previousRegion.Span.Start), Math.Max(span.End, previousRegion.Span.End));
+                regionGroups.InsertRange(0, previousRegion.Groups);
+            }
+
+            regions.Add((span, regionGroups));
+        }
+
+        return regions;
     }
 
     /// <summary>
@@ -544,87 +677,29 @@ public static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Gets the regions of the type's body that are read per build configuration: each outermost conditional group
-    /// that is not read as text (<see cref="IsReadAsText"/>), extended over the members it touches, with the regions
-    /// that share a member merged
-    /// </summary>
-    /// <param name="typeDeclaration">Type declaration</param>
-    /// <param name="groups">The outermost groups of the body, in source order</param>
-    /// <returns>The regions with their outermost groups, in source order</returns>
-    private static List<(TextSpan Span, List<ConditionalGroup> Groups)> GetConditionalRegions(TypeDeclarationSyntax typeDeclaration, List<ConditionalGroup> groups)
-    {
-        var regions = new List<(TextSpan Span, List<ConditionalGroup> Groups)>();
-
-        foreach (var group in groups.Where(group => IsReadAsText(typeDeclaration, group) == false))
-        {
-            var span = group.Span;
-
-            foreach (var memberSpan in typeDeclaration.Members.Where(member => member.FullSpan.OverlapsWith(group.Span)).Select(member => member.FullSpan))
-            {
-                span = TextSpan.FromBounds(Math.Min(span.Start, memberSpan.Start), Math.Max(span.End, memberSpan.End));
-            }
-
-            var regionGroups = new List<ConditionalGroup>
-                               {
-                                   group
-                               };
-
-            while (regions.Count > 0
-                   && regions[regions.Count - 1].Span.OverlapsWith(span))
-            {
-                var previousRegion = regions[regions.Count - 1];
-
-                regions.RemoveAt(regions.Count - 1);
-                span = TextSpan.FromBounds(Math.Min(span.Start, previousRegion.Span.Start), Math.Max(span.End, previousRegion.Span.End));
-                regionGroups.InsertRange(0, previousRegion.Groups);
-            }
-
-            regions.Add((span, regionGroups));
-        }
-
-        return regions;
-    }
-
-    /// <summary>
-    /// Determines whether a conditional group is read as text rather than per build configuration, because no
-    /// configuration of it changes what a member of this type contributes: every directive of the group lies inside
-    /// the same block, expression body, or body of a nested type, whose code holds statements, expressions, or the
-    /// members of another type rather than a part of a member of this type; or every configuration of the group only
-    /// writes text inside brackets (<see cref="WritesOnlyInsideBrackets"/>)
-    /// </summary>
-    /// <param name="typeDeclaration">Type declaration</param>
-    /// <param name="group">Conditional group</param>
-    /// <returns><see langword="true"/> if the group is read as text</returns>
-    private static bool IsReadAsText(TypeDeclarationSyntax typeDeclaration, ConditionalGroup group)
-    {
-        var body = GetEnclosingBody(typeDeclaration, group.Directives[0]);
-
-        if (body != null
-            && group.Directives.TrueForAll(directive => GetEnclosingBody(typeDeclaration, directive) == body))
-        {
-            return true;
-        }
-
-        return WritesOnlyInsideBrackets(typeDeclaration, group);
-    }
-
-    /// <summary>
-    /// Determines whether every configuration of a conditional group only writes text inside brackets, which changes no
-    /// modifier, initializer, accessor, or member boundary of a member of this type. Each piece of text between two
+    /// Determines whether a conditional group is opened and closed in the body and each piece of text between two
     /// boundaries of the group, or of the groups nested in it, closes every parenthesis, bracket, and brace that it
-    /// opens and none that it does not open, and either the group lies inside a parenthesis, bracket, or brace of a
-    /// member's active code other than an accessor list, such as an argument list or a collection initializer, or each
-    /// piece holds nothing but square brackets and their content outside them, such as an attribute list
+    /// opens and none that it does not open. Such a group changes the brackets around no code outside it, so in a
+    /// configuration where it lies inside a bracket, every branch of it lies inside that bracket. A balanced group whose
+    /// pieces hold nothing but square brackets and their content outside them, such as an attribute list, changes no
+    /// modifier, initializer, accessor, or member boundary of a member in any configuration
     /// </summary>
-    /// <param name="typeDeclaration">Type declaration</param>
+    /// <param name="text">Text of the syntax tree</param>
+    /// <param name="options">Parse options of the syntax tree</param>
     /// <param name="group">Conditional group</param>
-    /// <returns><see langword="true"/> if every configuration of the group only writes text inside brackets</returns>
-    private static bool WritesOnlyInsideBrackets(TypeDeclarationSyntax typeDeclaration, ConditionalGroup group)
+    /// <param name="holdsOnlySquareBrackets">Whether each piece holds nothing but square brackets and their content outside them</param>
+    /// <returns><see langword="true"/> if the group is balanced</returns>
+    private static bool IsBalanced(SourceText text, CSharpParseOptions options, ConditionalGroup group, out bool holdsOnlySquareBrackets)
     {
-        var options = typeDeclaration.SyntaxTree.Options as CSharpParseOptions;
-        var text = typeDeclaration.SyntaxTree.GetText();
+        holdsOnlySquareBrackets = false;
+
+        if (group.IsComplete == false)
+        {
+            return false;
+        }
+
         var boundaries = group.GetAllBoundaries();
-        var holdsOnlySquareBrackets = true;
+        var holdsOnlySquareBracketsSoFar = true;
 
         for (var index = 0; index + 1 < boundaries.Count; index++)
         {
@@ -635,16 +710,14 @@ public static class OrderingDeclarationUtilities
 
             foreach (var token in tokens)
             {
-                var delta = GetNestingDelta(token);
-
                 if (depth == 0
                     && token.IsKind(SyntaxKind.OpenBracketToken) == false
                     && token.IsKind(SyntaxKind.CloseBracketToken) == false)
                 {
-                    holdsOnlySquareBrackets = false;
+                    holdsOnlySquareBracketsSoFar = false;
                 }
 
-                depth += delta;
+                depth += GetNestingDelta(token);
 
                 if (depth < 0)
                 {
@@ -658,13 +731,14 @@ public static class OrderingDeclarationUtilities
             }
         }
 
-        return holdsOnlySquareBrackets
-               || LiesInsideBrackets(typeDeclaration, group.Directives[0].SpanStart);
+        holdsOnlySquareBrackets = holdsOnlySquareBracketsSoFar;
+
+        return true;
     }
 
     /// <summary>
-    /// Determines whether a position lies inside a parenthesis, bracket, or brace of a member's active code, other than
-    /// the braces of an accessor list, whose content decides whether a property has a backing field
+    /// Determines whether a position lies inside a parenthesis, bracket, or brace of a member's code, other than the
+    /// braces of an accessor list, whose content decides whether a property has a backing field
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
     /// <param name="position">Position</param>
@@ -705,94 +779,58 @@ public static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Gets the outermost block, expression body, or body of a nested type inside the type's body that holds a
-    /// directive
-    /// </summary>
-    /// <param name="typeDeclaration">Type declaration</param>
-    /// <param name="directive">Directive</param>
-    /// <returns>The enclosing body, or <see langword="null"/> if the directive lies in no such body</returns>
-    private static SyntaxNode GetEnclosingBody(TypeDeclarationSyntax typeDeclaration, SyntaxTrivia directive)
-    {
-        var position = directive.SpanStart;
-        SyntaxNode body = null;
-
-        for (var node = directive.Token.Parent; node != null && node != typeDeclaration; node = node.Parent)
-        {
-            var holdsDirective = node switch
-                                 {
-                                     BlockSyntax block => position >= block.OpenBraceToken.Span.End && position < block.CloseBraceToken.SpanStart,
-                                     ArrowExpressionClauseSyntax arrowExpressionClause => position >= arrowExpressionClause.ArrowToken.Span.End && position < arrowExpressionClause.Span.End,
-                                     BaseTypeDeclarationSyntax baseTypeDeclaration => baseTypeDeclaration.OpenBraceToken.IsKind(SyntaxKind.OpenBraceToken)
-                                                                                      && position >= baseTypeDeclaration.OpenBraceToken.Span.End
-                                                                                      && position < baseTypeDeclaration.CloseBraceToken.SpanStart,
-                                     _ => false,
-                                 };
-
-            if (holdsDirective)
-            {
-                body = node;
-            }
-        }
-
-        return body;
-    }
-
-    /// <summary>
     /// Gets the build configurations of conditional groups that lie side by side: each combination of one
-    /// configuration of every group
+    /// configuration of every group that is read per configuration
     /// </summary>
-    /// <param name="typeDeclaration">Type declaration</param>
     /// <param name="groups">Conditional groups</param>
-    /// <returns>For each configuration, the spans of the text it does not compile; an empty list if there are more than <see cref="MaximumConfigurationCount"/></returns>
-    private static List<List<TextSpan>> GetConfigurations(TypeDeclarationSyntax typeDeclaration, IEnumerable<ConditionalGroup> groups)
+    /// <param name="readPerConfiguration">The groups that are read per configuration; the others stay directives of the text</param>
+    /// <param name="configurations">For each configuration, the spans of the text it does not compile</param>
+    /// <returns><see langword="false"/> if there are more than <see cref="MaximumConfigurationCount"/> configurations</returns>
+    private static bool TryGetConfigurations(IEnumerable<ConditionalGroup> groups, HashSet<ConditionalGroup> readPerConfiguration, out List<List<TextSpan>> configurations)
     {
-        var configurations = new List<List<TextSpan>>
-                             {
-                                 new()
-                             };
+        configurations = [[]];
 
-        foreach (var group in groups)
+        foreach (var group in groups.Where(readPerConfiguration.Contains))
         {
-            var groupConfigurations = GetConfigurations(typeDeclaration, group);
-
-            if (groupConfigurations.Count == 0
+            if (TryGetConfigurations(group, readPerConfiguration, out var groupConfigurations) == false
                 || configurations.Count * groupConfigurations.Count > MaximumConfigurationCount)
             {
-                return [];
+                return false;
             }
 
             configurations = configurations.SelectMany(configuration => groupConfigurations.Select(groupConfiguration => configuration.Concat(groupConfiguration).ToList()))
                                            .ToList();
         }
 
-        return configurations;
+        return true;
     }
 
     /// <summary>
     /// Gets the build configurations of a conditional group: for each branch, the configurations that compile it,
-    /// with every configuration of the groups nested in it that are not read as text, and, for a group without
+    /// with every configuration of the groups nested in it that are read per configuration, and, for a group without
     /// <c>#else</c>, the configuration that compiles none of its branches. No configuration compiles a directive of
     /// the group
     /// </summary>
-    /// <param name="typeDeclaration">Type declaration</param>
     /// <param name="group">Conditional group</param>
-    /// <returns>For each configuration, the spans of the text it does not compile; an empty list if there are more than <see cref="MaximumConfigurationCount"/></returns>
-    private static List<List<TextSpan>> GetConfigurations(TypeDeclarationSyntax typeDeclaration, ConditionalGroup group)
+    /// <param name="readPerConfiguration">The groups that are read per configuration; the others stay directives of the text</param>
+    /// <param name="configurations">For each configuration, the spans of the text it does not compile</param>
+    /// <returns><see langword="false"/> if there are more than <see cref="MaximumConfigurationCount"/> configurations</returns>
+    private static bool TryGetConfigurations(ConditionalGroup group, HashSet<ConditionalGroup> readPerConfiguration, out List<List<TextSpan>> configurations)
     {
         var directiveSpans = group.Boundaries;
         var branchSpans = group.GetBranchSpans();
-        var configurations = new List<List<TextSpan>>();
+
+        configurations = [];
 
         for (var branchIndex = 0; branchIndex < branchSpans.Count; branchIndex++)
         {
             var branchSpan = branchSpans[branchIndex];
             var excludedSpans = directiveSpans.Concat(branchSpans.Where((_, index) => index != branchIndex)).ToList();
-            var nestedConfigurations = GetConfigurations(typeDeclaration, group.Children.Where(child => branchSpan.Contains(child.Span) && IsReadAsText(typeDeclaration, child) == false));
 
-            if (nestedConfigurations.Count == 0
+            if (TryGetConfigurations(group.Children.Where(child => branchSpan.Contains(child.Span)), readPerConfiguration, out var nestedConfigurations) == false
                 || configurations.Count + nestedConfigurations.Count > MaximumConfigurationCount)
             {
-                return [];
+                return false;
             }
 
             configurations.AddRange(nestedConfigurations.Select(nestedConfiguration => excludedSpans.Concat(nestedConfiguration).ToList()));
@@ -803,9 +841,7 @@ public static class OrderingDeclarationUtilities
             configurations.Add(directiveSpans.Concat(branchSpans).ToList());
         }
 
-        return configurations.Count > MaximumConfigurationCount
-                   ? []
-                   : configurations;
+        return configurations.Count <= MaximumConfigurationCount;
     }
 
     /// <summary>
@@ -1011,134 +1047,159 @@ public static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Adds what a region of the type's body contributes, read per build configuration, to the order of the
-    /// initializers and of the layout fields. Each configuration compiles one branch of each of the region's
-    /// conditional groups: its text is the region with the directives and the other branches blanked, which keeps every
-    /// position, and it is parsed as the body of a type. A member that configurations declare under one name counts
-    /// with what any of them contributes (SHARED-ORDER-007), at each position where one of them declares it: a runtime
-    /// initializer when a configuration that does not declare it <c>const</c> gives it one, the static context when
-    /// such a configuration declares it <c>static</c>, the instance context when such a configuration declares it
-    /// without <c>static</c>, and an instance field when a configuration declares it as one. Text of a configuration
-    /// that parses as no complete member, such as the initializer of a property behind its accessor list, counts as a
-    /// runtime initializer of both contexts when it holds an <c>=</c> outside every parenthesis, bracket, and brace,
-    /// because it can complete a member of either. An <c>=</c> inside them, such as a named attribute argument or an
-    /// assignment in an accessor body, is no initializer
+    /// Gets what a region of the type's body contributes, in each build configuration, to the order of the
+    /// initializers and of the layout fields. Each configuration compiles one branch of each conditional group of the
+    /// region that is read per configuration: its text is the region with the directives and the other branches of
+    /// those groups blanked, which keeps every position, and it is parsed as the body of a type. Each member of that
+    /// parse counts with what it declares in that configuration (SHARED-ORDER-007); what one configuration compiles is
+    /// never combined with what another compiles. A group that is not balanced (<see cref="IsBalanced"/>) is read per
+    /// configuration. A balanced group, other than one that only writes square brackets, stays a directive of the text
+    /// as long as it lies inside a bracket of a member in every configuration that compiles it, because no branch of
+    /// it then reaches the member level; once a configuration compiles it outside every bracket, it is read per
+    /// configuration as well, and the configurations are read again. Text of a configuration that parses as no
+    /// complete member, such as the initializer of a property behind its accessor list, counts as a runtime
+    /// initializer of both contexts when it holds an <c>=</c> outside every parenthesis, bracket, and brace, because it
+    /// can complete a member of either. An <c>=</c> inside them, such as a named attribute argument or an assignment
+    /// in an accessor body, is no initializer
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
     /// <param name="span">Span of the region</param>
     /// <param name="groups">The outermost conditional groups of the region</param>
-    /// <param name="orderedMembers">The ordered members to add to</param>
+    /// <param name="configurationMembers">For each configuration, the ordered members it compiles</param>
     /// <returns><see langword="false"/> if the region has more than <see cref="MaximumConfigurationCount"/> configurations</returns>
-    private static bool TryAddOrderedMembersOfRegion(TypeDeclarationSyntax typeDeclaration, TextSpan span, List<ConditionalGroup> groups, List<OrderedMember> orderedMembers)
+    private static bool TryGetOrderedMembersOfRegion(TypeDeclarationSyntax typeDeclaration, TextSpan span, List<ConditionalGroup> groups, out List<List<OrderedMember>> configurationMembers)
     {
-        var configurations = GetConfigurations(typeDeclaration, groups);
-
-        if (configurations.Count == 0)
-        {
-            return false;
-        }
-
         const string prefix = "class C\n{\n";
 
         var options = typeDeclaration.SyntaxTree.Options as CSharpParseOptions;
-        var text = typeDeclaration.SyntaxTree.GetText().ToString(span);
-        var contributions = new List<(string Name, int Position, bool HasInitializer, bool IsStatic, bool IsInstance, bool IsLayoutField)>();
+        var sourceText = typeDeclaration.SyntaxTree.GetText();
+        var text = sourceText.ToString(span);
+        var readPerConfiguration = new HashSet<ConditionalGroup>();
+        var candidates = new List<ConditionalGroup>();
+
+        foreach (var group in groups.SelectMany(group => group.GetSelfAndNestedGroups()))
+        {
+            if (IsBalanced(sourceText, options, group, out var holdsOnlySquareBrackets) == false)
+            {
+                readPerConfiguration.Add(group);
+            }
+            else if (holdsOnlySquareBrackets == false)
+            {
+                candidates.Add(group);
+            }
+        }
 
         // A parsed position, mapped back into the region; text that the parse appends behind the region counts at its end
         Func<int, int> getPosition = parsedPosition => Math.Max(span.Start, Math.Min(span.End - 1, span.Start + parsedPosition - prefix.Length));
 
-        foreach (var excludedSpans in configurations)
+        while (true)
         {
-            var characters = text.ToCharArray();
+            configurationMembers = [];
 
-            foreach (var excludedSpan in excludedSpans)
+            if (TryGetConfigurations(groups, readPerConfiguration, out var configurations) == false)
             {
-                for (var position = excludedSpan.Start; position < excludedSpan.End; position++)
-                {
-                    var index = position - span.Start;
+                return false;
+            }
 
-                    if (characters[index] != '\r'
-                        && characters[index] != '\n')
+            var readsMoreGroups = false;
+
+            foreach (var excludedSpans in configurations)
+            {
+                var characters = text.ToCharArray();
+
+                foreach (var excludedSpan in excludedSpans)
+                {
+                    for (var position = excludedSpan.Start; position < excludedSpan.End; position++)
                     {
-                        characters[index] = ' ';
+                        var index = position - span.Start;
+
+                        if (characters[index] != '\r'
+                            && characters[index] != '\n')
+                        {
+                            characters[index] = ' ';
+                        }
                     }
                 }
-            }
 
-            var parsedType = SyntaxFactory.ParseCompilationUnit($"{prefix}{new string(characters)}\n}}", options: options)
-                                          .Members
-                                          .OfType<TypeDeclarationSyntax>()
-                                          .FirstOrDefault();
+                var root = SyntaxFactory.ParseCompilationUnit($"{prefix}{new string(characters)}\n}}", options: options);
+                var parsedType = root.Members
+                                     .OfType<TypeDeclarationSyntax>()
+                                     .FirstOrDefault();
 
-            if (parsedType == null)
-            {
-                continue;
-            }
-
-            foreach (var member in parsedType.Members)
-            {
-                var isConst = IsConst(member);
-                var isStatic = IsStatic(member);
-
-                contributions.Add((GetMemberName(member),
-                                   getPosition(member.SpanStart),
-                                   isConst == false && HasInitializerSyntax(member),
-                                   isConst == false && isStatic,
-                                   isConst == false && isStatic == false,
-                                   IsLayoutField(member)));
-            }
-
-            foreach (var incompleteTokens in parsedType.Members
-                                                       .OfType<IncompleteMemberSyntax>()
-                                                       .Select(member => (member.SpanStart, Tokens: member.DescendantTokens()))
-                                                       .Concat(parsedType.DescendantTrivia(descendIntoTrivia: true)
-                                                                         .Where(trivia => trivia.IsKind(SyntaxKind.SkippedTokensTrivia))
-                                                                         .Select(trivia => (trivia.SpanStart, Tokens: trivia.GetStructure()?.DescendantTokens() ?? [])))
-                                                       .Where(incompleteTokens => ContainsTopLevelToken(incompleteTokens.Tokens.ToList(), SyntaxKind.EqualsToken)))
-            {
-                contributions.Add((null, getPosition(incompleteTokens.SpanStart), true, true, true, false));
-            }
-        }
-
-        foreach (var contribution in contributions)
-        {
-            var hasInitializer = contribution.HasInitializer;
-            var isStatic = contribution.IsStatic;
-            var isInstance = contribution.IsInstance;
-            var isLayoutField = contribution.IsLayoutField;
-
-            if (contribution.Name != null)
-            {
-                foreach (var sameMember in contributions.Where(other => other.Name == contribution.Name))
+                if (parsedType == null)
                 {
-                    hasInitializer |= sameMember.HasInitializer;
-                    isStatic |= sameMember.IsStatic;
-                    isInstance |= sameMember.IsInstance;
-                    isLayoutField |= sameMember.IsLayoutField;
+                    configurationMembers.Add([]);
+
+                    continue;
                 }
+
+                foreach (var candidate in candidates.Where(candidate => readPerConfiguration.Contains(candidate) == false))
+                {
+                    var parsedPosition = candidate.Directives[0].SpanStart - span.Start + prefix.Length;
+
+                    if (IsCompiledDirective(root, parsedPosition)
+                        && LiesInsideBrackets(parsedType, parsedPosition) == false)
+                    {
+                        readPerConfiguration.Add(candidate);
+                        readsMoreGroups = true;
+                    }
+                }
+
+                if (readsMoreGroups)
+                {
+                    break;
+                }
+
+                configurationMembers.Add(GetOrderedMembersOfConfiguration(parsedType, getPosition));
             }
 
-            orderedMembers.Add(new OrderedMember(contribution.Position, hasInitializer && isStatic, hasInitializer && isInstance, isLayoutField));
+            if (readsMoreGroups == false)
+            {
+                return true;
+            }
         }
-
-        return true;
     }
 
     /// <summary>
-    /// Gets the name under which a field, event field, or property is declared: the name of its first variable or its
-    /// identifier
+    /// Determines whether the parse of a configuration compiles the <c>#if</c> directive at a position, rather than
+    /// blanking it or holding it in code that another directive excludes
     /// </summary>
-    /// <param name="memberDeclaration">Member declaration</param>
-    /// <returns>The name, or <see langword="null"/> for any other member</returns>
-    private static string GetMemberName(MemberDeclarationSyntax memberDeclaration)
+    /// <param name="root">Parsed configuration</param>
+    /// <param name="position">Position of the directive in the parse</param>
+    /// <returns><see langword="true"/> if an active <c>#if</c> directive starts at the position</returns>
+    private static bool IsCompiledDirective(CompilationUnitSyntax root, int position)
     {
-        return memberDeclaration switch
-               {
-                   FieldDeclarationSyntax fieldDeclaration when fieldDeclaration.Declaration.Variables.Count > 0 => fieldDeclaration.Declaration.Variables[0].Identifier.ValueText,
-                   EventFieldDeclarationSyntax eventFieldDeclaration when eventFieldDeclaration.Declaration.Variables.Count > 0 => eventFieldDeclaration.Declaration.Variables[0].Identifier.ValueText,
-                   PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Identifier.ValueText,
-                   _ => null,
-               };
+        var trivia = root.FindTrivia(position);
+
+        return trivia.IsKind(SyntaxKind.IfDirectiveTrivia)
+               && trivia.GetStructure() is DirectiveTriviaSyntax { IsActive: true };
+    }
+
+    /// <summary>
+    /// Gets what each member of one configuration's parse contributes to the order of the initializers and of the
+    /// layout fields, at its position in the region
+    /// </summary>
+    /// <param name="parsedType">The parsed type whose body is the configuration's text of the region</param>
+    /// <param name="getPosition">Maps a parsed position into the region</param>
+    /// <returns>The ordered members of the configuration</returns>
+    private static List<OrderedMember> GetOrderedMembersOfConfiguration(TypeDeclarationSyntax parsedType, Func<int, int> getPosition)
+    {
+        var orderedMembers = parsedType.Members
+                                       .Select(member => CreateOrderedMember(getPosition(member.SpanStart), member))
+                                       .ToList();
+
+        foreach (var incompleteTokens in parsedType.Members
+                                                   .OfType<IncompleteMemberSyntax>()
+                                                   .Select(member => (member.SpanStart, Tokens: member.DescendantTokens()))
+                                                   .Concat(parsedType.DescendantTrivia(descendIntoTrivia: true)
+                                                                     .Where(trivia => trivia.IsKind(SyntaxKind.SkippedTokensTrivia))
+                                                                     .Select(trivia => (trivia.SpanStart, Tokens: trivia.GetStructure()?.DescendantTokens() ?? [])))
+                                                   .Where(incompleteTokens => ContainsTopLevelToken(incompleteTokens.Tokens.ToList(), SyntaxKind.EqualsToken)))
+        {
+            orderedMembers.Add(new OrderedMember(getPosition(incompleteTokens.SpanStart), true, true, false));
+        }
+
+        return orderedMembers;
     }
 
     #endregion // Methods

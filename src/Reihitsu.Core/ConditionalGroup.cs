@@ -59,6 +59,15 @@ internal sealed class ConditionalGroup
     /// </summary>
     public bool HasElseBranch => Directives.Exists(directive => directive.IsKind(SyntaxKind.ElseDirectiveTrivia));
 
+    /// <summary>
+    /// Whether the body both opens and closes the group: its first directive is an <c>#if</c> and its last an
+    /// <c>#endif</c>, both in the body
+    /// </summary>
+    public bool IsComplete => Directives.Count > 1
+                              && Directives[0].IsKind(SyntaxKind.IfDirectiveTrivia)
+                              && Directives[Directives.Count - 1].IsKind(SyntaxKind.EndIfDirectiveTrivia)
+                              && Boundaries.Count == Directives.Count;
+
     #endregion // Properties
 
     #region Methods
@@ -87,6 +96,16 @@ internal sealed class ConditionalGroup
         }
 
         return branchSpans;
+    }
+
+    /// <summary>
+    /// Gets the group and every group nested in it, at any depth
+    /// </summary>
+    /// <returns>The group, followed by its nested groups</returns>
+    public IEnumerable<ConditionalGroup> GetSelfAndNestedGroups()
+    {
+        return Children.SelectMany(child => child.GetSelfAndNestedGroups())
+                       .Prepend(this);
     }
 
     /// <summary>
