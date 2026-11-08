@@ -44,4 +44,5 @@
 - Done: implementer (05, commits aaa7241, 8a76f40): verdict test disputed (Decision 6).
 - Done: test implementer follow-up (06, fbf26fe); formatter project green.
 - Done: cleaner (07, 0f55234): clean.
-- Next: spec checker.
+- Done: spec checker (08, 76bcafa): consistent, no findings.
+- Next: auditor.
