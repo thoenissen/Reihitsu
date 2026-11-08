@@ -3566,6 +3566,8 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     [TestMethod]
     [DataRow("\n")]
     [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
     public async Task NoCodeFixWhenConditionalGroupsInFrontOfACrossedFieldExceedTheConfigurationLimit(string endOfLine)
     {
         const string source = """
@@ -4436,6 +4438,160 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     }
 
     /// <summary>
+    /// Verifying that a declaration split into a static field without an initializer in one build and an instance field
+    /// with an initializer in the other is judged in each build on its own: no build gives it a static initializer, so
+    /// moving a static initialized field across it keeps the fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixIsOfferedWhenACrossedDeclarationIsSplitIntoAStaticFieldAndAnInstanceInitializedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                              #if DEBUG
+                                  private static int _b
+                              #else
+                                  private int _b = Log("b")
+                              #endif
+                                      ;
+                                  private int _d;
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart of a declaration split into a static field and an instance initialized field: an
+    /// instance initialized field moved across it would run its initializer before the split one in the build that
+    /// compiles the instance field, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenACrossedDeclarationSplitIntoAStaticFieldAndAnInstanceInitializedFieldIsCrossedByAnInstanceInitializedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                              #if DEBUG
+                                  private static int _b
+                              #else
+                                  private int _b = Log("b")
+                              #endif
+                                      ;
+                                  private int _d;
+                                  private readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that an excluded branch whose brackets balance but which ends an expression-bodied property and declares
+    /// a static initialized field contributes that field to the type in its build, so moving a static initialized field
+    /// across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenABalancedExcludedBranchEndsAnExpressionBodyAndDeclaresAStaticInitializedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+
+                                  public int P => 1
+                              #if DEBUG
+                                      ;
+
+                                  private static int _z = Log("z");
+
+                                  public int Q => 2
+                              #endif
+                                      ;
+
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart of a balanced excluded branch that ends an expression body: a group whose branches each
+    /// end the expression body but declare no member keeps the fix. Only whether the fix is offered is under test: the
+    /// layout of the continuation lines in the branches is decided by whole-type formatting
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixIsOfferedAcrossAPropertyWhoseExcludedBranchEndsTheExpressionBodyWithoutDeclaringAMember(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+
+                                  public int P =>
+                              #if DEBUG
+                                      1;
+                              #else
+                                      2;
+                              #endif
+                                  private int _e;
+
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
     /// Verifying that conditional groups whose build configurations exceed the number the member-order guard reads only
     /// withhold a move that touches them: a move that neither crosses nor moves a member of those groups keeps its fix
     /// </summary>
@@ -4444,6 +4600,8 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     [TestMethod]
     [DataRow("\n")]
     [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
     public async Task FixMovesAFieldWhenConditionalGroupsThatExceedTheConfigurationLimitLieAwayFromTheMove(string endOfLine)
     {
         const string source = """
