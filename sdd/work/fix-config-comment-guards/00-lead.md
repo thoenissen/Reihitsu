@@ -26,6 +26,7 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 - Batch 3 (2026-11-08), member-moving fixes (RH7102/RH7103/RH7109/RH7309) near `#if` → **A**: the fix is withheld whenever the moved or crossed span holds a conditional directive that is not a group of whole members (an `#if` inside a member, splitting a member's modifiers, nested `#if`, or crossing a member or type boundary); groups of whole members keep main's reading (initializer and layout check). The maintainer does not want fixes to parse or infer excluded configurations: `#if` is a special case that needs no code fix. Record this as a shared principle in the specs.
 - Batch 4 (2026-11-08): `#if` group of whole statements inside a member body the fix moves across (e.g. `#if DEBUG Trace(); #endif` in a method) → **A**: fix kept as on main (except an accessor branch using `field`). The maintainer accepts that some `#if` shapes are allowed exceptions.
 - Batch 5 (2026-11-08): 1A (whole-member `#if` group in a crossed nested type: fix kept as on main), 2A (conditional whole attribute lists on a moved/crossed member: fix kept), 3A (conditional whole accessors: fix kept, except accessors using `field`). The maintainer is concerned that reading inside conditions grows complex again: no condition is evaluated, and the analyzer/fix must stay maintainable — the check must be a small structural test of where directives sit (Roslyn trivia/syntax positions) plus main's existing whole-member parse of excluded text, nothing more.
+- Batch 6 (2026-11-08): keep main's whole-member parse of excluded text (`GetMembersOfDisabledText`) as it is for now (A); the maintainer may revisit the simplification (refuse any `#if` block in the span, delete the parse) later.
 - Standing answer (2026-11-08): the maintainer takes the recommended option for every further output question of this run. Each such question is still recorded here and its result stated in the PR.
 
 ## Decisions taken
@@ -78,6 +79,7 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 - Unverified: layout-ness of a type is decided from the analyzed build's symbol; a conditional `[StructLayout(Sequential)]` on a class or `#if X struct #else class #endif` in the type header could let a fix reorder layout fields that matter in another build; check with `scripts/apply-fix.sh` before filing (30-spec-author.md).
 - An excluded `#pragma` moves with its members in the build that compiles it; exists on main (34-skeptic.md).
 - Unverified: RH2001 fix may break another build when a conditional group adds a modifier such as `extern` (34-skeptic.md).
+- Possible later simplification (maintainer, batch 6): the member-moving guard refuses any `#if` block in the moved or crossed span and drops `GetMembersOfDisabledText`; to be revisited by the maintainer, not before.
 
 ## Worklist / next step
 
