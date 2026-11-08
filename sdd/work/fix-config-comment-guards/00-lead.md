@@ -85,6 +85,7 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 | 49 | Audit 6 | #22 stale `IsLayoutField` summary | Updated with decision 46 | Comment | — | — |
 | 50 | Repair 3 (spec author) | Internal choices: abstract/extern exemption kept in SHARED-ORDER-007; decision 47 written inside SHARED-ORDER-008; SHARED-FIX-009 keeps a reworded RH2001 example; a directive in front of the first modifier stays under RH2001-004 | Accept all | Within decisions 46–48 | Spec wording | 545922d6 |
 | 51 | Finish | Maintainer asks to finish | Spec checker and audit 7 run in parallel (both read-only, on the same head) instead of in sequence | Saves a stage; neither changes files | Internal | — |
+| 52 | Finish | Cleaner after repair round 3 | Skipped: the implementer ran `scripts/format.sh` (no change) and the Release build (0 warnings) on the final files; the cleaner would have nothing to do | Maintainer asks to finish | Internal | 6cb404d2 |
 
 ## Follow-up candidates
 
@@ -119,4 +120,5 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 - Audit 6 at 051f337f: `48-auditor.md` (1424c9a2): #14–#16 closed; #17, #20 repeats → decision 46; #18 → 47; #19, #21 → 48; #22 → 49.
 - Done: spec author `49-spec-author.md` (545922d6); test implementer `50-test-implementer.md` (359a6fc2): 9 tests red.
 - Batch 7 answered (A). Finish: after the implementer, cleaner; spec checker ∥ audit 7 (both read-only, decision 51); validator; issue manager; note; publish.
-- Repair round 3 of 3 (last; decision 46 is structural): implementer → `51-implementer.md`; cleaner; spec checker; auditor (audit 7, repair only); validator. A block after this round is resolved by narrowing.
+- Done: implementer `51-implementer.md` (6cb404d2): all tests pass; src diff vs main +629/−79 (round shrank it).
+- Repair round 3 of 3: spec checker `52-spec-checker.md` ∥ audit 7 `53-auditor.md`; then validator. (old line:) implementer → `51-implementer.md`; cleaner; spec checker; auditor (audit 7, repair only); validator. A block after this round is resolved by narrowing.
