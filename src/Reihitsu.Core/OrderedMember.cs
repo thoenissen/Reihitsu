@@ -39,7 +39,7 @@ internal readonly struct OrderedMember
     public bool HasStaticInitializer { get; }
 
     /// <summary>
-    /// Whether the member has an instance runtime initializer in some build configuration
+    /// Whether the member has an instance runtime initializer
     /// </summary>
     public bool HasInstanceInitializer { get; }
 
