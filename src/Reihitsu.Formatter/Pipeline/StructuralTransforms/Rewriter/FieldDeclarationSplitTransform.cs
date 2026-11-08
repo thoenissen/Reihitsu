@@ -253,7 +253,9 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
         var variable = variables[variableIndex];
 
         // Only a later declarator's leading trivia is dropped, because BuildLeadingTrivia rebuilds it below. The
-        // first declarator is carried over unchanged so comments between the type and declarator remain in that slot.
+        // first declarator is carried over unchanged, so the only comments in front of its name that reach this code
+        // stay in that slot: the guard lets through a comment on its own line in front of the name and, when
+        // documentation comments are parsed, a documentation comment behind the type on the type's line.
         // Trailing trivia stays on its declarator so comments are not moved into a leading position.
         var declarator = variableIndex == 0
                              ? variable
