@@ -86,6 +86,7 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 | 50 | Repair 3 (spec author) | Internal choices: abstract/extern exemption kept in SHARED-ORDER-007; decision 47 written inside SHARED-ORDER-008; SHARED-FIX-009 keeps a reworded RH2001 example; a directive in front of the first modifier stays under RH2001-004 | Accept all | Within decisions 46–48 | Spec wording | 545922d6 |
 | 51 | Finish | Maintainer asks to finish | Spec checker and audit 7 run in parallel (both read-only, on the same head) instead of in sequence | Saves a stage; neither changes files | Internal | — |
 | 52 | Finish | Cleaner after repair round 3 | Skipped: the implementer ran `scripts/format.sh` (no change) and the Release build (0 warnings) on the final files; the cleaner would have nothing to do | Maintainer asks to finish | Internal | 6cb404d2 |
+| 53 | Audit 7 (after round 3) | Block after the third repair round: #23 (RH2001 guard skips properties without modifiers — regression vs main and 051f337f), #24 (conditional modifier in front of the first modifier; exists on main), #25 (conditional layout attribute on another partial part; exists on main), #26 (stale summary) | Narrowing (README *Repairs*), one final round: #23 goes back to main's output — the RH2001 guard drops its `Modifiers.Count > 0` condition, with a test; #26 summary corrected. #24 and #25 are pre-existing safety-rail defects the run does not change: follow-up bugs, named first in the PR's Review notes; decision 44's drop of them is reversed now that the auditor confirmed them | Third round blocked; narrowing keeps the run's other gains | #23 restores main's output; #24/#25 unchanged from main | — |
 
 ## Follow-up candidates
 
@@ -100,6 +101,8 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 - Unverified: RH2001 fix may break another build when a conditional group adds a modifier such as `extern` (34-skeptic.md).
 - Possible later simplification (maintainer, batch 6): the member-moving guard refuses any `#if` block in the moved or crossed span and drops `GetMembersOfDisabledText`; to be revisited by the maintainer, not before.
 - Bug (exists on main, decision 41): a conditional group in front of the moved/crossed span whose branch closes the type turns fields into members of another (layout) type in that build; the member-moving fixes reorder its layout (42-auditor.md).
+- Bug (safety rail, exists on main; 53-auditor.md #24): RH2001 fix with a conditional modifier in front of the first modifier (`#if DEBUG extern #endif private int Value { get; }`, or `readonly` in a struct) produces a field that does not compile in that build (CS0106/CS1004).
+- Bug (safety rail, exists on main; 53-auditor.md #25): member-moving fixes read a conditional `[StructLayout]` only on the declaration being reordered, not on other partial parts; RH7109 reorders a layout in that build.
 
 ## Worklist / next step
 
@@ -121,4 +124,5 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 - Done: spec author `49-spec-author.md` (545922d6); test implementer `50-test-implementer.md` (359a6fc2): 9 tests red.
 - Batch 7 answered (A). Finish: after the implementer, cleaner; spec checker ∥ audit 7 (both read-only, decision 51); validator; issue manager; note; publish.
 - Done: implementer `51-implementer.md` (6cb404d2): all tests pass; src diff vs main +629/−79 (round shrank it).
-- Repair round 3 of 3: spec checker `52-spec-checker.md` ∥ audit 7 `53-auditor.md`; then validator. (old line:) implementer → `51-implementer.md`; cleaner; spec checker; auditor (audit 7, repair only); validator. A block after this round is resolved by narrowing.
+- Done: spec checker `52-spec-checker.md` (e76e63f6) consistent; audit 7 `53-auditor.md` (c806c465): findings → narrowing (decision 53).
+- Narrowing round: test implementer (#23 test) → `54-test-implementer.md`; implementer (#23, #26) → `55-implementer.md`; auditor on the narrowing only `56-auditor.md` ∥ validator `57-validator.md`; issue manager; note; publish. (old line:) implementer → `51-implementer.md`; cleaner; spec checker; auditor (audit 7, repair only); validator. A block after this round is resolved by narrowing.
