@@ -235,7 +235,7 @@ internal sealed class BlankLineEditor
     /// comment separates from the statement, the blank line goes after the last directive (FMT-BLANK-016)
     /// </summary>
     /// <param name="statement">The statement to check and potentially modify</param>
-    /// <returns>The statement with a blank line inserted before it, or the original if one already exists</returns>
+    /// <returns>The statement with a blank line inserted before it, or the original if none is required or one already exists</returns>
     /// <remarks>
     /// No blank line is inserted when the statement is directly preceded by a preprocessor directive,
     /// mirroring the exemption the PrecededBy/FollowedBy analyzer bases apply. Callers whose

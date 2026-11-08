@@ -19,3 +19,7 @@ Finding #1 part (c), the `<returns>` of `BlankLineEditor.EnsureBlankLineBeforeSt
 Build, format and tests skipped: only `///` text changed in one file.
 TEXT-ONLY PROOF: see the line below.
 TEXT-ONLY PROOF: PASS — base=8fd6edf head=worktree — 3 changed file(s) (2 non-compiled, 1 C# comment/layout-only); xml-doc impact: 1 file(s), no public API documentation
+
+## Repair round 1 (Decision 7)
+Part (c) applied: `<returns>` of `BlankLineEditor.EnsureBlankLineBeforeStatement` now reads "...or the original if none is required or one already exists". No code changed. The earlier "Unresolved" note on (c) is superseded. The strict-docs FAIL for this public doc edit is expected and accepted by the lead.
+Checks: `scripts/format.sh`: Formatted 0 of 1 file(s). `scripts/build.sh`: 0 Warning(s), 0 Error(s).
