@@ -24,7 +24,7 @@ Read [`../README.md`](../README.md) first. Issues here are often generated from 
 4. **What is the mechanism?** For a bug, one sentence whose membership is decidable for any construct — why it fails, not which examples exposed it.
 5. **Which inputs break it?** Derive the candidate set from the dispatch code — the switch, visitor registrations, rewriter list, or syntax type hierarchy — never from the issue text. Name the defining type for each. Walk [`../failure-classes.md`](../failure-classes.md) and keep the classes that can reach the changed code. For a defect you find or the issue reports, enumerate its class rather than the instance: the axes along which the failing shape can vary and every member they span, starting from the class's matrix in the catalog when it has one. Settle every member and report all failing members together (`README.md`, *Architecture findings*). A member that no caller of the repository reaches is not a failing member (`AGENTS.md`, *Supported inputs*).
 6. **Which surfaces are involved?** Analyzer, formatter phase, code fix, Fix All, `Reihitsu.Core`, rule doc, tests: for each, must change, must stay, or not involved. "Not involved" is a finding too.
-7. **Is there a simpler option?** A narrower change, an existing helper, or no change.
+7. **What does refusing cost?** For every issue, name the refuse option: the fix is withheld for the reported input class, or the formatter leaves the construct as written. Compare its cost with the requested change's — production lines, new types, new mechanisms — and say whether the class is rare (`AGENTS.md`, *Code-fix coverage*). Then any other simpler option: a narrower change, an existing helper, or no change.
 8. **Do the goals make sense?** For an `agent-filed` issue: does each goal and "Done when" item serve the issue's purpose, or is it a prescribed solution, a stale statement about today's code, or a demand nobody needs? Name each goal you would drop or change, why, and whether doing so changes visible output.
 9. **Is the severity right?** A report can reproduce and still be wrong about how far it generalizes or how much it matters. A diagnostic without a code fix is a supported end state, not a defect (`AGENTS.md`, *Code-fix coverage*).
 10. **Does an entry point predict a phase's decision?** For every change to a node-level entry point of `ReihitsuFormatter` or to a code fix that calls one: does it decide, from the input, something a phase decides (a line break, a shared line, a column, a blank line)? A prediction is a mechanism of its own; the safe shape reads the phases' result. Name each prediction and its owner.
@@ -69,8 +69,8 @@ Verdict: proceed | proceed narrower | do not make the change | output question
 | Surface | Must change / must stay / not involved |
 |---|---|
 
-## Simpler option
-<or _None._>
+## Refuse option
+<the refuse option, its cost against the requested change's, and whether the input class is rare; then any other simpler option, or _None._>
 
 ## Output questions
 <a case within the run's issues whose visible output is in question (`README.md`, *What reaches the maintainer*): the input, the output today, and the output each reading gives, as C#, with your recommendation; or _None._>
