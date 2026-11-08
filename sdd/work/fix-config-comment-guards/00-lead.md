@@ -44,6 +44,8 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 | 13 | Skeptic (spec diff) | #1593 wording in SHARED-ORDER-007 | Replace "no other member moves" with "in its leading trivia or inside it"; first split-member bullet also covers a split that changes only a modifier; RH7109 counterpart example stays out | Removes a contradiction | Spec wording internal | — |
 | 14 | Skeptic (spec diff) | #1616 RH2001-004 wording | Drop the "not in RH7105 order" condition (the fix sorts every get-only property); RH2001-009 frees "a comment or directive" between modifiers that keep their order; leading-trivia list includes a same-line `/* lead */` before the first modifier, with a test (`/* lead */ private static readonly int _value;`) | Matches today's output and the requirement's intent | Matches today's output | — |
 | 15 | Skeptic (spec diff) | Lone `;` column claim (decision 11) | Reproduces, but whole-document formatting gives the same; decided by `indentation.md` non-goal / #953. Not a defect of the run; merged into the "member-moving fixes format the whole type" follow-up. Test implementer avoids counterpart outputs with such continuation lines | — | Not changed by the run | — |
+| 16 | Spec author (amendment) | s1/s2 (split `const`/`static readonly` under `#if` in the constant's modifier list) and 1593c/a (split `static` in RH7103's reported member) are reported today, against RH7102-001 / SHARED-DIAG-008; tests asserting "reported, no fix" would lock in a forbidden report | Adjacent fix in this run: the RH7102 and RH7103 analyzers stop reporting a member whose judged modifiers a conditional directive splits (SHARED-DIAG-008); tests assert no diagnostic for these rows. The fix guard still counts a split member that is crossed | Leaving the fix active there would ship a meaning-changing fix (safety rail) in an output the run changes; withholding while reporting would lock in a report the spec forbids. Small, in the code fix's counterpart, demanded by unchanged requirements | Demanded by unchanged SHARED-DIAG-008 and RH7102-001; nothing undecided | — |
+| 17 | Spec author (amendment) | Change doc `rh2001-modifier-reorder-trivia.md` | Accepted (status Accepted), after the spec-diff skeptic and the amendment | Both visible changes answered by the maintainer (batch 1 Q1, batch 2) | — | 2b21209 |
 
 ## Follow-up candidates
 
@@ -57,6 +59,7 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 - Done: spec author `02-spec-author.md` (ade7768); open output question: RH2001 `static private /* a */ int Value { get; }` placement of `readonly` (A recommended).
 - Done: skeptic on spec diff `03-skeptic.md` (6340a92).
 - Done: output questions batch 2 answered (A; standing answer: recommended for all further).
-- Now: spec author amendment → `04-spec-author.md`.
+- Done: spec author amendment `04-spec-author.md` (2b21209).
+- Now: test implementer → `05-test-implementer.md`.
 - Next: spec author amendment (decisions 12–14 + answer; change doc lists the visible change), accept change doc, test implementer.
 - Next: spec author (clarifications D5, D7 outcome, RH2001 spec after answers) → test implementer.
