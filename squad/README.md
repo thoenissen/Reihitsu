@@ -10,7 +10,7 @@ This file is the process every role follows. The lead's playbook is [`lead.md`](
 |---|---|---|
 | [Lead](lead.md) | Talks to the maintainer, claims the lane, spawns roles, routes findings, decides internal questions, asks output questions, manages the pull request and watches its CI | Write specs, tests, or production code, or write issues |
 | [Spec author](roles/spec-author.md) | Writes the change doc (when required), the spec diff, and the documentation; writes every text change of the docs lane; lists the open questions it finds | Touch code or tests, beyond comment-only edits in the docs lane |
-| [Skeptic](roles/skeptic.md) | Challenges the premise: is the issue real, is the spec wrong instead, does it conflict with other specs or `shared/`, which input breaks it, is there a simpler option | Review code |
+| [Skeptic](roles/skeptic.md) | Challenges the premise: is the issue real, is the spec wrong instead, does it conflict with other specs or `shared/`, which input breaks it, what refusing the input class would cost | Review code |
 | [Test implementer](roles/test-implementer.md) | Derives tests from the spec examples and the failure-class catalog; for a bug, the first test is the reproduction | Touch production code |
 | [Implementer](roles/implementer.md) | Makes the tests pass; builds in Debug | Change test assertions |
 | [Cleaner](roles/cleaner.md) | Runs `reihitsu-format`, makes the Release build warning-free | Change behavior, add suppressions or ruleset changes, change assertions |
@@ -81,7 +81,7 @@ The maintainer decides what an end user sees; the lead decides everything else. 
 
 Everything else is internal: spec wording, requirement IDs and spec ownership, which input facts or which component carries a decision, structure, tests, tooling, scope, lanes, change-doc text, and the text of follow-up issues. No assembly of this repository is used as a library, so its API is internal too, and a component only has to work for the inputs the repository's own callers pass (`AGENTS.md`, [*Supported inputs*](../AGENTS.md#supported-inputs)): an output no such caller reaches is never in question.
 
-A visible output is **in question** when its change is not decided yet: no unchanged spec requirement demands it, and no maintainer answer covers it. A bug fix that brings the code back to an unchanged requirement puts nothing in question. In question are:
+A visible output is **in question** when its change is not decided yet: no unchanged spec requirement demands it, and no maintainer answer covers it. A bug fix that brings the code back to an unchanged requirement puts nothing in question, and neither does withholding a fix, or leaving a construct as written, for a rare input class (`AGENTS.md`, *Code-fix coverage*); the PR names the class under `Review notes`. In question are:
 
 - a visible output change that a change doc lists (`sdd/README.md`, *Change docs*);
 - a case within the run's issues whose real output looks wrong and that no spec decides (`sdd/README.md`, *Open questions*);
@@ -104,7 +104,8 @@ The lead stops and asks the maintainer only when:
 5. the run would need a new rule — a new diagnostic is visible output;
 6. a warning can only be resolved by a suppression or a ruleset change;
 7. the narrowing after the third repair round would change an output the maintainer answered, or the run still blocks after it ([below](#repairs));
-8. before the claim: an issue reference in the prompt is unclear, an existing claim exists, the prompt names more than eight issues, or its issues do not share a lane.
+8. before the claim: an issue reference in the prompt is unclear, an existing claim exists, the prompt names more than eight issues, or its issues do not share a lane;
+9. a structural change would add more than about 100 production lines or a new type ([below](#architecture-findings)), or refusing a class would withhold a fix or leave a construct unformatted for code people commonly write (`AGENTS.md`, *Code-fix coverage*). The options always include refusing the class instead.
 
 The maintainer's answer to an output question is recorded where it takes effect — the change doc's `Decisions` section or the spec — and in the run's note. The answer to any other escalation is recorded in the run's note; the PR carries only the part that shapes the change.
 
@@ -130,7 +131,7 @@ The run implements the issues the prompt names, but its scope is not frozen. The
 - it puts no visible output in question;
 - the lane check still admits the diff.
 
-Every other find becomes a follow-up, unless no caller of the repository reaches it (`AGENTS.md`, *Supported inputs*); such a find is dropped. A role that sees the change grow — a shared helper with other consumers, more than double the production paths the handovers name, or an adjacent fix — reports it in its handover and keeps working; the lead decides and records it. Only a new rule stops the run (escalation 5).
+Every other find becomes a follow-up, unless no caller of the repository reaches it (`AGENTS.md`, *Supported inputs*); such a find is dropped. Code that only serves a rare input class is never scope the run takes in: that class is refused (`AGENTS.md`, *Code-fix coverage*). A role that sees the change grow — a shared helper with other consumers, more than double the production paths the handovers name, or an adjacent fix — reports it in its handover and keeps working; the lead decides and records it. Only a new rule stops the run (escalation 5).
 
 ## Notes
 
@@ -150,7 +151,8 @@ The escalation covers the defects that reach the run: a defect of one of the run
 
 A role that finds one reports it in its handover under `## Architecture findings`: the components, the decision they share, and the input that shows them disagreeing or the places that state the rule. It finishes its own job without changing the structure. The lead decides before the next role starts, and records the decision under *Decisions taken*:
 
-- **Change the structure in this run** when the class has repeated in an audit of this run, or when the narrow fix would itself add a copy, a prediction, or a second statement of the rule — provided the structural change stays within the components the run changes and their counterparts. It is routed to its owner like a repair, from the first role of the lane it affects, and does not use up a repair round.
+- **Refuse the class first** when the finding concerns a rare input class, or repeats the class of an earlier audit finding of the run: the fix is withheld for the class, or the formatter leaves the construct as written (`AGENTS.md`, *Code-fix coverage*). It is routed to its owner like a repair and does not use up a repair round.
+- **Change the structure in this run** only when refusing is not enough — the class includes code people commonly write, or the narrow fix would itself add a copy, a prediction, or a second statement of the rule — and the structural change stays within the components the run changes and their counterparts. It is routed to its owner like a repair, from the first role of the lane it affects, and does not use up a repair round. A structural change that adds more than about 100 production lines or a new type is escalation 9.
 - **Otherwise, fix narrowly** and file the structural change as a follow-up.
 - A structural change that would put a visible output in question is an output question; one that needs a new rule is escalation 5.
 
@@ -158,7 +160,7 @@ Whether a structural defect gets a narrow fix is the lead's decision, never a ro
 
 **Failure classes, not instances.** When the skeptic or the auditor finds a defect, it enumerates the defect's class: the axes along which the failing shape can vary, and every member they span that one of the repository's own callers reaches (`AGENTS.md`, *Supported inputs*) — for a column that two phases compute, the direction of the shift, what the varying character stands in front of, and whether another line is aligned to it. It traces or constructs every member and reports all failing members together in one finding, naming the members that hold. Where [`failure-classes.md`](failure-classes.md) carries a matrix for the class, the enumeration starts from it.
 
-**A repeated class is an architecture signal.** Two findings are of the same class when they share their mechanism — the same decision, failing between the same components — and differ only in the input shape; a shared catalog ID alone does not make two findings one class. An audit finding of the same class as a finding of an earlier audit of the same run is handled as an architecture finding instead of another repair round: one enumeration already missed a member, and repairing one member per round only finds the next.
+**A repeated class is an architecture signal.** Two findings are of the same class when they share their mechanism — the same decision, failing between the same components — and differ only in the input shape; a shared catalog ID alone does not make two findings one class. An audit finding of the same class as a finding of an earlier audit of the same run is handled as an architecture finding instead of another repair round: one enumeration already missed a member, and repairing one member per round only finds the next. Refusing the class ends that loop; more reasoning starts the next round of it.
 
 ## Repairs
 
