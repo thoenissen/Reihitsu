@@ -315,18 +315,19 @@ The moved members are the moved declaration and the members of excluded code in 
 
 A member reordering fix MUST NOT offer a move either when it would reorder the instance fields of a type whose field order sets its layout (SHARED-FIX-003, *Run time*), and it counts the instance fields the same way: an instance field of excluded code in the moved declaration's leading trivia moves across every instance field the move crosses, and an instance field of excluded code in the crossed span is crossed. A move of a static member therefore reorders instance fields when excluded code in its leading trivia declares one and the move crosses an instance field.
 
-A member whose declaration an `#if`, `#elif`, or `#else` branch splits, so that the configurations compile different parts of it, counts with what any configuration gives it:
+A member whose declaration an `#if`, `#elif`, or `#else` branch splits, so that the configurations compile different parts of it, is read per configuration: each configuration contributes what it declares the member as, and the member counts with what any configuration contributes:
 
-- it has a runtime initializer when one configuration gives it one, such as an `= Log("b")` that only a build with `DEBUG` compiles, also behind the accessor list of a property, and also when its initializer is active in every configuration and only one configuration declares it without `const`;
-- it counts in both contexts when one configuration declares it `static` and another does not;
+- it has a runtime initializer when one configuration that does not declare it `const` gives it an initializer, such as an `= Log("b")` that only a build with `DEBUG` compiles, also behind the accessor list of a property, and also when its initializer is active in every configuration and only one configuration declares it without `const`;
+- it is a static member when one configuration declares it `static` and not `const`, and an instance member when one configuration declares it neither `static` nor `const`; it counts in both contexts when one configuration makes it a static member and another an instance member;
 - it is an instance field when one configuration declares it as one;
+- a configuration that declares it `const` contributes nothing: neither a runtime initializer, nor a context, nor an instance field, because a constant has nothing to reorder. A member that is `static readonly` in one configuration and `const` in every other therefore counts only as a static member, with a runtime initializer when the `static readonly` configuration gives it one;
 - a further member that excluded code inside its declaration declares counts like any member of excluded code, at that position.
 
 A split member whose parts give it no runtime initializer, context, or instance field that conflicts with a member it is moved across keeps the move.
 
 Every member reordering fix applies both guards. RH7102 moves only constants. A constant that no `#if`, `#elif`, or `#else` splits has no runtime initializer and takes no place in the layout, but the excluded code in its leading trivia moves with it; a declaration that is `const` only in some configurations counts as a split member. RH7309 counts initializers and instance fields the same way.
 
-Why: Initializers run in declaration order within their context, the static ones in the static constructor and the instance ones in each instance constructor. Swapping two of them can change observable values silently. Static and instance initializers run at different times, so crossing a member of the other context is safe. Excluded code is compiled by another build, and the code in front of the moved declaration goes where the declaration goes, so in that build its members are moved like the declaration itself; refusing only for the declaration's own initializer would let the fix reorder that build's initializers or fields. A build sees only the parts of a split member that it compiles, so an initializer or a `static` that one build adds to the member is that build's, and the member is moved or crossed with it.
+Why: Initializers run in declaration order within their context, the static ones in the static constructor and the instance ones in each instance constructor. Swapping two of them can change observable values silently. Static and instance initializers run at different times, so crossing a member of the other context is safe. Excluded code is compiled by another build, and the code in front of the moved declaration goes where the declaration goes, so in that build its members are moved like the declaration itself; refusing only for the declaration's own initializer would let the fix reorder that build's initializers or fields. A build sees only the parts of a split member that it compiles, so an initializer or a `static` that one build adds to the member is that build's, and the member is moved or crossed with it; a build that compiles the member as a `const` sees a constant, which runs no initializer and takes no place in the layout, so that build adds nothing to the member.
 
 Example:
 
@@ -478,6 +479,29 @@ public struct S : IDisposable
 ```
 
 is reported by RH7309, and no code fix is offered: in a build with `DEBUG`, `_b` is an instance field, and moving `Fields` in front of `IDisposable` would lay out `_b` before `_a`.
+
+A configuration that declares the split member `const` adds no context. Without `DEBUG` defined,
+
+```csharp
+public class C
+{
+    private int _a;
+#if DEBUG
+    internal static readonly
+#else
+    private const
+#endif
+        int K = 1;
+    private readonly int {|RH7109:_b|} = Log("b");
+
+    private static int Log(string name)
+    {
+        return 0;
+    }
+}
+```
+
+is reported by RH7109, and its code fix is offered and moves `_b` in front of `_a`: in a build with `DEBUG`, `K` is a static member with an initializer, which `_b` may cross, and in a build without `DEBUG`, `K` is a constant. Neither build gives `K` an instance initializer that `_b` would cross. With `private readonly` in place of `private const`, the build without `DEBUG` gives `K` an instance initializer, and no code fix is offered.
 
 A member split across `#if DEBUG` and `#else` keeps the move when no configuration gives a moved member and a crossed member of one context an initializer each. Without `DEBUG` defined, RH7309 reports the `Fields` block, and its fix moves the block in front of `IDisposable`, which holds no initialized member:
 
