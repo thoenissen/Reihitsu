@@ -58,6 +58,7 @@
 - Auditor 15 (a00947d) audited f133f2f: #1 closed; #2 repeats #1's class → architecture finding (decision 14). Repair rounds used: 1.
 - Spec author 16 (a88bc7a) done. Test implementer 17 (c5c7423) done, mutation-checked. Cleaner 18 (e2f0c25): clean. Spec checker 19 (5efb456): consistent.
 - Auditor 20 (9c43dce) audited 1cd4ec2: #2 and architecture finding closed; pass with doc-only finding #3 (FMT-STRUCT-030 wording of where the type's trailing trivia ends). Audited SHA: 1cd4ec2e07a02a8ee4356489006e4fb64903517e.
-- Next: spec author 21 fixes #3 wording; prove with verify-text-only --strict-docs --base 1cd4ec2; then validator 22.
+- Spec author 21 (1a3a508): #3 wording fixed; text-only proof PASS against 1cd4ec2 (no second audit needed).
+- Next: validator 22 on the final tree.
 - Structural change worklist: spec author 16 (single ownership statement), test implementer 17 (pin new members, formatter + RH7101), cleaner 18 (code comments point to the statement; format; build), spec checker 19, auditor 20, validator 21.
 - Repair round 1 worklist: spec author (10) amends FMT-STRUCT-030 / FMT-PIPE-031 / RH7101-007 per answer B; test implementer (11) pins the case on the split side (formatter + RH7101 fix offered); implementer (12) aligns the summaries of `CarriesCommentInRepeatedPart` and `SplitsFieldDeclaration` with the boundary; cleaner (13) fixes the stale `CreateSplitField` comment (decision 11); then spec checker, auditor on the repair only, validator.
