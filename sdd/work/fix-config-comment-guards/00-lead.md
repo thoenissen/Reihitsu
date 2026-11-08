@@ -23,6 +23,7 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 
 - Batch 1 (2026-11-08), #1616 RH2001: Q1 comment between two modifiers the fix reorders (`static /* a */ private int Value { get; }`) → **A**: no fix offered, diagnostic stays; only where the reorder moves a modifier across the comment (already-ordered `private /* a */ static` keeps its fix). Q2 blank line above a reordered property → **A**: modifiers on one line (`private static readonly int _value;`), blank line kept above.
 - Batch 2 (2026-11-08), #1616 RH2001: `readonly` next to a comment behind the modifiers (`static private /* a */`, `private static /* b */`, `private /* c */ unsafe`) → **A**: `readonly` behind the comment everywhere; only `static private /* a */` changes (`private static /* a */ readonly int _first;`). The change doc lists it under *Visible output changes*.
+- Batch 3 (2026-11-08), member-moving fixes (RH7102/RH7103/RH7109/RH7309) near `#if` → **A**: the fix is withheld whenever the moved or crossed span holds a conditional directive that is not a group of whole members (an `#if` inside a member, splitting a member's modifiers, nested `#if`, or crossing a member or type boundary); groups of whole members keep main's reading (initializer and layout check). The maintainer does not want fixes to parse or infer excluded configurations: `#if` is a special case that needs no code fix. Record this as a shared principle in the specs.
 - Standing answer (2026-11-08): the maintainer takes the recommended option for every further output question of this run. Each such question is still recorded here and its result stated in the PR.
 
 ## Decisions taken
@@ -60,6 +61,7 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 | 29 | Audit 4 | #11 (accessor-list exemption untested), #13 (stale `HasInstanceInitializer` summary) | #11: test implementer pins acc1 (RH7309 struct, `get;` under DEBUG, `get => 0;` otherwise: no fix) against the new reading; #13: implementer updates the summary with the change | Same requirement / comment | acc1 withholding demanded by SHARED-FIX-003 | — |
 | 30 | Spec author (audit 4) | Limit counted per move over both spans: cap2 (two regions, ten symbols in the spans) loses the fix head and main offer; symbols enumerated = those named in the moved and crossed spans; membership condition split into two | Accept all three under decision 28 and the standing answer; cap2's withholding stated in the PR | Per-move counting matches what the guard evaluates; refusing over the bound is the safe side; the split wording is needed for nt2 | Covered by the standing answer (over-limit result) | 413cfcf |
 | 31 | Tests (audit 4) | Two tests pinned by decision 23 (nine conditional attribute lists; nine conditional collection-initializer entries, symbols A1–A9 in the crossed span) conflict with the per-move limit of decision 28 | Change both to "no fix offered" under the standing answer; no bracket exemption from the limit | A bracket exemption would bring back the prediction from the active tree that caused #6; nine distinct symbols on one crossed member is rare and refusing is the safe side | Covered by the standing answer; stated in the PR | — |
+| 32 | Batch 3 answer | Carry out answer A and the shared principle | Supersedes decisions 6 and 21–31 for the member-order guard: `OrderingDeclarationUtilities` returns to main's whole-member reading plus a refusal for every other conditional directive in the moved or crossed span; the per-configuration machinery (`ConditionalGroup`, per-assignment parsing, the configuration limit) and the tests that exist only for it are removed. Kept: #1595's base-class guard (decision 4), the RH7102/RH7103 analyzer fix (16), all of #1616. Spec author writes the shared principle in `sdd/specs/shared/code-fixes.md` and rewrites SHARED-ORDER-007 (change doc as `sdd/README.md` requires) → fresh skeptic on the spec diff → test implementer → implementer → cleaner → spec checker → auditor → validator | Maintainer answer | Decided by the maintainer | — |
 
 ## Follow-up candidates
 
@@ -73,28 +75,6 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 
 ## Worklist / next step
 
-- Audit 1 at cf4d7c6 (origin/main 57acf0d): blocked, `09-auditor.md` (c34b733).
-- Repair round 1 worklist:
-  1. Finding #1 (high, same requirement, SHARED-ORDER-007): split whose excluded part lies in front of the declaration's first token is not counted → test implementer (failing rows from 09-auditor.md) → implementer.
-  2. Finding #2 (high, PR-introduced): any excluded `=` counts as a runtime initializer, withholding correct fixes main offers → test implementer (counterparts that keep the fix) → implementer.
-  3. Hint: per-call token walk without a directive check → implementer (same code, cheap).
-  4. Hint: RH7102.md and RH7103.md `Uses` lack SHARED-DIAG-008 → spec author. Done: `11-spec-author.md` (938e1b2).
-- Done: test implementer `10-test-implementer.md` (3390e51): 11 tests red as intended.
-- Done: implementer e190498, `12-implementer.md` (6ea120e).
-- Done: cleaner `13-cleaner.md` (375f80b) clean; spec checker `14-spec-checker.md` (6c73bb7) consistent.
-- Audit 2 at 3b3f696: findings, `15-auditor.md` (b18ad54). #1, #2, hints closed. #3, #4 repeat classes → architecture decision 21; #5 (medium, missing test for top-level-only `static`) goes with it.
-- Repair rounds used: 1 of 3 (the structural change does not count).
-- Done: test implementer `16-test-implementer.md` (65cb71a): 15 tests red as intended.
-- Done: spec author `18-spec-author.md` (9589141); implementer 234e32a, `17-implementer.md` (784c2b3): all tests pass.
-- Done: test implementer pins `19-test-implementer.md` (704891f).
-- Done: cleaner `20-cleaner.md` (3bb3b43) clean.
-- Done: spec checker `21-spec-checker.md` (8d403ca) consistent.
-- Audit 3 at 45c37c5: findings, `22-auditor.md` (f787673): #3–#5 closed; #6, #7 repeat classes → decision 24; #8 → decision 25.
-- Done: test implementer `23-test-implementer.md` (1b40180): 8 tests red as intended.
-- Done: spec author `25-spec-author.md` (9bc4acf); implementer 6b91450, `24-implementer.md` (1e41012): all tests pass.
-- Done: test implementer `26-test-implementer.md` (ef74ba2).
-- Done: cleaner `27-cleaner.md` (1d89f40) clean.
-- Done: spec checker `28-spec-checker.md` (b0918ca) consistent.
-- Audit 4 at 439f105: findings, `29-auditor.md` (c4fcf7a): #6–#8 closed; #9, #10 repeat → decision 27; #11–#13 → decisions 28, 29.
-- Done: spec author `30-spec-author.md` (413cfcf); test implementer `31-test-implementer.md` (fa2c782): 8 tests red as intended; two decision-23 pins changed per decision 31.
-- Next (was: spec author (decisions 27, 28; SHARED-ORDER-007 reads real configurations, drops "may read combinations") → `30-spec-author.md` ∥ test implementer (tc1, nt2, sg1t withheld; sg1, sg1i, cr1 keep main's fix; acc1 withheld; revisit tests that rest on synthesized combinations) → `31-test-implementer.md`; implementer → `32-implementer.md`; cleaner; spec checker; auditor (audit 5); validator.
+- History: audits 1–4 (09, 15, 22, 29-auditor.md); structural rounds after audits 2–4 (decisions 21, 24, 27); implementer for decision 27 stopped at ea562016 (no handover) when the maintainer redirected (batch 3).
+- Repair rounds used: 1 of 3 (structural changes do not count).
+- Next: spec author → `33-spec-author.md` (shared principle + SHARED-ORDER-007 per batch 3 A + change doc); fresh skeptic on the spec diff → `34-skeptic.md`; test implementer → `35-test-implementer.md`; implementer → `36-implementer.md`; cleaner; spec checker; auditor (audit 5); validator.
