@@ -19,13 +19,17 @@
 | 1 | Claim | Branch name | Use the session-designated branch `claude/magical-albattani-jl4e5j` instead of `claude/issues-963-1384-<slug>` | The session's environment forbids pushing to any other branch | Branch names are internal | claim commit |
 | 3 | Spec author | Own-line comment between attribute list and modifiers (`[Obsolete]⏎// why⏎private int _a, _b;`) blocks the split | Accept the spec author's reading; no output question | FMT-STRUCT-024 (P36) forbids a structural rewrite that moves or duplicates a comment; today's output copies the comment onto every field, which that unchanged requirement rules out, and #963's comment of 2026-10-21 lists the attribute-list twin | An unchanged requirement decides the output | 41f8fc4 |
 | 4 | Spec author | Rule page RH7101.md not changed for the withheld fix (RH7101-007) | Accept | `general-notes.md` covers diagnostics without a fix (AGENTS.md, Code-fix coverage) | Rule page unchanged | 41f8fc4 |
+| 5 | Skeptic | Architecture finding (FC-015): RH7101 fix's `TryGetFixableFieldDeclaration` keeps its own documentation-comment check once `Splits` holds the guard | Change the structure in this run: the fix relies on `SplitsFieldDeclaration` alone; remove the copy and correct its summary | A narrow fix would leave a second statement of the rule; the change stays in the counterpart of the changed component, and FMT-PIPE-031's Why already demands it | RH7101 fix offer is unchanged for documented declarations (still withheld, now via the formatter predicate) | — |
+| 6 | Skeptic | Follow-up candidate: RH7103 and other type-formatting fixes reformat untouched members | Drop | RH7103's spec lists that layout as a non-goal; no defect against a spec | Nothing changes | — |
+| 7 | Skeptic | Issue goals: #963 expression-body goals; #1384 change-doc goal | Drop both (moved to #1439; triage put #1384 in the bug-fix lane) | Triage decisions on the issues | Nothing visible dropped in this run | — |
 | 2 | Lane | Lane for both issues | Bug fix; spec author runs for a clarification only | FMT-STRUCT-024 already demands both guards; triage recorded the lane | Unchanged requirement decides the output | — |
 
 ## Follow-up candidates
 
-(none yet)
+- Line break between the type and the first declarator: a split gives `private int⏎_second;` with no continuation indent (`private int⏎        _g, _h;` → `private int⏎    _g;⏎    private int⏎    _h;`); whether that layout is intended is a formatter question. Source: 02-skeptic.md (#963, Follow-up candidates).
 
 ## Worklist / next step
 
 - Spec author done (01-spec-author.md, 41f8fc4): FMT-STRUCT-030, RH7101-007 added; FMT-STRUCT-022/024, FMT-PIPE-029/031, RH7101-004/006 aligned. No output questions.
-- Next: skeptic on the spec diff and premise.
+- Skeptic done (02-skeptic.md, bd5c57c): both reproduced and reachable. Output question 1 (comment on own line in front of first declarator) asked to the maintainer — WAITING.
+- Next after answer: spec author amends FMT-STRUCT-030 / RH7101-007 to name the first-declarator-leading-trivia slot on the answered side, and the RH7101 fix's duplicate doc check removal is routed to the implementer (decision 5); then test implementer.
