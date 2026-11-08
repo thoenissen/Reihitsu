@@ -22,9 +22,11 @@
 
 ## Follow-up candidates
 
-(none yet)
+- (conditional on #1239 answer A) Whether the formatter should normalize whitespace between `#` and the keyword of other directives (`# pragma`, `# if`). Source: 01-spec-author.md.
 
 ## Worklist / next step
 
 - Audited SHA: —
-- Next: spawn spec author.
+- Open output questions (batch before test implementer): OQ1 #1385 directive between a `break`-ending section and the next section (A: no blank line / B: blank line after directive); OQ2 #1239 whitespace between `#` and `region` (A: `#region Fields` / B: keep).
+- Done: spec author (01, commit 9ee6cfb, verdict open question).
+- Next: skeptic.
