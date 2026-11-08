@@ -5,7 +5,7 @@
 | ID prefix | SHARED-ORDER |
 | Status | Active |
 | Code owners | `OrderingMoveSafety`, `OrderingDeclarationUtilities`, `AccessorOrderingUtilities`, `TypeMemberOrderingCodeFixProviderBase` |
-| Uses | SHARED-FIX-003, SHARED-FIX-009, SHARED-TYPEREGION-006 |
+| Uses | RH7309-005, SHARED-FIX-003, SHARED-FIX-009, SHARED-TYPEREGION-006 |
 
 This spec covers how the code fixes of the ordering rules move one declaration in front of an earlier sibling, and when such a move is refused. It applies to the member reordering fixes (RH7102 constants before fields, RH7103 static before instance, RH7109 readonly before non-readonly) and to the accessor reordering fixes (RH7107 property accessors, RH7108 event accessors). SHARED-ORDER-007 and SHARED-ORDER-008 also apply to the RH7309 fix, which reorders region blocks. It also states the region scope that every rule ordering the members of a type shares (SHARED-ORDER-004), RH7110 included, which offers no fix. Apart from that scope, which declaration a rule reports and where it should go is each rule's own spec; this spec owns the move and its guards.
 
@@ -306,7 +306,7 @@ public class TestClass
 
 ### SHARED-ORDER-007 — Initializer execution order is kept
 
-A member reordering fix — RH7102, RH7103, or RH7109 — MUST NOT offer a move when a member that the move moves has a runtime initializer and a member of the same context that the move crosses — both static or both instance — also has one. A `const` field has no runtime initializer. A member that an excluded branch of a group of whole members (SHARED-ORDER-008) declares counts like any other member, because a build that includes it runs its initializer (SHARED-FIX-003, *Build configurations*):
+A member reordering fix — RH7102, RH7103, or RH7109 — MUST NOT offer a move when a member that the move moves has a runtime initializer and a member of the same context that the move crosses — both static or both instance — also has one. A `const` field has no runtime initializer. A member that an excluded branch of a group that wraps whole members of the type (SHARED-ORDER-008) declares counts like any other member, because a build that includes it runs its initializer (SHARED-FIX-003, *Build configurations*):
 
 - a member of excluded code in the crossed span (SHARED-ORDER-003) is crossed;
 - a member of excluded code in the moved declaration's own leading trivia moves, because that trivia travels with the declaration (SHARED-ORDER-002), and it crosses every member the declaration crosses. The move is refused when such a member has a runtime initializer and a crossed member of its context has one, also when the moved declaration itself has none.
@@ -315,7 +315,7 @@ The moved members are the moved declaration and the members of excluded code in 
 
 A member reordering fix MUST NOT offer a move either when it would reorder the instance fields of a type whose field order sets its layout (SHARED-FIX-003, *Run time*), and it counts the instance fields the same way: an instance field of excluded code in the moved declaration's leading trivia moves across every instance field the move crosses, and an instance field of excluded code in the crossed span is crossed. A move of a static member therefore reorders instance fields when excluded code in its leading trivia declares one and the move crosses an instance field.
 
-Each member of excluded code counts as present at its position, in every build, whether or not a build compiles it together with the other members; the fix evaluates no condition and combines no branches (SHARED-FIX-009). Two members in branches that exclude each other, such as `#if DEBUG` and `#else`, both count. A group of whole statements inside a body declares no member and is not counted. Every other conditional directive in the moved span or the crossed span refuses the move under SHARED-ORDER-008, so a member that a conditional directive splits is never counted in parts.
+Each member of excluded code counts as present at its position, in every build, whether or not a build compiles it together with the other members; the fix evaluates no condition and combines no branches (SHARED-FIX-009). Two members in branches that exclude each other, such as `#if DEBUG` and `#else`, both count. A group of whole members in the body of a nested type declares members of the nested type, which take no part in the move (SHARED-ORDER-001), and is not counted. A group of whole attribute lists, of whole accessors, or of whole statements declares no member and is not counted; its member counts as the active code declares it, with one addition for the layout: a property counts as declaring a backing field, an instance field of the layout, also when an accessor without a body and without an expression body stands in a branch of a group of whole accessors of the property, active or excluded, because a build that compiles that accessor gives the property a backing field. Every other conditional directive in the moved span or the crossed span refuses the move under SHARED-ORDER-008, so a member that a conditional directive splits is never counted in parts.
 
 Every member reordering fix applies both guards. RH7102 moves only constants: a constant has no runtime initializer and takes no place in the layout, but the excluded code in its leading trivia moves with it. RH7309 counts initializers and instance fields the same way over the region blocks whose order its fix changes.
 
@@ -420,6 +420,39 @@ public struct S
 
 is reported by RH7103, and no code fix is offered: `_y` moves with `_s` in front of `_x`, so a build with `DEBUG` would lay out `_y` before `_x`.
 
+A conditional accessor without a body counts as a backing field. Without `DEBUG` defined,
+
+```csharp
+public struct S : System.IComparable
+{
+    #region IComparable
+
+    public int Value
+    {
+#if DEBUG
+        get;
+#else
+        get => 0;
+#endif
+    }
+
+    public int CompareTo(object obj)
+    {
+        return 0;
+    }
+
+    #endregion // IComparable
+
+    {|RH7309:#region Fields|}
+
+    private int _x;
+
+    #endregion // Fields
+}
+```
+
+is reported by RH7309, and no code fix is offered: in a build with `DEBUG`, `Value` is an auto-property whose backing field the reorder would put behind `_x`. When the accessors are `get => 0;` followed by `set { }` inside `#if DEBUG` … `#endif`, no accessor lacks a body, no build gives `Value` a backing field, and the fix moves the `Fields` block in front of the `IComparable` block.
+
 Members in branches that exclude each other both count. Without `DEBUG` defined,
 
 ```csharp
@@ -464,35 +497,37 @@ public class C
 }
 ```
 
-### SHARED-ORDER-008 — Only groups of whole members or whole statements keep a member move
+### SHARED-ORDER-008 — Only conditional groups of whole units keep a member move
 
-A member reordering fix — RH7102, RH7103, RH7109, or RH7309 — MUST NOT offer a move when the moved span or the crossed span (SHARED-ORDER-003) contains an `#if`, `#elif`, `#else`, or `#endif` directive that belongs neither to a group of whole members nor to a group of whole statements. For RH7309, the moved span and the crossed span are the region blocks whose place the fix changes and the code between blocks that they cross. A conditional group is an `#if` together with its `#elif` and `#else` directives and its `#endif`, and its branches are the code or disabled text between two consecutive directives of the group.
+A member reordering fix — RH7102, RH7103, RH7109, or RH7309 — MUST NOT offer a move when the moved span or the crossed span (SHARED-ORDER-003) contains an `#if`, `#elif`, `#else`, or `#endif` directive of a conditional group that does not wrap whole units. For RH7309, the moved span and the crossed span are the region blocks whose place the fix changes and the code between blocks that they cross. A conditional group is an `#if` together with its `#elif` and `#else` directives and its `#endif`, and its branches are the code or disabled text between two consecutive directives of the group.
 
-A conditional group is a group of whole members when all of these hold:
+A conditional group wraps whole units when all of these hold:
 
-- every directive of the group stands between two members of the type, or between a member and a brace of the type's body: in the leading trivia of a member's first token or of the type's closing brace, never between two tokens of one member declaration;
-- no other conditional group lies inside it, and it lies inside no other conditional group;
-- the active branch, if there is one, holds only whole members of the type; and
-- the text of every excluded branch reads as a sequence of whole member declarations: each declaration it begins also ends in it, and it closes no brace that it did not open.
+- **Place.** Every directive of the group stands at a boundary of one unit list: in the leading trivia of the first token of a unit of that list, or of the token that follows the list's last unit. The unit lists are:
+  - the members of one type body — of the type the fix reorders, or of a nested type in the moved or the crossed span; the token that follows the last member is the body's closing brace;
+  - the attribute lists of one member of such a type body; the token that follows the last attribute list is the member's first token behind its attributes;
+  - the accessors of one accessor list of such a member; the token that follows the last accessor is the accessor list's closing brace;
+  - the statements of one block or one switch section inside the body block of a method, constructor, destructor, operator, conversion operator, or accessor of such a member, the blocks nested in it included, also those of a lambda or a local function; the token that follows the last statement is the block's closing brace, or, for a switch section, the first token of the next section or the switch statement's closing brace.
+- **No nesting.** No other conditional group lies inside one of its branches, and it lies inside no branch of another conditional group.
+- **Whole units in every branch.** The active branch, if there is one, holds only whole units of that list. The text of each excluded branch, parsed on its own as the content of such a list, reads as a sequence of whole units of that list without a syntax error: each unit it begins also ends in it, and it closes no brace that it did not open. A branch that holds nothing but whitespace, comments, or `#region` and `#endregion` lines is a sequence of no units.
+- **No `field`.** When the list is the accessors of a property, or the statements of a block inside an accessor's body, no branch, active or excluded, contains `field` as a token.
 
-A conditional group is a group of whole statements when all of these hold:
-
-- all its directives lie inside the body block of one method, constructor, destructor, operator, conversion operator, or accessor, directly or in a block nested in it;
-- no other conditional group lies inside it, and it lies inside no other conditional group;
-- the active branch, if there is one, holds only whole statements of that block, and the text of every excluded branch reads as a sequence of whole statements: each statement it begins also ends in it, and it closes no brace that it did not open; and
-- in the body of an accessor, no branch contains the `field` keyword.
+The leading trivia of a member's first token is a boundary of two lists: of the type body's members, and of the member's attribute lists, which that token begins or, for a member without attributes, follows. A group whose directives stand only there wraps whole units when it does so for one of the two lists: every excluded branch reads as whole members, or every excluded branch reads as whole attribute lists of the member behind the group.
 
 Every other conditional directive in either span refuses the move, among them:
 
-- a directive between two tokens of a member declaration outside the body block of a group of whole statements: between its attributes and its modifiers, between two modifiers, in front of its type or its name, in its initializer, its expression body, its parameter list, or its accessor list;
-- a group inside a branch of another group, also when both groups would be groups of whole members on their own;
-- a group with a branch that begins or ends a member declaration, a type body, or a block — that ends the type's body and opens another type, or opens a nested type that a later group closes.
+- a directive between two tokens of a member declaration that is no boundary of one of the lists above: between two modifiers, in front of the member's type or name, in its initializer, its expression body, its parameter list, its constructor initializer, or its base list, or inside a statement, such as between two arguments of a call;
+- a group whose excluded branch holds something other than whole units of the list at whose boundary it stands — such as `static` in front of a member, which makes the member static in a build that compiles it, or text that is not code;
+- a group inside a branch of another group, also when both groups would wrap whole units on their own;
+- a group with a branch that begins or ends a member declaration, a type body, or a block — that ends the type's body and opens another type, or opens a nested type that a later group closes;
+- a group of statements in a lambda or an anonymous method inside a field initializer, a property initializer, or an expression body, which is no body block of a member;
+- a group of whole accessors, or of whole statements inside an accessor's body, with a branch that contains `field`.
 
-The fix does not read such a group: it evaluates no condition, combines no branches of two groups, and assembles no member from the parts that several branches write (SHARED-FIX-009). A conditional directive outside both spans neither refuses the move nor is read. Balanced pairs that this requirement keeps travel as SHARED-ORDER-006 states.
+The fix decides each group by a small structural test of where its directives stand, and by nothing else (SHARED-FIX-009): for each directive, the token whose leading trivia holds it and the unit list at whose boundary that token stands; whether a directive of another group lies between the group's directives; and, for each excluded branch, one parse of its text on its own as the content of that list, checked for whole units, for a syntax error, and, where the `field` clause applies, for a `field` token. For a branch in a type body outside every member's own tokens, that parse is the one with which the guard already finds the members that SHARED-ORDER-007 counts, unchanged; for a branch inside a member, it is the same parse with the text placed into an empty list of the unit's kind. The fix evaluates no condition, combines no branches of one or of several groups, parses no build configuration, and has no limit on the number of configurations. A group that this test does not classify as wrapping whole units refuses the move. A conditional directive outside both spans neither refuses the move nor is read. Balanced pairs that this requirement keeps travel as SHARED-ORDER-006 states.
 
-Why: A group of whole members adds or removes members and changes nothing else, so counting every member it declares as present (SHARED-ORDER-007) covers every build without working one out. A group of whole statements inside a body changes what the body does, which no move of the member changes, and no initializer, context, or layout field of the type depends on it; the `field` keyword in an accessor's body declares a backing field, so a branch that holds it can add an instance field. Every other directive makes a member, a type, or a brace depend on the build: a `static`, an initializer, or a closing brace from one branch makes the member or the type around the moved code another one in each build. Telling those builds apart means evaluating conditions and combining branches, which no fix does (SHARED-FIX-009); the user decides by hand.
+Why: A group of whole members adds or removes members and changes nothing else, so counting every member it declares as present (SHARED-ORDER-007) covers every build without working one out; the members of a nested type take no part in the move at all. A group of whole attribute lists or of whole accessors changes the member it belongs to in every build alike: the attributes and accessors travel with their member, and none of them runs an initializer or orders a field, except an accessor that gives the property a backing field, which SHARED-ORDER-007 counts, and the `field` keyword, which declares one. A group of whole statements inside a body changes what the body does, which no move of the member changes, and no initializer, context, or layout field of the type depends on it, again except for `field` in an accessor's body. Every other directive makes a member, a type, or a brace depend on the build: a `static`, an initializer, or a closing brace from one branch makes the member or the type around the moved code another one in each build. Telling those builds apart means evaluating conditions and combining branches, which no fix does (SHARED-FIX-009); the user decides by hand. Deciding from where the directives stand keeps the test small, and a group it cannot classify is refused, which can only withhold a fix.
 
-Example — a group of whole members in the crossed span keeps the move, for RH7103:
+Example — a group of whole members in the moved member's leading trivia keeps the move, for RH7103:
 
 ```csharp
 public class C
@@ -532,7 +567,135 @@ public class C
 
 The group is the leading trivia of `Create` and moves with it (SHARED-ORDER-002).
 
-Example — a group of whole statements in a crossed method keeps the move: the first example of SHARED-ORDER-006 for RH7103, and the second example of RH7309-005 for RH7309.
+Example — a group of whole members in the body of a crossed nested type keeps the move, for RH7109:
+
+```csharp
+public class C
+{
+    private int _a;
+
+    private class N
+    {
+#if DEBUG
+        private int _d;
+#endif
+    }
+
+    private readonly int {|RH7109:_c|};
+}
+```
+
+is reported, and the fix moves `_c` in front of `_a`, as it would without the group: `_d` is a member of `N`, which takes no part in the move.
+
+Example — a group of whole attribute lists on the moved member keeps the move, for RH7109. Without `DEBUG` defined,
+
+```csharp
+public class C
+{
+    private int _a;
+#if DEBUG
+    [System.Obsolete]
+#else
+    [System.CLSCompliant(false)]
+#endif
+    private readonly int {|RH7109:_c|};
+}
+```
+
+```csharp
+public class C
+{
+#if DEBUG
+    [System.Obsolete]
+#else
+    [System.CLSCompliant(false)]
+#endif
+    private readonly int _c;
+    private int _a;
+}
+```
+
+The same holds for a group of whole attribute lists in front of a crossed member.
+
+Example — a group of whole accessors in a crossed property keeps the move, for RH7103:
+
+```csharp
+public class C
+{
+    public int Value
+    {
+        get;
+#if DEBUG
+        set;
+#endif
+    }
+
+    public static int {|RH7103:Shared|} => 1;
+}
+```
+
+```csharp
+public class C
+{
+    public static int Shared => 1;
+
+    public int Value
+    {
+        get;
+#if DEBUG
+        set;
+#endif
+    }
+}
+```
+
+Example — a group of whole statements in a crossed method keeps the move: the first example of SHARED-ORDER-006 for RH7103, and the second example of RH7309-005 for RH7309. The statements of a switch section count like those of a block, for RH7103:
+
+```csharp
+public class C
+{
+    public int Run(int value)
+    {
+        switch (value)
+        {
+            case 1:
+#if DEBUG
+                System.Console.WriteLine();
+#endif
+                return 1;
+            default:
+                return 0;
+        }
+    }
+
+    public static void {|RH7103:Create|}()
+    {
+    }
+}
+```
+
+```csharp
+public class C
+{
+    public static void Create()
+    {
+    }
+
+    public int Run(int value)
+    {
+        switch (value)
+        {
+            case 1:
+#if DEBUG
+                System.Console.WriteLine();
+#endif
+                return 1;
+            default:
+                return 0;
+        }
+    }
+}
+```
 
 Example — an `#if` that splits a member's initializer, for RH7109: the example of SHARED-FIX-009, where `_b` is crossed and no code fix is offered.
 
@@ -558,6 +721,21 @@ public class C
 ```
 
 is reported, and no code fix is offered: `K` is a static member with an initializer in one build and a constant in the other, and the fix does not work out which.
+
+Example — an excluded branch in front of the moved member that holds a modifier, for RH7109. Without `DEBUG` defined,
+
+```csharp
+public class C
+{
+    private int _a;
+#if DEBUG
+    static
+#endif
+    private readonly int {|RH7109:_c|};
+}
+```
+
+is reported, and no code fix is offered: the excluded text `static` is neither whole members nor whole attribute lists, and a build with `DEBUG` compiles `_c` as a static field.
 
 Example — a member that an `#if` splits inside a region block, for RH7309. Without `DEBUG` defined,
 
@@ -590,7 +768,7 @@ public class C : IDisposable
 }
 ```
 
-is reported, and no code fix is offered: the `#else` and the `#endif` stand inside the declaration of `Y`.
+is reported, and no code fix is offered: the `#endif` stands inside the declaration of `Y`, and the excluded branch begins a declaration that it does not end.
 
 Example — a nested group, for RH7109. Without `FEATURE` defined,
 
@@ -657,7 +835,87 @@ public class C
 
 is reported by RH7109, and no code fix is offered.
 
-Example — a group in an accessor's body that uses the `field` keyword, for RH7103. Without `TRACE` defined,
+Example — a conditional argument inside a statement of a crossed method, for RH7103. Without `DEBUG` defined,
+
+```csharp
+public class C
+{
+    public void Run()
+    {
+        System.Console.WriteLine(
+#if DEBUG
+            "debug"
+#else
+            "release"
+#endif
+            );
+    }
+
+    public static void {|RH7103:Create|}()
+    {
+    }
+}
+```
+
+is reported, and no code fix is offered: the directives stand between two tokens of one statement.
+
+Example — whole statements in a lambda inside a crossed field initializer, for RH7109. Without `DEBUG` defined,
+
+```csharp
+using System;
+
+public class C
+{
+    private Action _a = () =>
+    {
+#if DEBUG
+        Console.WriteLine();
+#endif
+    };
+
+    private readonly int {|RH7109:_c|};
+}
+```
+
+is reported, and no code fix is offered: the lambda lies in an initializer, not in the body block of a member.
+
+Example — a group in an accessor's body that uses the `field` keyword, for RH7309. Without `TRACE` defined,
+
+```csharp
+public struct S : System.IComparable
+{
+    #region IComparable
+
+    public int Value
+    {
+        get
+        {
+#if TRACE
+            return field;
+#else
+            return 0;
+#endif
+        }
+    }
+
+    public int CompareTo(object obj)
+    {
+        return 0;
+    }
+
+    #endregion // IComparable
+
+    {|RH7309:#region Fields|}
+
+    private int _x;
+
+    #endregion // Fields
+}
+```
+
+is reported, and no code fix is offered: in a build with `TRACE`, `Value` has a backing field, and the reorder would put `_x` in front of it.
+
+The `field` clause withholds the fix also where no build would change, for RH7103. Without `TRACE` defined,
 
 ```csharp
 public struct S
@@ -680,4 +938,4 @@ public struct S
 }
 ```
 
-is reported, and no code fix is offered: the branch decides whether `Value` has a backing field, an instance field of the struct, and the fix does not work out which builds give it one. With `return 1;` in place of `return field;`, the group is a group of whole statements, and the fix moves `Shared` in front of `Value`.
+is reported, and no code fix is offered, although moving the static `Shared` reorders no instance field in any build: the fix does not work out what the branch that uses `field` declares. With `return 1;` in place of `return field;`, the group wraps whole statements, and the fix moves `Shared` in front of `Value`.

@@ -5,7 +5,7 @@
 | ID prefix | SHARED-FIX |
 | Status | Active |
 | Code owners | — |
-| Uses | FMT-PIPE-007, FMT-PIPE-017, FMT-PIPE-018, RH5111-004, RH7004-004, RH7309-006, SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, SHARED-DOC-004, SHARED-JOIN-001, SHARED-ORDER-002, SHARED-ORDER-006, SHARED-ORDER-007, SHARED-ORDER-008 |
+| Uses | FMT-PIPE-007, FMT-PIPE-017, FMT-PIPE-018, RH2001-009, RH5111-004, RH7004-004, RH7309-006, SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, SHARED-DOC-004, SHARED-JOIN-001, SHARED-ORDER-002, SHARED-ORDER-006, SHARED-ORDER-007, SHARED-ORDER-008 |
 
 This spec covers what holds for every code fix of an analyzer rule, so a rule spec states only what its own fix produces and when it is withheld. It applies to every rule whose header names a code fix, without being listed under `Uses`; SHARED-FIX-002 applies to the rules whose header says `Fix All`.
 
@@ -1098,14 +1098,18 @@ Every line break of the result is CRLF, including the three the fix creates. In 
 
 A code fix MUST NOT work out what another build configuration compiles in order to show that it is safe there (SHARED-FIX-003, *Build configurations*). It MUST NOT evaluate the condition of an `#if` or `#elif`, combine the branches of several conditional groups into one configuration, or assemble a declaration, a statement, or an expression from parts that an excluded branch and the active code, or several branches, write. Where a fix could show that it keeps every build configuration intact only by such a reading, it MUST be withheld; the diagnostic is still reported (SHARED-FIX-003).
 
-A fix MAY read the text of an excluded branch, but only so that the reading can withhold the fix and never offer it where it would be withheld otherwise:
+A fix that reads the text of an excluded branch MUST read it so that the reading can only withhold: what an excluded branch holds never makes the fix offer a change that it would not offer without that branch.
 
-- it reads only what the branch holds whole — whole member declarations, whole statements, or the names in the branch — and counts each of them as present at its position, in every build, whether or not some build compiles it together with the code around it, such as a member that SHARED-ORDER-007 counts or a name that SHARED-FIX-003's RH4106 example looks for;
-- when the fix's safety depends on what an excluded branch makes of code outside it — a modifier, a type, an initializer, an accessor, or a body that the branch shares with code outside it, a brace that the branch opens or closes for code outside it, or a conditional group that a branch of another group holds — the fix is withheld.
+- It reads only what the branch holds whole — whole member declarations, whole statements, whole attribute lists or accessors, or the names in the branch — and counts each of them as present at its position, in every build, whether or not some build compiles it together with the code around it, such as a member that SHARED-ORDER-007 counts or a name that SHARED-FIX-003's RH4106 example looks for.
+- When its safety would depend on what an excluded branch makes of code outside it — a modifier, a type, an initializer, an accessor, or a body that the branch shares with code outside it, a brace that the branch opens or closes for code outside it, or a conditional group that a branch of another group holds — the fix is withheld.
+
+A fix decides which conditional directives withhold it from where the directives stand in the syntax tree — the token whose leading trivia holds each directive, and the construct that token begins or ends — never from their conditions. A directive whose place that test does not classify withholds the fix.
+
+A fix that reads no excluded code, and that leaves every conditional directive and its line in place, is governed by SHARED-FIX-003 and SHARED-DIAG-008 alone; this requirement adds nothing to it, such as RH2001's fix for a conditional directive between two modifiers that keep their order (RH2001-009).
 
 Each rule's spec states which conditional directives withhold its fix; for the member reordering fixes, this is SHARED-ORDER-008.
 
-Why: A conditional directive is a special case that needs no code fix. Working out the configurations of a document means evaluating conditions and combining branches the way a compiler does for every assignment of the symbols, and every reading short of that misses a build that the fix breaks: a member whose `static`, initializer, or braces come from different branches is a different member in each build. A reported diagnostic without a fix is a supported end state, and the user knows which builds the code serves. A reading that counts whole units as present can only withhold a fix, so a mistake in it stays on the safe side.
+Why: A conditional directive is a special case that needs no code fix. Working out the configurations of a document means evaluating conditions and combining branches the way a compiler does for every assignment of the symbols, and every reading short of that misses a build that the fix breaks: a member whose `static`, initializer, or braces come from different branches is a different member in each build. A reported diagnostic without a fix is a supported end state, and the user knows which builds the code serves. A reading that counts whole units as present can only withhold a fix, so a mistake in it stays on the safe side, and a test of where directives stand needs no knowledge of which builds exist.
 
 Example — a member that a branch completes, for RH7109. Without `DEBUG` defined,
 
