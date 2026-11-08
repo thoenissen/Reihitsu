@@ -1,5 +1,5 @@
 Role: implementer
-Commit: (this commit; see `git log -1 -- sdd/work/fix-config-comment-guards/37-implementer.md`)
+Commit: 6d1e583c
 Verdict: tests pass
 
 The prompt carried no intended fix, suspected cause, or hoped-for verdict beyond the lead's recorded decisions (32, 34, 35) and maintainer answers (batches 3–6). No test assertion, input, or expected output was changed. The 14 red tests of `36-test-implementer.md` were taken as red from that handover; the first focused run after the change was green.
