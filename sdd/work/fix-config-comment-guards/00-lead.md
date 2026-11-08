@@ -87,4 +87,4 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 - History: audits 1–4 (09, 15, 22, 29-auditor.md); structural rounds after audits 2–4 (decisions 21, 24, 27); implementer for decision 27 stopped at ea562016 (no handover) when the maintainer redirected (batch 3).
 - Repair rounds used: 1 of 3 (structural changes do not count).
 - Done: spec author `33-spec-author.md` (030b4573): SHARED-FIX-009, SHARED-ORDER-008, change doc `member-move-conditional-groups.md` (Draft); written on batch 4 A.
-- Next: fresh skeptic on the spec diff → `34-skeptic.md`; test implementer → `35-test-implementer.md`; implementer → `36-implementer.md`; cleaner; spec checker; auditor (audit 5); validator.
+- Next: test implementer → `36-test-implementer.md` (running); implementer → `37-implementer.md`; cleaner; spec checker; auditor (audit 5); validator.
