@@ -38,16 +38,22 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 | 9 | Skeptic | #1616 scope of withholding for a comment between modifiers (if Q1 = A) | Withhold only where the reorder moves a modifier across a comment; already-ordered `private /* a */ static` keeps today's fix | Wider guard would change a correct output no requirement demands | Keeps today's output for fixture o | — |
 | 10 | Spec author | Change doc `sdd/changes/2026-11/rh2001-modifier-reorder-trivia.md` written (RH2001-009 withdraws a fix offered today); lane check: claimed bug-fix, diff needs behavior-change | Widen the run's lane to behavior change for all three issues; run the role it adds: a fresh skeptic on the spec diff and the change doc before the change doc is accepted | `sdd/README.md` requires the change doc; lane must match the diff | Both visible changes in the change doc are covered by maintainer answers 1A/2A | ade7768 |
 | 11 | Spec author | Unverified: an RH7109 output moves a lone `;` after `#endif` from column 8 to 4 | Hand to the spec-diff skeptic to check before deciding whether it is a follow-up | Unverified claim | — | — |
+| 12 | Skeptic (spec diff) | #1595: RH7102-006 and SHARED-ORDER-007 closing paragraph say a constant has no runtime initializer/layout place, false for a constant an `#if` splits (rows s1, s2, fixed today, reorder DEBUG) | Correct both paragraphs (exclude a split constant / point to the split-member paragraph); RH7102 tests cover s1, s2; reword "when no `#if` takes part in the refusal" to "The diagnostic is still reported" | SHARED-FIX-003 forbids the reorder | Only withholding SHARED-FIX-003 requires | — |
+| 13 | Skeptic (spec diff) | #1593 wording in SHARED-ORDER-007 | Replace "no other member moves" with "in its leading trivia or inside it"; first split-member bullet also covers a split that changes only a modifier; RH7109 counterpart example stays out | Removes a contradiction | Spec wording internal | — |
+| 14 | Skeptic (spec diff) | #1616 RH2001-004 wording | Drop the "not in RH7105 order" condition (the fix sorts every get-only property); RH2001-009 frees "a comment or directive" between modifiers that keep their order; leading-trivia list includes a same-line `/* lead */` before the first modifier, with a test (`/* lead */ private static readonly int _value;`) | Matches today's output and the requirement's intent | Matches today's output | — |
+| 15 | Skeptic (spec diff) | Lone `;` column claim (decision 11) | Reproduces, but whole-document formatting gives the same; decided by `indentation.md` non-goal / #953. Not a defect of the run; merged into the "member-moving fixes format the whole type" follow-up. Test implementer avoids counterpart outputs with such continuation lines | — | Not changed by the run | — |
 
 ## Follow-up candidates
 
 - RH7102 analyzer ignores regions: reports a constant in `#region Constants` after a field in `#region Fields`, against RH7102-001/-003; `NoCodeFixWhenDirectivesAreInLeadingTrivia` hides it (01-skeptic.md, #1595).
-- RH7102 and RH7109 fixes rewrite an expression-bodied method they do not move into a block body (`private static int Log(string name) => 0;`), against SHARED-FIX-006 (02-spec-author.md).
+- Member-moving fixes (RH7102, RH7103, RH7109; `TypeMemberOrderingCodeFixProviderBase.cs:98-108`) format the whole type after the move: an unmoved expression-bodied method becomes a block body (SHARED-FIX-006); a line break inside the moved member is joined (SHARED-FIX-007 *Moved code*); the column of a moved continuation line after `#endif` changes (open reading of *Moved code*, carries an output question; related #953) (02-spec-author.md, 03-skeptic.md).
 
 ## Worklist / next step
 
 - Done: skeptic `01-skeptic.md` (36f11ca).
 - Done: output questions batch 1 answered (1A, 2A).
 - Done: spec author `02-spec-author.md` (ade7768); open output question: RH2001 `static private /* a */ int Value { get; }` placement of `readonly` (A recommended).
-- Now: fresh skeptic on the spec diff and change doc → `03-skeptic.md`; then ask output questions batch 2 (spec author's + skeptic's), accept change doc, test implementer.
+- Done: skeptic on spec diff `03-skeptic.md` (6340a92).
+- Now: output questions batch 2 (RH2001 `readonly` next to a comment, skeptic's form replaces the spec author's) — waiting.
+- Next: spec author amendment (decisions 12–14 + answer; change doc lists the visible change), accept change doc, test implementer.
 - Next: spec author (clarifications D5, D7 outcome, RH2001 spec after answers) → test implementer.
