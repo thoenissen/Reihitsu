@@ -42,4 +42,5 @@
 - Implementer done (05-implementer.md, 1ac2927 production, 74e8fb1): all pass except one disputed test (markup handling).
 - Test implementer 06 (0a31af4): disputed test corrected; RH7101 104/104 pass.
 - Cleaner 07 (8472a86): clean, Release 0 warnings.
-- Next: spec checker (08).
+- Spec checker 08 (b6a5f22): consistent, no findings.
+- Next: auditor (09) on the head, base main SHA in prompt.
