@@ -3336,6 +3336,130 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
         await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
     }
 
+    /// <summary>
+    /// Verifies that an accessor list whose conditional group chooses an auto-accessor in one build and a bodied accessor in
+    /// the other gives the property a backing field in the build with the auto-accessor: moving the block of a struct
+    /// across it would reorder the instance fields of that build, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7309-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenAPropertyOfAStructHasAnAutoAccessorOnlyInOneBranchOfItsAccessorList(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              public struct S : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  public int Handle
+                                  {
+                              #if DEBUG
+                                      get;
+                              #else
+                                      get => 0;
+                              #endif
+                                  }
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private int _a;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the counterpart of an accessor list split by a conditional group: when every branch declares a bodied
+    /// accessor, no build gives the property a backing field, so moving the block of a struct across it reorders no
+    /// instance field and the code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7309-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task CodeFixMovesABlockOfAStructAcrossAPropertyWhoseAccessorListBranchesAreAllBodied(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              public struct S : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  public int Handle
+                                  {
+                              #if DEBUG
+                                      get => 1;
+                              #else
+                                      get => 0;
+                              #endif
+                                  }
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private int _a;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System;
+
+                                   public struct S : IDisposable
+                                   {
+                                       #region Fields
+
+                                       private int _a;
+
+                                       #endregion // Fields
+
+                                       #region IDisposable
+
+                                       public int Handle
+                                       {
+                                   #if DEBUG
+                                           get => 1;
+                                   #else
+                                           get => 0;
+                                   #endif
+                                       }
+
+                                       public void Dispose()
+                                       {
+                                       }
+
+                                       #endregion // IDisposable
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods

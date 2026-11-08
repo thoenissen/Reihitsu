@@ -4685,6 +4685,557 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
         await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
     }
 
+    /// <summary>
+    /// Verifying that an excluded branch which closes the type and opens another one puts the moved field into that other
+    /// type in its build: with <c>DEBUG</c> defined, the fix would move <c>_c</c> out of <c>D</c> across a static initialized
+    /// field, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenAnExcludedBranchClosesTheTypeAndOpensAnotherOneDeclaringAStaticInitializedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                              #if DEBUG
+                              }
+
+                              public class D
+                              {
+                                  private static int _z = Log("z");
+                              #endif
+                                  private int _d;
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that an excluded branch which closes the type and opens another one withholds the move even when no
+    /// initializer is crossed: with <c>DEBUG</c> defined, the moved field is a member of <c>D</c>, not of the type the fix
+    /// moves it in, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenAnExcludedBranchClosesTheTypeAndOpensAnotherOneAroundTheMovedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                              #if DEBUG
+                              }
+
+                              public class D
+                              {
+                                  private static int _z;
+                              #endif
+                                  private int _d;
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that an excluded branch which opens a nested type around the moved field, closed by another group behind
+    /// it, makes the moved field a member of the nested type in its build: the fix would move it out of the nested type, so
+    /// no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-001")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenAnExcludedBranchOpensANestedTypeAroundTheMovedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                              #if DEBUG
+                                  private class N
+                                  {
+                              #endif
+                                      private int _d;
+                                      private static readonly int {|RH7109:_c|} = Log("c");
+
+                                      private static int Log(string name)
+                                      {
+                                          return 0;
+                                      }
+                              #if DEBUG
+                                  }
+                              #endif
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that an excluded branch in the moved field's leading trivia which closes a nested type is not carried
+    /// across the members in front of it: with <c>DEBUG</c> defined, the moved closing brace would close the type itself, so
+    /// no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenAnExcludedBranchInFrontOfTheMovedFieldClosesANestedTypeThatAnotherGroupOpens(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                              #if DEBUG
+                                  private class N
+                                  {
+                              #endif
+                                      private int _d;
+                              #if DEBUG
+                                  }
+                              #endif
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart of a nested type that excluded branches open and close: when it closes in front of a member
+    /// that precedes the moved field, the moved field is a member of the type in every build, and the static initialized
+    /// field inside the nested type belongs to the nested type, so the code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAFieldAcrossANestedTypeThatExcludedBranchesOpenAndCloseInFrontOfIt(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                              #if DEBUG
+                                  private class N
+                                  {
+                                      private static int _z = Log("z");
+                              #endif
+                              #if DEBUG
+                                  }
+                              #endif
+                                  private int _d;
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private static readonly int _c = Log("c");
+                                       private static int _t;
+                                   #if DEBUG
+                                       private class N
+                                       {
+                                           private static int _z = Log("z");
+                                   #endif
+                                   #if DEBUG
+                                       }
+                                   #endif
+                                       private int _d;
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart of a nested type that excluded branches open around a member: when a member of the type
+    /// stands between the closing group and the moved field, the moved field is a member of the type in every build and its
+    /// leading trivia holds no directive, so the code fix is offered. Only whether the fix is offered is under test: the
+    /// column of the member inside the excluded nested type is decided by whole-type formatting
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixIsOfferedAcrossANestedTypeThatExcludedBranchesOpenAroundAMemberInFrontOfAnotherMember(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                              #if DEBUG
+                                  private class N
+                                  {
+                              #endif
+                                      private int _d;
+                              #if DEBUG
+                                  }
+                              #endif
+                                  private int _e;
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that two groups with negated conditions that split one crossed declaration are read only in the builds a
+    /// definition of <c>DEBUG</c> selects: the build with <c>DEBUG</c> compiles a static field without an initializer and
+    /// the other an instance initialized field, so no build crosses a static initializer and the code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixIsOfferedWhenGroupsWithNegatedConditionsSplitACrossedDeclarationIntoAStaticFieldAndAnInstanceInitializedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                                  private
+                              #if DEBUG
+                                      static
+                              #endif
+                                      int _b
+                              #if !DEBUG
+                                      = Log("b")
+                              #endif
+                                      ;
+                                  private int _d;
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart of groups with negated conditions that split a crossed declaration: when the second group
+    /// tests another symbol, the build with both symbols defined compiles a static initialized field, so moving a static
+    /// initialized field across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenGroupsWithIndependentConditionsSplitACrossedDeclarationIntoAStaticInitializedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                                  private
+                              #if DEBUG
+                                      static
+                              #endif
+                                      int _b
+                              #if TRACE
+                                      = Log("b")
+                              #endif
+                                      ;
+                                  private int _d;
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that two groups with the same condition that split one crossed declaration are read only in the builds a
+    /// definition of <c>DEBUG</c> selects: the build with <c>DEBUG</c> compiles a static initialized field and the other an
+    /// instance field without an initializer, so no build crosses an instance initializer and the code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixIsOfferedWhenGroupsWithTheSameConditionSplitACrossedDeclarationIntoAStaticInitializedFieldAndAnInstanceField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _t;
+                                  private
+                              #if DEBUG
+                                      static
+                              #endif
+                                      int _b
+                              #if DEBUG
+                                      = Log("b")
+                              #endif
+                                      ;
+                                  private static int _d;
+                                  private readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart of groups with the same condition that split a crossed declaration: with negated
+    /// conditions, the build without <c>DEBUG</c> compiles an instance initialized field, so moving an instance initialized
+    /// field across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenGroupsWithNegatedConditionsSplitACrossedDeclarationIntoAnInstanceInitializedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _t;
+                                  private
+                              #if DEBUG
+                                      static
+                              #endif
+                                      int _b
+                              #if !DEBUG
+                                      = Log("b")
+                              #endif
+                                      ;
+                                  private static int _d;
+                                  private readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a moved and a crossed declaration split by groups with negated conditions are judged together in the
+    /// builds a definition of <c>DEBUG</c> selects: in each build one of them is static and the other an instance field, so
+    /// no build moves two initializers of one context and the code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixIsOfferedWhenTheMovedAndACrossedFieldAreStaticInBuildsThatExcludeEachOther(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _t;
+                                  private
+                              #if !DEBUG
+                                      static
+                              #endif
+                                      int _x = Log("x");
+                                  private int _d;
+                                  private
+                              #if DEBUG
+                                      static
+                              #endif
+                                      readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart of a moved and a crossed declaration split by groups with negated conditions: with the
+    /// same condition, both are static initialized fields in the build with <c>DEBUG</c> and instance initialized fields in
+    /// the other, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenTheMovedAndACrossedFieldAreStaticInTheSameBuild(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _t;
+                                  private
+                              #if DEBUG
+                                      static
+                              #endif
+                                      int _x = Log("x");
+                                  private int _d;
+                                  private
+                              #if DEBUG
+                                      static
+                              #endif
+                                      readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that the symbols of every conditional directive in the crossed span count together toward the
+    /// configuration limit, also when active members separate the groups: two runs of five groups name ten symbols, so no
+    /// code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenSeparatedConditionalGroupsInTheCrossedSpanTogetherExceedTheConfigurationLimit(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _t;
+                              #if R1A1
+                                  private int _r1a1;
+                              #endif
+                              #if R1A2
+                                  private int _r1a2;
+                              #endif
+                              #if R1A3
+                                  private int _r1a3;
+                              #endif
+                              #if R1A4
+                                  private int _r1a4;
+                              #endif
+                              #if R1A5
+                                  private int _r1a5;
+                              #endif
+                                  private int _m1;
+                              #if R2A1
+                                  private int _r2a1;
+                              #endif
+                              #if R2A2
+                                  private int _r2a2;
+                              #endif
+                              #if R2A3
+                                  private int _r2a3;
+                              #endif
+                              #if R2A4
+                                  private int _r2a4;
+                              #endif
+                              #if R2A5
+                                  private int _r2a5;
+                              #endif
+                                  private int _m2;
+                                  private readonly int {|RH7109:_c|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods
