@@ -27,11 +27,14 @@
 | 8 | Test implementer | #1384 expects the `///` instance "unchanged"; tests expect it unsplit with the one-line `<summary>` expanded | Accept | The expansion is the documentation-comment phase's existing output with or without a split (FMT-STRUCT-030's first example); the issue's purpose is the refused split | The expansion is today's unchanged output for an unsplit declaration | eb5c766 |
 | 9 | Test implementer | 9 FMT-PIPE-029 tests with a documented target deleted | Accept | No caller reaches a documented target once the split is refused (AGENTS.md, Supported inputs) | The entry point's caller (RH7101 fix) is withheld for those inputs | eb5c766 |
 | 10 | Implementer | Disputed test `FixAllSplitsOnlyTheDeclarationWithoutACommentInThePartEveryFieldRepeats` fails on markup handling, not on asserted output | Route to a fresh test implementer to fix the test's markup configuration; expected output stays | Test-harness configuration is internal; the asserted output follows RH7101-007 | Asserted output unchanged | 0a31af4 |
+| 11 | Auditor 09 | Hint: stale comment in `CreateSplitField` | Route to the cleaner in repair round 1 | Comment the run's change made stale | Comment only | — |
+| 12 | Auditor 09 | Hints: wrapped declarator list continuation at member column; doc phase moving a doc-style comment that documents nothing onto its own line | Follow-up candidates (widen the existing line-break candidate; add the doc-phase one) | Pre-existing, outside both issues | Not changed in this run | — |
 | 2 | Lane | Lane for both issues | Bug fix; spec author runs for a clarification only | FMT-STRUCT-024 already demands both guards; triage recorded the lane | Unchanged requirement decides the output | — |
 
 ## Follow-up candidates
 
-- Line break between the type and the first declarator: a split gives `private int⏎_second;` with no continuation indent (`private int⏎        _g, _h;` → `private int⏎    _g;⏎    private int⏎    _h;`); whether that layout is intended is a formatter question. Source: 02-skeptic.md (#963, Follow-up candidates).
+- Line break between the type and the first declarator: a split gives `private int⏎_second;` with no continuation indent (`private int⏎        _g, _h;` → `private int⏎    _g;⏎    private int⏎    _h;`); whether that layout is intended is a formatter question. Source: 02-skeptic.md (#963, Follow-up candidates). Widened by 09-auditor.md: a wrapped declarator list that stays whole (now reached by documented and comment-guarded fields) puts its continuation line at the member column (`public int X,⏎    Y;`); locals do the same on main.
+- The documentation-comment phase moves a doc-style comment (`///`, `/** */`) that documents nothing onto its own line with a blank line in front, even inside a declaration (`private int /** c */ _first, _second;` → `private int⏎⏎/** c */ …`). Source: 09-auditor.md (hints).
 
 ## Worklist / next step
 
@@ -43,4 +46,4 @@
 - Test implementer 06 (0a31af4): disputed test corrected; RH7101 104/104 pass.
 - Cleaner 07 (8472a86): clean, Release 0 warnings.
 - Spec checker 08 (b6a5f22): consistent, no findings.
-- Next: auditor (09) on the head, base main SHA in prompt.
+- Auditor 09 (b0ec5cf) audited 4ad21a7 against main 026fb64: 1 high finding (#963): `///`/`/** */` behind the type on its line (Parse/Diagnose) is owned by the first declarator's leading trivia, so the split goes ahead against FMT-STRUCT-030 bullet 2 / RH7101-007; literal repair is not idempotent. Repair round 1 needs output question 2 — WAITING for maintainer.
