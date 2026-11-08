@@ -7,7 +7,7 @@
 | Code owners | `RegionFormattingPhase`, `RegionNamingRewriter`, `RegionDirectiveUtilities` |
 | Uses | FMT-PIPE-002, FMT-PIPE-005, FMT-TAB-002 |
 
-This spec covers the region phase: the capitalization of `#region` descriptions, the form of a `#region` line with a description, the `// Description` comment on the matching `#endregion`, the space in front of the text of an `#endregion` whose `#region` has no description, and the end of every region directive line, which ends at its text. The phase changes only the text of region directives; it never adds, removes, or moves one. Its requirements apply when a whole document or syntax tree is formatted.
+This spec covers the region phase: the capitalization of `#region` descriptions, the form of a `#region` line with a description, the `// Description` comment on the matching `#endregion`, the space in front of the text of an `#endregion` whose `#region` has no description, the start of every region directive line, where `#` and the keyword stand together, and the end of every region directive line, which ends at its text. The phase changes only the text of region directives; it never adds, removes, or moves one. Its requirements apply when a whole document or syntax tree is formatted.
 
 ## Non-goals
 
@@ -67,7 +67,7 @@ is left unchanged.
 
 ### FMT-REGION-002 — `#endregion` repeats the region description
 
-The formatter MUST write every `#endregion` whose `#region` has a description as `#endregion // <description>`, using the description of the matching `#region` after FMT-REGION-001. Whatever followed the `#endregion` keyword before — nothing, a different name, a different casing, `//` without a space, a block comment, or a bare word — MUST be replaced. This replacement is the normalization FMT-PIPE-002 allows for region names.
+The formatter MUST write every `#endregion` whose `#region` has a description as `#endregion // <description>`, using the description of the matching `#region` after FMT-REGION-001; whitespace between `#` and the `endregion` keyword is removed, as FMT-REGION-007 states for the `#region` line. Whatever followed the `#endregion` keyword before — nothing, a different name, a different casing, `//` without a space, a block comment, or a bare word — MUST be replaced. This replacement is the normalization FMT-PIPE-002 allows for region names.
 
 Why: A closing directive that names its region lets a reader see which block ends without scrolling up. The text after `#endregion` is a preprocessing message, not a comment the compiler keeps; it carries no information beyond the region name, so the formatter derives it from the `#region` instead of trusting a stale copy.
 
@@ -159,7 +159,7 @@ class C
 
 ### FMT-REGION-004 — Regions without a description keep their text
 
-The formatter MUST NOT add text to a `#region` without a description, and MUST NOT change the text after its matching `#endregion`. When that `#endregion` has text after it, the formatter MUST write exactly one space between the `endregion` keyword and the first character of that text, whatever whitespace stood there before, also when none stood there, and MUST remove whitespace behind that text. A `#region` without a description and an `#endregion` without text after it MUST be written as the bare keyword: whitespace behind `region` or `endregion` is removed, and a line that has none is left unchanged. This holds also for region directives inside a conditional-compilation branch the current build does not compile, and, as for FMT-REGION-007, for the directives the phase pairs (FMT-REGION-003).
+The formatter MUST NOT add text to a `#region` without a description, and MUST NOT change the text after its matching `#endregion`. When that `#endregion` has text after it, the formatter MUST write exactly one space between the `endregion` keyword and the first character of that text, whatever whitespace stood there before, also when none stood there, and MUST remove whitespace behind that text. A `#region` without a description and an `#endregion` without text after it MUST be written as the bare keyword: whitespace behind `region` or `endregion` is removed, and a line that has none is left unchanged. On each of these lines, whitespace between `#` and the keyword MUST be removed, as FMT-REGION-007 states for a `#region` with a description. This holds also for region directives inside a conditional-compilation branch the current build does not compile, and, as for FMT-REGION-007, for the directives the phase pairs (FMT-REGION-003).
 
 Why: There is no name to capitalize or to repeat. Removing or rewriting the text after the `#endregion` would change the only label the author wrote for the block. The whitespace in front of that label and behind it is layout, not part of it: the label gets the one space a `#region` line gets in front of its description, and every region line ends at its last character of text as a `#region` line ends at its description (FMT-REGION-007) — at the keyword when there is no text. The line reads the same whether or not its branch is compiled.
 
@@ -201,6 +201,30 @@ class C
 ```
 
 `#endregion//Stale` becomes `#endregion //Stale`: the text after the keyword is kept as written.
+
+Whitespace between `#` and the keyword is removed on both lines, and the label keeps its one space:
+
+```csharp
+class C
+{
+    # region
+
+    int _value;
+
+    #  endregion  note
+}
+```
+
+```csharp
+class C
+{
+    #region
+
+    int _value;
+
+    #endregion note
+}
+```
 
 A `#region` and an `#endregion` that are followed only by whitespace lose it:
 
@@ -326,9 +350,9 @@ class C
 
 ### FMT-REGION-007 — A `#region` line is `#region`, one space, and the description
 
-The formatter MUST write every `#region` that has a description as `#region`, exactly one space, and the trimmed description: whatever whitespace stood between the `region` keyword and the description — several spaces, or the four spaces a tab became under FMT-TAB-002 — becomes one space, and whitespace behind the description is removed. This holds whether or not FMT-REGION-001 changes the description's first character, and also for a `#region` inside a conditional-compilation branch the current build does not compile. It applies to the `#region` directives the phase pairs with an `#endregion` (FMT-REGION-003); a file with a region directive that has no partner is left unchanged as a whole (FMT-PIPE-005). A `#region` without a description is left as FMT-REGION-004 states.
+The formatter MUST write every `#region` that has a description as `#region`, exactly one space, and the trimmed description: whatever whitespace stood between `#` and the `region` keyword — spaces, or the four spaces a tab became under FMT-TAB-002 — is removed, whatever whitespace stood between the `region` keyword and the description — several spaces, or the four spaces a tab became under FMT-TAB-002 — becomes one space, and whitespace behind the description is removed. This holds whether or not FMT-REGION-001 changes the description's first character, and also for a `#region` inside a conditional-compilation branch the current build does not compile. It applies to the `#region` directives the phase pairs with an `#endregion` (FMT-REGION-003); a file with a region directive that has no partner is left unchanged as a whole (FMT-PIPE-005). A `#region` without a description is left as FMT-REGION-004 states.
 
-Why: The separator and the whitespace behind the description are layout, not part of the name: the description that FMT-REGION-001 and FMT-REGION-002 work with is trimmed. Writing the line form only when the name is rewritten made the output depend on whether the name happened to start with a lower-case letter — `#region    foo` became `#region Foo`, while `#region    Bar` kept its four spaces. One form for every `#region` line with a description matches the one form FMT-REGION-002 gives every `#endregion` behind it, and the line reads the same whether or not its branch is compiled.
+Why: The gap after `#`, the separator, and the whitespace behind the description are layout, not part of the name: the description that FMT-REGION-001 and FMT-REGION-002 work with is trimmed. Writing the line form only when the name is rewritten made the output depend on whether the name happened to start with a lower-case letter — `#region    foo` became `#region Foo`, while `#region    Bar` kept its four spaces. One form for every `#region` line with a description matches the one form FMT-REGION-002 gives every `#endregion` behind it, and the line reads the same whether or not its branch is compiled. A gap after `#` would give a described region line two forms, `#region Fields` and `# region Fields`.
 
 Example — `···` stands for three spaces at the end of the line:
 
@@ -395,6 +419,78 @@ class C
     #region Bar
     int a;
     #endregion // Bar
+#endif
+}
+```
+
+Whitespace between `#` and the keyword is removed on the `#region` line and on its `#endregion`, whether or not the description changes:
+
+```csharp
+class C
+{
+    # region fields
+
+    int _a;
+
+    #  endregion
+}
+```
+
+```csharp
+class C
+{
+    #region Fields
+
+    int _a;
+
+    #endregion // Fields
+}
+```
+
+A tab between `#` and `region` is four spaces after FMT-TAB-002 and is removed the same way; `→` stands for a tab:
+
+```csharp
+class C
+{
+    #→region Fields
+
+    int _a;
+
+    #endregion // Fields
+}
+```
+
+```csharp
+class C
+{
+    #region Fields
+
+    int _a;
+
+    #endregion // Fields
+}
+```
+
+The same holds in a branch the build does not compile:
+
+```csharp
+class C
+{
+#if false
+    # region fields
+    int a;
+    #  endregion
+#endif
+}
+```
+
+```csharp
+class C
+{
+#if false
+    #region Fields
+    int a;
+    #endregion // Fields
 #endif
 }
 ```
