@@ -89,10 +89,10 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether a switch section is empty (contains no statements)
+    /// Determines whether a switch section is empty (contains no statements other than <c>break</c>)
     /// </summary>
     /// <param name="section">The switch section to check</param>
-    /// <returns><see langword="true"/> if the section is empty; otherwise, <see langword="false"/></returns>
+    /// <returns><see langword="true"/> if the section holds no statement other than <c>break</c>; otherwise, <see langword="false"/></returns>
     private static bool IsEmptySection(SwitchSectionSyntax section)
     {
         return section.Statements.Any(statement => statement.IsKind(SyntaxKind.BreakStatement) == false) == false;
@@ -766,7 +766,7 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     /// Builds the rewritten sections for a switch statement, adding or removing braces as appropriate
     /// </summary>
     /// <param name="sections">The original switch sections</param>
-    /// <param name="anyMultiLine">Whether any non-fall-through section in the switch is multi-line</param>
+    /// <param name="anyMultiLine">Whether any section with a body, other than a <c>break</c>-only section, is multi-line</param>
     /// <returns>The rewritten sections</returns>
     private List<SwitchSectionSyntax> BuildSections(SyntaxList<SwitchSectionSyntax> sections, bool anyMultiLine)
     {
@@ -784,7 +784,7 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     /// Builds the rewritten form of a single switch section
     /// </summary>
     /// <param name="section">The original switch section</param>
-    /// <param name="anyMultiLine">Whether any non-fall-through section in the switch is multi-line</param>
+    /// <param name="anyMultiLine">Whether any section with a body, other than a <c>break</c>-only section, is multi-line</param>
     /// <returns>The rewritten section</returns>
     private SwitchSectionSyntax BuildSection(SwitchSectionSyntax section, bool anyMultiLine)
     {
