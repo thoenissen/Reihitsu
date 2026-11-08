@@ -26,6 +26,7 @@
 | 7 | Skeptic | Issue goals: #963 expression-body goals; #1384 change-doc goal | Drop both (moved to #1439; triage put #1384 in the bug-fix lane) | Triage decisions on the issues | Nothing visible dropped in this run | — |
 | 8 | Test implementer | #1384 expects the `///` instance "unchanged"; tests expect it unsplit with the one-line `<summary>` expanded | Accept | The expansion is the documentation-comment phase's existing output with or without a split (FMT-STRUCT-030's first example); the issue's purpose is the refused split | The expansion is today's unchanged output for an unsplit declaration | eb5c766 |
 | 9 | Test implementer | 9 FMT-PIPE-029 tests with a documented target deleted | Accept | No caller reaches a documented target once the split is refused (AGENTS.md, Supported inputs) | The entry point's caller (RH7101 fix) is withheld for those inputs | eb5c766 |
+| 10 | Implementer | Disputed test `FixAllSplitsOnlyTheDeclarationWithoutACommentInThePartEveryFieldRepeats` fails on markup handling, not on asserted output | Route to a fresh test implementer to fix the test's markup configuration; expected output stays | Test-harness configuration is internal; the asserted output follows RH7101-007 | Asserted output unchanged | — |
 | 2 | Lane | Lane for both issues | Bug fix; spec author runs for a clarification only | FMT-STRUCT-024 already demands both guards; triage recorded the lane | Unchanged requirement decides the output | — |
 
 ## Follow-up candidates
@@ -38,4 +39,5 @@
 - Skeptic done (02-skeptic.md, bd5c57c): both reproduced and reachable. Output question 1 (comment on own line in front of first declarator) asked; answered A.
 - Spec author amendment done (03-spec-author.md, 5af2226).
 - Test implementer done (04-test-implementer.md, eb5c766): both reproduced, 59 failing tests.
-- Next: implementer (05), incl. decision 5.
+- Implementer done (05-implementer.md, 1ac2927 production, 74e8fb1): all pass except one disputed test (markup handling).
+- Next: fresh test implementer (06) for the disputed test; then cleaner.
