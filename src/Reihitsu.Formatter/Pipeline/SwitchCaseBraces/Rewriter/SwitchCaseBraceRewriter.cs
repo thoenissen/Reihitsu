@@ -603,15 +603,18 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether any non-fall-through section in the switch spans multiple lines
+    /// Determines whether any section in the switch that has a body spans multiple lines. A fall-through section and a
+    /// section whose only statements are <see langword="break"/> statements never make the switch multi-line, whatever
+    /// their labels span (FMT-SWITCH-004, FMT-SWITCH-006)
     /// </summary>
     /// <param name="sections">The switch sections to inspect</param>
-    /// <returns><see langword="true"/> if at least one non-fall-through section is multi-line; otherwise, <see langword="false"/></returns>
+    /// <returns><see langword="true"/> if at least one section with a body is multi-line; otherwise, <see langword="false"/></returns>
     private static bool HasAnyMultiLineSection(SyntaxList<SwitchSectionSyntax> sections)
     {
         foreach (var section in sections)
         {
-            if (IsFallThroughSection(section))
+            if (IsFallThroughSection(section)
+                || IsEmptySection(section))
             {
                 continue;
             }
