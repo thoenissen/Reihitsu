@@ -12,6 +12,8 @@
 
 - (from issue thread, before the run) #1384: FMT-STRUCT-024 wins over FMT-STRUCT-022's example — a documented field declaration is not split; FMT-STRUCT-022's example is aligned in the same bug run, and the RH7101 tests change with it.
 
+- Output question 1 (#963, comment on its own line in front of the first declarator, i.e. in the first declarator's leading trivia): **A** — split as today; the comment stays in front of the first field only; the RH7101 fix is offered. FMT-STRUCT-030 and RH7101-007 must name this slot explicitly on the split side.
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
@@ -31,5 +33,5 @@
 ## Worklist / next step
 
 - Spec author done (01-spec-author.md, 41f8fc4): FMT-STRUCT-030, RH7101-007 added; FMT-STRUCT-022/024, FMT-PIPE-029/031, RH7101-004/006 aligned. No output questions.
-- Skeptic done (02-skeptic.md, bd5c57c): both reproduced and reachable. Output question 1 (comment on own line in front of first declarator) asked to the maintainer — WAITING.
-- Next after answer: spec author amends FMT-STRUCT-030 / RH7101-007 to name the first-declarator-leading-trivia slot on the answered side, and the RH7101 fix's duplicate doc check removal is routed to the implementer (decision 5); then test implementer.
+- Skeptic done (02-skeptic.md, bd5c57c): both reproduced and reachable. Output question 1 (comment on own line in front of first declarator) asked; answered A.
+- Next: spec author amends FMT-STRUCT-030 / RH7101-007 to name the first-declarator-leading-trivia slot on the answered side, and the RH7101 fix's duplicate doc check removal is routed to the implementer (decision 5); then test implementer.
