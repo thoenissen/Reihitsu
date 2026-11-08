@@ -85,4 +85,5 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 - Done: spec checker `21-spec-checker.md` (8d403ca) consistent.
 - Audit 3 at 45c37c5: findings, `22-auditor.md` (f787673): #3–#5 closed; #6, #7 repeat classes → decision 24; #8 → decision 25.
 - Done: test implementer `23-test-implementer.md` (1b40180): 8 tests red as intended.
-- Next: spec author (decision 26) → `25-spec-author.md` in parallel with implementer → `24-implementer.md`; cleaner; spec checker; auditor (audit 4); validator.
+- Done: spec author `25-spec-author.md` (9bc4acf); implementer 6b91450, `24-implementer.md` (1e41012): all tests pass.
+- Next: test implementer → `26-test-implementer.md` (split `_b` example + counterpart from 25-spec-author.md; SHARED-ORDER-007 tags on the two over-cap tests; pin the new withholding `public int P => 1` / `#if DEBUG ; static int _z = Log("z"); int Q => 2 #endif ;` from 24-implementer.md); cleaner; spec checker; auditor (audit 4); validator.
