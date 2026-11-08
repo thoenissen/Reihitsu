@@ -20,7 +20,8 @@ public class ReihitsuFormatterSplitsFieldDeclarationTests : FormatterTestsBase
 
     /// <summary>
     /// Source of the FMT-PIPE-031 example with a documented declaration, a declaration with a comment behind the type, one
-    /// with a comment in its first declarator's initializer, and one with a <c>/** */</c> comment behind the type
+    /// with a comment in its first declarator's initializer, one with a <c>/** */</c> comment behind the type, one with an
+    /// ordinary comment behind that <c>/** */</c> comment, and one with an ordinary comment in front of it
     /// </summary>
     private const string DocumentationAndCommentExample = """
                                                           class C
@@ -35,6 +36,10 @@ public class ReihitsuFormatterSplitsFieldDeclarationTests : FormatterTestsBase
                                                               private int _a = /* c */ 1, _b;
 
                                                               private int /** c */ _g, _h;
+
+                                                              private int /** c */ /* d */ _i, _j;
+
+                                                              private int /* d */ /** c */ _k, _l;
                                                           }
                                                           """;
 
@@ -141,9 +146,10 @@ public class ReihitsuFormatterSplitsFieldDeclarationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the spec example: when the documentation mode is Parse, the method returns false for a documented declaration and
-    /// for one with a comment behind the type, and true for one with a comment in its first declarator's initializer and for one
-    /// with a <c>/** */</c> comment behind the type, which belongs to the first declarator
+    /// Verifies the spec example: when the documentation mode is Parse, the method returns false for a documented declaration, for
+    /// one with a comment behind the type, and for one with an ordinary comment in front of a <c>/** */</c> comment behind the type,
+    /// and true for one with a comment in its first declarator's initializer, for one with a <c>/** */</c> comment behind the type,
+    /// and for one with an ordinary comment behind that <c>/** */</c> comment, both of which belong to the first declarator
     /// </summary>
     [TestMethod]
     [Requirement("FMT-PIPE-031")]
@@ -155,12 +161,14 @@ public class ReihitsuFormatterSplitsFieldDeclarationTests : FormatterTestsBase
         Assert.IsFalse(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_first")));
         Assert.IsTrue(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_a")));
         Assert.IsTrue(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_g")));
+        Assert.IsTrue(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_i")));
+        Assert.IsFalse(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_k")));
     }
 
     /// <summary>
     /// Verifies the spec example in the documentation mode None: the documentation-style comment is an ordinary comment, so the
     /// method returns true for the declaration it precedes, while the comment behind the type still keeps its declaration whole,
-    /// and so does the <c>/** */</c> comment behind the type, which is an ordinary comment as well
+    /// and so do the <c>/** */</c> comments behind the type, which are ordinary comments as well
     /// </summary>
     [TestMethod]
     [Requirement("FMT-PIPE-031")]
@@ -172,6 +180,8 @@ public class ReihitsuFormatterSplitsFieldDeclarationTests : FormatterTestsBase
         Assert.IsFalse(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_first")));
         Assert.IsTrue(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_a")));
         Assert.IsFalse(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_g")));
+        Assert.IsFalse(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_i")));
+        Assert.IsFalse(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_k")));
     }
 
     /// <summary>
@@ -287,6 +297,68 @@ public class ReihitsuFormatterSplitsFieldDeclarationTests : FormatterTestsBase
         var rootWithoutDocumentation = CSharpSyntaxTree.ParseText(source, CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None), cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
 
         Assert.IsFalse(ReihitsuFormatter.SplitsFieldDeclaration(FindField(rootWithoutDocumentation, "_x")));
+    }
+
+    /// <summary>
+    /// Verifies that the method returns true for a combined declaration with a comment that starts behind the first <c>///</c> or
+    /// <c>/** */</c> comment behind the type on the type's line, an ordinary comment included, in the documentation modes Parse
+    /// and Diagnose, where every such comment belongs to the first declarator, also when the first declarator starts the next
+    /// line, and false in the documentation mode None, where every comment behind the type on its line is trailing trivia of the
+    /// type
+    /// </summary>
+    /// <param name="declaration">The combined declaration with its comments</param>
+    [TestMethod]
+    [Requirement("FMT-PIPE-031")]
+    [DataRow("    private int /** c */ /* d */ _x, _y;")]
+    [DataRow("    private int /** c */ /* d */\n        _x, _y;")]
+    [DataRow("    private int /** c */ // d\n        _x, _y;")]
+    [DataRow("    private int /** c */ /* d\n       e */ _x, _y;")]
+    [DataRow("    private int /** c */ /** d */ _x, _y;")]
+    [DataRow("    private int /** c */ /* d */ /* e */ _x, _y;")]
+    [DataRow("    private int /// c\n        /* d */ _x, _y;")]
+    [DataRow("    private System.Collections.Generic.List<int> /** c */ /* d */ _x, _y;")]
+    [DataRow("    [System.Obsolete]\n    private int /** c */ /* d */ _x, _y;")]
+    public void ReturnsTrueForACommentBehindADocumentationStyleCommentBehindTheTypeUnlessDocumentationCommentsAreNotParsed(string declaration)
+    {
+        var source = $"class C\n{{\n{declaration}\n}}";
+
+        foreach (var documentationMode in new[] { DocumentationMode.Parse, DocumentationMode.Diagnose })
+        {
+            var root = CSharpSyntaxTree.ParseText(source, CSharpParseOptions.Default.WithDocumentationMode(documentationMode), cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
+
+            Assert.IsTrue(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_x")), $"Documentation mode {documentationMode}");
+        }
+
+        var rootWithoutDocumentation = CSharpSyntaxTree.ParseText(source, CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None), cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
+
+        Assert.IsFalse(ReihitsuFormatter.SplitsFieldDeclaration(FindField(rootWithoutDocumentation, "_x")));
+    }
+
+    /// <summary>
+    /// Verifies that the method returns false in every documentation mode for a combined declaration with an ordinary comment in
+    /// front of the first <c>///</c> or <c>/** */</c> comment behind the type on the type's line, which is trailing trivia of the
+    /// type, and for one with a <c>/** */</c> comment and an ordinary comment behind a modifier or behind an attribute list, which
+    /// are trivia of a token every field repeats
+    /// </summary>
+    /// <param name="declaration">The combined declaration with its comments</param>
+    [TestMethod]
+    [Requirement("FMT-PIPE-031")]
+    [DataRow("    private int /* d */ /** c */ _x, _y;")]
+    [DataRow("    private int /* d */ /** c */\n        _x, _y;")]
+    [DataRow("    private int /* d */ /// c\n        _x, _y;")]
+    [DataRow("    private int // d\n        /** c */ _x, _y;")]
+    [DataRow("    private /** c */ /* d */ int _x, _y;")]
+    [DataRow("    [System.Obsolete] /** c */ /* d */\n    private int _x, _y;")]
+    public void ReturnsFalseForAnOrdinaryCommentThatDoesNotFollowADocumentationStyleCommentBehindTheTypeInEveryDocumentationMode(string declaration)
+    {
+        var source = $"class C\n{{\n{declaration}\n}}";
+
+        foreach (var documentationMode in new[] { DocumentationMode.Parse, DocumentationMode.Diagnose, DocumentationMode.None })
+        {
+            var root = CSharpSyntaxTree.ParseText(source, CSharpParseOptions.Default.WithDocumentationMode(documentationMode), cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
+
+            Assert.IsFalse(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_x")), $"Documentation mode {documentationMode}");
+        }
     }
 
     /// <summary>

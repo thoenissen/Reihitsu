@@ -2510,6 +2510,296 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies the specification example: when the documentation mode is Parse, a comment that starts behind the first
+    /// <c>/** */</c> comment on the type's line belongs to the first declarator, an ordinary one included, so the first two
+    /// declarations are split with both comments in the first field only, while an ordinary comment in front of the
+    /// <c>/** */</c> comment is trailing trivia of the type and keeps the third declaration whole
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-030")]
+    [Requirement("FMT-STRUCT-022")]
+    public void SpecExampleCommentBehindTheFirstDocumentationStyleCommentOnTheTypesLineBelongsToTheFirstDeclarator()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int /** c */ /* d */ _first, _second;
+
+                                 private int /** c */ // d
+                                     _g, _h;
+
+                                 private int /* d */ /** c */ _a, _b;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private int
+
+                                    /** c */ /* d */ _first;
+                                    private int _second;
+
+                                    private int
+
+                                    /** c */ // d
+                                    _g;
+                                    private int _h;
+
+                                    private int /* d */
+
+                                    /** c */ _a, _b;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected, CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse));
+    }
+
+    /// <summary>
+    /// Verifies the specification example in the documentation mode None: every comment behind the type is trailing trivia of
+    /// the type, and none of the three declarations is split. The requirement decides only the split; the input writes the
+    /// declarators on the next line at the column the formatter gives a declaration that stays whole, so the rest of the layout
+    /// is a fixed point
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-030")]
+    public void SpecExampleCommentBehindTheFirstDocumentationStyleCommentOnTheTypesLineKeepsTheDeclarationUnsplitInDocumentationModeNone()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int /** c */ /* d */ _first, _second;
+
+                                 private int /** c */ // d
+                                 _g, _h;
+
+                                 private int /* d */ /** c */ _a, _b;
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input, parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None));
+    }
+
+    /// <summary>
+    /// Verifies that when the documentation mode is Diagnose, an ordinary comment behind a <c>/** */</c> comment on the type's
+    /// line, with the first declarator on the next line, belongs to the first declarator: the declaration is split and both
+    /// comments stay in the first field only
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-030")]
+    [Requirement("FMT-STRUCT-022")]
+    public void DelimitedCommentBehindADocumentationStyleCommentWithTheDeclaratorsOnTheNextLineStaysWithTheFirstFieldInDocumentationModeDiagnose()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int /** c */ /* d */
+                                     _first, _second;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private int
+
+                                    /** c */ /* d */
+                                    _first;
+                                    private int _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected, CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
+    }
+
+    /// <summary>
+    /// Verifies that when the documentation mode is Parse, a delimited comment that starts behind a <c>/** */</c> comment on the
+    /// type's line and spans lines belongs to the first declarator: the declaration is split and both comments stay in the first
+    /// field only
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-030")]
+    [Requirement("FMT-STRUCT-022")]
+    public void CommentThatSpansLinesBehindADocumentationStyleCommentStaysWithTheFirstField()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int /** c */ /* d
+                                    e */ _first, _second;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private int
+
+                                    /** c */ /* d
+                                       e */ _first;
+                                    private int _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected, CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse));
+    }
+
+    /// <summary>
+    /// Verifies that when the documentation mode is Parse, a second <c>/** */</c> comment behind the first one on the type's
+    /// line belongs to the first declarator as well: the declaration is split and both comments stay in the first field only
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-030")]
+    [Requirement("FMT-STRUCT-022")]
+    public void TwoDocumentationStyleCommentsBehindTheTypeStayWithTheFirstField()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int /** c */ /** d */ _first, _second;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private int
+
+                                    /** c */ /** d */ _first;
+                                    private int _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected, CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse));
+    }
+
+    /// <summary>
+    /// Verifies that when the documentation mode is Parse, an ordinary comment that starts on the line behind a <c>///</c>
+    /// comment behind the type belongs to the first declarator: the declaration is split and both comments stay in the first
+    /// field only
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-030")]
+    [Requirement("FMT-STRUCT-022")]
+    public void DelimitedCommentOnTheLineBehindASingleLineDocumentationStyleCommentStaysWithTheFirstField()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int /// c
+                                     /* d */ _first, _second;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private int
+
+                                    /// c
+                                    /* d */ _first;
+                                    private int _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected, CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse));
+    }
+
+    /// <summary>
+    /// Verifies that when the documentation mode is Parse, a delimited comment behind a <c>/** */</c> comment behind the type of
+    /// an attributed declaration belongs to the first declarator: the declaration is split, the attribute list and the type are
+    /// repeated without the comments, and both comments stay in the first field only
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-030")]
+    [Requirement("FMT-STRUCT-022")]
+    public void DelimitedCommentBehindADocumentationStyleCommentBehindTheTypeOfAnAttributedDeclarationStaysWithTheFirstField()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 [System.Obsolete]
+                                 private int /** c */ /* d */ _first, _second;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    [System.Obsolete]
+                                    private int
+
+                                    /** c */ /* d */ _first;
+                                    [System.Obsolete]
+                                    private int _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected, CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse));
+    }
+
+    /// <summary>
+    /// Verifies that when the documentation mode is Diagnose, a line comment behind a <c>/** */</c> comment behind a generic
+    /// type belongs to the first declarator: the declaration is split, the type is repeated without the comments, and both
+    /// comments stay in the first field only
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-030")]
+    [Requirement("FMT-STRUCT-022")]
+    public void LineCommentBehindADocumentationStyleCommentBehindAGenericTypeStaysWithTheFirstFieldInDocumentationModeDiagnose()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private System.Collections.Generic.List<int> /** c */ // d
+                                     _first, _second;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private System.Collections.Generic.List<int>
+
+                                    /** c */ // d
+                                    _first;
+                                    private System.Collections.Generic.List<int> _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected, CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
+    }
+
+    /// <summary>
+    /// Verifies that when the documentation mode is Parse, an ordinary comment in front of the first <c>///</c> or <c>/** */</c>
+    /// comment behind the type, or a run of a <c>/** */</c> and an ordinary comment behind a modifier or an attribute list, stands
+    /// in the part every field repeats and keeps the declaration whole. The requirement decides only that the declaration stays
+    /// one declaration, so the test asserts that and a stable second pass
+    /// </summary>
+    /// <param name="declaration">The combined declaration with its comments</param>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-030")]
+    [DataRow("    private int /* d */ /** c */\n        _a, _b;")]
+    [DataRow("    private int /* d */ /// c\n        _a, _b;")]
+    [DataRow("    private int // d\n        /** c */ _a, _b;")]
+    [DataRow("    private /** c */ /* d */ int _a, _b;")]
+    [DataRow("    [System.Obsolete] /** c */ /* d */\n    private int _a, _b;")]
+    public void OrdinaryCommentThatDoesNotFollowADocumentationStyleCommentOnTheTypesLineKeepsTheDeclarationUnsplit(string declaration)
+    {
+        // Act & Assert
+        AssertDeclarationIsNotSplit($"class C\n{{\n{declaration}\n}}", "_a");
+    }
+
+    /// <summary>
     /// Formats the input under LF and CRLF line endings, verifies that a second pass is stable, and that the field declaration that
     /// declares the named variable keeps every declarator it has in the input
     /// </summary>
