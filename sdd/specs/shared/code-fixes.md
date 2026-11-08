@@ -1100,12 +1100,12 @@ A code fix MUST NOT work out what another build configuration compiles in order 
 
 A fix that reads the text of an excluded branch MUST read it so that the reading can only withhold: what an excluded branch holds never makes the fix offer a change that it would not offer without that branch.
 
-- It reads only what the branch holds whole — whole member declarations, whole statements, whole attribute lists or accessors, or the names in the branch — and counts each of them as present at its position, in every build, whether or not some build compiles it together with the code around it, such as a member that SHARED-ORDER-007 counts or a name that SHARED-FIX-003's RH4106 example looks for.
+- It reads only what the branch holds whole — whole member declarations, whole statements, whole attribute lists or accessors, or the names or modifier keywords in the branch — and counts each of them as present at its position, in every build, whether or not some build compiles it together with the code around it, such as a member that SHARED-ORDER-007 counts or a name that SHARED-FIX-003's RH4106 example looks for.
 - When its safety would depend on what an excluded branch makes of code outside it — a modifier, a type, an initializer, an accessor, or a body that the branch shares with code outside it, a brace that the branch opens or closes for code outside it, or a conditional group that a branch of another group holds — the fix is withheld.
 
 A fix decides which conditional directives withhold it from where the directives stand in the syntax tree — the token whose leading trivia holds each directive, and the construct that token begins or ends — never from their conditions. A directive whose place that test does not classify withholds the fix.
 
-A fix that reads no excluded code, and that leaves every conditional directive and its line in place, is governed by SHARED-FIX-003 and SHARED-DIAG-008 alone; this requirement adds nothing to it, such as RH2001's fix for a conditional directive between two modifiers that keep their order (RH2001-009).
+A fix that reads no excluded code, and that leaves every conditional directive and its line in place, is governed by SHARED-FIX-003 and SHARED-DIAG-008 alone; this requirement adds nothing to it. RH2001's fix reads the modifiers in the branches of a conditional group between a property's modifiers, and only to withhold: a branch that holds anything but the modifiers RH2001-009 names withholds the fix.
 
 Each rule's spec states which conditional directives withhold its fix; for the member reordering fixes, this is SHARED-ORDER-008.
 

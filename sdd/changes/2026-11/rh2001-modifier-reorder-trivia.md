@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | RH2001-004 (changed), RH2001-009 (added) |
+| Affected requirements | RH2001-004 (changed), RH2001-009 (added), SHARED-FIX-009 (changed) |
 
 ## What
 
@@ -12,6 +12,7 @@
 - **A comment or directive that a reordered modifier would cross withholds the fix** (RH2001-009). A comment or directive between modifiers that keep their order keeps its place, and the fix stays available.
 - **`readonly` goes behind a comment that stands at its place** (RH2001-009): between the modifiers RH7105 puts in front of it and those it puts behind it, or in front of the type when none follows it.
 - **`readonly` goes behind a conditional group of modifiers that stands at its place** (RH2001-009): when the group's branches hold only modifiers RH7105 puts in front of `readonly`, it is written behind the group's `#endif`, so it stands at its place in every build.
+- **A conditional group of other modifiers withholds the fix** (RH2001-009): a conditional group between the modifiers, or between the last modifier and the type, whose branches hold anything but `public`, `private`, `protected`, `internal`, `new`, and `static` — such as `extern`, `readonly`, or `unsafe` — withholds the fix; the diagnostic stays. SHARED-FIX-009 names RH2001's fix as one that reads the modifiers in excluded branches, only to withhold.
 
 ## Why
 
@@ -146,6 +147,39 @@ public class C
 }
 ```
 
+A conditional group that holds another modifier, measured with `scripts/apply-fix.sh` at `3578f98e` (`main`), LF and CRLF alike:
+
+```csharp
+public class C
+{
+    private
+#if DEBUG
+        extern
+#endif
+        int Value { get; }
+}
+```
+
+Before (`main`):
+
+```csharp
+public class C
+{
+    private
+    readonly
+#if DEBUG
+        extern
+#endif
+    int _value;
+}
+```
+
+A build with `DEBUG` declares an `extern` field, which C# rejects.
+
+After: no fix offered; the diagnostic stays.
+
+The same holds for `readonly` in the group, in a struct: `main` writes `readonly` in front of the group, and a build with `DEBUG` has it twice. With `unsafe` in the group, `main` writes `private` / `readonly` / the group / `int _value;`, which is valid in every build; the fix is now withheld there as well.
+
 ## Decisions
 
 ### A comment that a reordered modifier would cross withholds the fix
@@ -166,7 +200,11 @@ The maintainer's answer (2026-11-08, question 2, option A). The line break came 
 
 ### `readonly` goes behind a conditional group of modifiers at its place
 
-The lead's decision 36 under the maintainer's standing answer (recommended option). When the place of `readonly` lies directly behind a conditional group whose branches hold only modifiers that RH7105-001 puts in front of `readonly` (`static` above), `readonly` is written behind the group's `#endif` (RH2001-009). It then stands at its RH7105 place in every build — `private static readonly` with `DEBUG`, `private readonly` without — as batch 2's "`readonly` at its place" does for a comment. `main` writes it in front of the group, which puts it in front of `static` in the `DEBUG` build. A conditional group that holds a modifier RH7105 puts behind `readonly` stays outside RH2001-009.
+The lead's decision 36 under the maintainer's standing answer (recommended option). When the place of `readonly` lies directly behind a conditional group whose branches hold only modifiers that RH7105-001 puts in front of `readonly` (`static` above), `readonly` is written behind the group's `#endif` (RH2001-009). It then stands at its RH7105 place in every build — `private static readonly` with `DEBUG`, `private readonly` without — as batch 2's "`readonly` at its place" does for a comment. `main` writes it in front of the group, which puts it in front of `static` in the `DEBUG` build. A conditional group that holds any other modifier withholds the fix (below).
+
+### A conditional group of other modifiers withholds the fix
+
+The lead's decision 40 under the maintainer's standing answer, on a hint of the run's fifth audit: `main`'s fix, and this change before the decision, breaks the build that compiles a group holding `extern` (an `extern` field) or, in a struct, `readonly` (`readonly` twice). A group whose branches hold only modifiers that RH7105-001 puts in front of `readonly` and that a field can carry — the accessibility keywords, `new`, and `static` — keeps the fix and the placement above. Every other group withholds it, also `unsafe`, where `main`'s output is valid: one set of keywords decides every group, which keeps the check to a comparison of tokens, and the fix does not work out which modifiers the field carries in each build (SHARED-FIX-009; `AGENTS.md`, *Special cases do not grow the source*).
 
 ## Alternatives considered
 
@@ -178,3 +216,4 @@ The lead's decision 36 under the maintainer's standing answer (recommended optio
 - **Keep the line break below the blank line** — rejected by the maintainer's answer (option B).
 - **Write `readonly` in front of the conditional group** (`main`'s output) — rejected by decision 36: in the builds that define the group's symbol it stands in front of `static`, out of RH7105's order.
 - **Write `readonly` inside the conditional group's branch** — rejected: the field would be `readonly` only in the builds that include that branch.
+- **Withhold only for the modifiers that break a build (`extern`, `readonly`) and place `readonly` in front of a group of modifiers RH7105 puts behind it, such as `unsafe`** — rejected by decision 40: each further modifier would need its own case, and the shape is rare.
