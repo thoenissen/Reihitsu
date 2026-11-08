@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Organization;
-using Reihitsu.Core;
 using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Organization;
@@ -90,11 +89,9 @@ public class RH7101DoNotCombineFieldsCodeFixProvider : CodeFixProvider
 
     /// <summary>
     /// Gets the field declaration of a diagnostic when the fix is offered for it: only where the formatter splits the
-    /// declaration, because the fix splits it only by formatting it; elsewhere, such as for a declaration with a directive,
-    /// it would change nothing (RH7101-005). A declaration with a documentation comment in its leading trivia is not fixed
-    /// either, although the formatter splits it: the split keeps the comment on the first field only, so the other fields
-    /// would lose their documentation (RH7101-006). The parser reads documentation comments only in the documentation
-    /// modes <c>Parse</c> and <c>Diagnose</c>, so in the mode <c>None</c> such a comment does not withhold the fix
+    /// declaration, because the fix splits it only by formatting it, and elsewhere it would change nothing. The formatter
+    /// alone decides that, so a declaration it keeps whole — one with a directive, a documentation comment, or a comment in
+    /// the part every field would repeat — is reported without a fix (FMT-PIPE-031, RH7101-005, RH7101-006, RH7101-007)
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="diagnostic">Diagnostic</param>
@@ -109,7 +106,6 @@ public class RH7101DoNotCombineFieldsCodeFixProvider : CodeFixProvider
                                .FirstOrDefault();
 
         return fieldDeclaration != null
-               && fieldDeclaration.GetLeadingTrivia().Any(SyntaxTriviaUtilities.IsDocumentationCommentTrivia) == false
                && ReihitsuFormatter.SplitsFieldDeclaration(fieldDeclaration);
     }
 

@@ -48,8 +48,8 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
 
     /// <summary>
     /// Determines whether the transform splits the field declaration: it declares more than one variable, is a member of a
-    /// class, struct, record, or interface, and carries no preprocessor directive or disabled text (FMT-STRUCT-021,
-    /// FMT-STRUCT-023)
+    /// class, struct, record, or interface, carries no preprocessor directive or disabled text, has no documentation comment,
+    /// and has no comment in the part every generated field repeats (FMT-STRUCT-021, FMT-STRUCT-023, FMT-STRUCT-030)
     /// </summary>
     /// <param name="fieldDeclaration">The field declaration to inspect</param>
     /// <returns><see langword="true"/> if the transform splits the declaration; otherwise, <see langword="false"/></returns>
@@ -57,7 +57,54 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     {
         return fieldDeclaration.Declaration.Variables.Count > 1
                && fieldDeclaration.Parent is ClassDeclarationSyntax or StructDeclarationSyntax or RecordDeclarationSyntax or InterfaceDeclarationSyntax
-               && CarriesDirective(fieldDeclaration) == false;
+               && CarriesDirective(fieldDeclaration) == false
+               && IsDocumented(fieldDeclaration) == false
+               && CarriesCommentInRepeatedPart(fieldDeclaration) == false;
+    }
+
+    /// <summary>
+    /// Determines whether a field declaration has a documentation comment in its leading trivia. The split keeps that trivia
+    /// on the first generated field only, so every other field would lose the documentation that applied to it. The parser
+    /// produces documentation comment trivia only in the documentation modes <c>Parse</c> and <c>Diagnose</c>; in the mode
+    /// <c>None</c>, a <c>///</c> or <c>/** */</c> comment is an ordinary comment and does not count (FMT-STRUCT-030)
+    /// </summary>
+    /// <param name="fieldDeclaration">The field declaration to inspect</param>
+    /// <returns><see langword="true"/> if the declaration is documented; otherwise, <see langword="false"/></returns>
+    private static bool IsDocumented(FieldDeclarationSyntax fieldDeclaration)
+    {
+        return fieldDeclaration.GetLeadingTrivia().Any(SyntaxTriviaUtilities.IsDocumentationCommentTrivia);
+    }
+
+    /// <summary>
+    /// Determines whether a comment stands between the declaration's first token and its first declarator: inside or behind
+    /// an attribute list, between modifiers, between a modifier and the type, inside the type, or behind the type's last
+    /// token. Every generated field repeats these tokens with their trivia, so the comment would be copied onto every field.
+    /// The declaration's leading trivia is not part of it, and neither is the first declarator's own leading trivia — a
+    /// comment that starts on a line after the type, in front of the first name — which stays with the first field only
+    /// (FMT-STRUCT-030)
+    /// </summary>
+    /// <param name="fieldDeclaration">The field declaration to inspect</param>
+    /// <returns><see langword="true"/> if a comment stands in the repeated part; otherwise, <see langword="false"/></returns>
+    private static bool CarriesCommentInRepeatedPart(FieldDeclarationSyntax fieldDeclaration)
+    {
+        var firstToken = fieldDeclaration.GetFirstToken();
+        var firstDeclaratorToken = fieldDeclaration.Declaration.Variables[0].GetFirstToken();
+
+        foreach (var token in fieldDeclaration.DescendantTokens())
+        {
+            if (token == firstDeclaratorToken)
+            {
+                break;
+            }
+
+            if ((token != firstToken && token.LeadingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia))
+                || token.TrailingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
