@@ -108,4 +108,5 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 - Done: test implementer `44-test-implementer.md` (5295d539): 10 tests red against head.
 - Done: implementer `45-implementer.md` (037c4703): all tests pass; production diff vs main +643/−69 (this round net +58, mostly RH2001 decision 40).
 - Done: cleaner `46-cleaner.md` (f568ebb1) clean.
-- Repair round 2 of 3: spec checker → `47-spec-checker.md`; auditor (repair only); validator.
+- Done: spec checker `47-spec-checker.md` (b7b8da71) consistent.
+- Repair round 2 of 3: auditor (audit 6, repair only) → `48-auditor.md`; validator.
