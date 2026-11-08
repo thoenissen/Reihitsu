@@ -1201,7 +1201,7 @@ y";
 
 ### FMT-BLANK-016 — A required blank line goes after directives, never directly in front of one
 
-When the formatter inserts a blank line that FMT-BLANK-001 to FMT-BLANK-005 ask for into a gap that holds a preprocessor directive, it MUST insert the blank line after the last directive of the gap, in front of the comments that stand between that directive and the code behind it, and it MUST NOT insert a blank line directly in front of a directive. Whether such a gap needs the blank line at all is decided by the requirement that asks for it, together with FMT-BLANK-006 for a directive directly in front of a statement. This requirement covers only the blank lines the formatter inserts; a blank line the author wrote in front of a directive is decided by the other requirements, such as FMT-BLANK-009.
+When the formatter inserts a blank line that FMT-BLANK-001 to FMT-BLANK-005 ask for into a gap that holds a preprocessor directive, it MUST insert the blank line after the last directive of the gap, in front of the comments that stand between that directive and the code behind it, and it MUST NOT insert a blank line directly in front of a directive. This holds for every gap in front of a statement, whichever of these requirements asks for the blank line: the gap in front of a compound or jump statement (FMT-BLANK-001), a local declaration or the statement behind one (FMT-BLANK-002), a `yield` statement (FMT-BLANK-003), the statement behind a `break` (FMT-BLANK-004), and the statement behind a closing brace (FMT-BLANK-005), also when the gap holds a whole conditional group, with the disabled text between its directives. Whether such a gap needs the blank line at all is decided by the requirement that asks for it, together with FMT-BLANK-006 for a directive directly in front of a statement. This requirement covers only the blank lines the formatter inserts; a blank line the author wrote in front of a directive is decided by the other requirements, such as FMT-BLANK-009.
 
 Why: A directive opens or closes a conditional region, or changes the compiler's state for the code behind it. A blank line inserted in front of it lands inside the region of the directive above, or separates the directive from code the author grouped with it. Behind the last directive, the blank line separates what the requirement asks it to separate: the code that follows, with the comments that describe it, from what comes before.
 
@@ -1273,6 +1273,95 @@ class C
 
         // why
         a++;
+    }
+}
+```
+
+A gap that holds a conditional group whose branch the build does not compile gets the blank line after its `#endif`, in front of the comment that leads the `if` statement (FMT-BLANK-001):
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        a++;
+#if NEVER
+        a--;
+#endif
+        // why
+        if (a > 0)
+        {
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        a++;
+#if NEVER
+        a--;
+#endif
+
+        // why
+        if (a > 0)
+        {
+        }
+    }
+}
+```
+
+The blank line in front of a local declaration (FMT-BLANK-002) and the one behind a `break` (FMT-BLANK-004) go after the directive, in front of the comment that leads the statement; the `while` statement directly behind `#endif` gets none (FMT-BLANK-006):
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        a++;
+#if !NEVER
+        // setup
+        var b = a;
+#endif
+        while (a > 0)
+        {
+            break;
+#if !NEVER
+            // scope
+            {
+                a++;
+            }
+#endif
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        a++;
+#if !NEVER
+
+        // setup
+        var b = a;
+#endif
+        while (a > 0)
+        {
+            break;
+#if !NEVER
+
+            // scope
+            {
+                a++;
+            }
+#endif
+        }
     }
 }
 ```

@@ -322,9 +322,9 @@ class C
 
 ### FMT-SWITCH-004 — A multi-line delimited pattern in a label makes a section multi-line
 
-A section MUST count as multi-line when one of its labels contains a property (recursive), list, or parenthesized pattern that spans more than one line. A label that spans several lines only because a combinator chain (`or`, `and`) or a `when` clause wraps MUST NOT make the section multi-line.
+A section MUST count as multi-line when one of its labels contains a property (recursive), list, or parenthesized pattern that spans more than one line. A label that spans several lines only because a combinator chain (`or`, `and`) or a `when` clause wraps MUST NOT make the section multi-line. FMT-SWITCH-006 takes precedence over this requirement: a section whose only statements are `break` statements MUST NOT make the switch multi-line, whatever its labels span, and it stays unbraced when another section braces the switch.
 
-Why: A pattern whose braces or brackets open and close on different lines is a block-like structure in the label; a braced body below it keeps the section's start and its body visually apart. A wrapped `when` condition or `or` chain is a long expression, not a nested structure, and does not change how the body reads.
+Why: A pattern whose braces or brackets open and close on different lines is a block-like structure in the label; a braced body below it keeps the section's start and its body visually apart. A wrapped `when` condition or `or` chain is a long expression, not a nested structure, and does not change how the body reads. A section that only breaks has no body to set apart from its label (FMT-SWITCH-006), so its label alone does not brace the switch.
 
 Example:
 
@@ -392,6 +392,80 @@ class C
 
             case 2:
                 B();
+                break;
+        }
+    }
+}
+```
+
+A section with a multi-line property pattern whose only statement is `break` does not make the switch multi-line, so this switch is left unchanged:
+
+```csharp
+class C
+{
+    void M(object o)
+    {
+        switch (o)
+        {
+            case Point
+                 {
+                     X: 1,
+                     Y: 2
+                 }:
+                break;
+
+            case string s:
+                B();
+                break;
+        }
+    }
+}
+```
+
+When another section is multi-line, the switch is braced, and the `break`-only section stays bare (FMT-SWITCH-006):
+
+```csharp
+class C
+{
+    void M(object o)
+    {
+        switch (o)
+        {
+            case Point
+                 {
+                     X: 1,
+                     Y: 2
+                 }:
+                break;
+
+            case string s:
+                A();
+                B();
+                break;
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(object o)
+    {
+        switch (o)
+        {
+            case Point
+                 {
+                     X: 1,
+                     Y: 2
+                 }:
+                break;
+
+            case string s:
+                {
+                    A();
+                    B();
+                }
                 break;
         }
     }
