@@ -59,7 +59,7 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 ## Follow-up candidates
 
 - RH7102 analyzer ignores regions: reports a constant in `#region Constants` after a field in `#region Fields`, against RH7102-001/-003; `NoCodeFixWhenDirectivesAreInLeadingTrivia` hides it (01-skeptic.md, #1595).
-- Member-moving fixes (RH7102, RH7103, RH7109; `TypeMemberOrderingCodeFixProviderBase.cs:98-108`) format the whole type after the move: an unmoved expression-bodied method becomes a block body (SHARED-FIX-006); a line break inside the moved member is joined (SHARED-FIX-007 *Moved code*); the column of a moved continuation line after `#endif` changes (open reading of *Moved code*, carries an output question; related #953) (02-spec-author.md, 03-skeptic.md).
+- Member-moving fixes (RH7102, RH7103, RH7109; `TypeMemberOrderingCodeFixProviderBase.cs:98-108`) format the whole type after the move: an unmoved expression-bodied method becomes a block body (SHARED-FIX-006); a line break inside the moved member is joined (SHARED-FIX-007 *Moved code*); the column of a moved continuation line after `#endif` changes (open reading of *Moved code*, carries an output question; related #953); a blank line in front of a crossed member moves inside an active `#else` branch (02-spec-author.md, 03-skeptic.md, 26-test-implementer.md).
 - RH2001 analyzer with an `#if` between the property's modifiers (fixtures p, d): reported today; whether SHARED-DIAG-008 forbids the report is undecided for RH2001 (05-test-implementer.md).
 - RH7102: a `const` whose initializer (not its modifiers) holds `#if` — RH7102-001 excludes it from reporting; unchecked whether it is reported today (05-test-implementer.md).
 - Other modifier-judging analyzers (RH7105, RH7106, RH7109, and the non-constant field RH7102 compares against) may still report when `#if` splits the judged modifiers (SHARED-DIAG-008); unchecked (06-implementer.md). Includes a conditional group ending directly before the first modifier that switches accessibility (`#if X` / `protected` / `#endif` / `internal static void M()`) (11-spec-author.md).
@@ -86,4 +86,5 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 - Audit 3 at 45c37c5: findings, `22-auditor.md` (f787673): #3–#5 closed; #6, #7 repeat classes → decision 24; #8 → decision 25.
 - Done: test implementer `23-test-implementer.md` (1b40180): 8 tests red as intended.
 - Done: spec author `25-spec-author.md` (9bc4acf); implementer 6b91450, `24-implementer.md` (1e41012): all tests pass.
-- Next: test implementer → `26-test-implementer.md` (split `_b` example + counterpart from 25-spec-author.md; SHARED-ORDER-007 tags on the two over-cap tests; pin the new withholding `public int P => 1` / `#if DEBUG ; static int _z = Log("z"); int Q => 2 #endif ;` from 24-implementer.md); cleaner; spec checker; auditor (audit 4); validator.
+- Done: test implementer `26-test-implementer.md` (ef74ba2).
+- Next: int Q => 2 #endif ;` from 24-implementer.md); cleaner; spec checker; auditor (audit 4); validator.
