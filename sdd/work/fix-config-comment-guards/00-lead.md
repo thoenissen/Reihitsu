@@ -22,6 +22,8 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 ## Maintainer answers
 
 - Batch 1 (2026-11-08), #1616 RH2001: Q1 comment between two modifiers the fix reorders (`static /* a */ private int Value { get; }`) → **A**: no fix offered, diagnostic stays; only where the reorder moves a modifier across the comment (already-ordered `private /* a */ static` keeps its fix). Q2 blank line above a reordered property → **A**: modifiers on one line (`private static readonly int _value;`), blank line kept above.
+- Batch 2 (2026-11-08), #1616 RH2001: `readonly` next to a comment behind the modifiers (`static private /* a */`, `private static /* b */`, `private /* c */ unsafe`) → **A**: `readonly` behind the comment everywhere; only `static private /* a */` changes (`private static /* a */ readonly int _first;`). The change doc lists it under *Visible output changes*.
+- Standing answer (2026-11-08): the maintainer takes the recommended option for every further output question of this run. Each such question is still recorded here and its result stated in the PR.
 
 ## Decisions taken
 
@@ -54,6 +56,7 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 - Done: output questions batch 1 answered (1A, 2A).
 - Done: spec author `02-spec-author.md` (ade7768); open output question: RH2001 `static private /* a */ int Value { get; }` placement of `readonly` (A recommended).
 - Done: skeptic on spec diff `03-skeptic.md` (6340a92).
-- Now: output questions batch 2 (RH2001 `readonly` next to a comment, skeptic's form replaces the spec author's) — waiting.
+- Done: output questions batch 2 answered (A; standing answer: recommended for all further).
+- Now: spec author amendment → `04-spec-author.md`.
 - Next: spec author amendment (decisions 12–14 + answer; change doc lists the visible change), accept change doc, test implementer.
 - Next: spec author (clarifications D5, D7 outcome, RH2001 spec after answers) → test implementer.
