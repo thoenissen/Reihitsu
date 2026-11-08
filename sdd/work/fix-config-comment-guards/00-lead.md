@@ -92,4 +92,5 @@ Widened to behavior change (decision 10); originally bug fix. Roles: spec author
 - Done: implementer 6d1e583c, `37-implementer.md` (776c06db): all tests pass; Core diff vs main: OrderingDeclarationUtilities.cs +357/−7 (227 code lines, ~15 of them decision 16), OrderedMember.cs gone. Spec author `38-spec-author.md` (1973b10a).
 - Done: test implementer `39-test-implementer.md` (7fea4ca3).
 - Done: cleaner `40-cleaner.md` (93896eb3) clean.
-- Next: spec checker → `41-spec-checker.md`; auditor (audit 5) → `42-auditor.md`; validator.
+- Done: spec checker `41-spec-checker.md` (4f4d8243) consistent.
+- Next: auditor (audit 5) → `42-auditor.md`; validator.
